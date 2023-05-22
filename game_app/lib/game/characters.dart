@@ -1,0 +1,1 @@
+enum CharacterType { wizard, rogue }
