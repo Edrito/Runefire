@@ -11,6 +11,7 @@ class GameHud extends Component {
   GameHud(this.player);
   int fps = 0;
   late final TextComponent fpsCounter;
+  final double width = 100;
 
   @override
   FutureOr<void> onLoad() {
@@ -35,13 +36,15 @@ class GameHud extends Component {
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect((const Offset(10, 10) & const Size(100, 10)),
-        Paint()..color = Colors.grey);
-    canvas.drawRect((const Offset(10, 25) & const Size(100, 10)),
-        Paint()..color = Colors.grey);
-    canvas.drawRect((const Offset(10, 10) & const Size(50, 10)),
+    canvas.drawRect(
+        (const Offset(10, 10) & Size(width, 10)), Paint()..color = Colors.grey);
+    canvas.drawRect(
+        (const Offset(10, 25) & Size(width, 10)), Paint()..color = Colors.grey);
+    canvas.drawRect(
+        (const Offset(10, 10) &
+            Size(width * (player.health / player.maxHealth), 10)),
         Paint()..color = Colors.red);
-    canvas.drawRect((const Offset(10, 25) & const Size(70, 10)),
+    canvas.drawRect((const Offset(10, 25) & const Size(10, 10)),
         Paint()..color = Colors.yellow);
     super.render(canvas);
   }

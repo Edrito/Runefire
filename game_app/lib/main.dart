@@ -10,13 +10,34 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Flame.device.setLandscape();
+  runApp(
+    ProviderScope(
+      child: Consumer(
+        builder: (context, ref, _) {
+          // Game currentGame = getCurrentGameClass(ref.watch(currentGameStateProvider));
+          currentGame = GameplayGame();
 
-  runApp(ProviderScope(child: Consumer(builder: (context, ref, _) {
-    // Game currentGame = getCurrentGameClass(ref.watch(currentGameStateProvider));
-    currentGame = GameplayGame();
-
-    return GameWidget(
-      game: currentGame,
-    );
-  })));
+          return GameWidget(
+            game: currentGame,
+            overlayBuilderMap: {
+              'PauseMenu': (context, _) {
+                return Center(
+                  child: SizedBox.square(
+                    dimension: 100,
+                    child: ElevatedButton(
+                      child: const Text("Resume"),
+                      onPressed: () {
+                        currentGame.overlays.remove('PauseMenu');
+                        currentGame.resumeEngine();
+                      },
+                    ),
+                  ),
+                );
+              },
+            },
+          );
+        },
+      ),
+    ),
+  );
 }
