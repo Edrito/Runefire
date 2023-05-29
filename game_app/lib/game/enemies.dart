@@ -11,18 +11,19 @@ import '../functions/functions.dart';
 
 class Enemy extends Entity with ContactCallbacks {
   Enemy(
-    Vector2 initPosition,
-    this.enemyType,
-  ) : super(
+      {required Vector2 initPosition,
+      required this.enemyType,
+      required this.id})
+      : super(
           file: enemyType.getFilename(),
           entityType: EntityType.enemy,
           position: initPosition,
         ) {
-    invincibiltyDuration = 0;
+    invincibiltyDuration = .0;
   }
 
   EnemyType enemyType;
-
+  String id;
   @override
   Future<void> onDeath() async {
     spriteComponent.add(OpacityEffect.fadeOut(
@@ -57,7 +58,7 @@ class Enemy extends Entity with ContactCallbacks {
   @override
   void update(double dt) {
     if (hittingPlayer) {
-      gameRef.player.hit(hashCode, 3);
+      gameRef.player.takeDamage(id, 3);
     }
     body.applyForce(
         (gameRef.player.center - body.position).normalized() * maxSpeed);
@@ -74,7 +75,7 @@ class Enemy extends Entity with ContactCallbacks {
   double invincibiltyDuration = 0;
 
   @override
-  double maxHealth = 10;
+  double maxHealth = 100;
 
   @override
   double maxSpeed = 150;
@@ -82,16 +83,18 @@ class Enemy extends Entity with ContactCallbacks {
 
 class EnemyManagement extends Component with HasGameRef<GameplayGame> {
   double lastEnemySpawn = 0;
-
+  int enemiesSpawned = 0;
   @override
   void update(double dt) {
-    if (lastEnemySpawn > .05) {
+    if (lastEnemySpawn > .5) {
+      const enemyType = EnemyType.flameHead;
       add(Enemy(
-          generateRandomGamePositionUsingViewport(
+          initPosition: generateRandomGamePositionUsingViewport(
             false,
             gameRef,
           ),
-          EnemyType.flameHead));
+          enemyType: enemyType,
+          id: (enemiesSpawned++).toString() + enemyType.name));
       lastEnemySpawn = 0;
     }
     lastEnemySpawn += dt;

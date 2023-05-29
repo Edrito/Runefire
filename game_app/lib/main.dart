@@ -8,8 +8,10 @@ import 'game/games.dart';
 void main() async {
   GameplayGame currentGame;
   WidgetsFlutterBinding.ensureInitialized();
-
   await Flame.device.setLandscape();
+
+  await Flame.device.fullScreen();
+
   runApp(
     ProviderScope(
       child: Consumer(

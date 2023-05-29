@@ -17,11 +17,14 @@ abstract class Entity extends BodyComponent<GameplayGame> {
 
   EntityType entityType;
 
+  int targetsHomingEntity = 0;
+  int maxTargetsHomingEntity = 5;
+
   double damageTaken = 0;
   double durationSinceHit = 0;
   String file;
   abstract double height;
-  Map<int, double> hitSourceDuration = {};
+  Map<String, double> hitSourceDuration = {};
   late Vector2 initPosition;
   abstract double invincibiltyDuration;
   abstract double maxHealth;
@@ -78,7 +81,7 @@ abstract class Entity extends BodyComponent<GameplayGame> {
     hitSourceDuration.updateAll((key, value) => value += dt);
 
     hitSourceDuration.removeWhere(
-      (key, value) => value > invincibiltyDuration,
+      (key, value) => value > 1,
     );
 
     if (durationSinceHit <= invincibiltyDuration) {
@@ -101,21 +104,22 @@ abstract class Entity extends BodyComponent<GameplayGame> {
     }
   }
 
-  void hit(int hashCode, double damage) {
-    if (hitSourceDuration.containsKey(hashCode) || isInvincible) return;
+  bool takeDamage(String id, double damage) {
+    if (hitSourceDuration.containsKey(id) || isInvincible) return false;
     final controller = EffectController(
       duration: .1,
       reverseDuration: .1,
     );
     spriteComponent.add(SizeEffect.by(Vector2.all(.5), controller));
     spriteComponent.add(ColorEffect(
-      Colors.red,
-      const Offset(0.0, 0.8),
+      Colors.blue,
+      const Offset(0.0, 1),
       controller,
     ));
-    hitSourceDuration[hashCode] = 0.0;
+    hitSourceDuration[id] = 0.0;
     damageTaken += damage;
     durationSinceHit = 0;
+    return true;
   }
 
   Future<void> onDeath();

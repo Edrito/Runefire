@@ -14,22 +14,26 @@ import '../functions/functions.dart';
 abstract class ProjectileWeapon extends RangedWeapon {
   ProjectileWeapon(this._weaponType) : super(_weaponType.getFilename());
 
+  abstract bool allowProjectileRotation;
   List<Vector2> deltaListSaved = [];
   abstract double fireRate;
   abstract bool holdAndRelease;
   double holdDuration = 0;
   bool holding = false;
+  bool isReloading = false;
   bool isShooting = false;
   abstract int maxAmmo;
   abstract BodyComponent projectile;
   abstract Sprite projectileSprite;
-  abstract bool allowProjectileRotation;
   abstract double projectileVelocity;
+  abstract double reloadTime;
   bool resetRandomPath = true;
   abstract int spentAmmo;
   double timeSinceLastFire = 0;
-  abstract double weaponVariation;
-  abstract double reloadTime;
+  abstract double weaponRandomnessPercent;
+  int projectilesFired = 0;
+
+  abstract ProjectileType projectileType;
 
   final ProjectileWeaponType _weaponType;
 
@@ -37,15 +41,6 @@ abstract class ProjectileWeapon extends RangedWeapon {
   FutureOr<void> onLoad() {
     timeSinceLastFire = fireRateSecondComparison;
     return super.onLoad();
-  }
-
-  void reload() {
-    isReloading = true;
-    Future.delayed(Duration(milliseconds: (reloadTime * 1000).round()))
-        .then((_) {
-      isReloading = false;
-      spentAmmo = 0;
-    });
   }
 
   @override
@@ -72,10 +67,9 @@ abstract class ProjectileWeapon extends RangedWeapon {
   }
 
   double get fireRateSecondComparison => 1 / fireRate;
-
   int get remainingShots => maxAmmo - spentAmmo;
 
-  List<Vector2> generateAnglesInCone(
+  List<Vector2> splitVector2DeltaInCone(
       Vector2 angle, int count, double maxAngleVarianceDegrees) {
     List<Vector2> angles = [];
 
@@ -105,45 +99,52 @@ abstract class ProjectileWeapon extends RangedWeapon {
   }
 
   List<BodyComponent> generateProjectileFunction() {
-    var speed = (centerOfWeapon.absolutePosition -
-        ancestor.handParentAnglePosition.absolutePosition);
+    var deltaDirection = (centerOfWeapon.absolutePosition -
+            ancestor.handParentAnglePosition.absolutePosition)
+        .normalized();
 
     List<BodyComponent> returnList = [];
 
     if (randomPath && resetRandomPath) {
-      deltaListSaved = [...generateRandomDeltas(speed, 20, 30, 5)];
+      // deltaListSaved = [...generateRandomDeltas(deltaDirection, 10, 100, 50)];
       resetRandomPath = false;
     }
 
     if (count > 1) {
-      List<Vector2> temp = generateAnglesInCone(speed, count, maxSpreadDegrees);
+      List<Vector2> temp =
+          splitVector2DeltaInCone(deltaDirection, count, maxSpreadDegrees);
 
-      for (var element in temp) {
-        returnList.add(Projectile(
-            speed: randomizeVector2(element) * projectileVelocity,
-            originPosition:
+      for (var deltaDirection in temp) {
+        returnList.add(projectileType.generateProjectile(
+            speedVar:
+                randomizeVector2Delta(deltaDirection, weaponRandomnessPercent) *
+                    projectileVelocity,
+            originPositionVar:
                 tipOfWeapon.absolutePosition + ancestor.body.position,
-            projectileSprite: projectileSprite,
-            ancestor: this));
+            ancestorVar: this,
+            idVar: (deltaDirection.x + projectilesFired++).toString()));
       }
     } else {
-      returnList.add(Projectile(
-          speed: randomizeVector2(speed) * projectileVelocity,
-          // speed: randomizeVector2(speed) * 1,
-          originPosition: tipOfWeapon.absolutePosition + ancestor.body.position,
-          projectileSprite: projectileSprite,
-          ancestor: this));
+      returnList.add(projectileType.generateProjectile(
+          speedVar:
+              randomizeVector2Delta(deltaDirection, weaponRandomnessPercent) *
+                  projectileVelocity,
+          originPositionVar:
+              tipOfWeapon.absolutePosition + ancestor.body.position,
+          ancestorVar: this,
+          idVar: (deltaDirection.x + projectilesFired++).toString()));
     }
 
     return returnList;
   }
 
-  Vector2 randomizeVector2(Vector2 element) {
-    var random = Vector2.random() * weaponVariation;
-    random -= Vector2.all(weaponVariation / 2);
-    element = element + random;
-    element = element.normalized();
-    return element;
+  void reload() {
+    isReloading = true;
+    Future.delayed(Duration(milliseconds: (reloadTime * 1000).round()))
+        .then((_) {
+      isReloading = false;
+      spentAmmo = 0;
+    });
   }
 
   bool shoot(double dt, [bool releaseWeapon = false]) {
@@ -176,8 +177,6 @@ abstract class ProjectileWeapon extends RangedWeapon {
     timeSinceLastFire = 0;
     return true;
   }
-
-  bool isReloading = false;
 }
 
 abstract class RangedWeapon extends SpriteComponent
@@ -189,13 +188,13 @@ abstract class RangedWeapon extends SpriteComponent
 
   late PositionComponent centerOfWeapon;
   abstract int count;
-  abstract double length;
-  abstract double maxSpreadDegrees;
-  double rotationSpeed = 0;
   abstract double damage;
   abstract bool isHoming;
+  abstract double length;
+  abstract double maxSpreadDegrees;
   abstract int pierce;
   abstract bool randomPath;
+  double rotationSpeed = 0;
   late PositionComponent tipOfWeapon;
   abstract double tipPositionPercent;
 

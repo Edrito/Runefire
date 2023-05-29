@@ -4,9 +4,10 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/game/projectiles.dart';
 import 'package:game_app/game/ranged_weapon.dart';
 
-enum ProjectileWeaponType { pistol, shotgun }
+enum ProjectileWeaponType { pistol, shotgun, bow }
 
 typedef BodyComponentFunction = List<BodyComponent> Function();
 
@@ -17,6 +18,8 @@ extension ProjectileWeaponTypeFilename on ProjectileWeaponType {
         return 'pistol.png';
       case ProjectileWeaponType.shotgun:
         return 'shotgun.png';
+      case ProjectileWeaponType.bow:
+        return 'bow.png';
       default:
         return '';
     }
@@ -29,28 +32,34 @@ class Pistol extends ProjectileWeapon {
   late CircleComponent circle;
 
   @override
-  double damage = 5;
+  bool allowProjectileRotation = true;
 
   @override
   int count = 1;
 
   @override
-  double fireRate = 5;
+  double damage = 5;
+
+  @override
+  double fireRate = 10;
 
   @override
   bool holdAndRelease = false;
 
   @override
+  bool isHoming = false;
+
+  @override
   double length = 7;
 
   @override
-  int maxAmmo = 10;
+  int maxAmmo = 12;
 
   @override
-  double maxSpreadDegrees = 1;
+  double maxSpreadDegrees = 270;
 
   @override
-  int pierce = 1;
+  int pierce = 0;
 
   @override
   late BodyComponent<Forge2DGame> projectile;
@@ -59,10 +68,14 @@ class Pistol extends ProjectileWeapon {
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 100;
+  double projectileVelocity = 80;
 
   @override
   bool randomPath = false;
+  @override
+  ProjectileType projectileType = ProjectileType.bullet;
+  @override
+  double reloadTime = 0;
 
   @override
   int spentAmmo = 0;
@@ -71,7 +84,7 @@ class Pistol extends ProjectileWeapon {
   double tipPositionPercent = .25;
 
   @override
-  double weaponVariation = 0;
+  double weaponRandomnessPercent = .005;
 
   @override
   double get distanceFromPlayer => 2;
@@ -90,15 +103,6 @@ class Pistol extends ProjectileWeapon {
     circle.position = tipOfWeapon.position;
     super.update(dt);
   }
-
-  @override
-  bool isHoming = false;
-
-  @override
-  bool allowProjectileRotation = true;
-
-  @override
-  double reloadTime = 1;
 }
 
 class Shotgun extends ProjectileWeapon {
@@ -108,17 +112,22 @@ class Shotgun extends ProjectileWeapon {
         );
 
   @override
+  bool allowProjectileRotation = false;
+
+  @override
   int count = 7;
 
   @override
-  double reloadTime = 1;
-  @override
   double damage = 10;
+
   @override
   double fireRate = 2;
 
   @override
   bool holdAndRelease = false;
+
+  @override
+  bool isHoming = true;
 
   @override
   double length = 12;
@@ -145,13 +154,16 @@ class Shotgun extends ProjectileWeapon {
   bool randomPath = false;
 
   @override
+  double reloadTime = 1;
+
+  @override
   int spentAmmo = 0;
 
   @override
   double tipPositionPercent = .40;
 
   @override
-  double weaponVariation = .2;
+  double weaponRandomnessPercent = .05;
 
   @override
   double get distanceFromPlayer => 2;
@@ -163,8 +175,76 @@ class Shotgun extends ProjectileWeapon {
   }
 
   @override
-  bool allowProjectileRotation = false;
+  ProjectileType projectileType = ProjectileType.pellet;
+}
+
+class Bow extends ProjectileWeapon {
+  Bow()
+      : super(
+          ProjectileWeaponType.bow,
+        );
 
   @override
-  bool isHoming = false;
+  bool allowProjectileRotation = true;
+  @override
+  ProjectileType projectileType = ProjectileType.arrow;
+  @override
+  int count = 1;
+
+  @override
+  double damage = 20;
+
+  @override
+  double fireRate = 5;
+
+  @override
+  bool holdAndRelease = true;
+
+  @override
+  bool isHoming = true;
+
+  @override
+  double length = 7;
+
+  @override
+  int maxAmmo = 1;
+
+  @override
+  double maxSpreadDegrees = 40;
+
+  @override
+  int pierce = 5;
+
+  @override
+  late BodyComponent<Forge2DGame> projectile;
+
+  @override
+  late Sprite projectileSprite;
+
+  @override
+  double projectileVelocity = 50;
+
+  @override
+  bool randomPath = false;
+
+  @override
+  double reloadTime = 0;
+
+  @override
+  int spentAmmo = 0;
+
+  @override
+  double tipPositionPercent = .5;
+
+  @override
+  double weaponRandomnessPercent = .0;
+
+  @override
+  double get distanceFromPlayer => 2;
+
+  @override
+  FutureOr<void> onLoad() async {
+    projectileSprite = await Sprite.load('arrow.png');
+    return super.onLoad();
+  }
 }

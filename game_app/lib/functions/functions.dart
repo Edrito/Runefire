@@ -7,6 +7,18 @@ Vector2 calcPerpindicular(Vector2 vector) {
   return Vector2(-vector.y, vector.x);
 }
 
+Vector2 randomizeVector2Delta(Vector2 element, double percent) {
+  if (percent == 0) return element;
+  percent = percent.clamp(0, 1);
+
+  Vector2 random = Vector2.random() * 2;
+  random -= Vector2.all(1);
+  random *= percent;
+  element *= 1 - percent;
+  element = element + random;
+  return element.normalized();
+}
+
 // Function to calculate the delta
 Vector2 calculateDelta(
     Vector2 bulletPosition, Vector2 playerPosition, Vector2 playerAim) {
@@ -22,44 +34,44 @@ Vector2 calculateDelta(
   return delta;
 }
 
-List<Vector2> generateRandomDeltas(
-    Vector2 initialDelta, int numSplines, double magnitude, int controlPoints) {
-  List<Vector2> deltaList = [];
-  Vector2 currentDelta = initialDelta.clone();
-  Vector2 direction = initialDelta.normalized();
-  Vector2 perpendicular = calcPerpindicular(initialDelta);
+// List<Vector2> generateRandomDeltas(
+//     Vector2 initialDelta, int numSplines, double magnitude, int controlPoints) {
+//   List<Vector2> deltaList = [];
+//   Vector2 currentDelta = initialDelta.clone();
+//   Vector2 direction = initialDelta.normalized();
+//   Vector2 perpendicular = calcPerpindicular(initialDelta);
 
-  for (int i = 0; i < numSplines; i++) {
-    Random random = Random();
+//   for (int i = 0; i < numSplines; i++) {
+//     Random random = Random();
 
-    Vector2 controlPoint1 = currentDelta +
-        direction * magnitude +
-        perpendicular * (random.nextDouble() * magnitude - magnitude / 2);
-    Vector2 endPoint = controlPoint1 +
-        direction * magnitude +
-        perpendicular * (random.nextDouble() * magnitude - magnitude / 2);
+//     Vector2 controlPoint1 = currentDelta +
+//         direction * magnitude +
+//         perpendicular * (random.nextDouble() * magnitude - magnitude / 2);
+//     Vector2 endPoint = controlPoint1 +
+//         direction * magnitude +
+//         perpendicular * (random.nextDouble() * magnitude - magnitude / 2);
 
-    for (int j = 1; j <= controlPoints; j++) {
-      double t = j.toDouble() / (controlPoints + 1);
-      double oneMinusT = 1 - t;
-      double tt = t * t;
-      double oneMinusTT = oneMinusT * oneMinusT;
+//     for (int j = 1; j <= controlPoints; j++) {
+//       double t = j.toDouble() / (controlPoints + 1);
+//       double oneMinusT = 1 - t;
+//       double tt = t * t;
+//       double oneMinusTT = oneMinusT * oneMinusT;
 
-      double x = oneMinusTT * currentDelta.x +
-          2 * oneMinusT * t * controlPoint1.x +
-          tt * endPoint.x;
+//       double x = oneMinusTT * currentDelta.x +
+//           2 * oneMinusT * t * controlPoint1.x +
+//           tt * endPoint.x;
 
-      double y = oneMinusTT * currentDelta.y +
-          2 * oneMinusT * t * controlPoint1.y +
-          tt * endPoint.y;
-      deltaList.add(Vector2(x, y)..multiply(Vector2(.8, direction.x)));
-    }
+//       double y = oneMinusTT * currentDelta.y +
+//           2 * oneMinusT * t * controlPoint1.y +
+//           tt * endPoint.y;
+//       deltaList.add(Vector2(x, y)..multiply(Vector2(.8, direction.x)));
+//     }
 
-    currentDelta = endPoint;
-  }
+//     currentDelta = endPoint;
+//   }
 
-  return deltaList;
-}
+//   return deltaList;
+// }
 
 Vector2 generateRandomGamePositionUsingViewport(
     bool internal, Forge2DGame gameRef) {
