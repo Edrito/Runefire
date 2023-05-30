@@ -3,10 +3,6 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 
-Vector2 calcPerpindicular(Vector2 vector) {
-  return Vector2(-vector.y, vector.x);
-}
-
 Vector2 randomizeVector2Delta(Vector2 element, double percent) {
   if (percent == 0) return element;
   percent = percent.clamp(0, 1);
@@ -17,6 +13,43 @@ Vector2 randomizeVector2Delta(Vector2 element, double percent) {
   element *= 1 - percent;
   element = element + random;
   return element.normalized();
+}
+
+//
+//                               ---.....
+//                                       ***\
+//    ------------🔫  becomes   ------------3 🔫
+//                                       ___/
+//                               ---*****
+//
+List<Vector2> splitVector2DeltaInCone(
+    Vector2 angle, int count, double maxAngleVarianceDegrees) {
+  if (count == 1) return [angle];
+  List<Vector2> angles = [];
+
+  // Convert maxAngleVariance from degrees to radians
+  double maxAngleVariance = radians(maxAngleVarianceDegrees);
+
+  // Calculate the step size for evenly spreading the angles
+  double stepSize = maxAngleVariance / (count - 1);
+
+  // Calculate the starting angle
+  double startAngle = radiansBetweenPoints(angle, Vector2(0.000001, -0.0000));
+
+  // Generate the angles
+  startAngle -= maxAngleVariance / 2;
+
+  for (int i = 0; i < count; i++) {
+    double currentAngle = startAngle + (stepSize * i);
+
+    // Convert the angle back to Vector2
+    double x = cos(currentAngle);
+    double y = sin(currentAngle);
+
+    angles.add(Vector2(x, y));
+  }
+
+  return angles;
 }
 
 // Function to calculate the delta

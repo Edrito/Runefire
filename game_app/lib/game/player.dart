@@ -9,30 +9,27 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/game/entity.dart';
 import 'package:game_app/game/games.dart';
 import 'package:game_app/game/physics_filter.dart';
-import 'package:game_app/game/projectile_weapons.dart';
-import 'package:game_app/game/ranged_weapon.dart';
+import 'package:game_app/game/weapons.dart';
+import 'package:game_app/game/weapon_class.dart';
 
-import '../functions/functions.dart';
 import 'characters.dart';
 
 class Player extends Entity with ContactCallbacks {
   Player(this.characterType)
       : super(
           file: characterType.getFilename(),
-          entityType: EntityType.player,
           position: Vector2.zero(),
         );
 
   final CharacterType characterType;
 
-  Map<InputType, Vector2> aimAngles = {};
-  late PositionComponent handParentAnglePosition;
+  Map<InputType, Vector2> inputAimAngles = {};
+  Map<InputType, Vector2> inputAimPositions = {};
   double invinciblePercent = .5;
   bool isJumping = false;
   bool isJumpingInvincible = false;
   double jumpDuration = .5;
   Map<LogicalKeyboardKey, double> keyDurationPress = {};
-  Vector2 lastAimingPosition = Vector2.zero();
   Vector2 moveAngle = Vector2.zero();
   Map<InputType, Vector2> moveVelocities = {};
   late PolygonShape shape;
@@ -40,7 +37,7 @@ class Player extends Entity with ContactCallbacks {
   // bool singleRenderComplete = true;
   bool singleShot = false;
 
-  ProjectileWeapon? _projectileWeapon;
+  Weapon? _projectileWeapon;
 
   void swapWeapon() {
     _projectileWeapon?.removeFromParent();
@@ -55,45 +52,40 @@ class Player extends Entity with ContactCallbacks {
     if (_projectileWeapon?.isFlippedHorizontally != isFlipped) {
       _projectileWeapon?.flipHorizontallyAroundCenter();
     }
-    handParentAnglePosition.add(_projectileWeapon!);
+    aimingAnglePosition.add(_projectileWeapon!);
   }
 
-  @override
-  void flipSpriteCheck() {
-    final degree = -degrees(handParentAnglePosition.angle);
-    if (degree < 180 &&
-        !(_projectileWeapon?.isFlippedHorizontally ?? false) &&
-        !spriteComponent.isFlippedHorizontally) {
-      _projectileWeapon?.flipHorizontallyAroundCenter();
-      spriteComponent.flipHorizontallyAroundCenter();
-    } else if (degree >= 180 &&
-        (_projectileWeapon?.isFlippedHorizontally ?? true) &&
-        spriteComponent.isFlippedHorizontally) {
-      _projectileWeapon?.flipHorizontallyAroundCenter();
-      spriteComponent.flipHorizontallyAroundCenter();
-    }
-  }
+  // @override
+  // void flipSprites() {
 
-  late RectangleComponent rectangleComponent;
+  //   flipSpriteCheck([_projectileWeapon, spriteComponent])
+  //   final degree = -degrees(aimingAnglePosition.angle);
+  //   if (degree < 180 &&
+  //       !(_projectileWeapon?.isFlippedHorizontally ?? false) &&
+  //       !spriteComponent.isFlippedHorizontally) {
+  //     _projectileWeapon?.flipHorizontallyAroundCenter();
+  //     spriteComponent.flipHorizontallyAroundCenter();
+  //   } else if (degree >= 180 &&
+  //       (_projectileWeapon?.isFlippedHorizontally ?? true) &&
+  //       spriteComponent.isFlippedHorizontally) {
+  //     _projectileWeapon?.flipHorizontallyAroundCenter();
+  //     spriteComponent.flipHorizontallyAroundCenter();
+  //   }
+  // }
 
   @override
   Future<void> onLoad() async {
-    handParentAnglePosition =
-        PositionComponent(anchor: Anchor.center, size: Vector2.zero());
-
-    rectangleComponent = RectangleComponent(
-      anchor: Anchor.center,
-      size: Vector2(.5, 150),
-    );
-    add(handParentAnglePosition);
     _projectileWeapon = Pistol();
 
-    handParentAnglePosition.mounted.whenComplete(
-      () => handParentAnglePosition.addAll([_projectileWeapon!]),
-    );
     // add(rectangleComponent);
-    return super.onLoad();
+    await super.onLoad();
+    aimingAnglePosition.mounted
+        .whenComplete(() => aimingAnglePosition.add(_projectileWeapon!));
+    testCircle = CircleComponent(radius: 1, anchor: Anchor.center);
+    add(testCircle);
   }
+
+  late CircleComponent testCircle;
 
   @override
   void render(Canvas canvas) {}
@@ -102,38 +94,42 @@ class Player extends Entity with ContactCallbacks {
   void update(double dt) {
     handleKeyboardInputs();
     flipSpriteCheck();
-    moveCharacter(dt);
-    aimCharacter();
+    moveCharacter();
     canShootGun();
     shoot(dt);
-    rectangleComponent.angle = handParentAnglePosition.angle;
+
+    if (inputAimPositions.containsKey(InputType.mouseMove)) {
+      testCircle.position = inputAimPositions[InputType.mouseMove]!;
+    }
+
     super.update(dt);
   }
 
-  void aimCharacter() {
-    final delta = (aimAngles[InputType.aimJoy] ??
-        aimAngles[InputType.tapClick] ??
-        aimAngles[InputType.mouseDrag] ??
-        aimAngles[InputType.mouseMove] ??
+  @override
+  void moveCharacter({Vector2? delta}) {
+    previousPulse = moveVelocities[InputType.moveJoy] ??
+        moveVelocities[InputType.keyboard] ??
+        Vector2.zero();
+    super.moveCharacter(delta: previousPulse.normalized());
+  }
+
+  @override
+  void aimCharacter({Vector2? delta}) {
+    final delta = (inputAimAngles[InputType.aimJoy] ??
+        inputAimAngles[InputType.tapClick] ??
+        inputAimAngles[InputType.mouseDrag] ??
+        inputAimAngles[InputType.mouseMove] ??
         lastAimingPosition);
 
-    handParentAnglePosition.position =
-        ((delta) * (_projectileWeapon?.distanceFromPlayer ?? 5.0));
-
-    handParentAnglePosition.angle = -radiansBetweenPoints(
-      Vector2(0, 0.000001),
-      delta,
-    );
-
-    lastAimingPosition = delta;
+    super.aimCharacter(delta: delta);
   }
 
   void canShootGun() {
-    if (aimAngles.containsKey(InputType.aimJoy)) {
+    if (inputAimAngles.containsKey(InputType.aimJoy)) {
       startShooting();
-    } else if (aimAngles.containsKey(InputType.tapClick)) {
+    } else if (inputAimAngles.containsKey(InputType.tapClick)) {
       startShooting();
-    } else if (aimAngles.containsKey(InputType.mouseDrag)) {
+    } else if (inputAimAngles.containsKey(InputType.mouseDrag)) {
       startShooting();
     } else if (shooting) {
       endShooting();
@@ -164,37 +160,37 @@ class Player extends Entity with ContactCallbacks {
     jump(keyDurationPress[LogicalKeyboardKey.space], this);
   }
 
-  void moveCharacter(double dt) {
-    final newPulse = moveVelocities[InputType.moveJoy] ??
-        moveVelocities[InputType.keyboard] ??
-        Vector2.zero();
-    if (newPulse.isZero()) return;
-    body.applyForce(newPulse);
-  }
+  Vector2 previousPulse = Vector2.zero();
 
   void onAimCancel() {
-    aimAngles.remove(InputType.aimJoy);
+    inputAimAngles.remove(InputType.aimJoy);
   }
 
   void onAimJoy(Vector2 normalizedDelta) {
     if (normalizedDelta.isZero()) return;
-    aimAngles[InputType.aimJoy] = normalizedDelta.normalized();
+    inputAimAngles[InputType.aimJoy] = normalizedDelta.normalized();
   }
 
   void onMouseDrag(DragUpdateInfo info) {
-    aimAngles[InputType.mouseDrag] =
-        (info.eventPosition.game - center).normalized();
-    aimAngles[InputType.mouseMove] = aimAngles[InputType.mouseDrag]!.clone();
+    inputAimPositions[InputType.mouseMove] = (info.eventPosition.game - center);
+    inputAimPositions[InputType.mouseDrag] =
+        inputAimPositions[InputType.mouseMove]!;
+    inputAimAngles[InputType.mouseDrag] =
+        inputAimPositions[InputType.mouseDrag]!.normalized();
+    inputAimAngles[InputType.mouseMove] =
+        inputAimAngles[InputType.mouseDrag]!.clone();
   }
 
   void onMouseDragCancel() {
-    aimAngles.remove(InputType.mouseDrag);
+    inputAimAngles.remove(InputType.mouseDrag);
   }
 
   void onMouseMove(PointerHoverInfo info) async {
     await loaded.whenComplete(() => null);
-    aimAngles[InputType.mouseMove] =
-        (info.eventPosition.game - center).normalized();
+
+    inputAimPositions[InputType.mouseMove] = (info.eventPosition.game - center);
+    inputAimAngles[InputType.mouseMove] =
+        inputAimPositions[InputType.mouseMove]!.normalized();
   }
 
   void onMoveCancel() {
@@ -206,17 +202,17 @@ class Player extends Entity with ContactCallbacks {
   }
 
   void onTapDown(TapDownInfo info) {
-    aimAngles[InputType.tapClick] =
+    inputAimAngles[InputType.tapClick] =
         (info.eventPosition.game - center).normalized();
   }
 
   void onTapUp() {
-    aimAngles.remove(InputType.tapClick);
+    inputAimAngles.remove(InputType.tapClick);
   }
 
   void shoot(double dt) {
     if (shooting) {
-      _projectileWeapon?.shoot(dt);
+      _projectileWeapon?.shootCheck(dt);
     }
   }
 
@@ -241,6 +237,9 @@ class Player extends Entity with ContactCallbacks {
 
   @override
   double maxSpeed = 500;
+
+  @override
+  EntityType entityType = EntityType.player;
 }
 
 void jump(double? previousTime, Player classRef) {

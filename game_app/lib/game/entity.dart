@@ -4,18 +4,19 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/games.dart';
 
+import '../functions/vector_functions.dart';
+
 enum EntityType { player, enemy }
 
 abstract class Entity extends BodyComponent<GameplayGame> {
   Entity({
     required this.file,
-    required this.entityType,
     required Vector2 position,
   }) {
     initPosition = position;
   }
 
-  EntityType entityType;
+  abstract EntityType entityType;
 
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
@@ -31,6 +32,9 @@ abstract class Entity extends BodyComponent<GameplayGame> {
   abstract double maxSpeed;
   late SpriteComponent spriteComponent;
 
+  late PositionComponent aimingAnglePosition;
+  Vector2 lastAimingPosition = Vector2.zero();
+
   abstract Filter? filter;
 
   @override
@@ -38,12 +42,6 @@ abstract class Entity extends BodyComponent<GameplayGame> {
     late CircleShape shape;
     shape = CircleShape();
     shape.radius = spriteComponent.size.x / 2;
-    // shape.set([
-    //   Vector2(-spriteComponent.size.x / 2, -spriteComponent.size.y / 2),
-    //   Vector2(spriteComponent.size.x / 2, -spriteComponent.size.y / 2),
-    //   Vector2(spriteComponent.size.x / 2, spriteComponent.size.y / 2),
-    //   Vector2(-spriteComponent.size.x / 2, spriteComponent.size.y / 2),
-    // ]);
 
     final fixtureDef = FixtureDef(shape,
         restitution: 0, friction: 0, density: 0.02, filter: filter);
@@ -57,15 +55,37 @@ abstract class Entity extends BodyComponent<GameplayGame> {
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 
+  void aimCharacter({Vector2? delta}) {
+    delta ??= body.linearVelocity.normalized().clone();
+
+    aimingAnglePosition.angle = -radiansBetweenPoints(
+      Vector2(0, 0.000001),
+      delta,
+    );
+    //fix this
+    aimingAnglePosition.position = delta.clone();
+
+    lastAimingPosition = delta.clone();
+  }
+
   @override
   Future<void> onLoad() async {
     final sprite = await Sprite.load(file);
+    aimingAnglePosition =
+        PositionComponent(anchor: Anchor.center, size: Vector2.zero());
+
     spriteComponent = SpriteComponent(
         sprite: sprite,
         priority: -200,
         size: sprite.srcSize.scaled(height / sprite.srcSize.y),
         anchor: Anchor.center);
     add(spriteComponent);
+    add(aimingAnglePosition);
+
+    aimingAnglePosition.mounted.whenComplete(
+      () => aimingAnglePosition
+          .addAll([CircleComponent(radius: .5, anchor: Anchor.center)]),
+    );
 
     return super.onLoad();
   }
@@ -73,11 +93,20 @@ abstract class Entity extends BodyComponent<GameplayGame> {
   @override
   void render(Canvas canvas) {}
 
+  void moveCharacter({Vector2? delta}) {
+    if (delta == null) return;
+    body.applyForce(delta * maxSpeed);
+  }
+
   @override
   void update(double dt) {
     if (health <= 0) {
       onDeath();
     }
+
+    aimCharacter();
+    moveCharacter();
+
     hitSourceDuration.updateAll((key, value) => value += dt);
 
     hitSourceDuration.removeWhere(
@@ -87,20 +116,26 @@ abstract class Entity extends BodyComponent<GameplayGame> {
     if (durationSinceHit <= invincibiltyDuration) {
       durationSinceHit += dt;
     }
+
     flipSpriteCheck();
+
     super.update(dt);
   }
 
   double get health => maxHealth - damageTaken;
   bool get isDead => damageTaken >= maxHealth;
   bool get isInvincible => durationSinceHit < invincibiltyDuration;
+  bool flipped = false;
 
-  void flipSpriteCheck() {
-    if (body.linearVelocity.x > 0 && !spriteComponent.isFlippedHorizontally) {
+  void flipSpriteCheck({List<PositionComponent>? componentsToFlip}) {
+    final degree = -degrees(aimingAnglePosition.angle);
+    if ((degree < 180 && !flipped) || (degree >= 180 && flipped)) {
+      if (componentsToFlip != null) {
+        componentsToFlip.map((e) => e.flipHorizontallyAroundCenter());
+      }
       spriteComponent.flipHorizontallyAroundCenter();
-    } else if (body.linearVelocity.x <= 0 &&
-        spriteComponent.isFlippedHorizontally) {
-      spriteComponent.flipHorizontallyAroundCenter();
+      aimingAnglePosition.flipHorizontallyAroundCenter();
+      flipped = !flipped;
     }
   }
 

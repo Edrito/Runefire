@@ -5,29 +5,35 @@ import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/projectiles.dart';
-import 'package:game_app/game/ranged_weapon.dart';
+import 'package:game_app/game/weapon_class.dart';
 
-enum ProjectileWeaponType { pistol, shotgun, bow }
+enum WeaponType { melee, point, projectile }
 
 typedef BodyComponentFunction = List<BodyComponent> Function();
 
-extension ProjectileWeaponTypeFilename on ProjectileWeaponType {
-  String getFilename() {
-    switch (this) {
-      case ProjectileWeaponType.pistol:
-        return 'pistol.png';
-      case ProjectileWeaponType.shotgun:
-        return 'shotgun.png';
-      case ProjectileWeaponType.bow:
-        return 'bow.png';
-      default:
-        return '';
-    }
-  }
-}
+// extension ProjectileWeaponTypeFilename on WeaponType {
+//   String getFilename() {
+//     switch (this) {
+//       case ProjectileWeaponType.pistol:
+//         return 'pistol.png';
+//       case ProjectileWeaponType.shotgun:
+//         return 'shotgun.png';
+//       case ProjectileWeaponType.bow:
+//         return 'bow.png';
+//       default:
+//         return '';
+//     }
+//   }
+// }
 
-class Pistol extends ProjectileWeapon {
-  Pistol() : super(ProjectileWeaponType.pistol);
+class Pistol extends Weapon {
+  Pistol()
+      : super([
+          WeaponType.projectile,
+        ], "pistol.png");
+
+  @override
+  bool countIncreaseWithTime = false;
 
   late CircleComponent circle;
 
@@ -56,7 +62,7 @@ class Pistol extends ProjectileWeapon {
   int maxAmmo = 12;
 
   @override
-  double maxSpreadDegrees = 270;
+  double maxSpreadDegrees = 90;
 
   @override
   int pierce = 0;
@@ -68,12 +74,12 @@ class Pistol extends ProjectileWeapon {
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 80;
+  double projectileVelocity = 120;
 
   @override
-  bool randomPath = false;
+  bool isChaining = false;
   @override
-  ProjectileType projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.bullet;
   @override
   double reloadTime = 0;
 
@@ -87,11 +93,10 @@ class Pistol extends ProjectileWeapon {
   double weaponRandomnessPercent = .005;
 
   @override
-  double get distanceFromPlayer => 2;
+  double distanceFromPlayer = 2;
 
   @override
   FutureOr<void> onLoad() async {
-    projectileSprite = await Sprite.load('bullet.png');
     circle = CircleComponent(
         radius: .2, paint: Paint()..color = Colors.blue, anchor: Anchor.center);
     add(circle);
@@ -105,12 +110,16 @@ class Pistol extends ProjectileWeapon {
   }
 }
 
-class Shotgun extends ProjectileWeapon {
+class Shotgun extends Weapon {
   Shotgun()
-      : super(
-          ProjectileWeaponType.shotgun,
-        );
+      : super([
+          WeaponType.projectile,
+        ], "shotgun.png");
 
+  @override
+  double distanceFromPlayer = 2;
+  @override
+  bool isChaining = false;
   @override
   bool allowProjectileRotation = false;
 
@@ -151,9 +160,6 @@ class Shotgun extends ProjectileWeapon {
   double projectileVelocity = 80;
 
   @override
-  bool randomPath = false;
-
-  @override
   double reloadTime = 1;
 
   @override
@@ -166,33 +172,29 @@ class Shotgun extends ProjectileWeapon {
   double weaponRandomnessPercent = .05;
 
   @override
-  double get distanceFromPlayer => 2;
-
+  bool countIncreaseWithTime = false;
   @override
-  FutureOr<void> onLoad() async {
-    projectileSprite = await Sprite.load('pellet.png');
-    return super.onLoad();
-  }
-
-  @override
-  ProjectileType projectileType = ProjectileType.pellet;
+  ProjectileType? projectileType = ProjectileType.pellet;
 }
 
-class Bow extends ProjectileWeapon {
+class Bow extends Weapon {
   Bow()
-      : super(
-          ProjectileWeaponType.bow,
-        );
+      : super([
+          WeaponType.projectile,
+        ], "bow.png");
 
   @override
   bool allowProjectileRotation = true;
   @override
-  ProjectileType projectileType = ProjectileType.arrow;
+  ProjectileType? projectileType = ProjectileType.arrow;
   @override
   int count = 1;
-
+  @override
+  bool isChaining = false;
   @override
   double damage = 20;
+  @override
+  double distanceFromPlayer = 2;
 
   @override
   double fireRate = 5;
@@ -225,9 +227,6 @@ class Bow extends ProjectileWeapon {
   double projectileVelocity = 50;
 
   @override
-  bool randomPath = false;
-
-  @override
   double reloadTime = 0;
 
   @override
@@ -240,11 +239,5 @@ class Bow extends ProjectileWeapon {
   double weaponRandomnessPercent = .0;
 
   @override
-  double get distanceFromPlayer => 2;
-
-  @override
-  FutureOr<void> onLoad() async {
-    projectileSprite = await Sprite.load('arrow.png');
-    return super.onLoad();
-  }
+  bool countIncreaseWithTime = false;
 }
