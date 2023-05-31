@@ -87,7 +87,7 @@ class Arrow extends Projectile {
   double size = 8;
 
   @override
-  Duration ttl = const Duration(seconds: 3);
+  double ttl = 3.0;
 
   @override
   Future<void> onLoad() async {
@@ -117,7 +117,7 @@ class Bullet extends Projectile {
   double size = 1.5;
 
   @override
-  Duration ttl = const Duration(seconds: 1);
+  double ttl = 1.0;
 
   @override
   Future<void> onLoad() async {
@@ -147,7 +147,7 @@ class Pellet extends Projectile {
   double size = 1;
 
   @override
-  Duration ttl = const Duration(seconds: 1);
+  double ttl = 1.0;
 
   @override
   Future<void> onLoad() async {
@@ -180,20 +180,21 @@ abstract class Projectile extends BodyComponent<GameplayGame>
   bool noTargetsImpulseCompleted = true;
   Vector2 originPosition;
   Vector2 previousPatternForce = Vector2.zero();
-  double previousRandomPathPulse = 0;
   abstract Sprite projectileSprite;
   abstract ProjectileType projectileType;
 
   int randomPatternIteration = 0;
-
+  double get getIterationTime => ttl / deltaSavedCopy.length;
+  TimerComponent? deltaPathFollowTimer;
   Random rng = Random();
   late PolygonShape shape;
   abstract double size;
   Vector2 speed;
-  abstract Duration ttl;
+  abstract double ttl;
 
   Entity? closeHomingBody;
   FixtureDef? sensorDef;
+  TimerComponent? bulletDeathTimer;
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -281,8 +282,12 @@ abstract class Projectile extends BodyComponent<GameplayGame>
 
   @override
   Future<void> onLoad() async {
-    Future.delayed(ttl).then((value) => killBullet());
-
+    bulletDeathTimer = TimerComponent(
+      period: ttl,
+      onTick: () {
+        killBullet();
+      },
+    );
     final rng = Random();
 
     spriteComponent = SpriteComponent(
@@ -294,6 +299,9 @@ abstract class Projectile extends BodyComponent<GameplayGame>
         anchor: Anchor.center);
 
     add(spriteComponent);
+
+    deltaPathFollowTimerSetup();
+
     return super.onLoad();
   }
 
@@ -310,15 +318,13 @@ abstract class Projectile extends BodyComponent<GameplayGame>
   void update(double dt) {
     if (!bulletHasExpired && ancestor.parent != null) {
       bulletAngleCalc();
-      deltaPathFollow(dt);
       homingCalc(dt);
       hitEnemies();
+      if (!previousPatternForce.isZero()) body.applyForce(previousPatternForce);
     }
 
     super.update(dt);
   }
-
-  int get getIterationTime => (ttl.inSeconds / deltaSavedCopy.length).round();
 
   void bulletAngleCalc() {
     if (ancestor.allowProjectileRotation) {
@@ -327,19 +333,18 @@ abstract class Projectile extends BodyComponent<GameplayGame>
     }
   }
 
-  void deltaPathFollow(double dt) {
+  void deltaPathFollowTimerSetup() {
     if (deltaSavedCopy.isNotEmpty) {
-      if (randomPatternIteration < deltaSavedCopy.length &&
-          previousRandomPathPulse > getIterationTime) {
-        previousPatternForce =
-            deltaSavedCopy[randomPatternIteration] - previousPatternForce;
-        randomPatternIteration++;
-        previousRandomPathPulse = 0;
-      }
-      if (randomPatternIteration < deltaSavedCopy.length) {
-        body.applyForce(previousPatternForce);
-      }
-      previousRandomPathPulse += dt;
+      deltaPathFollowTimer = TimerComponent(
+        period: getIterationTime,
+        repeat: true,
+        onTick: () {
+          previousPatternForce =
+              deltaSavedCopy[randomPatternIteration] - previousPatternForce;
+          randomPatternIteration++;
+        },
+      );
+      add(deltaPathFollowTimer!);
     }
   }
 

@@ -27,18 +27,25 @@ class Enemy extends Entity with ContactCallbacks {
   String id;
 
   Weapon? _projectileWeapon;
-
+  TimerComponent? shooter;
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-
-    _projectileWeapon = Bow();
+    shooter = TimerComponent(
+      period: shotFreq,
+      repeat: true,
+      onTick: () {
+        _projectileWeapon?.shoot();
+      },
+    );
+    add(shooter!);
+    _projectileWeapon = Pistol();
     aimingAnglePosition.add(_projectileWeapon!);
   }
 
   @override
   Future<void> onDeath() async {
-    spriteComponent.add(OpacityEffect.fadeOut(
+    spriteAnimationComponent.add(OpacityEffect.fadeOut(
       EffectController(
         duration: .5,
       ),
@@ -67,20 +74,14 @@ class Enemy extends Entity with ContactCallbacks {
     super.endContact(other, contact);
   }
 
-  double lastShot = 0;
-  double shotFreq = .5;
+  double shotFreq = 1;
 
   @override
   void update(double dt) {
     if (hittingPlayer) {
       gameRef.player.takeDamage(id, 3);
     }
-    if (lastShot > shotFreq) {
-      _projectileWeapon?.shoot();
-      lastShot = 0;
-    } else {
-      lastShot += dt;
-    }
+    moveCharacter();
     super.update(dt);
   }
 
@@ -94,7 +95,7 @@ class Enemy extends Entity with ContactCallbacks {
   Filter? filter = Filter()..categoryBits = enemyCategory;
 
   @override
-  double height = 5;
+  double height = 10;
 
   @override
   double invincibiltyDuration = 0;
@@ -103,41 +104,44 @@ class Enemy extends Entity with ContactCallbacks {
   double maxHealth = 100;
 
   @override
-  double maxSpeed = 150;
+  double maxSpeed = 20;
 
   @override
   EntityType entityType = EntityType.enemy;
 }
 
 class EnemyManagement extends Component with HasGameRef<GameplayGame> {
-  double lastEnemySpawn = 0;
   int enemiesSpawned = 0;
   @override
   FutureOr<void> onLoad() {
     const enemyType = EnemyType.flameHead;
-    add(Enemy(
-        initPosition: generateRandomGamePositionUsingViewport(
-          false,
-          gameRef,
-        ),
-        id: (enemiesSpawned++).toString() + enemyType.name));
+
+    add(TimerComponent(
+      period: 1,
+      repeat: true,
+      onTick: () => add(Enemy(
+          initPosition: generateRandomGamePositionUsingViewport(
+            false,
+            gameRef,
+          ),
+          id: (enemiesSpawned++).toString() + enemyType.name)),
+    ));
 
     return super.onLoad();
   }
 
   @override
   void update(double dt) {
-    if (lastEnemySpawn > .5) {
-      const enemyType = EnemyType.flameHead;
-      add(Enemy(
-          initPosition: generateRandomGamePositionUsingViewport(
-            false,
-            gameRef,
-          ),
-          id: (enemiesSpawned++).toString() + enemyType.name));
-      lastEnemySpawn = 0;
-    }
-    lastEnemySpawn += dt;
+    // if (lastEnemySpawn > .5) {
+    // const enemyType = EnemyType.flameHead;
+    // add(Enemy(
+    //     initPosition: generateRandomGamePositionUsingViewport(
+    //       false,
+    //       gameRef,
+    //     ),
+    //     id: (enemiesSpawned++).toString() + enemyType.name));
+    // lastEnemySpawn = 0;
+    // }
     super.update(dt);
   }
 }

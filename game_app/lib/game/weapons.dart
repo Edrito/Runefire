@@ -47,7 +47,7 @@ class Pistol extends Weapon {
   double damage = 5;
 
   @override
-  double fireRate = 10;
+  double fireRate = .1;
 
   @override
   bool holdAndRelease = false;
@@ -59,16 +59,13 @@ class Pistol extends Weapon {
   double length = 7;
 
   @override
-  int maxAmmo = 12;
+  int? maxAmmo = 8;
 
   @override
   double maxSpreadDegrees = 90;
 
   @override
   int pierce = 0;
-
-  @override
-  late BodyComponent<Forge2DGame> projectile;
 
   @override
   late Sprite projectileSprite;
@@ -81,7 +78,7 @@ class Pistol extends Weapon {
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
   @override
-  double reloadTime = 0;
+  double reloadTime = 1;
 
   @override
   int spentAmmo = 0;
@@ -130,7 +127,7 @@ class Shotgun extends Weapon {
   double damage = 10;
 
   @override
-  double fireRate = 2;
+  double fireRate = 1;
 
   @override
   bool holdAndRelease = false;
@@ -142,7 +139,7 @@ class Shotgun extends Weapon {
   double length = 12;
 
   @override
-  int maxAmmo = 4;
+  int? maxAmmo = 4;
 
   @override
   double maxSpreadDegrees = 40;
@@ -197,19 +194,19 @@ class Bow extends Weapon {
   double distanceFromPlayer = 2;
 
   @override
-  double fireRate = 5;
+  double fireRate = 1;
 
   @override
   bool holdAndRelease = true;
 
   @override
-  bool isHoming = true;
+  bool isHoming = false;
 
   @override
   double length = 7;
 
   @override
-  int maxAmmo = 1;
+  int? maxAmmo = 1;
 
   @override
   double maxSpreadDegrees = 40;

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flame/components.dart';
-import 'package:flame/events.dart';
+import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +14,15 @@ import 'hud.dart';
 
 enum GameLevel { space, forest }
 
-enum InputType { keyboard, mouseMove, aimJoy, moveJoy, tapClick, mouseDrag }
+enum InputType {
+  keyboard,
+  mouseMove,
+  aimJoy,
+  moveJoy,
+  tapClick,
+  mouseDrag,
+  mouseDragStart
+}
 
 class GameplayGame extends Forge2DGame
     with
@@ -27,53 +35,8 @@ class GameplayGame extends Forge2DGame
   late EnemyManagement enemyManagement;
   late final GameHud hud;
   Map<int, InputType> inputIdStates = {};
-  Map<LogicalKeyboardKey, double> keyDurationPress = {};
   late CustomJoystickComponent moveJoystick;
   late final Player player;
-
-  @override
-  void onDragCancel(int pointerId) {
-    endIdState(pointerId);
-    super.onDragCancel(pointerId);
-  }
-
-  @override
-  void onDragEnd(int pointerId, DragEndInfo info) {
-    endIdState(pointerId);
-    super.onDragEnd(pointerId, info);
-  }
-
-  @override
-  void onDragStart(int pointerId, DragStartInfo info) {
-    enableDragStates(pointerId, info.eventPosition.global);
-    player.onTapUp();
-    super.onDragStart(pointerId, info);
-  }
-
-  @override
-  void onDragUpdate(int pointerId, DragUpdateInfo info) {
-    transmitDragInfo(pointerId, info);
-
-    super.onDragUpdate(pointerId, info);
-  }
-
-  @override
-  KeyEventResult onKeyEvent(
-    RawKeyEvent event,
-    Set<LogicalKeyboardKey> keysPressed,
-  ) {
-    keyDurationPress.removeWhere((key, value) => !keysPressed.contains(key));
-    for (LogicalKeyboardKey element in keysPressed) {
-      keyDurationPress[element] ??= 0.0;
-    }
-    player.keyDurationPress = keyDurationPress;
-
-    if (event.logicalKey == LogicalKeyboardKey.keyE && !world.isLocked) {
-      add(Ball(Vector2.random() * 50));
-    }
-
-    return KeyEventResult.handled;
-  }
 
   @override
   Future<void> onLoad() async {
@@ -113,62 +76,19 @@ class GameplayGame extends Forge2DGame
     return super.onLoad();
   }
 
-  @override
-  void onMouseMove(PointerHoverInfo info) {
-    if (Platform.isWindows) {
-      player.onMouseMove(info);
-    }
-    super.onMouseMove(info);
-  }
-
-  @override
-  void onTapDown(int pointerId, TapDownInfo info) {
-    if (Platform.isWindows &&
-        !enableDragStates(pointerId, info.eventPosition.global)) {
-      player.onTapDown(info);
-    }
-
-    super.onTapDown(pointerId, info);
-  }
-
-  @override
-  void onTapUp(int pointerId, TapUpInfo info) {
-    endIdState(pointerId);
-    player.onTapUp();
-    super.onTapUp(pointerId, info);
-  }
-
-  @override
-  void update(double dt) {
-    if (keyDurationPress[LogicalKeyboardKey.keyP] != null ||
-        keyDurationPress[LogicalKeyboardKey.escape] != null) {
-      overlays.add('PauseMenu');
-      pauseEngine();
-    }
-
-    if (keyDurationPress[LogicalKeyboardKey.tab] == 0.0) {
-      player.swapWeapon();
-    }
-
-    keyDurationPress.updateAll((key, value) => value += dt);
-
-    super.update(dt);
-  }
-
   void transmitDragInfo(int pointerId, DragUpdateInfo info) {
     switch (inputIdStates[pointerId]) {
       case InputType.aimJoy:
         aimJoystick.onDragUpdate(info);
-        player.onAimJoy(aimJoystick.relativeDelta);
+        player.gestureEventStart(InputType.aimJoy, info);
 
         break;
       case InputType.moveJoy:
         moveJoystick.onDragUpdate(info);
-
-        player.onMoveJoy(moveJoystick.relativeDelta);
+        player.gestureEventStart(InputType.moveJoy, info);
         break;
       case InputType.mouseDrag:
-        player.onMouseDrag(info);
+        player.gestureEventStart(InputType.mouseDrag, info);
 
       default:
     }
@@ -179,15 +99,16 @@ class GameplayGame extends Forge2DGame
       switch (inputIdStates[id]) {
         case InputType.aimJoy:
           aimJoystick.onDragCancel();
-          player.onAimCancel();
+          player.gestureEventEnd(InputType.aimJoy, null);
 
           break;
         case InputType.moveJoy:
           moveJoystick.onDragCancel();
-          player.onMoveCancel();
+          player.gestureEventEnd(InputType.moveJoy, null);
           break;
         case InputType.mouseDrag:
-          player.onMouseDragCancel();
+          player.gestureEventEnd(InputType.mouseDrag, null);
+
           break;
         default:
       }
@@ -195,11 +116,13 @@ class GameplayGame extends Forge2DGame
     }
   }
 
-  bool enableDragStates(int id, Vector2 globalPos) {
-    final moveEnabled =
-        moveJoystick.background?.containsPoint(globalPos) ?? false;
+  bool discernJoystate(int id, PositionInfo globalPos) {
+    final moveEnabled = moveJoystick.background
+            ?.containsPoint(globalPos.eventPosition.global) ??
+        false;
     final aimEnabled =
-        aimJoystick.background?.containsPoint(globalPos) ?? false;
+        aimJoystick.background?.containsPoint(globalPos.eventPosition.global) ??
+            false;
 
     if (moveEnabled) {
       inputIdStates[id] = InputType.moveJoy;
@@ -207,10 +130,86 @@ class GameplayGame extends Forge2DGame
     if (aimEnabled) {
       inputIdStates[id] = InputType.aimJoy;
     }
-    if (Platform.isWindows && !moveEnabled && !aimEnabled) {
+
+    if (!moveEnabled && !aimEnabled) {
       inputIdStates[id] = InputType.mouseDrag;
     }
 
     return moveEnabled || aimEnabled;
+  }
+
+  @override
+  void onDragCancel(int pointerId) {
+    endIdState(pointerId);
+    super.onDragCancel(pointerId);
+  }
+
+  @override
+  void onDragEnd(int pointerId, DragEndInfo info) {
+    endIdState(pointerId);
+    super.onDragEnd(pointerId, info);
+  }
+
+  @override
+  void onDragStart(int pointerId, DragStartInfo info) {
+    discernJoystate(pointerId, info);
+    player.gestureEventEnd(InputType.tapClick, info);
+    player.gestureEventStart(InputType.mouseDragStart, info);
+    super.onDragStart(pointerId, info);
+  }
+
+  @override
+  void onDragUpdate(int pointerId, DragUpdateInfo info) {
+    transmitDragInfo(pointerId, info);
+    super.onDragUpdate(pointerId, info);
+  }
+
+  @override
+  void onMouseMove(PointerHoverInfo info) {
+    if (Platform.isWindows) {
+      player.gestureEventStart(InputType.mouseMove, info);
+    }
+    super.onMouseMove(info);
+  }
+
+  @override
+  void onTapDown(int pointerId, TapDownInfo info) {
+    if (Platform.isWindows && !discernJoystate(pointerId, info)) {
+      player.gestureEventStart(InputType.tapClick, info);
+    }
+
+    super.onTapDown(pointerId, info);
+  }
+
+  @override
+  void onTapUp(int pointerId, TapUpInfo info) {
+    endIdState(pointerId);
+    player.gestureEventEnd(InputType.tapClick, info);
+    super.onTapUp(pointerId, info);
+  }
+
+  @override
+  KeyEventResult onKeyEvent(
+    RawKeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    player.handleKeyboardInputs(keysPressed);
+
+    if (keysPressed.contains(LogicalKeyboardKey.keyE) && !world.isLocked) {
+      add(Ball(Vector2.random() * 50));
+    }
+
+    if (keysPressed.contains(LogicalKeyboardKey.tab)) {
+      player.swapWeapon();
+      print('ua');
+    }
+
+    if (keysPressed.contains(LogicalKeyboardKey.keyP) ||
+        keysPressed.contains(LogicalKeyboardKey.escape)) {
+      overlays.add('PauseMenu');
+      pauseEngine();
+    }
+
+    return KeyEventResult.handled;
   }
 }

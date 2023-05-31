@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/body_component.dart';
+import 'package:game_app/functions/custom_timer_componenet.dart';
 import 'package:game_app/game/entity.dart';
 import 'package:game_app/game/games.dart';
 import 'package:game_app/game/weapons.dart';
@@ -22,9 +23,9 @@ abstract class Weapon extends SpriteComponent
   abstract double distanceFromPlayer;
   abstract int count;
   abstract double damage;
-  abstract double fireRate;
+  abstract double fireRate; //every X second
   abstract bool holdAndRelease;
-  abstract int maxAmmo;
+  abstract int? maxAmmo;
   abstract double maxSpreadDegrees;
   abstract int pierce;
   abstract double projectileVelocity;
@@ -49,13 +50,11 @@ abstract class Weapon extends SpriteComponent
   abstract double length;
 
   //Weapon state info
-  bool holding = false;
-  bool isReloading = false;
-  bool isShooting = false;
   abstract int spentAmmo;
-  double holdDuration = 0;
-  int projectilesFired = 0;
-  double timeSinceLastFire = 0;
+
+  int attackTicks = 0;
+
+  double get getHoldDuration => attackTicks * fireRate;
 
   // abstract bool followRandomPath;
   // List<Vector2> randomPath = [];
@@ -64,7 +63,6 @@ abstract class Weapon extends SpriteComponent
 
   @override
   FutureOr<void> onLoad() async {
-    timeSinceLastFire = fireRateSecondComparison;
     priority = 200;
     sprite = await Sprite.load(spriteString);
     size = sprite!.srcSize.scaled(length / sprite!.srcSize.y);
@@ -77,34 +75,18 @@ abstract class Weapon extends SpriteComponent
         size: Vector2.zero(), position: Vector2(size.x * .5, size.y));
     add(tipOfWeapon);
     add(centerOfWeapon);
+
     return super.onLoad();
   }
 
   void additionalCountCheck() {
     if (countIncreaseWithTime) {
-      additionalCount = holdDuration.round();
+      additionalCount = getHoldDuration.round();
     }
-  }
-
-  @override
-  void update(double dt) {
-    if (timeSinceLastFire < fireRateSecondComparison) {
-      timeSinceLastFire += dt;
-    }
-
-    additionalCountCheck();
-    reloadCheck();
-    holdAndReleaseCheck(dt);
-
-    if (isShooting) {
-      isShooting = false;
-    }
-
-    super.update(dt);
   }
 
   double get fireRateSecondComparison => 1 / fireRate;
-  int get remainingShots => maxAmmo - spentAmmo;
+  int? get remainingShots => maxAmmo == null ? null : maxAmmo! - spentAmmo;
 
   List<BodyComponent> generateProjectileFunction() {
     var deltaDirection = (centerOfWeapon.absolutePosition -
@@ -112,11 +94,6 @@ abstract class Weapon extends SpriteComponent
         .normalized();
 
     List<BodyComponent> returnList = [];
-
-    // if (followRandomPath && resetRandomPath) {
-    // deltaListSaved = [...generateRandomDeltas(deltaDirection, 10, 100, 50)];
-    //   resetRandomPath = false;
-    // }
 
     List<Vector2> temp = splitVector2DeltaInCone(
         deltaDirection, count + (additionalCount ?? 0), maxSpreadDegrees);
@@ -131,65 +108,77 @@ abstract class Weapon extends SpriteComponent
           originPositionVar:
               tipOfWeapon.absolutePosition + ancestor.body.position,
           ancestorVar: this,
-          idVar: (deltaDirection.x + projectilesFired++).toString()));
+          idVar: (deltaDirection.x + attackTicks).toString()));
     }
 
     return returnList;
   }
 
-  void holdAndReleaseCheck(double dt) {
-    if (!isShooting && holding) {
-      holding = false;
-      shootCheck(dt, true);
-      holdDuration = 0;
-      // resetRandomPath = true;
-    }
-  }
+  CustomTimerComponent? reloadTimer;
 
   void reloadCheck() {
-    if (remainingShots != 0 || isReloading) return;
-    isReloading = true;
-    Future.delayed(Duration(milliseconds: (reloadTime * 1000).round()))
-        .then((_) {
-      isReloading = false;
-      spentAmmo = 0;
-    });
+    if (remainingShots != 0 || reloadTimer != null) return;
+    reloadTimer = CustomTimerComponent(
+      period: reloadTime,
+      removeOnFinish: true,
+      onTick: () {
+        spentAmmo = 0;
+        reloadTimer = null;
+        if (shootingTimer != null) {
+          shootingTimer?.timer.start();
+          attackTick();
+        }
+      },
+    );
+    add(reloadTimer!);
   }
 
   void shoot() {
     spentAmmo++;
-
     game.enemyManagement.addAll(generateProjectileFunction());
     add(MoveEffect.by(Vector2(0, -.05),
         EffectController(duration: .05, reverseDuration: .05)));
     add(RotateEffect.by(isFlippedHorizontally ? -.05 : .05,
         EffectController(duration: .1, reverseDuration: .1)));
-    timeSinceLastFire = 0;
   }
 
-  bool shootCheck(double dt, [bool releaseWeapon = false]) {
-    isShooting = true;
+  CustomTimerComponent? shootingTimer;
 
-    if (!releaseWeapon) {
-      holdDuration += dt;
-      holding = true;
-      if (holdAndRelease) return false;
+  void attackTick() {
+    if (reloadTimer != null) return;
+    attackTicks++;
+    additionalCountCheck();
+    shootCheck();
+    reloadCheck();
+  }
+
+  void startAttacking() {
+    if (shootingTimer != null) return;
+    shootingTimer = CustomTimerComponent(
+      period: fireRate,
+      repeat: true,
+      onTick: attackTick,
+    );
+    attackTick();
+    add(shootingTimer!);
+  }
+
+  void endAttacking() {
+    shootingTimer?.removeFromParent();
+    shootingTimer = null;
+    if (holdAndRelease) {
+      shootCheck();
     }
+  }
 
+  bool shootCheck() {
     final canShoot = isLoaded &&
-        !isReloading &&
-        (timeSinceLastFire >= fireRateSecondComparison) &&
-        (!holdAndRelease ||
-            ((holdAndRelease && holdDuration > fireRateSecondComparison) &&
-                !holding));
+        ((!holdAndRelease && shootingTimer != null) ||
+            (shootingTimer == null && holdAndRelease && attackTicks > 0));
 
     if (!canShoot) {
-      if (timeSinceLastFire < fireRateSecondComparison) {
-        timeSinceLastFire += dt;
-      }
       return false;
     }
-
     shoot();
     return true;
   }
