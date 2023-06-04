@@ -1,50 +1,66 @@
 import 'dart:async';
 
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/game/characters.dart';
 import 'package:game_app/game/entity.dart';
-import 'package:game_app/game/games.dart';
+import 'package:game_app/game/main_game.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/game/player.dart';
-import 'package:game_app/game/weapons.dart';
-import 'package:game_app/game/weapon_class.dart';
+import 'package:game_app/game/powerups.dart';
+import 'package:game_app/game/weapons/weapons.dart';
 
 import '../functions/vector_functions.dart';
 
-class Enemy extends Entity with ContactCallbacks {
-  Enemy({required Vector2 initPosition, required this.id})
-      : super(
-          file: EnemyType.flameHead.getFilename(),
-          position: initPosition,
-        ) {
-    invincibiltyDuration = .0;
+class Enemy extends Entity with ContactCallbacks, CollisionCallbacks {
+  Enemy(
+      {required super.initPosition,
+      required super.ancestor,
+      required super.id,
+      super.file = ""}) {
+    super.file = enemyType.getFilename();
   }
 
   EnemyType enemyType = EnemyType.flameHead;
+  @override
+  double dashCooldown = 5;
 
-  String id;
+  @override
+  Filter? filter = Filter()
+    ..categoryBits = enemyCategory
+    ..maskBits =
+        bulletCategory + playerCategory + sensorCategory + swordCategory;
 
-  Weapon? _projectileWeapon;
+  @override
+  double height = 10;
+
+  @override
+  double invincibiltyDuration = 0;
+
+  @override
+  double maxHealth = 100;
+
+  @override
+  double maxSpeed = 20;
+
+  @override
+  EntityType entityType = EntityType.enemy;
   TimerComponent? shooter;
+  bool hittingPlayer = false;
+  double shotFreq = 1;
+
   @override
   Future<void> onLoad() async {
+    initialWeapons.addAll([Portal.create]);
     await super.onLoad();
-    shooter = TimerComponent(
-      period: shotFreq,
-      repeat: true,
-      onTick: () {
-        _projectileWeapon?.shoot();
-      },
-    );
-    add(shooter!);
-    _projectileWeapon = Pistol();
-    aimingAnglePosition.add(_projectileWeapon!);
+    startAttacking();
   }
 
   @override
   Future<void> onDeath() async {
+    endAttacking();
     spriteAnimationComponent.add(OpacityEffect.fadeOut(
       EffectController(
         duration: .5,
@@ -54,8 +70,6 @@ class Enemy extends Entity with ContactCallbacks {
       },
     ));
   }
-
-  bool hittingPlayer = false;
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -74,74 +88,53 @@ class Enemy extends Entity with ContactCallbacks {
     super.endContact(other, contact);
   }
 
-  double shotFreq = 1;
-
   @override
   void update(double dt) {
     if (hittingPlayer) {
-      gameRef.player.takeDamage(id, 3);
+      ancestor.player.takeDamage(id, 3);
     }
-    moveCharacter();
+
+    moveVelocities[InputType.ai] =
+        (ancestor.player.center - body.position).normalized();
+
     super.update(dt);
   }
-
-  @override
-  void moveCharacter({Vector2? delta}) {
-    super.moveCharacter(
-        delta: (gameRef.player.center - body.position).normalized());
-  }
-
-  @override
-  Filter? filter = Filter()..categoryBits = enemyCategory;
-
-  @override
-  double height = 10;
-
-  @override
-  double invincibiltyDuration = 0;
-
-  @override
-  double maxHealth = 100;
-
-  @override
-  double maxSpeed = 20;
-
-  @override
-  EntityType entityType = EntityType.enemy;
 }
 
-class EnemyManagement extends Component with HasGameRef<GameplayGame> {
+class EnemyManagement extends Component {
   int enemiesSpawned = 0;
+  EnemyManagement(this.mainGameRef);
+  MainGame mainGameRef;
+
   @override
   FutureOr<void> onLoad() {
     const enemyType = EnemyType.flameHead;
 
-    add(TimerComponent(
-      period: 1,
-      repeat: true,
-      onTick: () => add(Enemy(
-          initPosition: generateRandomGamePositionUsingViewport(
-            false,
-            gameRef,
-          ),
-          id: (enemiesSpawned++).toString() + enemyType.name)),
-    ));
+    // add(TimerComponent(
+    //   period: 1,
+    //   repeat: true,
+    //   onTick: () => add(Enemy(
+    //       ancestor: mainGameRef,
+    //       initPosition: generateRandomGamePositionUsingViewport(
+    //         false,
+    //         mainGameRef,
+    //       ),
+    //       id: (enemiesSpawned++).toString() + enemyType.name)),
+    // ));
+    add(
+      TimerComponent(
+          period: 20,
+          repeat: true,
+          onTick: () {
+            add(PowerupItem(Damage(),
+                generateRandomGamePositionUsingViewport(true, mainGameRef)));
+            add(PowerupItem(Agility(),
+                generateRandomGamePositionUsingViewport(true, mainGameRef)));
+          }),
+    );
 
+    add(PowerupItem(
+        Damage(), generateRandomGamePositionUsingViewport(true, mainGameRef)));
     return super.onLoad();
-  }
-
-  @override
-  void update(double dt) {
-    // if (lastEnemySpawn > .5) {
-    // const enemyType = EnemyType.flameHead;
-    // add(Enemy(
-    //     initPosition: generateRandomGamePositionUsingViewport(
-    //       false,
-    //       gameRef,
-    //     ),
-    //     id: (enemiesSpawned++).toString() + enemyType.name));
-    // lastEnemySpawn = 0;
-    // }
-    super.update(dt);
   }
 }

@@ -4,22 +4,25 @@ import 'package:flame/game.dart';
 import 'package:game_app/game/player.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 
-import 'games.dart';
+import 'main_game.dart';
 
 class BackgroundComponent extends SpriteComponent {
   late final ParallaxComponent<FlameGame> background;
   late final GameLevel gameLevel;
-  late final Player _player;
+  late final Player player;
 
-  BackgroundComponent(this._player, this.gameLevel);
+  BackgroundComponent(this.gameRef, this.gameLevel);
+  MainGame gameRef;
 
   Vector2? lastPlayerPosition;
 
   @override
   FutureOr<void> onLoad() async {
+    player = gameRef.player;
     sprite = await Sprite.load('rock_background.jpg');
-    size = size / 10;
+    priority = -500;
     anchor = Anchor.center;
+    size = size / 6;
     return super.onLoad();
   }
 }
@@ -38,29 +41,6 @@ class Ball extends BodyComponent {
       shape,
       restitution: 0.5,
       density: 0.2,
-    );
-    return world.createBody(bodyRef)..createFixture(fixtureDef);
-  }
-}
-
-class Wall extends BodyComponent {
-  Wall(this.pos1, this.pos2);
-  Vector2 pos1;
-  Vector2 pos2;
-
-  @override
-  Body createBody() {
-    final shape = EdgeShape();
-    shape.set(pos1, pos2);
-
-    final bodyRef = BodyDef(
-        type: BodyType.static,
-        userData: this,
-        position: (parent as GameplayGame).size / 2);
-    final fixtureDef = FixtureDef(
-      shape,
-      restitution: 0,
-      density: 100,
     );
     return world.createBody(bodyRef)..createFixture(fixtureDef);
   }

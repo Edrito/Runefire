@@ -1,7 +1,11 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/game/main_game.dart';
+
+Vector2 vectorToGrid(Vector2 v1, Vector2 size) {
+  return ((v1) - size / 2);
+}
 
 Vector2 randomizeVector2Delta(Vector2 element, double percent) {
   if (percent == 0) return element;
@@ -67,6 +71,21 @@ Vector2 calculateDelta(
   return delta;
 }
 
+Vector2 rotateVector2(Vector2 vector, double rad) {
+  // Convert degrees to radians
+
+  // Calculate the sine and cosine of the angle
+  double cosine = cos(rad);
+  double sine = sin(rad);
+
+  // Perform the rotation using the rotation matrix
+  double x = vector[0] * cosine - vector[1] * sine;
+  double y = vector[0] * sine + vector[1] * cosine;
+
+  // Return the rotated vector
+  return Vector2(x, y);
+}
+
 // List<Vector2> generateRandomDeltas(
 //     Vector2 initialDelta, int numSplines, double magnitude, int controlPoints) {
 //   List<Vector2> deltaList = [];
@@ -107,12 +126,13 @@ Vector2 calculateDelta(
 // }
 
 Vector2 generateRandomGamePositionUsingViewport(
-    bool internal, Forge2DGame gameRef) {
-  const paddingDouble = 150.0;
+    bool internal, MainGame gameRef) {
+  const paddingDouble = 10.0;
   final padding = Vector2.all(paddingDouble);
   final random = Vector2.random();
 
-  Vector2 initalArea = gameRef.camera.viewport.effectiveSize;
+  Vector2 initalArea =
+      gameRef.gameCamera.viewport.size + gameRef.gameCamera.viewfinder.position;
   Vector2 area = Vector2.zero();
 
   if (internal) {
@@ -143,7 +163,7 @@ Vector2 generateRandomGamePositionUsingViewport(
     }
   }
 
-  return gameRef.screenToWorld(area);
+  return vectorToGrid(area, gameRef.gameCamera.viewport.size) / 10;
 }
 
 double radiansBetweenPoints(Vector2 v1, Vector2 v2) {

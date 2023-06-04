@@ -6,14 +6,15 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/entity.dart';
-import 'package:game_app/game/games.dart';
 import 'package:game_app/game/physics_filter.dart';
-import 'package:game_app/game/weapon_class.dart';
+import 'package:game_app/game/player.dart';
+import 'package:game_app/game/weapons/weapon_class.dart';
+import 'package:game_app/main.dart';
 
-import '../functions/vector_functions.dart';
-import 'enemies.dart';
+import '../../functions/vector_functions.dart';
+import '../enemies.dart';
 
-enum ProjectileType { pellet, bullet, arrow }
+enum ProjectileType { pellet, bullet, arrow, fireball }
 
 extension ProjectileTypeExtension on ProjectileType {
   String getFilename() {
@@ -24,6 +25,8 @@ extension ProjectileTypeExtension on ProjectileType {
         return 'bullet.png';
       case ProjectileType.arrow:
         return 'arrow.png';
+      case ProjectileType.fireball:
+        return 'fireball.png';
       default:
         return '';
     }
@@ -37,30 +40,37 @@ extension ProjectileTypeExtension on ProjectileType {
     switch (this) {
       case ProjectileType.pellet:
         return Pellet(
-          ancestor: ancestorVar,
           originPosition: originPositionVar,
           speed: speedVar,
+          weaponAncestor: ancestorVar,
           id: idVar,
         );
       case ProjectileType.bullet:
         return Bullet(
-          ancestor: ancestorVar,
           originPosition: originPositionVar,
           speed: speedVar,
+          weaponAncestor: ancestorVar,
           id: idVar,
         );
       case ProjectileType.arrow:
         return Arrow(
-          ancestor: ancestorVar,
+          weaponAncestor: ancestorVar,
           originPosition: originPositionVar,
+          speed: speedVar,
+          id: idVar,
+        );
+      case ProjectileType.fireball:
+        return Fireball(
+          originPosition: originPositionVar,
+          weaponAncestor: ancestorVar,
           speed: speedVar,
           id: idVar,
         );
       default:
         return Bullet(
-          ancestor: ancestorVar,
           originPosition: originPositionVar,
           speed: speedVar,
+          weaponAncestor: ancestorVar,
           id: idVar,
         );
     }
@@ -71,8 +81,8 @@ class Arrow extends Projectile {
   Arrow(
       {required super.speed,
       required super.originPosition,
-      required super.ancestor,
-      required super.id});
+      required super.id,
+      required super.weaponAncestor});
 
   @override
   double embedIntoEnemyChance = .9;
@@ -97,12 +107,42 @@ class Arrow extends Projectile {
   }
 }
 
+class Fireball extends Projectile {
+  Fireball(
+      {required super.speed,
+      required super.originPosition,
+      required super.id,
+      required super.weaponAncestor});
+
+  @override
+  double embedIntoEnemyChance = .8;
+
+  @override
+  late Sprite projectileSprite;
+
+  @override
+  ProjectileType projectileType = ProjectileType.fireball;
+
+  @override
+  double size = 5;
+
+  @override
+  double ttl = 1.0;
+
+  @override
+  Future<void> onLoad() async {
+    projectileSprite = await Sprite.load(projectileType.getFilename());
+
+    return super.onLoad();
+  }
+}
+
 class Bullet extends Projectile {
   Bullet(
       {required super.speed,
       required super.originPosition,
-      required super.ancestor,
-      required super.id});
+      required super.id,
+      required super.weaponAncestor});
 
   @override
   double embedIntoEnemyChance = .8;
@@ -131,8 +171,8 @@ class Pellet extends Projectile {
   Pellet(
       {required super.speed,
       required super.originPosition,
-      required super.ancestor,
-      required super.id});
+      required super.id,
+      required super.weaponAncestor});
 
   @override
   double embedIntoEnemyChance = .7;
@@ -157,20 +197,20 @@ class Pellet extends Projectile {
   }
 }
 
-abstract class Projectile extends BodyComponent<GameplayGame>
+abstract class Projectile extends BodyComponent<GameRouter>
     with ContactCallbacks {
   Projectile(
       {required this.speed,
       required this.originPosition,
-      required this.ancestor,
-      required this.id}) {
+      required this.id,
+      required this.weaponAncestor}) {
     deltaSavedCopy = [];
   }
 
-  final Weapon ancestor;
   late final SpriteComponent spriteComponent;
 
   bool bulletHasExpired = false;
+  Weapon weaponAncestor;
   List<Entity> closeHittingBodies = [];
   late List<Vector2> deltaSavedCopy;
   abstract double embedIntoEnemyChance;
@@ -198,7 +238,13 @@ abstract class Projectile extends BodyComponent<GameplayGame>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Enemy) return;
+    // if (other is! Player) {
+    //   print('a');
+    // }
+
+    if (other is! Entity) {
+      return;
+    }
 
     bool isHomingSensor = contact.fixtureA.userData == "homingSensor" ||
         contact.fixtureB.userData == "homingSensor";
@@ -210,6 +256,12 @@ abstract class Projectile extends BodyComponent<GameplayGame>
       other.targetsHomingEntity++;
     } else if (!bulletHasExpired && !isHomingSensor && !other.isDead) {
       closeHittingBodies.add(other);
+      other.takeDamage(id, weaponAncestor.damage);
+      enemiesHit++;
+      bulletHasExpired = enemiesHit > weaponAncestor.pierce;
+      if (bulletHasExpired) {
+        killBullet();
+      }
     }
 
     super.beginContact(other, contact);
@@ -226,8 +278,15 @@ abstract class Projectile extends BodyComponent<GameplayGame>
     ]);
 
     final bulletFilter = Filter();
-    bulletFilter.categoryBits = bulletCategory; // Category bit for the bullet
-    bulletFilter.maskBits = 0xFFFF - playerCategory - bulletCategory;
+    if (weaponAncestor.parentEntity is Enemy) {
+      bulletFilter
+        ..maskBits = playerCategory
+        ..categoryBits = bulletCategory;
+    } else if (weaponAncestor.parentEntity is Player) {
+      bulletFilter
+        ..maskBits = enemyCategory
+        ..categoryBits = bulletCategory;
+    }
 
     final fixtureDef = FixtureDef(shape,
         userData: this,
@@ -243,19 +302,15 @@ abstract class Projectile extends BodyComponent<GameplayGame>
       type: BodyType.dynamic,
       bullet: false,
       linearVelocity: speed,
-      fixedRotation: !ancestor.allowProjectileRotation,
+      fixedRotation: !weaponAncestor.allowProjectileRotation,
     );
 
     var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
 
-    if (ancestor.isHoming) {
+    if (weaponAncestor.isHoming) {
+      bulletFilter.categoryBits = sensorCategory;
       sensorDef = FixtureDef(CircleShape()..radius = homingDistance / 2,
-          userData: "homingSensor",
-          isSensor: true,
-          filter: Filter()
-            ..maskBits = enemyCategory
-            ..categoryBits = sensorCategory);
-
+          userData: "homingSensor", isSensor: true, filter: bulletFilter);
       returnBody.createFixture(sensorDef!);
     }
 
@@ -299,7 +354,7 @@ abstract class Projectile extends BodyComponent<GameplayGame>
         anchor: Anchor.center);
 
     add(spriteComponent);
-
+    add(bulletDeathTimer!);
     deltaPathFollowTimerSetup();
 
     return super.onLoad();
@@ -316,10 +371,9 @@ abstract class Projectile extends BodyComponent<GameplayGame>
 
   @override
   void update(double dt) {
-    if (!bulletHasExpired && ancestor.parent != null) {
+    if (!bulletHasExpired && weaponAncestor.parent != null) {
       bulletAngleCalc();
       homingCalc(dt);
-      hitEnemies();
       if (!previousPatternForce.isZero()) body.applyForce(previousPatternForce);
     }
 
@@ -327,9 +381,9 @@ abstract class Projectile extends BodyComponent<GameplayGame>
   }
 
   void bulletAngleCalc() {
-    if (ancestor.allowProjectileRotation) {
-      spriteComponent.angle = -radiansBetweenPoints(Vector2(0, 0.0001),
-          body.worldCenter - ancestor.ancestor.body.worldCenter);
+    if (weaponAncestor.allowProjectileRotation) {
+      spriteComponent.angle =
+          -radiansBetweenPoints(Vector2(0, 0.0001), body.linearVelocity);
     }
   }
 
@@ -348,28 +402,16 @@ abstract class Projectile extends BodyComponent<GameplayGame>
     }
   }
 
-  void hitEnemies() {
-    for (var element in closeHittingBodies) {
-      if (element.takeDamage(id, ancestor.damage)) {
-        enemiesHit++;
-        bulletHasExpired = enemiesHit > ancestor.pierce;
-        if (bulletHasExpired) {
-          killBullet();
-          break;
-        }
-      }
-    }
-  }
-
   void homingCalc(double dt) {
-    if (ancestor.isHoming) {
+    if (weaponAncestor.isHoming) {
       Vector2? closetPosition;
 
       if (closeHomingBody == null) {
         if (noTargetsImpulseCompleted) return;
         closetPosition = Vector2.random() * 2;
         closetPosition -= Vector2.all(1);
-        body.applyForce(closetPosition * ancestor.projectileVelocity * size);
+        body.applyForce(
+            closetPosition * weaponAncestor.projectileVelocity * size);
         noTargetsImpulseCompleted = true;
       } else {
         closetPosition = closeHomingBody!.body.worldCenter;
@@ -377,7 +419,7 @@ abstract class Projectile extends BodyComponent<GameplayGame>
         // print(distance);
         final test = (closetPosition - body.worldCenter).normalized();
         body.applyForce(
-            (test * ancestor.projectileVelocity * size) / (dt * 40));
+            (test * weaponAncestor.projectileVelocity * size) / (dt * 40));
         noTargetsImpulseCompleted = false;
       }
     }

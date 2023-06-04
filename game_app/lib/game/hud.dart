@@ -4,21 +4,26 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/player.dart';
 
-import 'games.dart';
+import 'main_game.dart';
 
-class GameHud extends Component {
-  final Player player;
-  GameHud(this.player);
+class GameHud extends PositionComponent {
+  late final Player player;
+  GameHud(this.gameRef);
   int fps = 0;
   late final TextComponent fpsCounter;
+  @override
   final double width = 100;
+  MainGame gameRef;
 
   @override
   FutureOr<void> onLoad() {
-    positionType = PositionType.viewport;
+    player = gameRef.player;
+    // add(RectangleComponent(
+    //     position: Vector2.zero(), size: game.gameCamera.viewport.size / 11));
+
     fpsCounter = TextComponent(
         anchor: Anchor.topLeft,
-        position: Vector2((findParent() as GameplayGame).canvasSize.x - 50, 5),
+        position: Vector2(gameRef.gameCamera.viewport.size.x - 50, 5),
         text: fps.toString());
     add(fpsCounter);
     return super.onLoad();
@@ -30,20 +35,23 @@ class GameHud extends Component {
       fps = (1 / dt).round();
     }
     fpsCounter.text = fps.toString();
-    fpsCounter.position.x = (findParent() as GameplayGame).canvasSize.x - 50;
+    fpsCounter.position.x = gameRef.gameCamera.viewport.size.x - 50;
     super.update(dt);
   }
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect(
-        (const Offset(10, 10) & Size(width, 10)), Paint()..color = Colors.grey);
+    canvas.drawRect((const Offset(10, 10) & Size(player.maxHealth * 5, 10)),
+        Paint()..color = Colors.grey);
     canvas.drawRect(
         (const Offset(10, 25) & Size(width, 10)), Paint()..color = Colors.grey);
+
     canvas.drawRect(
         (const Offset(10, 10) &
-            Size(width * (player.health / player.maxHealth), 10)),
+            Size(
+                player.maxHealth * 5 * (player.health / player.maxHealth), 10)),
         Paint()..color = Colors.red);
+
     canvas.drawRect((const Offset(10, 25) & const Size(10, 10)),
         Paint()..color = Colors.yellow);
     super.render(canvas);
