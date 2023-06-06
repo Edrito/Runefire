@@ -4,11 +4,12 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/game/entity.dart';
 import 'package:game_app/game/physics_filter.dart';
-import 'package:game_app/game/weapons/weapon_class.dart';
+import 'package:game_app/weapons/weapon_class.dart';
 
-import '../../functions/vector_functions.dart';
-import '../enemies.dart';
+import '../functions/vector_functions.dart';
+import '../game/enemies.dart';
 
 class MeleeDetection extends BodyComponent with ContactCallbacks {
   MeleeDetection(this.spriteComponent, this.parentAttack);
@@ -18,7 +19,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is Enemy) {
+    if (other is Entity) {
       other.takeDamage(parentAttack.id, parentAttack.parentWeapon.damage);
     }
 
@@ -35,11 +36,13 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
       Vector2(spriteComponent.size.x / 2, spriteComponent.size.y),
       Vector2(-spriteComponent.size.x / 2, spriteComponent.size.y),
     ]);
-
-    final swordFilter = Filter()
-      ..maskBits = enemyCategory
-      ..categoryBits = swordCategory;
-
+    final swordFilter = Filter();
+    if (parentAttack.parentWeapon.parentEntity is Enemy) {
+      swordFilter.maskBits = playerCategory;
+    } else {
+      swordFilter.maskBits = enemyCategory;
+    }
+    swordFilter.categoryBits = swordCategory;
     final fixtureDef = FixtureDef(shape,
         userData: this,
         restitution: 0,
@@ -87,7 +90,7 @@ class MeleeAttack extends PositionComponent {
     add(spriteComponent);
     bodyComponent = MeleeDetection(spriteComponent, this);
 
-    parentWeapon.parentEntity?.ancestor.backgroundComponent.add(bodyComponent!);
+    parentWeapon.parentEntity?.ancestor.physicsComponent.add(bodyComponent!);
 
     anchor = Anchor.center;
     angle = radians(start.$2) +

@@ -5,11 +5,11 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:game_app/game/entity.dart';
-import 'package:game_app/game/weapons/swings.dart';
-import 'package:game_app/game/weapons/weapons.dart';
-import 'package:game_app/game/weapons/projectiles.dart';
+import 'package:game_app/weapons/swings.dart';
+import 'package:game_app/weapons/weapons.dart';
+import 'package:game_app/weapons/projectiles.dart';
 
-import '../../functions/vector_functions.dart';
+import '../functions/vector_functions.dart';
 
 enum WeaponSpritePosition { hand, mouse, back, none }
 
@@ -33,12 +33,42 @@ class PlayerAttachmentJointComponent extends PositionComponent
   PositionComponent? weaponBase;
   PositionComponent? weaponTipCenter;
   SpriteComponent? spriteComponent;
+  // SpriteComponent? spriteComponentFront;
+  bool isFrontVisible = false;
+
+  // void calculateSpriteVisibility() {
+  //   if (position.y > ancestor.center.y && isFrontVisible) {
+  //     isFrontVisible = false;
+  //     spriteComponentFront?.opacity = 1;
+  //     print('here2');
+  //     spriteComponent?.opacity = 0;
+  //   } else if (position.y <= ancestor.center.y && !isFrontVisible) {
+  //     isFrontVisible = true;
+  //     spriteComponentFront?.opacity = 0;
+  //     spriteComponent?.opacity = 1;
+  //     print('here');
+  //   }
+  // }
+
+  // SpriteComponent? get spriteComponent =>
+  //     isFrontVisible && spriteComponentFront != null
+  //         ? spriteComponentFront
+  //         : spriteComponent;
+
+  @override
+  void update(double dt) {
+    // if (jointPosition == WeaponSpritePosition.hand) {
+    //   calculateSpriteVisibility();
+    // }
+    super.update(dt);
+  }
 
   void removePreviousComponents() {
-    if (weaponTip != null) weaponTip?.removeFromParent();
-    if (spriteComponent != null) spriteComponent?.removeFromParent();
-    if (weaponBase != null) weaponBase?.removeFromParent();
-    if (weaponTipCenter != null) weaponTipCenter?.removeFromParent();
+    weaponTip?.removeFromParent();
+    spriteComponent?.removeFromParent();
+    // spriteComponentFront?.removeFromParent();
+    weaponBase?.removeFromParent();
+    weaponTipCenter?.removeFromParent();
     weaponClass = null;
   }
 
@@ -47,10 +77,19 @@ class PlayerAttachmentJointComponent extends PositionComponent
     if (!newWeapon.spirtePositions.contains(jointPosition)) return;
     weaponClass = newWeapon;
     anchor = Anchor.center;
-
-    spriteComponent = await newWeapon.buildSpriteComponent(jointPosition);
     var tipPositionPercent = newWeapon.tipPositionPercent.clamp(-.5, .5);
-
+    weaponBase = PositionComponent(
+        anchor: Anchor.center,
+        position: Vector2(0, newWeapon.distanceFromPlayer));
+    spriteComponent = await newWeapon.buildSpriteComponent(jointPosition);
+    // spriteComponent!.priority = -100;
+    // if (jointPosition == WeaponSpritePosition.hand) {
+    //   spriteComponentFront =
+    //       await newWeapon.buildSpriteComponent(jointPosition);
+    //   spriteComponentFront!.priority = 100;
+    //   weaponBase?.add(spriteComponentFront!);
+    // }
+    priority = 0;
     weaponTip = PositionComponent(
         anchor: Anchor.center,
         position: Vector2(spriteComponent!.size.x * tipPositionPercent,
@@ -58,9 +97,6 @@ class PlayerAttachmentJointComponent extends PositionComponent
 
     weaponTipCenter = PositionComponent(
         anchor: Anchor.center, position: Vector2(0, spriteComponent!.size.y));
-    weaponBase = PositionComponent(
-        anchor: Anchor.center,
-        position: Vector2(0, newWeapon.distanceFromPlayer));
 
     weaponBase?.add(weaponTipCenter!);
     weaponBase?.add(weaponTip!);
@@ -71,7 +107,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
 }
 
 abstract class Weapon extends Component {
-  Weapon(this.attackTypes, this.parentEntity) {
+  Weapon(this.parentEntity) {
     assert(
         !attackTypes.contains(AttackType.projectile) || projectileType != null,
         "Projectile weapon types need a projectile type");
@@ -79,6 +115,8 @@ abstract class Weapon extends Component {
 
     assert(minDamage <= maxDamage, "Min damage must be lower than max damage");
   }
+
+  abstract int upgradeLevel;
 
   FutureOr<SpriteComponent> buildSpriteComponent(WeaponSpritePosition position);
   //Weapon attributes
@@ -107,8 +145,9 @@ abstract class Weapon extends Component {
   abstract bool countIncreaseWithTime;
   int? additionalCount;
   bool removeBackSpriteOnAttack = false;
+
   //Sprites, types and things that bite
-  List<AttackType> attackTypes;
+  abstract List<AttackType> attackTypes;
   abstract ProjectileType? projectileType;
   abstract Sprite projectileSprite;
   abstract bool allowProjectileRotation;
@@ -170,7 +209,8 @@ abstract class Weapon extends Component {
   }
 
   void shoot() {
-    parentEntity?.ancestor.enemyManagement.addAll(generateProjectileFunction());
+    parentEntity?.ancestor.physicsComponent
+        .addAll(generateProjectileFunction());
     parentEntity!.handJoint.add(MoveEffect.by(Vector2(0, -.05),
         EffectController(duration: .05, reverseDuration: .05)));
     parentEntity!.handJoint.add(RotateEffect.by(

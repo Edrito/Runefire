@@ -1,17 +1,19 @@
 import 'dart:async';
 
+import 'package:flame/components.dart';
 import 'package:flame/input.dart';
+import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/game/entity.dart';
 import 'package:game_app/game/main_game.dart';
 import 'package:game_app/game/physics_filter.dart';
-import 'package:game_app/game/weapons/weapons.dart';
+import 'package:game_app/weapons/weapons.dart';
 
 import '../functions/vector_functions.dart';
 import 'characters.dart';
 
-class Player extends Entity with ContactCallbacks {
+class Player extends Entity with ContactCallbacks, KeyboardHandler {
   Player(this.characterType,
       {required super.ancestor,
       super.file = "",
@@ -22,60 +24,76 @@ class Player extends Entity with ContactCallbacks {
 
   final CharacterType characterType;
 
+  Future<SpriteAnimation> buildSpriteSheet(
+      int width, String source, double stepTime, bool loop) async {
+    final sprite = (await Sprite.load(source));
+    return SpriteSheet(
+            image: sprite.image,
+            srcSize: Vector2(sprite.srcSize.x / width, sprite.srcSize.y))
+        .createAnimation(
+            row: 0, stepTime: stepTime, loop: loop, to: loop ? null : width);
+  }
+
+  Future<void> loadAnimationSprites() async {
+    idleAnimation = await buildSpriteSheet(10, 'sprites/idle.png', .1, true);
+    jumpAnimation = await buildSpriteSheet(3, 'sprites/jump.png', .1, false);
+    dashAnimation = await buildSpriteSheet(7, 'sprites/roll.png', .06, false);
+    walkAnimation = await buildSpriteSheet(8, 'sprites/walk.png', .1, true);
+    runAnimation = await buildSpriteSheet(8, 'sprites/run.png', .1, true);
+  }
+
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll([
       Sword.create,
-      Bow.create,
+      Pistol.create,
       Shotgun.create,
     ]);
-
-    // add(KeyboardListenerComponent(
-
-// keyDown: {LogicalKeyboardKey.keyS:(key) {
-
-// }}
-
-//     ));
+    await loadAnimationSprites();
 
     await super.onLoad();
   }
 
-  Set<PhysicalKeyboardKey> keysPressed = {};
-
-  void handleKeyboardInputs(RawKeyEvent event) {
+  Set<PhysicalKeyboardKey> physicalKeysPressed = {};
+  @override
+  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     Vector2 moveAngle = Vector2.zero();
     if (!event.repeat) {
-      if (keysPressed.contains(event.physicalKey)) {
-        keysPressed.remove(event.physicalKey);
+      if (physicalKeysPressed.contains(event.physicalKey)) {
+        physicalKeysPressed.remove(event.physicalKey);
       } else {
-        keysPressed.add(event.physicalKey);
+        physicalKeysPressed.add(event.physicalKey);
       }
     }
     try {
-      if (keysPressed.isEmpty) return;
+      if (physicalKeysPressed.isEmpty) super.onKeyEvent(event, keysPressed);
 
-      if (keysPressed.contains(PhysicalKeyboardKey.keyD)) {
+      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
         moveAngle.x += 1;
       }
-      if (keysPressed.contains(PhysicalKeyboardKey.keyA)) {
+      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyA)) {
         moveAngle.x -= 1;
       }
-      if (keysPressed.contains(PhysicalKeyboardKey.keyW)) {
+      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyW)) {
         moveAngle.y -= 1;
       }
-      if (keysPressed.contains(PhysicalKeyboardKey.keyS)) {
+      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyS)) {
         moveAngle.y += 1;
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.space) &&
-          keysPressed.contains(PhysicalKeyboardKey.space)) {
+          physicalKeysPressed.contains(PhysicalKeyboardKey.space)) {
         jump();
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft) &&
-          keysPressed.contains(PhysicalKeyboardKey.shiftLeft)) {
+          physicalKeysPressed.contains(PhysicalKeyboardKey.shiftLeft)) {
         dash();
+      }
+
+      if (event.physicalKey == (PhysicalKeyboardKey.tab) &&
+          physicalKeysPressed.contains(PhysicalKeyboardKey.tab)) {
+        swapWeapon();
       }
     } finally {
       if (moveAngle.isZero()) {
@@ -84,7 +102,11 @@ class Player extends Entity with ContactCallbacks {
         moveVelocities[InputType.keyboard] = moveAngle;
       }
     }
+
+    return super.onKeyEvent(event, keysPressed);
   }
+
+  void handleKeyboardInputs(RawKeyEvent event) {}
 
   @override
   double dashCooldown = 1;
@@ -200,4 +222,28 @@ class Player extends Entity with ContactCallbacks {
 
   @override
   EntityType entityType = EntityType.player;
+
+  @override
+  SpriteAnimation? damageAnimation;
+
+  @override
+  SpriteAnimation? dashAnimation;
+
+  @override
+  SpriteAnimation? deathAnimation;
+
+  @override
+  late SpriteAnimation idleAnimation;
+
+  @override
+  SpriteAnimation? jumpAnimation;
+
+  @override
+  SpriteAnimation? runAnimation;
+
+  @override
+  SpriteAnimation? spawnAnimation;
+
+  @override
+  SpriteAnimation? walkAnimation;
 }

@@ -3,37 +3,56 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/game/weapons/projectiles.dart';
-import 'package:game_app/game/weapons/weapon_class.dart';
+import 'package:game_app/weapons/projectiles.dart';
+import 'package:game_app/weapons/weapon_class.dart';
 
-import '../entity.dart';
+import '../game/entity.dart';
 
 enum AttackType { melee, point, projectile }
 
 enum WeaponState { shooting, reloading, idle }
 
+enum WeaponType {
+  pistol,
+  shotgun,
+  portal,
+  sword,
+  bow,
+}
+
+extension WeaponTypeFilename on WeaponType {
+  Weapon build(Entity? ancestor, [int upgradeLevel = 0]) {
+    switch (this) {
+      case WeaponType.pistol:
+        return Pistol.create(upgradeLevel, ancestor);
+      case WeaponType.shotgun:
+        return Shotgun.create(upgradeLevel, ancestor);
+
+      case WeaponType.bow:
+        return Bow.create(upgradeLevel, ancestor);
+
+      case WeaponType.sword:
+        return Sword.create(upgradeLevel, ancestor);
+
+      case WeaponType.portal:
+        return Portal.create(upgradeLevel, ancestor);
+    }
+  }
+}
+
 typedef BodyComponentFunction = List<BodyComponent> Function();
 
-// extension ProjectileWeaponTypeFilename on WeaponType {
-//   String getFilename() {
-//     switch (this) {
-//       case ProjectileWeaponType.pistol:
-//         return 'pistol.png';
-//       case ProjectileWeaponType.shotgun:
-//         return 'shotgun.png';
-//       case ProjectileWeaponType.bow:
-//         return 'bow.png';
-//       default:
-//         return '';
-//     }
-//   }
-// }
-
 class Portal extends Weapon {
-  Portal.create(Entity ancestor)
-      : super([
-          AttackType.projectile,
-        ], ancestor);
+  Portal.create(
+    this.upgradeLevel,
+    super.ancestor,
+  );
+  @override
+  int upgradeLevel;
+  @override
+  List<AttackType> attackTypes = [
+    AttackType.projectile,
+  ];
 
   @override
   Future<SpriteComponent> buildSpriteComponent(
@@ -134,10 +153,18 @@ class Portal extends Weapon {
 // }
 
 class Pistol extends Weapon {
-  Pistol.create(Entity ancestor)
-      : super([
-          AttackType.projectile,
-        ], ancestor);
+  Pistol.create(
+    this.upgradeLevel,
+    super.ancestor,
+  );
+
+  @override
+  List<AttackType> attackTypes = [
+    AttackType.projectile,
+  ];
+
+  @override
+  int upgradeLevel;
 
   @override
   bool countIncreaseWithTime = false;
@@ -224,11 +251,17 @@ class Pistol extends Weapon {
 
 class Shotgun extends Weapon {
   Shotgun.create(
-    Entity ancestor,
-  ) : super([
-          AttackType.projectile,
-        ], ancestor);
+    this.upgradeLevel,
+    super.ancestor,
+  );
 
+  @override
+  int upgradeLevel;
+
+  @override
+  List<AttackType> attackTypes = [
+    AttackType.projectile,
+  ];
   @override
   Future<SpriteComponent> buildSpriteComponent(
       WeaponSpritePosition position) async {
@@ -244,7 +277,7 @@ class Shotgun extends Weapon {
   }
 
   @override
-  double distanceFromPlayer = 2;
+  double distanceFromPlayer = -1;
   @override
   int chainingTargets = 0;
   @override
@@ -274,7 +307,7 @@ class Shotgun extends Weapon {
   bool isHoming = false;
 
   @override
-  double length = 15;
+  double length = 20;
 
   @override
   int? maxAmmo = 6;
@@ -307,11 +340,12 @@ class Shotgun extends Weapon {
 }
 
 class Bow extends Weapon {
-  Bow.create(Entity ancestor)
-      : super([
-          AttackType.projectile,
-        ], ancestor);
-
+  Bow.create(
+    this.upgradeLevel,
+    super.ancestor,
+  );
+  @override
+  int upgradeLevel;
   @override
   bool allowProjectileRotation = true;
   @override
@@ -395,31 +429,27 @@ class Bow extends Weapon {
 
   @override
   bool countIncreaseWithTime = false;
+
+  @override
+  List<AttackType> attackTypes = [
+    AttackType.projectile,
+  ];
 }
 
 class Sword extends Weapon {
-  Sword.create(Entity ancestor)
-      : super([
-          AttackType.melee,
-        ], ancestor) {
+  @override
+  int upgradeLevel;
+  Sword.create(
+    this.upgradeLevel,
+    super.ancestor,
+  ) {
     attackPatterns = [
-      // (Vector2(12, -5), 0),
-      // (Vector2(0, 12), 45),
-      // (Vector2(0, -5), 0),
-      // (Vector2(0, 12), 0),
-      // (Vector2(-12, -5), 0),
-      // (Vector2(0, 12), -45),
-
+      (Vector2(12, -5), 0),
+      (Vector2(0, 12), 45),
       (Vector2(0, -5), 0),
       (Vector2(0, 12), 0),
-      (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0), (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0), (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0), (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0), (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0), (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0), (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0),
+      (Vector2(-12, -5), 0),
+      (Vector2(0, 12), -45),
     ];
 
     assert(attackPatterns.length.isEven, "Must be an even number of coords");
@@ -451,6 +481,10 @@ class Sword extends Weapon {
     }
   }
 
+  @override
+  List<AttackType> attackTypes = [
+    AttackType.melee,
+  ];
   @override
   bool get removeBackSpriteOnAttack => true;
 

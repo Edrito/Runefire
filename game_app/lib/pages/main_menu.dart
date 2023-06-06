@@ -19,7 +19,7 @@ class MainMenu extends PositionComponent
 
   @override
   bool containsLocalPoint(Vector2 point) {
-    return startButtonComponent.button?.containsLocalPoint(point) ?? false;
+    return true;
   }
 
   @override
@@ -35,20 +35,21 @@ class MainMenu extends PositionComponent
   Future<void> onLoad() async {
     startButtonComponent = ButtonComponent(
       button: StartButton(false),
+      position: game.size / 2,
       buttonDown: StartButton(true),
       anchor: Anchor.center,
-      onReleased: () {
-        game.router.pushNamed(routes.gameplay);
+      onPressed: () {
+        game.router.pushNamed(routes.homeroom);
       },
     );
-
+    startButtonComponent.size = startButtonComponent.button!.size;
     add(startButtonComponent);
     return super.onLoad();
   }
 
   @override
   void onLongTapDown(TapDownEvent event) {
-    if (startButtonComponent.button!.containsLocalPoint(event.localPosition)) {
+    if (startButtonComponent.button!.containsPoint(event.localPosition)) {
       startButtonComponent.onLongTapDown(event);
     }
     super.onLongTapDown(event);
@@ -56,7 +57,7 @@ class MainMenu extends PositionComponent
 
   @override
   void onTapUp(TapUpEvent event) {
-    if (startButtonComponent.button!.containsLocalPoint(event.localPosition)) {
+    if (startButtonComponent.button!.containsPoint(event.localPosition)) {
       startButtonComponent.onTapUp(event);
     }
     super.onTapUp(event);
@@ -64,15 +65,13 @@ class MainMenu extends PositionComponent
 
   @override
   void onTapCancel(TapCancelEvent event) {
-    {
-      startButtonComponent.onTapCancel(event);
-      super.onTapCancel(event);
-    }
+    startButtonComponent.onTapCancel(event);
+    super.onTapCancel(event);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
-    if (startButtonComponent.button!.containsLocalPoint(event.localPosition)) {
+    if (startButtonComponent.button!.containsPoint(event.localPosition)) {
       startButtonComponent.onTapDown(event);
     }
     super.onTapDown(event);

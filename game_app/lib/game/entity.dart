@@ -1,18 +1,22 @@
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
+import 'package:flame/rendering.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/enemies.dart';
 import 'dart:async' as async;
 import 'package:game_app/game/main_game.dart';
 import 'package:game_app/game/powerups.dart';
-import 'package:game_app/game/weapons/weapon_class.dart';
+import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 
 import '../functions/custom_mixins.dart';
 import '../functions/vector_functions.dart';
+import '../resources/classes.dart';
 
-enum EntityType { player, enemy }
+enum EntityType { player, enemy, npc }
+
+enum EntityStatus { spawn, idle, run, walk, jump, dash, dead, damage }
 
 abstract class Entity extends BodyComponent<GameRouter> {
   Entity(
@@ -32,7 +36,7 @@ abstract class Entity extends BodyComponent<GameRouter> {
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
   Map<int, Powerup> currentPowerups = {};
-  MainGame ancestor;
+  GameEnviroment ancestor;
 
   double damageTaken = 0;
   String file;
@@ -43,10 +47,23 @@ abstract class Entity extends BodyComponent<GameRouter> {
   Weapon? currentWeapon;
   Map<int, Weapon> carriedWeapons = {};
 
-  List<Function> initialWeapons = [];
+  List<Function(int, Entity)> initialWeapons = [];
 
   abstract double maxSpeed;
-  // late SpriteComponent spriteComponent;
+
+  abstract SpriteAnimation idleAnimation;
+  abstract SpriteAnimation? walkAnimation;
+  abstract SpriteAnimation? runAnimation;
+  abstract SpriteAnimation? deathAnimation;
+  abstract SpriteAnimation? jumpAnimation;
+  abstract SpriteAnimation? spawnAnimation;
+  abstract SpriteAnimation? dashAnimation;
+  abstract SpriteAnimation? damageAnimation;
+
+  SpriteAnimation? animationQueue;
+  EntityStatus? statusQueue;
+  bool tempAnimationPlaying = false;
+
   late SpriteAnimationComponent spriteAnimationComponent;
 
   late PlayerAttachmentJointComponent mouseJoint;
@@ -55,6 +72,97 @@ abstract class Entity extends BodyComponent<GameRouter> {
 
   Vector2 lastAimingPosition = Vector2.zero();
   abstract Filter? filter;
+  EntityStatus entityStatus = EntityStatus.spawn;
+
+  void tickerComplete() {
+    tempAnimationPlaying = false;
+    entityStatus = statusQueue ?? entityStatus;
+    spriteAnimationComponent.animation = animationQueue;
+    print('here');
+  }
+
+  void setEntityStatus(EntityStatus newEntityStatus) {
+    SpriteAnimation? animation;
+    if (newEntityStatus == EntityStatus.spawn) {
+      animation = spawnAnimation ?? idleAnimation;
+      spriteAnimationComponent = SpriteAnimationComponent(
+        priority: 0,
+        animation: animation,
+        size: animation.frames.first.sprite.srcSize
+            .scaled(height / animation.frames.first.sprite.srcSize.y),
+      );
+      entityStatus = newEntityStatus;
+      return;
+    }
+
+    if (newEntityStatus == entityStatus &&
+        [EntityStatus.run, EntityStatus.walk, EntityStatus.idle]
+            .contains(newEntityStatus)) return;
+
+    switch (newEntityStatus) {
+      case EntityStatus.spawn:
+        if (spawnAnimation == null) break;
+        tempAnimationPlaying = true;
+        spriteAnimationComponent.animation = spawnAnimation?.clone();
+        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+
+        break;
+
+      case EntityStatus.jump:
+        if (jumpAnimation == null) break;
+        tempAnimationPlaying = true;
+        spriteAnimationComponent.animation = jumpAnimation?.clone();
+
+        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+
+        break;
+      case EntityStatus.dash:
+        if (dashAnimation == null) break;
+        tempAnimationPlaying = true;
+        spriteAnimationComponent.animation = dashAnimation?.clone();
+        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+
+        break;
+      case EntityStatus.dead:
+        if (deathAnimation == null) break;
+        tempAnimationPlaying = true;
+        spriteAnimationComponent.animation = deathAnimation?.clone();
+        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+
+        break;
+      case EntityStatus.damage:
+        if (damageAnimation == null) break;
+        tempAnimationPlaying = true;
+        spriteAnimationComponent.animation = damageAnimation?.clone();
+        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+
+        break;
+      case EntityStatus.idle:
+        animation = idleAnimation;
+
+        break;
+      case EntityStatus.run:
+        animation = runAnimation;
+
+        break;
+      case EntityStatus.walk:
+        animation = walkAnimation;
+
+        break;
+      default:
+        animation = idleAnimation;
+    }
+    animation ??= idleAnimation;
+
+    if (tempAnimationPlaying) {
+      statusQueue = newEntityStatus;
+      animationQueue = animation;
+      print('jere');
+    } else {
+      entityStatus = newEntityStatus;
+      spriteAnimationComponent.animation = animation;
+    }
+  }
 
   @override
   void onRemove() {
@@ -73,7 +181,7 @@ abstract class Entity extends BodyComponent<GameRouter> {
     shape.radius = spriteAnimationComponent.size.x / 2;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
-        restitution: 0, friction: 0, density: 0.02, filter: filter);
+        restitution: 0, friction: 0, density: 0.0, filter: filter);
 
     final bodyDef = BodyDef(
       userData: this,
@@ -101,60 +209,33 @@ abstract class Entity extends BodyComponent<GameRouter> {
     }
   }
 
-  double animationSpeed = .2;
-  List<SpriteAnimationFrame> runAnimationSprites = [];
-  List<SpriteAnimationFrame> idleAnimationSprites = [];
-  late Sprite hitSprite;
-  late SpriteAnimation currentAnimation;
   @override
   Future<void> onLoad() async {
-    runAnimationSprites = [
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_run_anim_f0.png"),
-          animationSpeed),
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_run_anim_f1.png"),
-          animationSpeed),
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_run_anim_f2.png"),
-          animationSpeed),
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_run_anim_f3.png"),
-          animationSpeed),
-    ];
-    idleAnimationSprites = [
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_idle_anim_f0.png"),
-          animationSpeed),
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_idle_anim_f1.png"),
-          animationSpeed),
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_idle_anim_f2.png"),
-          animationSpeed),
-      SpriteAnimationFrame(
-          await Sprite.load("characters/wizzard_f_idle_anim_f3.png"),
-          animationSpeed),
-    ];
-    hitSprite = await Sprite.load("characters/wizzard_f_hit_anim_f0.png");
-    currentAnimation = SpriteAnimation(idleAnimationSprites, loop: true);
-
-    spriteAnimationComponent = SpriteAnimationComponent(
-        animation: currentAnimation,
-        priority: -200,
-        size: currentAnimation.frames.first.sprite.srcSize
-            .scaled(height / currentAnimation.frames.first.sprite.srcSize.y),
-        anchor: Anchor.center);
+    setEntityStatus(EntityStatus.spawn);
 
     handJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.hand,
         anchor: Anchor.center, size: Vector2.zero());
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
-        anchor: Anchor.center, size: Vector2.zero(), priority: -250);
+        anchor: Anchor.center, size: Vector2.zero(), priority: -1);
     mouseJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.mouse,
-        anchor: Anchor.center, size: Vector2.zero(), priority: -250);
-
-    spriteAnimationComponent.flipHorizontallyAroundCenter();
-    add(spriteAnimationComponent);
+        anchor: Anchor.center, size: Vector2.zero(), priority: 0);
+    priority = 0;
+    shadow3DDecorator = Shadow3DDecorator(
+        base: spriteAnimationComponent.size,
+        angle: 1.4,
+        xShift: 250,
+        yScale: 1.5,
+        opacity: .5,
+        blur: .5)
+      ..base.y += -3
+      ..base.x -= 1;
+    spriteAnimationComponent.decorator = shadow3DDecorator;
+    spriteWrapper = PositionComponent(
+        priority: 0,
+        size: spriteAnimationComponent.size,
+        anchor: Anchor.center);
+    spriteWrapper.flipHorizontallyAroundCenter();
+    add(spriteWrapper..add(spriteAnimationComponent));
     add(backJoint);
     add(handJoint);
     add(mouseJoint);
@@ -164,6 +245,9 @@ abstract class Entity extends BodyComponent<GameRouter> {
 
     return super.onLoad();
   }
+
+  late PositionComponent spriteWrapper;
+  late Shadow3DDecorator shadow3DDecorator;
 
   @override
   void update(double dt) {
@@ -184,17 +268,12 @@ abstract class Entity extends BodyComponent<GameRouter> {
     final previousPulse = moveDelta;
 
     if (previousPulse.isZero()) {
-      if (hitTimerSprite != null) return;
-      currentAnimation.frames = idleAnimationSprites;
-      spriteAnimationComponent.animation = currentAnimation;
+      setEntityStatus(EntityStatus.idle);
       return;
     }
 
     body.applyForce(previousPulse * maxSpeed);
-
-    if (hitTimerSprite != null) return;
-    currentAnimation.frames = runAnimationSprites;
-    spriteAnimationComponent.animation = currentAnimation;
+    setEntityStatus(EntityStatus.run);
   }
 
   double get health => maxHealth - damageTaken;
@@ -208,9 +287,10 @@ abstract class Entity extends BodyComponent<GameRouter> {
       // if (!(handJoint.weaponClass?.attackTypes.contains(AttackType.melee) ??
       //     true)) {
       // }
+      shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
       handJoint.flipHorizontallyAroundCenter();
 
-      spriteAnimationComponent.flipHorizontallyAroundCenter();
+      spriteWrapper.flipHorizontallyAroundCenter();
       flipped = !flipped;
     }
   }
@@ -257,14 +337,11 @@ abstract class Entity extends BodyComponent<GameRouter> {
       );
       add(invincibleTimer!);
     }
-    spriteAnimationComponent.animation =
-        SpriteAnimation([SpriteAnimationFrame(hitSprite, 1)]);
-    hitTimerSprite = TimerComponent(
-      period: .1,
-      onTick: () => hitTimerSprite = null,
-    );
-    add(hitTimerSprite!);
+
+    setEntityStatus(EntityStatus.damage);
+
     damageTaken += damage;
+
     final test = TextPaint(
         style: TextStyle(
       fontSize: 5,
@@ -308,14 +385,14 @@ abstract class Entity extends BodyComponent<GameRouter> {
     return true;
   }
 
-  TimerComponent? hitTimerSprite;
-
-  Future<void> onDeath();
+  Future<void> onDeath() async {
+    setEntityStatus(EntityStatus.dead);
+  }
 
   Future<void> initializeWeapons() async {
     int i = 0;
     for (var element in initialWeapons) {
-      carriedWeapons[i] = element.call(this);
+      carriedWeapons[i] = element.call(0, this);
       i++;
     }
     initialWeapons.clear();
@@ -360,7 +437,8 @@ abstract class Entity extends BodyComponent<GameRouter> {
   }
 
   void jump() {
-    if (isJumping) return;
+    if (isJumping || isDashing) return;
+    setEntityStatus(EntityStatus.jump);
 
     isJumping = true;
 
@@ -376,6 +454,13 @@ abstract class Entity extends BodyComponent<GameRouter> {
       reverseDuration: jumpDuration,
       reverseCurve: Curves.ease,
     );
+    final controllerD = EffectController(
+      duration: jumpDuration,
+      curve: Curves.ease,
+      startDelay: .1,
+      reverseDuration: jumpDuration,
+      reverseCurve: Curves.ease,
+    );
     Future.doWhile(
         () => Future.delayed(const Duration(milliseconds: 25)).then((value) {
               elapsed += .025;
@@ -387,21 +472,21 @@ abstract class Entity extends BodyComponent<GameRouter> {
       isJumping = false;
     });
 
-    spriteAnimationComponent.add(ScaleEffect.by(
-      Vector2(1.035, 1.035),
+    spriteWrapper.add(ScaleEffect.by(
+      Vector2(1.025, 1.025),
       controller,
     ));
-    spriteAnimationComponent.add(MoveEffect.by(
-      Vector2(0, -1.9),
+    spriteWrapper.add(MoveEffect.by(
+      Vector2(0, -3),
       controller,
     ));
     backJoint.add(MoveEffect.by(
-      Vector2(0, -1.9),
-      controller,
+      Vector2(0, -3),
+      controllerD,
     ));
     handJoint.add(MoveEffect.by(
-      Vector2(0, -1.9),
-      controller,
+      Vector2(0, -3),
+      controllerD,
     ));
   }
 
@@ -409,6 +494,7 @@ abstract class Entity extends BodyComponent<GameRouter> {
 
   TimerComponent? dashTimerCooldown;
   double dashTimerIterationLength = .01;
+  double dashDuration = .08;
   bool isDashing = false;
   Vector2? dashVelocity;
 
@@ -420,6 +506,8 @@ abstract class Entity extends BodyComponent<GameRouter> {
 
   void dash() {
     if (dashTimerCooldown != null) return;
+    if (isJumping) return;
+    setEntityStatus(EntityStatus.dash);
     isDashing = true;
     double elapsed = 0;
     dashVelocity = moveDelta;
@@ -436,14 +524,20 @@ abstract class Entity extends BodyComponent<GameRouter> {
           dashTimerCooldown?.timer.stop();
           dashTimerCooldown?.removeFromParent();
           dashTimerCooldown = null;
-        } else if (isDashing && elapsed > .07) {
+        } else if (isDashing && elapsed > dashDuration) {
           dashVelocity = null;
           isDashing = false;
         }
         elapsed += dashTimerIterationLength;
       },
     );
-
+    final effect = RotateEffect.by(
+      radians(360),
+      EffectController(
+        duration: dashDuration * 4,
+      ),
+    );
+    spriteAnimationComponent.add(effect);
     add(dashTimerCooldown!);
   }
 }

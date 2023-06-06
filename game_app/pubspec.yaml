@@ -63,8 +63,10 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/characters/
     - assets/images/powerups/
+    - assets/images/portal/
+    - assets/images/sprites/
+    - assets/images/enemy_sprites/
     - assets/images/buttons/
     - assets/tiles/
     - assets/images/

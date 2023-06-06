@@ -3,8 +3,10 @@ import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
+import 'package:game_app/game/home_room.dart';
 import 'package:game_app/game/main_game.dart';
 import 'package:game_app/pages/main_menu.dart';
+import 'package:game_app/resources/classes.dart';
 import 'resources/routes.dart' as routes;
 
 void main() async {
@@ -57,7 +59,7 @@ void main() async {
 }
 
 class GameRouter extends Forge2DGame
-    with HasKeyboardHandlerComponents, MouseMovementDetector {
+    with HasKeyboardHandlerComponents, ScrollDetector, MouseMovementDetector {
   late final RouterComponent router;
 
   GameRouter() : super(gravity: Vector2.zero(), zoom: 1);
@@ -70,7 +72,8 @@ class GameRouter extends Forge2DGame
       router = RouterComponent(
         routes: {
           routes.mainMenu: Route(MainMenu.new),
-          routes.transition: Route(MainMenu.new),
+          routes.transition: Route(HomeRoom.new, maintainState: false),
+          routes.homeroom: Route(HomeRoom.new, maintainState: false),
           routes.gameplay: Route(MainGame.new, maintainState: false),
         },
         initialRoute: routes.gameplay,
@@ -84,5 +87,21 @@ class GameRouter extends Forge2DGame
       mouseCallback!(info);
     }
     super.onMouseMove(info);
+  }
+
+  @override
+  void onScroll(PointerScrollInfo info) {
+    if (router.currentRoute.children.first is GameEnviroment) {
+      final test = (router.currentRoute.children.first as GameEnviroment);
+
+      var currentZoom = test.gameCamera.viewfinder.zoom;
+
+      currentZoom += info.scrollDelta.game.normalized().y * -1;
+
+      currentZoom = currentZoom.clamp(1, 10);
+      test.gameCamera.viewfinder.zoom = currentZoom;
+    }
+
+    super.onScroll(info);
   }
 }

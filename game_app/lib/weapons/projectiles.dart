@@ -8,11 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:game_app/game/entity.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/game/player.dart';
-import 'package:game_app/game/weapons/weapon_class.dart';
+import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 
-import '../../functions/vector_functions.dart';
-import '../enemies.dart';
+import '../functions/vector_functions.dart';
+import '../game/enemies.dart';
 
 enum ProjectileType { pellet, bullet, arrow, fireball }
 

@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/player.dart';
 
+import '../resources/classes.dart';
 import 'main_game.dart';
 
 class GameHud extends PositionComponent {
@@ -13,7 +14,7 @@ class GameHud extends PositionComponent {
   late final TextComponent fpsCounter;
   @override
   final double width = 100;
-  MainGame gameRef;
+  GameEnviroment gameRef;
 
   @override
   FutureOr<void> onLoad() {

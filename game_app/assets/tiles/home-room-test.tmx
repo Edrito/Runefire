@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.1" orientation="isometric" renderorder="right-down" width="10" height="10" tilewidth="32" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="6">
+ <tileset firstgid="1" source="isometric-sandbox-sheet.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="10" height="10">
+  <data encoding="csv">
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8,
+8,8,8,8,8,8,8,8,8,8
+</data>
+ </layer>
+ <objectgroup id="2" name="objects">
+  <object id="1" x="158.505" y="158.523">
+   <point/>
+  </object>
+  <object id="2" x="159.972" y="16.888">
+   <point/>
+  </object>
+  <object id="3" x="14.8515" y="158.34">
+   <point/>
+  </object>
+  <object id="4" x="14.8515" y="14.5029">
+   <point/>
+  </object>
+  <object id="5" x="79.9817" y="80">
+   <point/>
+  </object>
+ </objectgroup>
+</map>

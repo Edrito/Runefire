@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/game/entity.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/game/player.dart';
-import 'package:game_app/game/weapons/weapon_class.dart';
+import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 
 // class WeaponUtility extends Powerup {
@@ -104,7 +104,7 @@ class Agility extends Powerup {
   @override
   void removeEntityPowerup(Entity entity) {
     entity.maxSpeed /= speedIncrease;
-
+    colorEffect?.controller.setToStart();
     colorEffect?.removeFromParent();
   }
 
@@ -156,7 +156,7 @@ class Damage extends Powerup {
     entity.maxHealth -= healthIncrease;
     entity.damageTaken =
         (entity.damageTaken - healthIncrease).clamp(0, entity.maxHealth - 5);
-
+    colorEffect?.controller.setToStart();
     colorEffect?.removeFromParent();
   }
 

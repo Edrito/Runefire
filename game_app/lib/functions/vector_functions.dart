@@ -1,10 +1,22 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:game_app/game/main_game.dart';
+import 'package:flame_tiled/flame_tiled.dart';
+
+import '../resources/classes.dart';
 
 Vector2 vectorToGrid(Vector2 v1, Vector2 size) {
   return ((v1) - size / 2);
+}
+
+Vector2 tiledObjectToOrtho(Vector2 isoPoint, TiledComponent? info) {
+  double orthoX = (isoPoint.x - isoPoint.y);
+  double orthoY = (isoPoint.x / 2 + isoPoint.y / 2);
+  return Vector2(
+      orthoX += info != null
+          ? info.tileMap.map.height.toDouble() * info.tileMap.destTileSize.y
+          : 0,
+      orthoY);
 }
 
 Vector2 randomizeVector2Delta(Vector2 element, double percent) {
@@ -126,7 +138,7 @@ Vector2 rotateVector2(Vector2 vector, double rad) {
 // }
 
 Vector2 generateRandomGamePositionUsingViewport(
-    bool internal, MainGame gameRef) {
+    bool internal, GameEnviroment gameRef) {
   const paddingDouble = 10.0;
   final padding = Vector2.all(paddingDouble);
   final random = Vector2.random();
