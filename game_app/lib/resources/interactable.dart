@@ -5,7 +5,7 @@ import 'package:flutter/src/services/raw_keyboard.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/main.dart';
 
-import '../game/player.dart';
+import '../entities/player.dart';
 
 class InteractableComponent extends BodyComponent<GameRouter>
     with ContactCallbacks, KeyboardHandler {

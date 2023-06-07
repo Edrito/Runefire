@@ -4,14 +4,13 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/body_component.dart';
-import 'package:game_app/game/entity.dart';
+import 'package:game_app/entities/entity.dart';
 import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapons.dart';
 import 'package:game_app/weapons/projectiles.dart';
 
 import '../functions/vector_functions.dart';
-
-enum WeaponSpritePosition { hand, mouse, back, none }
+import '../resources/enums.dart';
 
 class PlayerAttachmentJointComponent extends PositionComponent
     with HasAncestor<Entity> {
@@ -33,40 +32,11 @@ class PlayerAttachmentJointComponent extends PositionComponent
   PositionComponent? weaponBase;
   PositionComponent? weaponTipCenter;
   SpriteComponent? spriteComponent;
-  // SpriteComponent? spriteComponentFront;
   bool isFrontVisible = false;
-
-  // void calculateSpriteVisibility() {
-  //   if (position.y > ancestor.center.y && isFrontVisible) {
-  //     isFrontVisible = false;
-  //     spriteComponentFront?.opacity = 1;
-  //     print('here2');
-  //     spriteComponent?.opacity = 0;
-  //   } else if (position.y <= ancestor.center.y && !isFrontVisible) {
-  //     isFrontVisible = true;
-  //     spriteComponentFront?.opacity = 0;
-  //     spriteComponent?.opacity = 1;
-  //     print('here');
-  //   }
-  // }
-
-  // SpriteComponent? get spriteComponent =>
-  //     isFrontVisible && spriteComponentFront != null
-  //         ? spriteComponentFront
-  //         : spriteComponent;
-
-  @override
-  void update(double dt) {
-    // if (jointPosition == WeaponSpritePosition.hand) {
-    //   calculateSpriteVisibility();
-    // }
-    super.update(dt);
-  }
 
   void removePreviousComponents() {
     weaponTip?.removeFromParent();
     spriteComponent?.removeFromParent();
-    // spriteComponentFront?.removeFromParent();
     weaponBase?.removeFromParent();
     weaponTipCenter?.removeFromParent();
     weaponClass = null;

@@ -4,10 +4,11 @@ import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:game_app/game/home_room.dart';
-import 'package:game_app/game/main_game.dart';
+import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/pages/main_menu.dart';
 import 'package:game_app/resources/classes.dart';
 import 'resources/routes.dart' as routes;
+import 'resources/overlays.dart' as overlays;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,45 +16,12 @@ void main() async {
   GameRouter gameRouter = GameRouter();
   runApp(
     GameWidget(
-      game: gameRouter,
-      overlayBuilderMap: {
-        'PauseMenu': (context, _) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 150,
-                  height: 50,
-                  child: ElevatedButton(
-                    child: const Text("Resume"),
-                    onPressed: () {
-                      gameRouter.overlays.remove('PauseMenu');
-                      gameRouter.resumeEngine();
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                SizedBox(
-                  width: 150,
-                  height: 50,
-                  child: ElevatedButton(
-                    child: const Text("Main Menu"),
-                    onPressed: () {
-                      gameRouter.router.pushReplacementNamed(routes.mainMenu);
-                      gameRouter.overlays.remove('PauseMenu');
-                      gameRouter.resumeEngine();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      },
-    ),
+        game: gameRouter,
+        overlayBuilderMap:
+            Map<String, Widget Function(BuildContext, GameRouter)>.fromEntries([
+          overlays.pauseMenu,
+          overlays.weaponModifyMenu,
+        ])),
   );
   // );
 }
@@ -74,7 +42,7 @@ class GameRouter extends Forge2DGame
           routes.mainMenu: Route(MainMenu.new),
           routes.transition: Route(HomeRoom.new, maintainState: false),
           routes.homeroom: Route(HomeRoom.new, maintainState: false),
-          routes.gameplay: Route(MainGame.new, maintainState: false),
+          routes.gameplay: Route(ForestGame.new, maintainState: false),
         },
         initialRoute: routes.gameplay,
       ),

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.1" orientation="isometric" renderorder="right-down" width="10" height="10" tilewidth="32" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="6">
+<map version="1.10" tiledversion="1.10.1" orientation="isometric" renderorder="right-down" width="10" height="10" tilewidth="32" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="8">
  <tileset firstgid="1" source="isometric-sandbox-sheet.tsx"/>
  <layer id="1" name="Tile Layer 1" width="10" height="10">
   <data encoding="csv">
@@ -28,7 +28,9 @@
   <object id="4" x="14.8515" y="14.5029">
    <point/>
   </object>
-  <object id="5" x="79.9817" y="80">
+ </objectgroup>
+ <objectgroup id="3" name="spawn">
+  <object id="7" x="79.4313" y="79.0827">
    <point/>
   </object>
  </objectgroup>

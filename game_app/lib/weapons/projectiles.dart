@@ -5,77 +5,15 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/game/entity.dart';
+import 'package:game_app/entities/entity.dart';
 import 'package:game_app/game/physics_filter.dart';
-import 'package:game_app/game/player.dart';
+import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 
 import '../functions/vector_functions.dart';
-import '../game/enemies.dart';
-
-enum ProjectileType { pellet, bullet, arrow, fireball }
-
-extension ProjectileTypeExtension on ProjectileType {
-  String getFilename() {
-    switch (this) {
-      case ProjectileType.pellet:
-        return 'pellet.png';
-      case ProjectileType.bullet:
-        return 'bullet.png';
-      case ProjectileType.arrow:
-        return 'arrow.png';
-      case ProjectileType.fireball:
-        return 'fireball.png';
-      default:
-        return '';
-    }
-  }
-
-  Projectile generateProjectile(
-      {required Vector2 speedVar,
-      required Vector2 originPositionVar,
-      required Weapon ancestorVar,
-      required String idVar}) {
-    switch (this) {
-      case ProjectileType.pellet:
-        return Pellet(
-          originPosition: originPositionVar,
-          speed: speedVar,
-          weaponAncestor: ancestorVar,
-          id: idVar,
-        );
-      case ProjectileType.bullet:
-        return Bullet(
-          originPosition: originPositionVar,
-          speed: speedVar,
-          weaponAncestor: ancestorVar,
-          id: idVar,
-        );
-      case ProjectileType.arrow:
-        return Arrow(
-          weaponAncestor: ancestorVar,
-          originPosition: originPositionVar,
-          speed: speedVar,
-          id: idVar,
-        );
-      case ProjectileType.fireball:
-        return Fireball(
-          originPosition: originPositionVar,
-          weaponAncestor: ancestorVar,
-          speed: speedVar,
-          id: idVar,
-        );
-      default:
-        return Bullet(
-          originPosition: originPositionVar,
-          speed: speedVar,
-          weaponAncestor: ancestorVar,
-          id: idVar,
-        );
-    }
-  }
-}
+import '../entities/enemies.dart';
+import '../resources/enums.dart';
 
 class Arrow extends Projectile {
   Arrow(
@@ -238,10 +176,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   @override
   void beginContact(Object other, Contact contact) {
-    // if (other is! Player) {
-    //   print('a');
-    // }
-
     if (other is! Entity) {
       return;
     }

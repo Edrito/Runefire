@@ -1,38 +1,31 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
-import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/game/characters.dart';
-import 'package:game_app/game/entity.dart';
-import 'package:game_app/game/main_game.dart';
+import 'package:game_app/entities/entity.dart';
 import 'package:game_app/game/physics_filter.dart';
-import 'package:game_app/game/player.dart';
+import 'package:game_app/entities/player.dart';
 import 'package:game_app/game/powerups.dart';
 import 'package:game_app/weapons/weapons.dart';
 
+import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
 import '../resources/classes.dart';
+import '../resources/enums.dart';
 
-class Enemy extends Entity with ContactCallbacks {
-  Enemy(
-      {required super.initPosition,
-      required super.ancestor,
-      required super.id,
-      super.file = ""}) {
-    super.file = enemyType.getFilename();
-  }
+class Dummy extends Enemy with ContactCallbacks {
+  Dummy({
+    required super.initPosition,
+    required super.ancestor,
+  });
 
-  EnemyType enemyType = EnemyType.flameHead;
   @override
   double dashCooldown = 5;
 
   @override
-  Filter? filter = Filter()
-    ..categoryBits = enemyCategory
-    ..maskBits =
-        bulletCategory + playerCategory + sensorCategory + swordCategory;
+  (double, double, double) xpRate = (0.001, 0.01, 0.989);
+
+  EnemyType enemyType = EnemyType.flameHead;
 
   @override
   double height = 10;
@@ -47,63 +40,24 @@ class Enemy extends Entity with ContactCallbacks {
   double maxSpeed = 20;
 
   @override
-  EntityType entityType = EntityType.enemy;
-  TimerComponent? shooter;
-  bool hittingPlayer = false;
-  double shotFreq = 1;
+  double touchDamage = 4;
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    idleAnimation =
+        await buildSpriteSheet(10, 'enemy_sprites/idle.png', .1, true);
+    deathAnimation =
+        await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
+    runAnimation = await buildSpriteSheet(8, 'enemy_sprites/run.png', .1, true);
+  }
 
   @override
   Future<void> onLoad() async {
-    initialWeapons.addAll([Sword.create]);
-    final idleSprite = (await Sprite.load('enemy_sprites/idle.png'));
-    idleAnimation = SpriteSheet(
-            image: idleSprite.image,
-            srcSize: Vector2(idleSprite.srcSize.x / 10, idleSprite.srcSize.y))
-        .createAnimation(row: 0, stepTime: .2);
+    initialWeapons.addAll([Portal.create]);
+
+    await loadAnimationSprites();
     await super.onLoad();
     startAttacking();
-  }
-
-  @override
-  Future<void> onDeath() async {
-    endAttacking();
-    spriteAnimationComponent.add(OpacityEffect.fadeOut(
-      EffectController(
-        duration: .5,
-      ),
-      onComplete: () {
-        removeFromParent();
-      },
-    ));
-  }
-
-  @override
-  void beginContact(Object other, Contact contact) {
-    if (other is Player) {
-      hittingPlayer = true;
-    }
-
-    super.beginContact(other, contact);
-  }
-
-  @override
-  void endContact(Object other, Contact contact) {
-    if (other is Player) {
-      hittingPlayer = false;
-    }
-    super.endContact(other, contact);
-  }
-
-  @override
-  void update(double dt) {
-    if (hittingPlayer) {
-      ancestor.player.takeDamage(id, 3);
-    }
-
-    moveVelocities[InputType.ai] =
-        (ancestor.player.center - body.position).normalized();
-
-    super.update(dt);
   }
 
   @override
@@ -131,6 +85,63 @@ class Enemy extends Entity with ContactCallbacks {
   SpriteAnimation? walkAnimation;
 }
 
+abstract class Enemy extends Entity with ContactCallbacks {
+  Enemy({
+    required super.initPosition,
+    required super.ancestor,
+  });
+
+  abstract (double, double, double) xpRate;
+
+  @override
+  Filter? filter = Filter()
+    ..categoryBits = enemyCategory
+    ..maskBits =
+        bulletCategory + playerCategory + sensorCategory + swordCategory;
+
+  TimerComponent? shooter;
+  bool hittingPlayer = false;
+  double shotFreq = 1;
+
+  abstract double touchDamage;
+
+  @override
+  void beginContact(Object other, Contact contact) {
+    if (other is Player) {
+      hittingPlayer = true;
+    }
+
+    super.beginContact(other, contact);
+  }
+
+  @override
+  void endContact(Object other, Contact contact) {
+    if (other is Player) {
+      hittingPlayer = false;
+    }
+    super.endContact(other, contact);
+  }
+
+  void moveEnemy() {
+    moveVelocities[InputType.ai] =
+        (ancestor.player.center - body.position).normalized();
+  }
+
+  @override
+  void update(double dt) {
+    if (hittingPlayer) {
+      ancestor.player.takeDamage(hashCode.toString(), touchDamage);
+    }
+
+    moveEnemy();
+
+    super.update(dt);
+  }
+
+  @override
+  EntityType entityType = EntityType.enemy;
+}
+
 class EnemyManagement extends Component {
   int enemiesSpawned = 0;
   EnemyManagement(this.mainGameRef);
@@ -138,18 +149,18 @@ class EnemyManagement extends Component {
 
   @override
   FutureOr<void> onLoad() {
-    const enemyType = EnemyType.flameHead;
-
     add(TimerComponent(
       period: 1,
       repeat: true,
-      onTick: () => add(Enemy(
+      onTick: () => add(
+        Dummy(
           ancestor: mainGameRef,
           initPosition: generateRandomGamePositionUsingViewport(
             false,
             mainGameRef,
           ),
-          id: (enemiesSpawned++).toString() + enemyType.name)),
+        ),
+      ),
     ));
     add(
       TimerComponent(

@@ -5,18 +5,6 @@ import 'package:flame/events.dart';
 import 'package:flame/src/components/input/hud_margin_component.dart';
 import 'package:meta/meta.dart';
 
-enum JoystickDirection {
-  up,
-  upLeft,
-  upRight,
-  right,
-  down,
-  downRight,
-  downLeft,
-  left,
-  idle,
-}
-
 class CustomJoystickComponent extends HudMarginComponent {
   late final PositionComponent? knob;
   late final PositionComponent? background;

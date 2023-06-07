@@ -3,37 +3,42 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/isometric-sandbox-map.tmx",
+    "activeFile": "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room.tmx",
     "expandedProjectPaths": [
         "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room-test.tmx": {
+            "expandedObjectLayers": [
+                3,
+                2
+            ],
             "scale": 2.7253125,
-            "selectedLayer": 1,
+            "selectedLayer": 2,
             "viewCenter": {
-                "x": 159.98165348010554,
-                "y": 79.99082674005275
+                "x": 159.61472308221536,
+                "y": 79.25696594427245
             }
         },
         "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room.tmx": {
             "expandedObjectLayers": [
+                8,
                 7
             ],
             "scale": 3.4066406249999996,
-            "selectedLayer": 0,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 137.9658296066965,
-                "y": 64.13943355119825
+                "x": 132.09494324045409,
+                "y": 75.14734548790277
             }
         },
         "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/isometric-sandbox-map.tmx": {
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 632.5,
-                "y": 309
+                "x": 496.5,
+                "y": 308
             }
         },
         "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/isometric-sandbox-sheet.tsx": {
@@ -89,12 +94,14 @@
     "map.width": 10,
     "openFiles": [
         "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room.tmx",
-        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/isometric-sandbox-map.tmx"
+        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/isometric-sandbox-map.tmx",
+        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room-test.tmx"
     ],
     "project": "test.tiled-project",
     "recentFiles": [
-        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room.tmx",
+        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room-test.tmx",
         "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/isometric-sandbox-map.tmx",
+        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/home-room.tmx",
         "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/game_app/assets/tiles/isometric-sandbox-sheet.tsx",
         "isometric-sandbox-sheet.tsx",
         "test.tmx",

@@ -2,44 +2,42 @@ import 'dart:async';
 
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
-import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/game/entity.dart';
-import 'package:game_app/game/main_game.dart';
+import 'package:game_app/entities/entity.dart';
+import 'package:game_app/functions/functions.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/weapons/weapons.dart';
 
 import '../functions/vector_functions.dart';
-import 'characters.dart';
+import '../resources/enums.dart';
 
 class Player extends Entity with ContactCallbacks, KeyboardHandler {
   Player(this.characterType,
-      {required super.ancestor,
-      super.file = "",
-      required super.initPosition,
-      super.id = "111"}) {
-    file = characterType.getFilename();
+      {required super.ancestor, required super.initPosition}) {
+    // file = characterType.getFilename();
   }
 
   final CharacterType characterType;
 
-  Future<SpriteAnimation> buildSpriteSheet(
-      int width, String source, double stepTime, bool loop) async {
-    final sprite = (await Sprite.load(source));
-    return SpriteSheet(
-            image: sprite.image,
-            srcSize: Vector2(sprite.srcSize.x / width, sprite.srcSize.y))
-        .createAnimation(
-            row: 0, stepTime: stepTime, loop: loop, to: loop ? null : width);
-  }
-
+  @override
   Future<void> loadAnimationSprites() async {
     idleAnimation = await buildSpriteSheet(10, 'sprites/idle.png', .1, true);
     jumpAnimation = await buildSpriteSheet(3, 'sprites/jump.png', .1, false);
     dashAnimation = await buildSpriteSheet(7, 'sprites/roll.png', .06, false);
     walkAnimation = await buildSpriteSheet(8, 'sprites/walk.png', .1, true);
     runAnimation = await buildSpriteSheet(8, 'sprites/run.png', .1, true);
+    deathAnimation =
+        await buildSpriteSheet(8, 'enemy_sprites/death.png', .1, true);
+  }
+
+  @override
+  void onRemove() {
+    physicalKeysPressed.clear();
+    moveVelocities.clear();
+    inputAimAngles.clear();
+    inputAimPositions.clear();
+    super.onRemove();
   }
 
   @override
@@ -83,12 +81,12 @@ class Player extends Entity with ContactCallbacks, KeyboardHandler {
 
       if (event.physicalKey == (PhysicalKeyboardKey.space) &&
           physicalKeysPressed.contains(PhysicalKeyboardKey.space)) {
-        jump();
+        setEntityStatus(EntityStatus.jump);
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft) &&
           physicalKeysPressed.contains(PhysicalKeyboardKey.shiftLeft)) {
-        dash();
+        setEntityStatus(EntityStatus.dash);
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.tab) &&

@@ -3,9 +3,8 @@ import 'package:flame/effects.dart';
 import 'package:flame/rendering.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/game/enemies.dart';
+import 'package:game_app/entities/enemies.dart';
 import 'dart:async' as async;
-import 'package:game_app/game/main_game.dart';
 import 'package:game_app/game/powerups.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
@@ -13,17 +12,10 @@ import 'package:game_app/main.dart';
 import '../functions/custom_mixins.dart';
 import '../functions/vector_functions.dart';
 import '../resources/classes.dart';
-
-enum EntityType { player, enemy, npc }
-
-enum EntityStatus { spawn, idle, run, walk, jump, dash, dead, damage }
+import '../resources/enums.dart';
 
 abstract class Entity extends BodyComponent<GameRouter> {
-  Entity(
-      {required this.file,
-      required this.initPosition,
-      required this.id,
-      required this.ancestor});
+  Entity({required this.initPosition, required this.ancestor});
 
   abstract EntityType entityType;
 
@@ -32,14 +24,13 @@ abstract class Entity extends BodyComponent<GameRouter> {
   bool isJumpingInvincible = false;
   double jumpDuration = .5;
   Vector2 initPosition;
-  String id;
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
   Map<int, Powerup> currentPowerups = {};
   GameEnviroment ancestor;
+  bool disableMovement = false;
 
   double damageTaken = 0;
-  String file;
   abstract double height;
   Map<String, async.Timer> hitSourceDuration = {};
   abstract double invincibiltyDuration;
@@ -74,14 +65,16 @@ abstract class Entity extends BodyComponent<GameRouter> {
   abstract Filter? filter;
   EntityStatus entityStatus = EntityStatus.spawn;
 
+  Future<void> loadAnimationSprites();
+
   void tickerComplete() {
     tempAnimationPlaying = false;
     entityStatus = statusQueue ?? entityStatus;
     spriteAnimationComponent.animation = animationQueue;
-    print('here');
   }
 
-  void setEntityStatus(EntityStatus newEntityStatus) {
+  void setEntityStatus(EntityStatus newEntityStatus,
+      [SpriteAnimation? attackAnimation]) {
     SpriteAnimation? animation;
     if (newEntityStatus == EntityStatus.spawn) {
       animation = spawnAnimation ?? idleAnimation;
@@ -102,14 +95,24 @@ abstract class Entity extends BodyComponent<GameRouter> {
     switch (newEntityStatus) {
       case EntityStatus.spawn:
         if (spawnAnimation == null) break;
+        assert(!spawnAnimation!.loop, "Temp animations must not loop");
         tempAnimationPlaying = true;
         spriteAnimationComponent.animation = spawnAnimation?.clone();
         spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
 
         break;
+      case EntityStatus.attack:
+        if (attackAnimation == null) break;
+        assert(!attackAnimation.loop, "Temp animations must not loop");
+        tempAnimationPlaying = true;
+        spriteAnimationComponent.animation = attackAnimation.clone();
+        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+
+        break;
 
       case EntityStatus.jump:
-        if (jumpAnimation == null) break;
+        if (!_jump() || jumpAnimation == null) break;
+        assert(!jumpAnimation!.loop, "Temp animations must not loop");
         tempAnimationPlaying = true;
         spriteAnimationComponent.animation = jumpAnimation?.clone();
 
@@ -117,21 +120,44 @@ abstract class Entity extends BodyComponent<GameRouter> {
 
         break;
       case EntityStatus.dash:
-        if (dashAnimation == null) break;
+        if (!_dash() || dashAnimation == null) break;
+        assert(!dashAnimation!.loop, "Temp animations must not loop");
         tempAnimationPlaying = true;
         spriteAnimationComponent.animation = dashAnimation?.clone();
         spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
 
         break;
       case EntityStatus.dead:
-        if (deathAnimation == null) break;
+        endAttacking();
+        disableMovement = true;
+        if (deathAnimation == null) {
+          spriteAnimationComponent.add(OpacityEffect.fadeOut(
+            EffectController(
+              duration: .5,
+            ),
+            onComplete: () {
+              removeFromParent();
+            },
+          ));
+          break;
+        }
         tempAnimationPlaying = true;
+        assert(!deathAnimation!.loop, "Temp animations must not loop");
         spriteAnimationComponent.animation = deathAnimation?.clone();
         spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+        spriteAnimationComponent.add(OpacityEffect.fadeOut(
+          EffectController(
+            duration: spriteAnimationComponent.animationTicker?.totalDuration(),
+          ),
+          onComplete: () {
+            removeFromParent();
+          },
+        ));
 
         break;
       case EntityStatus.damage:
         if (damageAnimation == null) break;
+        assert(!damageAnimation!.loop, "Temp animations must not loop");
         tempAnimationPlaying = true;
         spriteAnimationComponent.animation = damageAnimation?.clone();
         spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
@@ -157,7 +183,6 @@ abstract class Entity extends BodyComponent<GameRouter> {
     if (tempAnimationPlaying) {
       statusQueue = newEntityStatus;
       animationQueue = animation;
-      print('jere');
     } else {
       entityStatus = newEntityStatus;
       spriteAnimationComponent.animation = animation;
@@ -194,6 +219,8 @@ abstract class Entity extends BodyComponent<GameRouter> {
   }
 
   void aimCharacter() {
+    if (disableMovement) return;
+
     final delta = aimDelta;
 
     handJoint.angle = -radiansBetweenPoints(
@@ -212,7 +239,6 @@ abstract class Entity extends BodyComponent<GameRouter> {
   @override
   Future<void> onLoad() async {
     setEntityStatus(EntityStatus.spawn);
-
     handJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.hand,
         anchor: Anchor.center, size: Vector2.zero());
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
@@ -229,6 +255,7 @@ abstract class Entity extends BodyComponent<GameRouter> {
         blur: .5)
       ..base.y += -3
       ..base.x -= 1;
+
     spriteAnimationComponent.decorator = shadow3DDecorator;
     spriteWrapper = PositionComponent(
         priority: 0,
@@ -251,9 +278,6 @@ abstract class Entity extends BodyComponent<GameRouter> {
 
   @override
   void update(double dt) {
-    if (health <= 0) {
-      onDeath();
-    }
     moveCharacter();
     dashCheck();
     aimCharacter();
@@ -267,7 +291,7 @@ abstract class Entity extends BodyComponent<GameRouter> {
   void moveCharacter() {
     final previousPulse = moveDelta;
 
-    if (previousPulse.isZero()) {
+    if (disableMovement || previousPulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
       return;
     }
@@ -312,9 +336,12 @@ abstract class Entity extends BodyComponent<GameRouter> {
   Map<InputType, Vector2> inputAimPositions = {};
 
   bool takeDamage(String id, double damage) {
-    if (hitSourceDuration.containsKey(id) || invincibleTimer != null) {
+    if (hitSourceDuration.containsKey(id) ||
+        invincibleTimer != null ||
+        isDead) {
       return false;
     }
+    setEntityStatus(EntityStatus.damage);
     final controller = EffectController(
       duration: .1,
       reverseDuration: .1,
@@ -337,11 +364,11 @@ abstract class Entity extends BodyComponent<GameRouter> {
       );
       add(invincibleTimer!);
     }
-
-    setEntityStatus(EntityStatus.damage);
-
     damageTaken += damage;
-
+    recentDamage += damage;
+    if (health <= 0) {
+      onDeath();
+    }
     final test = TextPaint(
         style: TextStyle(
       fontSize: 5,
@@ -354,36 +381,58 @@ abstract class Entity extends BodyComponent<GameRouter> {
       ],
       color: Colors.red.shade100,
     ));
+    if (damageText == null) {
+      damageText = CaTextComponent(
+        text: recentDamage.round().toString(),
+        anchor: Anchor.bottomLeft,
+        textRenderer: test,
+        position: (Vector2.random() * 2) - Vector2.all(1),
+      );
+      damageText?.addAll([
+        OpacityEffect.fadeIn(EffectController(
+          duration: .2,
+        )),
+        TimerComponent(
+          period: 1,
+          onTick: () {
+            damageText?.removeFromParent();
+            damageText = null;
+            recentDamage = 0;
+          },
+        )
+      ]);
+      add(damageText!);
+    } else {
+      damageText!.text = recentDamage.round().toString();
+      damageText!.children.whereType<TimerComponent>().first.timer.reset();
 
-    final damageText = CaTextComponent(
-      text: damage.round().toString(),
-      anchor: Anchor.bottomLeft,
-      textRenderer: test,
-      position: (Vector2.random() * 2) - Vector2.all(1),
-    );
+      damageText!.textRenderer = (damageText!.textRenderer as TextPaint)
+          .copyWith((p0) => p0.copyWith(
+              color: p0.color!
+                  .withBlue((p0.color!.blue * .9).round().clamp(0, 255))
+                  .withGreen((p0.color!.green * .9).round().clamp(0, 255))));
 
-    damageText.addAll([
+      damageText!.addAll([
+        ScaleEffect.by(
+          Vector2.all(1.15),
+          EffectController(
+            duration: .05,
+            reverseDuration: .05,
+          ),
+        ),
+      ]);
+    }
+
+    damageText?.addAll([
       OpacityEffect.fadeIn(EffectController(
         duration: .2,
       )),
-      MoveEffect.by(
-        Vector2(0, -5),
-        EffectController(
-          duration: 1,
-        ),
-        onComplete: () {
-          damageText.add(OpacityEffect.fadeOut(EffectController(
-            duration: .2,
-            onMax: () => damageText.removeFromParent(),
-          )));
-
-          damageText.removeFromParent();
-        },
-      ),
     ]);
-    add(damageText);
     return true;
   }
+
+  double recentDamage = 0;
+  CaTextComponent? damageText;
 
   Future<void> onDeath() async {
     setEntityStatus(EntityStatus.dead);
@@ -436,9 +485,8 @@ abstract class Entity extends BodyComponent<GameRouter> {
     }
   }
 
-  void jump() {
-    if (isJumping || isDashing) return;
-    setEntityStatus(EntityStatus.jump);
+  bool _jump() {
+    if (isJumping || isDashing || disableMovement) return false;
 
     isJumping = true;
 
@@ -488,6 +536,7 @@ abstract class Entity extends BodyComponent<GameRouter> {
       Vector2(0, -3),
       controllerD,
     ));
+    return true;
   }
 
   abstract double dashCooldown;
@@ -504,10 +553,8 @@ abstract class Entity extends BodyComponent<GameRouter> {
     }
   }
 
-  void dash() {
-    if (dashTimerCooldown != null) return;
-    if (isJumping) return;
-    setEntityStatus(EntityStatus.dash);
+  bool _dash() {
+    if (dashTimerCooldown != null || isJumping || disableMovement) return false;
     isDashing = true;
     double elapsed = 0;
     dashVelocity = moveDelta;
@@ -539,5 +586,6 @@ abstract class Entity extends BodyComponent<GameRouter> {
     );
     spriteAnimationComponent.add(effect);
     add(dashTimerCooldown!);
+    return true;
   }
 }

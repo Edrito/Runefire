@@ -6,39 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:game_app/weapons/projectiles.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 
-import '../game/entity.dart';
-
-enum AttackType { melee, point, projectile }
-
-enum WeaponState { shooting, reloading, idle }
-
-enum WeaponType {
-  pistol,
-  shotgun,
-  portal,
-  sword,
-  bow,
-}
-
-extension WeaponTypeFilename on WeaponType {
-  Weapon build(Entity? ancestor, [int upgradeLevel = 0]) {
-    switch (this) {
-      case WeaponType.pistol:
-        return Pistol.create(upgradeLevel, ancestor);
-      case WeaponType.shotgun:
-        return Shotgun.create(upgradeLevel, ancestor);
-
-      case WeaponType.bow:
-        return Bow.create(upgradeLevel, ancestor);
-
-      case WeaponType.sword:
-        return Sword.create(upgradeLevel, ancestor);
-
-      case WeaponType.portal:
-        return Portal.create(upgradeLevel, ancestor);
-    }
-  }
-}
+import '../entities/entity.dart';
+import '../resources/enums.dart';
 
 typedef BodyComponentFunction = List<BodyComponent> Function();
 

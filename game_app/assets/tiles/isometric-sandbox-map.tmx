@@ -97,7 +97,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="6" name="objects">
+ <objectgroup id="6" name="spawn">
   <object id="2" x="379.25" y="111.75">
    <point/>
   </object>

@@ -2,23 +2,21 @@ import 'dart:io';
 
 import 'package:flame/events.dart';
 import 'package:flutter/services.dart';
-import 'package:game_app/game/entity.dart';
-import 'package:game_app/weapons/weapons.dart';
+import 'package:game_app/entities/entity.dart';
 
 import '../game/background.dart';
-import '../game/characters.dart';
 import '../game/hud.dart';
-import '../game/main_game.dart';
 
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/game/player.dart';
+import 'package:game_app/entities/player.dart';
 import '../functions/custom_follow_behavior.dart';
 import '../functions/custom_joystick.dart';
 import '../main.dart';
 import '../weapons/weapon_class.dart';
+import 'enums.dart';
 
 abstract class GameEnviroment extends Component
     with HasGameRef<GameRouter>, KeyboardHandler, TapCallbacks, DragCallbacks {
@@ -26,7 +24,6 @@ abstract class GameEnviroment extends Component
   CustomJoystickComponent? moveJoystick;
   abstract GameLevel level;
   late final Forge2DComponent physicsComponent;
-  late final BackgroundComponent backgroundComponent;
   late final GameHud hud;
   Map<int, InputType> inputIdStates = {};
   late final Player player;
@@ -89,16 +86,13 @@ abstract class GameEnviroment extends Component
         ancestor: this, initPosition: Vector2.zero());
     hud = GameHud(this);
     physicsComponent = Forge2DComponent();
-    backgroundComponent = BackgroundComponent(this, level);
     gameCamera.viewport.addAll([hud, moveJoystick!, aimJoystick!]);
     super.add(gameCamera);
     add(player);
     add(physicsComponent);
-    add(backgroundComponent);
 
     player.mounted.whenComplete(() => gameCamera.viewfinder
         .add(CustomFollowBehavior(player, gameCamera.viewfinder)));
-
     gameCamera.viewfinder.zoom = 1;
     return super.onLoad();
   }

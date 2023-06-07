@@ -4,12 +4,13 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/game/entity.dart';
+import 'package:game_app/entities/entity.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 
 import '../functions/vector_functions.dart';
-import '../game/enemies.dart';
+import '../entities/enemies.dart';
+import '../resources/enums.dart';
 
 class MeleeDetection extends BodyComponent with ContactCallbacks {
   MeleeDetection(this.spriteComponent, this.parentAttack);
@@ -72,11 +73,12 @@ class MeleeAttack extends PositionComponent {
   }
 
   late (Vector2, double) start;
-
   late (Vector2, double) end;
+
   late double duration;
   late String id;
   late final SpriteComponent spriteComponent;
+
   int index;
   Weapon parentWeapon;
   BodyComponent? bodyComponent;
@@ -86,8 +88,10 @@ class MeleeAttack extends PositionComponent {
   @override
   Future<void> onLoad() async {
     spriteComponent =
-        await parentWeapon.buildSpriteComponent(WeaponSpritePosition.hand);
+        await parentWeapon.buildSpriteComponent(WeaponSpritePosition.attack);
+
     add(spriteComponent);
+
     bodyComponent = MeleeDetection(spriteComponent, this);
 
     parentWeapon.parentEntity?.ancestor.physicsComponent.add(bodyComponent!);

@@ -1,6 +1,6 @@
 import 'package:flame/src/camera/viewfinder.dart';
 import 'package:flame/src/components/core/component.dart';
-import 'package:game_app/game/entity.dart';
+import 'package:game_app/entities/entity.dart';
 
 class CustomFollowBehavior extends Component {
   CustomFollowBehavior(
