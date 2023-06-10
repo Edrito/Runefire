@@ -2,25 +2,31 @@ import 'dart:async';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/entities/enemy_mixin.dart';
 import 'package:game_app/entities/entity.dart';
-import 'package:game_app/game/physics_filter.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/game/powerups.dart';
 import 'package:game_app/weapons/weapons.dart';
 
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
+import '../game/physics_filter.dart';
 import '../resources/classes.dart';
 import '../resources/enums.dart';
 
-class Dummy extends Enemy with ContactCallbacks {
+class Dummy extends Enemy
+    with
+        AttackFunctionality,
+        MovementFunctionality,
+        AimFunctionality,
+        AimControlFunctionality,
+        MovementControlFunctionality,
+        HealthFunctionality {
   Dummy({
     required super.initPosition,
     required super.ancestor,
   });
-
-  @override
-  double dashCooldown = 5;
 
   @override
   (double, double, double) xpRate = (0.001, 0.01, 0.989);
@@ -31,13 +37,13 @@ class Dummy extends Enemy with ContactCallbacks {
   double height = 10;
 
   @override
-  double invincibiltyDuration = 0;
+  double baseInvincibilityDuration = 0.1;
 
   @override
-  double maxHealth = 100;
+  double baseHealth = 100;
 
   @override
-  double maxSpeed = 20;
+  double baseSpeed = 20;
 
   @override
   double touchDamage = 4;
@@ -64,16 +70,10 @@ class Dummy extends Enemy with ContactCallbacks {
   SpriteAnimation? damageAnimation;
 
   @override
-  SpriteAnimation? dashAnimation;
-
-  @override
   SpriteAnimation? deathAnimation;
 
   @override
   late SpriteAnimation idleAnimation;
-
-  @override
-  SpriteAnimation? jumpAnimation;
 
   @override
   SpriteAnimation? runAnimation;
@@ -83,6 +83,83 @@ class Dummy extends Enemy with ContactCallbacks {
 
   @override
   SpriteAnimation? walkAnimation;
+
+  @override
+  MovementPattern movementPattern = MovementPattern.dumbFollowRange;
+
+  @override
+  AimPattern aimPattern = AimPattern.player;
+}
+
+class DummyTwo extends Enemy
+    with
+        // AttackFunctionality,
+        MovementFunctionality,
+        MovementControlFunctionality,
+        HealthFunctionality {
+  DummyTwo({
+    required super.initPosition,
+    required super.ancestor,
+  });
+
+  @override
+  (double, double, double) xpRate = (0.001, 0.01, 0.989);
+
+  EnemyType enemyType = EnemyType.flameHead;
+
+  @override
+  double height = 10;
+
+  @override
+  double baseInvincibilityDuration = 0.1;
+
+  @override
+  double baseHealth = 100;
+
+  @override
+  double baseSpeed = 20;
+
+  @override
+  double touchDamage = 4;
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    idleAnimation =
+        await buildSpriteSheet(10, 'enemy_sprites/idle.png', .1, true);
+    deathAnimation =
+        await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
+    runAnimation = await buildSpriteSheet(8, 'enemy_sprites/run.png', .1, true);
+  }
+
+  @override
+  Future<void> onLoad() async {
+    // initialWeapons.addAll([Sword.create]);
+//
+    await loadAnimationSprites();
+    await super.onLoad();
+    // startAttacking();
+  }
+
+  @override
+  SpriteAnimation? damageAnimation;
+
+  @override
+  SpriteAnimation? deathAnimation;
+
+  @override
+  late SpriteAnimation idleAnimation;
+
+  @override
+  SpriteAnimation? runAnimation;
+
+  @override
+  SpriteAnimation? spawnAnimation;
+
+  @override
+  SpriteAnimation? walkAnimation;
+
+  @override
+  MovementPattern movementPattern = MovementPattern.dumbFollow;
 }
 
 abstract class Enemy extends Entity with ContactCallbacks {
@@ -98,6 +175,7 @@ abstract class Enemy extends Entity with ContactCallbacks {
     ..categoryBits = enemyCategory
     ..maskBits =
         bulletCategory + playerCategory + sensorCategory + swordCategory;
+  // ..maskBits = 0xFFFF;
 
   TimerComponent? shooter;
   bool hittingPlayer = false;
@@ -122,18 +200,11 @@ abstract class Enemy extends Entity with ContactCallbacks {
     super.endContact(other, contact);
   }
 
-  void moveEnemy() {
-    moveVelocities[InputType.ai] =
-        (ancestor.player.center - body.position).normalized();
-  }
-
   @override
   void update(double dt) {
     if (hittingPlayer) {
       ancestor.player.takeDamage(hashCode.toString(), touchDamage);
     }
-
-    moveEnemy();
 
     super.update(dt);
   }
@@ -149,11 +220,33 @@ class EnemyManagement extends Component {
 
   @override
   FutureOr<void> onLoad() {
+    // add(
+    //   Dummy(
+    //     ancestor: mainGameRef,
+    //     initPosition: generateRandomGamePositionUsingViewport(
+    //       false,
+    //       mainGameRef,
+    //     ),
+    //   ),
+    // );
     add(TimerComponent(
-      period: 1,
+      period: 2,
       repeat: true,
       onTick: () => add(
         Dummy(
+          ancestor: mainGameRef,
+          initPosition: generateRandomGamePositionUsingViewport(
+            false,
+            mainGameRef,
+          ),
+        ),
+      ),
+    ));
+    add(TimerComponent(
+      period: 2,
+      repeat: true,
+      onTick: () => add(
+        DummyTwo(
           ancestor: mainGameRef,
           initPosition: generateRandomGamePositionUsingViewport(
             false,

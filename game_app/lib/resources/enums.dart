@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/weapons.dart';
 
 import '../entities/entity.dart';
@@ -107,7 +108,7 @@ extension ProjectileTypeExtension on ProjectileType {
   Projectile generateProjectile(
       {required Vector2 speedVar,
       required Vector2 originPositionVar,
-      required Weapon ancestorVar,
+      required ProjectileFunctionality ancestorVar,
       required String idVar}) {
     switch (this) {
       case ProjectileType.pellet:

@@ -41,15 +41,15 @@ class GameHud extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect((const Offset(10, 10) & Size(player.maxHealth * 5, 10)),
+    canvas.drawRect((const Offset(10, 10) & Size(player.baseHealth * 5, 10)),
         Paint()..color = Colors.grey);
     canvas.drawRect(
         (const Offset(10, 25) & Size(width, 10)), Paint()..color = Colors.grey);
 
     canvas.drawRect(
         (const Offset(10, 10) &
-            Size(
-                player.maxHealth * 5 * (player.health / player.maxHealth), 10)),
+            Size(player.baseHealth * 5 * (player.health / player.baseHealth),
+                10)),
         Paint()..color = Colors.red);
 
     canvas.drawRect((const Offset(10, 25) & const Size(10, 10)),

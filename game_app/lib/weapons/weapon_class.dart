@@ -2,14 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
-import 'package:flame_forge2d/body_component.dart';
 import 'package:game_app/entities/entity.dart';
-import 'package:game_app/weapons/swings.dart';
-import 'package:game_app/weapons/weapons.dart';
-import 'package:game_app/weapons/projectiles.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
-import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
 
 class PlayerAttachmentJointComponent extends PositionComponent
@@ -79,7 +74,8 @@ class PlayerAttachmentJointComponent extends PositionComponent
 abstract class Weapon extends Component {
   Weapon(this.parentEntity) {
     assert(
-        !attackTypes.contains(AttackType.projectile) || projectileType != null,
+        this is! ProjectileFunctionality ||
+            (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
     parentEntity?.gameRef.add(this);
 
@@ -91,18 +87,22 @@ abstract class Weapon extends Component {
   FutureOr<SpriteComponent> buildSpriteComponent(WeaponSpritePosition position);
   //Weapon attributes
   abstract double distanceFromPlayer;
+  double damageIncrease = 1;
   abstract int count;
   abstract double minDamage;
   abstract double maxDamage;
   Random rng = Random();
-  double get damage => (rng.nextDouble() * maxDamage - minDamage) + minDamage;
-  abstract double fireRate; //every X second
+  double get damage =>
+      ((rng.nextDouble() * maxDamage - minDamage) + minDamage) * damageIncrease;
+  abstract double baseFireRate; //every X second
+  double fireRateIncrease = 1; //every X second
+
+  double get fireRate => baseFireRate / fireRateIncrease;
+
   abstract bool holdAndRelease;
-  abstract int? maxAmmo;
   abstract double maxSpreadDegrees;
   abstract int pierce;
   abstract double projectileVelocity;
-  abstract double reloadTime;
   abstract double tipPositionPercent;
   abstract double weaponRandomnessPercent;
   abstract bool isHoming;
@@ -117,24 +117,13 @@ abstract class Weapon extends Component {
   bool removeBackSpriteOnAttack = false;
 
   //Sprites, types and things that bite
-  abstract List<AttackType> attackTypes;
-  abstract ProjectileType? projectileType;
-  abstract Sprite projectileSprite;
-  abstract bool allowProjectileRotation;
+
   abstract double length;
 
   //Weapon state info
-  int spentAttacks = 0;
-
   int attackTicks = 0;
 
   double get getHoldDuration => attackTicks * fireRate;
-
-  ///An even number of pairs
-  ///Next position - next angle
-  ///
-  ///...
-  List<(Vector2, double)> attackPatterns = [];
 
   // abstract bool followRandomPath;
   // List<Vector2> randomPath = [];
@@ -148,54 +137,10 @@ abstract class Weapon extends Component {
   }
 
   double get fireRateSecondComparison => 1 / fireRate;
-  int? get remainingAttacks => maxAmmo == null ? null : maxAmmo! - spentAttacks;
-
-  TimerComponent? reloadTimer;
-
-  void reloadCheck() {
-    currentSwingPosition = null;
-    currentSwingAngle = null;
-    if (remainingAttacks != 0 || reloadTimer != null || reloadTime == 0) return;
-    if (removeBackSpriteOnAttack) {
-      parentEntity?.backJoint.spriteComponent?.opacity = 1;
-    }
-
-    reloadTimer = TimerComponent(
-      period: reloadTime,
-      removeOnFinish: true,
-      onTick: () {
-        spentAttacks = 0;
-        reloadTimer = null;
-        if (stopAttacking) {
-          attackFinishTick();
-        }
-        if (attackTimer != null) {
-          attackTimer?.timer.start();
-          attackTick();
-        }
-      },
-    );
-    add(reloadTimer!);
-  }
-
-  void shoot() {
-    parentEntity?.ancestor.physicsComponent
-        .addAll(generateProjectileFunction());
-    parentEntity!.handJoint.add(MoveEffect.by(Vector2(0, -.05),
-        EffectController(duration: .05, reverseDuration: .05)));
-    parentEntity!.handJoint.add(RotateEffect.by(
-        parentEntity!.handJoint.isFlippedHorizontally ? -.05 : .05,
-        EffectController(duration: .1, reverseDuration: .1)));
-  }
-
-  void melee() {
-    parentEntity?.add(generateMeleeSwing());
-  }
 
   TimerComponent? attackTimer;
 
   void attackTick() {
-    if (reloadTimer != null) return;
     attackCheck();
     attackTicks++;
   }
@@ -203,16 +148,14 @@ abstract class Weapon extends Component {
   bool holdAndReleaseTrigger = false;
 
   void attackFinishTick() {
-    // attackTimer?.timer.stop();
+    if (removeBackSpriteOnAttack) {
+      parentEntity?.backJoint.spriteComponent?.opacity = 1;
+    }
+
     attackTimer?.removeFromParent();
+    attackTicks = 0;
     attackTimer = null;
     stopAttacking = false;
-    currentSwingAngle = null;
-    currentSwingPosition = null;
-    attackTicks = 0;
-    if (attackTypes.contains(AttackType.melee)) {
-      spentAttacks = 0;
-    }
   }
 
   void startAttacking() {
@@ -224,12 +167,8 @@ abstract class Weapon extends Component {
       repeat: true,
       onTick: () {
         if (stopAttacking) {
-          if (removeBackSpriteOnAttack) {
-            parentEntity?.backJoint.spriteComponent?.opacity = 1;
-          }
           attackFinishTick();
         } else {
-          reloadCheck();
           attackTick();
           additionalCountCheck();
           holdAndReleaseTrigger = true;
@@ -260,62 +199,18 @@ abstract class Weapon extends Component {
     if (!canShoot || parentEntity == null) {
       return false;
     }
-    spentAttacks++;
-    if (attackTypes.contains(AttackType.melee)) {
-      currentSwingPosition ??= parentEntity?.handJoint.position.clone();
-      currentSwingAngle ??= parentEntity?.handJoint.angle;
-      melee();
-    }
-    if (attackTypes.contains(AttackType.point)) {}
-    if (attackTypes.contains(AttackType.projectile)) {
-      shoot();
+
+    if (this is ReloadFunctionality) {
+      (this as ReloadFunctionality).spentAttacks++;
     }
 
+    if (this is ProjectileFunctionality) {
+      (this as ProjectileFunctionality).shoot();
+    }
+    if (this is MeleeFunctionality) {
+      (this as MeleeFunctionality).melee();
+    }
     holdAndReleaseTrigger = false;
     return true;
-  }
-
-  Vector2? currentSwingPosition;
-  double? currentSwingAngle;
-
-  PositionComponent generateMeleeSwing() {
-    int attackPatternIndex = (attackTicks -
-            (((attackTicks / (maxAmmo ?? 0)).floor()) * (maxAmmo ?? 0))) *
-        2;
-    return MeleeAttack(
-        (currentSwingPosition ?? Vector2.zero()) * distanceFromPlayer,
-        currentSwingAngle,
-        attackPatternIndex,
-        this);
-  }
-
-  List<BodyComponent> generateProjectileFunction() {
-    var deltaDirection =
-        (parents[WeaponSpritePosition.hand]!.weaponTipCenter!.absolutePosition -
-                parentEntity!.handJoint.absolutePosition)
-            .normalized();
-
-    List<BodyComponent> returnList = [];
-
-    List<Vector2> temp = splitVector2DeltaInCone(
-        deltaDirection, count + (additionalCount ?? 0), maxSpreadDegrees);
-
-    for (var deltaDirection in temp) {
-      if (projectileType == null) continue;
-      returnList.add(projectileType!.generateProjectile(
-          speedVar:
-              ((randomizeVector2Delta(deltaDirection, weaponRandomnessPercent) *
-                          projectileVelocity) +
-                      parentEntity!.body.linearVelocity)
-                  .clone(),
-          originPositionVar:
-              (parents[WeaponSpritePosition.hand]!.weaponTip!.absolutePosition +
-                      parentEntity!.body.position)
-                  .clone(),
-          ancestorVar: this,
-          idVar: (deltaDirection.x + attackTicks).toString()));
-    }
-
-    return returnList;
   }
 }

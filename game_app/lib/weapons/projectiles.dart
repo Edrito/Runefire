@@ -6,13 +6,14 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
-import '../functions/vector_functions.dart';
-import '../entities/enemies.dart';
+import '../entities/enemy.dart';
 import '../resources/enums.dart';
 
 class Arrow extends Projectile {
@@ -145,10 +146,11 @@ abstract class Projectile extends BodyComponent<GameRouter>
     deltaSavedCopy = [];
   }
 
-  late final SpriteComponent spriteComponent;
+  // late final SpriteComponent spriteComponent;
+  late final CircleComponent circleComponent;
 
   bool bulletHasExpired = false;
-  Weapon weaponAncestor;
+  ProjectileFunctionality weaponAncestor;
   List<Entity> closeHittingBodies = [];
   late List<Vector2> deltaSavedCopy;
   abstract double embedIntoEnemyChance;
@@ -165,7 +167,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   double get getIterationTime => ttl / deltaSavedCopy.length;
   TimerComponent? deltaPathFollowTimer;
   Random rng = Random();
-  late PolygonShape shape;
+  late Shape shape;
   abstract double size;
   Vector2 speed;
   abstract double ttl;
@@ -176,7 +178,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Entity) {
+    if (other is! HealthFunctionality) {
       return;
     }
 
@@ -203,13 +205,8 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   @override
   Body createBody() {
-    shape = PolygonShape();
-    shape.set([
-      Vector2(-spriteComponent.size.x / 2, -spriteComponent.size.y / 2),
-      Vector2(spriteComponent.size.x / 2, -spriteComponent.size.y / 2),
-      Vector2(spriteComponent.size.x / 2, spriteComponent.size.y / 2),
-      Vector2(-spriteComponent.size.x / 2, spriteComponent.size.y / 2),
-    ]);
+    shape = CircleShape();
+    shape.radius = circleComponent.radius;
 
     final bulletFilter = Filter();
     if (weaponAncestor.parentEntity is Enemy) {
@@ -253,7 +250,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   @override
   void endContact(Object other, Contact contact) {
-    if (other is! Enemy) return;
+    if (other is! HealthFunctionality) return;
     bool isHomingSensor = contact.fixtureA.userData == "homingSensor" ||
         contact.fixtureB.userData == "homingSensor";
 
@@ -278,16 +275,18 @@ abstract class Projectile extends BodyComponent<GameRouter>
       },
     );
     final rng = Random();
+    circleComponent = CircleComponent(radius: .5, anchor: Anchor.center);
+    // spriteComponent = SpriteComponent(
+    //     sprite: projectileSprite,
+    //     priority: -rng.nextInt(20),
+    //     angle: -radiansBetweenPoints(Vector2(0, 0.0001), speed),
+    //     size:
+    //         projectileSprite.srcSize.scaled(size / projectileSprite.srcSize.y),
+    //     anchor: Anchor.center);
 
-    spriteComponent = SpriteComponent(
-        sprite: projectileSprite,
-        priority: -rng.nextInt(20),
-        angle: -radiansBetweenPoints(Vector2(0, 0.0001), speed),
-        size:
-            projectileSprite.srcSize.scaled(size / projectileSprite.srcSize.y),
-        anchor: Anchor.center);
+    // add(spriteComponent);
+    add(circleComponent);
 
-    add(spriteComponent);
     add(bulletDeathTimer!);
     deltaPathFollowTimerSetup();
 
@@ -315,9 +314,9 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void bulletAngleCalc() {
-    if (weaponAncestor.allowProjectileRotation) {
-      spriteComponent.angle =
-          -radiansBetweenPoints(Vector2(0, 0.0001), body.linearVelocity);
+    if ((weaponAncestor as ProjectileFunctionality).allowProjectileRotation) {
+      // spriteComponent.angle =
+      //     -radiansBetweenPoints(Vector2(0, 0.0001), body.linearVelocity);
     }
   }
 

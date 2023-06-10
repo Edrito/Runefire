@@ -3,10 +3,12 @@ import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
 
@@ -75,13 +77,15 @@ class Agility extends Powerup {
   @override
   int uniqueId = 1;
 
-  double speedIncrease = 1.5;
+  double speedIncrease = .5;
 
   Effect? colorEffect;
 
   @override
   void applyToEntityPowerup(Entity entity) {
-    entity.maxSpeed *= speedIncrease;
+    if (entity is MovementFunctionality) {
+      entity.speedIncreasePercent += speedIncrease;
+    }
 
     colorEffect = ColorEffect(
         Colors.yellow,
@@ -95,9 +99,11 @@ class Agility extends Powerup {
 
   @override
   void applyToWeaponPowerup(Weapon weapon) {
-    weapon.fireRate /= speedIncrease;
-    previousReloadTime[weapon] = weapon.reloadTime;
-    weapon.reloadTime = 0;
+    weapon.fireRateIncrease += speedIncrease;
+    if (weapon is ReloadFunctionality) {
+      previousReloadTime[weapon] = weapon.reloadTime;
+      weapon.reloadTime = 0;
+    }
     if (weapon.attackTimer != null) {
       weapon.attackTimer!.timer.limit = weapon.fireRate;
     }
@@ -105,16 +111,20 @@ class Agility extends Powerup {
 
   @override
   void removeEntityPowerup(Entity entity) {
-    entity.maxSpeed /= speedIncrease;
+    if (entity is MovementFunctionality) {
+      entity.speedIncreasePercent -= speedIncrease;
+    }
     colorEffect?.controller.setToStart();
     colorEffect?.removeFromParent();
   }
 
   @override
   void removeWeaponPowerup(Weapon weapon) {
-    weapon.fireRate *= speedIncrease;
-    weapon.reloadTime = previousReloadTime[weapon]!;
-    weapon.spentAttacks = 0;
+    weapon.fireRateIncrease -= speedIncrease;
+    if (weapon is ReloadFunctionality) {
+      weapon.reloadTime = previousReloadTime[weapon]!;
+      weapon.spentAttacks = 0;
+    }
     if (weapon.attackTimer != null) {
       weapon.attackTimer!.timer.limit = weapon.fireRate;
     }
@@ -132,12 +142,14 @@ class Damage extends Powerup {
   int uniqueId = 0;
 
   double healthIncrease = 20;
+  double damageIncrease = .5;
 
   Effect? colorEffect;
 
   @override
   void applyToEntityPowerup(Entity entity) {
-    entity.maxHealth += healthIncrease;
+    if (entity is! HealthFunctionality) return;
+    entity.healthFlatIncrease += healthIncrease;
 
     colorEffect = ColorEffect(
         Colors.red,
@@ -149,29 +161,26 @@ class Damage extends Powerup {
 
   @override
   void applyToWeaponPowerup(Weapon weapon) {
-    weapon.maxDamage += 20;
-    weapon.minDamage += 20;
+    weapon.damageIncrease += damageIncrease;
   }
 
   @override
   void removeEntityPowerup(Entity entity) {
-    entity.maxHealth -= healthIncrease;
+    if (entity is! HealthFunctionality) return;
+    entity.healthFlatIncrease -= healthIncrease;
     entity.damageTaken =
-        (entity.damageTaken - healthIncrease).clamp(0, entity.maxHealth - 5);
+        (entity.damageTaken - healthIncrease).clamp(0, entity.getMaxHealth - 5);
     colorEffect?.controller.setToStart();
     colorEffect?.removeFromParent();
   }
 
   @override
   void removeWeaponPowerup(Weapon weapon) {
-    weapon.maxDamage -= 20;
-    weapon.minDamage -= 20;
+    weapon.damageIncrease -= damageIncrease;
   }
 }
 
 abstract class Powerup {
-  //TODO add remove and add fucntions to weapons that are added to inven
-
   void assignPowerup(Entity entity) {
     if (entity.currentPowerups.containsKey(uniqueId)) {
       entity.currentPowerups[uniqueId]!.currentTimer!.timer.limit =
@@ -179,8 +188,10 @@ abstract class Powerup {
               duration;
     } else {
       entity.currentPowerups[uniqueId] = this;
-      entity.carriedWeapons
-          .forEach((key, value) => applyToWeaponPowerup(value));
+      if (entity is AttackFunctionality) {
+        entity.carriedWeapons
+            .forEach((key, value) => applyToWeaponPowerup(value));
+      }
       applyToEntityPowerup(entity);
       currentTimer = TimerComponent(
         period: duration,
@@ -195,7 +206,9 @@ abstract class Powerup {
   }
 
   void removePowerup(Entity entity) {
-    entity.carriedWeapons.forEach((key, value) => removeWeaponPowerup(value));
+    if (entity is AttackFunctionality) {
+      entity.carriedWeapons.forEach((key, value) => removeWeaponPowerup(value));
+    }
     removeEntityPowerup(entity);
     entity.currentPowerups.removeWhere((key, value) => key == uniqueId);
   }

@@ -5,6 +5,7 @@ import 'package:flame/input.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/functions/functions.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/weapons/weapons.dart';
@@ -12,12 +13,20 @@ import 'package:game_app/weapons/weapons.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
 
-class Player extends Entity with ContactCallbacks, KeyboardHandler {
+class Player extends Entity
+    with
+        ContactCallbacks,
+        KeyboardHandler,
+        AttackFunctionality,
+        MovementFunctionality,
+        DashFunctionality,
+        HealthFunctionality,
+        AttributeFunctionality,
+        AimFunctionality,
+        MovementFunctionality,
+        JumpFunctionality {
   Player(this.characterType,
-      {required super.ancestor, required super.initPosition}) {
-    // file = characterType.getFilename();
-  }
-
+      {required super.ancestor, required super.initPosition});
   final CharacterType characterType;
 
   @override
@@ -166,7 +175,7 @@ class Player extends Entity with ContactCallbacks, KeyboardHandler {
       case InputType.moveJoy:
         final delta = ancestor.moveJoystick?.relativeDelta;
         moveVelocities[InputType.moveJoy] =
-            (delta ?? Vector2.zero()) * maxSpeed;
+            (delta ?? Vector2.zero()) * getMaxSpeed;
         break;
 
       case InputType.tapClick:
@@ -210,13 +219,10 @@ class Player extends Entity with ContactCallbacks, KeyboardHandler {
   double height = 15;
 
   @override
-  double invincibiltyDuration = 1;
+  double baseHealth = 50;
 
   @override
-  double maxHealth = 50;
-
-  @override
-  double maxSpeed = 1000;
+  double baseSpeed = 1000;
 
   @override
   EntityType entityType = EntityType.player;
@@ -244,4 +250,7 @@ class Player extends Entity with ContactCallbacks, KeyboardHandler {
 
   @override
   SpriteAnimation? walkAnimation;
+
+  @override
+  double baseInvincibilityDuration = 1;
 }

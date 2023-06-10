@@ -27,7 +27,7 @@ class HomeRoom extends GameEnviroment {
 }
 
 class HomeBackground extends BackgroundComponent {
-  HomeBackground(super.gameRef);
+  HomeBackground(super.gameReference);
 
   late final ObjectGroup? portalObjects;
   late final ObjectGroup? objects;
@@ -63,7 +63,7 @@ class HomeBackground extends BackgroundComponent {
                   size: Vector2.all(15),
                   anchor: Anchor.bottomCenter,
                   playing: first), () {
-            gameRef.gameRef.router.pushReplacementNamed(routes.gameplay);
+            gameReference.gameRef.router.pushReplacementNamed(routes.gameplay);
           }, true, "Open"));
         }
       }
@@ -89,7 +89,7 @@ class HomeBackground extends BackgroundComponent {
               size: Vector2(50, 75),
               anchor: Anchor.bottomCenter,
               playing: false), () {
-        gameRef.gameRef.overlays.add(overlays.weaponModifyMenu.key);
+        gameReference.gameRef.overlays.add(overlays.weaponModifyMenu.key);
       }, true, "Upgrade"));
     }
   }

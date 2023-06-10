@@ -3,15 +3,14 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/weapons/projectiles.dart';
 import 'package:game_app/weapons/weapon_class.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
-import '../entities/entity.dart';
 import '../resources/enums.dart';
 
 typedef BodyComponentFunction = List<BodyComponent> Function();
 
-class Portal extends Weapon {
+class Portal extends Weapon with ProjectileFunctionality {
   Portal.create(
     this.upgradeLevel,
     super.ancestor,
@@ -58,7 +57,7 @@ class Portal extends Weapon {
   double maxDamage = 26;
 
   @override
-  double fireRate = 2;
+  double baseFireRate = 2;
 
   @override
   bool holdAndRelease = false;
@@ -110,27 +109,11 @@ class Portal extends Weapon {
   }
 }
 
-// extension PistolExtension on Pistol {
-//   Future<SpriteComponent> getSpriteComponent() async {
-//     final sprite = await Sprite.load(spriteString);
-//     return SpriteComponent(
-//       sprite: sprite,
-//       size: sprite.srcSize.scaled(length / sprite.srcSize.y),
-//       anchor: Anchor.topCenter,
-//     );
-//   }
-// }
-
-class Pistol extends Weapon {
+class Pistol extends Weapon with ProjectileFunctionality {
   Pistol.create(
     this.upgradeLevel,
     super.ancestor,
   );
-
-  @override
-  List<AttackType> attackTypes = [
-    AttackType.projectile,
-  ];
 
   @override
   int upgradeLevel;
@@ -144,7 +127,7 @@ class Pistol extends Weapon {
   bool allowProjectileRotation = true;
 
   @override
-  int count = 1;
+  int count = 26;
 
   @override
   double minDamage = 10;
@@ -153,8 +136,7 @@ class Pistol extends Weapon {
   double maxDamage = 12;
 
   @override
-  double fireRate = .3;
-
+  double baseFireRate = .1;
   @override
   bool holdAndRelease = false;
 
@@ -165,10 +147,7 @@ class Pistol extends Weapon {
   double length = 7;
 
   @override
-  int? maxAmmo = 8;
-
-  @override
-  double maxSpreadDegrees = 70;
+  double maxSpreadDegrees = 180;
 
   @override
   int pierce = 1;
@@ -218,7 +197,7 @@ class Pistol extends Weapon {
   }
 }
 
-class Shotgun extends Weapon {
+class Shotgun extends Weapon with ProjectileFunctionality {
   Shotgun.create(
     this.upgradeLevel,
     super.ancestor,
@@ -227,10 +206,6 @@ class Shotgun extends Weapon {
   @override
   int upgradeLevel;
 
-  @override
-  List<AttackType> attackTypes = [
-    AttackType.projectile,
-  ];
   @override
   Future<SpriteComponent> buildSpriteComponent(
       WeaponSpritePosition position) async {
@@ -267,7 +242,7 @@ class Shotgun extends Weapon {
   double maxDamage = 40;
 
   @override
-  double fireRate = .5;
+  double baseFireRate = .5;
 
   @override
   bool holdAndRelease = false;
@@ -308,7 +283,7 @@ class Shotgun extends Weapon {
   ProjectileType? projectileType = ProjectileType.pellet;
 }
 
-class Bow extends Weapon {
+class Bow extends Weapon with ProjectileFunctionality {
   Bow.create(
     this.upgradeLevel,
     super.ancestor,
@@ -356,7 +331,7 @@ class Bow extends Weapon {
   }
 
   @override
-  double fireRate = .5;
+  double baseFireRate = .5;
 
   @override
   List<WeaponSpritePosition> spirtePositions = [
@@ -405,7 +380,7 @@ class Bow extends Weapon {
   ];
 }
 
-class Sword extends Weapon {
+class Sword extends Weapon with MeleeFunctionality {
   @override
   int upgradeLevel;
   Sword.create(
@@ -422,7 +397,6 @@ class Sword extends Weapon {
     ];
 
     assert(attackPatterns.length.isEven, "Must be an even number of coords");
-    maxAmmo = (attackPatterns.length / 2).ceil();
   }
 
   @override
@@ -476,8 +450,7 @@ class Sword extends Weapon {
   @override
   double maxDamage = 40;
   @override
-  double fireRate = .1;
-
+  double baseFireRate = .1;
   @override
   bool holdAndRelease = false;
 

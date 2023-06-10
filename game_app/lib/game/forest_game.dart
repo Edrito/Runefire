@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
-import 'package:game_app/entities/enemies.dart';
+import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/player.dart';
 import '../resources/classes.dart';
 import '../resources/enums.dart';
@@ -20,10 +20,9 @@ class ForestGame extends GameEnviroment {
     await super.onLoad();
 
     forestBackground = level.buildBackground(this);
+    add(forestBackground);
     enemyManagement = EnemyManagement(this);
     add(enemyManagement);
-
-    add(forestBackground);
   }
 
   @override
