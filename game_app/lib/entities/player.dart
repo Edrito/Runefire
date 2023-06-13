@@ -8,6 +8,7 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/functions/functions.dart';
 import 'package:game_app/game/physics_filter.dart';
+import 'package:game_app/resources/classes.dart';
 import 'package:game_app/weapons/weapons.dart';
 
 import '../functions/vector_functions.dart';
@@ -17,17 +18,19 @@ class Player extends Entity
     with
         ContactCallbacks,
         KeyboardHandler,
-        AttackFunctionality,
         MovementFunctionality,
         DashFunctionality,
         HealthFunctionality,
         AttributeFunctionality,
         AimFunctionality,
+        AttackFunctionality,
         MovementFunctionality,
         JumpFunctionality {
-  Player(this.characterType,
+  Player(this.playerData,
       {required super.ancestor, required super.initPosition});
-  final CharacterType characterType;
+  final PlayerData playerData;
+
+  int experiencePointsGained = 0;
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -216,13 +219,13 @@ class Player extends Entity
     ..categoryBits = playerCategory;
 
   @override
-  double height = 15;
+  double height = 5;
 
   @override
   double baseHealth = 50;
 
   @override
-  double baseSpeed = 1000;
+  double baseSpeed = 5;
 
   @override
   EntityType entityType = EntityType.player;

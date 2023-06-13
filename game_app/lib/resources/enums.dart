@@ -1,8 +1,8 @@
 import 'package:flame/components.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/weapons.dart';
 
-import '../entities/entity.dart';
 import '../game/background.dart';
 import '../game/forest_game.dart';
 import '../game/home_room.dart';
@@ -65,11 +65,12 @@ extension ExperienceAmountExtension on ExperienceAmount {
   String getSpriteString() {
     switch (this) {
       case ExperienceAmount.small:
-        return '';
+        return 'experience/small.png';
       case ExperienceAmount.medium:
-        return '';
+        return 'experience/medium.png';
+
       case ExperienceAmount.large:
-        return '';
+        return 'experience/large.png';
     }
   }
 
@@ -106,7 +107,8 @@ extension ProjectileTypeExtension on ProjectileType {
   }
 
   Projectile generateProjectile(
-      {required Vector2 speedVar,
+      {required Vector2 delta,
+      required double speed,
       required Vector2 originPositionVar,
       required ProjectileFunctionality ancestorVar,
       required String idVar}) {
@@ -114,14 +116,16 @@ extension ProjectileTypeExtension on ProjectileType {
       case ProjectileType.pellet:
         return Pellet(
           originPosition: originPositionVar,
-          speed: speedVar,
+          speed: speed,
+          delta: delta,
           weaponAncestor: ancestorVar,
           id: idVar,
         );
       case ProjectileType.bullet:
         return Bullet(
           originPosition: originPositionVar,
-          speed: speedVar,
+          speed: speed,
+          delta: delta,
           weaponAncestor: ancestorVar,
           id: idVar,
         );
@@ -129,20 +133,23 @@ extension ProjectileTypeExtension on ProjectileType {
         return Arrow(
           weaponAncestor: ancestorVar,
           originPosition: originPositionVar,
-          speed: speedVar,
+          speed: speed,
+          delta: delta,
           id: idVar,
         );
       case ProjectileType.fireball:
         return Fireball(
           originPosition: originPositionVar,
           weaponAncestor: ancestorVar,
-          speed: speedVar,
+          speed: speed,
+          delta: delta,
           id: idVar,
         );
       default:
         return Bullet(
           originPosition: originPositionVar,
-          speed: speedVar,
+          speed: speed,
+          delta: delta,
           weaponAncestor: ancestorVar,
           id: idVar,
         );
@@ -192,7 +199,7 @@ enum WeaponType {
 }
 
 extension WeaponTypeFilename on WeaponType {
-  Weapon build(Entity? ancestor, [int upgradeLevel = 0]) {
+  Weapon build(AimFunctionality? ancestor, [int upgradeLevel = 0]) {
     switch (this) {
       case WeaponType.pistol:
         return Pistol.create(upgradeLevel, ancestor);

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
@@ -72,7 +73,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
 }
 
 abstract class Weapon extends Component {
-  Weapon(this.parentEntity) {
+  Weapon(int newUpgradeLevel, this.parentEntity) {
     assert(
         this is! ProjectileFunctionality ||
             (this as ProjectileFunctionality).projectileType != null,
@@ -80,9 +81,18 @@ abstract class Weapon extends Component {
     parentEntity?.gameRef.add(this);
 
     assert(minDamage <= maxDamage, "Min damage must be lower than max damage");
+    newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
+    applyWeaponUpgrade(newUpgradeLevel);
   }
 
-  abstract int upgradeLevel;
+  void applyWeaponUpgrade(int newUpgradeLevel) {
+    upgradeLevel = newUpgradeLevel;
+  }
+
+  void removeWeaponUpgrade();
+
+  int upgradeLevel = 0;
+  int maxLevel = 5;
 
   FutureOr<SpriteComponent> buildSpriteComponent(WeaponSpritePosition position);
   //Weapon attributes
@@ -105,10 +115,11 @@ abstract class Weapon extends Component {
   abstract double projectileVelocity;
   abstract double tipPositionPercent;
   abstract double weaponRandomnessPercent;
-  abstract bool isHoming;
-  abstract int chainingTargets;
+  bool isHoming = false;
+  bool isChaining = false;
+  int chainingTargets = 1;
   abstract List<WeaponSpritePosition> spirtePositions;
-  Entity? parentEntity;
+  AimFunctionality? parentEntity;
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent> parents = {};
 
   //The longer the weapon is held, the more count

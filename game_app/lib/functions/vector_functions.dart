@@ -143,10 +143,8 @@ Vector2 generateRandomGamePositionUsingViewport(
   final padding = Vector2.all(paddingDouble);
   final random = Vector2.random();
 
-  Vector2 initalArea =
-      gameRef.gameCamera.viewport.size + gameRef.gameCamera.viewfinder.position;
+  Vector2 initalArea = gameRef.gameCamera.viewport.size;
   Vector2 area = Vector2.zero();
-
   if (internal) {
     area = initalArea + (padding * 2);
     area = Vector2(random.x * area.x, random.y * area.y);
@@ -175,7 +173,8 @@ Vector2 generateRandomGamePositionUsingViewport(
     }
   }
 
-  return vectorToGrid(area, gameRef.gameCamera.viewport.size) / 10;
+  return (vectorToGrid(area, gameRef.gameCamera.viewport.size) / 15) +
+      gameRef.gameCamera.viewfinder.position;
 }
 
 double radiansBetweenPoints(Vector2 v1, Vector2 v2) {

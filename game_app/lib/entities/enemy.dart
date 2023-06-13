@@ -17,24 +17,21 @@ import '../resources/enums.dart';
 
 class Dummy extends Enemy
     with
-        AttackFunctionality,
         MovementFunctionality,
         AimFunctionality,
+        AttackFunctionality,
         AimControlFunctionality,
-        MovementControlFunctionality,
+        DumbFollowRangeAI,
         HealthFunctionality {
   Dummy({
     required super.initPosition,
     required super.ancestor,
   });
 
-  @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.989);
-
   EnemyType enemyType = EnemyType.flameHead;
 
   @override
-  double height = 10;
+  double height = 4;
 
   @override
   double baseInvincibilityDuration = 0.1;
@@ -43,7 +40,7 @@ class Dummy extends Enemy
   double baseHealth = 100;
 
   @override
-  double baseSpeed = 20;
+  double baseSpeed = 2;
 
   @override
   double touchDamage = 4;
@@ -85,9 +82,6 @@ class Dummy extends Enemy
   SpriteAnimation? walkAnimation;
 
   @override
-  MovementPattern movementPattern = MovementPattern.dumbFollowRange;
-
-  @override
   AimPattern aimPattern = AimPattern.player;
 }
 
@@ -95,20 +89,21 @@ class DummyTwo extends Enemy
     with
         // AttackFunctionality,
         MovementFunctionality,
-        MovementControlFunctionality,
-        HealthFunctionality {
+        HealthFunctionality,
+        DropExperienceFunctionality,
+        DumbFollowScaredAI {
   DummyTwo({
     required super.initPosition,
     required super.ancestor,
   });
 
-  @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.989);
-
   EnemyType enemyType = EnemyType.flameHead;
 
   @override
-  double height = 10;
+  (double, double) xpRate = (0.001, 0.01);
+
+  @override
+  double height = 4;
 
   @override
   double baseInvincibilityDuration = 0.1;
@@ -117,7 +112,7 @@ class DummyTwo extends Enemy
   double baseHealth = 100;
 
   @override
-  double baseSpeed = 20;
+  double baseSpeed = 2;
 
   @override
   double touchDamage = 4;
@@ -157,9 +152,6 @@ class DummyTwo extends Enemy
 
   @override
   SpriteAnimation? walkAnimation;
-
-  @override
-  MovementPattern movementPattern = MovementPattern.dumbFollow;
 }
 
 abstract class Enemy extends Entity with ContactCallbacks {
@@ -167,8 +159,6 @@ abstract class Enemy extends Entity with ContactCallbacks {
     required super.initPosition,
     required super.ancestor,
   });
-
-  abstract (double, double, double) xpRate;
 
   @override
   Filter? filter = Filter()
@@ -229,19 +219,19 @@ class EnemyManagement extends Component {
     //     ),
     //   ),
     // );
-    add(TimerComponent(
-      period: 2,
-      repeat: true,
-      onTick: () => add(
-        Dummy(
-          ancestor: mainGameRef,
-          initPosition: generateRandomGamePositionUsingViewport(
-            false,
-            mainGameRef,
-          ),
-        ),
-      ),
-    ));
+    // add(TimerComponent(
+    //   period: 2,
+    //   repeat: true,
+    //   onTick: () => add(
+    //     Dummy(
+    //       ancestor: mainGameRef,
+    //       initPosition: generateRandomGamePositionUsingViewport(
+    //         false,
+    //         mainGameRef,
+    //       ),
+    //     ),
+    //   ),
+    // ));
     add(TimerComponent(
       period: 2,
       repeat: true,
@@ -257,7 +247,7 @@ class EnemyManagement extends Component {
     ));
     add(
       TimerComponent(
-          period: 20,
+          period: 30,
           repeat: true,
           onTick: () {
             add(PowerupItem(Damage(),

@@ -38,6 +38,7 @@ dependencies:
   flame: ^1.7.3
   flutter_riverpod: ^2.3.6
   flame_tiled: ^1.10.2
+  hive: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +69,7 @@ flutter:
     - assets/images/sprites/
     - assets/images/enemy_sprites/
     - assets/images/buttons/
+    - assets/images/experience/
     - assets/tiles/
     - assets/images/
     - assets/

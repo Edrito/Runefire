@@ -41,8 +41,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   bool flipped = false;
 
   //POSITIONING
-  late PlayerAttachmentJointComponent mouseJoint;
-  late PlayerAttachmentJointComponent handJoint;
+
   late PlayerAttachmentJointComponent backJoint;
   Vector2 lastAimingPosition = Vector2.zero();
   abstract Filter? filter;
@@ -215,21 +214,19 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   @override
   Future<void> onLoad() async {
     setEntityStatus(EntityStatus.spawn);
-    handJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.hand,
-        anchor: Anchor.center, size: Vector2.zero());
+
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
         anchor: Anchor.center, size: Vector2.zero(), priority: -1);
-    mouseJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.mouse,
-        anchor: Anchor.center, size: Vector2.zero(), priority: 0);
+
     priority = 0;
     shadow3DDecorator = Shadow3DDecorator(
         base: spriteAnimationComponent.size,
         angle: 1.4,
         xShift: 250,
-        yScale: 1.5,
-        opacity: .5,
-        blur: .5)
-      ..base.y += -3
+        yScale: 2,
+        opacity: 1,
+        blur: .2)
+      ..base.y += -.8
       ..base.x -= 1;
 
     spriteAnimationComponent.decorator = shadow3DDecorator;
@@ -240,8 +237,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     spriteWrapper.flipHorizontallyAroundCenter();
     add(spriteWrapper..add(spriteAnimationComponent));
     add(backJoint);
-    add(handJoint);
-    add(mouseJoint);
 
     return super.onLoad();
   }
@@ -254,13 +249,13 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   }
 
   void flipSpriteCheck() {
-    final degree = -degrees(handJoint.angle);
-    if ((degree < 180 && !flipped) || (degree >= 180 && flipped)) {
+    final movement = body.linearVelocity.x;
+    if ((movement > 0 && !flipped) || (movement <= 0 && flipped)) {
       // if (!(handJoint.weaponClass?.attackTypes.contains(AttackType.melee) ??
       //     true)) {
       // }
       shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
-      handJoint.flipHorizontallyAroundCenter();
+      backJoint.flipHorizontallyAroundCenter();
 
       spriteWrapper.flipHorizontallyAroundCenter();
       flipped = !flipped;

@@ -27,7 +27,11 @@ void main() async {
 }
 
 class GameRouter extends Forge2DGame
-    with HasKeyboardHandlerComponents, ScrollDetector, MouseMovementDetector {
+    with HasKeyboardHandlerComponents, ScrollDetector, MouseMovementDetector
+// TapDetector,
+// TertiaryTapDetector,
+// SecondaryTapDetector
+{
   late final RouterComponent router;
 
   GameRouter() : super(gravity: Vector2.zero(), zoom: 1);
@@ -49,6 +53,29 @@ class GameRouter extends Forge2DGame
     );
   }
 
+  //TODO: SIMILAR TO MOUSE CALLBACK, MULTI CLICK FUNCTIONS HERE
+
+  // @override
+  // void onSecondaryTapDown(TapDownInfo info) {
+  //   //
+
+  //   super.onSecondaryTapDown(info);
+  // }
+
+  // @override
+  // void onTapDown(TapDownInfo info) {
+  //   //
+  //   super.onTapDown(info);
+  // }
+
+  // @override
+  // void onTertiaryTapDown(TapDownInfo info) {
+  //   if (isLoaded) {
+
+  //   }
+  //   super.onTertiaryTapDown(info);
+  // }
+
   @override
   void onMouseMove(PointerHoverInfo info) {
     if (mouseCallback != null) {
@@ -66,7 +93,7 @@ class GameRouter extends Forge2DGame
 
       currentZoom += info.scrollDelta.game.normalized().y * -1;
 
-      currentZoom = currentZoom.clamp(1, 10);
+      currentZoom = currentZoom.clamp(3, 20);
       test.gameCamera.viewfinder.zoom = currentZoom;
     }
 

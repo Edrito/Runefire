@@ -12,15 +12,29 @@ typedef BodyComponentFunction = List<BodyComponent> Function();
 
 class Portal extends Weapon with ProjectileFunctionality {
   Portal.create(
-    this.upgradeLevel,
+    super.newUpgradeLevel,
     super.ancestor,
   );
+
   @override
-  int upgradeLevel;
+  void applyWeaponUpgrade(int newUpgradeLevel) {
+    removeWeaponUpgrade();
+    switch (newUpgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+    super.applyWeaponUpgrade(newUpgradeLevel);
+  }
+
   @override
-  List<AttackType> attackTypes = [
-    AttackType.projectile,
-  ];
+  void removeWeaponUpgrade() {
+    switch (upgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+  }
 
   @override
   Future<SpriteComponent> buildSpriteComponent(
@@ -66,7 +80,7 @@ class Portal extends Weapon with ProjectileFunctionality {
   bool isHoming = false;
 
   @override
-  double length = 7;
+  double length = 2;
 
   @override
   int? maxAmmo;
@@ -84,12 +98,9 @@ class Portal extends Weapon with ProjectileFunctionality {
   double projectileVelocity = 60;
 
   @override
-  int chainingTargets = 0;
+  bool isChaining = false;
   @override
   ProjectileType? projectileType = ProjectileType.fireball;
-
-  @override
-  double reloadTime = 1;
 
   @override
   double tipPositionPercent = -0;
@@ -98,7 +109,7 @@ class Portal extends Weapon with ProjectileFunctionality {
   double weaponRandomnessPercent = .2;
 
   @override
-  double distanceFromPlayer = 2;
+  double distanceFromPlayer = 0.2;
 
   @override
   FutureOr<void> onLoad() async {
@@ -111,12 +122,29 @@ class Portal extends Weapon with ProjectileFunctionality {
 
 class Pistol extends Weapon with ProjectileFunctionality {
   Pistol.create(
-    this.upgradeLevel,
+    super.newUpgradeLevel,
     super.ancestor,
   );
 
   @override
-  int upgradeLevel;
+  void applyWeaponUpgrade(int newUpgradeLevel) {
+    removeWeaponUpgrade();
+    switch (newUpgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+    super.applyWeaponUpgrade(newUpgradeLevel);
+  }
+
+  @override
+  void removeWeaponUpgrade() {
+    switch (upgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+  }
 
   @override
   bool countIncreaseWithTime = false;
@@ -127,7 +155,7 @@ class Pistol extends Weapon with ProjectileFunctionality {
   bool allowProjectileRotation = true;
 
   @override
-  int count = 26;
+  int count = 1;
 
   @override
   double minDamage = 10;
@@ -136,33 +164,36 @@ class Pistol extends Weapon with ProjectileFunctionality {
   double maxDamage = 12;
 
   @override
-  double baseFireRate = .1;
+  double baseFireRate = .2;
   @override
   bool holdAndRelease = false;
 
   @override
-  bool isHoming = false;
+  bool get isHoming => false;
 
   @override
-  double length = 7;
+  double length = 3;
 
   @override
-  double maxSpreadDegrees = 180;
+  double maxSpreadDegrees = 0;
 
   @override
-  int pierce = 1;
+  int pierce = 5;
 
   @override
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 120;
+  double projectileVelocity = 150;
+
   @override
-  int chainingTargets = 0;
+  bool get isChaining => true;
+
+  @override
+  int get chainingTargets => 5;
+
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
-  @override
-  double reloadTime = 1;
 
   @override
   double tipPositionPercent = -.3;
@@ -171,7 +202,7 @@ class Pistol extends Weapon with ProjectileFunctionality {
   double weaponRandomnessPercent = .005;
 
   @override
-  double distanceFromPlayer = 10;
+  double distanceFromPlayer = .6;
 
   @override
   FutureOr<void> onLoad() async {
@@ -199,12 +230,29 @@ class Pistol extends Weapon with ProjectileFunctionality {
 
 class Shotgun extends Weapon with ProjectileFunctionality {
   Shotgun.create(
-    this.upgradeLevel,
+    super.newUpgradeLevel,
     super.ancestor,
   );
 
   @override
-  int upgradeLevel;
+  void applyWeaponUpgrade(int newUpgradeLevel) {
+    removeWeaponUpgrade();
+    switch (newUpgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+    super.applyWeaponUpgrade(newUpgradeLevel);
+  }
+
+  @override
+  void removeWeaponUpgrade() {
+    switch (upgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+  }
 
   @override
   Future<SpriteComponent> buildSpriteComponent(
@@ -223,7 +271,7 @@ class Shotgun extends Weapon with ProjectileFunctionality {
   @override
   double distanceFromPlayer = -1;
   @override
-  int chainingTargets = 0;
+  bool isChaining = false;
   @override
   bool allowProjectileRotation = false;
 
@@ -251,7 +299,7 @@ class Shotgun extends Weapon with ProjectileFunctionality {
   bool isHoming = false;
 
   @override
-  double length = 20;
+  double length = 5;
 
   @override
   int? maxAmmo = 6;
@@ -285,11 +333,30 @@ class Shotgun extends Weapon with ProjectileFunctionality {
 
 class Bow extends Weapon with ProjectileFunctionality {
   Bow.create(
-    this.upgradeLevel,
+    super.newUpgradeLevel,
     super.ancestor,
   );
+
   @override
-  int upgradeLevel;
+  void applyWeaponUpgrade(int newUpgradeLevel) {
+    removeWeaponUpgrade();
+    switch (newUpgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+    super.applyWeaponUpgrade(newUpgradeLevel);
+  }
+
+  @override
+  void removeWeaponUpgrade() {
+    switch (upgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+  }
+
   @override
   bool allowProjectileRotation = true;
   @override
@@ -297,14 +364,14 @@ class Bow extends Weapon with ProjectileFunctionality {
   @override
   int count = 1;
   @override
-  int chainingTargets = 0;
+  bool isChaining = false;
   @override
   double minDamage = 10;
 
   @override
   double maxDamage = 12;
   @override
-  double distanceFromPlayer = 2;
+  double distanceFromPlayer = .2;
 
   @override
   Future<SpriteComponent> buildSpriteComponent(
@@ -345,7 +412,7 @@ class Bow extends Weapon with ProjectileFunctionality {
   bool isHoming = false;
 
   @override
-  double length = 7;
+  double length = 2;
 
   @override
   int? maxAmmo = 1;
@@ -381,22 +448,40 @@ class Bow extends Weapon with ProjectileFunctionality {
 }
 
 class Sword extends Weapon with MeleeFunctionality {
-  @override
-  int upgradeLevel;
   Sword.create(
-    this.upgradeLevel,
+    super.newUpgradeLevel,
     super.ancestor,
   ) {
     attackPatterns = [
-      (Vector2(12, -5), 0),
-      (Vector2(0, 12), 45),
-      (Vector2(0, -5), 0),
-      (Vector2(0, 12), 0),
-      (Vector2(-12, -5), 0),
-      (Vector2(0, 12), -45),
+      (Vector2(3, -2), 0),
+      (Vector2(0, 4), 45),
+      (Vector2(0, -2), 0),
+      (Vector2(0, 3), 0),
+      (Vector2(-3, -2), 0),
+      (Vector2(0, 4), -45),
     ];
 
     assert(attackPatterns.length.isEven, "Must be an even number of coords");
+  }
+
+  @override
+  void applyWeaponUpgrade(int newUpgradeLevel) {
+    removeWeaponUpgrade();
+    switch (newUpgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
+    super.applyWeaponUpgrade(newUpgradeLevel);
+  }
+
+  @override
+  void removeWeaponUpgrade() {
+    switch (upgradeLevel) {
+      case 0:
+        break;
+      default:
+    }
   }
 
   @override
@@ -406,10 +491,10 @@ class Sword extends Weapon with MeleeFunctionality {
       final sprite = await Sprite.load("sword.png");
 
       return SpriteComponent(
-        position: Vector2(1, -3),
+        position: Vector2(.1, -.8),
         sprite: sprite,
         angle: radians(35),
-        size: sprite.srcSize.scaled(length / sprite.srcSize.y) * .8,
+        size: sprite.srcSize.scaled(length / sprite.srcSize.y) * .7,
         anchor: Anchor.center,
       );
     } else {
@@ -425,18 +510,10 @@ class Sword extends Weapon with MeleeFunctionality {
   }
 
   @override
-  List<AttackType> attackTypes = [
-    AttackType.melee,
-  ];
-  @override
   bool get removeBackSpriteOnAttack => true;
 
   @override
-  double distanceFromPlayer = 2;
-  @override
-  int chainingTargets = 0;
-  @override
-  bool allowProjectileRotation = false;
+  double distanceFromPlayer = .2;
 
   @override
   int count = 10;
@@ -450,15 +527,12 @@ class Sword extends Weapon with MeleeFunctionality {
   @override
   double maxDamage = 40;
   @override
-  double baseFireRate = .1;
+  double baseFireRate = .25;
   @override
   bool holdAndRelease = false;
 
   @override
-  bool isHoming = false;
-
-  @override
-  double length = 15;
+  double length = 3;
 
   @override
   int? maxAmmo;

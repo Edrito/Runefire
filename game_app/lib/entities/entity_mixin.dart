@@ -68,6 +68,34 @@ mixin AimFunctionality on Entity {
 
   Map<InputType, Vector2> inputAimAngles = {};
   Map<InputType, Vector2> inputAimPositions = {};
+  late PlayerAttachmentJointComponent mouseJoint;
+  late PlayerAttachmentJointComponent handJoint;
+
+  @override
+  async.Future<void> onLoad() {
+    handJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.hand,
+        anchor: Anchor.center, size: Vector2.zero());
+    mouseJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.mouse,
+        anchor: Anchor.center, size: Vector2.zero(), priority: 0);
+    add(handJoint);
+    add(mouseJoint);
+    return super.onLoad();
+  }
+
+  @override
+  void flipSpriteCheck() {
+    final degree = -degrees(handJoint.angle);
+    if ((degree < 180 && !flipped) || (degree >= 180 && flipped)) {
+      // if (!(handJoint.weaponClass?.attackTypes.contains(AttackType.melee) ??
+      //     true)) {
+      // }
+      shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
+      handJoint.flipHorizontallyAroundCenter();
+
+      spriteWrapper.flipHorizontallyAroundCenter();
+      flipped = !flipped;
+    }
+  }
 
   @override
   void update(double dt) {
@@ -94,11 +122,11 @@ mixin AimFunctionality on Entity {
   }
 }
 
-mixin AttackFunctionality on Entity {
+mixin AttackFunctionality on AimFunctionality {
   Weapon? currentWeapon;
 
   Map<int, Weapon> carriedWeapons = {};
-  List<Function(int, Entity)> initialWeapons = [];
+  List<Function(int, AimFunctionality)> initialWeapons = [];
   bool isAttacking = false;
 
   Future<void> initializeWeapons() async {
@@ -187,12 +215,7 @@ mixin HealthFunctionality on Entity {
     setEntityStatus(EntityStatus.dead);
   }
 
-  bool takeDamage(String id, double damage) {
-    if (hitSourceDuration.containsKey(id) ||
-        invincibleTimer != null ||
-        isDead) {
-      return false;
-    }
+  void processDamage(String id, double damage) {
     setEntityStatus(EntityStatus.damage);
     final controller = EffectController(
       duration: .1,
@@ -223,7 +246,7 @@ mixin HealthFunctionality on Entity {
     }
     final test = TextPaint(
         style: TextStyle(
-      fontSize: 5,
+      fontSize: 2,
       shadows: const [
         BoxShadow(
             color: Colors.black,
@@ -238,7 +261,7 @@ mixin HealthFunctionality on Entity {
         text: recentDamage.round().toString(),
         anchor: Anchor.bottomLeft,
         textRenderer: test,
-        position: (Vector2.random() * 2) - Vector2.all(1),
+        position: Vector2.random() + Vector2(1, -1),
       );
       damageText?.addAll([
         OpacityEffect.fadeIn(EffectController(
@@ -280,6 +303,15 @@ mixin HealthFunctionality on Entity {
         duration: .2,
       )),
     ]);
+  }
+
+  bool takeDamage(String id, double damage) {
+    if (hitSourceDuration.containsKey(id) ||
+        invincibleTimer != null ||
+        isDead) {
+      return false;
+    }
+    processDamage(id, damage);
     return true;
   }
 }
@@ -293,7 +325,7 @@ mixin DashFunctionality on Entity {
   double dashedDistance = 0;
   bool isDashing = false;
   Vector2? dashDelta;
-  double dashSpeed = 50;
+  double dashSpeed = 15;
   double dashDuration = .2;
 
   bool dash() {
@@ -303,7 +335,8 @@ mixin DashFunctionality on Entity {
     isDashing = true;
     if (this is MovementFunctionality) {
       dashDelta = (this as MovementFunctionality).moveDelta;
-    } else if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
+    }
+    if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
       dashDelta = (this as AimFunctionality).aimDelta;
     }
     dashDelta = dashDelta!.normalized();
@@ -403,10 +436,14 @@ mixin JumpFunctionality on Entity {
       Vector2(0, -3),
       controllerD,
     ));
-    handJoint.add(MoveEffect.by(
-      Vector2(0, -3),
-      controllerD,
-    ));
+
+    if (this is AimFunctionality) {
+      (this as AimFunctionality).handJoint.add(MoveEffect.by(
+            Vector2(0, -3),
+            controllerD,
+          ));
+    }
+
     return true;
   }
 }

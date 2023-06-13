@@ -82,8 +82,7 @@ abstract class GameEnviroment extends Component
       // margin: const EdgeInsets.only(right: 30, bottom: 30),
     );
 
-    player = Player(CharacterType.rogue,
-        ancestor: this, initPosition: Vector2.zero());
+    player = Player(PlayerData(), ancestor: this, initPosition: Vector2.zero());
     hud = GameHud(this);
     physicsComponent = Forge2DComponent();
     gameCamera.viewport.addAll([hud, moveJoystick!, aimJoystick!]);
@@ -93,7 +92,7 @@ abstract class GameEnviroment extends Component
 
     player.mounted.whenComplete(() => gameCamera.viewfinder
         .add(CustomFollowBehavior(player, gameCamera.viewfinder)));
-    gameCamera.viewfinder.zoom = 1;
+    gameCamera.viewfinder.zoom = 10;
     return super.onLoad();
   }
 
@@ -222,7 +221,7 @@ class PlayerData {
   WeaponType selectedWeapon1 = WeaponType.pistol;
   WeaponType selectedWeapon2 = WeaponType.sword;
 
-  Map<WeaponType, int> weaponUpgradeLevels = {};
+  Map<WeaponType, int> unlockedWeapons = {};
 }
 
 typedef WeaponCreateFunction = Weapon Function(Entity);

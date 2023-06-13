@@ -43,7 +43,7 @@ abstract class BackgroundComponent extends ParallaxComponent {
     parallax = await Parallax.load([
       ParallaxImageData('rock_background.jpg'),
     ]);
-
+    scale = scale / 5;
     // add(parallaxComponent);
     return super.onLoad();
   }
