@@ -9,7 +9,6 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/functions/functions.dart';
 import 'package:game_app/game/physics_filter.dart';
 import 'package:game_app/resources/classes.dart';
-import 'package:game_app/weapons/weapons.dart';
 
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
@@ -55,9 +54,9 @@ class Player extends Entity
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll([
-      Sword.create,
-      Pistol.create,
-      Shotgun.create,
+      WeaponType.shotgun,
+      WeaponType.pistol,
+      WeaponType.sword,
     ]);
     await loadAnimationSprites();
 
@@ -104,6 +103,13 @@ class Player extends Entity
       if (event.physicalKey == (PhysicalKeyboardKey.tab) &&
           physicalKeysPressed.contains(PhysicalKeyboardKey.tab)) {
         swapWeapon();
+      }
+
+      if (event.physicalKey == (PhysicalKeyboardKey.keyT) &&
+          physicalKeysPressed.contains(PhysicalKeyboardKey.keyT)) {
+        startAltAttacking();
+      } else if (isAltAttacking) {
+        endAltAttacking();
       }
     } finally {
       if (moveAngle.isZero()) {

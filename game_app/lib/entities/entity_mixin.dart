@@ -126,21 +126,29 @@ mixin AttackFunctionality on AimFunctionality {
   Weapon? currentWeapon;
 
   Map<int, Weapon> carriedWeapons = {};
-  List<Function(int, AimFunctionality)> initialWeapons = [];
+  List<WeaponType> initialWeapons = [];
   bool isAttacking = false;
+  bool isAltAttacking = false;
 
   Future<void> initializeWeapons() async {
     int i = 0;
     for (var element in initialWeapons) {
-      carriedWeapons[i] = element.call(0, this);
+      carriedWeapons[i] = element.build(this, null, 0);
       i++;
     }
     initialWeapons.clear();
   }
 
   void endAttacking() {
+    if (!isAttacking) return;
     isAttacking = false;
     currentWeapon?.endAttacking();
+  }
+
+  void endAltAttacking() {
+    if (!isAltAttacking) return;
+    isAltAttacking = false;
+    currentWeapon?.endAltAttacking();
   }
 
   @override
@@ -156,17 +164,29 @@ mixin AttackFunctionality on AimFunctionality {
     await mouseJoint.loaded
         .whenComplete(() => mouseJoint.addWeaponClass(weapon));
     await backJoint.loaded.whenComplete(() => backJoint.addWeaponClass(weapon));
+    currentWeapon?.weaponSwappedFrom();
     currentWeapon = weapon;
+    currentWeapon?.weaponSwappedTo();
   }
 
   void startAttacking() async {
+    if (isAttacking) return;
     isAttacking = true;
     currentWeapon?.startAttacking();
+  }
+
+  void startAltAttacking() async {
+    if (isAltAttacking) return;
+    isAltAttacking = true;
+    currentWeapon?.startAltAttacking();
   }
 
   void swapWeapon() async {
     if (isAttacking) {
       currentWeapon?.endAttacking();
+    }
+    if (isAltAttacking) {
+      currentWeapon?.endAltAttacking();
     }
     int key = (carriedWeapons.entries
             .firstWhere((element) => element.value == currentWeapon)
@@ -179,6 +199,9 @@ mixin AttackFunctionality on AimFunctionality {
     }
     if (isAttacking) {
       currentWeapon?.startAttacking();
+    }
+    if (isAltAttacking) {
+      currentWeapon?.startAltAttacking();
     }
   }
 }
@@ -205,7 +228,7 @@ mixin HealthFunctionality on Entity {
 
   //HEALTH
   CaTextComponent? damageText;
-  Map<String, async.Timer> hitSourceDuration = {};
+  Map<int, async.Timer> hitSourceDuration = {};
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
   abstract SpriteAnimation? deathAnimation;
@@ -215,7 +238,7 @@ mixin HealthFunctionality on Entity {
     setEntityStatus(EntityStatus.dead);
   }
 
-  void processDamage(String id, double damage) {
+  void processDamage(int id, double damage) {
     setEntityStatus(EntityStatus.damage);
     final controller = EffectController(
       duration: .1,
@@ -305,7 +328,7 @@ mixin HealthFunctionality on Entity {
     ]);
   }
 
-  bool takeDamage(String id, double damage) {
+  bool takeDamage(int id, double damage) {
     if (hitSourceDuration.containsKey(id) ||
         invincibleTimer != null ||
         isDead) {

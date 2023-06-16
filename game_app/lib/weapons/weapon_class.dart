@@ -48,13 +48,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
         anchor: Anchor.center,
         position: Vector2(0, newWeapon.distanceFromPlayer));
     spriteComponent = await newWeapon.buildSpriteComponent(jointPosition);
-    // spriteComponent!.priority = -100;
-    // if (jointPosition == WeaponSpritePosition.hand) {
-    //   spriteComponentFront =
-    //       await newWeapon.buildSpriteComponent(jointPosition);
-    //   spriteComponentFront!.priority = 100;
-    //   weaponBase?.add(spriteComponentFront!);
-    // }
+
     priority = 0;
     weaponTip = PositionComponent(
         anchor: Anchor.center,
@@ -78,150 +72,81 @@ abstract class Weapon extends Component {
         this is! ProjectileFunctionality ||
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
-    parentEntity?.gameRef.add(this);
+    parentEntity.gameRef.add(this);
 
     assert(minDamage <= maxDamage, "Min damage must be lower than max damage");
     newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
     applyWeaponUpgrade(newUpgradeLevel);
+
+    assert(this is! SecondaryAbilityFunctionality ||
+        this is! SecondaryWeaponFunctionality);
   }
+  Random rng = Random();
+
+  bool get isReloading => this is ReloadFunctionality
+      ? (this as ReloadFunctionality).reloadTimer != null
+      : false;
+
+  //META INFORMATION
+
+  bool get hasAltAttack =>
+      this is SecondaryAbilityFunctionality ||
+      this is SecondaryWeaponFunctionality;
+
+  int upgradeLevel = 0;
+  int maxLevel = 5;
+
+  AimFunctionality parentEntity;
+
+  double get durationHeld;
+
+  //DAMAGE INFORMATION
+  double damageIncrease = 1;
+  abstract double minDamage;
+  abstract double maxDamage;
+
+  double get damage =>
+      ((rng.nextDouble() * maxDamage - minDamage) + minDamage) * damageIncrease;
+
+  //ATTRIBUTES
+  bool isChaining = false;
+  int chainingTargets = 1;
+  abstract double baseAttackRate; //every X second
+  double attackRatePercentIncrease = 1;
+
+  double get attackRate => baseAttackRate / attackRatePercentIncrease;
+  abstract double weaponRandomnessPercent;
+
+  //VISUAL
+  abstract List<WeaponSpritePosition> spirtePositions;
+  FutureOr<SpriteComponent> buildSpriteComponent(WeaponSpritePosition position);
+  abstract double distanceFromPlayer;
+  abstract double tipPositionPercent;
+  abstract double length;
+  Map<WeaponSpritePosition, PlayerAttachmentJointComponent> parents = {};
+  bool removeBackSpriteOnAttack = false;
+  bool allowRapidClicking = false;
+
+  bool isHoming = false;
+
+  //Weapon state info
+  double get attackRateSecondComparison => 1 / attackRate;
 
   void applyWeaponUpgrade(int newUpgradeLevel) {
     upgradeLevel = newUpgradeLevel;
   }
 
-  void removeWeaponUpgrade();
+  void removeWeaponUpgrade() {}
 
-  int upgradeLevel = 0;
-  int maxLevel = 5;
+  void startAltAttacking();
+  void endAltAttacking();
 
-  FutureOr<SpriteComponent> buildSpriteComponent(WeaponSpritePosition position);
-  //Weapon attributes
-  abstract double distanceFromPlayer;
-  double damageIncrease = 1;
-  abstract int count;
-  abstract double minDamage;
-  abstract double maxDamage;
-  Random rng = Random();
-  double get damage =>
-      ((rng.nextDouble() * maxDamage - minDamage) + minDamage) * damageIncrease;
-  abstract double baseFireRate; //every X second
-  double fireRateIncrease = 1; //every X second
+  void startAttacking();
+  void endAttacking() {}
 
-  double get fireRate => baseFireRate / fireRateIncrease;
+  void weaponSwappedFrom() {}
+  void weaponSwappedTo() {}
 
-  abstract bool holdAndRelease;
-  abstract double maxSpreadDegrees;
-  abstract int pierce;
-  abstract double projectileVelocity;
-  abstract double tipPositionPercent;
-  abstract double weaponRandomnessPercent;
-  bool isHoming = false;
-  bool isChaining = false;
-  int chainingTargets = 1;
-  abstract List<WeaponSpritePosition> spirtePositions;
-  AimFunctionality? parentEntity;
-  Map<WeaponSpritePosition, PlayerAttachmentJointComponent> parents = {};
-
-  //The longer the weapon is held, the more count
-  abstract bool countIncreaseWithTime;
-  int? additionalCount;
-  bool removeBackSpriteOnAttack = false;
-
-  //Sprites, types and things that bite
-
-  abstract double length;
-
-  //Weapon state info
-  int attackTicks = 0;
-
-  double get getHoldDuration => attackTicks * fireRate;
-
-  // abstract bool followRandomPath;
-  // List<Vector2> randomPath = [];
-  // bool resetRandomPath = true;
-  // double projectileDeltaRotationSpeed = 0;
-
-  void additionalCountCheck() {
-    if (countIncreaseWithTime) {
-      additionalCount = getHoldDuration.round();
-    }
-  }
-
-  double get fireRateSecondComparison => 1 / fireRate;
-
-  TimerComponent? attackTimer;
-
-  void attackTick() {
-    attackCheck();
-    attackTicks++;
-  }
-
-  bool holdAndReleaseTrigger = false;
-
-  void attackFinishTick() {
-    if (removeBackSpriteOnAttack) {
-      parentEntity?.backJoint.spriteComponent?.opacity = 1;
-    }
-
-    attackTimer?.removeFromParent();
-    attackTicks = 0;
-    attackTimer = null;
-    stopAttacking = false;
-  }
-
-  void startAttacking() {
-    stopAttacking = false;
-    if (attackTimer != null) return;
-
-    attackTimer = TimerComponent(
-      period: fireRate,
-      repeat: true,
-      onTick: () {
-        if (stopAttacking) {
-          attackFinishTick();
-        } else {
-          attackTick();
-          additionalCountCheck();
-          holdAndReleaseTrigger = true;
-        }
-      },
-    );
-    attackTick();
-    add(attackTimer!);
-  }
-
-  bool stopAttacking = false;
-
-  void endAttacking() {
-    stopAttacking = true;
-    if (holdAndRelease) {
-      attackCheck();
-    }
-  }
-
-  bool attackCheck() {
-    final canShoot = ((!holdAndRelease && attackTimer != null) ||
-        (stopAttacking && holdAndRelease && holdAndReleaseTrigger));
-
-    if (removeBackSpriteOnAttack) {
-      parentEntity?.backJoint.spriteComponent?.opacity = 0;
-    }
-
-    if (!canShoot || parentEntity == null) {
-      return false;
-    }
-
-    if (this is ReloadFunctionality) {
-      (this as ReloadFunctionality).spentAttacks++;
-    }
-
-    if (this is ProjectileFunctionality) {
-      (this as ProjectileFunctionality).shoot();
-    }
-    if (this is MeleeFunctionality) {
-      (this as MeleeFunctionality).melee();
-    }
-    holdAndReleaseTrigger = false;
-    return true;
-  }
+  /// Returns true if an attack occured, otherwise false.
+  bool attackAttempt();
 }

@@ -97,13 +97,15 @@ class Agility extends Powerup {
 
   @override
   void applyToWeaponPowerup(Weapon weapon) {
-    weapon.fireRateIncrease += speedIncrease;
+    weapon.attackRatePercentIncrease += speedIncrease;
     if (weapon is ReloadFunctionality) {
       previousReloadTime[weapon] = weapon.reloadTime;
       weapon.reloadTime = 0;
     }
-    if (weapon.attackTimer != null) {
-      weapon.attackTimer!.timer.limit = weapon.fireRate;
+    if (weapon is FullAutomatic) {
+      if (weapon.attackTimer != null) {
+        weapon.attackTimer!.timer.limit = weapon.attackRate;
+      }
     }
   }
 
@@ -118,13 +120,15 @@ class Agility extends Powerup {
 
   @override
   void removeWeaponPowerup(Weapon weapon) {
-    weapon.fireRateIncrease -= speedIncrease;
+    weapon.attackRatePercentIncrease -= speedIncrease;
     if (weapon is ReloadFunctionality) {
       weapon.reloadTime = previousReloadTime[weapon]!;
       weapon.spentAttacks = 0;
     }
-    if (weapon.attackTimer != null) {
-      weapon.attackTimer!.timer.limit = weapon.fireRate;
+    if (weapon is FullAutomatic) {
+      if (weapon.attackTimer != null) {
+        weapon.attackTimer!.timer.limit = weapon.attackRate;
+      }
     }
   }
 }

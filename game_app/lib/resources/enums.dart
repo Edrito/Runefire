@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame_forge2d/body_component.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/weapons.dart';
@@ -106,52 +107,41 @@ extension ProjectileTypeExtension on ProjectileType {
     }
   }
 
-  Projectile generateProjectile(
+  BodyComponent generateProjectile(
       {required Vector2 delta,
-      required double speed,
       required Vector2 originPositionVar,
       required ProjectileFunctionality ancestorVar,
-      required String idVar}) {
+      double chargeAmount = 1}) {
     switch (this) {
       case ProjectileType.pellet:
-        return Pellet(
+        return Laser(
           originPosition: originPositionVar,
-          speed: speed,
           delta: delta,
           weaponAncestor: ancestorVar,
-          id: idVar,
         );
       case ProjectileType.bullet:
         return Bullet(
           originPosition: originPositionVar,
-          speed: speed,
           delta: delta,
           weaponAncestor: ancestorVar,
-          id: idVar,
         );
       case ProjectileType.arrow:
-        return Arrow(
-          weaponAncestor: ancestorVar,
-          originPosition: originPositionVar,
-          speed: speed,
-          delta: delta,
-          id: idVar,
-        );
+        return Bullet(
+            weaponAncestor: ancestorVar,
+            originPosition: originPositionVar,
+            delta: delta,
+            power: chargeAmount);
       case ProjectileType.fireball:
-        return Fireball(
+        return Bullet(
           originPosition: originPositionVar,
           weaponAncestor: ancestorVar,
-          speed: speed,
           delta: delta,
-          id: idVar,
         );
       default:
         return Bullet(
           originPosition: originPositionVar,
-          speed: speed,
           delta: delta,
           weaponAncestor: ancestorVar,
-          id: idVar,
         );
     }
   }
@@ -188,7 +178,21 @@ enum WeaponSpritePosition { hand, mouse, back, attack, none }
 
 enum AttackType { melee, point, projectile }
 
+enum SecondaryWeaponType {
+  reloadAndRapidFire,
+}
+
 enum WeaponState { shooting, reloading, idle }
+
+extension SecondaryWeaponTypeExtension on SecondaryWeaponType {
+  // SecondaryWeaponFunctionality build(Weapon primaryWeaponAncestor,
+  //     [int upgradeLevel = 0]) {
+  //   switch (this) {
+  //     case SecondaryWeaponType.reloadAndRapidFire:
+  //       return Pistol.create(upgradeLevel, ancestor, secondaryWeapon);
+  //   }
+  // }
+}
 
 enum WeaponType {
   pistol,
@@ -199,22 +203,34 @@ enum WeaponType {
 }
 
 extension WeaponTypeFilename on WeaponType {
-  Weapon build(AimFunctionality? ancestor, [int upgradeLevel = 0]) {
+  Weapon build(
+      AimFunctionality ancestor, SecondaryWeaponType? secondaryWeaponType,
+      [int upgradeLevel = 0]) {
+    Weapon? returnWeapon;
+    Weapon? secondaryWeapon;
+
     switch (this) {
       case WeaponType.pistol:
-        return Pistol.create(upgradeLevel, ancestor);
+        returnWeapon = Pistol.create(upgradeLevel, ancestor);
+        break;
       case WeaponType.shotgun:
-        return Shotgun.create(upgradeLevel, ancestor);
+        returnWeapon = Shotgun.create(upgradeLevel, ancestor);
+        break;
 
       case WeaponType.bow:
-        return Bow.create(upgradeLevel, ancestor);
+        returnWeapon = Bow.create(upgradeLevel, ancestor);
+        break;
 
       case WeaponType.sword:
-        return Sword.create(upgradeLevel, ancestor);
+        returnWeapon = Sword.create(upgradeLevel, ancestor);
 
+        break;
       case WeaponType.portal:
-        return Portal.create(upgradeLevel, ancestor);
+        returnWeapon = Portal.create(upgradeLevel, ancestor);
+        break;
     }
+
+    return returnWeapon;
   }
 
   String icon() {
@@ -235,3 +251,5 @@ extension WeaponTypeFilename on WeaponType {
     }
   }
 }
+
+enum SemiAutoType { regular, release, charge }

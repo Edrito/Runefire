@@ -19,6 +19,13 @@ Vector2 tiledObjectToOrtho(Vector2 isoPoint, TiledComponent? info) {
       orthoY);
 }
 
+bool isEntityInfrontOfPosition(
+    Vector2 entity, Vector2 position, Vector2 positionDelta) {
+  final test1 = entity - position;
+
+  return positionDelta.dot(test1) >= 0;
+}
+
 Vector2 randomizeVector2Delta(Vector2 element, double percent) {
   if (percent == 0) return element;
   percent = percent.clamp(0, 1);

@@ -7,7 +7,6 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/game/powerups.dart';
-import 'package:game_app/weapons/weapons.dart';
 
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
@@ -15,14 +14,7 @@ import '../game/physics_filter.dart';
 import '../resources/classes.dart';
 import '../resources/enums.dart';
 
-class Dummy extends Enemy
-    with
-        MovementFunctionality,
-        AimFunctionality,
-        AttackFunctionality,
-        AimControlFunctionality,
-        DumbFollowRangeAI,
-        HealthFunctionality {
+class Dummy extends Enemy with HealthFunctionality {
   Dummy({
     required super.initPosition,
     required super.ancestor,
@@ -40,9 +32,6 @@ class Dummy extends Enemy
   double baseHealth = 100;
 
   @override
-  double baseSpeed = 2;
-
-  @override
   double touchDamage = 4;
 
   @override
@@ -56,11 +45,8 @@ class Dummy extends Enemy
 
   @override
   Future<void> onLoad() async {
-    initialWeapons.addAll([Portal.create]);
-
     await loadAnimationSprites();
     await super.onLoad();
-    startAttacking();
   }
 
   @override
@@ -106,7 +92,7 @@ class DummyTwo extends Enemy
   double height = 4;
 
   @override
-  double baseInvincibilityDuration = 0.1;
+  double baseInvincibilityDuration = 0.0;
 
   @override
   double baseHealth = 100;
@@ -193,7 +179,7 @@ abstract class Enemy extends Entity with ContactCallbacks {
   @override
   void update(double dt) {
     if (hittingPlayer) {
-      ancestor.player.takeDamage(hashCode.toString(), touchDamage);
+      ancestor.player.takeDamage(hashCode, touchDamage);
     }
 
     super.update(dt);
@@ -210,52 +196,41 @@ class EnemyManagement extends Component {
 
   @override
   FutureOr<void> onLoad() {
-    // add(
-    //   Dummy(
-    //     ancestor: mainGameRef,
-    //     initPosition: generateRandomGamePositionUsingViewport(
-    //       false,
-    //       mainGameRef,
-    //     ),
-    //   ),
-    // );
+    const section = 20.0;
+    for (var i = 1; i < 10; i++) {
+      for (var j = 1; j < 10; j++) {
+        add(Dummy(
+            initPosition: Vector2(section * i, section * j) -
+                mainGameRef.gameCamera.viewport.size / 15,
+            ancestor: mainGameRef));
+      }
+    }
+
     // add(TimerComponent(
     //   period: 2,
     //   repeat: true,
     //   onTick: () => add(
-    //     Dummy(
+    //     DummyTwo(
     //       ancestor: mainGameRef,
     //       initPosition: generateRandomGamePositionUsingViewport(
     //         false,
     //         mainGameRef,
     //       ),
-    //     ),
+    //     ),wd
     //   ),
     // ));
-    add(TimerComponent(
-      period: 2,
-      repeat: true,
-      onTick: () => add(
-        DummyTwo(
-          ancestor: mainGameRef,
-          initPosition: generateRandomGamePositionUsingViewport(
-            false,
-            mainGameRef,
-          ),
-        ),
-      ),
-    ));
-    add(
-      TimerComponent(
-          period: 30,
-          repeat: true,
-          onTick: () {
-            add(PowerupItem(Damage(),
-                generateRandomGamePositionUsingViewport(true, mainGameRef)));
-            add(PowerupItem(Agility(),
-                generateRandomGamePositionUsingViewport(true, mainGameRef)));
-          }),
-    );
+
+    // add(
+    //   TimerComponent(
+    //       period: 30,
+    //       repeat: true,
+    //       onTick: () {
+    //         add(PowerupItem(Damage(),
+    //             generateRandomGamePositionUsingViewport(true, mainGameRef)));
+    //         add(PowerupItem(Agility(),
+    //             generateRandomGamePositionUsingViewport(true, mainGameRef)));
+    //       }),
+    // );
 
     add(PowerupItem(
         Damage(), generateRandomGamePositionUsingViewport(true, mainGameRef)));

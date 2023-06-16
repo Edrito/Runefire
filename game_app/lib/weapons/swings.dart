@@ -21,8 +21,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is HealthFunctionality) {
-      print('test2');
-      other.takeDamage(parentAttack.id, parentAttack.parentWeapon.damage);
+      other.takeDamage(parentAttack.hashCode, parentAttack.parentWeapon.damage);
     }
 
     super.beginContact(other, contact);
@@ -69,7 +68,7 @@ class MeleeAttack extends PositionComponent {
       this.initPosition, this.initAngle, this.index, this.parentWeapon) {
     start = parentWeapon.attackPatterns[index];
     end = parentWeapon.attackPatterns[index + 1];
-    duration = parentWeapon.fireRate;
+    duration = parentWeapon.attackRate;
     id = Random().nextDouble().toString();
   }
 
@@ -95,11 +94,11 @@ class MeleeAttack extends PositionComponent {
 
     bodyComponent = MeleeDetection(spriteComponent, this);
 
-    parentWeapon.parentEntity?.ancestor.physicsComponent.add(bodyComponent!);
+    parentWeapon.parentEntity.ancestor.physicsComponent.add(bodyComponent!);
 
     anchor = Anchor.center;
     angle = radians(start.$2) +
-        (initAngle ?? parentWeapon.parentEntity?.handJoint.angle ?? 0);
+        (initAngle ?? parentWeapon.parentEntity.handJoint.angle ?? 0);
     final rotatedStartPosition = rotateVector2(start.$1, angle);
     final rotatedEndPosition = rotateVector2(end.$1, angle);
 
@@ -144,7 +143,7 @@ class MeleeAttack extends PositionComponent {
   void update(double dt) {
     if (bodyComponent?.isLoaded ?? false) {
       bodyComponent?.body.setTransform(
-          position + (parentWeapon.parentEntity?.center ?? Vector2.zero()),
+          position + (parentWeapon.parentEntity.center ?? Vector2.zero()),
           angle);
     }
     super.update(dt);

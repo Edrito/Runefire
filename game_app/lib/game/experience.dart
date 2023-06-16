@@ -12,7 +12,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   ExperienceAmount experienceAmount;
   late SpriteComponent spriteComponent;
-  double size = .6;
+  double size = .9;
   Vector2 originPosition;
 
   @override
