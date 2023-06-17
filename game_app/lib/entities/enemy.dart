@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -149,8 +150,11 @@ abstract class Enemy extends Entity with ContactCallbacks {
   @override
   Filter? filter = Filter()
     ..categoryBits = enemyCategory
-    ..maskBits =
-        bulletCategory + playerCategory + sensorCategory + swordCategory;
+    ..maskBits = bulletCategory +
+        playerCategory +
+        enemyCategory +
+        sensorCategory +
+        swordCategory;
   // ..maskBits = 0xFFFF;
 
   TimerComponent? shooter;
@@ -196,10 +200,11 @@ class EnemyManagement extends Component {
 
   @override
   FutureOr<void> onLoad() {
-    const section = 20.0;
+    var section = 20.0;
     for (var i = 1; i < 10; i++) {
       for (var j = 1; j < 10; j++) {
-        add(Dummy(
+        section = section - ((Random().nextDouble() * 5) - 2.5);
+        add(DummyTwo(
             initPosition: Vector2(section * i, section * j) -
                 mainGameRef.gameCamera.viewport.size / 15,
             ancestor: mainGameRef));

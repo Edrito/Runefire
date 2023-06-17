@@ -26,6 +26,47 @@ bool isEntityInfrontOfPosition(
   return positionDelta.dot(test1) >= 0;
 }
 
+List<Vector2> expandToBox(List<Vector2> coordinates, double distance) {
+  List<Vector2> leftCoor = [];
+  List<Vector2> rightCoor = [];
+
+  for (int i = 0; i < coordinates.length - 1; i++) {
+    Vector2 current = coordinates[i];
+    Vector2 next = coordinates[i + 1];
+
+    double deltaX = next.x - current.x;
+    double deltaY = next.y - current.y;
+
+    // Calculate the perpendicular vector
+    double perpendicularX = -deltaY;
+    double perpendicularY = deltaX;
+
+    // Normalize the perpendicular vector
+    double length =
+        sqrt(perpendicularX * perpendicularX + perpendicularY * perpendicularY);
+    double normalizedPerpendicularX = (perpendicularX / length) * distance;
+    double normalizedPerpendicularY = (perpendicularY / length) * distance;
+
+    Vector2 normalizedPerpendicular =
+        Vector2(normalizedPerpendicularX, normalizedPerpendicularY);
+
+    Vector2 topLeft = current.clone()..add(normalizedPerpendicular);
+    Vector2 topRight = next.clone()..add(normalizedPerpendicular);
+    Vector2 bottomRight = next.clone()..sub(normalizedPerpendicular);
+    Vector2 bottomLeft = current.clone()..sub(normalizedPerpendicular);
+
+    // Add the four corners to the expanded coordinates list
+
+    rightCoor.add(topLeft);
+    leftCoor.add(bottomLeft);
+
+    // expandedCoordinates.add(topRight);
+    // expandedCoordinates.add(bottomRight);
+  }
+
+  return [...rightCoor, ...leftCoor.reversed];
+}
+
 Vector2 randomizeVector2Delta(Vector2 element, double percent) {
   if (percent == 0) return element;
   percent = percent.clamp(0, 1);

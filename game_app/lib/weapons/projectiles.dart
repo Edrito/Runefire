@@ -21,9 +21,6 @@ class Bullet extends Projectile with SingularProjectile {
 
   @override
   double ttl = 1.0;
-
-  @override
-  bool isContinuous = false;
 }
 
 class Laser extends Projectile with LaserProjectile {
@@ -37,14 +34,17 @@ class Laser extends Projectile with LaserProjectile {
   double embedIntoEnemyChance = .8;
 
   @override
-  ProjectileType projectileType = ProjectileType.bullet;
+  ProjectileType projectileType = ProjectileType.laser;
 
   @override
   double size = 1.5;
 
   @override
-  double ttl = 1.0;
+  double ttl = 1;
 
   @override
   bool isContinuous = false;
+
+  @override
+  double baseWidth = 1.5;
 }

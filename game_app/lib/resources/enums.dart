@@ -89,60 +89,40 @@ extension ExperienceAmountExtension on ExperienceAmount {
 
 enum CurrentGameState { mainMenu, transition, gameplay }
 
-enum ProjectileType { pellet, bullet, arrow, fireball }
+enum ProjectileType { bullet, arrow, laser }
 
 extension ProjectileTypeExtension on ProjectileType {
-  String getFilename() {
-    switch (this) {
-      case ProjectileType.pellet:
-        return 'pellet.png';
-      case ProjectileType.bullet:
-        return 'bullet.png';
-      case ProjectileType.arrow:
-        return 'arrow.png';
-      case ProjectileType.fireball:
-        return 'fireball.png';
-      default:
-        return '';
-    }
-  }
-
   BodyComponent generateProjectile(
       {required Vector2 delta,
       required Vector2 originPositionVar,
       required ProjectileFunctionality ancestorVar,
       double chargeAmount = 1}) {
     switch (this) {
-      case ProjectileType.pellet:
+      case ProjectileType.laser:
         return Laser(
-          originPosition: originPositionVar,
-          delta: delta,
-          weaponAncestor: ancestorVar,
-        );
+            originPosition: originPositionVar,
+            delta: delta,
+            weaponAncestor: ancestorVar,
+            power: chargeAmount);
       case ProjectileType.bullet:
         return Bullet(
-          originPosition: originPositionVar,
-          delta: delta,
-          weaponAncestor: ancestorVar,
-        );
+            originPosition: originPositionVar,
+            delta: delta,
+            weaponAncestor: ancestorVar,
+            power: chargeAmount);
       case ProjectileType.arrow:
         return Bullet(
             weaponAncestor: ancestorVar,
             originPosition: originPositionVar,
             delta: delta,
             power: chargeAmount);
-      case ProjectileType.fireball:
-        return Bullet(
-          originPosition: originPositionVar,
-          weaponAncestor: ancestorVar,
-          delta: delta,
-        );
+
       default:
         return Bullet(
-          originPosition: originPositionVar,
-          delta: delta,
-          weaponAncestor: ancestorVar,
-        );
+            originPosition: originPositionVar,
+            delta: delta,
+            weaponAncestor: ancestorVar,
+            power: chargeAmount);
     }
   }
 }

@@ -67,12 +67,12 @@ class PlayerAttachmentJointComponent extends PositionComponent
 }
 
 abstract class Weapon extends Component {
-  Weapon(int newUpgradeLevel, this.parentEntity) {
+  Weapon(int newUpgradeLevel, this.entityAncestor) {
     assert(
         this is! ProjectileFunctionality ||
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
-    parentEntity.gameRef.add(this);
+    entityAncestor.gameRef.add(this);
 
     assert(minDamage <= maxDamage, "Min damage must be lower than max damage");
     newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
@@ -96,7 +96,7 @@ abstract class Weapon extends Component {
   int upgradeLevel = 0;
   int maxLevel = 5;
 
-  AimFunctionality parentEntity;
+  AimFunctionality entityAncestor;
 
   double get durationHeld;
 
@@ -109,8 +109,9 @@ abstract class Weapon extends Component {
       ((rng.nextDouble() * maxDamage - minDamage) + minDamage) * damageIncrease;
 
   //ATTRIBUTES
-  bool isChaining = false;
-  int chainingTargets = 1;
+  bool get isChaining => chainingTargets > 0;
+
+  int chainingTargets = 0;
   abstract double baseAttackRate; //every X second
   double attackRatePercentIncrease = 1;
 
@@ -149,4 +150,73 @@ abstract class Weapon extends Component {
 
   /// Returns true if an attack occured, otherwise false.
   bool attackAttempt();
+}
+
+abstract class SecondaryWeaponAbility extends Component {
+  SecondaryWeaponAbility(this.weapon, this.cooldown);
+
+  Weapon weapon;
+  double cooldown;
+  TimerComponent? cooldownTimer;
+  bool get isCoolingDown => cooldownTimer != null;
+
+  void startAttacking() {
+    cooldownTimer = TimerComponent(
+      period: cooldown,
+      removeOnFinish: true,
+      onTick: () {
+        cooldownTimer = null;
+      },
+    )..addToParent(this);
+  }
+
+  void endAttacking();
+}
+
+///Reloads the weapon and mag dumps at a firerate of approx 10x original
+class RapidFire extends SecondaryWeaponAbility {
+  RapidFire(super.weapon, super.cooldown);
+  TimerComponent? rapidFireTimer;
+  @override
+  void endAttacking() {}
+
+  @override
+  void startAttacking() async {
+    if (isCoolingDown) return;
+
+    double weaponAttackRate = weapon.attackRate;
+    if (weapon is! ReloadFunctionality) {
+      return;
+    }
+
+    final reload = weapon as ReloadFunctionality;
+
+    if (reload.isReloading) {
+      reload.stopReloading();
+    } else {
+      reload.spentAttacks = 0;
+    }
+
+    rapidFireTimer = TimerComponent(
+      repeat: true,
+      period: weaponAttackRate / 10,
+      onTick: () {
+        if (weapon is SemiAutomatic) {
+          (weapon as SemiAutomatic).durationHeld = weapon.attackRate / 2;
+          weapon.attackAttempt();
+          (weapon as SemiAutomatic).durationHeld = 0;
+        } else {
+          weapon.attackAttempt();
+        }
+
+        reload.reloadCheck();
+        if (reload.isReloading) {
+          rapidFireTimer?.timer.stop();
+          rapidFireTimer?.removeFromParent();
+        }
+      },
+    )..addToParent(this);
+
+    super.startAttacking();
+  }
 }

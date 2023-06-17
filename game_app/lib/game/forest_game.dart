@@ -20,7 +20,7 @@ class ForestGame extends GameEnviroment {
     await super.onLoad();
 
     forestBackground = level.buildBackground(this);
-    // add(forestBackground);
+    add(forestBackground);
     enemyManagement = EnemyManagement(this);
     add(enemyManagement);
   }

@@ -33,6 +33,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   List<HealthFunctionality> closeHomingBodies = [];
   TimerComponent? projectileDeathTimer;
   bool projectileHasExpired = false;
+  bool homingComplete = false;
 
   //Attributes
   double power;
@@ -49,7 +50,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
         hitHashcodes.contains(other.hashCode)) {
       return;
     }
-
     bool isHomingSensor = contact.fixtureA.userData == "homingSensor" ||
         contact.fixtureB.userData == "homingSensor";
 
@@ -103,8 +103,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
     return super.onLoad();
   }
-
-  bool homingComplete = false;
 
   void killBullet() async {
     removeFromParent();

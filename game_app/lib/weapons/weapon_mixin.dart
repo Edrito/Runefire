@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 
+import '../entities/entity_mixin.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
 
@@ -51,6 +52,21 @@ mixin ReloadFunctionality on Weapon {
     return result;
   }
 
+  void stopReloading() {
+    spentAttacks = 0;
+    reloadTimer?.timer.stop();
+    reloadTimer?.removeFromParent();
+    reloadTimer = null;
+    if (this is FullAutomatic) {
+      var fullAuto = this as FullAutomatic;
+      fullAuto.attackTimer?.timer.reset();
+      fullAuto.attackTimer?.onTick();
+    }
+
+    reloadAnimation?.removeFromParent();
+    reloadAnimation = null;
+  }
+
   @override
   void weaponSwappedFrom() {
     //Remove reload animation if weapon changes
@@ -60,28 +76,22 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void createReloadBar() {
-    final spriteSize = parentEntity.spriteWrapper.size;
+    final spriteSize = entityAncestor.spriteWrapper.size;
     reloadAnimation = ReloadAnimation(reloadTime, spriteSize);
-    parentEntity.add(reloadAnimation!);
+    entityAncestor.add(reloadAnimation!);
   }
 
   void reloadCheck() {
     if (remainingAttacks != 0 || reloadTimer != null || reloadTime == 0) return;
     if (removeBackSpriteOnAttack) {
-      parentEntity.backJoint.spriteComponent?.opacity = 1;
+      entityAncestor.backJoint.spriteComponent?.opacity = 1;
     }
     createReloadBar();
     reloadTimer ??= TimerComponent(
       period: reloadTime,
       removeOnFinish: true,
       onTick: () {
-        spentAttacks = 0;
-        reloadTimer = null;
-        if (this is FullAutomatic) {
-          var fullAuto = this as FullAutomatic;
-          fullAuto.attackTimer?.timer.reset();
-          fullAuto.attackTimer?.onTick();
-        }
+        stopReloading();
       },
     )..addToParent(this);
   }
@@ -100,15 +110,15 @@ mixin MeleeFunctionality on Weapon {
     if (swingPatternIndex >= attacksLength) {
       resetToFirstSwings();
     }
-    currentSwingPosition = parentEntity.handJoint.position.clone();
-    currentSwingAngle = parentEntity.handJoint.angle;
+    currentSwingPosition = entityAncestor.handJoint.position.clone();
+    currentSwingAngle = entityAncestor.handJoint.angle;
     int attackPatternIndex = (swingPatternIndex -
             (((swingPatternIndex / (attacksLength)).floor()) *
                 (attacksLength))) *
         2;
     swingPatternIndex++;
 
-    parentEntity.add(MeleeAttack(
+    entityAncestor.add(MeleeAttack(
         (currentSwingPosition ?? Vector2.zero()) * distanceFromPlayer,
         currentSwingAngle,
         attackPatternIndex,
@@ -153,11 +163,12 @@ mixin SecondaryWeaponFunctionality on Weapon {
 }
 
 mixin SecondaryAbilityFunctionality on Weapon {
-  set setSecondaryFunctionality(SecondaryWeaponFunctionality item) {
+  set setSecondaryFunctionality(SecondaryWeaponAbility item) {
     _secondaryWeaponAbility = item;
+    add(_secondaryWeaponAbility!);
   }
 
-  SecondaryWeaponFunctionality? _secondaryWeaponAbility;
+  SecondaryWeaponAbility? _secondaryWeaponAbility;
 
   @override
   void startAltAttacking() {
@@ -191,30 +202,33 @@ mixin ProjectileFunctionality on Weapon {
 
   Vector2 get handPosition =>
       (parents[WeaponSpritePosition.hand]!.weaponTip!.absolutePosition +
-              parentEntity.body.position)
-          .clone();
+              entityAncestor.body.position)
+          .clone() +
+      ((entityAncestor is MovementFunctionality)
+          ? (entityAncestor as MovementFunctionality).moveDelta
+          : Vector2.zero());
 
   Vector2 get handDelta =>
       (parents[WeaponSpritePosition.hand]!.weaponTipCenter!.absolutePosition -
-              parentEntity.handJoint.absolutePosition)
+              entityAncestor.handJoint.absolutePosition)
           .normalized();
 
   void shoot([double chargeAmount = 1]) {
     additionalCountCheck();
-    parentEntity.ancestor.physicsComponent
+    entityAncestor.ancestor.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
-    parentEntity.ancestor.physicsComponent.add(generateParticle());
-    parentEntity.handJoint.add(MoveEffect.by(Vector2(0, -.05),
+    entityAncestor.ancestor.physicsComponent.add(generateParticle());
+    entityAncestor.handJoint.add(MoveEffect.by(Vector2(0, -.05),
         EffectController(duration: .05, reverseDuration: .05)));
-    parentEntity.handJoint.add(RotateEffect.by(
-        parentEntity.handJoint.isFlippedHorizontally ? -.05 : .05,
+    entityAncestor.handJoint.add(RotateEffect.by(
+        entityAncestor.handJoint.isFlippedHorizontally ? -.05 : .05,
         EffectController(duration: .1, reverseDuration: .1)));
   }
 
   double particleLifespan = .15;
 
   Component generateParticle() {
-    Vector2 moveDelta = parentEntity.body.linearVelocity;
+    Vector2 moveDelta = entityAncestor.body.linearVelocity;
     var particleColor = Colors.orange.withOpacity(.5);
     final particle = Particle.generate(
       lifespan: particleLifespan,
@@ -357,7 +371,7 @@ mixin SemiAutomatic on Weapon {
   @override
   bool attackAttempt() {
     if (removeBackSpriteOnAttack) {
-      parentEntity.backJoint.spriteComponent?.opacity = 0;
+      entityAncestor.backJoint.spriteComponent?.opacity = 0;
     }
 
     if (this is ReloadFunctionality) {
@@ -389,7 +403,7 @@ mixin FullAutomatic on Weapon {
 
   void attackFinishTick() {
     if (removeBackSpriteOnAttack) {
-      parentEntity.backJoint.spriteComponent?.opacity = 1;
+      entityAncestor.backJoint.spriteComponent?.opacity = 1;
     }
 
     attackTimer?.removeFromParent();
@@ -401,7 +415,6 @@ mixin FullAutomatic on Weapon {
   @override
   void endAttacking() {
     stopAttacking = true;
-    print('ya');
     super.endAttacking();
   }
 
@@ -432,7 +445,7 @@ mixin FullAutomatic on Weapon {
   @override
   bool attackAttempt() {
     if (removeBackSpriteOnAttack) {
-      parentEntity.backJoint.spriteComponent?.opacity = 0;
+      entityAncestor.backJoint.spriteComponent?.opacity = 0;
     }
 
     if (this is ReloadFunctionality) {

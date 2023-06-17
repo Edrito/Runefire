@@ -12,7 +12,6 @@ import '../game/physics_filter.dart';
 
 mixin SingularProjectile on Projectile {
   late final CircleComponent circleComponent;
-
   int enemiesHit = 0;
 
   void incrementHits() {
@@ -29,11 +28,11 @@ mixin SingularProjectile on Projectile {
     shape.radius = circleComponent.radius;
 
     final bulletFilter = Filter();
-    if (weaponAncestor.parentEntity is Enemy) {
+    if (weaponAncestor.entityAncestor is Enemy) {
       bulletFilter
         ..maskBits = playerCategory
         ..categoryBits = bulletCategory;
-    } else if (weaponAncestor.parentEntity is Player) {
+    } else if (weaponAncestor.entityAncestor is Player) {
       bulletFilter
         ..maskBits = enemyCategory
         ..categoryBits = bulletCategory;
@@ -143,134 +142,176 @@ mixin LaserProjectile on Projectile {
   int enemiesHit = 0;
   abstract bool isContinuous;
   List<Vector2> lineThroughEnemies = [];
-  late final CircleComponent circleComponent;
+  List<Vector2> boxThroughEnemies = [];
 
   @override
   Body createBody() {
-    shape = CircleShape();
-    shape.radius = circleComponent.radius;
+    debugMode = false;
+    renderBody = false;
+
+    shape = ChainShape()..createLoop(boxThroughEnemies);
 
     final bulletFilter = Filter();
-    if (weaponAncestor.parentEntity is Enemy) {
+    if (weaponAncestor.entityAncestor is Enemy) {
       bulletFilter
         ..maskBits = playerCategory
         ..categoryBits = bulletCategory;
-    } else if (weaponAncestor.parentEntity is Player) {
+    } else if (weaponAncestor.entityAncestor is Player) {
       bulletFilter
         ..maskBits = enemyCategory
         ..categoryBits = bulletCategory;
     }
-
-    final fixtureDef = FixtureDef(shape,
-        userData: this,
-        restitution: 0,
-        friction: 0,
-        density: 0.00001,
-        isSensor: true,
-        filter: bulletFilter);
+    final fixtureDef =
+        FixtureDef(shape, userData: this, isSensor: true, filter: bulletFilter);
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      type: BodyType.static,
-      linearDamping: (5 - (5 * power)).clamp(0, 5),
-      bullet: true,
-      // linearVelocity: delta * weaponAncestor.projectileVelocity,
-      // fixedRotation: !weaponAncestor.allowProjectileRotation,
+      linearVelocity: delta * rng.nextDouble() * 2,
+      type: BodyType.dynamic,
+      bullet: false,
     );
 
     var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
 
-    if (weaponAncestor.isHoming || weaponAncestor.isChaining) {
-      bulletFilter.categoryBits = sensorCategory;
+    // if (weaponAncestor.isHoming || weaponAncestor.isChaining) {
+    //   bulletFilter.categoryBits = sensorCategory;
 
-      sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
-          userData: "homingSensor", isSensor: true, filter: bulletFilter);
-      returnBody.createFixture(sensorDef!);
-    }
+    //   sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
+    //       userData: "homingSensor", isSensor: true, filter: bulletFilter);
+    //   returnBody.createFixture(sensorDef!);
+    // }
 
     return returnBody;
   }
 
   bool infrontWeaponCheck(Body element) {
     return element.userData is Enemy &&
-        isEntityInfrontOfPosition(element.position, body.position, delta);
+        isEntityInfrontOfPosition(element.position, originPosition, delta);
   }
 
   double precisionPerDistance = .5;
 
   Vector2 previousDelta = Vector2.zero();
+  bool startChaining = false;
 
-  @override
-  Future<void> onLoad() async {
-    circleComponent = CircleComponent(
-        radius: .3, anchor: Anchor.center, paint: BasicPalette.red.paint());
-    add(circleComponent);
+  abstract double baseWidth;
+  late double width;
 
-    await super.onLoad();
-
-    final sw = Stopwatch()..start();
+  void homingAndChainCalculations() {
+    double distance = weaponAncestor.projectileVelocity;
 
     List<Body> bodies = game.world.bodies
         .where((element) => infrontWeaponCheck(element))
         .toList();
+
+    homingComplete = !weaponAncestor.isHoming;
+
     bodies.sort(
       (a, b) => a.position
-          .distanceTo(body.position)
-          .compareTo(b.position.distanceTo(body.position)),
+          .distanceTo(originPosition)
+          .compareTo(b.position.distanceTo(originPosition)),
     );
 
-    final amountOfPoints =
-        precisionPerDistance * weaponAncestor.projectileVelocity;
-    final pointStep = weaponAncestor.projectileVelocity / amountOfPoints;
-    previousDelta = body.position;
+    var amountOfPoints = precisionPerDistance * distance;
+
+    amountOfPoints = amountOfPoints.clamp(3, 200);
+
+    final pointStep = distance / amountOfPoints;
+
+    amountOfPoints = (amountOfPoints * .666 * power) + amountOfPoints * .333;
+
+    startChaining = weaponAncestor.isHoming && weaponAncestor.isChaining;
+
     for (var i = 0; i < amountOfPoints; i++) {
       Body? bodyToJumpTo;
-      if (chainedTargets < weaponAncestor.chainingTargets) {
+      Vector2 newPointPosition;
+      bool shouldChain =
+          chainedTargets < weaponAncestor.chainingTargets && startChaining;
+
+      //if should be bouncing, bounce
+      if (!homingComplete || shouldChain) {
         for (var element in bodies) {
-          if (element.worldCenter.distanceTo(previousDelta) <
+          if ((element.position - originPosition).distanceTo(previousDelta) <
               closeBodySensorRadius) {
             bodyToJumpTo = element;
             break;
           }
         }
       }
-      Vector2 newDelta;
+
+      //if close body detected, jump to it
       if (bodyToJumpTo != null) {
-        newDelta = bodyToJumpTo.position;
-        delta = (bodyToJumpTo.position - previousDelta).normalized();
+        newPointPosition = bodyToJumpTo.position - originPosition;
+        delta = (bodyToJumpTo.position - originPosition - previousDelta)
+            .normalized();
         bodies.remove(bodyToJumpTo);
+
         chainedTargets++;
+        homingComplete = true;
       } else {
-        newDelta = ((delta * pointStep) + previousDelta);
+        newPointPosition = ((delta * pointStep) + previousDelta);
       }
 
-      lineThroughEnemies.add(newDelta);
-      previousDelta = newDelta.clone();
+      //TODO: rework check if other body is hit from this line
+      //if hit, then start chaining
+      if (weaponAncestor.isChaining && !startChaining) {
+        for (var element in bodies) {
+          if ((element.position - originPosition).distanceTo(newPointPosition) <
+              3) {
+            startChaining = true;
+            break;
+          }
+        }
+      }
+
+      lineThroughEnemies.add(newPointPosition);
+      previousDelta = newPointPosition.clone();
     }
+  }
+
+  @override
+  Future<void> onLoad() async {
+    // circleComponent = CircleComponent(
+    //     radius: .3, anchor: Anchor.center, paint: BasicPalette.red.paint());
+    // add(circleComponent);
+
+    width = (power * baseWidth) + baseWidth * .15;
+    width = (power * baseWidth) + baseWidth * .15;
+    lineThroughEnemies.add(previousDelta);
+
+    if (weaponAncestor.isHoming || weaponAncestor.isChaining) {
+      homingAndChainCalculations();
+    } else {
+      double distance = weaponAncestor.projectileVelocity;
+      distance = (distance * .666 * power) + distance * .333;
+      lineThroughEnemies.add(((delta * distance * .333) + previousDelta));
+      lineThroughEnemies.add(((delta * distance * .666) + previousDelta));
+      lineThroughEnemies.add(((delta * distance) + previousDelta));
+    }
+
+    boxThroughEnemies =
+        expandToBox(lineThroughEnemies, width / 2).toSet().toList();
+
+    return super.onLoad();
   }
 
   @override
   void render(Canvas canvas) {
-    Vector2 previousDrawnDude = Vector2.zero();
+    var path = Path();
+    var paint = BasicPalette.lightBlue.paint();
+    paint.strokeWidth = width;
+    paint.style = PaintingStyle.stroke;
+    paint.strokeCap = StrokeCap.round;
+
     for (var element in lineThroughEnemies) {
-      element = element - body.position;
-      canvas.drawLine(previousDrawnDude.toOffset(), element.toOffset(), paint);
-      previousDrawnDude = element.clone();
+      path.lineTo(element.x, element.y);
     }
-  }
 
-  @override
-  void update(double dt) {
-    // if (!bulletHasExpired && weaponAncestor.parent != null) {
-    //   bulletAngleCalc();
-    // }
-    super.update(dt);
-  }
-
-  void bulletAngleCalc() {
-    if ((weaponAncestor).allowProjectileRotation) {
-      // spriteComponent.angle =
-      //     -radiansBetweenPoints(Vector2(0, 0.0001), body.linearVelocity);
-    }
+    canvas.drawPath(path, paint);
+    canvas.drawPath(
+        path,
+        paint
+          ..strokeWidth = width * .6
+          ..color = Colors.black);
   }
 }

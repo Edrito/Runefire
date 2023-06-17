@@ -38,7 +38,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
       Vector2(-spriteComponent.size.x / 2, spriteComponent.size.y),
     ]);
     final swordFilter = Filter();
-    if (parentAttack.parentWeapon.parentEntity is Enemy) {
+    if (parentAttack.parentWeapon.entityAncestor is Enemy) {
       swordFilter.maskBits = playerCategory;
     } else {
       swordFilter.maskBits = enemyCategory;
@@ -56,7 +56,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
       userData: this,
       // position: attackAncestor.position,
       // angle: attackAncestor.angle,
-      type: BodyType.static,
+      type: BodyType.dynamic,
     );
     renderBody = false;
     return world.createBody(bodyDef)..createFixture(fixtureDef);
@@ -94,11 +94,11 @@ class MeleeAttack extends PositionComponent {
 
     bodyComponent = MeleeDetection(spriteComponent, this);
 
-    parentWeapon.parentEntity.ancestor.physicsComponent.add(bodyComponent!);
+    parentWeapon.entityAncestor.ancestor.physicsComponent.add(bodyComponent!);
 
     anchor = Anchor.center;
     angle = radians(start.$2) +
-        (initAngle ?? parentWeapon.parentEntity.handJoint.angle ?? 0);
+        (initAngle ?? parentWeapon.entityAncestor.handJoint.angle ?? 0);
     final rotatedStartPosition = rotateVector2(start.$1, angle);
     final rotatedEndPosition = rotateVector2(end.$1, angle);
 
@@ -143,7 +143,7 @@ class MeleeAttack extends PositionComponent {
   void update(double dt) {
     if (bodyComponent?.isLoaded ?? false) {
       bodyComponent?.body.setTransform(
-          position + (parentWeapon.parentEntity.center ?? Vector2.zero()),
+          position + (parentWeapon.entityAncestor.center ?? Vector2.zero()),
           angle);
     }
     super.update(dt);
