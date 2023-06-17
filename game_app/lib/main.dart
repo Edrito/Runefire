@@ -27,11 +27,7 @@ void main() async {
 }
 
 class GameRouter extends Forge2DGame
-    with HasKeyboardHandlerComponents, ScrollDetector, MouseMovementDetector
-// TapDetector,
-// TertiaryTapDetector,
-// SecondaryTapDetector
-{
+    with HasKeyboardHandlerComponents, ScrollDetector, MouseMovementDetector {
   late final RouterComponent router;
 
   GameRouter() : super(gravity: Vector2.zero(), zoom: 1);
