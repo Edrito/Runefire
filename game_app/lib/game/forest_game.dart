@@ -3,9 +3,9 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/player.dart';
-import '../resources/classes.dart';
 import '../resources/enums.dart';
 import 'background.dart';
+import 'enviroment.dart';
 
 extension PositionProvider on Player {
   Vector2 get position => body.worldCenter;

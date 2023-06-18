@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/services/raw_keyboard.dart';
-import 'package:game_app/game/physics_filter.dart';
+import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/main.dart';
 
 import '../entities/player.dart';

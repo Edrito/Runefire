@@ -6,9 +6,9 @@ import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 
 import '../functions/vector_functions.dart';
-import '../resources/classes.dart';
 import '../resources/enums.dart';
 import '../resources/priorities.dart' as priorities;
+import 'enviroment.dart';
 
 abstract class BackgroundComponent extends ParallaxComponent {
   late final ParallaxComponent<FlameGame> background;

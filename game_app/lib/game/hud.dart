@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/player.dart';
 
-import '../resources/classes.dart';
+import 'enviroment.dart';
 
 class GameHud extends PositionComponent {
   late final Player player;

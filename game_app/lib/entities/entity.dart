@@ -5,7 +5,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 
-import '../resources/classes.dart';
+import '../game/enviroment.dart';
 import '../resources/enums.dart';
 // ignore: unused_import
 import 'enemy.dart';

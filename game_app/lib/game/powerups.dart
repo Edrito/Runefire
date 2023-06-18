@@ -4,7 +4,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/game/physics_filter.dart';
+import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';

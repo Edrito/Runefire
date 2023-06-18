@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 
-import '../resources/classes.dart';
+import '../game/enviroment.dart';
 
 Vector2 vectorToGrid(Vector2 v1, Vector2 size) {
   return ((v1) - size / 2);

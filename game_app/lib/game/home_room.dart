@@ -8,9 +8,9 @@ import '../resources/enums.dart';
 import '/resources/overlays.dart' as overlays;
 
 import '../functions/vector_functions.dart';
-import '../resources/classes.dart';
 import '../resources/interactable.dart';
 import '/resources/routes.dart' as routes;
+import 'enviroment.dart';
 
 class HomeRoom extends GameEnviroment {
   @override

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flame/events.dart';
 import 'package:flutter/services.dart';
-import 'package:game_app/entities/entity.dart';
 
 import '../game/background.dart';
 import '../game/hud.dart';
@@ -15,11 +14,11 @@ import 'package:game_app/entities/player.dart';
 import '../functions/custom_follow_behavior.dart';
 import '../functions/custom_joystick.dart';
 import '../main.dart';
-import '../weapons/weapon_class.dart';
-import 'enums.dart';
+import '../resources/data_classes/player_data.dart';
+import '../resources/enums.dart';
 
 abstract class GameEnviroment extends Component
-    with HasGameRef<GameRouter>, KeyboardHandler, TapCallbacks, DragCallbacks {
+    with HasGameRef<GameRouter>, KeyboardHandler, DragCallbacks {
   CustomJoystickComponent? aimJoystick;
   CustomJoystickComponent? moveJoystick;
   abstract GameLevel level;
@@ -54,9 +53,27 @@ abstract class GameEnviroment extends Component
     super.onGameResize(size);
   }
 
+  late final MouseCallbackWrapper wrapper;
+
+  @override
+  void onRemove() {
+    gameRef.mouseCallback.remove(wrapper);
+    super.onRemove();
+  }
+
+  @override
+  void onMount() {
+    wrapper = MouseCallbackWrapper();
+    wrapper.onMouseMove = onMouseMove;
+    wrapper.onPrimaryDown = onTapDown;
+    wrapper.onPrimaryUp = onTapUp;
+    gameRef.mouseCallback.add(wrapper);
+
+    super.onMount();
+  }
+
   @override
   FutureOr<void> onLoad() {
-    gameRef.mouseCallback = onMouseMove;
     children.register<CameraComponent>();
     gameWorld = World();
     super.add(gameWorld);
@@ -167,7 +184,6 @@ abstract class GameEnviroment extends Component
   @override
   void onDragEnd(DragEndEvent event) {
     endIdState(event.pointerId);
-
     super.onDragEnd(event);
   }
 
@@ -184,20 +200,15 @@ abstract class GameEnviroment extends Component
     super.onDragUpdate(event);
   }
 
-  @override
-  void onTapDown(TapDownEvent event) {
-    if (Platform.isWindows &&
-        !discernJoystate(event.pointerId, event.asInfo(game))) {
-      player.gestureEventStart(InputType.tapClick, event.asInfo(game));
+  void onTapDown(TapDownInfo info) {
+    if (Platform.isWindows && !discernJoystate(-1, info)) {
+      player.gestureEventStart(InputType.tapClick, info);
     }
-    super.onTapDown(event);
   }
 
-  @override
-  void onTapUp(TapUpEvent event) {
-    endIdState(event.pointerId);
-    player.gestureEventEnd(InputType.tapClick, event.asInfo(game));
-    super.onTapUp(event);
+  void onTapUp(TapUpInfo info) {
+    endIdState(-1);
+    player.gestureEventEnd(InputType.tapClick, info);
   }
 
   @override
@@ -211,17 +222,3 @@ abstract class GameEnviroment extends Component
     return super.onKeyEvent(event, keysPressed);
   }
 }
-
-class PlayerData {
-  int experiencePoints = 0;
-  int spentExperiencePoints = 0;
-
-  List<GameLevel> completedLevels = [];
-
-  WeaponType selectedWeapon1 = WeaponType.pistol;
-  WeaponType selectedWeapon2 = WeaponType.sword;
-
-  Map<WeaponType, int> unlockedWeapons = {};
-}
-
-typedef WeaponCreateFunction = Weapon Function(Entity);

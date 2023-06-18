@@ -269,7 +269,9 @@ mixin HealthFunctionality on Entity {
     }
     final test = TextPaint(
         style: TextStyle(
-      fontSize: 2,
+      fontSize: 3,
+      fontFamily: "HeroSpeak",
+      fontWeight: FontWeight.bold,
       shadows: const [
         BoxShadow(
             color: Colors.black,

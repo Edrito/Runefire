@@ -11,8 +11,8 @@ import 'package:game_app/game/powerups.dart';
 
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
-import '../game/physics_filter.dart';
-import '../resources/classes.dart';
+import '../game/enviroment.dart';
+import '../resources/physics_filter.dart';
 import '../resources/enums.dart';
 
 class Dummy extends Enemy with HealthFunctionality {

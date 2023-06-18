@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/game/physics_filter.dart';
+import 'package:game_app/resources/physics_filter.dart';
 
 import '../entities/player.dart';
 import '../main.dart';
@@ -12,8 +12,13 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   ExperienceAmount experienceAmount;
   late SpriteComponent spriteComponent;
-  double size = .9;
+  double size = 1.2;
   Vector2 originPosition;
+  double speed = 3;
+
+  Player? target;
+
+  set setTarget(Player player) => target = player;
 
   @override
   Future<void> onLoad() async {
@@ -34,10 +39,24 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Player) return;
-    other.experiencePointsGained += experienceAmount.experienceAmount;
-    removeFromParent();
+    if (other is! Map) return;
+    if (other['type'] == FixtureType.sensor) {
+      target = other['object'];
+    } else if (other['type'] == FixtureType.body) {
+      other['object'].experiencePointsGained +=
+          experienceAmount.experienceAmount;
+      removeFromParent();
+    }
+
     super.beginContact(other, contact);
+  }
+
+  @override
+  void update(double dt) {
+    if (target != null) {
+      body.applyLinearImpulse((target!.center - center) * speed);
+    }
+    super.update(dt);
   }
 
   @override
@@ -51,23 +70,18 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
     ]);
 
     renderBody = false;
-    final powerupFilter = Filter()
-      ..maskBits = playerCategory
-      ..categoryBits = powerupCategory;
+    final experienceFilter = Filter()
+      ..maskBits = experienceCategory + playerCategory
+      ..categoryBits = experienceCategory;
 
     final fixtureDef = FixtureDef(shape,
-        userData: this,
-        restitution: 0,
-        friction: 0,
-        density: 0,
-        isSensor: true,
-        filter: powerupFilter);
+        userData: this, isSensor: true, filter: experienceFilter);
 
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      type: BodyType.static,
-      bullet: false,
+      linearDamping: 1,
+      type: BodyType.dynamic,
     );
 
     return world.createBody(bodyDef)..createFixture(fixtureDef);

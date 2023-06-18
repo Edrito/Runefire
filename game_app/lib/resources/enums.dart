@@ -4,14 +4,17 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/weapons.dart';
 
+import '../entities/entity.dart';
 import '../game/background.dart';
+import '../game/enviroment.dart';
 import '../game/forest_game.dart';
 import '../game/home_room.dart';
 import '../weapons/projectiles.dart';
 import '../weapons/weapon_class.dart';
-import 'classes.dart';
 
 enum EntityType { player, enemy, npc }
+
+enum FixtureType { sensor, body }
 
 enum EntityStatus { spawn, idle, run, walk, jump, dash, dead, damage, attack }
 
@@ -233,3 +236,5 @@ extension WeaponTypeFilename on WeaponType {
 }
 
 enum SemiAutoType { regular, release, charge }
+
+typedef WeaponCreateFunction = Weapon Function(Entity);

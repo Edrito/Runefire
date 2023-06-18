@@ -7,10 +7,10 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/functions/functions.dart';
-import 'package:game_app/game/physics_filter.dart';
-import 'package:game_app/resources/classes.dart';
+import 'package:game_app/resources/physics_filter.dart';
 
 import '../functions/vector_functions.dart';
+import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 
 class Player extends Entity
@@ -61,6 +61,44 @@ class Player extends Entity
     await loadAnimationSprites();
 
     await super.onLoad();
+  }
+
+  double xpSensorRadius = 10;
+
+  @override
+  Body createBody() {
+    late CircleShape shape;
+    late CircleShape xpGrabRadius;
+    shape = CircleShape();
+    xpGrabRadius = CircleShape();
+    shape.radius = spriteAnimationComponent.size.x / 2;
+    xpGrabRadius.radius = xpSensorRadius;
+    renderBody = false;
+
+    final fixtureDef = FixtureDef(shape,
+        userData: {"type": FixtureType.body, "object": this},
+        restitution: 0,
+        friction: 0,
+        density: 0.001,
+        filter: filter);
+
+    final xpGrabRadiusFixture = FixtureDef(xpGrabRadius,
+        userData: {"type": FixtureType.sensor, "object": this},
+        isSensor: true,
+        filter: Filter()
+          ..categoryBits = experienceCategory
+          ..maskBits = experienceCategory);
+
+    final bodyDef = BodyDef(
+      userData: this,
+      position: initPosition,
+      type: BodyType.dynamic,
+      linearDamping: 12,
+      fixedRotation: true,
+    );
+    return world.createBody(bodyDef)
+      ..createFixture(fixtureDef)
+      ..createFixture(xpGrabRadiusFixture);
   }
 
   Set<PhysicalKeyboardKey> physicalKeysPressed = {};
