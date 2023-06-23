@@ -82,7 +82,8 @@ class Agility extends Powerup {
   @override
   void applyToEntityPowerup(Entity entity) {
     if (entity is MovementFunctionality) {
-      entity.speedIncreasePercent += speedIncrease;
+      final increase = speedIncrease * entity.baseSpeed;
+      entity.speedIncrease += increase;
     }
 
     colorEffect = ColorEffect(
@@ -97,7 +98,8 @@ class Agility extends Powerup {
 
   @override
   void applyToWeaponPowerup(Weapon weapon) {
-    weapon.attackRatePercentIncrease += speedIncrease;
+    final increase = speedIncrease * weapon.baseAttackRate;
+    weapon.attackRateIncrease += increase;
     if (weapon is ReloadFunctionality) {
       previousReloadTime[weapon] = weapon.reloadTime;
       weapon.reloadTime = 0;
@@ -112,7 +114,8 @@ class Agility extends Powerup {
   @override
   void removeEntityPowerup(Entity entity) {
     if (entity is MovementFunctionality) {
-      entity.speedIncreasePercent -= speedIncrease;
+      final increase = speedIncrease * entity.baseSpeed;
+      entity.speedIncrease -= increase;
     }
     colorEffect?.controller.setToStart();
     colorEffect?.removeFromParent();
@@ -120,7 +123,8 @@ class Agility extends Powerup {
 
   @override
   void removeWeaponPowerup(Weapon weapon) {
-    weapon.attackRatePercentIncrease -= speedIncrease;
+    final increase = speedIncrease * weapon.baseAttackRate;
+    weapon.attackRateIncrease -= increase;
     if (weapon is ReloadFunctionality) {
       weapon.reloadTime = previousReloadTime[weapon]!;
       weapon.spentAttacks = 0;
@@ -151,7 +155,7 @@ class Damage extends Powerup {
   @override
   void applyToEntityPowerup(Entity entity) {
     if (entity is! HealthFunctionality) return;
-    entity.healthFlatIncrease += healthIncrease;
+    entity.healthIncrease += healthIncrease;
 
     colorEffect = ColorEffect(
         Colors.red,
@@ -169,7 +173,7 @@ class Damage extends Powerup {
   @override
   void removeEntityPowerup(Entity entity) {
     if (entity is! HealthFunctionality) return;
-    entity.healthFlatIncrease -= healthIncrease;
+    entity.healthIncrease -= healthIncrease;
     entity.damageTaken =
         (entity.damageTaken - healthIncrease).clamp(0, entity.getMaxHealth - 5);
     colorEffect?.controller.setToStart();

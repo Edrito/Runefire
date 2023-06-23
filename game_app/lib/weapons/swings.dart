@@ -21,7 +21,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is HealthFunctionality) {
-      other.takeDamage(parentAttack.hashCode, parentAttack.parentWeapon.damage);
+      other.hit(parentAttack.hashCode, parentAttack.parentWeapon.damage);
     }
 
     super.beginContact(other, contact);

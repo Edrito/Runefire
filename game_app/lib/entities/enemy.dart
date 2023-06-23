@@ -74,17 +74,19 @@ class Dummy extends Enemy with HealthFunctionality {
 
 class DummyTwo extends Enemy
     with
-        // AttackFunctionality,
         MovementFunctionality,
         HealthFunctionality,
         DropExperienceFunctionality,
-        DumbFollowScaredAI {
+        DumbFollowScaredAI,
+        DodgeFunctionality {
   DummyTwo({
     required super.initPosition,
     required super.ancestor,
   });
 
   EnemyType enemyType = EnemyType.flameHead;
+  @override
+  double baseDodgeChance = .05;
 
   @override
   (double, double) xpRate = (0.001, 0.01);
@@ -139,6 +141,9 @@ class DummyTwo extends Enemy
 
   @override
   SpriteAnimation? walkAnimation;
+
+  @override
+  SpriteAnimation? dodgeAnimation;
 }
 
 abstract class Enemy extends Entity with ContactCallbacks {
@@ -183,7 +188,7 @@ abstract class Enemy extends Entity with ContactCallbacks {
   @override
   void update(double dt) {
     if (hittingPlayer) {
-      ancestor.player.takeDamage(hashCode, touchDamage);
+      ancestor.player.hit(hashCode, touchDamage);
     }
 
     super.update(dt);
@@ -210,7 +215,9 @@ class EnemyManagement extends Component {
             ancestor: mainGameRef));
       }
     }
-
+    // add(DummyTwo(
+    //     initPosition: Vector2(0, 0) - mainGameRef.gameCamera.viewport.size / 15,
+    //     ancestor: mainGameRef));
     // add(TimerComponent(
     //   period: 2,
     //   repeat: true,

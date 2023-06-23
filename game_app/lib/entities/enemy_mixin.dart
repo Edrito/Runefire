@@ -128,17 +128,17 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   TimerComponent? inverseTimer;
 
   @override
-  void processDamage(int id, double damage) {
+  void takeDamage(int id, double damage) {
     inverse = true;
     targetUpdater?.onTick();
     if (inverseTimer == null) {
-      speedIncreasePercent += 1;
+      speedIncrease += 1;
       inverseTimer ??= TimerComponent(
         period: 3,
         onTick: () {
           inverse = false;
           inverseTimer = null;
-          speedIncreasePercent -= 1;
+          speedIncrease -= 1;
         },
       );
       add(inverseTimer!);
@@ -146,7 +146,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
       inverseTimer?.timer.reset();
     }
 
-    super.processDamage(id, damage);
+    super.takeDamage(id, damage);
   }
 
   @override

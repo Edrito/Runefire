@@ -155,6 +155,16 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
 
         break;
+      case EntityStatus.dodge:
+        if (this is! DodgeFunctionality) return;
+        var dodge = this as DodgeFunctionality;
+        if (dodge.dodgeAnimation == null) break;
+        assert(!dodge.dodgeAnimation!.loop, "Temp animations must not loop");
+        tempAnimationPlaying = true;
+        spriteAnimationComponent.animation = dodge.dodgeAnimation?.clone();
+        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+
+        break;
       case EntityStatus.idle:
         animation = idleAnimation;
 
@@ -197,7 +207,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   Body createBody() {
     late CircleShape shape;
     shape = CircleShape();
-    shape.radius = spriteAnimationComponent.size.x / 2;
+    shape.radius = spriteAnimationComponent.size.x / 3;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
         restitution: 0, friction: 0, density: 0.001, filter: filter);

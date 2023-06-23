@@ -8,8 +8,10 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/functions/functions.dart';
 import 'package:game_app/resources/physics_filter.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../functions/vector_functions.dart';
+import '../main.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 
@@ -21,6 +23,7 @@ class Player extends Entity
         DashFunctionality,
         HealthFunctionality,
         AttributeFunctionality,
+        WindowListener,
         AimFunctionality,
         AttackFunctionality,
         MovementFunctionality,
@@ -48,9 +51,21 @@ class Player extends Entity
     moveVelocities.clear();
     inputAimAngles.clear();
     inputAimPositions.clear();
+    game.mouseCallback.remove(mouseCallbackWrapper);
+
     super.onRemove();
   }
 
+  @override
+  void onWindowBlur() {
+    physicalKeysPressed.clear();
+    parseKeys(null);
+    game.overlays.add('PauseMenu');
+    game.pauseEngine();
+    super.onWindowBlur();
+  }
+
+  late MouseCallbackWrapper mouseCallbackWrapper;
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll([
@@ -59,6 +74,13 @@ class Player extends Entity
       WeaponType.sword,
     ]);
     await loadAnimationSprites();
+    windowManager.addListener(this);
+
+    mouseCallbackWrapper = MouseCallbackWrapper();
+    mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();
+    mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
+    mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
+    game.mouseCallback.add(mouseCallbackWrapper);
 
     await super.onLoad();
   }
@@ -101,20 +123,9 @@ class Player extends Entity
       ..createFixture(xpGrabRadiusFixture);
   }
 
-  Set<PhysicalKeyboardKey> physicalKeysPressed = {};
-  @override
-  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+  void parseKeys(RawKeyEvent? event) {
     Vector2 moveAngle = Vector2.zero();
-    if (!event.repeat) {
-      if (physicalKeysPressed.contains(event.physicalKey)) {
-        physicalKeysPressed.remove(event.physicalKey);
-      } else {
-        physicalKeysPressed.add(event.physicalKey);
-      }
-    }
     try {
-      if (physicalKeysPressed.isEmpty) super.onKeyEvent(event, keysPressed);
-
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
         moveAngle.x += 1;
       }
@@ -127,6 +138,8 @@ class Player extends Entity
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyS)) {
         moveAngle.y += 1;
       }
+
+      if (event == null) return;
 
       if (event.physicalKey == (PhysicalKeyboardKey.space) &&
           physicalKeysPressed.contains(PhysicalKeyboardKey.space)) {
@@ -142,13 +155,6 @@ class Player extends Entity
           physicalKeysPressed.contains(PhysicalKeyboardKey.tab)) {
         swapWeapon();
       }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.keyT) &&
-          physicalKeysPressed.contains(PhysicalKeyboardKey.keyT)) {
-        startAltAttacking();
-      } else if (isAltAttacking) {
-        endAltAttacking();
-      }
     } finally {
       if (moveAngle.isZero()) {
         moveVelocities.remove(InputType.keyboard);
@@ -156,11 +162,21 @@ class Player extends Entity
         moveVelocities[InputType.keyboard] = moveAngle;
       }
     }
-
-    return super.onKeyEvent(event, keysPressed);
   }
 
-  void handleKeyboardInputs(RawKeyEvent event) {}
+  Set<PhysicalKeyboardKey> physicalKeysPressed = {};
+
+  @override
+  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (physicalKeysPressed.contains(event.physicalKey) && !event.repeat) {
+      physicalKeysPressed.remove(event.physicalKey);
+    } else {
+      physicalKeysPressed.add(event.physicalKey);
+    }
+
+    parseKeys(event);
+    return super.onKeyEvent(event, keysPressed);
+  }
 
   @override
   double dashCooldown = 1;
@@ -188,6 +204,9 @@ class Player extends Entity
 
       case InputType.mouseDrag:
         inputAimAngles.remove(InputType.mouseDrag);
+        break;
+      case InputType.secondaryClick:
+        endAltAttacking();
         break;
 
       default:
@@ -248,7 +267,9 @@ class Player extends Entity
       case InputType.mouseDragStart:
         startAttacking();
         break;
-
+      case InputType.secondaryClick:
+        startAltAttacking();
+        break;
       default:
       // Code to handle unknown or unexpected input type
     }

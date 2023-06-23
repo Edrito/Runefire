@@ -13,11 +13,15 @@ import 'game/enviroment.dart';
 import 'resources/routes.dart' as routes;
 import 'resources/overlays.dart' as overlays;
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Flame.device.setLandscape();
-  await Hive.initFlutter();
+  await windowManager.ensureInitialized();
+  await Future.wait([
+    Flame.device.setLandscape(),
+    Hive.initFlutter(),
+  ]);
 
   //load goodies from HIVE
   Hive.registerAdapter(SystemDataAdapter());
@@ -42,6 +46,11 @@ void main() async {
             return Container(
               color: const Color.fromARGB(255, 37, 112, 108),
             );
+          },
+          loadingBuilder: (p0) {
+            return Container(
+                color: const Color.fromARGB(255, 72, 37, 112),
+                child: const CircularProgressIndicator());
           },
           game: gameRouter,
           overlayBuilderMap: Map<String,

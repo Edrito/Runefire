@@ -165,7 +165,7 @@ class Pistol extends Weapon
   bool allowProjectileRotation = true;
 
   @override
-  int projectileCount = 4;
+  int projectileCount = 1;
 
   @override
   double minDamage = 0;
@@ -204,7 +204,7 @@ class Pistol extends Weapon
   double tipPositionPercent = -.3;
 
   @override
-  double weaponRandomnessPercent = .4;
+  double weaponRandomnessPercent = .0;
 
   @override
   double distanceFromPlayer = .6;
@@ -452,11 +452,9 @@ class Bow extends Weapon
 }
 
 class Sword extends Weapon
-    with
-        MeleeFunctionality,
-        SecondaryWeaponFunctionality,
-        FullAutomatic,
-        ReloadFunctionality {
+    with MeleeFunctionality, SecondaryAbilityFunctionality, FullAutomatic
+// ,        ReloadFunctionality
+{
   Sword.create(super.newUpgradeLevel, super.ancestor) {
     attackPatterns = [
       (Vector2(6, -4), 0),
@@ -466,6 +464,11 @@ class Sword extends Weapon
       (Vector2(-6, -4), 0),
       (Vector2(0, 8), -45),
     ];
+    {
+      setSecondaryFunctionality = RapidFire(this, 5);
+    }
+
+    maxAmmo = (attackPatterns.length / 2).round();
 
     assert(attackPatterns.length.isEven, "Must be an even number of coords");
   }
@@ -556,7 +559,7 @@ class Sword extends Weapon
   double projectileVelocity = 0;
 
   @override
-  double reloadTime = 0;
+  double reloadTime = 1;
 
   @override
   double tipPositionPercent = -.02;

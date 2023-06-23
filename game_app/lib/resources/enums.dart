@@ -16,7 +16,18 @@ enum EntityType { player, enemy, npc }
 
 enum FixtureType { sensor, body }
 
-enum EntityStatus { spawn, idle, run, walk, jump, dash, dead, damage, attack }
+enum EntityStatus {
+  dodge,
+  spawn,
+  idle,
+  run,
+  walk,
+  jump,
+  dash,
+  dead,
+  damage,
+  attack
+}
 
 enum JoystickDirection {
   up,
@@ -60,6 +71,7 @@ enum InputType {
   aimJoy,
   moveJoy,
   tapClick,
+  secondaryClick,
   mouseDrag,
   mouseDragStart,
   ai,

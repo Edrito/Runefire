@@ -37,7 +37,9 @@ abstract class Attribute {
   int _level;
   Entity entity;
   bool isApplied = false;
+
   int maxLevel = 5;
+
   void applyAttribute() {
     if (!isApplied) {
       mapAttribute();
@@ -79,14 +81,14 @@ class MaxSpeedAttribute extends Attribute {
   void mapAttribute() {
     if (Entity is! MovementFunctionality) return;
     var move = Entity as MovementFunctionality;
-    move.speedIncreasePercent += factor * (_level + _level == maxLevel ? 1 : 0);
+    move.speedIncrease += factor * (_level + _level == maxLevel ? 1 : 0);
   }
 
   @override
   void unmapAttribute() {
     if (Entity is! MovementFunctionality) return;
     var move = Entity as MovementFunctionality;
-    move.speedIncreasePercent -= factor * (_level + _level == maxLevel ? 1 : 0);
+    move.speedIncrease -= factor * (_level + _level == maxLevel ? 1 : 0);
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +29,8 @@ mixin BaseAttributes {
 mixin MovementFunctionality on Entity {
   //MOVEMENT
   abstract final double baseSpeed;
-  double speedIncreasePercent = 1;
-  double get getMaxSpeed => baseSpeed * speedIncreasePercent;
+  double speedIncrease = 1;
+  double get getMaxSpeed => baseSpeed * speedIncrease;
   Map<InputType, Vector2?> moveVelocities = {};
 
   Vector2 get moveDelta => (moveVelocities[InputType.moveJoy] ??
@@ -209,14 +211,14 @@ mixin AttackFunctionality on AimFunctionality {
 mixin HealthFunctionality on Entity {
   //health
   abstract double baseInvincibilityDuration;
-  double invincibilityDurationFlatIncrease = 0;
+  double invincibilityDurationIncrease = 0;
   double get invincibilityDuration =>
-      baseInvincibilityDuration + invincibilityDurationFlatIncrease;
+      baseInvincibilityDuration + invincibilityDurationIncrease;
   TimerComponent? invincibleTimer;
   abstract final double baseHealth;
 
-  double healthFlatIncrease = 0;
-  double get getMaxHealth => baseHealth + healthFlatIncrease;
+  double healthIncrease = 0;
+  double get getMaxHealth => baseHealth + healthIncrease;
 
   int sameDamageSourceTimer = 1;
 
@@ -238,7 +240,7 @@ mixin HealthFunctionality on Entity {
     setEntityStatus(EntityStatus.dead);
   }
 
-  void processDamage(int id, double damage) {
+  void takeDamage(int id, double damage) {
     setEntityStatus(EntityStatus.damage);
     final controller = EffectController(
       duration: .1,
@@ -330,14 +332,75 @@ mixin HealthFunctionality on Entity {
     ]);
   }
 
-  bool takeDamage(int id, double damage) {
+  bool hit(int id, double damage) {
     if (hitSourceDuration.containsKey(id) ||
         invincibleTimer != null ||
         isDead) {
       return false;
     }
-    processDamage(id, damage);
+    takeDamage(id, damage);
     return true;
+  }
+}
+
+mixin DodgeFunctionality on HealthFunctionality {
+  //health
+  double totalDamageDodged = 0;
+  int dodges = 0;
+  abstract double baseDodgeChance;
+  double dodgeChanceIncrease = 0;
+
+  double get dodgeChance => (baseDodgeChance + dodgeChanceIncrease).clamp(0, 1);
+  Random rng = Random();
+  //HEALTH
+
+  abstract SpriteAnimation? dodgeAnimation;
+
+  @override
+  bool hit(int id, double damage) {
+    if (rng.nextDouble() < dodgeChance) {
+      totalDamageDodged += damage;
+      dodges++;
+      final test = TextPaint(
+          style: TextStyle(
+        fontSize: 3,
+        fontFamily: "HeroSpeak",
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.italic,
+        shadows: const [
+          BoxShadow(
+              color: Colors.black26,
+              offset: Offset(.3, .3),
+              spreadRadius: 3,
+              blurRadius: 3)
+        ],
+        color: Colors.grey.shade100,
+      ));
+      final dodgeText = CaTextComponent(
+        text: "~",
+        anchor: Anchor.bottomLeft,
+        textRenderer: test,
+        position: Vector2.random() + Vector2(1, -1),
+      );
+      dodgeText.addAll([
+        OpacityEffect.fadeIn(EffectController(
+          duration: .2,
+        )),
+        MoveEffect.by(body.linearVelocity.normalized() * -3,
+            EffectController(duration: 1, curve: Curves.easeIn)),
+        TimerComponent(
+          period: 1,
+          removeOnFinish: true,
+          onTick: () {
+            dodgeText.removeFromParent();
+          },
+        )
+      ]);
+      add(dodgeText);
+      return false;
+    } else {
+      return super.hit(id, damage);
+    }
   }
 }
 
@@ -495,7 +558,7 @@ mixin AttributeFunctionality on Entity {
 
   void removeAttribute(AttributeEnum attributeEnum) {
     if (attributes.containsKey(attributeEnum)) {
-      attributes[attributeEnum]!.removeAttribute();
+      attributes[attributeEnum]?.removeAttribute();
       attributes.remove(attributeEnum);
     }
   }

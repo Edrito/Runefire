@@ -113,9 +113,9 @@ abstract class Weapon extends Component {
 
   int chainingTargets = 0;
   abstract double baseAttackRate; //every X second
-  double attackRatePercentIncrease = 1;
+  double attackRateIncrease = 0;
 
-  double get attackRate => baseAttackRate / attackRatePercentIncrease;
+  double get attackRate => baseAttackRate -= attackRateIncrease;
   abstract double weaponRandomnessPercent;
 
   //VISUAL
@@ -175,14 +175,16 @@ abstract class SecondaryWeaponAbility extends Component {
 
 ///Reloads the weapon and mag dumps at a firerate of approx 10x original
 class RapidFire extends SecondaryWeaponAbility {
-  RapidFire(super.weapon, super.cooldown);
+  RapidFire(super.weapon, super.cooldown, {this.attackRateIncrease = 10});
   TimerComponent? rapidFireTimer;
+  bool get isCurrentlyRunning => rapidFireTimer != null;
+  double attackRateIncrease;
   @override
   void endAttacking() {}
 
   @override
   void startAttacking() async {
-    if (isCoolingDown) return;
+    if (isCoolingDown || isCurrentlyRunning) return;
 
     double weaponAttackRate = weapon.attackRate;
     if (weapon is! ReloadFunctionality) {
@@ -199,7 +201,7 @@ class RapidFire extends SecondaryWeaponAbility {
 
     rapidFireTimer = TimerComponent(
       repeat: true,
-      period: weaponAttackRate / 10,
+      period: weaponAttackRate / attackRateIncrease,
       onTick: () {
         if (weapon is SemiAutomatic) {
           (weapon as SemiAutomatic).durationHeld = weapon.attackRate / 2;
@@ -213,6 +215,7 @@ class RapidFire extends SecondaryWeaponAbility {
         if (reload.isReloading) {
           rapidFireTimer?.timer.stop();
           rapidFireTimer?.removeFromParent();
+          rapidFireTimer = null;
         }
       },
     )..addToParent(this);

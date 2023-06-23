@@ -334,7 +334,7 @@ mixin SemiAutomatic on Weapon {
 
   @override
   void update(double dt) {
-    if (isAttacking) {
+    if (isAttacking && !isReloading) {
       durationHeld += dt;
     }
     super.update(dt);

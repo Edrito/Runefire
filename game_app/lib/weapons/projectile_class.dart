@@ -70,7 +70,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   void bodyContact(HealthFunctionality other) {
     hitHashcodes.add(other.hashCode);
-    other.takeDamage(hashCode, weaponAncestor.damage);
+    other.hit(hashCode, weaponAncestor.damage);
   }
 
   @override

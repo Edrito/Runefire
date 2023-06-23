@@ -196,7 +196,7 @@ class OptionsMenuPage extends MainMenuScreen {
 
   CustomButton buildMusicButton() {
     return CustomButton(buildMusicString, onPrimaryDownFunction: (_) {
-      incrementMusic = 5;
+      incrementMusic = 1;
       incrementingMusic = true;
     }, onPrimaryUpFunction: (_) {
       incrementingMusic = null;
@@ -205,7 +205,7 @@ class OptionsMenuPage extends MainMenuScreen {
     }, onSecondaryCancelledFunction: () {
       incrementingMusic = null;
     }, onSecondaryDownFunction: (_) {
-      incrementMusic = -5;
+      incrementMusic = -1;
       incrementingMusic = false;
     }, onSecondaryUpFunction: (_) {
       incrementingMusic = null;
@@ -214,7 +214,7 @@ class OptionsMenuPage extends MainMenuScreen {
 
   CustomButton buildSFXButton() {
     return CustomButton(buildSFXString, onPrimaryDownFunction: (_) {
-      incrementSFX = 5;
+      incrementSFX = 1;
 
       incrementingSFX = true;
     }, onPrimaryUpFunction: (_) {
@@ -224,7 +224,7 @@ class OptionsMenuPage extends MainMenuScreen {
     }, onSecondaryCancelledFunction: () {
       incrementingSFX = null;
     }, onSecondaryDownFunction: (_) {
-      incrementSFX = -5;
+      incrementSFX = -1;
       incrementingSFX = false;
     }, onSecondaryUpFunction: (_) {
       incrementingSFX = null;

@@ -61,12 +61,27 @@ abstract class GameEnviroment extends Component
     super.onRemove();
   }
 
+  onSecondaryDown(TapDownInfo info) {
+    player.gestureEventStart(InputType.secondaryClick, info);
+  }
+
+  onSecondaryUp(TapUpInfo info) {
+    player.gestureEventEnd(InputType.secondaryClick, info);
+  }
+
+  onSecondaryCancel() {
+    player.gestureEventEnd(InputType.secondaryClick, null);
+  }
+
   @override
   void onMount() {
     wrapper = MouseCallbackWrapper();
     wrapper.onMouseMove = onMouseMove;
     wrapper.onPrimaryDown = onTapDown;
     wrapper.onPrimaryUp = onTapUp;
+    wrapper.onSecondaryDown = (_) => onSecondaryDown;
+    wrapper.onSecondaryUp = (_) => onSecondaryUp;
+    wrapper.onSecondaryCancel = () => onSecondaryUp;
     gameRef.mouseCallback.add(wrapper);
 
     super.onMount();
