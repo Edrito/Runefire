@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/rendering.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 
@@ -13,9 +16,12 @@ import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   Entity({required this.initPosition, required this.ancestor});
+  Random rng = Random();
 
   abstract EntityType entityType;
   GameEnviroment ancestor;
+
+  bool get isPlayer => this is Player;
 
   //STATUS
   Vector2 initPosition;
@@ -23,8 +29,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   EntityStatus? statusQueue;
   EntityStatus entityStatus = EntityStatus.spawn;
   abstract double height;
-
-  //META
 
   //ANIMATION
   abstract SpriteAnimation idleAnimation;
@@ -210,10 +214,14 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     shape.radius = spriteAnimationComponent.size.x / 3;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
-        restitution: 0, friction: 0, density: 0.001, filter: filter);
+        userData: {"type": FixtureType.body, "object": this},
+        restitution: 0,
+        friction: 0,
+        density: 0.001,
+        filter: filter);
     final bodyDef = BodyDef(
-      userData: this,
       position: initPosition,
+      userData: this,
       type: BodyType.dynamic,
       linearDamping: 12,
       fixedRotation: true,

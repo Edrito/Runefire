@@ -6,6 +6,7 @@ import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/main.dart';
 
 import '../entities/player.dart';
+import 'enums.dart';
 
 class InteractableComponent extends BodyComponent<GameRouter>
     with ContactCallbacks, KeyboardHandler {
@@ -94,7 +95,7 @@ class InteractableComponent extends BodyComponent<GameRouter>
     shape.radius = spriteComponent.size.x;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
-        isSensor: true,
+        userData: {"type": FixtureType.body, "object": this},
         filter: Filter()
           ..categoryBits = interactableCategory
           ..maskBits = playerCategory);

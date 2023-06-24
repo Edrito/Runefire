@@ -2,8 +2,12 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
+import 'package:flame/extensions.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/player.dart';
 import 'package:game_app/functions/custom_mixins.dart';
 import 'dart:async' as async;
 
@@ -22,6 +26,10 @@ mixin BaseAttributes {
   //Temporary effects
   Map<int, Powerup> currentPowerups = {};
   Map<int, Powerup> currentPowerdowns = {};
+
+  double get damageDuration => baseDamageDuration + damageDurationIncrease;
+  double baseDamageDuration = 2;
+  double damageDurationIncrease = 0;
 
   bool disableMovement = false;
 }
@@ -225,6 +233,8 @@ mixin HealthFunctionality on Entity {
   double get health => getMaxHealth - damageTaken;
   bool get isDead => damageTaken >= getMaxHealth;
 
+  bool get isInvincible => invincibleTimer != null;
+
   double damageTaken = 0;
   double recentDamage = 0;
 
@@ -240,17 +250,18 @@ mixin HealthFunctionality on Entity {
     setEntityStatus(EntityStatus.dead);
   }
 
-  void takeDamage(int id, double damage) {
+  void takeDamage(int id, List<DamageInstance> damage) {
     setEntityStatus(EntityStatus.damage);
-    final controller = EffectController(
+    final reversedController = EffectController(
       duration: .1,
       reverseDuration: .1,
     );
-    spriteAnimationComponent.add(SizeEffect.by(Vector2.all(.5), controller));
+    spriteAnimationComponent
+        .add(SizeEffect.by(Vector2.all(.5), reversedController));
     spriteAnimationComponent.add(ColorEffect(
       Colors.red,
       const Offset(0.0, 1),
-      controller,
+      reversedController,
     ));
     hitSourceDuration[id] =
         async.Timer(Duration(seconds: sameDamageSourceTimer), () {
@@ -264,8 +275,15 @@ mixin HealthFunctionality on Entity {
       );
       add(invincibleTimer!);
     }
-    damageTaken += damage;
-    recentDamage += damage;
+
+    DamageInstance largestEntry = damage.first;
+    for (var element in damage) {
+      damageTaken += element.damage;
+      recentDamage += element.damage;
+      if (element.damage > largestEntry.damage) largestEntry = element;
+    }
+    final color = largestEntry.getColor();
+
     if (health <= 0) {
       onDeath();
     }
@@ -281,7 +299,7 @@ mixin HealthFunctionality on Entity {
             spreadRadius: 3,
             blurRadius: 3)
       ],
-      color: Colors.red.shade100,
+      color: color,
     ));
     if (damageText == null) {
       damageText = CaTextComponent(
@@ -308,11 +326,10 @@ mixin HealthFunctionality on Entity {
       damageText!.text = recentDamage.round().toString();
       damageText!.children.whereType<TimerComponent>().first.timer.reset();
 
-      damageText!.textRenderer = (damageText!.textRenderer as TextPaint)
-          .copyWith((p0) => p0.copyWith(
-              color: p0.color!
-                  .withBlue((p0.color!.blue * .9).round().clamp(0, 255))
-                  .withGreen((p0.color!.green * .9).round().clamp(0, 255))));
+      damageText!.textRenderer =
+          (damageText!.textRenderer as TextPaint).copyWith((p0) => p0.copyWith(
+                color: color.darken(.05),
+              ));
 
       damageText!.addAll([
         ScaleEffect.by(
@@ -332,10 +349,11 @@ mixin HealthFunctionality on Entity {
     ]);
   }
 
-  bool hit(int id, double damage) {
+  bool hit(int id, List<DamageInstance> damage) {
     if (hitSourceDuration.containsKey(id) ||
-        invincibleTimer != null ||
-        isDead) {
+        isInvincible ||
+        isDead ||
+        damage.isEmpty) {
       return false;
     }
     takeDamage(id, damage);
@@ -351,16 +369,22 @@ mixin DodgeFunctionality on HealthFunctionality {
   double dodgeChanceIncrease = 0;
 
   double get dodgeChance => (baseDodgeChance + dodgeChanceIncrease).clamp(0, 1);
+  @override
   Random rng = Random();
   //HEALTH
 
   abstract SpriteAnimation? dodgeAnimation;
 
   @override
-  bool hit(int id, double damage) {
-    if (rng.nextDouble() < dodgeChance) {
-      totalDamageDodged += damage;
+  bool hit(int id, List<DamageInstance> damage) {
+    if (damage.any((element) => element.damageType == DamageType.regular) &&
+        rng.nextDouble() < dodgeChance) {
+      totalDamageDodged += damage
+          .firstWhere((element) => element.damageType == DamageType.regular)
+          .damage;
+
       dodges++;
+
       final test = TextPaint(
           style: TextStyle(
         fontSize: 3,
@@ -401,6 +425,77 @@ mixin DodgeFunctionality on HealthFunctionality {
     } else {
       return super.hit(id, damage);
     }
+  }
+}
+
+mixin TouchDamageFunctionality on ContactCallbacks, Entity {
+  ///Min damage is added to min damage calculation, same with max
+  Map<DamageType, (double, double)> touchDamageIncrease = {};
+
+  //DamageType, min, max
+  abstract Map<DamageType, (double, double)> touchDamageLevels;
+
+  List<DamageInstance> get damage {
+    List<DamageInstance> returnList = [];
+
+    for (var element in touchDamageLevels.entries) {
+      var min = element.value.$1;
+      var max = element.value.$2;
+      if (touchDamageIncrease.containsKey(element.key)) {
+        min += touchDamageIncrease[element.key]?.$1 ?? 0;
+        max += touchDamageIncrease[element.key]?.$2 ?? 0;
+      }
+      returnList.add(DamageInstance(
+          damage: ((rng.nextDouble() * max - min) + min),
+          damageType: element.key,
+          duration: damageDuration));
+    }
+
+    return returnList;
+  }
+
+  List<Body> objectsHitting = [];
+
+  double hitRate = 1;
+
+  void damageCheck() {
+    if (touchDamageLevels.isEmpty) return;
+
+    for (var element in objectsHitting) {
+      final otherReference = element.userData;
+      if (otherReference is! HealthFunctionality) continue;
+      if (isPlayer && otherReference is Enemy) {
+        otherReference.hit(hashCode, damage);
+      } else if (!isPlayer && otherReference is Player) {
+        otherReference.hit(hashCode, damage);
+      }
+    }
+  }
+
+  @override
+  void update(double dt) {
+    damageCheck();
+    super.update(dt);
+  }
+
+  @override
+  void beginContact(Object other, Contact contact) {
+    if (isPlayer && other is Enemy) {
+      objectsHitting.add(other.body);
+    } else if (!isPlayer && other is Player) {
+      objectsHitting.add(other.body);
+    }
+
+    super.beginContact(other, contact);
+  }
+
+  @override
+  void endContact(Object other, Contact contact) {
+    if (other is BodyComponent) {
+      objectsHitting.remove(other.body);
+    }
+
+    super.endContact(other, contact);
   }
 }
 

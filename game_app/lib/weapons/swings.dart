@@ -45,7 +45,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
     }
     swordFilter.categoryBits = swordCategory;
     final fixtureDef = FixtureDef(shape,
-        userData: this,
+        userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
         density: 0.1,
@@ -54,8 +54,6 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
 
     final bodyDef = BodyDef(
       userData: this,
-      // position: attackAncestor.position,
-      // angle: attackAncestor.angle,
       type: BodyType.dynamic,
     );
     renderBody = false;

@@ -50,22 +50,3 @@ abstract class BackgroundComponent extends ParallaxComponent {
 }
 
 class Forge2DComponent extends Component {}
-
-class Ball extends BodyComponent {
-  Ball(this.position);
-  Vector2 position;
-
-  @override
-  Body createBody() {
-    final shape = CircleShape()..radius = 5;
-
-    final bodyRef =
-        BodyDef(type: BodyType.dynamic, userData: this, position: position);
-    final fixtureDef = FixtureDef(
-      shape,
-      restitution: 0.5,
-      density: 0.2,
-    );
-    return world.createBody(bodyRef)..createFixture(fixtureDef);
-  }
-}

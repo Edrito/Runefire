@@ -8,6 +8,7 @@ import '../entities/enemy.dart';
 import '../entities/entity_mixin.dart';
 import '../entities/player.dart';
 import '../functions/vector_functions.dart';
+import '../resources/enums.dart';
 import '../resources/physics_filter.dart';
 
 mixin SingularProjectile on Projectile {
@@ -39,7 +40,7 @@ mixin SingularProjectile on Projectile {
     }
 
     final fixtureDef = FixtureDef(shape,
-        userData: this,
+        userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
         density: 0.00001,
@@ -60,7 +61,9 @@ mixin SingularProjectile on Projectile {
     if (weaponAncestor.isHoming || weaponAncestor.isChaining) {
       bulletFilter.categoryBits = sensorCategory;
       sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
-          userData: "homingSensor", isSensor: true, filter: bulletFilter);
+          userData: {"type": FixtureType.sensor, "object": this},
+          isSensor: true,
+          filter: bulletFilter);
       returnBody.createFixture(sensorDef!);
     }
 
@@ -161,8 +164,10 @@ mixin LaserProjectile on Projectile {
         ..maskBits = enemyCategory
         ..categoryBits = bulletCategory;
     }
-    final fixtureDef =
-        FixtureDef(shape, userData: this, isSensor: true, filter: bulletFilter);
+    final fixtureDef = FixtureDef(shape,
+        userData: {"type": FixtureType.body, "object": this},
+        isSensor: true,
+        filter: bulletFilter);
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
@@ -172,14 +177,6 @@ mixin LaserProjectile on Projectile {
     );
 
     var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
-
-    // if (weaponAncestor.isHoming || weaponAncestor.isChaining) {
-    //   bulletFilter.categoryBits = sensorCategory;
-
-    //   sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
-    //       userData: "homingSensor", isSensor: true, filter: bulletFilter);
-    //   returnBody.createFixture(sensorDef!);
-    // }
 
     return returnBody;
   }

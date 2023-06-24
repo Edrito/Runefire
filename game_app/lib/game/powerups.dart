@@ -4,6 +4,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
@@ -167,7 +168,7 @@ class Damage extends Powerup {
 
   @override
   void applyToWeaponPowerup(Weapon weapon) {
-    weapon.damageIncrease += damageIncrease;
+    // weapon.damageIncrease[DamageType.regular]!.$1 += damageIncrease;
   }
 
   @override
@@ -182,7 +183,7 @@ class Damage extends Powerup {
 
   @override
   void removeWeaponPowerup(Weapon weapon) {
-    weapon.damageIncrease -= damageIncrease;
+    // weapon.damageIncrease -= damageIncrease;
   }
 }
 
@@ -279,7 +280,7 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
       ..categoryBits = powerupCategory;
 
     final fixtureDef = FixtureDef(shape,
-        userData: this,
+        userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
         density: 0,

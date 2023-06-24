@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
+import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/weapons.dart';
@@ -202,7 +203,6 @@ extension WeaponTypeFilename on WeaponType {
       AimFunctionality ancestor, SecondaryWeaponType? secondaryWeaponType,
       [int upgradeLevel = 0]) {
     Weapon? returnWeapon;
-    Weapon? secondaryWeapon;
 
     switch (this) {
       case WeaponType.pistol:
@@ -249,4 +249,30 @@ extension WeaponTypeFilename on WeaponType {
 
 enum SemiAutoType { regular, release, charge }
 
+enum DamageType { regular, magic, energy, psychic, fire }
+
 typedef WeaponCreateFunction = Weapon Function(Entity);
+
+class DamageInstance {
+  DamageInstance(
+      {required this.damage, required this.damageType, this.duration = 1});
+
+  Color getColor() {
+    switch (damageType) {
+      case DamageType.regular:
+        return Colors.white;
+      case DamageType.magic:
+        return Colors.blue;
+      case DamageType.psychic:
+        return Colors.purple;
+      case DamageType.fire:
+        return Colors.red;
+      case DamageType.energy:
+        return Colors.yellow;
+    }
+  }
+
+  double damage;
+  DamageType damageType;
+  double duration;
+}

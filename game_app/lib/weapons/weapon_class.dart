@@ -74,7 +74,7 @@ abstract class Weapon extends Component {
         "Projectile weapon types need a projectile type");
     entityAncestor.gameRef.add(this);
 
-    assert(minDamage <= maxDamage, "Min damage must be lower than max damage");
+    // assert(minDamage <= maxDamage, "Min damage must be lower than max damage");
     newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
     applyWeaponUpgrade(newUpgradeLevel);
 
@@ -100,13 +100,32 @@ abstract class Weapon extends Component {
 
   double get durationHeld;
 
-  //DAMAGE INFORMATION
-  double damageIncrease = 1;
-  abstract double minDamage;
-  abstract double maxDamage;
+  //DAMAGE increase flat
+  //DamageType, min, max
+  ///Min damage is added to min damage calculation, same with max
+  Map<DamageType, (double, double)> damageIncrease = {};
 
-  double get damage =>
-      ((rng.nextDouble() * maxDamage - minDamage) + minDamage) * damageIncrease;
+  //DamageType, min, max
+  abstract Map<DamageType, (double, double)> baseDamageLevels;
+
+  List<DamageInstance> get damage {
+    List<DamageInstance> returnList = [];
+
+    for (var element in baseDamageLevels.entries) {
+      var min = element.value.$1;
+      var max = element.value.$2;
+      if (damageIncrease.containsKey(element.key)) {
+        min += damageIncrease[element.key]?.$1 ?? 0;
+        max += damageIncrease[element.key]?.$2 ?? 0;
+      }
+      returnList.add(DamageInstance(
+          damage: ((rng.nextDouble() * max - min) + min),
+          damageType: element.key,
+          duration: entityAncestor.damageDuration));
+    }
+
+    return returnList;
+  }
 
   //ATTRIBUTES
   bool get isChaining => chainingTargets > 0;

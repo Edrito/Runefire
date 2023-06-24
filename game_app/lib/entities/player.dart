@@ -23,6 +23,7 @@ class Player extends Entity
         DashFunctionality,
         HealthFunctionality,
         AttributeFunctionality,
+        TouchDamageFunctionality,
         WindowListener,
         AimFunctionality,
         AttackFunctionality,
@@ -108,7 +109,7 @@ class Player extends Entity
         userData: {"type": FixtureType.sensor, "object": this},
         isSensor: true,
         filter: Filter()
-          ..categoryBits = experienceCategory
+          ..categoryBits = playerCategory
           ..maskBits = experienceCategory);
 
     final bodyDef = BodyDef(
@@ -321,4 +322,9 @@ class Player extends Entity
 
   @override
   double baseInvincibilityDuration = 1;
+
+  @override
+  Map<DamageType, (double, double)> touchDamageLevels = {
+    DamageType.regular: (4, 10)
+  };
 }

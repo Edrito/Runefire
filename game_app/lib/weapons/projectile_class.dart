@@ -50,8 +50,8 @@ abstract class Projectile extends BodyComponent<GameRouter>
         hitHashcodes.contains(other.hashCode)) {
       return;
     }
-    bool isHomingSensor = contact.fixtureA.userData == "homingSensor" ||
-        contact.fixtureB.userData == "homingSensor";
+    bool isHomingSensor =
+        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor;
 
     if (isHomingSensor &&
         other.targetsHomingEntity < other.maxTargetsHomingEntity) {
@@ -76,8 +76,8 @@ abstract class Projectile extends BodyComponent<GameRouter>
   @override
   void endContact(Object other, Contact contact) {
     if (other is! HealthFunctionality) return;
-    bool isHomingSensor = contact.fixtureA.userData == "homingSensor" ||
-        contact.fixtureB.userData == "homingSensor";
+    bool isHomingSensor =
+        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor;
 
     if (isHomingSensor) {
       sensorEndContact(other);

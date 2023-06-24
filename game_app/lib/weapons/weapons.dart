@@ -67,10 +67,9 @@ class Portal extends Weapon
   int projectileCount = 1;
 
   @override
-  double minDamage = 20;
-
-  @override
-  double maxDamage = 26;
+  Map<DamageType, (double, double)> baseDamageLevels = {
+    DamageType.regular: (5, 10.0)
+  };
 
   @override
   double baseAttackRate = 2;
@@ -133,6 +132,7 @@ class Pistol extends Weapon
   ) : super(newUpgradeLevel, ancestor) {
     setSecondaryFunctionality = RapidFire(this, 2);
   }
+
   @override
   bool get allowRapidClicking => true;
 
@@ -168,10 +168,10 @@ class Pistol extends Weapon
   int projectileCount = 1;
 
   @override
-  double minDamage = 0;
-
-  @override
-  double maxDamage = 3;
+  Map<DamageType, (double, double)> baseDamageLevels = {
+    DamageType.regular: (5, 10.0),
+    DamageType.energy: (5, 10.0)
+  };
 
   @override
   double baseAttackRate = 1;
@@ -304,11 +304,9 @@ class Shotgun extends Weapon
   ];
 
   @override
-  double minDamage = 10;
-
-  @override
-  double maxDamage = 40;
-
+  Map<DamageType, (double, double)> baseDamageLevels = {
+    DamageType.regular: (10, 20.0)
+  };
   @override
   double baseAttackRate = .5;
 
@@ -449,6 +447,11 @@ class Bow extends Weapon
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
+
+  @override
+  Map<DamageType, (double, double)> baseDamageLevels = {
+    DamageType.regular: (5, 10.0)
+  };
 }
 
 class Sword extends Weapon
@@ -531,10 +534,9 @@ class Sword extends Weapon
   List<WeaponSpritePosition> spirtePositions = [WeaponSpritePosition.back];
 
   @override
-  double minDamage = 20;
-
-  @override
-  double maxDamage = 40;
+  Map<DamageType, (double, double)> baseDamageLevels = {
+    DamageType.regular: (5, 10.0)
+  };
   @override
   double baseAttackRate = .2;
   @override

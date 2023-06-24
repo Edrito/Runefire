@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/animation.dart';
 import 'package:game_app/resources/physics_filter.dart';
 
 import '../entities/player.dart';
@@ -26,11 +27,16 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
         sprite: await Sprite.load(experienceAmount.getSpriteString()),
         size: Vector2.all(size),
         anchor: Anchor.center);
+
     spriteComponent.add(OpacityEffect.fadeIn(EffectController(duration: 1)));
     spriteComponent.add(MoveEffect.by(
         Vector2(0, 1.2),
-        InfiniteEffectController(
-            EffectController(duration: .5, reverseDuration: .5))));
+        InfiniteEffectController(EffectController(
+            duration: .5,
+            reverseDuration: .5,
+            curve: Curves.easeInOut,
+            reverseCurve: Curves.easeInOut))));
+
     add(spriteComponent);
     return super.onLoad();
   }
@@ -39,7 +45,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Map) return;
+    if (other is! Map || other['object'] is ExperienceItem) return;
     if (other['type'] == FixtureType.sensor) {
       target = other['object'];
     } else if (other['type'] == FixtureType.body) {
@@ -71,11 +77,13 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
     renderBody = false;
     final experienceFilter = Filter()
-      ..maskBits = experienceCategory + playerCategory
+      ..maskBits = playerCategory
       ..categoryBits = experienceCategory;
 
     final fixtureDef = FixtureDef(shape,
-        userData: this, isSensor: true, filter: experienceFilter);
+        userData: {"type": FixtureType.body, "object": this},
+        isSensor: true,
+        filter: experienceFilter);
 
     final bodyDef = BodyDef(
       userData: this,

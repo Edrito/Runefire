@@ -163,36 +163,9 @@ abstract class Enemy extends Entity with ContactCallbacks {
   // ..maskBits = 0xFFFF;
 
   TimerComponent? shooter;
-  bool hittingPlayer = false;
   double shotFreq = 1;
 
   abstract double touchDamage;
-
-  @override
-  void beginContact(Object other, Contact contact) {
-    if (other is Player) {
-      hittingPlayer = true;
-    }
-
-    super.beginContact(other, contact);
-  }
-
-  @override
-  void endContact(Object other, Contact contact) {
-    if (other is Player) {
-      hittingPlayer = false;
-    }
-    super.endContact(other, contact);
-  }
-
-  @override
-  void update(double dt) {
-    if (hittingPlayer) {
-      ancestor.player.hit(hashCode, touchDamage);
-    }
-
-    super.update(dt);
-  }
 
   @override
   EntityType entityType = EntityType.enemy;
