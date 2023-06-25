@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
+import 'package:flutter/services.dart';
 import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/pages/main_menu.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
@@ -39,25 +40,36 @@ void main() async {
   GameRouter gameRouter = GameRouter(systemData, playerData);
 
   runApp(
-    DefaultTextStyle(
-      style: const TextStyle(fontFamily: "HeroSpeak"),
-      child: GameWidget(
-          backgroundBuilder: (context) {
-            return Container(
-              color: const Color.fromARGB(255, 37, 112, 108),
-            );
-          },
-          loadingBuilder: (p0) {
-            return Container(
-                color: const Color.fromARGB(255, 72, 37, 112),
-                child: const CircularProgressIndicator());
-          },
-          game: gameRouter,
-          overlayBuilderMap: Map<String,
-              Widget Function(BuildContext, GameRouter)>.fromEntries([
-            overlays.pauseMenu,
-            overlays.weaponModifyMenu,
-          ])),
+    Listener(
+      // onPointerHover: (event) {
+      //   gameRouter.onMouseMove(PointerHoverInfo.fromDetails(gameRouter, event));
+      // },
+      onPointerMove: (event) {
+        if (event.buttons == 2 && event.kind == PointerDeviceKind.mouse) {
+          gameRouter.onMouseMove(PointerHoverInfo.fromDetails(
+              gameRouter, PointerHoverEvent(position: event.position)));
+        }
+      },
+      child: DefaultTextStyle(
+        style: const TextStyle(fontFamily: "HeroSpeak"),
+        child: GameWidget(
+            backgroundBuilder: (context) {
+              return Container(
+                color: const Color.fromARGB(255, 37, 112, 108),
+              );
+            },
+            loadingBuilder: (p0) {
+              return Container(
+                  color: const Color.fromARGB(255, 72, 37, 112),
+                  child: const CircularProgressIndicator());
+            },
+            game: gameRouter,
+            overlayBuilderMap: Map<String,
+                Widget Function(BuildContext, GameRouter)>.fromEntries([
+              overlays.pauseMenu,
+              overlays.weaponModifyMenu,
+            ])),
+      ),
     ),
   );
   // );
@@ -67,9 +79,9 @@ class GameRouter extends Forge2DGame
     with
         HasKeyboardHandlerComponents,
         ScrollDetector,
+        SecondaryTapDetector,
         MouseMovementDetector,
-        TapDetector,
-        SecondaryTapDetector {
+        TapDetector {
   late final RouterComponent router;
 
   GameRouter(this.systemData, this.playerData)
@@ -183,7 +195,6 @@ class GameRouter extends Forge2DGame
         }
       }
     }
-    super.onMouseMove(info);
   }
 
   @override

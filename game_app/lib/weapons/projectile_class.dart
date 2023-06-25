@@ -23,7 +23,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
   ProjectileFunctionality weaponAncestor;
   double closeBodySensorRadius = 17.5;
   Vector2 originPosition;
-  late Shape shape;
   abstract double size;
   abstract double ttl;
   abstract ProjectileType projectileType;
@@ -37,7 +36,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   //Attributes
   double power;
-  abstract double embedIntoEnemyChance;
   int chainedTargets = 0;
 
   FixtureDef? sensorDef;
@@ -50,13 +48,16 @@ abstract class Projectile extends BodyComponent<GameRouter>
         hitHashcodes.contains(other.hashCode)) {
       return;
     }
-    bool isHomingSensor =
-        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor;
+    var typeOfFixutre = (contact.fixtureB.userData as Map)['type'];
+    bool isHomingSensor = typeOfFixutre == FixtureType.sensor;
 
     if (isHomingSensor &&
         other.targetsHomingEntity < other.maxTargetsHomingEntity) {
       sensorContact(other);
-    } else if (!projectileHasExpired && !isHomingSensor && !other.isDead) {
+    } else if (typeOfFixutre == FixtureType.body &&
+        !projectileHasExpired &&
+        !isHomingSensor &&
+        !other.isDead) {
       bodyContact(other);
     }
 

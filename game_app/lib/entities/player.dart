@@ -57,23 +57,24 @@ class Player extends Entity
     super.onRemove();
   }
 
-  @override
-  void onWindowBlur() {
-    physicalKeysPressed.clear();
-    parseKeys(null);
-    game.overlays.add('PauseMenu');
-    game.pauseEngine();
-    super.onWindowBlur();
-  }
+  // @override
+  // void onWindowBlur() {
+  //   physicalKeysPressed.clear();
+  //   parseKeys(null);
+  //   game.overlays.add('PauseMenu');
+  //   game.pauseEngine();
+  //   super.onWindowBlur();
+  // }
 
   late MouseCallbackWrapper mouseCallbackWrapper;
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll([
-      WeaponType.shotgun,
+      WeaponType.portal,
       WeaponType.pistol,
       WeaponType.sword,
     ]);
+
     await loadAnimationSprites();
     windowManager.addListener(this);
 

@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 
 import '../game/enviroment.dart';
+import 'package:forge2d/src/settings.dart' as settings;
 
 Vector2 vectorToGrid(Vector2 v1, Vector2 size) {
   return ((v1) - size / 2);
@@ -114,6 +115,19 @@ List<Vector2> splitVector2DeltaInCone(
   }
 
   return angles;
+}
+
+List<Vector2> validateChainDistances(final List<Vector2> vertices) {
+  List<Vector2> returnList = [];
+  for (var i = 1; i < vertices.length; i++) {
+    final v1 = vertices[i - 1];
+    final v2 = vertices[i];
+    // If the code crashes here, it means your vertices are too close together.
+    if (v1.distanceToSquared(v2) >= settings.linearSlop * settings.linearSlop) {
+      returnList.add(v1);
+    }
+  }
+  return returnList;
 }
 
 // Function to calculate the delta

@@ -3,7 +3,7 @@ import 'package:game_app/weapons/projectile_mixin.dart';
 
 import '../resources/enums.dart';
 
-class Bullet extends Projectile with SingularProjectile {
+class Bullet extends Projectile with RegularProjectile {
   Bullet(
       {required super.delta,
       required super.originPosition,
@@ -29,9 +29,6 @@ class Laser extends Projectile with LaserProjectile {
       required super.originPosition,
       required super.weaponAncestor,
       super.power});
-
-  @override
-  double embedIntoEnemyChance = .8;
 
   @override
   ProjectileType projectileType = ProjectileType.laser;

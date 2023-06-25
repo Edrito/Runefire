@@ -15,7 +15,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
   late SpriteComponent spriteComponent;
   double size = 1.2;
   Vector2 originPosition;
-  double speed = 3;
+  double speed = 30;
 
   Player? target;
 
@@ -30,7 +30,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
     spriteComponent.add(OpacityEffect.fadeIn(EffectController(duration: 1)));
     spriteComponent.add(MoveEffect.by(
-        Vector2(0, 1.2),
+        Vector2(0, .75),
         InfiniteEffectController(EffectController(
             duration: .5,
             reverseDuration: .5,
@@ -60,7 +60,13 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void update(double dt) {
     if (target != null) {
-      body.applyLinearImpulse((target!.center - center) * speed);
+      body.setTransform(
+          center +
+              (target!.center - center).normalized() *
+                  (speed * dt) *
+                  target!.center.distanceTo(center).clamp(1, 3),
+          angle);
+      // body.applyLinearImpulse((target!.center - center).normalized() /speed);
     }
     super.update(dt);
   }
@@ -88,8 +94,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      linearDamping: 1,
-      type: BodyType.dynamic,
+      type: BodyType.static,
     );
 
     return world.createBody(bodyDef)..createFixture(fixtureDef);

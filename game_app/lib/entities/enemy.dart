@@ -6,7 +6,6 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/enemy_mixin.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/entities/player.dart';
 import 'package:game_app/game/powerups.dart';
 
 import '../functions/functions.dart';

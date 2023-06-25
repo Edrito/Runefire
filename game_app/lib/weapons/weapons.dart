@@ -12,11 +12,15 @@ import '../resources/enums.dart';
 typedef BodyComponentFunction = List<BodyComponent> Function();
 
 class Portal extends Weapon
-    with ProjectileFunctionality, SecondaryAbilityFunctionality, FullAutomatic {
+    with
+        ProjectileFunctionality,
+        SecondaryFunctionality,
+        SemiAutomatic,
+        ReloadFunctionality {
   Portal.create(
-    super.newUpgradeLevel,
-    super.ancestor,
-  );
+    int newUpgradeLevel,
+    AimFunctionality ancestor,
+  ) : super(newUpgradeLevel, ancestor);
 
   @override
   void applyWeaponUpgrade(int newUpgradeLevel) {
@@ -53,6 +57,10 @@ class Portal extends Weapon
   }
 
   @override
+  // TODO: implement chainingTargets
+  int get chainingTargets => 5;
+
+  @override
   bool countIncreaseWithTime = false;
 
   late CircleComponent circle;
@@ -68,29 +76,23 @@ class Portal extends Weapon
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (5, 10.0)
+    DamageType.fire: (500, 1000.0)
   };
 
   @override
-  double baseAttackRate = 2;
-
-  @override
-  bool holdAndRelease = false;
-
-  @override
-  bool isHoming = false;
+  double baseAttackRate = 1;
 
   @override
   double length = 2;
 
   @override
-  int? maxAmmo;
+  int? maxAmmo = 5;
 
   @override
   double maxSpreadDegrees = 270;
 
   @override
-  int pierce = 0;
+  int pierce = 5;
 
   @override
   late Sprite projectileSprite;
@@ -117,21 +119,24 @@ class Portal extends Weapon
     add(circle);
     return super.onLoad();
   }
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.regular;
+
+  @override
+  double reloadTime = 1;
 }
 
 class Pistol extends Weapon
     with
-        SemiAutomatic,
+        FullAutomatic,
         ProjectileFunctionality,
         ReloadFunctionality,
-        SecondaryAbilityFunctionality,
-        ReloadFunctionality {
+        SecondaryFunctionality {
   Pistol.create(
     int newUpgradeLevel,
     AimFunctionality ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
-    setSecondaryFunctionality = RapidFire(this, 2);
-  }
+  ) : super(newUpgradeLevel, ancestor);
 
   @override
   bool get allowRapidClicking => true;
@@ -247,13 +252,11 @@ class Shotgun extends Weapon
         ProjectileFunctionality,
         FullAutomatic,
         ReloadFunctionality,
-        SecondaryAbilityFunctionality {
+        SecondaryFunctionality {
   Shotgun.create(
     super.newUpgradeLevel,
     super.ancestor,
-  ) {
-    setSecondaryFunctionality = RapidFire(this, 5);
-  }
+  );
 
   @override
   void applyWeaponUpgrade(int newUpgradeLevel) {
@@ -347,7 +350,7 @@ class Shotgun extends Weapon
 }
 
 class Bow extends Weapon
-    with ProjectileFunctionality, SecondaryAbilityFunctionality, SemiAutomatic {
+    with ProjectileFunctionality, SecondaryFunctionality, SemiAutomatic {
   Bow.create(
     super.newUpgradeLevel,
     super.ancestor,
@@ -450,15 +453,18 @@ class Bow extends Weapon
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (5, 10.0)
+    DamageType.regular: (50, 100.0)
   };
 }
 
 class Sword extends Weapon
-    with MeleeFunctionality, SecondaryAbilityFunctionality, FullAutomatic
+    with MeleeFunctionality, SecondaryFunctionality, FullAutomatic
 // ,        ReloadFunctionality
 {
-  Sword.create(super.newUpgradeLevel, super.ancestor) {
+  Sword.create(
+    int newUpgradeLevel,
+    AimFunctionality ancestor,
+  ) : super(newUpgradeLevel, ancestor) {
     attackPatterns = [
       (Vector2(6, -4), 0),
       (Vector2(0, 8), 45),
@@ -467,13 +473,21 @@ class Sword extends Weapon
       (Vector2(-6, -4), 0),
       (Vector2(0, 8), -45),
     ];
-    {
-      setSecondaryFunctionality = RapidFire(this, 5);
-    }
+    {}
 
     maxAmmo = (attackPatterns.length / 2).round();
 
     assert(attackPatterns.length.isEven, "Must be an even number of coords");
+  }
+
+  @override
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirtePositions.add(WeaponSpritePosition.hand);
+    } else {
+      spirtePositions.add(WeaponSpritePosition.back);
+    }
   }
 
   @override
@@ -522,7 +536,7 @@ class Sword extends Weapon
   }
 
   @override
-  bool get removeBackSpriteOnAttack => true;
+  bool get removeSpriteOnAttack => true;
 
   @override
   double distanceFromPlayer = .2;
@@ -531,7 +545,7 @@ class Sword extends Weapon
   int projectileCount = 10;
 
   @override
-  List<WeaponSpritePosition> spirtePositions = [WeaponSpritePosition.back];
+  List<WeaponSpritePosition> spirtePositions = [];
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {

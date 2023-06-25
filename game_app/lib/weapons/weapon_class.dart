@@ -40,27 +40,27 @@ class PlayerAttachmentJointComponent extends PositionComponent
 
   Future<void> addWeaponClass(Weapon newWeapon) async {
     removePreviousComponents();
-    if (!newWeapon.spirtePositions.contains(jointPosition)) return;
     weaponClass = newWeapon;
     anchor = Anchor.center;
     var tipPositionPercent = newWeapon.tipPositionPercent.clamp(-.5, .5);
     weaponBase = PositionComponent(
         anchor: Anchor.center,
         position: Vector2(0, newWeapon.distanceFromPlayer));
-    spriteComponent = await newWeapon.buildSpriteComponent(jointPosition);
+    if (newWeapon.spirtePositions.contains(jointPosition)) {
+      spriteComponent = await newWeapon.buildSpriteComponent(jointPosition);
+      weaponTip = PositionComponent(
+          anchor: Anchor.center,
+          position: Vector2(spriteComponent!.size.x * tipPositionPercent,
+              spriteComponent!.size.y));
+      weaponTipCenter = PositionComponent(
+          anchor: Anchor.center, position: Vector2(0, spriteComponent!.size.y));
+      weaponBase?.add(spriteComponent!);
+      weaponBase?.add(weaponTipCenter!);
+      weaponBase?.add(weaponTip!);
+    }
 
     priority = 0;
-    weaponTip = PositionComponent(
-        anchor: Anchor.center,
-        position: Vector2(spriteComponent!.size.x * tipPositionPercent,
-            spriteComponent!.size.y));
 
-    weaponTipCenter = PositionComponent(
-        anchor: Anchor.center, position: Vector2(0, spriteComponent!.size.y));
-
-    weaponBase?.add(weaponTipCenter!);
-    weaponBase?.add(weaponTip!);
-    weaponBase?.add(spriteComponent!);
     add(weaponBase!);
     weaponClass!.parents[jointPosition] = this;
   }
@@ -73,15 +73,12 @@ abstract class Weapon extends Component {
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
     entityAncestor.gameRef.add(this);
-
-    // assert(minDamage <= maxDamage, "Min damage must be lower than max damage");
     newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
     applyWeaponUpgrade(newUpgradeLevel);
-
-    assert(this is! SecondaryAbilityFunctionality ||
-        this is! SecondaryWeaponFunctionality);
   }
   Random rng = Random();
+
+  bool isSecondaryWeapon = false;
 
   bool get isReloading => this is ReloadFunctionality
       ? (this as ReloadFunctionality).reloadTimer != null
@@ -89,9 +86,7 @@ abstract class Weapon extends Component {
 
   //META INFORMATION
 
-  bool get hasAltAttack =>
-      this is SecondaryAbilityFunctionality ||
-      this is SecondaryWeaponFunctionality;
+  bool get hasAltAttack => this is SecondaryFunctionality;
 
   int upgradeLevel = 0;
   int maxLevel = 5;
@@ -144,7 +139,7 @@ abstract class Weapon extends Component {
   abstract double tipPositionPercent;
   abstract double length;
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent> parents = {};
-  bool removeBackSpriteOnAttack = false;
+  bool removeSpriteOnAttack = false;
   bool allowRapidClicking = false;
 
   bool isHoming = false;
@@ -168,7 +163,12 @@ abstract class Weapon extends Component {
   void weaponSwappedTo() {}
 
   /// Returns true if an attack occured, otherwise false.
-  bool attackAttempt();
+  void attackAttempt() {
+    if (removeSpriteOnAttack) {
+      entityAncestor.backJoint.spriteComponent?.opacity = 0;
+      entityAncestor.handJoint.spriteComponent?.opacity = 0;
+    }
+  }
 }
 
 abstract class SecondaryWeaponAbility extends Component {
@@ -177,9 +177,19 @@ abstract class SecondaryWeaponAbility extends Component {
   Weapon weapon;
   double cooldown;
   TimerComponent? cooldownTimer;
+  ReloadAnimation? reloadAnimation;
   bool get isCoolingDown => cooldownTimer != null;
 
+  void removeReloadAnimation() {
+    reloadAnimation?.removeFromParent();
+    reloadAnimation = null;
+  }
+
   void startAttacking() {
+    if (isCoolingDown) return;
+    reloadAnimation = ReloadAnimation(cooldown, weapon.entityAncestor, true)
+      ..addToParent(weapon.entityAncestor);
+
     cooldownTimer = TimerComponent(
       period: cooldown,
       removeOnFinish: true,
@@ -217,10 +227,10 @@ class RapidFire extends SecondaryWeaponAbility {
     } else {
       reload.spentAttacks = 0;
     }
-
     rapidFireTimer = TimerComponent(
       repeat: true,
       period: weaponAttackRate / attackRateIncrease,
+      autoStart: true,
       onTick: () {
         if (weapon is SemiAutomatic) {
           (weapon as SemiAutomatic).durationHeld = weapon.attackRate / 2;
@@ -237,7 +247,8 @@ class RapidFire extends SecondaryWeaponAbility {
           rapidFireTimer = null;
         }
       },
-    )..addToParent(this);
+    );
+    add(rapidFireTimer!);
 
     super.startAttacking();
   }

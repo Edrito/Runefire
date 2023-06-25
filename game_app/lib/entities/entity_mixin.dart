@@ -9,6 +9,7 @@ import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/functions/custom_mixins.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 import 'dart:async' as async;
 
 import '../functions/vector_functions.dart';
@@ -144,6 +145,10 @@ mixin AttackFunctionality on AimFunctionality {
     int i = 0;
     for (var element in initialWeapons) {
       carriedWeapons[i] = element.build(this, null, 0);
+      if (carriedWeapons[i] is SecondaryFunctionality) {
+        (carriedWeapons[i] as SecondaryFunctionality)
+            .setSecondaryFunctionality = RapidFire(carriedWeapons[i]!, 4);
+      }
       i++;
     }
     initialWeapons.clear();
@@ -165,7 +170,7 @@ mixin AttackFunctionality on AimFunctionality {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    initializeWeapons();
+    await initializeWeapons();
     await setWeapon(carriedWeapons.entries.first.value);
   }
 
@@ -658,7 +663,7 @@ mixin AttributeFunctionality on Entity {
     }
   }
 
-  void modifyLevel(AttributeEnum attributeEnum, [int amount = 1]) {
+  void modifyLevel(AttributeEnum attributeEnum, [int amount = 0]) {
     if (attributes.containsKey(attributeEnum)) {
       var attr = attributes[attributeEnum]!;
       attr.incrementLevel(amount);

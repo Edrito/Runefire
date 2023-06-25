@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 
+import '../entities/entity.dart';
 import '../entities/entity_mixin.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
@@ -23,7 +24,7 @@ mixin ReloadFunctionality on Weapon {
   int spentAttacks = 0;
 
   ///Instance of reloading visual
-  Component? reloadAnimation;
+  PositionComponent? reloadAnimation;
 
   int? get remainingAttacks => maxAmmo == null ? null : maxAmmo! - spentAttacks;
 
@@ -40,16 +41,17 @@ mixin ReloadFunctionality on Weapon {
   }
 
   @override
-  bool attackAttempt() {
+  void attackAttempt() {
     //Do not attack if reloading
     if (reloadTimer != null) {
-      return false;
+      return;
     }
 
-    var result = super.attackAttempt();
+    spentAttacks++;
+    super.attackAttempt();
+
     //Check if needs to reload after an attack
     reloadCheck();
-    return result;
   }
 
   void stopReloading() {
@@ -76,24 +78,27 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void createReloadBar() {
-    final spriteSize = entityAncestor.spriteWrapper.size;
-    reloadAnimation = ReloadAnimation(reloadTime, spriteSize);
+    reloadAnimation =
+        ReloadAnimation(reloadTime, entityAncestor, isSecondaryWeapon);
+
     entityAncestor.add(reloadAnimation!);
   }
 
   void reloadCheck() {
     if (remainingAttacks != 0 || reloadTimer != null || reloadTime == 0) return;
-    if (removeBackSpriteOnAttack) {
+    if (removeSpriteOnAttack) {
       entityAncestor.backJoint.spriteComponent?.opacity = 1;
+      entityAncestor.handJoint.spriteComponent?.opacity = 1;
     }
     createReloadBar();
-    reloadTimer ??= TimerComponent(
+    reloadTimer = TimerComponent(
       period: reloadTime,
       removeOnFinish: true,
       onTick: () {
         stopReloading();
       },
-    )..addToParent(this);
+    );
+    add(reloadTimer!);
   }
 }
 
@@ -133,6 +138,12 @@ mixin MeleeFunctionality on Weapon {
     super.endAttacking();
   }
 
+  @override
+  void attackAttempt() {
+    melee();
+    super.attackAttempt();
+  }
+
   void resetToFirstSwings() {
     currentSwingAngle = null;
     currentSwingPosition = null;
@@ -143,40 +154,40 @@ mixin MeleeFunctionality on Weapon {
   double? currentSwingAngle;
 }
 
-mixin SecondaryWeaponFunctionality on Weapon {
-  set setSecondaryFunctionality(SecondaryWeaponFunctionality item) {
-    _secondaryWeapon = item;
-    _secondaryWeapon?.parents = parents;
+mixin SecondaryFunctionality on Weapon {
+  set setSecondaryFunctionality(dynamic item) {
+    if (item is Weapon) {
+      _secondaryWeapon = item;
+      _secondaryWeapon?.parents = parents;
+      _secondaryWeapon?.isSecondaryWeapon = true;
+
+      assert(_secondaryWeapon is! FullAutomatic);
+    } else if (item is SecondaryWeaponAbility) {
+      _secondaryWeaponAbility = item;
+      add(item);
+    }
   }
 
-  SecondaryWeaponFunctionality? _secondaryWeapon;
+  bool get secondaryIsWeapon => _secondaryWeapon != null;
+
+  Weapon? _secondaryWeapon;
+  SecondaryWeaponAbility? _secondaryWeaponAbility;
+
+  @override
+  void weaponSwappedFrom() {
+    _secondaryWeaponAbility?.removeReloadAnimation();
+    super.weaponSwappedFrom();
+  }
 
   @override
   void startAltAttacking() {
     _secondaryWeapon?.startAttacking();
-  }
-
-  @override
-  void endAltAttacking() {
-    _secondaryWeapon?.endAttacking();
-  }
-}
-
-mixin SecondaryAbilityFunctionality on Weapon {
-  set setSecondaryFunctionality(SecondaryWeaponAbility item) {
-    _secondaryWeaponAbility = item;
-    add(_secondaryWeaponAbility!);
-  }
-
-  SecondaryWeaponAbility? _secondaryWeaponAbility;
-
-  @override
-  void startAltAttacking() {
     _secondaryWeaponAbility?.startAttacking();
   }
 
   @override
   void endAltAttacking() {
+    _secondaryWeapon?.endAttacking();
     _secondaryWeaponAbility?.endAttacking();
   }
 }
@@ -196,6 +207,18 @@ mixin ProjectileFunctionality on Weapon {
     if (countIncreaseWithTime) {
       additionalCount = durationHeld.round();
     }
+  }
+
+  @override
+  void attackAttempt() {
+    var holdDurationPercent = 1.0;
+    if (this is SemiAutomatic) {
+      holdDurationPercent =
+          (this as SemiAutomatic).holdDurationPercentOfAttackRate;
+    }
+
+    shoot(holdDurationPercent);
+    super.attackAttempt();
   }
 
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
@@ -276,9 +299,10 @@ mixin ProjectileFunctionality on Weapon {
 }
 
 class ReloadAnimation extends PositionComponent {
-  ReloadAnimation(this.duration, this.parentSize);
+  ReloadAnimation(this.duration, this.entityAncestor, this.isSecondaryWeapon);
   double duration;
-  Vector2 parentSize;
+  Entity entityAncestor;
+  bool isSecondaryWeapon;
   @override
   final height = .5;
 
@@ -286,11 +310,15 @@ class ReloadAnimation extends PositionComponent {
 
   @override
   FutureOr<void> onLoad() {
+    final parentSize = entityAncestor.spriteWrapper.size;
+
     size = parentSize;
+
     size.y = height;
 
     anchor = Anchor.center;
     position.y = parentSize.y / -2;
+
     final timer = TimerComponent(
       period: duration,
       removeOnFinish: true,
@@ -304,16 +332,22 @@ class ReloadAnimation extends PositionComponent {
     movingBar.add(MoveEffect.to(
         Vector2(size.x - sidePadding, movingBar.position.y),
         EffectController(duration: duration)));
-    add(movingBar);
-    add(timer);
-    return super.onLoad();
-  }
 
-  @override
-  void render(Canvas canvas) {
-    canvas.drawLine(Vector2.zero().toOffset(), Offset(size.x, 0),
-        BasicPalette.white.paint());
-    super.render(canvas);
+    final bar = RectangleComponent(size: Vector2(size.x, .15));
+    bar.anchor = Anchor.centerLeft;
+
+    if (isSecondaryWeapon) {
+      position.y += -height * 1.5;
+      movingBar.setColor(BasicPalette.green.color);
+      bar.setColor(BasicPalette.green.color);
+    }
+    addAll([
+      movingBar,
+      bar,
+      timer,
+    ]);
+
+    return super.onLoad();
   }
 }
 
@@ -367,25 +401,6 @@ mixin SemiAutomatic on Weapon {
       attackAttempt();
     }
   }
-
-  @override
-  bool attackAttempt() {
-    if (removeBackSpriteOnAttack) {
-      entityAncestor.backJoint.spriteComponent?.opacity = 0;
-    }
-
-    if (this is ReloadFunctionality) {
-      (this as ReloadFunctionality).spentAttacks++;
-    }
-
-    if (this is ProjectileFunctionality) {
-      (this as ProjectileFunctionality).shoot(holdDurationPercentOfAttackRate);
-    }
-    if (this is MeleeFunctionality) {
-      (this as MeleeFunctionality).melee(holdDurationPercentOfAttackRate);
-    }
-    return true;
-  }
 }
 
 mixin FullAutomatic on Weapon {
@@ -402,8 +417,9 @@ mixin FullAutomatic on Weapon {
   }
 
   void attackFinishTick() {
-    if (removeBackSpriteOnAttack) {
+    if (removeSpriteOnAttack) {
       entityAncestor.backJoint.spriteComponent?.opacity = 1;
+      entityAncestor.handJoint.spriteComponent?.opacity = 1;
     }
 
     attackTimer?.removeFromParent();
@@ -440,24 +456,5 @@ mixin FullAutomatic on Weapon {
         }
       },
     )..addToParent(this);
-  }
-
-  @override
-  bool attackAttempt() {
-    if (removeBackSpriteOnAttack) {
-      entityAncestor.backJoint.spriteComponent?.opacity = 0;
-    }
-
-    if (this is ReloadFunctionality) {
-      (this as ReloadFunctionality).spentAttacks++;
-    }
-
-    if (this is ProjectileFunctionality) {
-      (this as ProjectileFunctionality).shoot();
-    }
-    if (this is MeleeFunctionality) {
-      (this as MeleeFunctionality).melee();
-    }
-    return true;
   }
 }

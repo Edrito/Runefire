@@ -11,9 +11,10 @@ import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
 import '../resources/physics_filter.dart';
 
-mixin SingularProjectile on Projectile {
+mixin RegularProjectile on Projectile {
   late final CircleComponent circleComponent;
   int enemiesHit = 0;
+  abstract double embedIntoEnemyChance;
 
   void incrementHits() {
     enemiesHit++;
@@ -23,10 +24,13 @@ mixin SingularProjectile on Projectile {
     }
   }
 
+  late Shape shape;
+
   @override
   Body createBody() {
     shape = CircleShape();
     shape.radius = circleComponent.radius;
+    renderBody = false;
 
     final bulletFilter = Filter();
     if (weaponAncestor.entityAncestor is Enemy) {
@@ -46,6 +50,7 @@ mixin SingularProjectile on Projectile {
         density: 0.00001,
         isSensor: true,
         filter: bulletFilter);
+
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
@@ -73,25 +78,19 @@ mixin SingularProjectile on Projectile {
   @override
   Future<void> onLoad() {
     circleComponent = CircleComponent(
-        radius: .3, anchor: Anchor.center, paint: BasicPalette.red.paint());
+        radius: size / 2,
+        anchor: Anchor.center,
+        paint: BasicPalette.red.paint());
     add(circleComponent);
 
     return super.onLoad();
   }
 
-  @override
-  void render(Canvas canvas) {
-    canvas.drawLine(
-        Offset.zero, (body.linearVelocity.normalized() * -1).toOffset(), paint);
-  }
-
-  @override
-  void update(double dt) {
-    // if (!bulletHasExpired && weaponAncestor.parent != null) {
-    //   bulletAngleCalc();
-    // }
-    super.update(dt);
-  }
+  // @override
+  // void render(Canvas canvas) {
+  //   canvas.drawLine(
+  //       Offset.zero, (body.linearVelocity.normalized() * -1).toOffset(), paint);
+  // }
 
   void bulletAngleCalc() {
     if ((weaponAncestor).allowProjectileRotation) {
@@ -146,13 +145,14 @@ mixin LaserProjectile on Projectile {
   abstract bool isContinuous;
   List<Vector2> lineThroughEnemies = [];
   List<Vector2> boxThroughEnemies = [];
+  late Shape laserShape;
 
   @override
   Body createBody() {
     debugMode = false;
     renderBody = false;
 
-    shape = ChainShape()..createLoop(boxThroughEnemies);
+    laserShape = ChainShape()..createLoop(boxThroughEnemies);
 
     final bulletFilter = Filter();
     if (weaponAncestor.entityAncestor is Enemy) {
@@ -164,7 +164,7 @@ mixin LaserProjectile on Projectile {
         ..maskBits = enemyCategory
         ..categoryBits = bulletCategory;
     }
-    final fixtureDef = FixtureDef(shape,
+    final fixtureDef = FixtureDef(laserShape,
         userData: {"type": FixtureType.body, "object": this},
         isSensor: true,
         filter: bulletFilter);
@@ -288,7 +288,7 @@ mixin LaserProjectile on Projectile {
 
     boxThroughEnemies =
         expandToBox(lineThroughEnemies, width / 2).toSet().toList();
-
+    boxThroughEnemies = validateChainDistances(boxThroughEnemies);
     return super.onLoad();
   }
 
