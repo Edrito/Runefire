@@ -13,6 +13,7 @@ import '../functions/vector_functions.dart';
 import '../game/enviroment.dart';
 import '../resources/physics_filter.dart';
 import '../resources/enums.dart';
+import '../resources/priorities.dart';
 
 class Dummy extends Enemy with HealthFunctionality {
   Dummy({
@@ -150,6 +151,10 @@ abstract class Enemy extends Entity with ContactCallbacks {
     required super.initPosition,
     required super.ancestor,
   });
+
+  @override
+  // TODO: implement priority
+  int get priority => enemyPriority;
 
   @override
   Filter? filter = Filter()

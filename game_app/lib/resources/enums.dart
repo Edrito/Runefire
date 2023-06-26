@@ -255,7 +255,7 @@ typedef WeaponCreateFunction = Weapon Function(Entity);
 
 class DamageInstance {
   DamageInstance(
-      {required this.damage, required this.damageType, this.duration = 1});
+      {required this.damageBase, required this.damageType, this.duration = 1});
 
   Color getColor() {
     switch (damageType) {
@@ -272,7 +272,9 @@ class DamageInstance {
     }
   }
 
-  double damage;
+  double damageBase;
+  int get damage => damageBase.ceil();
+
   DamageType damageType;
   double duration;
 }

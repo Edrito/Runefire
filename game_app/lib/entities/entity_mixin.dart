@@ -68,6 +68,8 @@ mixin MovementFunctionality on Entity {
 }
 
 mixin AimFunctionality on Entity {
+  Vector2 lastAimingPosition = Vector2.zero();
+
   Vector2 get aimDelta => (inputAimAngles[InputType.aimJoy] ??
       inputAimAngles[InputType.tapClick] ??
       inputAimAngles[InputType.mouseDrag] ??
@@ -87,7 +89,7 @@ mixin AimFunctionality on Entity {
     handJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.hand,
         anchor: Anchor.center, size: Vector2.zero());
     mouseJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.mouse,
-        anchor: Anchor.center, size: Vector2.zero(), priority: 0);
+        anchor: Anchor.center, size: Vector2.zero());
     add(handJoint);
     add(mouseJoint);
     return super.onLoad();
@@ -152,6 +154,13 @@ mixin AttackFunctionality on AimFunctionality {
       i++;
     }
     initialWeapons.clear();
+  }
+
+  @override
+  void onRemove() {
+    carriedWeapons.forEach((key, value) => value.removeFromParent());
+
+    super.onRemove();
   }
 
   void endAttacking() {
@@ -358,6 +367,9 @@ mixin HealthFunctionality on Entity {
     if (hitSourceDuration.containsKey(id) ||
         isInvincible ||
         isDead ||
+        (damage.fold<double>(0,
+                (previousValue, element) => previousValue += element.damage)) ==
+            0 ||
         damage.isEmpty) {
       return false;
     }
@@ -451,7 +463,7 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
         max += touchDamageIncrease[element.key]?.$2 ?? 0;
       }
       returnList.add(DamageInstance(
-          damage: ((rng.nextDouble() * max - min) + min),
+          damageBase: ((rng.nextDouble() * max - min) + min),
           damageType: element.key,
           duration: damageDuration));
     }

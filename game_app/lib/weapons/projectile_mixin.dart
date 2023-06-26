@@ -11,7 +11,7 @@ import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
 import '../resources/physics_filter.dart';
 
-mixin RegularProjectile on Projectile {
+mixin StandardProjectile on Projectile {
   late final CircleComponent circleComponent;
   int enemiesHit = 0;
   abstract double embedIntoEnemyChance;
@@ -26,10 +26,15 @@ mixin RegularProjectile on Projectile {
 
   late Shape shape;
 
-  @override
-  Body createBody() {
+  void createBodyShape() {
     shape = CircleShape();
     shape.radius = circleComponent.radius;
+  }
+
+  @override
+  Body createBody() {
+    createBodyShape();
+
     renderBody = false;
 
     final bulletFilter = Filter();
@@ -75,14 +80,17 @@ mixin RegularProjectile on Projectile {
     return returnBody;
   }
 
-  @override
-  Future<void> onLoad() {
+  void createShapeComponent() {
     circleComponent = CircleComponent(
         radius: size / 2,
         anchor: Anchor.center,
         paint: BasicPalette.red.paint());
     add(circleComponent);
+  }
 
+  @override
+  Future<void> onLoad() {
+    createShapeComponent();
     return super.onLoad();
   }
 
@@ -91,13 +99,6 @@ mixin RegularProjectile on Projectile {
   //   canvas.drawLine(
   //       Offset.zero, (body.linearVelocity.normalized() * -1).toOffset(), paint);
   // }
-
-  void bulletAngleCalc() {
-    if ((weaponAncestor).allowProjectileRotation) {
-      // spriteComponent.angle =
-      //     -radiansBetweenPoints(Vector2(0, 0.0001), body.linearVelocity);
-    }
-  }
 
   @override
   void bodyContact(HealthFunctionality other) {
@@ -110,12 +111,13 @@ mixin RegularProjectile on Projectile {
     if (weaponAncestor.isChaining &&
         !projectileHasExpired &&
         chainedTargets < weaponAncestor.chainingTargets) {
-      int index = closeHomingBodies
-          .indexWhere((element) => !hitHashcodes.contains(element.hashCode));
+      int index = closeHomingBodies.indexWhere((element) =>
+          !hitHashcodes.contains(element.hashCode) && !element.isDead);
       if (index == -1) return;
       // delta = (closeHomingBodies[index].center - center).normalized();
       body.applyLinearImpulse(
-          (closeHomingBodies[index].center - center) * 1000);
+          (closeHomingBodies[index].center - center).normalized() *
+              weaponAncestor.projectileVelocity);
       chainedTargets++;
       projectileDeathTimer?.timer.reset();
     }
@@ -183,7 +185,7 @@ mixin LaserProjectile on Projectile {
 
   bool infrontWeaponCheck(Body element) {
     return element.userData is Enemy &&
-        isEntityInfrontOfPosition(element.position, originPosition, delta);
+        isEntityInfrontOfHandAngle(element.position, originPosition, delta);
   }
 
   double precisionPerDistance = .5;

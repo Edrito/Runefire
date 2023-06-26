@@ -3,7 +3,6 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/parallax.dart';
 import 'package:flame_tiled/flame_tiled.dart';
-import 'package:flame_forge2d/flame_forge2d.dart';
 
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
@@ -23,7 +22,7 @@ abstract class BackgroundComponent extends ParallaxComponent {
   FutureOr<void> onLoad() async {
     tiled = await TiledComponent.load(
         gameLevel.getTileFilename(), Vector2(32, 16),
-        priority: -500);
+        priority: priorities.backgroundPriority);
 
     spawnObjects = tiled.tileMap.getLayer<ObjectGroup>('spawn');
     Vector2 positionTest = Vector2.zero();
@@ -39,7 +38,7 @@ abstract class BackgroundComponent extends ParallaxComponent {
     parent?.add(tiled);
     // gameRef.player.loaded
     //     .whenComplete(() => gameRef.player.body.setTransform(positionTest, 0));
-    priority = priorities.background;
+    priority = priorities.backgroundPriority;
     parallax = await Parallax.load([
       ParallaxImageData('rock_background.jpg'),
     ]);

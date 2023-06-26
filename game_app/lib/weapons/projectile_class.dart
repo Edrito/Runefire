@@ -48,16 +48,15 @@ abstract class Projectile extends BodyComponent<GameRouter>
         hitHashcodes.contains(other.hashCode)) {
       return;
     }
-    var typeOfFixutre = (contact.fixtureB.userData as Map)['type'];
-    bool isHomingSensor = typeOfFixutre == FixtureType.sensor;
+
+    bool isHomingSensor =
+        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor ||
+            (contact.fixtureA.userData as Map)['type'] == FixtureType.sensor;
 
     if (isHomingSensor &&
         other.targetsHomingEntity < other.maxTargetsHomingEntity) {
       sensorContact(other);
-    } else if (typeOfFixutre == FixtureType.body &&
-        !projectileHasExpired &&
-        !isHomingSensor &&
-        !other.isDead) {
+    } else if (!projectileHasExpired && !isHomingSensor && !other.isDead) {
       bodyContact(other);
     }
 
@@ -78,7 +77,8 @@ abstract class Projectile extends BodyComponent<GameRouter>
   void endContact(Object other, Contact contact) {
     if (other is! HealthFunctionality) return;
     bool isHomingSensor =
-        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor;
+        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor ||
+            (contact.fixtureA.userData as Map)['type'] == FixtureType.sensor;
 
     if (isHomingSensor) {
       sensorEndContact(other);

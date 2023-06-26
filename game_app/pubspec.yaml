@@ -42,6 +42,7 @@ dependencies:
   hive_flutter: ^1.1.0
   path_provider: ^2.0.15
   window_manager: ^0.3.4
+  flutter_animate: ^4.2.0
 
 
   

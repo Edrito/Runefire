@@ -59,8 +59,6 @@ class PlayerAttachmentJointComponent extends PositionComponent
       weaponBase?.add(weaponTip!);
     }
 
-    priority = 0;
-
     add(weaponBase!);
     weaponClass!.parents[jointPosition] = this;
   }
@@ -114,7 +112,7 @@ abstract class Weapon extends Component {
         max += damageIncrease[element.key]?.$2 ?? 0;
       }
       returnList.add(DamageInstance(
-          damage: ((rng.nextDouble() * max - min) + min),
+          damageBase: ((rng.nextDouble() * max - min) + min),
           damageType: element.key,
           duration: entityAncestor.damageDuration));
     }

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -7,14 +8,39 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:game_app/game/forest_game.dart';
-import 'package:game_app/pages/main_menu.dart';
+import 'package:game_app/pages/menu.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
 import 'package:game_app/resources/data_classes/system_data.dart';
+import 'package:game_app/resources/visuals.dart';
 import 'game/enviroment.dart';
 import 'resources/routes.dart' as routes;
 import 'resources/overlays.dart' as overlays;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:window_manager/window_manager.dart';
+
+late GameRouter gameRouter;
+late MenuPages menuPage;
+
+void changeMainMenuPage(MenuPages page) {
+  setStateGame(() {
+    toggleGameStart(null);
+    menuPage = page;
+  });
+}
+
+///null route = go to main menu
+///string route = leave main menu to route
+void toggleGameStart(String? route) {
+  if (route != null) {
+    gameRouter.overlays.remove(overlays.mainMenu.key);
+    gameRouter.router.pushReplacementNamed(route);
+  } else {
+    gameRouter.overlays.add(overlays.mainMenu.key);
+    gameRouter.router.pushReplacementNamed(routes.blank);
+  }
+}
+
+late Function setStateGame;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,42 +63,43 @@ void main() async {
     systemData = box.get(0)!;
   }
 
-  GameRouter gameRouter = GameRouter(systemData, playerData);
+  gameRouter = GameRouter(systemData, playerData);
+  menuPage = MenuPages.startMenuPage;
 
   runApp(
-    Listener(
-      // onPointerHover: (event) {
-      //   gameRouter.onMouseMove(PointerHoverInfo.fromDetails(gameRouter, event));
-      // },
-      onPointerMove: (event) {
-        if (event.buttons == 2 && event.kind == PointerDeviceKind.mouse) {
-          gameRouter.onMouseMove(PointerHoverInfo.fromDetails(
-              gameRouter, PointerHoverEvent(position: event.position)));
-        }
-      },
-      child: DefaultTextStyle(
-        style: const TextStyle(fontFamily: "HeroSpeak"),
-        child: GameWidget(
-            backgroundBuilder: (context) {
-              return Container(
-                color: const Color.fromARGB(255, 37, 112, 108),
-              );
-            },
-            loadingBuilder: (p0) {
-              return Container(
-                  color: const Color.fromARGB(255, 72, 37, 112),
-                  child: const CircularProgressIndicator());
-            },
-            game: gameRouter,
-            overlayBuilderMap: Map<String,
-                Widget Function(BuildContext, GameRouter)>.fromEntries([
-              overlays.pauseMenu,
-              overlays.weaponModifyMenu,
-            ])),
+    Material(
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Listener(
+          onPointerMove: (event) {
+            if (event.buttons == 2 && event.kind == PointerDeviceKind.mouse) {
+              gameRouter.onMouseMove(PointerHoverInfo.fromDetails(
+                  gameRouter, PointerHoverEvent(position: event.position)));
+            }
+          },
+          child: GameWidget(
+              backgroundBuilder: (context) {
+                return Container(
+                  color: backgroundColor,
+                );
+              },
+              loadingBuilder: (p0) {
+                return Container(
+                    color: const Color.fromARGB(255, 72, 37, 112),
+                    child: const CircularProgressIndicator());
+              },
+              game: gameRouter,
+              overlayBuilderMap: Map<String,
+                  Widget Function(BuildContext, GameRouter)>.fromEntries([
+                overlays.pauseMenu,
+                overlays.weaponModifyMenu,
+                overlays.mainMenu,
+              ])),
+        ),
       ),
     ),
   );
-  // );
+  gameRouter.overlays.add(overlays.mainMenu.key);
 }
 
 class GameRouter extends Forge2DGame
@@ -84,11 +111,14 @@ class GameRouter extends Forge2DGame
         TapDetector {
   late final RouterComponent router;
 
-  GameRouter(this.systemData, this.playerData)
-      : super(gravity: Vector2.zero(), zoom: 1);
+  GameRouter(this._systemData, this._playerData)
+      : super(gravity: Vector2.zero(), zoom: 1) {
+    playerDataComponent = PlayerDataComponent(_playerData);
+    systemDataComponent = SystemDataComponent(_systemData);
+  }
 
-  final PlayerData playerData;
-  final SystemData systemData;
+  final PlayerData _playerData;
+  final SystemData _systemData;
   late PlayerDataComponent playerDataComponent;
   late SystemDataComponent systemDataComponent;
 
@@ -96,22 +126,19 @@ class GameRouter extends Forge2DGame
 
   @override
   void onLoad() {
-    playerDataComponent = PlayerDataComponent(playerData);
-    systemDataComponent = SystemDataComponent(systemData);
-
     router = RouterComponent(
       routes: {
-        routes.mainMenu: Route(MainMenu.new),
+        routes.blank: Route(Component.new),
         routes.transition: Route(ForestGame.new, maintainState: false),
         // routes.homeroom: Route(HomeRoom.new, maintainState: false),
         routes.gameplay: Route(ForestGame.new, maintainState: false),
       },
-      initialRoute: routes.mainMenu,
+      initialRoute: routes.blank,
     );
 
     add(systemDataComponent);
-    systemDataComponent.add(playerDataComponent);
-    playerDataComponent.add(router);
+    add(playerDataComponent);
+    add(router);
   }
 
   @override

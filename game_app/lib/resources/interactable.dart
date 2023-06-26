@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/services/raw_keyboard.dart';
 import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/priorities.dart';
 
 import '../entities/player.dart';
 import 'enums.dart';
@@ -25,7 +26,7 @@ class InteractableComponent extends BodyComponent<GameRouter>
   @override
   Future<void> onLoad() {
     add(spriteComponent);
-    priority = -200;
+    priority = backgroundObjectPriority;
     return super.onLoad();
   }
 

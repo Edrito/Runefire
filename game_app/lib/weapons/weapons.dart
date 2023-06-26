@@ -58,7 +58,11 @@ class Portal extends Weapon
 
   @override
   // TODO: implement chainingTargets
-  int get chainingTargets => 5;
+  int get chainingTargets => 0;
+
+  @override
+  // TODO: implement isHoming
+  bool get isHoming => false;
 
   @override
   bool countIncreaseWithTime = false;
@@ -107,7 +111,7 @@ class Portal extends Weapon
   double tipPositionPercent = -0;
 
   @override
-  double weaponRandomnessPercent = .2;
+  double weaponRandomnessPercent = .0;
 
   @override
   double distanceFromPlayer = 0.2;
@@ -383,11 +387,6 @@ class Bow extends Weapon
   @override
   int projectileCount = 1;
 
-  @override
-  double minDamage = 10;
-
-  @override
-  double maxDamage = 12;
   @override
   double distanceFromPlayer = .2;
 

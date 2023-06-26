@@ -8,7 +8,6 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/functions/functions.dart';
 import 'package:game_app/resources/physics_filter.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../functions/vector_functions.dart';
 import '../main.dart';
@@ -24,7 +23,6 @@ class Player extends Entity
         HealthFunctionality,
         AttributeFunctionality,
         TouchDamageFunctionality,
-        WindowListener,
         AimFunctionality,
         AttackFunctionality,
         MovementFunctionality,
@@ -57,15 +55,6 @@ class Player extends Entity
     super.onRemove();
   }
 
-  // @override
-  // void onWindowBlur() {
-  //   physicalKeysPressed.clear();
-  //   parseKeys(null);
-  //   game.overlays.add('PauseMenu');
-  //   game.pauseEngine();
-  //   super.onWindowBlur();
-  // }
-
   late MouseCallbackWrapper mouseCallbackWrapper;
   @override
   Future<void> onLoad() async {
@@ -76,7 +65,6 @@ class Player extends Entity
     ]);
 
     await loadAnimationSprites();
-    windowManager.addListener(this);
 
     mouseCallbackWrapper = MouseCallbackWrapper();
     mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();

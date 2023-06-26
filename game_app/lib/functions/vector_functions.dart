@@ -20,7 +20,7 @@ Vector2 tiledObjectToOrtho(Vector2 isoPoint, TiledComponent? info) {
       orthoY);
 }
 
-bool isEntityInfrontOfPosition(
+bool isEntityInfrontOfHandAngle(
     Vector2 entity, Vector2 position, Vector2 positionDelta) {
   final test1 = entity - position;
 

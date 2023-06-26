@@ -3,7 +3,7 @@ import 'package:game_app/weapons/projectile_mixin.dart';
 
 import '../resources/enums.dart';
 
-class Bullet extends Projectile with RegularProjectile {
+class Bullet extends Projectile with StandardProjectile {
   Bullet(
       {required super.delta,
       required super.originPosition,

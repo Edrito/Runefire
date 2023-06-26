@@ -11,7 +11,7 @@ import 'package:game_app/main.dart';
 import '../game/enviroment.dart';
 import '../resources/enums.dart';
 // ignore: unused_import
-import 'enemy.dart';
+import '../resources/priorities.dart';
 import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
@@ -37,7 +37,9 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   abstract SpriteAnimation? spawnAnimation;
 
   SpriteAnimation? animationQueue;
+
   bool tempAnimationPlaying = false;
+
   late SpriteAnimationComponent spriteAnimationComponent;
   late PositionComponent spriteWrapper;
   late Shadow3DDecorator shadow3DDecorator;
@@ -47,7 +49,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   //POSITIONING
 
   late PlayerAttachmentJointComponent backJoint;
-  Vector2 lastAimingPosition = Vector2.zero();
   abstract Filter? filter;
 
   Future<void> loadAnimationSprites();
@@ -64,7 +65,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     if (newEntityStatus == EntityStatus.spawn) {
       animation = spawnAnimation ?? idleAnimation;
       spriteAnimationComponent = SpriteAnimationComponent(
-        priority: 0,
         animation: animation,
         size: animation.frames.first.sprite.srcSize
             .scaled(height / animation.frames.first.sprite.srcSize.y),
@@ -197,11 +197,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   @override
   void onRemove() {
-    if (this is AttackFunctionality) {
-      (this as AttackFunctionality)
-          .carriedWeapons
-          .forEach((key, value) => value.removeFromParent());
-    }
     if (!gameRef.router.currentRoute.maintainState) {
       super.onRemove();
     }
@@ -234,9 +229,10 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     setEntityStatus(EntityStatus.spawn);
 
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
-        anchor: Anchor.center, size: Vector2.zero(), priority: -1);
+        anchor: Anchor.center,
+        size: Vector2.zero(),
+        priority: playerBackPriority);
 
-    priority = 0;
     shadow3DDecorator = Shadow3DDecorator(
         base: spriteAnimationComponent.size,
         angle: 1.4,
@@ -249,9 +245,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
     spriteAnimationComponent.decorator = shadow3DDecorator;
     spriteWrapper = PositionComponent(
-        priority: 0,
-        size: spriteAnimationComponent.size,
-        anchor: Anchor.center);
+        size: spriteAnimationComponent.size, anchor: Anchor.center);
     spriteWrapper.flipHorizontallyAroundCenter();
     add(spriteWrapper..add(spriteAnimationComponent));
     add(backJoint);
@@ -269,12 +263,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   void flipSpriteCheck() {
     final movement = body.linearVelocity.x;
     if ((movement > 0 && !flipped) || (movement <= 0 && flipped)) {
-      // if (!(handJoint.weaponClass?.attackTypes.contains(AttackType.melee) ??
-      //     true)) {
-      // }
       shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
       backJoint.flipHorizontallyAroundCenter();
-
       spriteWrapper.flipHorizontallyAroundCenter();
       flipped = !flipped;
     }

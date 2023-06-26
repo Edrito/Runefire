@@ -16,9 +16,15 @@ import '../functions/custom_joystick.dart';
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
+import '../resources/priorities.dart';
+import 'package:window_manager/window_manager.dart';
 
 abstract class GameEnviroment extends Component
-    with HasGameRef<GameRouter>, KeyboardHandler, DragCallbacks {
+    with
+        HasGameRef<GameRouter>,
+        KeyboardHandler,
+        WindowListener,
+        DragCallbacks {
   CustomJoystickComponent? aimJoystick;
   CustomJoystickComponent? moveJoystick;
   abstract GameLevel level;
@@ -89,6 +95,7 @@ abstract class GameEnviroment extends Component
 
   @override
   FutureOr<void> onLoad() {
+    windowManager.addListener(this);
     children.register<CameraComponent>();
     gameWorld = World();
     super.add(gameWorld);
@@ -96,7 +103,7 @@ abstract class GameEnviroment extends Component
 
     moveJoystick = CustomJoystickComponent(
       knob: CircleComponent(radius: 15),
-      priority: 20,
+      priority: foregroundPriority,
       knobRadius: 15,
       position: Vector2(50, gameCamera.viewport.size.y - 50),
       background:
@@ -105,7 +112,7 @@ abstract class GameEnviroment extends Component
     );
     aimJoystick = CustomJoystickComponent(
       knob: CircleComponent(radius: 15),
-      priority: 20,
+      priority: foregroundPriority,
       position: Vector2(
           gameCamera.viewport.size.x - 30, gameCamera.viewport.size.y - 30),
       knobRadius: 15,
@@ -226,12 +233,25 @@ abstract class GameEnviroment extends Component
     player.gestureEventEnd(InputType.tapClick, info);
   }
 
+  //TODO: REFINE
+  // @override
+  // void onWindowBlur() {
+  //   physicalKeysPressed.clear();
+  //   parseKeys(null);
+  // pauseGame();
+  //   super.onWindowBlur();
+  // }
+
+  void pauseGame() {
+    game.overlays.add('PauseMenu');
+    game.pauseEngine();
+  }
+
   @override
   bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (keysPressed.contains(LogicalKeyboardKey.keyP) ||
         keysPressed.contains(LogicalKeyboardKey.escape)) {
-      game.overlays.add('PauseMenu');
-      game.pauseEngine();
+      pauseGame();
     }
 
     return super.onKeyEvent(event, keysPressed);
