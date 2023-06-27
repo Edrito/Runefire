@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:async' as async;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_app/main.dart';
 import '../resources/data_classes/system_data.dart';
 import 'buttons.dart';
@@ -35,14 +36,14 @@ extension MainMenuPagesExtension on MenuPages {
 }
 
 // class PauseMenuPage extends MenuScreen {
-//   late CustomButton continueButtonComponent;
-//   late CustomButton mainMenuButtonComponent;
+//   late CustomButtonTwo continueButtonComponent;
+//   late CustomButtonTwo mainMenuButtonComponent;
 
 //   @override
 //   Future<void> onLoad() async {
 //     // anchor = Anchor.center;
 
-//     continueButtonComponent = CustomButton(
+//     continueButtonComponent = CustomButtonTwo(
 //       "Continue",
 //       onPrimaryDownFunction: (p0) {
 //         game.resumeEngine();
@@ -50,7 +51,7 @@ extension MainMenuPagesExtension on MenuPages {
 //       },
 //     );
 //     mainMenuButtonComponent =
-//         CustomButton("Exit to Menu", onPrimaryDownFunction: (_) {
+//         CustomButtonTwo("Exit to Menu", onPrimaryDownFunction: (_) {
 //       game.router.pushReplacementNamed(routes.mainMenu);
 //       game.resumeEngine();
 //       removeWithAnimations();
@@ -64,9 +65,9 @@ extension MainMenuPagesExtension on MenuPages {
 // }
 
 // class OptionsMenuPage extends MenuScreen {
-//   late CustomButton sfxButtonComponent;
-//   late CustomButton musicButtonComponent;
-//   late CustomButton exitButtonComponent;
+//   late CustomButtonTwo sfxButtonComponent;
+//   late CustomButtonTwo musicButtonComponent;
+//   late CustomButtonTwo exitButtonComponent;
 
 //   late double musicVolume;
 //   bool? incrementingMusic;
@@ -112,7 +113,7 @@ extension MainMenuPagesExtension on MenuPages {
 //     sfxButtonComponent = buildSFXButton();
 //     musicButtonComponent = buildMusicButton();
 
-//     exitButtonComponent = CustomButton(
+//     exitButtonComponent = CustomButtonTwo(
 //       "Back",
 //       onPrimaryDownFunction: (_) {
 //         ancestor.changePage(MenuPages.startMenuPage);
@@ -155,14 +156,14 @@ class StartMenu extends StatefulWidget {
 }
 
 class _StartMenuState extends State<StartMenu> {
-  late CustomButton startButtonComponent;
-  late CustomButton exitButtonComponent;
-  late CustomButton optionsButtonComponent;
+  late CustomButtonTwo startButtonComponent;
+  late CustomButtonTwo exitButtonComponent;
+  late CustomButtonTwo optionsButtonComponent;
 
   @override
   void initState() {
     super.initState();
-    startButtonComponent = CustomButton(
+    startButtonComponent = CustomButtonTwo(
       "Start Game",
       gameRef: widget.gameRef,
       onTap: () {
@@ -170,11 +171,11 @@ class _StartMenuState extends State<StartMenu> {
       },
     );
     optionsButtonComponent =
-        CustomButton("Options", gameRef: widget.gameRef, onTap: () {
+        CustomButtonTwo("Options", gameRef: widget.gameRef, onTap: () {
       changeMainMenuPage(MenuPages.options);
     });
     exitButtonComponent =
-        CustomButton("Exit", gameRef: widget.gameRef, onTap: () {
+        CustomButtonTwo("Exit", gameRef: widget.gameRef, onTap: () {
       exit(0);
     });
   }
@@ -203,9 +204,9 @@ class OptionsMenu extends StatefulWidget {
 }
 
 class _OptionsMenuState extends State<OptionsMenu> {
-  late CustomButton sfxButton;
-  late CustomButton musicButton;
-  late CustomButton exitButton;
+  late CustomButtonTwo sfxButton;
+  late CustomButtonTwo musicButton;
+  late CustomButtonTwo exitButton;
 
   late double musicVolume;
   bool? incrementingMusic;
@@ -231,8 +232,8 @@ class _OptionsMenuState extends State<OptionsMenu> {
     systemDataComponent?.dataObject.setMusicVolume = (newValue).clamp(0, 100);
   }
 
-  CustomButton buildMusicButton() {
-    return CustomButton(buildMusicString, gameRef: widget.gameRef,
+  CustomButtonTwo buildMusicButton() {
+    return CustomButtonTwo(buildMusicString, gameRef: widget.gameRef,
         onTapDown: (_) {
       // incrementMusic = 1;
       incrementingMusic = true;
@@ -250,8 +251,8 @@ class _OptionsMenuState extends State<OptionsMenu> {
     });
   }
 
-  CustomButton buildSFXButton() {
-    return CustomButton(buildSFXString, gameRef: widget.gameRef,
+  CustomButtonTwo buildSFXButton() {
+    return CustomButtonTwo(buildSFXString, gameRef: widget.gameRef,
         onTapDown: (_) {
       // incrementSFX = 1;
 
@@ -322,7 +323,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
     sfxButton = buildSFXButton();
     musicButton = buildMusicButton();
 
-    exitButton = CustomButton(
+    exitButton = CustomButtonTwo(
       "Back",
       gameRef: widget.gameRef,
       onTap: () {
@@ -339,37 +340,91 @@ class _OptionsMenuState extends State<OptionsMenu> {
   }
 }
 
-class DisplayButtons extends StatelessWidget {
+class DisplayButtons extends StatefulWidget {
   const DisplayButtons({required this.buttons, super.key});
-  final List<CustomButton> buttons;
+  final List<CustomButtonTwo> buttons;
+
+  @override
+  State<DisplayButtons> createState() => _DisplayButtonsState();
+}
+
+class _DisplayButtonsState extends State<DisplayButtons> {
+  int selectedIndex = -1;
+  FocusNode focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    focusNode.requestFocus();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Spacer(),
-        Expanded(
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              for (CustomButton button in buttons)
-                Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: button,
-                )
-            ]
-                .animate(interval: .05.seconds)
-                // .slideX(
-                //     curve: Curves.easeInOut,
-                //     begin: -1,
-                //     end: 0,
-                //     duration: .4.seconds)
-                .fadeIn(curve: Curves.easeInOut, duration: .4.seconds),
-          ),
+    List<Widget> displayedButtons = [];
+
+    for (CustomButtonTwo button in widget.buttons) {
+      if (selectedIndex != -1 && widget.buttons[selectedIndex] == button) {
+        button = button.copyWith(isHighlightedInitial: true);
+      }
+      displayedButtons.add(Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: button,
+      ));
+    }
+    return Listener(
+      onPointerDown: (event) {
+        selectedIndex = -1;
+      },
+      child: KeyboardListener(
+        focusNode: focusNode,
+        autofocus: true,
+        onKeyEvent: (value) {
+          if (value is KeyUpEvent || value is KeyRepeatEvent) return;
+          if (value.logicalKey == LogicalKeyboardKey.enter ||
+              value.logicalKey == LogicalKeyboardKey.space) {
+            if (selectedIndex != -1 &&
+                widget.buttons[selectedIndex].onTap != null) {
+              widget.buttons[selectedIndex].onTap!();
+            }
+          } else if (value.logicalKey == LogicalKeyboardKey.keyW ||
+              value.logicalKey == LogicalKeyboardKey.arrowUp) {
+            setState(() {
+              selectedIndex--;
+              if (selectedIndex < 0) {
+                selectedIndex = widget.buttons.length - 1;
+              }
+            });
+          } else if (value.logicalKey == LogicalKeyboardKey.keyS ||
+              value.logicalKey == LogicalKeyboardKey.arrowDown) {
+            setState(() {
+              selectedIndex++;
+              if (selectedIndex > widget.buttons.length - 1) {
+                selectedIndex = 0;
+              }
+            });
+          }
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            Expanded(
+              child: ListView(
+                shrinkWrap: true,
+                children: displayedButtons
+                    .animate(interval: .05.seconds)
+                    // .slideX(
+                    //     curve: Curves.easeInOut,
+                    //     begin: -1,
+                    //     end: 0,
+                    //     duration: .4.seconds)
+                    .fadeIn(curve: Curves.easeInOut, duration: .4.seconds),
+              ),
+            ),
+            const Spacer(),
+          ],
         ),
-        const Spacer(),
-      ],
+      ),
     );
   }
 }

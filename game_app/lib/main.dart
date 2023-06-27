@@ -22,7 +22,7 @@ late GameRouter gameRouter;
 late MenuPages menuPage;
 
 void changeMainMenuPage(MenuPages page) {
-  setStateGame(() {
+  setStateMainMenu(() {
     toggleGameStart(null);
     menuPage = page;
   });
@@ -40,7 +40,7 @@ void toggleGameStart(String? route) {
   }
 }
 
-late Function setStateGame;
+late Function setStateMainMenu;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -242,7 +242,6 @@ class GameRouter extends Forge2DGame
 
   @override
   bool containsLocalPoint(Vector2 p) {
-    // TODO: implement containsLocalPoint
     return true;
   }
 }

@@ -234,16 +234,16 @@ abstract class GameEnviroment extends Component
   }
 
   //TODO: REFINE
-  // @override
-  // void onWindowBlur() {
-  //   physicalKeysPressed.clear();
-  //   parseKeys(null);
-  // pauseGame();
-  //   super.onWindowBlur();
-  // }
+  @override
+  void onWindowBlur() {
+    pauseGame();
+    super.onWindowBlur();
+  }
 
   void pauseGame() {
     game.overlays.add('PauseMenu');
+    player.physicalKeysPressed.clear();
+    player.parseKeys(null);
     game.pauseEngine();
   }
 

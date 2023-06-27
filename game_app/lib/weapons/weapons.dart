@@ -7,6 +7,7 @@ import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../entities/entity_mixin.dart';
+import '../functions/functions.dart';
 import '../resources/enums.dart';
 
 typedef BodyComponentFunction = List<BodyComponent> Function();
@@ -43,17 +44,15 @@ class Portal extends Weapon
   }
 
   @override
-  Future<SpriteComponent> buildSpriteComponent(
-      WeaponSpritePosition position) async {
-    final sprite = await Sprite.load(
-      "portal.png",
-    );
-
-    return SpriteComponent(
-      sprite: sprite,
-      size: sprite.srcSize.scaled(length / sprite.srcSize.y),
-      anchor: Anchor.topCenter,
-    );
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+            parentJoint: parentJoint,
+            idleAnimation:
+                await buildSpriteSheet(5, 'weapons/portal.png', 1, true));
+    }
   }
 
   @override
@@ -70,7 +69,9 @@ class Portal extends Weapon
   late CircleComponent circle;
 
   @override
-  List<WeaponSpritePosition> spirtePositions = [WeaponSpritePosition.hand];
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand
+  ];
 
   @override
   bool allowProjectileRotation = true;
@@ -183,7 +184,7 @@ class Pistol extends Weapon
   };
 
   @override
-  double baseAttackRate = 1;
+  double baseAttackRate = .05;
 
   @override
   bool get isHoming => true;
@@ -227,25 +228,24 @@ class Pistol extends Weapon
   }
 
   @override
-  List<WeaponSpritePosition> spirtePositions = [WeaponSpritePosition.hand];
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand
+  ];
 
   @override
-  Future<SpriteComponent> buildSpriteComponent(
-      WeaponSpritePosition position) async {
-    final sprite = await Sprite.load("pistol.png");
-
-    return SpriteComponent(
-      sprite: sprite,
-      size: sprite.srcSize.scaled(length / sprite.srcSize.y),
-      anchor: Anchor.topCenter,
-    );
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+            parentJoint: parentJoint,
+            idleAnimation:
+                await buildSpriteSheet(1, 'weapons/pistol.png', 1, true));
+    }
   }
 
   @override
-  SemiAutoType semiAutoType = SemiAutoType.charge;
-
-  @override
-  int? maxAmmo = 10;
+  int? maxAmmo = 1000;
 
   @override
   double reloadTime = 1;
@@ -283,17 +283,16 @@ class Shotgun extends Weapon
   }
 
   @override
-  Future<SpriteComponent> buildSpriteComponent(
-      WeaponSpritePosition position) async {
-    final sprite = await Sprite.load(
-      "shotgun.png",
-    );
-
-    return SpriteComponent(
-      sprite: sprite,
-      size: sprite.srcSize.scaled(length / sprite.srcSize.y),
-      anchor: Anchor.topCenter,
-    );
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          parentJoint: parentJoint,
+          idleAnimation:
+              await buildSpriteSheet(1, 'weapons/shotgun.png', 1, true),
+        );
+    }
   }
 
   @override
@@ -306,7 +305,7 @@ class Shotgun extends Weapon
   int projectileCount = 4;
 
   @override
-  List<WeaponSpritePosition> spirtePositions = [
+  List<WeaponSpritePosition> spirteComponentPositions = [
     WeaponSpritePosition.hand,
   ];
 
@@ -342,13 +341,11 @@ class Shotgun extends Weapon
   double tipPositionPercent = -.02;
 
   @override
-  double weaponRandomnessPercent = .05;
-
-  @override
-  int get chainingTargets => 5;
+  double weaponRandomnessPercent = .1;
 
   @override
   bool countIncreaseWithTime = false;
+
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
 }
@@ -391,34 +388,22 @@ class Bow extends Weapon
   double distanceFromPlayer = .2;
 
   @override
-  Future<SpriteComponent> buildSpriteComponent(
-      WeaponSpritePosition position) async {
-    if (position == WeaponSpritePosition.back) {
-      final sprite = await Sprite.load("portal.png");
-
-      return SpriteComponent(
-        position: Vector2(0, -5),
-        sprite: sprite,
-        size: sprite.srcSize.scaled(length / sprite.srcSize.y),
-        anchor: Anchor.topCenter,
-      );
-    } else {}
-    final sprite = await Sprite.load(
-      "bow.png",
-    );
-
-    return SpriteComponent(
-      sprite: sprite,
-      size: sprite.srcSize.scaled(length / sprite.srcSize.y),
-      anchor: Anchor.topCenter,
-    );
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+            parentJoint: parentJoint,
+            idleAnimation:
+                await buildSpriteSheet(5, 'weapons/bow.png', 1, true));
+    }
   }
 
   @override
   double baseAttackRate = .5;
 
   @override
-  List<WeaponSpritePosition> spirtePositions = [
+  List<WeaponSpritePosition> spirteComponentPositions = [
     WeaponSpritePosition.back,
     WeaponSpritePosition.hand,
   ];
@@ -472,7 +457,6 @@ class Sword extends Weapon
       (Vector2(-6, -4), 0),
       (Vector2(0, 8), -45),
     ];
-    {}
 
     maxAmmo = (attackPatterns.length / 2).round();
 
@@ -483,9 +467,9 @@ class Sword extends Weapon
   set setSecondaryFunctionality(item) {
     super.setSecondaryFunctionality = item;
     if (secondaryIsWeapon) {
-      spirtePositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
     } else {
-      spirtePositions.add(WeaponSpritePosition.back);
+      spirteComponentPositions.add(WeaponSpritePosition.back);
     }
   }
 
@@ -510,27 +494,14 @@ class Sword extends Weapon
   }
 
   @override
-  Future<SpriteComponent> buildSpriteComponent(
-      WeaponSpritePosition position) async {
-    if (position == WeaponSpritePosition.back) {
-      final sprite = await Sprite.load("sword.png");
-
-      return SpriteComponent(
-        position: Vector2(.1, -.8),
-        sprite: sprite,
-        angle: radians(35),
-        size: sprite.srcSize.scaled(length / sprite.srcSize.y) * .7,
-        anchor: Anchor.center,
-      );
-    } else {
-      final sprite = await Sprite.load("sword.png");
-      final test = SpriteComponent(
-        sprite: sprite,
-        size: sprite.srcSize.scaled(length / sprite.srcSize.y),
-        anchor: Anchor.topCenter,
-      );
-
-      return test;
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+            parentJoint: parentJoint,
+            idleAnimation:
+                await buildSpriteSheet(5, 'weapons/sword.png', 1, true));
     }
   }
 
@@ -544,7 +515,7 @@ class Sword extends Weapon
   int projectileCount = 10;
 
   @override
-  List<WeaponSpritePosition> spirtePositions = [];
+  List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {

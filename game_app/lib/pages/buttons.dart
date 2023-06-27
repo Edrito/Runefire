@@ -3,18 +3,21 @@ import 'package:game_app/main.dart';
 
 import '../resources/visuals.dart';
 
-class CustomButton extends StatefulWidget {
-  const CustomButton(this.text,
-      {required this.gameRef,
-      this.onTap,
-      this.onSecondaryTap,
-      super.key,
-      this.onTapDown,
-      this.onTapUp,
-      this.onTapCancel,
-      this.onSecondaryTapDown,
-      this.onSecondaryTapUp,
-      this.onSecondaryTapCancel});
+class CustomButtonTwo extends StatelessWidget {
+  const CustomButtonTwo(
+    this.text, {
+    required this.gameRef,
+    this.isHighlightedInitial = false,
+    this.onTap,
+    this.onSecondaryTap,
+    this.onTapDown,
+    this.onTapUp,
+    this.onTapCancel,
+    this.onSecondaryTapDown,
+    this.onSecondaryTapUp,
+    this.onSecondaryTapCancel,
+    super.key,
+  });
   final GameRouter gameRef;
   final Function? onTap;
   final Function(TapDownDetails)? onTapDown;
@@ -24,7 +27,140 @@ class CustomButton extends StatefulWidget {
   final Function(TapDownDetails)? onSecondaryTapDown;
   final Function(TapUpDetails)? onSecondaryTapUp;
   final Function? onSecondaryTapCancel;
+  final bool isHighlightedInitial;
+  final String text;
 
+  CustomButtonTwo copyWith({
+    Function? onTap,
+    Function(TapDownDetails)? onTapDown,
+    Function(TapUpDetails)? onTapUp,
+    Function? onTapCancel,
+    Function? onSecondaryTap,
+    Function(TapDownDetails)? onSecondaryTapDown,
+    Function(TapUpDetails)? onSecondaryTapUp,
+    Function? onSecondaryTapCancel,
+    bool? isHighlightedInitial,
+    String? text,
+  }) {
+    return CustomButtonTwo(
+      text ?? this.text,
+      gameRef: gameRef,
+      isHighlightedInitial: isHighlightedInitial ?? this.isHighlightedInitial,
+      onTap: onTap ?? this.onTap,
+      onTapDown: onTapDown ?? this.onTapDown,
+      onTapUp: onTapUp ?? this.onTapUp,
+      onTapCancel: onTapCancel ?? this.onTapCancel,
+      onSecondaryTap: onSecondaryTap ?? this.onSecondaryTap,
+      onSecondaryTapDown: onSecondaryTapDown ?? this.onSecondaryTapDown,
+      onSecondaryTapUp: onSecondaryTapUp ?? this.onSecondaryTapUp,
+      onSecondaryTapCancel: onSecondaryTapCancel ?? this.onSecondaryTapCancel,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isHighlighted = isHighlightedInitial;
+    TextStyle style = fontStyle.copyWith(
+        color: isHighlighted ? buttonDownColor : buttonUpColor);
+    return StatefulBuilder(
+      builder: (BuildContext context, setState) {
+        return InkWell(
+          splashFactory: NoSplash.splashFactory,
+          hoverColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onHover: (value) {
+            isHighlighted = value;
+            setState(
+              () {
+                style = style.copyWith(
+                    color: isHighlighted ? buttonDownColor : buttonUpColor);
+              },
+            );
+          },
+          child: Padding(
+            padding: isHighlighted
+                ? const EdgeInsets.all(3)
+                : const EdgeInsets.only(
+                    right: 6,
+                    bottom: 6,
+                  ),
+            child: Text(
+              text,
+              style: style,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          onSecondaryTap: () {
+            if (onSecondaryTap != null) {
+              onSecondaryTap!();
+            }
+          },
+          onSecondaryTapDown: (details) {
+            if (onSecondaryTapDown != null) {
+              onSecondaryTapDown!(details);
+            }
+          },
+          onSecondaryTapUp: (details) {
+            if (onSecondaryTapUp != null) {
+              onSecondaryTapUp!(details);
+            }
+          },
+          onSecondaryTapCancel: () {
+            if (onSecondaryTapCancel != null) {
+              onSecondaryTapCancel!();
+            }
+          },
+          onTap: () {
+            if (onTap != null) {
+              onTap!();
+            }
+          },
+          onTapCancel: () {
+            if (onTapCancel != null) {
+              onTapCancel!();
+            }
+          },
+          onTapDown: (details) {
+            if (onTapDown != null) {
+              onTapDown!(details);
+            }
+          },
+          onTapUp: (details) {
+            if (onTapUp != null) {
+              onTapUp!(details);
+            }
+          },
+        );
+      },
+    );
+  }
+}
+
+class CustomButton extends StatefulWidget {
+  const CustomButton(
+    this.text, {
+    required this.gameRef,
+    this.isHighlightedValue = false,
+    this.onTap,
+    this.onSecondaryTap,
+    this.onTapDown,
+    this.onTapUp,
+    this.onTapCancel,
+    this.onSecondaryTapDown,
+    this.onSecondaryTapUp,
+    this.onSecondaryTapCancel,
+    super.key,
+  });
+  final GameRouter gameRef;
+  final Function? onTap;
+  final Function(TapDownDetails)? onTapDown;
+  final Function(TapUpDetails)? onTapUp;
+  final Function? onTapCancel;
+  final Function? onSecondaryTap;
+  final Function(TapDownDetails)? onSecondaryTapDown;
+  final Function(TapUpDetails)? onSecondaryTapUp;
+  final Function? onSecondaryTapCancel;
+  final bool isHighlightedValue;
   final String text;
 
   @override
@@ -38,7 +174,10 @@ class _CustomButtonState extends State<CustomButton> {
   void initState() {
     super.initState();
     style = fontStyle;
+    isHighlighted = widget.isHighlightedValue;
   }
+
+  late bool isHighlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -47,17 +186,26 @@ class _CustomButtonState extends State<CustomButton> {
       hoverColor: Colors.transparent,
       highlightColor: Colors.transparent,
       onHover: (value) {
+        isHighlighted = value;
         setState(
           () {
-            style =
-                style.copyWith(color: value ? buttonDownColor : buttonUpColor);
+            style = style.copyWith(
+                color: isHighlighted ? buttonDownColor : buttonUpColor);
           },
         );
       },
-      child: Text(
-        widget.text,
-        style: style,
-        textAlign: TextAlign.center,
+      child: Padding(
+        padding: isHighlighted
+            ? const EdgeInsets.all(3)
+            : const EdgeInsets.only(
+                right: 6,
+                bottom: 6,
+              ),
+        child: Text(
+          widget.text,
+          style: style,
+          textAlign: TextAlign.center,
+        ),
       ),
       onSecondaryTap: () {
         if (widget.onSecondaryTap != null) {

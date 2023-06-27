@@ -256,17 +256,20 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   @override
   void update(double dt) {
     flipSpriteCheck();
-
     super.update(dt);
   }
 
   void flipSpriteCheck() {
     final movement = body.linearVelocity.x;
     if ((movement > 0 && !flipped) || (movement <= 0 && flipped)) {
-      shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
-      backJoint.flipHorizontallyAroundCenter();
-      spriteWrapper.flipHorizontallyAroundCenter();
-      flipped = !flipped;
+      flipSprite();
     }
+  }
+
+  void flipSprite() {
+    shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
+    backJoint.flipHorizontallyAroundCenter();
+    spriteWrapper.flipHorizontallyAroundCenter();
+    flipped = !flipped;
   }
 }

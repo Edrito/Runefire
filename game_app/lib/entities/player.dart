@@ -59,9 +59,9 @@ class Player extends Entity
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll([
-      WeaponType.portal,
+      WeaponType.shotgun,
       WeaponType.pistol,
-      WeaponType.sword,
+      // WeaponType.sword,
     ]);
 
     await loadAnimationSprites();
@@ -158,13 +158,15 @@ class Player extends Entity
 
   @override
   bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (physicalKeysPressed.contains(event.physicalKey) && !event.repeat) {
-      physicalKeysPressed.remove(event.physicalKey);
-    } else {
+    if (event is RawKeyDownEvent) {
       physicalKeysPressed.add(event.physicalKey);
+    } else if (event is RawKeyUpEvent) {
+      physicalKeysPressed.remove(event.physicalKey);
+    }
+    if (!event.repeat) {
+      parseKeys(event);
     }
 
-    parseKeys(event);
     return super.onKeyEvent(event, keysPressed);
   }
 

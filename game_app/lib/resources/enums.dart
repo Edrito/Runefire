@@ -30,6 +30,8 @@ enum EntityStatus {
   attack
 }
 
+enum WeaponStatus { attack, reload, charge, spawn, idle }
+
 enum JoystickDirection {
   up,
   upLeft,
@@ -170,7 +172,7 @@ extension GameLevelExtension on GameLevel {
   }
 }
 
-enum WeaponSpritePosition { hand, mouse, back, attack, none }
+enum WeaponSpritePosition { hand, mouse, back }
 
 enum AttackType { melee, point, projectile }
 

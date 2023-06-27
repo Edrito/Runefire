@@ -85,10 +85,10 @@ class MeleeAttack extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
-    spriteComponent =
-        await parentWeapon.buildSpriteComponent(WeaponSpritePosition.attack);
+    // spriteComponent =
+    //     await parentWeapon.buildSpriteComponent();
 
-    add(spriteComponent);
+    // add(spriteComponent);
 
     bodyComponent = MeleeDetection(spriteComponent, this);
 

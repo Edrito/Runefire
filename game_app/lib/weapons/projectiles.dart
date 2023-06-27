@@ -28,7 +28,9 @@ class Laser extends Projectile with LaserProjectile {
       {required super.delta,
       required super.originPosition,
       required super.weaponAncestor,
-      super.power});
+      super.power}) {
+    ttl = weaponAncestor.attackRate;
+  }
 
   @override
   ProjectileType projectileType = ProjectileType.laser;
@@ -37,7 +39,7 @@ class Laser extends Projectile with LaserProjectile {
   double size = 1.5;
 
   @override
-  double ttl = 1;
+  double ttl = 0;
 
   @override
   bool isContinuous = false;

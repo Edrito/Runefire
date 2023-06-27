@@ -79,6 +79,7 @@ flutter:
     - assets/images/enemy_sprites/
     - assets/images/buttons/
     - assets/images/experience/
+    - assets/images/weapons/
     - assets/tiles/
     - assets/images/
     - assets/fonts/

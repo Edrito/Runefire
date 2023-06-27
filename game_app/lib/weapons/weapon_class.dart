@@ -23,44 +23,47 @@ class PlayerAttachmentJointComponent extends PositionComponent
   });
 
   WeaponSpritePosition jointPosition;
-  Weapon? weaponClass;
+  Weapon? weapon;
   PositionComponent? weaponTip;
   PositionComponent? weaponBase;
   PositionComponent? weaponTipCenter;
-  SpriteComponent? spriteComponent;
+  WeaponSpriteAnimation? weaponSpriteAnimation;
   bool isFrontVisible = false;
 
   void removePreviousComponents() {
     weaponTip?.removeFromParent();
-    spriteComponent?.removeFromParent();
+    weaponSpriteAnimation?.removeFromParent();
     weaponBase?.removeFromParent();
     weaponTipCenter?.removeFromParent();
-    weaponClass = null;
+    weapon = null;
   }
 
   Future<void> addWeaponClass(Weapon newWeapon) async {
     removePreviousComponents();
-    weaponClass = newWeapon;
+    weapon = newWeapon;
     anchor = Anchor.center;
     var tipPositionPercent = newWeapon.tipPositionPercent.clamp(-.5, .5);
     weaponBase = PositionComponent(
         anchor: Anchor.center,
         position: Vector2(0, newWeapon.distanceFromPlayer));
-    if (newWeapon.spirtePositions.contains(jointPosition)) {
-      spriteComponent = await newWeapon.buildSpriteComponent(jointPosition);
+
+    if (newWeapon.spirteComponentPositions.contains(jointPosition)) {
+      weaponSpriteAnimation =
+          await newWeapon.buildSpriteAnimationComponent(this);
       weaponTip = PositionComponent(
           anchor: Anchor.center,
-          position: Vector2(spriteComponent!.size.x * tipPositionPercent,
-              spriteComponent!.size.y));
+          position: Vector2(weaponSpriteAnimation!.size.x * tipPositionPercent,
+              weaponSpriteAnimation!.size.y));
       weaponTipCenter = PositionComponent(
-          anchor: Anchor.center, position: Vector2(0, spriteComponent!.size.y));
-      weaponBase?.add(spriteComponent!);
+          anchor: Anchor.center,
+          position: Vector2(0, weaponSpriteAnimation!.size.y));
+      weaponBase?.add(weaponSpriteAnimation!);
       weaponBase?.add(weaponTipCenter!);
       weaponBase?.add(weaponTip!);
     }
 
     add(weaponBase!);
-    weaponClass!.parents[jointPosition] = this;
+    weapon!.parents[jointPosition] = this;
   }
 }
 
@@ -70,7 +73,7 @@ abstract class Weapon extends Component {
         this is! ProjectileFunctionality ||
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
-    entityAncestor.gameRef.add(this);
+    entityAncestor.add(this);
     newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
     applyWeaponUpgrade(newUpgradeLevel);
   }
@@ -131,8 +134,9 @@ abstract class Weapon extends Component {
   abstract double weaponRandomnessPercent;
 
   //VISUAL
-  abstract List<WeaponSpritePosition> spirtePositions;
-  FutureOr<SpriteComponent> buildSpriteComponent(WeaponSpritePosition position);
+  abstract List<WeaponSpritePosition> spirteComponentPositions;
+  FutureOr<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint);
   abstract double distanceFromPlayer;
   abstract double tipPositionPercent;
   abstract double length;
@@ -141,6 +145,13 @@ abstract class Weapon extends Component {
   bool allowRapidClicking = false;
 
   bool isHoming = false;
+
+  @override
+  FutureOr<void> onLoad() async {
+    // TODO: implement onLoad
+    await super.onLoad();
+    setWeaponStatus(weaponStatus);
+  }
 
   //Weapon state info
   double get attackRateSecondComparison => 1 / attackRate;
@@ -163,8 +174,18 @@ abstract class Weapon extends Component {
   /// Returns true if an attack occured, otherwise false.
   void attackAttempt() {
     if (removeSpriteOnAttack) {
-      entityAncestor.backJoint.spriteComponent?.opacity = 0;
-      entityAncestor.handJoint.spriteComponent?.opacity = 0;
+      entityAncestor.backJoint.weaponSpriteAnimation?.opacity = 0;
+      entityAncestor.handJoint.weaponSpriteAnimation?.opacity = 0;
+    }
+  }
+
+  WeaponStatus weaponStatus = WeaponStatus.idle;
+
+  ///Sets the current status of the weapon, i.e. idle, shooting, reloading
+  void setWeaponStatus(WeaponStatus weaponStatus) {
+    this.weaponStatus = weaponStatus;
+    for (var element in parents.entries) {
+      element.value.weaponSpriteAnimation?.setWeaponStatus(this.weaponStatus);
     }
   }
 }
@@ -249,5 +270,112 @@ class RapidFire extends SecondaryWeaponAbility {
     add(rapidFireTimer!);
 
     super.startAttacking();
+  }
+}
+
+///Custom SpriteAnimation that attaches to each joint on an entity that is defined
+///within the current weapon parameters
+///
+///Based on the current action of the weapon, this will display different kinds
+///of animations.
+class WeaponSpriteAnimation extends SpriteAnimationComponent {
+  WeaponSpriteAnimation(
+      {required this.idleAnimation,
+      this.attackAnimation,
+      this.chargeAnimation,
+      this.reloadAnimation,
+      this.spawnAnimation,
+      this.idleOnly = false,
+      required this.parentJoint}) {
+    animation = idleAnimation;
+    anchor = Anchor.topCenter;
+    size = animation!.frames.first.sprite.srcSize.scaled(
+        parentJoint.weapon!.length / animation!.frames.first.sprite.srcSize.y);
+  }
+  WeaponStatus currentStatus = WeaponStatus.idle;
+  PlayerAttachmentJointComponent parentJoint;
+  bool idleOnly;
+  WeaponStatus? statusQueue;
+  SpriteAnimation? animationQueue;
+
+  SpriteAnimation idleAnimation;
+  SpriteAnimation? spawnAnimation;
+  SpriteAnimation? reloadAnimation;
+  SpriteAnimation? attackAnimation;
+  SpriteAnimation? chargeAnimation;
+
+  bool tempAnimationPlaying = false;
+
+  void applyAnimation(SpriteAnimation? animation) {
+    this.animation = animation;
+    initTicker();
+  }
+
+  void initTicker() {
+    tempAnimationPlaying = true;
+    animationTicker?.onComplete = tickerComplete;
+  }
+
+  void tickerComplete() {
+    tempAnimationPlaying = false;
+    currentStatus = statusQueue ?? currentStatus;
+    animation = animationQueue;
+  }
+
+  void setWeaponStatus(WeaponStatus newWeaponStatus,
+      [SpriteAnimation? attackAnimation]) {
+    if (newWeaponStatus == WeaponStatus.spawn) {
+      animation = spawnAnimation ?? idleAnimation;
+      currentStatus = newWeaponStatus;
+      return;
+    }
+
+    if (newWeaponStatus == currentStatus &&
+        [WeaponStatus.idle].contains(newWeaponStatus)) return;
+
+    switch (newWeaponStatus) {
+      case WeaponStatus.spawn:
+        if (spawnAnimation == null) break;
+        assert(!spawnAnimation!.loop, "Temp animations must not loop");
+        applyAnimation(spawnAnimation);
+
+        break;
+      case WeaponStatus.attack:
+        if (attackAnimation == null) break;
+        assert(!attackAnimation.loop, "Temp animations must not loop");
+        applyAnimation(attackAnimation);
+
+        break;
+      case WeaponStatus.reload:
+        if (parentJoint.weapon is! ReloadFunctionality ||
+            reloadAnimation == null) {
+          break;
+        }
+        assert(!reloadAnimation!.loop, "Temp animations must not loop");
+        reloadAnimation?.stepTime =
+            (parentJoint.weapon as ReloadFunctionality).reloadTime /
+                reloadAnimation!.frames.length;
+        applyAnimation(reloadAnimation);
+
+        break;
+      case WeaponStatus.idle:
+        animation = idleAnimation;
+
+        break;
+      case WeaponStatus.charge:
+        animation = chargeAnimation;
+
+        break;
+      default:
+        animation = idleAnimation;
+    }
+    animation ??= idleAnimation;
+
+    if (tempAnimationPlaying) {
+      statusQueue = newWeaponStatus;
+      animationQueue = animation;
+    } else {
+      currentStatus = newWeaponStatus;
+    }
   }
 }

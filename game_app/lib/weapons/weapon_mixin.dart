@@ -87,8 +87,8 @@ mixin ReloadFunctionality on Weapon {
   void reloadCheck() {
     if (remainingAttacks != 0 || reloadTimer != null || reloadTime == 0) return;
     if (removeSpriteOnAttack) {
-      entityAncestor.backJoint.spriteComponent?.opacity = 1;
-      entityAncestor.handJoint.spriteComponent?.opacity = 1;
+      entityAncestor.backJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor.handJoint.weaponSpriteAnimation?.opacity = 1;
     }
     createReloadBar();
     reloadTimer = TimerComponent(
@@ -418,8 +418,8 @@ mixin FullAutomatic on Weapon {
 
   void attackFinishTick() {
     if (removeSpriteOnAttack) {
-      entityAncestor.backJoint.spriteComponent?.opacity = 1;
-      entityAncestor.handJoint.spriteComponent?.opacity = 1;
+      entityAncestor.backJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor.handJoint.weaponSpriteAnimation?.opacity = 1;
     }
 
     attackTimer?.removeFromParent();

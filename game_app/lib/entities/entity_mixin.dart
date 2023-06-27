@@ -99,15 +99,29 @@ mixin AimFunctionality on Entity {
   void flipSpriteCheck() {
     final degree = -degrees(handJoint.angle);
     if ((degree < 180 && !flipped) || (degree >= 180 && flipped)) {
-      // if (!(handJoint.weaponClass?.attackTypes.contains(AttackType.melee) ??
-      //     true)) {
-      // }
-      shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
-      handJoint.flipHorizontallyAroundCenter();
-
-      spriteWrapper.flipHorizontallyAroundCenter();
-      flipped = !flipped;
+      flipSprite();
     }
+  }
+
+  void handJointBehindBodyCheck() {
+    final deg = degrees(radiansBetweenPoints(
+      Vector2(1, 0),
+      aimDelta,
+    ));
+
+    if ((deg >= 0 && deg < 180 && !weaponBehind) ||
+        (deg <= 360 && deg >= 180 && weaponBehind)) {
+      weaponBehind = !weaponBehind;
+      handJoint.priority = weaponBehind ? -1 : 1;
+    }
+  }
+
+  bool weaponBehind = false;
+
+  @override
+  void flipSprite() {
+    handJoint.flipHorizontallyAroundCenter();
+    super.flipSprite();
   }
 
   @override
@@ -125,6 +139,7 @@ mixin AimFunctionality on Entity {
       Vector2(0, 0.000001),
       delta,
     );
+    handJointBehindBodyCheck();
 
     handJoint.position = delta.clone();
     lastAimingPosition = delta.clone();
