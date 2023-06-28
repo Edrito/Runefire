@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:uuid/uuid.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -15,15 +16,18 @@ abstract class Projectile extends BodyComponent<GameRouter>
       {required this.delta,
       required this.originPosition,
       required this.weaponAncestor,
-      this.power = 1});
+      this.power = 1}) {
+    projectileId = const Uuid().v4();
+  }
 
+  late String projectileId;
   Random rng = Random();
 
   //Structure
   ProjectileFunctionality weaponAncestor;
   double closeBodySensorRadius = 17.5;
   Vector2 originPosition;
-  abstract double size;
+  abstract double length;
   abstract double ttl;
   abstract ProjectileType projectileType;
 
@@ -40,12 +44,11 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   FixtureDef? sensorDef;
 
-  List<int> hitHashcodes = [];
+  List<String> hitIds = [];
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! HealthFunctionality ||
-        hitHashcodes.contains(other.hashCode)) {
+    if (other is! HealthFunctionality || hitIds.contains(other.hashCode)) {
       return;
     }
 
@@ -69,8 +72,8 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void bodyContact(HealthFunctionality other) {
-    hitHashcodes.add(other.hashCode);
-    other.hit(hashCode, weaponAncestor.damage);
+    hitIds.add(other.entityId);
+    other.hit(projectileId, weaponAncestor.damage);
   }
 
   @override

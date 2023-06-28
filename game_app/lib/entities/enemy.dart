@@ -74,11 +74,11 @@ class Dummy extends Enemy with HealthFunctionality {
 
 class DummyTwo extends Enemy
     with
-        MovementFunctionality,
         HealthFunctionality,
+        DodgeFunctionality,
+        MovementFunctionality,
         DropExperienceFunctionality,
-        DumbFollowScaredAI,
-        DodgeFunctionality {
+        DumbFollowScaredAI {
   DummyTwo({
     required super.initPosition,
     required super.ancestor,
@@ -86,7 +86,7 @@ class DummyTwo extends Enemy
 
   EnemyType enemyType = EnemyType.flameHead;
   @override
-  double baseDodgeChance = .05;
+  double baseDodgeChance = .1;
 
   @override
   (double, double) xpRate = (0.001, 0.01);

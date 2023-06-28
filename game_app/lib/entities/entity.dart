@@ -7,6 +7,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
+import 'package:uuid/uuid.dart';
 
 import '../game/enviroment.dart';
 import '../resources/enums.dart';
@@ -15,7 +16,11 @@ import '../resources/priorities.dart';
 import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
-  Entity({required this.initPosition, required this.ancestor});
+  Entity({required this.initPosition, required this.ancestor}) {
+    entityId = const Uuid().v4();
+  }
+
+  late String entityId;
   Random rng = Random();
 
   abstract EntityType entityType;

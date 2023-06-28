@@ -32,6 +32,9 @@ class Player extends Entity
   final PlayerData playerData;
 
   int experiencePointsGained = 0;
+  double xpSensorRadius = 10;
+
+  Set<PhysicalKeyboardKey> physicalKeysPressed = {};
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -74,8 +77,6 @@ class Player extends Entity
 
     await super.onLoad();
   }
-
-  double xpSensorRadius = 10;
 
   @override
   Body createBody() {
@@ -153,8 +154,6 @@ class Player extends Entity
       }
     }
   }
-
-  Set<PhysicalKeyboardKey> physicalKeysPressed = {};
 
   @override
   bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {

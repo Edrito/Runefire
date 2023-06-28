@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:flame/events.dart';
+import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
+import 'package:game_app/resources/physics_filter.dart';
 
 import '../game/background.dart';
 import '../game/hud.dart';
@@ -30,6 +32,7 @@ abstract class GameEnviroment extends Component
   abstract GameLevel level;
   late final Forge2DComponent physicsComponent;
   late final GameHud hud;
+  late final Bounds bounds;
   Map<int, InputType> inputIdStates = {};
   late final Player player;
 
@@ -99,38 +102,26 @@ abstract class GameEnviroment extends Component
     children.register<CameraComponent>();
     gameWorld = World();
     super.add(gameWorld);
-    gameCamera = CameraComponent(world: gameWorld);
 
-    moveJoystick = CustomJoystickComponent(
-      knob: CircleComponent(radius: 15),
-      priority: foregroundPriority,
-      knobRadius: 15,
-      position: Vector2(50, gameCamera.viewport.size.y - 50),
-      background:
-          CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
-      // margin: const EdgeInsets.only(left: 30, bottom: 30),
-    );
-    aimJoystick = CustomJoystickComponent(
-      knob: CircleComponent(radius: 15),
-      priority: foregroundPriority,
-      position: Vector2(
-          gameCamera.viewport.size.x - 30, gameCamera.viewport.size.y - 30),
-      knobRadius: 15,
-      background:
-          CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
-      // margin: const EdgeInsets.only(right: 30, bottom: 30),
-    );
+    gameCamera = CameraComponent(world: gameWorld);
+    gameCamera.priority = backgroundPriority;
+
+    initJoysticks();
 
     player = Player(PlayerData(), ancestor: this, initPosition: Vector2.zero());
     hud = GameHud(this);
     physicsComponent = Forge2DComponent();
+    bounds = Bounds();
     gameCamera.viewport.addAll([hud, moveJoystick!, aimJoystick!]);
+
     super.add(gameCamera);
     add(player);
     add(physicsComponent);
+    add(bounds);
 
     player.mounted.whenComplete(() => gameCamera.viewfinder
         .add(CustomFollowBehavior(player, gameCamera.viewfinder)));
+
     gameCamera.viewfinder.zoom = 10;
     return super.onLoad();
   }
@@ -173,6 +164,28 @@ abstract class GameEnviroment extends Component
       }
       inputIdStates.remove(id);
     }
+  }
+
+  void initJoysticks() {
+    moveJoystick = CustomJoystickComponent(
+      knob: CircleComponent(radius: 15),
+      priority: foregroundPriority,
+      knobRadius: 15,
+      position: Vector2(50, gameCamera.viewport.size.y - 50),
+      background:
+          CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
+      // margin: const EdgeInsets.only(left: 30, bottom: 30),
+    );
+    aimJoystick = CustomJoystickComponent(
+      knob: CircleComponent(radius: 15),
+      priority: foregroundPriority,
+      position: Vector2(
+          gameCamera.viewport.size.x - 30, gameCamera.viewport.size.y - 30),
+      knobRadius: 15,
+      background:
+          CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
+      // margin: const EdgeInsets.only(right: 30, bottom: 30),
+    );
   }
 
   bool discernJoystate(int id, PositionInfo globalPos) {
@@ -255,5 +268,37 @@ abstract class GameEnviroment extends Component
     }
 
     return super.onKeyEvent(event, keysPressed);
+  }
+}
+
+class Bounds extends BodyComponent {
+  late ChainShape bounds;
+  final double maxArea = 500;
+  @override
+  Body createBody() {
+    bounds = ChainShape();
+    bounds.createLoop([
+      Vector2(-maxArea, maxArea),
+      Vector2(-maxArea, -maxArea),
+      Vector2(maxArea, -maxArea),
+      Vector2(maxArea, maxArea),
+    ]);
+    renderBody = false;
+
+    final fixtureDef = FixtureDef(bounds,
+        userData: {"type": FixtureType.body, "object": this},
+        restitution: 0,
+        friction: 0,
+        density: 1,
+        filter: Filter()..maskBits = playerCategory);
+
+    final bodyDef = BodyDef(
+      userData: this,
+      position: Vector2.zero(),
+      type: BodyType.static,
+      linearDamping: 12,
+      fixedRotation: true,
+    );
+    return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 }

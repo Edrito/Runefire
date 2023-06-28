@@ -128,7 +128,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   TimerComponent? inverseTimer;
 
   @override
-  void takeDamage(int id, List<DamageInstance> damage) {
+  bool takeDamage(String id, List<DamageInstance> damage) {
     inverse = true;
     targetUpdater?.onTick();
     if (inverseTimer == null) {
@@ -146,7 +146,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
       inverseTimer?.timer.reset();
     }
 
-    super.takeDamage(id, damage);
+    return super.takeDamage(id, damage);
   }
 
   @override

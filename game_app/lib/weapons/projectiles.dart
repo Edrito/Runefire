@@ -17,7 +17,7 @@ class Bullet extends Projectile with StandardProjectile {
   ProjectileType projectileType = ProjectileType.bullet;
 
   @override
-  double size = 1.5;
+  double length = 1.5;
 
   @override
   double ttl = 1.0;
@@ -36,7 +36,7 @@ class Laser extends Projectile with LaserProjectile {
   ProjectileType projectileType = ProjectileType.laser;
 
   @override
-  double size = 1.5;
+  double length = 1.5;
 
   @override
   double ttl = 0;

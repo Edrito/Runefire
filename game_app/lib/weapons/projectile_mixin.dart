@@ -82,7 +82,7 @@ mixin StandardProjectile on Projectile {
 
   void createShapeComponent() {
     circleComponent = CircleComponent(
-        radius: size / 2,
+        radius: length / 2,
         anchor: Anchor.center,
         paint: BasicPalette.red.paint());
     add(circleComponent);
@@ -111,8 +111,8 @@ mixin StandardProjectile on Projectile {
     if (weaponAncestor.isChaining &&
         !projectileHasExpired &&
         chainedTargets < weaponAncestor.chainingTargets) {
-      int index = closeHomingBodies.indexWhere((element) =>
-          !hitHashcodes.contains(element.hashCode) && !element.isDead);
+      int index = closeHomingBodies.indexWhere(
+          (element) => !hitIds.contains(element.hashCode) && !element.isDead);
       if (index == -1) return;
       // delta = (closeHomingBodies[index].center - center).normalized();
       body.applyLinearImpulse(
@@ -185,6 +185,8 @@ mixin LaserProjectile on Projectile {
 
   bool infrontWeaponCheck(Body element) {
     return element.userData is Enemy &&
+        element.userData is HealthFunctionality &&
+        !(element.userData as HealthFunctionality).isDead &&
         isEntityInfrontOfHandAngle(element.position, originPosition, delta);
   }
 

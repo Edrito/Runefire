@@ -3,14 +3,12 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
-import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/functions/custom_mixins.dart';
-import 'package:game_app/weapons/weapon_mixin.dart';
-import 'dart:async' as async;
 
 import '../functions/vector_functions.dart';
 import '../game/powerups.dart';
@@ -85,7 +83,7 @@ mixin AimFunctionality on Entity {
   late PlayerAttachmentJointComponent handJoint;
 
   @override
-  async.Future<void> onLoad() {
+  Future<void> onLoad() {
     handJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.hand,
         anchor: Anchor.center, size: Vector2.zero());
     mouseJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.mouse,
@@ -162,10 +160,10 @@ mixin AttackFunctionality on AimFunctionality {
     int i = 0;
     for (var element in initialWeapons) {
       carriedWeapons[i] = element.build(this, null, 0);
-      if (carriedWeapons[i] is SecondaryFunctionality) {
-        (carriedWeapons[i] as SecondaryFunctionality)
-            .setSecondaryFunctionality = RapidFire(carriedWeapons[i]!, 4);
-      }
+      // if (carriedWeapons[i] is SecondaryFunctionality) {
+      //   (carriedWeapons[i] as SecondaryFunctionality)
+      //       .setSecondaryFunctionality = RapidFire(carriedWeapons[i]!, 4);
+      // }
       i++;
     }
     initialWeapons.clear();
@@ -257,7 +255,7 @@ mixin HealthFunctionality on Entity {
   double healthIncrease = 0;
   double get getMaxHealth => baseHealth + healthIncrease;
 
-  int sameDamageSourceTimer = 1;
+  double sameDamageSourceDuration = 1;
 
   double get health => getMaxHealth - damageTaken;
   bool get isDead => damageTaken >= getMaxHealth;
@@ -269,7 +267,7 @@ mixin HealthFunctionality on Entity {
 
   //HEALTH
   CaTextComponent? damageText;
-  Map<int, async.Timer> hitSourceDuration = {};
+  Map<String, TimerComponent> hitSourceInvincibility = {};
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
   abstract SpriteAnimation? deathAnimation;
@@ -279,8 +277,9 @@ mixin HealthFunctionality on Entity {
     setEntityStatus(EntityStatus.dead);
   }
 
-  void takeDamage(int id, List<DamageInstance> damage) {
+  bool takeDamage(String id, List<DamageInstance> damage) {
     setEntityStatus(EntityStatus.damage);
+
     final reversedController = EffectController(
       duration: .1,
       reverseDuration: .1,
@@ -292,10 +291,7 @@ mixin HealthFunctionality on Entity {
       const Offset(0.0, 1),
       reversedController,
     ));
-    hitSourceDuration[id] =
-        async.Timer(Duration(seconds: sameDamageSourceTimer), () {
-      hitSourceDuration.remove(id);
-    });
+
     if (invincibilityDuration > 0) {
       invincibleTimer = TimerComponent(
         period: invincibilityDuration,
@@ -376,10 +372,12 @@ mixin HealthFunctionality on Entity {
         duration: .2,
       )),
     ]);
+
+    return true;
   }
 
-  bool hit(int id, List<DamageInstance> damage) {
-    if (hitSourceDuration.containsKey(id) ||
+  bool hit(String id, List<DamageInstance> damage) {
+    if (hitSourceInvincibility.containsKey(id) ||
         isInvincible ||
         isDead ||
         (damage.fold<double>(0,
@@ -388,8 +386,16 @@ mixin HealthFunctionality on Entity {
         damage.isEmpty) {
       return false;
     }
-    takeDamage(id, damage);
-    return true;
+
+    hitSourceInvincibility[id] = TimerComponent(
+        period: sameDamageSourceDuration,
+        removeOnFinish: true,
+        onTick: () {
+          hitSourceInvincibility.remove(id);
+        })
+      ..addToParent(this);
+
+    return takeDamage(id, damage);
   }
 }
 
@@ -407,10 +413,10 @@ mixin DodgeFunctionality on HealthFunctionality {
 
   abstract SpriteAnimation? dodgeAnimation;
 
-  @override
-  bool hit(int id, List<DamageInstance> damage) {
+  bool processDodge(List<DamageInstance> damage) {
+    final random = rng.nextDouble();
     if (damage.any((element) => element.damageType == DamageType.regular) &&
-        rng.nextDouble() < dodgeChance) {
+        random < dodgeChance) {
       totalDamageDodged += damage
           .firstWhere((element) => element.damageType == DamageType.regular)
           .damage;
@@ -453,9 +459,18 @@ mixin DodgeFunctionality on HealthFunctionality {
         )
       ]);
       add(dodgeText);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  bool takeDamage(String id, List<DamageInstance> damage) {
+    if (processDodge(damage)) {
       return false;
     } else {
-      return super.hit(id, damage);
+      return super.takeDamage(id, damage);
     }
   }
 }
@@ -497,9 +512,9 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
       final otherReference = element.userData;
       if (otherReference is! HealthFunctionality) continue;
       if (isPlayer && otherReference is Enemy) {
-        otherReference.hit(hashCode, damage);
+        otherReference.hit(entityId, damage);
       } else if (!isPlayer && otherReference is Player) {
-        otherReference.hit(hashCode, damage);
+        otherReference.hit(entityId, damage);
       }
     }
   }

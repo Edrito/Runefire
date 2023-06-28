@@ -141,7 +141,9 @@ class Pistol extends Weapon
   Pistol.create(
     int newUpgradeLevel,
     AimFunctionality ancestor,
-  ) : super(newUpgradeLevel, ancestor);
+  ) : super(newUpgradeLevel, ancestor) {
+    setSecondaryFunctionality = Bow.create(0, ancestor);
+  }
 
   @override
   bool get allowRapidClicking => true;
@@ -175,22 +177,22 @@ class Pistol extends Weapon
   bool allowProjectileRotation = true;
 
   @override
-  int projectileCount = 1;
+  int projectileCount = 5;
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (5, 10.0),
-    DamageType.energy: (5, 10.0)
+    DamageType.regular: (.1, .2),
+    DamageType.energy: (0, .1)
   };
 
   @override
   double baseAttackRate = .05;
 
   @override
-  bool get isHoming => true;
+  bool get isHoming => false;
 
   @override
-  int get chainingTargets => 5;
+  int get chainingTargets => 3;
 
   @override
   double length = 3;
@@ -211,10 +213,10 @@ class Pistol extends Weapon
   ProjectileType? projectileType = ProjectileType.laser;
 
   @override
-  double tipPositionPercent = -.3;
+  double tipPositionPercent = -.8;
 
   @override
-  double weaponRandomnessPercent = .0;
+  double weaponRandomnessPercent = .4;
 
   @override
   double distanceFromPlayer = .6;

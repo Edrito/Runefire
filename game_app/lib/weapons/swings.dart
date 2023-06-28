@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -7,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
+import 'package:uuid/uuid.dart';
 
 import '../functions/vector_functions.dart';
 import '../entities/enemy.dart';
@@ -21,7 +20,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is HealthFunctionality) {
-      other.hit(parentAttack.hashCode, parentAttack.parentWeapon.damage);
+      other.hit(parentAttack.meleeId, parentAttack.parentWeapon.damage);
     }
 
     super.beginContact(other, contact);
@@ -67,14 +66,14 @@ class MeleeAttack extends PositionComponent {
     start = parentWeapon.attackPatterns[index];
     end = parentWeapon.attackPatterns[index + 1];
     duration = parentWeapon.attackRate;
-    id = Random().nextDouble().toString();
+    meleeId = const Uuid().v4();
   }
 
   late (Vector2, double) start;
   late (Vector2, double) end;
 
   late double duration;
-  late String id;
+  late String meleeId;
   late final SpriteComponent spriteComponent;
 
   int index;

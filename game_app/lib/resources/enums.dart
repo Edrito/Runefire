@@ -9,7 +9,6 @@ import '../entities/entity.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
 import '../game/forest_game.dart';
-import '../game/home_room.dart';
 import '../weapons/projectiles.dart';
 import '../weapons/weapon_class.dart';
 
@@ -162,12 +161,12 @@ extension GameLevelExtension on GameLevel {
   BackgroundComponent buildBackground(GameEnviroment gameRef) {
     switch (this) {
       case GameLevel.space:
-        return HomeBackground(gameRef);
+        return ForestBackground(gameRef);
       case GameLevel.forest:
         return ForestBackground(gameRef);
 
       case GameLevel.home:
-        return HomeBackground(gameRef);
+        return ForestBackground(gameRef);
     }
   }
 }

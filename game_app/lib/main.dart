@@ -28,6 +28,8 @@ void changeMainMenuPage(MenuPages page) {
   });
 }
 
+bool startInGame = true;
+
 ///null route = go to main menu
 ///string route = leave main menu to route
 void toggleGameStart(String? route) {
@@ -99,7 +101,9 @@ void main() async {
       ),
     ),
   );
-  gameRouter.overlays.add(overlays.mainMenu.key);
+  if (!startInGame) {
+    gameRouter.overlays.add(overlays.mainMenu.key);
+  }
 }
 
 class GameRouter extends Forge2DGame
@@ -125,7 +129,7 @@ class GameRouter extends Forge2DGame
   List<MouseCallbackWrapper> mouseCallback = [];
 
   @override
-  void onLoad() {
+  void onLoad() async {
     router = RouterComponent(
       routes: {
         routes.blank: Route(Component.new),
@@ -133,7 +137,7 @@ class GameRouter extends Forge2DGame
         // routes.homeroom: Route(HomeRoom.new, maintainState: false),
         routes.gameplay: Route(ForestGame.new, maintainState: false),
       },
-      initialRoute: routes.blank,
+      initialRoute: startInGame ? routes.gameplay : routes.blank,
     );
 
     add(systemDataComponent);
