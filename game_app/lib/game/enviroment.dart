@@ -254,6 +254,7 @@ abstract class GameEnviroment extends Component
   }
 
   void pauseGame() {
+    if (game.overlays.isActive('DeathScreen')) return;
     game.overlays.add('PauseMenu');
     player.physicalKeysPressed.clear();
     player.parseKeys(null);

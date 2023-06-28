@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:game_app/pages/buttons.dart';
 import 'package:game_app/pages/menu.dart';
 import 'package:game_app/resources/visuals.dart';
+import '/resources/routes.dart' as routes;
 
 import '../main.dart';
 import 'enums.dart';
@@ -60,6 +61,72 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
                     },
                   )
                 ]),
+              ),
+            ),
+          );
+        }),
+      ),
+    ),
+  );
+});
+
+MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
+    MapEntry('DeathScreen', (context, gameRouter) {
+  final size = MediaQuery.of(context).size;
+  FocusNode node = FocusNode();
+  node.requestFocus();
+
+  return Material(
+    color: Colors.transparent,
+    child: KeyboardListener(
+      focusNode: node,
+      onKeyEvent: (value) {
+        if (value is! KeyDownEvent) return;
+      },
+      child: Center(
+        child: StatefulBuilder(builder: (context, setState) {
+          return ConstrainedBox(
+            constraints: const BoxConstraints(
+                maxWidth: 400, minHeight: 200, maxHeight: 500, minWidth: 250),
+            child: Container(
+              width: size.width / 3,
+              height: size.height / 4,
+              decoration: BoxDecoration(
+                  color: backgroundColor.darken(.1),
+                  borderRadius: const BorderRadius.all(Radius.circular(20))),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      "You Died",
+                      style: fontStyle,
+                    ),
+                  ),
+                  DisplayButtons(
+                    buttons: List<CustomButtonTwo>.from([
+                      CustomButtonTwo(
+                        "Try again",
+                        gameRef: gameRouter,
+                        onTap: () {
+                          toggleGameStart(routes.gameplay);
+                          gameRouter.overlays.remove(deathScreen.key);
+                          gameRouter.resumeEngine();
+                        },
+                      ),
+                      CustomButtonTwo(
+                        "Give up",
+                        gameRef: gameRouter,
+                        onTap: () {
+                          toggleGameStart(null);
+                          gameRouter.overlays.remove(deathScreen.key);
+                          gameRouter.resumeEngine();
+                        },
+                      )
+                    ]),
+                  ),
+                ],
               ),
             ),
           );

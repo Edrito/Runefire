@@ -22,7 +22,6 @@ class Player extends Entity
         DashFunctionality,
         HealthFunctionality,
         AttributeFunctionality,
-        TouchDamageFunctionality,
         AimFunctionality,
         AttackFunctionality,
         MovementFunctionality,
@@ -44,7 +43,7 @@ class Player extends Entity
     walkAnimation = await buildSpriteSheet(8, 'sprites/walk.png', .1, true);
     runAnimation = await buildSpriteSheet(8, 'sprites/run.png', .1, true);
     deathAnimation =
-        await buildSpriteSheet(8, 'enemy_sprites/death.png', .1, true);
+        await buildSpriteSheet(8, 'enemy_sprites/death.png', .1, false);
   }
 
   @override
@@ -267,7 +266,16 @@ class Player extends Entity
   }
 
   @override
-  Future<void> onDeath() async {}
+  Future<void> onDeath() async {
+    setEntityStatus(EntityStatus.dead);
+
+    spriteAnimationComponent.animationTicker?.onComplete = () {
+      game.overlays.add('DeathScreen');
+      physicalKeysPressed.clear();
+      parseKeys(null);
+      game.pauseEngine();
+    };
+  }
 
   @override
   Filter? filter = Filter()

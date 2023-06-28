@@ -78,6 +78,7 @@ class DummyTwo extends Enemy
         DodgeFunctionality,
         MovementFunctionality,
         DropExperienceFunctionality,
+        TouchDamageFunctionality,
         DumbFollowScaredAI {
   DummyTwo({
     required super.initPosition,
@@ -144,6 +145,11 @@ class DummyTwo extends Enemy
 
   @override
   SpriteAnimation? dodgeAnimation;
+
+  @override
+  Map<DamageType, (double, double)> touchDamageLevels = {
+    DamageType.energy: (5, 50)
+  };
 }
 
 abstract class Enemy extends Entity with ContactCallbacks {

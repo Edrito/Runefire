@@ -407,7 +407,6 @@ class _DisplayButtonsState extends State<DisplayButtons> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Spacer(),
             Expanded(
               child: ListView(
                 shrinkWrap: true,
@@ -421,7 +420,6 @@ class _DisplayButtonsState extends State<DisplayButtons> {
                     .fadeIn(curve: Curves.easeInOut, duration: .4.seconds),
               ),
             ),
-            const Spacer(),
           ],
         ),
       ),

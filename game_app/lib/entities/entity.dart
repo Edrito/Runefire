@@ -132,7 +132,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         if (health.deathAnimation == null) {
           spriteAnimationComponent.add(OpacityEffect.fadeOut(
             EffectController(
-              duration: .5,
+              duration: 1.5,
             ),
             onComplete: () {
               removeFromParent();

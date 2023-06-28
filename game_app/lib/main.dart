@@ -33,12 +33,15 @@ bool startInGame = true;
 ///null route = go to main menu
 ///string route = leave main menu to route
 void toggleGameStart(String? route) {
+  gameRouter.router.pushReplacementNamed(routes.blank);
+
   if (route != null) {
     gameRouter.overlays.remove(overlays.mainMenu.key);
-    gameRouter.router.pushReplacementNamed(route);
+    Future.delayed(const Duration(milliseconds: 50)).then((_) {
+      gameRouter.router.pushReplacementNamed(route);
+    });
   } else {
     gameRouter.overlays.add(overlays.mainMenu.key);
-    gameRouter.router.pushReplacementNamed(routes.blank);
   }
 }
 
@@ -96,6 +99,7 @@ void main() async {
                 overlays.pauseMenu,
                 overlays.weaponModifyMenu,
                 overlays.mainMenu,
+                overlays.deathScreen,
               ])),
         ),
       ),
@@ -132,7 +136,7 @@ class GameRouter extends Forge2DGame
   void onLoad() async {
     router = RouterComponent(
       routes: {
-        routes.blank: Route(Component.new),
+        routes.blank: Route(Component.new, maintainState: false),
         routes.transition: Route(ForestGame.new, maintainState: false),
         // routes.homeroom: Route(HomeRoom.new, maintainState: false),
         routes.gameplay: Route(ForestGame.new, maintainState: false),
