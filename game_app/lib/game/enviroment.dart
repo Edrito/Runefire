@@ -115,6 +115,7 @@ abstract class GameEnviroment extends Component
     gameCamera.viewport.addAll([hud, moveJoystick!, aimJoystick!]);
 
     super.add(gameCamera);
+
     add(player);
     add(physicsComponent);
     add(bounds);

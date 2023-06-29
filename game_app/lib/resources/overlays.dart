@@ -98,9 +98,9 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(20),
                     child: Text(
-                      "You Died",
+                      "You Died :'(",
                       style: fontStyle,
                     ),
                   ),

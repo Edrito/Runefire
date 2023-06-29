@@ -61,9 +61,9 @@ class Player extends Entity
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll([
+      WeaponType.sword,
       WeaponType.shotgun,
       WeaponType.pistol,
-      // WeaponType.sword,
     ]);
 
     await loadAnimationSprites();

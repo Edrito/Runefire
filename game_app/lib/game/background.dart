@@ -69,15 +69,15 @@ abstract class BackgroundComponent extends ParallaxComponent<GameRouter> {
   void update(double dt) {
     if (gameReference.player.isMounted && dt != 0) {
       parallax!.baseVelocity
-          .setFrom((gameReference.player.center - lastCameraPosition) / dt);
-      lastCameraPosition.setFrom(gameReference.player.center);
+          .setFrom((gameReference.player.center - lastPlayerPosition) / dt);
+      lastPlayerPosition.setFrom(gameReference.player.center);
       position.setFrom(gameReference.player.center);
     }
 
     super.update(dt);
   }
 
-  Vector2 lastCameraPosition = Vector2.zero();
+  Vector2 lastPlayerPosition = Vector2.zero();
 }
 
 class Forge2DComponent extends Component {}

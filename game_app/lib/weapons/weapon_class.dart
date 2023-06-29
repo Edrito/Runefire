@@ -157,7 +157,7 @@ abstract class Weapon extends Component {
   double get attackRateSecondComparison => 1 / attackRate;
 
   void applyWeaponUpgrade(int newUpgradeLevel) {
-    upgradeLevel = newUpgradeLevel;
+    newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
   }
 
   void removeWeaponUpgrade() {}
@@ -221,9 +221,9 @@ abstract class SecondaryWeaponAbility extends Component {
   void endAttacking();
 }
 
-///Reloads the weapon and mag dumps at a firerate of approx 10x original
+///Reloads the weapon and mag dumps at a firerate of approx 5x original
 class RapidFire extends SecondaryWeaponAbility {
-  RapidFire(super.weapon, super.cooldown, {this.attackRateIncrease = 10});
+  RapidFire(super.weapon, super.cooldown, {this.attackRateIncrease = 5});
   TimerComponent? rapidFireTimer;
   bool get isCurrentlyRunning => rapidFireTimer != null;
   double attackRateIncrease;

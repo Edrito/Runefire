@@ -103,34 +103,54 @@ mixin ReloadFunctionality on Weapon {
 }
 
 mixin MeleeFunctionality on Weapon {
-  ///An even number of pairs
-  ///Next position - next angle
+  ///Pairs of attack patterns
   ///
-  ///...
-  List<(Vector2, double)> attackPatterns = [];
+  ///Start position - Start angle
+  ///
+  ///Finish position - Finish angle
+  List<(Vector2, double)> attackHitboxPatterns = [];
 
-  int get attacksLength => (attackPatterns.length / 2).ceil();
+  ///Must be the same length as [attacksLength] or 0
+  List<SpriteAnimation> attackEntitySpriteAnimations = [];
+
+  ///Must be the same length as [attacksLength] or 0
+  List<SpriteAnimation> attackHitboxSpriteAnimations = [];
+
+  ///Must be the same length as [attacksLength]
+  List<Vector2> attackHitboxSizes = [];
+
+  int get attacksLength => (attackHitboxPatterns.length / 2).ceil();
 
   void melee([double chargeAmount = 1]) {
-    if (swingPatternIndex >= attacksLength) {
+    if (attacksCompletedIndex >= attacksLength) {
       resetToFirstSwings();
     }
     currentSwingPosition = entityAncestor.handJoint.position.clone();
     currentSwingAngle = entityAncestor.handJoint.angle;
-    int attackPatternIndex = (swingPatternIndex -
-            (((swingPatternIndex / (attacksLength)).floor()) *
+
+    int attackPatternIndex = (attacksCompletedIndex -
+            (((attacksCompletedIndex / (attacksLength)).floor()) *
                 (attacksLength))) *
         2;
-    swingPatternIndex++;
+
+    entityAncestor.setEntityStatus(
+        EntityStatus.attack,
+        attackEntitySpriteAnimations.isNotEmpty
+            ? attackEntitySpriteAnimations[attacksCompletedIndex]
+            : null);
 
     entityAncestor.add(MeleeAttack(
-        (currentSwingPosition ?? Vector2.zero()) * distanceFromPlayer,
-        currentSwingAngle,
-        attackPatternIndex,
-        this));
+      initPosition:
+          (currentSwingPosition ?? Vector2.zero()) * distanceFromPlayer,
+      initAngle: currentSwingAngle,
+      index: attackPatternIndex,
+      parentWeapon: this,
+    ));
+
+    attacksCompletedIndex++;
   }
 
-  int swingPatternIndex = 0;
+  int attacksCompletedIndex = 0;
 
   @override
   void endAttacking() {
@@ -147,7 +167,7 @@ mixin MeleeFunctionality on Weapon {
   void resetToFirstSwings() {
     currentSwingAngle = null;
     currentSwingPosition = null;
-    swingPatternIndex = 0;
+    attacksCompletedIndex = 0;
   }
 
   Vector2? currentSwingPosition;

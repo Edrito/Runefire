@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/functions/vector_functions.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
@@ -192,8 +193,7 @@ class Pistol extends Weapon
   bool get isHoming => false;
 
   @override
-  int get chainingTargets => 3;
-
+  int get chainingTargets => 0;
   @override
   double length = 3;
 
@@ -451,7 +451,7 @@ class Sword extends Weapon
     int newUpgradeLevel,
     AimFunctionality ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    attackPatterns = [
+    attackHitboxPatterns = [
       (Vector2(6, -4), 0),
       (Vector2(0, 8), 45),
       (Vector2(0, -4), 0),
@@ -460,9 +460,28 @@ class Sword extends Weapon
       (Vector2(0, 8), -45),
     ];
 
-    maxAmmo = (attackPatterns.length / 2).round();
+    maxAmmo = (attackHitboxPatterns.length / 2).round();
 
-    assert(attackPatterns.length.isEven, "Must be an even number of coords");
+    assert(
+        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    attackHitboxSpriteAnimations = [
+      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+    ];
+
+    attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
+        [],
+        (previousValue, element) => [
+              ...previousValue,
+              element.frames.first.sprite.srcSize
+                  .scaledToDimension(true, length)
+            ]);
+    return super.onLoad();
   }
 
   @override

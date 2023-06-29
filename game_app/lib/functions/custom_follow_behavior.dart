@@ -13,12 +13,10 @@ class CustomFollowBehavior extends Component {
 
   @override
   void update(double dt) {
-    final delta = target.body.position - owner.position;
-
     // final distance = delta.length;
     // if (distance > _speed * dt) {
     //   delta.scale(_speed * dt / distance);
     // }
-    owner.position = delta..add(owner.position);
+    owner.position = target.body.position.clone();
   }
 }

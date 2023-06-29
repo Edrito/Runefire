@@ -148,7 +148,7 @@ class DummyTwo extends Enemy
 
   @override
   Map<DamageType, (double, double)> touchDamageLevels = {
-    DamageType.energy: (5, 50)
+    DamageType.energy: (1, 4)
   };
 }
 
@@ -188,7 +188,7 @@ class EnemyManagement extends Component {
 
   @override
   FutureOr<void> onLoad() {
-    var section = 20.0;
+    var section = 10.0;
     for (var i = 1; i < 10; i++) {
       for (var j = 1; j < 10; j++) {
         section = section - ((Random().nextDouble() * 5) - 2.5);

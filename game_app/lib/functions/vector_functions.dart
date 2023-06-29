@@ -10,6 +10,18 @@ Vector2 vectorToGrid(Vector2 v1, Vector2 size) {
   return ((v1) - size / 2);
 }
 
+extension ScaledToDimensionVector2 on Vector2 {
+  Vector2 scaledToDimension(bool scaleY, double maxLength) {
+    double ratio = 1;
+    if (scaleY) {
+      ratio = maxLength / y;
+    } else {
+      ratio = maxLength / x;
+    }
+    return Vector2(x * ratio, y * ratio);
+  }
+}
+
 Vector2 tiledObjectToOrtho(Vector2 isoPoint, TiledComponent? info) {
   double orthoX = (isoPoint.x - isoPoint.y);
   double orthoY = (isoPoint.x / 2 + isoPoint.y / 2);

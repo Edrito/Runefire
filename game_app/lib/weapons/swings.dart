@@ -12,9 +12,9 @@ import '../entities/enemy.dart';
 import '../resources/enums.dart';
 
 class MeleeDetection extends BodyComponent with ContactCallbacks {
-  MeleeDetection(this.spriteComponent, this.parentAttack);
+  MeleeDetection(this.size, this.parentAttack);
   MeleeAttack parentAttack;
-  final SpriteComponent spriteComponent;
+  final Vector2 size;
   late PolygonShape shape;
 
   @override
@@ -31,11 +31,12 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
     shape = PolygonShape();
 
     shape.set([
-      Vector2(-spriteComponent.size.x / 2, 0),
-      Vector2(spriteComponent.size.x / 2, 0),
-      Vector2(spriteComponent.size.x / 2, spriteComponent.size.y),
-      Vector2(-spriteComponent.size.x / 2, spriteComponent.size.y),
+      Vector2(-size.x / 2, 0),
+      Vector2(size.x / 2, 0),
+      Vector2(size.x / 2, size.y),
+      Vector2(-size.x / 2, size.y),
     ]);
+
     final swordFilter = Filter();
     if (parentAttack.parentWeapon.entityAncestor is Enemy) {
       swordFilter.maskBits = playerCategory;
@@ -62,9 +63,12 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
 
 class MeleeAttack extends PositionComponent {
   MeleeAttack(
-      this.initPosition, this.initAngle, this.index, this.parentWeapon) {
-    start = parentWeapon.attackPatterns[index];
-    end = parentWeapon.attackPatterns[index + 1];
+      {required this.initPosition,
+      this.initAngle,
+      required this.index,
+      required this.parentWeapon}) {
+    start = parentWeapon.attackHitboxPatterns[index];
+    end = parentWeapon.attackHitboxPatterns[index + 1];
     duration = parentWeapon.attackRate;
     meleeId = const Uuid().v4();
   }
@@ -74,7 +78,8 @@ class MeleeAttack extends PositionComponent {
 
   late double duration;
   late String meleeId;
-  late final SpriteComponent spriteComponent;
+  late final SpriteAnimation? spriteAnimation;
+  late final SpriteAnimationComponent? spriteAnimationComponent;
 
   int index;
   MeleeFunctionality parentWeapon;
@@ -84,18 +89,26 @@ class MeleeAttack extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
-    // spriteComponent =
-    //     await parentWeapon.buildSpriteComponent();
+    size = parentWeapon.attackHitboxSizes[(index / 2).round()];
 
-    // add(spriteComponent);
+    if (parentWeapon.attackHitboxSpriteAnimations.isNotEmpty) {
+      spriteAnimation =
+          parentWeapon.attackHitboxSpriteAnimations[(index / 2).round()];
+      spriteAnimation!.stepTime = duration;
+      add(spriteAnimationComponent = SpriteAnimationComponent(
+          anchor: Anchor.topCenter,
+          size: size,
+          animation: spriteAnimation!,
+          removeOnFinish: true));
+    }
 
-    bodyComponent = MeleeDetection(spriteComponent, this);
+    bodyComponent = MeleeDetection(size, this);
 
     parentWeapon.entityAncestor.ancestor.physicsComponent.add(bodyComponent!);
 
-    anchor = Anchor.center;
+    // anchor = Anchor.center;
     angle = radians(start.$2) +
-        (initAngle ?? parentWeapon.entityAncestor.handJoint.angle ?? 0);
+        (initAngle ?? parentWeapon.entityAncestor.handJoint.angle);
     final rotatedStartPosition = rotateVector2(start.$1, angle);
     final rotatedEndPosition = rotateVector2(end.$1, angle);
 
@@ -107,7 +120,17 @@ class MeleeAttack extends PositionComponent {
     add(TimerComponent(
       period: duration,
       onTick: () {
-        removeFromParent();
+        if (spriteAnimationComponent != null) {
+          spriteAnimationComponent?.add(OpacityEffect.fadeOut(EffectController(
+            duration: .2,
+            onMax: () {
+              removeFromParent();
+            },
+          )));
+        } else {
+          removeFromParent();
+        }
+
         bodyComponent?.removeFromParent();
       },
     ));
@@ -139,9 +162,8 @@ class MeleeAttack extends PositionComponent {
   @override
   void update(double dt) {
     if (bodyComponent?.isLoaded ?? false) {
-      bodyComponent?.body.setTransform(
-          position + (parentWeapon.entityAncestor.center ?? Vector2.zero()),
-          angle);
+      bodyComponent?.body
+          .setTransform(position + (parentWeapon.entityAncestor.center), angle);
     }
     super.update(dt);
   }

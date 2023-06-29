@@ -250,6 +250,7 @@ mixin LaserProjectile on Projectile {
         chainedTargets++;
         homingComplete = true;
       } else {
+        print('here');
         newPointPosition = ((delta * pointStep) + previousDelta);
       }
 
