@@ -67,9 +67,6 @@ class Dummy extends Enemy with HealthFunctionality {
 
   @override
   SpriteAnimation? walkAnimation;
-
-  @override
-  AimPattern aimPattern = AimPattern.player;
 }
 
 class DummyTwo extends Enemy
@@ -84,6 +81,12 @@ class DummyTwo extends Enemy
     required super.initPosition,
     required super.ancestor,
   });
+
+  @override
+  void update(double dt) {
+    moveCharacter();
+    super.update(dt);
+  }
 
   EnemyType enemyType = EnemyType.flameHead;
   @override

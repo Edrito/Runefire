@@ -1,10 +1,14 @@
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/attributes_enum.dart';
 
+import '../resources/attributes.dart';
 import '../resources/visuals.dart';
 
-class CustomButtonTwo extends StatelessWidget {
-  const CustomButtonTwo(
+class CustomButton extends StatelessWidget {
+  const CustomButton(
     this.text, {
     required this.gameRef,
     this.isHighlightedInitial = false,
@@ -16,8 +20,9 @@ class CustomButtonTwo extends StatelessWidget {
     this.onSecondaryTapDown,
     this.onSecondaryTapUp,
     this.onSecondaryTapCancel,
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
+
   final GameRouter gameRef;
   final Function? onTap;
   final Function(TapDownDetails)? onTapDown;
@@ -30,7 +35,8 @@ class CustomButtonTwo extends StatelessWidget {
   final bool isHighlightedInitial;
   final String text;
 
-  CustomButtonTwo copyWith({
+  CustomButton copyWith({
+    GameRouter? gameRef,
     Function? onTap,
     Function(TapDownDetails)? onTapDown,
     Function(TapUpDetails)? onTapUp,
@@ -41,10 +47,11 @@ class CustomButtonTwo extends StatelessWidget {
     Function? onSecondaryTapCancel,
     bool? isHighlightedInitial,
     String? text,
+    Key? key,
   }) {
-    return CustomButtonTwo(
+    return CustomButton(
       text ?? this.text,
-      gameRef: gameRef,
+      gameRef: gameRef ?? this.gameRef,
       isHighlightedInitial: isHighlightedInitial ?? this.isHighlightedInitial,
       onTap: onTap ?? this.onTap,
       onTapDown: onTapDown ?? this.onTapDown,
@@ -54,325 +61,302 @@ class CustomButtonTwo extends StatelessWidget {
       onSecondaryTapDown: onSecondaryTapDown ?? this.onSecondaryTapDown,
       onSecondaryTapUp: onSecondaryTapUp ?? this.onSecondaryTapUp,
       onSecondaryTapCancel: onSecondaryTapCancel ?? this.onSecondaryTapCancel,
+      key: key ?? this.key,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isHighlighted = isHighlightedInitial;
-    TextStyle style = fontStyle.copyWith(
-        color: isHighlighted ? buttonDownColor : buttonUpColor);
-    return StatefulBuilder(
-      builder: (BuildContext context, setState) {
-        return InkWell(
+    bool? isHighlighted;
+
+    return StatefulBuilder(builder: (context, setstate) {
+      TextStyle style = defaultStyle.copyWith(
+        color: isHighlighted ?? isHighlightedInitial
+            ? buttonDownColor
+            : buttonUpColor,
+      );
+      return InkWell(
+        splashFactory: NoSplash.splashFactory,
+        hoverColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        onHover: (value) {
+          setstate(
+            () {
+              isHighlighted = value;
+            },
+          );
+        },
+        onTap: () {
+          if (onTap != null) {
+            onTap!();
+          }
+        },
+        onTapCancel: () {
+          if (onTapCancel != null) {
+            onTapCancel!();
+          }
+        },
+        onTapDown: (details) {
+          if (onTapDown != null) {
+            onTapDown!(details);
+          }
+        },
+        onTapUp: (details) {
+          if (onTapUp != null) {
+            onTapUp!(details);
+          }
+        },
+        onSecondaryTap: () {
+          if (onSecondaryTap != null) {
+            onSecondaryTap!();
+          }
+        },
+        onSecondaryTapDown: (details) {
+          if (onSecondaryTapDown != null) {
+            onSecondaryTapDown!(details);
+          }
+        },
+        onSecondaryTapUp: (details) {
+          if (onSecondaryTapUp != null) {
+            onSecondaryTapUp!(details);
+          }
+        },
+        onSecondaryTapCancel: () {
+          if (onSecondaryTapCancel != null) {
+            onSecondaryTapCancel!();
+          }
+        },
+        child: Padding(
+          padding: isHighlighted ?? isHighlightedInitial
+              ? const EdgeInsets.all(3)
+              : const EdgeInsets.only(
+                  right: 6,
+                  bottom: 6,
+                ),
+          child: Text(
+            text,
+            style: style,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class CustomCard extends StatelessWidget {
+  const CustomCard(
+    this.attribute, {
+    required this.gameRef,
+    this.isHighlightedInitial = false,
+    this.onTap,
+    this.onTapComplete,
+    this.isEndingInitial = false,
+    Key? key,
+  }) : super(key: key);
+
+  final GameRouter gameRef;
+  final Function? onTap;
+  final Function? onTapComplete;
+  final bool isHighlightedInitial;
+  final Attribute attribute;
+  final bool isEndingInitial;
+  CustomCard copyWith({
+    GameRouter? gameRef,
+    Function? onTap,
+    Function? onTapComplete,
+    bool? isHighlightedInitial,
+    bool? isEndingInitial,
+    Attribute? attribute,
+    Key? key,
+  }) {
+    return CustomCard(
+      attribute ?? this.attribute,
+      isEndingInitial: isEndingInitial ?? this.isEndingInitial,
+      gameRef: gameRef ?? this.gameRef,
+      isHighlightedInitial: isHighlightedInitial ?? this.isHighlightedInitial,
+      onTap: onTap ?? this.onTap,
+      onTapComplete: onTapComplete ?? this.onTapComplete,
+      key: key ?? this.key,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool? isHighlighted;
+    bool? isEnding;
+    bool showHelp = false;
+
+    return StatefulBuilder(builder: (context, setState) {
+      isEnding ??= isEndingInitial;
+      isHighlighted ??= isHighlightedInitial;
+
+      isHighlighted = isHighlighted! || isEnding!;
+      TextStyle style = defaultStyle.copyWith(
+          color: isHighlighted!
+              ? buttonDownColor
+              : attribute.attributeEnum.rarity.color.brighten(.1),
+          fontSize: 30);
+
+      Widget card = InkWell(
           splashFactory: NoSplash.splashFactory,
           hoverColor: Colors.transparent,
           highlightColor: Colors.transparent,
           onHover: (value) {
-            isHighlighted = value;
             setState(
               () {
-                style = style.copyWith(
-                    color: isHighlighted ? buttonDownColor : buttonUpColor);
+                isHighlighted = value;
               },
             );
           },
-          child: Padding(
-            padding: isHighlighted
-                ? const EdgeInsets.all(3)
-                : const EdgeInsets.only(
-                    right: 6,
-                    bottom: 6,
-                  ),
-            child: Text(
-              text,
-              style: style,
-              textAlign: TextAlign.center,
-            ),
-          ),
-          onSecondaryTap: () {
-            if (onSecondaryTap != null) {
-              onSecondaryTap!();
-            }
-          },
-          onSecondaryTapDown: (details) {
-            if (onSecondaryTapDown != null) {
-              onSecondaryTapDown!(details);
-            }
-          },
-          onSecondaryTapUp: (details) {
-            if (onSecondaryTapUp != null) {
-              onSecondaryTapUp!(details);
-            }
-          },
-          onSecondaryTapCancel: () {
-            if (onSecondaryTapCancel != null) {
-              onSecondaryTapCancel!();
-            }
-          },
-          onTap: () {
+          onTap: () async {
+            if (isEnding!) return;
+            setState(
+              () {
+                isEnding = true;
+              },
+            );
             if (onTap != null) {
               onTap!();
             }
           },
-          onTapCancel: () {
-            if (onTapCancel != null) {
-              onTapCancel!();
-            }
-          },
-          onTapDown: (details) {
-            if (onTapDown != null) {
-              onTapDown!(details);
-            }
-          },
-          onTapUp: (details) {
-            if (onTapUp != null) {
-              onTapUp!(details);
-            }
-          },
-        );
-      },
-    );
-  }
-}
-
-class CustomButton extends StatefulWidget {
-  const CustomButton(
-    this.text, {
-    required this.gameRef,
-    this.isHighlightedValue = false,
-    this.onTap,
-    this.onSecondaryTap,
-    this.onTapDown,
-    this.onTapUp,
-    this.onTapCancel,
-    this.onSecondaryTapDown,
-    this.onSecondaryTapUp,
-    this.onSecondaryTapCancel,
-    super.key,
-  });
-  final GameRouter gameRef;
-  final Function? onTap;
-  final Function(TapDownDetails)? onTapDown;
-  final Function(TapUpDetails)? onTapUp;
-  final Function? onTapCancel;
-  final Function? onSecondaryTap;
-  final Function(TapDownDetails)? onSecondaryTapDown;
-  final Function(TapUpDetails)? onSecondaryTapUp;
-  final Function? onSecondaryTapCancel;
-  final bool isHighlightedValue;
-  final String text;
-
-  @override
-  State<CustomButton> createState() => _CustomButtonState();
-}
-
-class _CustomButtonState extends State<CustomButton> {
-  late TextStyle style;
-
-  @override
-  void initState() {
-    super.initState();
-    style = fontStyle;
-    isHighlighted = widget.isHighlightedValue;
-  }
-
-  late bool isHighlighted;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      splashFactory: NoSplash.splashFactory,
-      hoverColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      onHover: (value) {
-        isHighlighted = value;
-        setState(
-          () {
-            style = style.copyWith(
-                color: isHighlighted ? buttonDownColor : buttonUpColor);
-          },
-        );
-      },
-      child: Padding(
-        padding: isHighlighted
-            ? const EdgeInsets.all(3)
-            : const EdgeInsets.only(
-                right: 6,
-                bottom: 6,
+          child: Padding(
+            padding: const EdgeInsets.all(3),
+            child: Container(
+              decoration: BoxDecoration(
+                  // color: attribute.attributeEnum.rarity.color.brighten(.9),
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  gradient: LinearGradient(colors: [
+                    attribute.attributeEnum.rarity.color.brighten(.98),
+                    attribute.attributeEnum.rarity.color.brighten(.9),
+                  ]),
+                  border: Border.all(
+                      color: attribute.attributeEnum.rarity.color.brighten(.15),
+                      width: 3)),
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          width: 50,
+                        ),
+                        Expanded(
+                          flex: 4,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Text(
+                              attribute.title,
+                              style: style,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 50,
+                          child: GestureDetector(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black, width: 2)),
+                                child: const Icon(
+                                  Icons.question_mark,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            onTap: () {
+                              setState(
+                                () {
+                                  showHelp = !showHelp;
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!showHelp) ...[
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset('assets/images/${attribute.icon}'),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          attribute.description(),
+                          style:
+                              style.copyWith(fontSize: (style.fontSize! * .6)),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    Expanded(
+                      flex: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          attribute.description() +
+                              attribute.description() +
+                              attribute.description(),
+                          style:
+                              style.copyWith(fontSize: (style.fontSize! * .6)),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ]
+                ],
               ),
-        child: Text(
-          widget.text,
-          style: style,
-          textAlign: TextAlign.center,
-        ),
-      ),
-      onSecondaryTap: () {
-        if (widget.onSecondaryTap != null) {
-          widget.onSecondaryTap!();
-        }
-      },
-      onSecondaryTapDown: (details) {
-        if (widget.onSecondaryTapDown != null) {
-          widget.onSecondaryTapDown!(details);
-        }
-      },
-      onSecondaryTapUp: (details) {
-        if (widget.onSecondaryTapUp != null) {
-          widget.onSecondaryTapUp!(details);
-        }
-      },
-      onSecondaryTapCancel: () {
-        if (widget.onSecondaryTapCancel != null) {
-          widget.onSecondaryTapCancel!();
-        }
-      },
-      onTap: () {
-        if (widget.onTap != null) {
-          widget.onTap!();
-        }
-      },
-      onTapCancel: () {
-        if (widget.onTapCancel != null) {
-          widget.onTapCancel!();
-        }
-      },
-      onTapDown: (details) {
-        if (widget.onTapDown != null) {
-          widget.onTapDown!(details);
-        }
-      },
-      onTapUp: (details) {
-        if (widget.onTapUp != null) {
-          widget.onTapUp!(details);
-        }
-      },
-    );
+            ),
+          )
+              .animate(
+                target: isHighlighted! ? 1 : 0,
+                onInit: (controller) {
+                  if (isEnding!) {
+                    controller.forward(from: 1);
+                    controller.stop();
+                  }
+                },
+              )
+              .rotate(
+                  begin: 0,
+                  end: .005,
+                  curve: Curves.easeInOut,
+                  duration: .1.seconds)
+              .scale(
+                curve: Curves.easeInOut,
+                duration: .1.seconds,
+                begin: const Offset(1, 1),
+                end: const Offset(1.05, 1.05),
+              ));
+      return (isEnding!
+          ? Animate(
+              effects: const [
+                  FadeEffect(begin: 1, end: 0, curve: Curves.easeInOut),
+                  MoveEffect(end: Offset(0, -50), curve: Curves.easeInOut),
+                ],
+              onComplete: (controller) {
+                if (onTapComplete != null) {
+                  onTapComplete!();
+                }
+              },
+              child: card)
+          : card);
+    });
   }
 }
-
-
-
-
-// class CustomButton extends PositionComponent
-//     with HasGameRef<GameRouter>, DragCallbacks {
-//   CustomButton(
-//     this.text, {
-//     this.onPrimaryDownFunction,
-//     this.onPrimaryUpFunction,
-//     this.onPrimaryCancelledFunction,
-//     this.onSecondaryDownFunction,
-//     this.onSecondaryUpFunction,
-//     this.onSecondaryCancelledFunction,
-//   });
-
-//   Function(TapDownInfo)? onPrimaryDownFunction;
-//   Function(TapUpInfo)? onPrimaryUpFunction;
-//   Function()? onPrimaryCancelledFunction;
-//   Function(TapDownInfo)? onSecondaryDownFunction;
-//   Function(TapUpInfo)? onSecondaryUpFunction;
-//   Function()? onSecondaryCancelledFunction;
-//   String text;
-
-//   late final MouseCallbackWrapper wrapper;
-//   bool isDown = false;
-
-//   late TextPaint textPaint;
-
-//   void updateText(String text) {
-//     this.text = text;
-//     buildText(isDown);
-//   }
-
-//   CaTextComponent? textComponent;
-//   @override
-//   FutureOr<void> onLoad() {
-//     anchor = Anchor.center;
-//     textPaint = TextPaint(style: fontStyle);
-
-//     buildText(false);
-//     return super.onLoad();
-//   }
-
-//   void buildText(bool isDownValue) {
-//     textComponent?.removeFromParent();
-//     // anchor = Anchor.center;
-
-//     textComponent = CaTextComponent(
-//       text: text,
-//       // anchor: Anchor.center,
-//       textRenderer: textPaint.copyWith((p0) =>
-//           p0.copyWith(color: isDownValue ? buttonDownColor : buttonUpColor)),
-//       position: isDownValue ? Vector2.all(1) : Vector2.zero(),
-//     );
-//     isDown = isDownValue;
-//     add(textComponent!);
-//     size = textComponent?.size ?? size;
-//   }
-
-//   void onMouseMove(PointerHoverInfo info) {
-//     if (textComponent?.containsPoint(info.eventPosition.viewport) ?? false) {
-//       if (!isDown) {
-//         buildText(true);
-//       }
-//     } else if (isDown) {
-//       buildText(false);
-//     }
-//   }
-
-//   @override
-//   void onRemove() {
-//     game.mouseCallback.remove(wrapper);
-
-//     super.onRemove();
-//   }
-
-//   @override
-//   void onMount() {
-//     wrapper = MouseCallbackWrapper();
-
-//     wrapper.onMouseMove = onMouseMove;
-//     wrapper.onPrimaryDown = (event) {
-//       if (textComponent?.containsPoint(event.eventPosition.game) ?? false) {
-//         if (onPrimaryDownFunction != null) onPrimaryDownFunction!(event);
-//       }
-//     };
-
-//     wrapper.onPrimaryUp = (event) {
-//       if (textComponent?.containsPoint(event.eventPosition.viewport) ?? false) {
-//         if (onPrimaryUpFunction != null) onPrimaryUpFunction!(event);
-//       }
-//     };
-
-//     wrapper.onPrimaryCancel = () {
-//       if (onPrimaryCancelledFunction != null) onPrimaryCancelledFunction!();
-//       buildText(false);
-//     };
-
-//     wrapper.onSecondaryDown = (event) {
-//       if (textComponent?.containsPoint(event.eventPosition.game) ?? false) {
-//         if (onSecondaryDownFunction != null) onSecondaryDownFunction!(event);
-//       }
-//     };
-
-//     wrapper.onSecondaryUp = (event) {
-//       if (textComponent?.containsPoint(event.eventPosition.viewport) ?? false) {
-//         if (onSecondaryUpFunction != null) onSecondaryUpFunction!(event);
-//       }
-//     };
-
-//     wrapper.onSecondaryCancel = () {
-//       if (onSecondaryCancelledFunction != null) onSecondaryCancelledFunction!();
-//       buildText(false);
-//     };
-
-//     game.mouseCallback.add(wrapper);
-
-//     super.onMount();
-//   }
-
-//   @override
-//   bool containsLocalPoint(Vector2 point) {
-//     return textComponent?.containsLocalPoint(point) ?? false;
-//   }
-// }

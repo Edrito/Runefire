@@ -19,7 +19,11 @@ mixin ReloadFunctionality on Weapon {
   abstract int? maxAmmo;
 
   ///How long in seconds to reload
-  abstract double reloadTime;
+  abstract final double baseReloadTime;
+
+  double reloadTimeIncrease = 0;
+
+  double get reloadTime => baseReloadTime - reloadTimeIncrease;
 
   int spentAttacks = 0;
 
@@ -160,7 +164,12 @@ mixin MeleeFunctionality on Weapon {
 
   @override
   void attackAttempt() {
-    melee();
+    var holdDurationPercent = 1.0;
+    if (this is SemiAutomatic) {
+      holdDurationPercent =
+          (this as SemiAutomatic).holdDurationPercentOfAttackRate;
+    }
+    melee(holdDurationPercent);
     super.attackAttempt();
   }
 
@@ -221,6 +230,7 @@ mixin ProjectileFunctionality on Weapon {
   abstract int pierce;
   abstract double projectileVelocity;
   abstract bool countIncreaseWithTime;
+
   int? additionalCount;
 
   void additionalCountCheck() {
@@ -236,7 +246,6 @@ mixin ProjectileFunctionality on Weapon {
       holdDurationPercent =
           (this as SemiAutomatic).holdDurationPercentOfAttackRate;
     }
-
     shoot(holdDurationPercent);
     super.attackAttempt();
   }
@@ -426,7 +435,10 @@ mixin SemiAutomatic on Weapon {
 mixin FullAutomatic on Weapon {
   @override
   double get durationHeld => attackTicks * attackRate;
+
   bool stopAttacking = false;
+  bool allowRapidClicking = false;
+  bool instantAttack = true;
 
   int attackTicks = 0;
   TimerComponent? attackTimer;
@@ -458,11 +470,13 @@ mixin FullAutomatic on Weapon {
   void startAttacking() {
     stopAttacking = false;
 
-    if (allowRapidClicking) {
-      attackTimer?.timer.reset();
-      attackTick();
-    } else if (attackTimer == null) {
-      attackTick();
+    if (instantAttack) {
+      if (allowRapidClicking) {
+        attackTimer?.timer.reset();
+        attackTick();
+      } else if (attackTimer == null) {
+        attackTick();
+      }
     }
 
     attackTimer ??= TimerComponent(

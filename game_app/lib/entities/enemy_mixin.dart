@@ -13,7 +13,7 @@ mixin DropExperienceFunctionality on HealthFunctionality {
   abstract (double, double) xpRate;
 
   @override
-  Future<void> onDeath() {
+  void deadStatus() {
     late ExperienceAmount experienceAmount;
 
     double chance = Random().nextDouble();
@@ -27,7 +27,7 @@ mixin DropExperienceFunctionality on HealthFunctionality {
     }
 
     ancestor.add(ExperienceItem(experienceAmount, body.position));
-    return super.onDeath();
+    super.deadStatus();
   }
 }
 

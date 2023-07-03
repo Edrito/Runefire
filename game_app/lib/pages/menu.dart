@@ -156,14 +156,14 @@ class StartMenu extends StatefulWidget {
 }
 
 class _StartMenuState extends State<StartMenu> {
-  late CustomButtonTwo startButtonComponent;
-  late CustomButtonTwo exitButtonComponent;
-  late CustomButtonTwo optionsButtonComponent;
+  late CustomButton startButtonComponent;
+  late CustomButton exitButtonComponent;
+  late CustomButton optionsButtonComponent;
 
   @override
   void initState() {
     super.initState();
-    startButtonComponent = CustomButtonTwo(
+    startButtonComponent = CustomButton(
       "Start Game",
       gameRef: widget.gameRef,
       onTap: () {
@@ -171,11 +171,11 @@ class _StartMenuState extends State<StartMenu> {
       },
     );
     optionsButtonComponent =
-        CustomButtonTwo("Options", gameRef: widget.gameRef, onTap: () {
+        CustomButton("Options", gameRef: widget.gameRef, onTap: () {
       changeMainMenuPage(MenuPages.options);
     });
     exitButtonComponent =
-        CustomButtonTwo("Exit", gameRef: widget.gameRef, onTap: () {
+        CustomButton("Exit", gameRef: widget.gameRef, onTap: () {
       exit(0);
     });
   }
@@ -204,9 +204,9 @@ class OptionsMenu extends StatefulWidget {
 }
 
 class _OptionsMenuState extends State<OptionsMenu> {
-  late CustomButtonTwo sfxButton;
-  late CustomButtonTwo musicButton;
-  late CustomButtonTwo exitButton;
+  late CustomButton sfxButton;
+  late CustomButton musicButton;
+  late CustomButton exitButton;
 
   late double musicVolume;
   bool? incrementingMusic;
@@ -232,8 +232,8 @@ class _OptionsMenuState extends State<OptionsMenu> {
     systemDataComponent?.dataObject.setMusicVolume = (newValue).clamp(0, 100);
   }
 
-  CustomButtonTwo buildMusicButton() {
-    return CustomButtonTwo(buildMusicString, gameRef: widget.gameRef,
+  CustomButton buildMusicButton() {
+    return CustomButton(buildMusicString, gameRef: widget.gameRef,
         onTapDown: (_) {
       // incrementMusic = 1;
       incrementingMusic = true;
@@ -251,8 +251,8 @@ class _OptionsMenuState extends State<OptionsMenu> {
     });
   }
 
-  CustomButtonTwo buildSFXButton() {
-    return CustomButtonTwo(buildSFXString, gameRef: widget.gameRef,
+  CustomButton buildSFXButton() {
+    return CustomButton(buildSFXString, gameRef: widget.gameRef,
         onTapDown: (_) {
       // incrementSFX = 1;
 
@@ -323,7 +323,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
     sfxButton = buildSFXButton();
     musicButton = buildMusicButton();
 
-    exitButton = CustomButtonTwo(
+    exitButton = CustomButton(
       "Back",
       gameRef: widget.gameRef,
       onTap: () {
@@ -342,7 +342,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
 
 class DisplayButtons extends StatefulWidget {
   const DisplayButtons({required this.buttons, super.key});
-  final List<CustomButtonTwo> buttons;
+  final List<CustomButton> buttons;
 
   @override
   State<DisplayButtons> createState() => _DisplayButtonsState();
@@ -358,17 +358,22 @@ class _DisplayButtonsState extends State<DisplayButtons> {
     focusNode.requestFocus();
   }
 
+  bool loaded = false;
+
   @override
   Widget build(BuildContext context) {
     List<Widget> displayedButtons = [];
 
-    for (CustomButtonTwo button in widget.buttons) {
+    for (CustomButton button in widget.buttons) {
+      late Widget newButton;
       if (selectedIndex != -1 && widget.buttons[selectedIndex] == button) {
-        button = button.copyWith(isHighlightedInitial: true);
+        newButton = button.copyWith(isHighlightedInitial: true);
+      } else {
+        newButton = button;
       }
       displayedButtons.add(Padding(
         padding: const EdgeInsets.all(5.0),
-        child: button,
+        child: newButton,
       ));
     }
     return Listener(
@@ -379,7 +384,7 @@ class _DisplayButtonsState extends State<DisplayButtons> {
         focusNode: focusNode,
         autofocus: true,
         onKeyEvent: (value) {
-          if (value is KeyUpEvent || value is KeyRepeatEvent) return;
+          if (value is KeyUpEvent || value is KeyRepeatEvent || !loaded) return;
           if (value.logicalKey == LogicalKeyboardKey.enter ||
               value.logicalKey == LogicalKeyboardKey.space) {
             if (selectedIndex != -1 &&
@@ -404,23 +409,129 @@ class _DisplayButtonsState extends State<DisplayButtons> {
             });
           }
         },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: ListView(
-                shrinkWrap: true,
-                children: displayedButtons
-                    .animate(interval: .05.seconds)
-                    // .slideX(
-                    //     curve: Curves.easeInOut,
-                    //     begin: -1,
-                    //     end: 0,
-                    //     duration: .4.seconds)
-                    .fadeIn(curve: Curves.easeInOut, duration: .4.seconds),
-              ),
+        child: Center(
+          child: SizedBox(
+            width: 300,
+            child: ListView(
+              shrinkWrap: true,
+              children: displayedButtons
+                  .animate(onComplete: (_) => loaded = true)
+                  // .slideX(
+                  //     curve: Curves.easeInOut,
+                  //     begin: -1,
+                  //     end: 0,
+                  //     duration: .4.seconds)
+                  .fadeIn(curve: Curves.easeInOut, duration: .4.seconds),
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class DisplayCards extends StatefulWidget {
+  const DisplayCards({required this.cards, this.ending = false, super.key});
+  final List<CustomCard> cards;
+  final bool ending;
+  @override
+  State<DisplayCards> createState() => _DisplayCardsState();
+}
+
+class _DisplayCardsState extends State<DisplayCards>
+    with TickerProviderStateMixin {
+  int selectedIndex = -1;
+  FocusNode focusNode = FocusNode();
+  CustomCard? selectedCard;
+  bool loaded = false;
+  @override
+  void initState() {
+    super.initState();
+    focusNode.requestFocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> displayedCards = [];
+
+    for (CustomCard card in widget.cards) {
+      if (selectedCard == null) {
+        if (selectedIndex != -1 && widget.cards[selectedIndex] == card) {
+          card = card.copyWith(isHighlightedInitial: true);
+        }
+        displayedCards.add(Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: card,
+          ),
+        ));
+      } else {
+        if (card == selectedCard) {
+          card =
+              card.copyWith(isHighlightedInitial: true, isEndingInitial: true);
+        }
+        displayedCards.add(Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: card,
+          ),
+        ));
+      }
+    }
+
+    return IgnorePointer(
+      ignoring: selectedCard != null,
+      child: Listener(
+        onPointerDown: (event) {
+          selectedIndex = -1;
+        },
+        child: KeyboardListener(
+          focusNode: focusNode,
+          autofocus: true,
+          onKeyEvent: (value) {
+            if (value is KeyUpEvent ||
+                value is KeyRepeatEvent ||
+                widget.ending ||
+                !loaded) return;
+            if (value.logicalKey == LogicalKeyboardKey.enter ||
+                value.logicalKey == LogicalKeyboardKey.space) {
+              if (selectedIndex != -1) {
+                setState(() {
+                  selectedCard = widget.cards[selectedIndex];
+                  selectedCard?.onTap!();
+                });
+              }
+            } else if (value.logicalKey == LogicalKeyboardKey.keyA ||
+                value.logicalKey == LogicalKeyboardKey.arrowLeft) {
+              setState(() {
+                selectedIndex--;
+                if (selectedIndex < 0) {
+                  selectedIndex = widget.cards.length - 1;
+                }
+              });
+            } else if (value.logicalKey == LogicalKeyboardKey.keyD ||
+                value.logicalKey == LogicalKeyboardKey.arrowRight) {
+              setState(() {
+                selectedIndex++;
+                if (selectedIndex > widget.cards.length - 1) {
+                  selectedIndex = 0;
+                }
+              });
+            }
+          },
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: displayedCards
+                  .animate(onComplete: (_) => loaded = true)
+                  .fadeIn(
+                    duration: .2.seconds,
+                    curve: Curves.decelerate,
+                  )
+                  .moveY(
+                      duration: .2.seconds,
+                      curve: Curves.decelerate,
+                      begin: 50,
+                      end: 0)),
         ),
       ),
     );

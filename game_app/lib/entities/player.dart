@@ -4,9 +4,11 @@ import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/functions/functions.dart';
+import 'package:game_app/resources/overlays.dart';
 import 'package:game_app/resources/physics_filter.dart';
 
 import '../functions/vector_functions.dart';
@@ -17,15 +19,14 @@ import '../resources/enums.dart';
 class Player extends Entity
     with
         ContactCallbacks,
-        KeyboardHandler,
-        MovementFunctionality,
-        DashFunctionality,
+        StaminaFunctionality,
         HealthFunctionality,
         AttributeFunctionality,
         AimFunctionality,
         AttackFunctionality,
         MovementFunctionality,
-        JumpFunctionality {
+        JumpFunctionality,
+        DashFunctionality {
   Player(this.playerData,
       {required super.ancestor, required super.initPosition});
   final PlayerData playerData;
@@ -57,7 +58,7 @@ class Player extends Entity
     super.onRemove();
   }
 
-  late MouseCallbackWrapper mouseCallbackWrapper;
+  late MouseKeyboardCallbackWrapper mouseCallbackWrapper;
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll([
@@ -68,10 +69,11 @@ class Player extends Entity
 
     await loadAnimationSprites();
 
-    mouseCallbackWrapper = MouseCallbackWrapper();
+    mouseCallbackWrapper = MouseKeyboardCallbackWrapper();
     mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();
     mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
     mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
+    mouseCallbackWrapper.keyEvent = (event) => onKeyEvent(event);
     game.mouseCallback.add(mouseCallbackWrapper);
 
     await super.onLoad();
@@ -113,9 +115,28 @@ class Player extends Entity
       ..createFixture(xpGrabRadiusFixture);
   }
 
+  void onKeyEvent(RawKeyEvent event) {
+    if (event is RawKeyUpEvent) {
+      physicalKeysPressed.remove(event.physicalKey);
+    } else {
+      physicalKeysPressed.add(event.physicalKey);
+    }
+    parseKeys(event);
+  }
+
+  @override
+  void update(double dt) {
+    if (!isDead && !isDashing) {
+      moveCharacter();
+    }
+    super.update(dt);
+  }
+
   void parseKeys(RawKeyEvent? event) {
     Vector2 moveAngle = Vector2.zero();
     try {
+      if (event == null) return;
+
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
         moveAngle.x += 1;
       }
@@ -129,43 +150,30 @@ class Player extends Entity
         moveAngle.y += 1;
       }
 
-      if (event == null) return;
+      if (gameIsPaused || event is! RawKeyDownEvent) return;
 
-      if (event.physicalKey == (PhysicalKeyboardKey.space) &&
-          physicalKeysPressed.contains(PhysicalKeyboardKey.space)) {
+      if (event.physicalKey == (PhysicalKeyboardKey.space)) {
         setEntityStatus(EntityStatus.jump);
       }
 
-      if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft) &&
-          physicalKeysPressed.contains(PhysicalKeyboardKey.shiftLeft)) {
+      if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
         setEntityStatus(EntityStatus.dash);
       }
 
-      if (event.physicalKey == (PhysicalKeyboardKey.tab) &&
-          physicalKeysPressed.contains(PhysicalKeyboardKey.tab)) {
+      if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
+        ancestor.displayLevelUpScreen();
+      }
+
+      if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
         swapWeapon();
       }
     } finally {
       if (moveAngle.isZero()) {
         moveVelocities.remove(InputType.keyboard);
-      } else {
+      } else if (!gameIsPaused) {
         moveVelocities[InputType.keyboard] = moveAngle;
       }
     }
-  }
-
-  @override
-  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (event is RawKeyDownEvent) {
-      physicalKeysPressed.add(event.physicalKey);
-    } else if (event is RawKeyUpEvent) {
-      physicalKeysPressed.remove(event.physicalKey);
-    }
-    if (!event.repeat) {
-      parseKeys(event);
-    }
-
-    return super.onKeyEvent(event, keysPressed);
   }
 
   @override
@@ -265,15 +273,19 @@ class Player extends Entity
     }
   }
 
-  @override
-  Future<void> onDeath() async {
+  void killPlayer(bool showDeathScreen) {
     setEntityStatus(EntityStatus.dead);
 
     spriteAnimationComponent.animationTicker?.onComplete = () {
-      game.overlays.add('DeathScreen');
-      physicalKeysPressed.clear();
-      parseKeys(null);
-      game.pauseEngine();
+      Future.delayed(1.seconds).then(
+        (value) {
+          if (showDeathScreen) {
+            pauseGame(deathScreen.key, wipeMovement: true);
+          } else {
+            toggleGameStart(null);
+          }
+        },
+      );
     };
   }
 
@@ -289,7 +301,7 @@ class Player extends Entity
   double baseHealth = 50;
 
   @override
-  double baseSpeed = 5;
+  double baseSpeed = 10;
 
   @override
   EntityType entityType = EntityType.player;
@@ -325,4 +337,7 @@ class Player extends Entity
   Map<DamageType, (double, double)> touchDamageLevels = {
     DamageType.regular: (4, 10)
   };
+
+  @override
+  double baseStamina = 100;
 }

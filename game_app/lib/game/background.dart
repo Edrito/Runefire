@@ -40,6 +40,7 @@ abstract class BackgroundComponent extends ParallaxComponent<GameRouter> {
     final backgroundLayer = await game.loadParallaxLayer(
       ParallaxImageData('background/test_tile.png'),
       // velocityMultiplier: Vector2(4, 0),
+      filterQuality: FilterQuality.none,
 
       fill: LayerFill.none,
       repeat: ImageRepeat.repeat,

@@ -68,7 +68,7 @@ mixin StandardProjectile on Projectile {
 
     var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
 
-    if (weaponAncestor.isHoming || weaponAncestor.isChaining) {
+    if (weaponAncestor.isHoming || weaponAncestor.weaponCanChain) {
       bulletFilter.categoryBits = sensorCategory;
       sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
           userData: {"type": FixtureType.sensor, "object": this},
@@ -108,9 +108,9 @@ mixin StandardProjectile on Projectile {
   }
 
   void chain(HealthFunctionality other) {
-    if (weaponAncestor.isChaining &&
+    if (weaponAncestor.weaponCanChain &&
         !projectileHasExpired &&
-        chainedTargets < weaponAncestor.chainingTargets) {
+        chainedTargets < weaponAncestor.maxChainingTargets) {
       int index = closeHomingBodies.indexWhere(
           (element) => !hitIds.contains(element.hashCode) && !element.isDead);
       if (index == -1) return;
@@ -195,7 +195,7 @@ mixin LaserProjectile on Projectile {
   Vector2 previousDelta = Vector2.zero();
   bool startChaining = false;
 
-  abstract double baseWidth;
+  abstract final double baseWidth;
   late double width;
 
   void homingAndChainCalculations() {
@@ -221,13 +221,13 @@ mixin LaserProjectile on Projectile {
 
     amountOfPoints = (amountOfPoints * .666 * power) + amountOfPoints * .333;
 
-    startChaining = weaponAncestor.isHoming && weaponAncestor.isChaining;
+    startChaining = weaponAncestor.isHoming && weaponAncestor.weaponCanChain;
 
     for (var i = 0; i < amountOfPoints; i++) {
       Body? bodyToJumpTo;
       Vector2 newPointPosition;
       bool shouldChain =
-          chainedTargets < weaponAncestor.chainingTargets && startChaining;
+          chainedTargets < weaponAncestor.maxChainingTargets && startChaining;
 
       //if should be bouncing, bounce
       if (!homingComplete || shouldChain) {
@@ -256,7 +256,7 @@ mixin LaserProjectile on Projectile {
 
       //TODO: rework check if other body is hit from this line
       //if hit, then start chaining
-      if (weaponAncestor.isChaining && !startChaining) {
+      if (weaponAncestor.weaponCanChain && !startChaining) {
         for (var element in bodies) {
           if ((element.position - originPosition).distanceTo(newPointPosition) <
               3) {
@@ -281,7 +281,7 @@ mixin LaserProjectile on Projectile {
     width = (power * baseWidth) + baseWidth * .15;
     lineThroughEnemies.add(previousDelta);
 
-    if (weaponAncestor.isHoming || weaponAncestor.isChaining) {
+    if (weaponAncestor.isHoming || weaponAncestor.weaponCanChain) {
       homingAndChainCalculations();
     } else {
       double distance = weaponAncestor.projectileVelocity;

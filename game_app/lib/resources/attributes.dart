@@ -1,42 +1,27 @@
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../entities/entity.dart';
-
-enum AttributeType {
-  mobility,
-  projectile,
-  magic,
-  melee,
-  defence,
-  offense,
-  attack
-}
-
-enum AttributeEnum {
-  maxSpeed,
-}
-
-extension AllAttributesExtension on AttributeEnum {
-  Attribute buildAttribute(int level, Entity entity) {
-    switch (this) {
-      case AttributeEnum.maxSpeed:
-        return MaxSpeedAttribute(level, entity);
-    }
-  }
-}
+import '../pages/buttons.dart';
+import 'attributes_enum.dart';
 
 abstract class Attribute {
-  Attribute(this._level, this.entity) {
+  Attribute(this._level, this.entity, [bool applyNow = true]) {
     _level = _level.clamp(0, maxLevel);
+    if (applyNow) {
+      applyAttribute();
+    }
   }
 
   String description();
   abstract String icon;
   abstract String title;
+  double? factor;
 
   int _level;
   Entity entity;
   bool isApplied = false;
+
+  int get remainingLevels => maxLevel - _level;
 
   int maxLevel = 5;
 
@@ -59,6 +44,7 @@ abstract class Attribute {
 
   void update(double dt) {}
   AttributeType get attributeType;
+  AttributeEnum get attributeEnum;
 
   ///Increase or decrease the level based on the input value
   void incrementLevel(int value) {
@@ -67,38 +53,112 @@ abstract class Attribute {
     _level = _level.clamp(0, maxLevel);
     applyAttribute();
   }
+
+  CustomCard buildWidget({Function? onTap, Function? onTapComplete}) {
+    return CustomCard(
+      this,
+      gameRef: entity.gameRef,
+      onTap: onTap,
+      onTapComplete: onTapComplete,
+    );
+  }
 }
 
-class MaxSpeedAttribute extends Attribute {
-  MaxSpeedAttribute(super.level, super.entity);
+class TopSpeedAttribute extends Attribute {
+  TopSpeedAttribute(super.level, super.entity, super.applyNow);
 
   @override
   AttributeType attributeType = AttributeType.mobility;
 
-  double factor = .05;
+  @override
+  AttributeEnum attributeEnum = AttributeEnum.topSpeed;
+
+  @override
+  double get factor => .05;
+
+  @override
+  int get maxLevel => 4;
+
+  double get increase => factor * (_level + (_level == maxLevel ? 1 : 0));
 
   @override
   void mapAttribute() {
-    if (Entity is! MovementFunctionality) return;
-    var move = Entity as MovementFunctionality;
-    move.speedIncrease += factor * (_level + _level == maxLevel ? 1 : 0);
+    if (entity is! MovementFunctionality) return;
+    var move = entity as MovementFunctionality;
+    move.speedIncrease += increase;
   }
 
   @override
   void unmapAttribute() {
-    if (Entity is! MovementFunctionality) return;
-    var move = Entity as MovementFunctionality;
-    move.speedIncrease -= factor * (_level + _level == maxLevel ? 1 : 0);
+    if (entity is! MovementFunctionality) return;
+    var move = entity as MovementFunctionality;
+    move.speedIncrease -= increase;
   }
 
   @override
-  String icon = "";
+  String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "";
+  String title = "Speed Increase";
 
   @override
   String description() {
-    return "";
+    if (remainingLevels != 1) {
+      return "Increase your top speed!";
+    } else {
+      return "Max Level";
+    }
+  }
+}
+
+class AttackRateAttribute extends Attribute {
+  AttackRateAttribute(super.level, super.entity, super.applyNow);
+
+  @override
+  AttributeType attributeType = AttributeType.attack;
+
+  @override
+  AttributeEnum attributeEnum = AttributeEnum.attackRate;
+
+  @override
+  double get factor => .05;
+
+  @override
+  int get maxLevel => 10;
+
+  double increase(double baseAttackRate) =>
+      (factor * baseAttackRate) * (_level + (_level == maxLevel ? 1 : 0));
+
+  @override
+  void mapAttribute() {
+    if (entity is! AttackFunctionality) return;
+    var attack = entity as AttackFunctionality;
+    for (var element in attack.carriedWeapons.values) {
+      element.attackRateIncrease += increase(element.baseAttackRate);
+    }
+  }
+
+  @override
+  void unmapAttribute() {
+    if (entity is! AttackFunctionality) return;
+    var attack = entity as AttackFunctionality;
+    for (var element in attack.carriedWeapons.values) {
+      element.attackRateIncrease -= increase(element.baseAttackRate);
+    }
+  }
+
+  @override
+  String icon = "attributes/attackRate.png";
+
+  @override
+  String title = "Attack Rate Increase";
+
+  @override
+  String description() {
+    if (remainingLevels != 1) {
+      return "Increase your attack rate!";
+    } else {
+      return "Max Level";
+    }
   }
 }

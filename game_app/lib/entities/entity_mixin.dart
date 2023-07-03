@@ -8,11 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
-import 'package:game_app/functions/custom_mixins.dart';
+import 'package:game_app/resources/visuals.dart';
 
 import '../functions/vector_functions.dart';
 import '../game/powerups.dart';
 import '../resources/attributes.dart';
+import '../resources/attributes_enum.dart';
 import '../resources/enums.dart';
 import '../weapons/weapon_class.dart';
 
@@ -27,7 +28,7 @@ mixin BaseAttributes {
   Map<int, Powerup> currentPowerdowns = {};
 
   double get damageDuration => baseDamageDuration + damageDurationIncrease;
-  double baseDamageDuration = 2;
+  final double baseDamageDuration = 2;
   double damageDurationIncrease = 0;
 
   bool disableMovement = false;
@@ -55,27 +56,28 @@ mixin MovementFunctionality on Entity {
     }
 
     body.applyForce(previousPulse * getMaxSpeed);
-    setEntityStatus(EntityStatus.run);
-  }
 
-  @override
-  void update(double dt) {
-    moveCharacter();
-    super.update(dt);
+    setEntityStatus(EntityStatus.run);
   }
 }
 
 mixin AimFunctionality on Entity {
   Vector2 lastAimingPosition = Vector2.zero();
 
-  Vector2 get aimDelta => (inputAimAngles[InputType.aimJoy] ??
-      inputAimAngles[InputType.tapClick] ??
-      inputAimAngles[InputType.mouseDrag] ??
-      inputAimAngles[InputType.mouseMove] ??
-      inputAimAngles[InputType.ai] ??
-      ((this is MovementFunctionality)
-          ? (this as MovementFunctionality).moveDelta
-          : Vector2.zero()));
+  Vector2 get aimDelta {
+    if (this is HealthFunctionality && (this as HealthFunctionality).isDead) {
+      return Vector2.zero();
+    }
+
+    return inputAimAngles[InputType.aimJoy] ??
+        inputAimAngles[InputType.tapClick] ??
+        inputAimAngles[InputType.mouseDrag] ??
+        inputAimAngles[InputType.mouseMove] ??
+        inputAimAngles[InputType.ai] ??
+        ((this is MovementFunctionality)
+            ? (this as MovementFunctionality).moveDelta
+            : Vector2.zero());
+  }
 
   Map<InputType, Vector2> inputAimAngles = {};
   Map<InputType, Vector2> inputAimPositions = {};
@@ -155,6 +157,12 @@ mixin AttackFunctionality on AimFunctionality {
   List<WeaponType> initialWeapons = [];
   bool isAttacking = false;
   bool isAltAttacking = false;
+
+  @override
+  void deadStatus() {
+    endAttacking();
+    super.deadStatus();
+  }
 
   Future<void> initializeWeapons() async {
     int i = 0;
@@ -243,9 +251,34 @@ mixin AttackFunctionality on AimFunctionality {
   }
 }
 
+mixin StaminaFunctionality on Entity {
+  abstract final double baseStamina;
+  double staminaIncrease = 0;
+  double get maxStamina => baseStamina + staminaIncrease;
+  double get remainingStamina => maxStamina - staminaUsed;
+  double staminaUsed = 0;
+
+  ///Requires a positive value to reduce the amount of stamina used
+  ///+5 = 5 more stamina to use
+  void modifyStamina(double amount) =>
+      staminaUsed = (staminaUsed -= amount).clamp(0, maxStamina);
+
+  /// Amount of stamina regenerated per second
+  final double baseStaminaRegen = 20;
+  double staminaRegenIncrease = 0;
+  double get staminaRegen => baseStaminaRegen + staminaRegenIncrease;
+  double get increaseRegenSpeed => ((remainingStamina / maxStamina) + .5);
+
+  @override
+  void update(double dt) {
+    modifyStamina(staminaRegen * dt * increaseRegenSpeed);
+    super.update(dt);
+  }
+}
+
 mixin HealthFunctionality on Entity {
   //health
-  abstract double baseInvincibilityDuration;
+  abstract final double baseInvincibilityDuration;
   double invincibilityDurationIncrease = 0;
   double get invincibilityDuration =>
       baseInvincibilityDuration + invincibilityDurationIncrease;
@@ -253,28 +286,51 @@ mixin HealthFunctionality on Entity {
   abstract final double baseHealth;
 
   double healthIncrease = 0;
-  double get getMaxHealth => baseHealth + healthIncrease;
+  double get maxHealth => baseHealth + healthIncrease;
 
   double sameDamageSourceDuration = 1;
 
-  double get health => getMaxHealth - damageTaken;
-  bool get isDead => damageTaken >= getMaxHealth;
+  double get remainingHealth => maxHealth - damageTaken;
+  bool isDead = false;
 
-  bool get isInvincible => invincibleTimer != null;
+  bool get isInvincible => invincibleTimer != null || isDead;
 
   double damageTaken = 0;
   double recentDamage = 0;
 
   //HEALTH
-  CaTextComponent? damageText;
+  TextComponent? damageText;
   Map<String, TimerComponent> hitSourceInvincibility = {};
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
   abstract SpriteAnimation? deathAnimation;
   abstract SpriteAnimation? damageAnimation;
 
-  Future<void> onDeath() async {
-    setEntityStatus(EntityStatus.dead);
+  @override
+  void deadStatus() {
+    isDead = true;
+    if (deathAnimation == null) {
+      spriteAnimationComponent.add(OpacityEffect.fadeOut(
+        EffectController(
+          duration: 1.5,
+        ),
+      ));
+      return;
+    }
+    tempAnimationPlaying = true;
+    assert(!deathAnimation!.loop, "Temp animations must not loop");
+    spriteAnimationComponent.animation = deathAnimation?.clone();
+    super.deadStatus();
+  }
+
+  @override
+  void damageStatus() {
+    if (damageAnimation == null) return;
+    assert(!damageAnimation!.loop, "Temp animations must not loop");
+    tempAnimationPlaying = true;
+    spriteAnimationComponent.animation = damageAnimation?.clone();
+    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    super.damageStatus();
   }
 
   bool takeDamage(String id, List<DamageInstance> damage) {
@@ -309,14 +365,16 @@ mixin HealthFunctionality on Entity {
     }
     final color = largestEntry.getColor();
 
-    if (health <= 0) {
-      onDeath();
+    if (remainingHealth <= 0) {
+      if (this is Player) {
+        (this as Player).killPlayer(true);
+      } else {
+        setEntityStatus(EntityStatus.dead);
+      }
     }
     final test = TextPaint(
-        style: TextStyle(
+        style: defaultStyle.copyWith(
       fontSize: 3,
-      fontFamily: "HeroSpeak",
-      fontWeight: FontWeight.bold,
       shadows: const [
         BoxShadow(
             color: Colors.black,
@@ -327,16 +385,13 @@ mixin HealthFunctionality on Entity {
       color: color,
     ));
     if (damageText == null) {
-      damageText = CaTextComponent(
+      damageText = TextComponent(
         text: recentDamage.round().toString(),
         anchor: Anchor.bottomLeft,
         textRenderer: test,
         position: Vector2.random() + Vector2(1, -1),
       );
       damageText?.addAll([
-        OpacityEffect.fadeIn(EffectController(
-          duration: .2,
-        )),
         TimerComponent(
           period: 1,
           onTick: () {
@@ -366,12 +421,6 @@ mixin HealthFunctionality on Entity {
         ),
       ]);
     }
-
-    damageText?.addAll([
-      OpacityEffect.fadeIn(EffectController(
-        duration: .2,
-      )),
-    ]);
 
     return true;
   }
@@ -403,7 +452,7 @@ mixin DodgeFunctionality on HealthFunctionality {
   //health
   double totalDamageDodged = 0;
   int dodges = 0;
-  abstract double baseDodgeChance;
+  abstract final double baseDodgeChance;
   double dodgeChanceIncrease = 0;
 
   double get dodgeChance => (baseDodgeChance + dodgeChanceIncrease).clamp(0, 1);
@@ -412,6 +461,16 @@ mixin DodgeFunctionality on HealthFunctionality {
   //HEALTH
 
   abstract SpriteAnimation? dodgeAnimation;
+
+  @override
+  void dodgeStatus() {
+    if (dodgeAnimation == null) return;
+    assert(!dodgeAnimation!.loop, "Temp animations must not loop");
+    tempAnimationPlaying = true;
+    spriteAnimationComponent.animation = dodgeAnimation?.clone();
+    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    super.dodgeStatus();
+  }
 
   bool processDodge(List<DamageInstance> damage) {
     final random = rng.nextDouble();
@@ -438,16 +497,13 @@ mixin DodgeFunctionality on HealthFunctionality {
         ],
         color: Colors.grey.shade100,
       ));
-      final dodgeText = CaTextComponent(
+      final dodgeText = TextComponent(
         text: "~",
         anchor: Anchor.bottomLeft,
         textRenderer: test,
         position: Vector2.random() + Vector2(1, -1),
       );
       dodgeText.addAll([
-        OpacityEffect.fadeIn(EffectController(
-          duration: .2,
-        )),
         MoveEffect.by(body.linearVelocity.normalized() * -3,
             EffectController(duration: 1, curve: Curves.easeIn)),
         TimerComponent(
@@ -546,7 +602,7 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   }
 }
 
-mixin DashFunctionality on Entity {
+mixin DashFunctionality on StaminaFunctionality {
   abstract SpriteAnimation? dashAnimation;
 
   //DASH
@@ -557,18 +613,56 @@ mixin DashFunctionality on Entity {
   Vector2? dashDelta;
   double dashSpeed = 15;
   double dashDuration = .2;
+  double dashStaminaCost = 50;
 
-  bool dash() {
-    if (dashTimerCooldown != null || getIsJumping || disableMovement) {
+  @override
+  void dashStatus() {
+    if (!dashCheck() || dashAnimation == null) return;
+    assert(!dashAnimation!.loop, "Temp animations must not loop");
+    tempAnimationPlaying = true;
+    spriteAnimationComponent.animation = dashAnimation?.clone();
+    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    super.dashStatus();
+  }
+
+  bool dashCheck() {
+    if (dashTimerCooldown != null ||
+        getIsJumping ||
+        disableMovement ||
+        dashStaminaCost > remainingStamina) {
       return false;
     }
+
+    dashInit();
+    return true;
+  }
+
+  void dashInit(
+      {double? power, bool hasStaminaCost = true, bool aimAngle = false}) {
+    if (hasStaminaCost) modifyStamina(-dashStaminaCost);
+    if (power != null) {
+      power *= 2;
+    }
+    power ??= 1;
+
+    dashDistanceGoal = dashSpeed * power;
     isDashing = true;
-    if (this is MovementFunctionality) {
-      dashDelta = (this as MovementFunctionality).moveDelta;
+    if (aimAngle) {
+      if (this is AimFunctionality) {
+        dashDelta = (this as AimFunctionality).aimDelta;
+      }
+      if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
+        dashDelta = (this as MovementFunctionality).moveDelta;
+      }
+    } else {
+      if (this is MovementFunctionality) {
+        dashDelta = (this as MovementFunctionality).moveDelta;
+      }
+      if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
+        dashDelta = (this as AimFunctionality).aimDelta;
+      }
     }
-    if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
-      dashDelta = (this as AimFunctionality).aimDelta;
-    }
+
     dashDelta = dashDelta!.normalized();
     dashTimerCooldown = TimerComponent(
       period: dashCooldown,
@@ -582,48 +676,66 @@ mixin DashFunctionality on Entity {
     );
 
     add(dashTimerCooldown!);
-    return true;
   }
+
+  double? dashDistanceGoal;
 
   @override
   void update(double dt) {
-    dashCheck(dt);
+    dashMoveCheck(dt);
     super.update(dt);
   }
 
-  void dashCheck(double dt) {
+  void dashMoveCheck(double dt) {
     if (isDashing && dashDelta != null) {
-      if (dashedDistance > dashSpeed) {
-        dashDelta = null;
-        isDashing = false;
-        dashedDistance = 0;
+      if (dashedDistance > dashDistanceGoal!) {
+        finishDash();
         return;
       }
-
-      final distance = ((dashSpeed / dashDuration) * dt);
-
-      body.setTransform(body.position + (dashDelta! * distance), 0);
-      dashedDistance += distance;
+      dashMove(dt);
     }
+  }
+
+  void finishDash() {
+    dashDelta = null;
+    isDashing = false;
+    dashedDistance = 0;
+  }
+
+  void dashMove(double dt) {
+    final distance = ((dashSpeed / dashDuration) * dt);
+
+    body.setTransform(body.position + (dashDelta! * distance), 0);
+    dashedDistance += distance;
   }
 }
 
-mixin JumpFunctionality on Entity {
+mixin JumpFunctionality on StaminaFunctionality {
   //JUMP
   bool isJumping = false;
   bool isJumpingInvincible = false;
   double jumpDuration = .5;
+  double jumpStaminaCost = 10;
 
   //how much of the jumpduration the character is jumping to avoid dmg
   double jumpingInvinciblePercent = .5;
 
   abstract SpriteAnimation? jumpAnimation;
 
-  bool jump() {
-    if (isJumping || getIsDashing || disableMovement) return false;
+  @override
+  void jumpStatus() {
+    if (!jumpCheck() || jumpAnimation == null) return;
+    assert(!jumpAnimation!.loop, "Temp animations must not loop");
+    tempAnimationPlaying = true;
+    spriteAnimationComponent.animation = jumpAnimation?.clone();
 
+    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    super.jumpStatus();
+  }
+
+  void jump() {
+    modifyStamina(-jumpStaminaCost);
     isJumping = true;
-
     double elapsed = 0;
     double min =
         (jumpDuration / 2) - jumpDuration * (jumpingInvinciblePercent / 2);
@@ -673,42 +785,84 @@ mixin JumpFunctionality on Entity {
             controllerD,
           ));
     }
+  }
+
+  bool jumpCheck() {
+    if (isJumping ||
+        getIsDashing ||
+        disableMovement ||
+        jumpStaminaCost > remainingStamina) return false;
+
+    jump();
 
     return true;
   }
 }
 
 mixin AttributeFunctionality on Entity {
-  Map<AttributeEnum, Attribute> attributes = {};
+  Map<AttributeEnum, Attribute> currentAttributes = {};
 
   void loadPlayerConfig(Map<String, dynamic> config) {}
+  bool initalized = false;
 
-  void addAttributes(Map<AttributeEnum, int> attributesToAdd) {
+  ///Initial Attribtes and their initial level
+  ///i.e. Max Speed : Level 3
+  void initAttributes(Map<AttributeEnum, int> attributesToAdd) {
+    if (initalized) return;
     for (var element in attributesToAdd.entries) {
-      final attrib = element.key.buildAttribute(element.value, this);
-      attributes[element.key] = attrib;
-      attrib.applyAttribute();
+      currentAttributes[element.key] =
+          element.key.buildAttribute(element.value, this, true);
+    }
+    initalized = true;
+  }
+
+  void addRandomAttribute() {
+    addAttribute(
+        AttributeEnum.values[rng.nextInt(AttributeEnum.values.length)]);
+  }
+
+  void addAttribute(AttributeEnum attribute, [int level = 1]) {
+    if (currentAttributes.containsKey(attribute)) {
+      currentAttributes[attribute]?.incrementLevel(level);
+    } else {
+      currentAttributes[attribute] = attribute.buildAttribute(level, this);
     }
   }
 
   void clearAttributes() {
-    for (var element in attributes.entries) {
+    for (var element in currentAttributes.entries) {
       element.value.removeAttribute();
     }
-    attributes.clear();
+    currentAttributes.clear();
+    initalized = false;
   }
 
   void removeAttribute(AttributeEnum attributeEnum) {
-    if (attributes.containsKey(attributeEnum)) {
-      attributes[attributeEnum]?.removeAttribute();
-      attributes.remove(attributeEnum);
+    if (currentAttributes.containsKey(attributeEnum)) {
+      currentAttributes[attributeEnum]?.removeAttribute();
+      currentAttributes.remove(attributeEnum);
     }
   }
 
   void modifyLevel(AttributeEnum attributeEnum, [int amount = 0]) {
-    if (attributes.containsKey(attributeEnum)) {
-      var attr = attributes[attributeEnum]!;
+    if (currentAttributes.containsKey(attributeEnum)) {
+      var attr = currentAttributes[attributeEnum]!;
       attr.incrementLevel(amount);
     }
+  }
+
+  List<Attribute> buildAttributeSelection() {
+    List<Attribute> returnList = [];
+
+    for (var i = 0; i < 3; i++) {
+      final attr =
+          AttributeEnum.values[rng.nextInt(AttributeEnum.values.length)];
+      if (currentAttributes.containsKey(attr)) {
+        returnList.add(currentAttributes[attr]!);
+      } else {
+        returnList.add(attr.buildAttribute(1, this, false));
+      }
+    }
+    return returnList;
   }
 }

@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart'
+    hide MoveEffect, ScaleEffect;
+import 'package:game_app/functions/custom_mixins.dart';
 import 'package:game_app/resources/physics_filter.dart';
 
 import '../game/background.dart';
@@ -18,13 +22,16 @@ import '../functions/custom_joystick.dart';
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
+import '../resources/overlays.dart';
 import '../resources/priorities.dart';
 import 'package:window_manager/window_manager.dart';
+
+import '../resources/visuals.dart';
 
 abstract class GameEnviroment extends Component
     with
         HasGameRef<GameRouter>,
-        KeyboardHandler,
+        // KeyboardHandler,
         WindowListener,
         DragCallbacks {
   CustomJoystickComponent? aimJoystick;
@@ -42,6 +49,38 @@ abstract class GameEnviroment extends Component
   @override
   bool containsLocalPoint(Vector2 point) {
     return true;
+  }
+
+  void displayLevelUpScreen() async {
+    const count = 3;
+    for (var i = 0; i < count; i++) {
+      final upArrow = CaTextComponent(
+          position: Vector2(4, -1),
+          anchor: Anchor.center,
+          priority: menuPriority,
+          textRenderer:
+              TextPaint(style: defaultStyle.copyWith(fontSize: 5 * (i + 1))),
+          text: "^");
+      final effectController = EffectController(
+        duration: .3,
+        curve: Curves.fastLinearToSlowEaseIn,
+        onMax: () {
+          if (i == count - 1) {
+            pauseGame(attributeSelection.key);
+          }
+          upArrow.removeFromParent();
+        },
+      );
+
+      upArrow.addAll([
+        MoveEffect.by(
+          Vector2(0, -4),
+          effectController,
+        ),
+      ]);
+      player.add(upArrow);
+      await Future.delayed(.3.seconds);
+    }
   }
 
   void onMouseMove(PointerHoverInfo info) {
@@ -62,11 +101,13 @@ abstract class GameEnviroment extends Component
     super.onGameResize(size);
   }
 
-  late final MouseCallbackWrapper wrapper;
+  late final MouseKeyboardCallbackWrapper wrapper;
 
   @override
   void onRemove() {
     gameRef.mouseCallback.remove(wrapper);
+    windowManager.removeListener(this);
+
     super.onRemove();
   }
 
@@ -84,15 +125,15 @@ abstract class GameEnviroment extends Component
 
   @override
   void onMount() {
-    wrapper = MouseCallbackWrapper();
+    wrapper = MouseKeyboardCallbackWrapper();
     wrapper.onMouseMove = onMouseMove;
     wrapper.onPrimaryDown = onTapDown;
     wrapper.onPrimaryUp = onTapUp;
     wrapper.onSecondaryDown = (_) => onSecondaryDown;
     wrapper.onSecondaryUp = (_) => onSecondaryUp;
     wrapper.onSecondaryCancel = () => onSecondaryUp;
+    wrapper.keyEvent = (event) => onKeyEvent(event);
     gameRef.mouseCallback.add(wrapper);
-
     super.onMount();
   }
 
@@ -247,29 +288,18 @@ abstract class GameEnviroment extends Component
     player.gestureEventEnd(InputType.tapClick, info);
   }
 
-  //TODO: REFINE
   @override
   void onWindowBlur() {
-    pauseGame();
+    pauseGame(pauseMenu.key, wipeMovement: true);
     super.onWindowBlur();
   }
 
-  void pauseGame() {
-    if (game.overlays.isActive('DeathScreen')) return;
-    game.overlays.add('PauseMenu');
-    player.physicalKeysPressed.clear();
-    player.parseKeys(null);
-    game.pauseEngine();
-  }
-
-  @override
-  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (keysPressed.contains(LogicalKeyboardKey.keyP) ||
-        keysPressed.contains(LogicalKeyboardKey.escape)) {
-      pauseGame();
+  void onKeyEvent(RawKeyEvent event) {
+    if (event is! RawKeyDownEvent) return;
+    if (event.logicalKey == LogicalKeyboardKey.keyP ||
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      pauseGame(pauseMenu.key);
     }
-
-    return super.onKeyEvent(event, keysPressed);
   }
 }
 

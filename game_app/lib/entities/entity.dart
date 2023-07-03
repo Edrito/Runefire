@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
 import 'package:flame/rendering.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/player.dart';
@@ -64,6 +63,30 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     spriteAnimationComponent.animation = animationQueue;
   }
 
+  void spawnStatus() {
+    if (spawnAnimation == null) return;
+    assert(!spawnAnimation!.loop, "Temp animations must not loop");
+    tempAnimationPlaying = true;
+    spriteAnimationComponent.animation = spawnAnimation?.clone();
+    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+  }
+
+  void attackStatus(SpriteAnimation? attackAnimation) {
+    if (attackAnimation == null) return;
+
+    assert(!attackAnimation.loop, "Temp animations must not loop");
+    tempAnimationPlaying = true;
+    spriteAnimationComponent.animation = attackAnimation.clone();
+    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+  }
+
+  void jumpStatus() {}
+  void dashStatus() {}
+  void deadStatus() {}
+
+  void damageStatus() {}
+  void dodgeStatus() {}
+
   void setEntityStatus(EntityStatus newEntityStatus,
       [SpriteAnimation? attackAnimation]) {
     SpriteAnimation? animation;
@@ -84,95 +107,29 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
     switch (newEntityStatus) {
       case EntityStatus.spawn:
-        if (spawnAnimation == null) break;
-        assert(!spawnAnimation!.loop, "Temp animations must not loop");
-        tempAnimationPlaying = true;
-        spriteAnimationComponent.animation = spawnAnimation?.clone();
-        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
-
+        spawnStatus();
         break;
       case EntityStatus.attack:
-        if (attackAnimation == null) break;
-        assert(!attackAnimation.loop, "Temp animations must not loop");
-        tempAnimationPlaying = true;
-        spriteAnimationComponent.animation = attackAnimation.clone();
-        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+        attackStatus(attackAnimation);
 
         break;
 
       case EntityStatus.jump:
-        if (this is! JumpFunctionality) return;
-        var jump = this as JumpFunctionality;
-        if (!jump.jump() || jump.jumpAnimation == null) break;
-        assert(!jump.jumpAnimation!.loop, "Temp animations must not loop");
-        tempAnimationPlaying = true;
-        spriteAnimationComponent.animation = jump.jumpAnimation?.clone();
-
-        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
-
+        jumpStatus();
         break;
       case EntityStatus.dash:
-        if (this is! DashFunctionality) return;
-        var dash = this as DashFunctionality;
-        if (!dash.dash() || dash.dashAnimation == null) break;
-        assert(!dash.dashAnimation!.loop, "Temp animations must not loop");
-        tempAnimationPlaying = true;
-        spriteAnimationComponent.animation = dash.dashAnimation?.clone();
-        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
-
+        dashStatus();
         break;
-      case EntityStatus.dead:
-        if (this is! HealthFunctionality) return;
-        var health = this as HealthFunctionality;
-        if (this is AttackFunctionality) {
-          var attack = (this as AttackFunctionality);
-          attack.endAttacking();
-        }
-        disableMovement = true;
-        if (health.deathAnimation == null) {
-          spriteAnimationComponent.add(OpacityEffect.fadeOut(
-            EffectController(
-              duration: 1.5,
-            ),
-            onComplete: () {
-              removeFromParent();
-            },
-          ));
-          break;
-        }
-        tempAnimationPlaying = true;
-        assert(!health.deathAnimation!.loop, "Temp animations must not loop");
-        spriteAnimationComponent.animation = health.deathAnimation?.clone();
-        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
-        spriteAnimationComponent.add(OpacityEffect.fadeOut(
-          EffectController(
-            duration: spriteAnimationComponent.animationTicker?.totalDuration(),
-          ),
-          onComplete: () {
-            removeFromParent();
-          },
-        ));
 
+      case EntityStatus.dead:
+        deadStatus();
         break;
       case EntityStatus.damage:
-        if (this is! HealthFunctionality) return;
-        var health = this as HealthFunctionality;
-        if (health.damageAnimation == null) break;
-        assert(!health.damageAnimation!.loop, "Temp animations must not loop");
-        tempAnimationPlaying = true;
-        spriteAnimationComponent.animation = health.damageAnimation?.clone();
-        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+        damageStatus();
 
         break;
       case EntityStatus.dodge:
-        if (this is! DodgeFunctionality) return;
-        var dodge = this as DodgeFunctionality;
-        if (dodge.dodgeAnimation == null) break;
-        assert(!dodge.dodgeAnimation!.loop, "Temp animations must not loop");
-        tempAnimationPlaying = true;
-        spriteAnimationComponent.animation = dodge.dodgeAnimation?.clone();
-        spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
-
+        dodgeStatus();
         break;
       case EntityStatus.idle:
         animation = idleAnimation;

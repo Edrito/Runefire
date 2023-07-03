@@ -1,5 +1,3 @@
-import 'package:game_app/entities/player.dart';
-
 import '../enums.dart';
 import 'package:hive/hive.dart';
 

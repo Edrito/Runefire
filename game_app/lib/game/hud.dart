@@ -4,6 +4,8 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/player.dart';
 
+import '../functions/custom_mixins.dart';
+import '../resources/visuals.dart';
 import 'enviroment.dart';
 
 class GameHud extends PositionComponent {
@@ -21,8 +23,9 @@ class GameHud extends PositionComponent {
     // add(RectangleComponent(
     //     position: Vector2.zero(), size: game.gameCamera.viewport.size / 11));
 
-    fpsCounter = TextComponent(
+    fpsCounter = CaTextComponent(
         anchor: Anchor.topLeft,
+        textRenderer: TextPaint(style: defaultStyle),
         position: Vector2(gameRef.gameCamera.viewport.size.x - 50, 5),
         text: fps.toString());
     add(fpsCounter);
@@ -41,19 +44,29 @@ class GameHud extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect((const Offset(10, 10) & Size(player.baseHealth * 5, 10)),
+    canvas.drawRect((const Offset(10, 10) & Size(player.maxHealth * 5, 10)),
         Paint()..color = Colors.grey);
-    canvas.drawRect(
-        (const Offset(10, 25) & Size(width, 10)), Paint()..color = Colors.grey);
 
     canvas.drawRect(
         (const Offset(10, 10) &
-            Size(player.baseHealth * 5 * (player.health / player.baseHealth),
+            Size(
+                player.maxHealth *
+                    5 *
+                    (player.remainingHealth / player.maxHealth),
                 10)),
         Paint()..color = Colors.red);
 
-    canvas.drawRect((const Offset(10, 25) & const Size(10, 10)),
+    canvas.drawRect((const Offset(10, 25) & Size(player.maxStamina * 2, 10)),
+        Paint()..color = Colors.grey);
+    canvas.drawRect(
+        (const Offset(10, 25) &
+            Size(
+                player.maxStamina *
+                    2 *
+                    (player.remainingStamina / player.maxStamina),
+                10)),
         Paint()..color = Colors.yellow);
+
     super.render(canvas);
   }
 }

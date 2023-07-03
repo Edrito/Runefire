@@ -58,7 +58,7 @@ class Portal extends Weapon
 
   @override
   // TODO: implement chainingTargets
-  int get chainingTargets => 0;
+  int get maxChainingTargets => 0;
 
   @override
   // TODO: implement isHoming
@@ -130,7 +130,7 @@ class Portal extends Weapon
   SemiAutoType semiAutoType = SemiAutoType.regular;
 
   @override
-  double reloadTime = 1;
+  double baseReloadTime = 1;
 }
 
 class Pistol extends Weapon
@@ -193,7 +193,7 @@ class Pistol extends Weapon
   bool get isHoming => false;
 
   @override
-  int get chainingTargets => 0;
+  int get maxChainingTargets => 0;
   @override
   double length = 3;
 
@@ -250,7 +250,7 @@ class Pistol extends Weapon
   int? maxAmmo = 1000;
 
   @override
-  double reloadTime = 1;
+  double baseReloadTime = 1;
 }
 
 class Shotgun extends Weapon
@@ -337,7 +337,7 @@ class Shotgun extends Weapon
   double projectileVelocity = 80;
 
   @override
-  double reloadTime = .5;
+  double baseReloadTime = .5;
 
   @override
   double tipPositionPercent = -.02;
@@ -444,7 +444,7 @@ class Bow extends Weapon
 }
 
 class Sword extends Weapon
-    with MeleeFunctionality, SecondaryFunctionality, FullAutomatic
+    with MeleeFunctionality, SecondaryFunctionality, SemiAutomatic
 // ,        ReloadFunctionality
 {
   Sword.create(
@@ -452,13 +452,14 @@ class Sword extends Weapon
     AimFunctionality ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     attackHitboxPatterns = [
-      (Vector2(6, -4), 0),
-      (Vector2(0, 8), 45),
+      // (Vector2(6, -4), 0),
+      // (Vector2(0, 8), 45),
       (Vector2(0, -4), 0),
       (Vector2(0, 6), 0),
-      (Vector2(-6, -4), 0),
-      (Vector2(0, 8), -45),
+      // (Vector2(-6, -4), 0),
+      // (Vector2(0, 8), -45),
     ];
+    spirteComponentPositions.add(WeaponSpritePosition.back);
 
     maxAmmo = (attackHitboxPatterns.length / 2).round();
 
@@ -467,11 +468,20 @@ class Sword extends Weapon
   }
 
   @override
+  void melee([double chargeAmount = 1]) {
+    if (entityAncestor is DashFunctionality) {
+      (entityAncestor as DashFunctionality)
+          .dashInit(hasStaminaCost: false, power: chargeAmount, aimAngle: true);
+    }
+    super.melee(chargeAmount);
+  }
+
+  @override
   FutureOr<void> onLoad() async {
     attackHitboxSpriteAnimations = [
       await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
-      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
-      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+      // await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+      // await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
     ];
 
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
@@ -489,8 +499,7 @@ class Sword extends Weapon
     super.setSecondaryFunctionality = item;
     if (secondaryIsWeapon) {
       spirteComponentPositions.add(WeaponSpritePosition.hand);
-    } else {
-      spirteComponentPositions.add(WeaponSpritePosition.back);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
 
@@ -518,11 +527,18 @@ class Sword extends Weapon
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
+      case WeaponSpritePosition.back:
+        return WeaponSpriteAnimation(
+            parentJoint: parentJoint,
+            idleAnimation:
+                await buildSpriteSheet(1, 'weapons/sword.png', 1, true))
+          ..position = Vector2(3.7, -4.5)
+          ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
             parentJoint: parentJoint,
             idleAnimation:
-                await buildSpriteSheet(5, 'weapons/sword.png', 1, true));
+                await buildSpriteSheet(1, 'weapons/sword.png', 1, true));
     }
   }
 
@@ -566,7 +582,7 @@ class Sword extends Weapon
   double projectileVelocity = 0;
 
   @override
-  double reloadTime = 1;
+  double baseReloadTime = 1;
 
   @override
   double tipPositionPercent = -.02;
@@ -578,4 +594,7 @@ class Sword extends Weapon
   bool countIncreaseWithTime = false;
   @override
   ProjectileType? projectileType;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.charge;
 }

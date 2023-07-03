@@ -20,6 +20,42 @@ import 'package:window_manager/window_manager.dart';
 
 late GameRouter gameRouter;
 late MenuPages menuPage;
+String? currentOverlay;
+
+GameEnviroment? get currentGameEnviroment {
+  var result =
+      gameRouter.router.currentRoute.children.whereType<GameEnviroment>();
+
+  if (result.isNotEmpty) {
+    return result.first;
+  } else {
+    return null;
+  }
+}
+
+bool get gameIsPaused => gameRouter.paused;
+
+void pauseGame(String overlay,
+    {bool pauseGame = true, bool wipeMovement = false}) {
+  if (currentOverlay != null) return;
+  gameRouter.overlays.add(overlay);
+  currentOverlay = overlay;
+  if (wipeMovement) {
+    final game = currentGameEnviroment;
+    if (game != null) {
+      game.player.physicalKeysPressed.clear();
+      game.player.parseKeys(null);
+    }
+  }
+
+  if (pauseGame) gameRouter.pauseEngine();
+}
+
+void resumeGame() {
+  gameRouter.overlays.clear();
+  currentOverlay = null;
+  gameRouter.resumeEngine();
+}
 
 void changeMainMenuPage(MenuPages page) {
   setStateMainMenu(() {
@@ -35,8 +71,8 @@ bool startInGame = true;
 void toggleGameStart(String? route) {
   gameRouter.router.pushReplacementNamed(routes.blank);
 
+  resumeGame();
   if (route != null) {
-    gameRouter.overlays.remove(overlays.mainMenu.key);
     Future.delayed(const Duration(milliseconds: 50)).then((_) {
       gameRouter.router.pushReplacementNamed(route);
     });
@@ -67,6 +103,8 @@ void main() async {
   } else {
     systemData = box.get(0)!;
   }
+  FocusNode node = FocusNode();
+  node.requestFocus();
 
   gameRouter = GameRouter(systemData, playerData);
   menuPage = MenuPages.startMenuPage;
@@ -82,37 +120,41 @@ void main() async {
                   gameRouter, PointerHoverEvent(position: event.position)));
             }
           },
-          child: GameWidget(
-              backgroundBuilder: (context) {
-                return Container(
-                  color: backgroundColor,
-                );
-              },
-              loadingBuilder: (p0) {
-                return Container(
-                    color: const Color.fromARGB(255, 72, 37, 112),
-                    child: const CircularProgressIndicator());
-              },
-              game: gameRouter,
-              overlayBuilderMap: Map<String,
-                  Widget Function(BuildContext, GameRouter)>.fromEntries([
-                overlays.pauseMenu,
-                overlays.weaponModifyMenu,
-                overlays.mainMenu,
-                overlays.deathScreen,
-              ])),
+          child: RawKeyboardListener(
+            focusNode: node,
+            onKey: gameRouter.onKeyEvent,
+            child: GameWidget(
+                backgroundBuilder: (context) {
+                  return Container(
+                    color: backgroundColor,
+                  );
+                },
+                loadingBuilder: (p0) {
+                  return Container(
+                      color: const Color.fromARGB(255, 72, 37, 112),
+                      child: const CircularProgressIndicator());
+                },
+                game: gameRouter,
+                overlayBuilderMap: Map<String,
+                    Widget Function(BuildContext, GameRouter)>.fromEntries([
+                  overlays.pauseMenu,
+                  overlays.weaponModifyMenu,
+                  overlays.mainMenu,
+                  overlays.deathScreen,
+                  overlays.attributeSelection,
+                ])),
+          ),
         ),
       ),
     ),
   );
   if (!startInGame) {
-    gameRouter.overlays.add(overlays.mainMenu.key);
+    toggleGameStart(null);
   }
 }
 
 class GameRouter extends Forge2DGame
     with
-        HasKeyboardHandlerComponents,
         ScrollDetector,
         SecondaryTapDetector,
         MouseMovementDetector,
@@ -130,7 +172,7 @@ class GameRouter extends Forge2DGame
   late PlayerDataComponent playerDataComponent;
   late SystemDataComponent systemDataComponent;
 
-  List<MouseCallbackWrapper> mouseCallback = [];
+  List<MouseKeyboardCallbackWrapper> mouseCallback = [];
 
   @override
   void onLoad() async {
@@ -143,7 +185,6 @@ class GameRouter extends Forge2DGame
       },
       initialRoute: startInGame ? routes.gameplay : routes.blank,
     );
-
     add(systemDataComponent);
     add(playerDataComponent);
     add(router);
@@ -232,6 +273,16 @@ class GameRouter extends Forge2DGame
     }
   }
 
+  void onKeyEvent(RawKeyEvent event) {
+    if (mouseCallback.isNotEmpty) {
+      for (var element in mouseCallback) {
+        if (element.keyEvent != null) {
+          element.keyEvent!(event);
+        }
+      }
+    }
+  }
+
   @override
   void onScroll(PointerScrollInfo info) {
     if (router.currentRoute.children.first is GameEnviroment) {
@@ -254,7 +305,7 @@ class GameRouter extends Forge2DGame
   }
 }
 
-class MouseCallbackWrapper {
+class MouseKeyboardCallbackWrapper {
   //LCLICK
   Function(TapUpInfo)? onPrimaryUp;
   Function()? onPrimaryCancel;
@@ -264,6 +315,7 @@ class MouseCallbackWrapper {
   Function(TapUpInfo)? onSecondaryUp;
   Function()? onSecondaryCancel;
   Function(TapDownInfo)? onSecondaryDown;
+  Function(RawKeyEvent)? keyEvent;
 
   //Move
   Function(PointerHoverInfo)? onMouseMove;

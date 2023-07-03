@@ -103,7 +103,7 @@ class Agility extends Powerup {
     weapon.attackRateIncrease += increase;
     if (weapon is ReloadFunctionality) {
       previousReloadTime[weapon] = weapon.reloadTime;
-      weapon.reloadTime = 0;
+      weapon.reloadTimeIncrease = 0;
     }
     if (weapon is FullAutomatic) {
       if (weapon.attackTimer != null) {
@@ -127,7 +127,7 @@ class Agility extends Powerup {
     final increase = speedIncrease * weapon.baseAttackRate;
     weapon.attackRateIncrease -= increase;
     if (weapon is ReloadFunctionality) {
-      weapon.reloadTime = previousReloadTime[weapon]!;
+      weapon.reloadTimeIncrease = previousReloadTime[weapon]!;
       weapon.spentAttacks = 0;
     }
     if (weapon is FullAutomatic) {
@@ -176,7 +176,7 @@ class Damage extends Powerup {
     if (entity is! HealthFunctionality) return;
     entity.healthIncrease -= healthIncrease;
     entity.damageTaken =
-        (entity.damageTaken - healthIncrease).clamp(0, entity.getMaxHealth - 5);
+        (entity.damageTaken - healthIncrease).clamp(0, entity.maxHealth - 5);
     colorEffect?.controller.setToStart();
     colorEffect?.removeFromParent();
   }

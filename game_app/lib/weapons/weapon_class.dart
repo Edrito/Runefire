@@ -124,13 +124,16 @@ abstract class Weapon extends Component {
   }
 
   //ATTRIBUTES
-  bool get isChaining => chainingTargets > 0;
+  bool get weaponCanChain => maxChainingTargets > 0;
 
-  int chainingTargets = 0;
-  abstract double baseAttackRate; //every X second
+  int maxChainingTargets = 0;
+
+  abstract final double baseAttackRate;
+
   double attackRateIncrease = 0;
 
-  double get attackRate => baseAttackRate -= attackRateIncrease;
+  double get attackRate => baseAttackRate - attackRateIncrease;
+
   abstract double weaponRandomnessPercent;
 
   //VISUAL
@@ -142,13 +145,11 @@ abstract class Weapon extends Component {
   abstract double length;
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent> parents = {};
   bool removeSpriteOnAttack = false;
-  bool allowRapidClicking = false;
 
   bool isHoming = false;
 
   @override
   FutureOr<void> onLoad() async {
-    // TODO: implement onLoad
     await super.onLoad();
     setWeaponStatus(weaponStatus);
   }
@@ -348,9 +349,8 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
         break;
       case WeaponStatus.reload:
         if (parentJoint.weapon is! ReloadFunctionality ||
-            reloadAnimation == null) {
-          break;
-        }
+            reloadAnimation == null) break;
+
         assert(!reloadAnimation!.loop, "Temp animations must not loop");
         reloadAnimation?.stepTime =
             (parentJoint.weapon as ReloadFunctionality).reloadTime /

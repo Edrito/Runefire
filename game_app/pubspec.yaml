@@ -81,6 +81,7 @@ flutter:
     - assets/images/background/
     - assets/images/experience/
     - assets/images/weapons/
+    - assets/images/attributes/
     - assets/tiles/
     - assets/images/
     - assets/fonts/
