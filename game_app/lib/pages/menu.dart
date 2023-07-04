@@ -5,12 +5,12 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/pages/weapon_menu.dart';
 import '../resources/data_classes/system_data.dart';
 import 'buttons.dart';
-import '/resources/routes.dart' as routes;
 import 'package:flutter_animate/flutter_animate.dart';
 
-enum MenuPages { startMenuPage, options, pauseMenu }
+enum MenuPages { startMenuPage, options, weaponMenu, levelMenu }
 
 extension MainMenuPagesExtension on MenuPages {
   Widget buildPage(GameRouter gameRef) {
@@ -26,6 +26,16 @@ extension MainMenuPagesExtension on MenuPages {
           key: Key(rng.nextDouble().toString()),
           gameRef: gameRef,
         );
+      case MenuPages.weaponMenu:
+        return WeaponMenu(
+          key: Key(rng.nextDouble().toString()),
+          gameRef: gameRef,
+        );
+      case MenuPages.levelMenu:
+        return LevelMenu(
+          key: Key(rng.nextDouble().toString()),
+          gameRef: gameRef,
+        );
       default:
         return OptionsMenu(
           key: Key(rng.nextDouble().toString()),
@@ -34,115 +44,6 @@ extension MainMenuPagesExtension on MenuPages {
     }
   }
 }
-
-// class PauseMenuPage extends MenuScreen {
-//   late CustomButtonTwo continueButtonComponent;
-//   late CustomButtonTwo mainMenuButtonComponent;
-
-//   @override
-//   Future<void> onLoad() async {
-//     // anchor = Anchor.center;
-
-//     continueButtonComponent = CustomButtonTwo(
-//       "Continue",
-//       onPrimaryDownFunction: (p0) {
-//         game.resumeEngine();
-//         removeWithAnimations();
-//       },
-//     );
-//     mainMenuButtonComponent =
-//         CustomButtonTwo("Exit to Menu", onPrimaryDownFunction: (_) {
-//       game.router.pushReplacementNamed(routes.mainMenu);
-//       game.resumeEngine();
-//       removeWithAnimations();
-//     });
-
-//     buttons.add(continueButtonComponent);
-//     buttons.add(mainMenuButtonComponent);
-
-//     return super.onLoad();
-//   }
-// }
-
-// class OptionsMenuPage extends MenuScreen {
-//   late CustomButtonTwo sfxButtonComponent;
-//   late CustomButtonTwo musicButtonComponent;
-//   late CustomButtonTwo exitButtonComponent;
-
-//   late double musicVolume;
-//   bool? incrementingMusic;
-//   late double sfxVolume;
-//   bool? incrementingSFX;
-//   late SystemDataComponent? systemDataComponent;
-
-//   String get buildMusicString => "Music: ${musicVolume.round()}";
-//   String get buildSFXString => "Sound Effects: ${sfxVolume.round()}";
-
-//   set incrementSFX(double value) {
-//     var newValue = (sfxVolume + value);
-//     // if (newValue > 100) newValue = 0;
-//     // if (newValue < 0) newValue = 100;
-
-//     systemDataComponent?.dataObject.setSFXVolume = newValue.clamp(0, 100);
-//   }
-
-//   set incrementMusic(double value) {
-//     var newValue = (musicVolume + value);
-//     // if (newValue > 100) newValue = 0;
-//     // if (newValue < 0) newValue = 100;
-//     systemDataComponent?.dataObject.setMusicVolume = (newValue).clamp(0, 100);
-//   }
-
-//   @override
-//   Future<void> onLoad() async {
-//     systemDataComponent = gameRef.systemDataComponent;
-//     final systemDataNotifier =
-//         gameRef.componentsNotifier<SystemDataComponent>();
-
-//     systemDataNotifier.addListener(() {
-//       musicVolume = systemDataNotifier.single?.dataObject.musicVolume ?? 0.0;
-//       sfxVolume = systemDataNotifier.single?.dataObject.sfxVolume ?? 0.0;
-
-//       sfxButtonComponent.updateText(buildSFXString);
-//       musicButtonComponent.updateText(buildMusicString);
-//     });
-
-//     musicVolume = systemDataComponent?.dataObject.musicVolume ?? 0.0;
-//     sfxVolume = systemDataComponent?.dataObject.sfxVolume ?? 0.0;
-
-//     sfxButtonComponent = buildSFXButton();
-//     musicButtonComponent = buildMusicButton();
-
-//     exitButtonComponent = CustomButtonTwo(
-//       "Back",
-//       onPrimaryDownFunction: (_) {
-//         ancestor.changePage(MenuPages.startMenuPage);
-//       },
-//     );
-//     buttons.add(sfxButtonComponent);
-//     buttons.add(musicButtonComponent);
-//     buttons.add(exitButtonComponent);
-
-//     return super.onLoad();
-//   }
-
-//   @override
-//   void update(double dt) {
-//     if (incrementingMusic == true) {
-//       incrementMusic = 1;
-//     } else if (incrementingMusic == false) {
-//       incrementMusic = -1;
-//     }
-
-//     if (incrementingSFX == true) {
-//       incrementSFX = 1;
-//     } else if (incrementingSFX == false) {
-//       incrementSFX = -1;
-//     }
-//     super.update(dt);
-//   }
-
-// }
 
 class StartMenu extends StatefulWidget {
   const StartMenu({
@@ -167,7 +68,7 @@ class _StartMenuState extends State<StartMenu> {
       "Start Game",
       gameRef: widget.gameRef,
       onTap: () {
-        toggleGameStart(routes.gameplay);
+        changeMainMenuPage(MenuPages.weaponMenu);
       },
     );
     optionsButtonComponent =

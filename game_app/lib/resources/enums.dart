@@ -104,8 +104,6 @@ extension ExperienceAmountExtension on ExperienceAmount {
   }
 }
 
-enum CurrentGameState { mainMenu, transition, gameplay }
-
 enum ProjectileType { bullet, arrow, laser }
 
 extension ProjectileTypeExtension on ProjectileType {
@@ -173,15 +171,16 @@ extension GameLevelExtension on GameLevel {
 
 enum WeaponSpritePosition { hand, mouse, back }
 
-enum AttackType { melee, point, projectile }
+enum AttackType { projectile, melee, special }
 
-enum SecondaryWeaponType {
+enum SecondaryType {
   reloadAndRapidFire,
+  pistol,
 }
 
 enum WeaponState { shooting, reloading, idle }
 
-extension SecondaryWeaponTypeExtension on SecondaryWeaponType {
+extension SecondaryWeaponTypeExtension on SecondaryType {
   // SecondaryWeaponFunctionality build(Weapon primaryWeaponAncestor,
   //     [int upgradeLevel = 0]) {
   //   switch (this) {
@@ -192,16 +191,20 @@ extension SecondaryWeaponTypeExtension on SecondaryWeaponType {
 }
 
 enum WeaponType {
-  pistol,
-  shotgun,
-  portal,
-  sword,
-  bow,
+  pistol('assets/images/weapons/pistol.png', 5, AttackType.projectile),
+  shotgun('assets/images/weapons/shotgun.png', 5, AttackType.projectile),
+  portal('assets/images/weapons/portal.png', 5, AttackType.projectile),
+  shiv('assets/images/weapons/sword.png', 5, AttackType.melee),
+  bow('assets/images/weapons/bow.png', 10, AttackType.projectile);
+
+  const WeaponType(this.icon, this.maxLevel, this.attackType);
+  final String icon;
+  final int maxLevel;
+  final AttackType attackType;
 }
 
 extension WeaponTypeFilename on WeaponType {
-  Weapon build(
-      AimFunctionality ancestor, SecondaryWeaponType? secondaryWeaponType,
+  Weapon build(AimFunctionality ancestor, SecondaryType? secondaryWeaponType,
       [int upgradeLevel = 0]) {
     Weapon? returnWeapon;
 
@@ -217,7 +220,7 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = Bow.create(upgradeLevel, ancestor);
         break;
 
-      case WeaponType.sword:
+      case WeaponType.shiv:
         returnWeapon = Sword.create(upgradeLevel, ancestor);
 
         break;
@@ -225,26 +228,10 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = Portal.create(upgradeLevel, ancestor);
         break;
     }
-
-    return returnWeapon;
-  }
-
-  String icon() {
-    switch (this) {
-      case WeaponType.pistol:
-        return 'pistol.png';
-      case WeaponType.shotgun:
-        return 'shotgun.png';
-
-      case WeaponType.bow:
-        return 'bow.png';
-
-      case WeaponType.sword:
-        return 'sword.png';
-
-      case WeaponType.portal:
-        return 'portal.png';
+    if (returnWeapon is SecondaryFunctionality) {
+      (returnWeapon).setSecondaryFunctionality = secondaryWeaponType;
     }
+    return returnWeapon;
   }
 }
 

@@ -290,7 +290,10 @@ class CustomCard extends StatelessWidget {
                       flex: 2,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Image.asset('assets/images/${attribute.icon}'),
+                        child: Image.asset(
+                          'assets/images/${attribute.icon}',
+                          filterQuality: FilterQuality.none,
+                        ),
                       ),
                     ),
                     Expanded(

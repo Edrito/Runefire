@@ -1,29 +1,37 @@
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/powerups.dart';
 
-import '../entities/entity.dart';
 import '../pages/buttons.dart';
 import 'attributes_enum.dart';
 
 abstract class Attribute {
-  Attribute(this._level, this.entity, [bool applyNow = true]) {
-    _level = _level.clamp(0, maxLevel);
+  Attribute({required this.level, required this.entity, bool applyNow = true}) {
+    level = level.clamp(0, maxLevel);
     if (applyNow) {
       applyAttribute();
     }
   }
+
+  bool get isTemporary => this is TemporaryAttribute;
 
   String description();
   abstract String icon;
   abstract String title;
   double? factor;
 
-  int _level;
-  Entity entity;
+  int level;
+  AttributeFunctionality entity;
   bool isApplied = false;
 
-  int get remainingLevels => maxLevel - _level;
+  int get remainingLevels => maxLevel - level;
 
   int maxLevel = 5;
+
+  ///Default increase is multiplying the baseParameter by [factor]%
+  ///then multiplying it again by the level of the attribute
+  ///with an additional level for max level
+  double increase(double base) =>
+      (factor ?? 0 * base) * (level + (level == maxLevel ? 1 : 0));
 
   void applyAttribute() {
     if (!isApplied) {
@@ -43,14 +51,13 @@ abstract class Attribute {
   void unmapAttribute();
 
   void update(double dt) {}
-  AttributeType get attributeType;
   AttributeEnum get attributeEnum;
 
   ///Increase or decrease the level based on the input value
   void incrementLevel(int value) {
     removeAttribute();
-    _level += value;
-    _level = _level.clamp(0, maxLevel);
+    level += value;
+    level = level.clamp(0, maxLevel);
     applyAttribute();
   }
 
@@ -65,10 +72,11 @@ abstract class Attribute {
 }
 
 class TopSpeedAttribute extends Attribute {
-  TopSpeedAttribute(super.level, super.entity, super.applyNow);
+  TopSpeedAttribute(
+      {required super.level, required super.entity, super.applyNow});
 
   @override
-  AttributeType attributeType = AttributeType.mobility;
+  AttributeCategory attributeType = AttributeCategory.mobility;
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.topSpeed;
@@ -77,22 +85,20 @@ class TopSpeedAttribute extends Attribute {
   double get factor => .05;
 
   @override
-  int get maxLevel => 4;
-
-  double get increase => factor * (_level + (_level == maxLevel ? 1 : 0));
+  int get maxLevel => 5;
 
   @override
   void mapAttribute() {
     if (entity is! MovementFunctionality) return;
     var move = entity as MovementFunctionality;
-    move.speedIncrease += increase;
+    move.speedIncrease += increase(move.baseSpeed);
   }
 
   @override
   void unmapAttribute() {
     if (entity is! MovementFunctionality) return;
     var move = entity as MovementFunctionality;
-    move.speedIncrease -= increase;
+    move.speedIncrease -= increase(move.baseSpeed);
   }
 
   @override
@@ -112,10 +118,8 @@ class TopSpeedAttribute extends Attribute {
 }
 
 class AttackRateAttribute extends Attribute {
-  AttackRateAttribute(super.level, super.entity, super.applyNow);
-
-  @override
-  AttributeType attributeType = AttributeType.attack;
+  AttackRateAttribute(
+      {required super.level, required super.entity, super.applyNow});
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.attackRate;
@@ -125,9 +129,6 @@ class AttackRateAttribute extends Attribute {
 
   @override
   int get maxLevel => 10;
-
-  double increase(double baseAttackRate) =>
-      (factor * baseAttackRate) * (_level + (_level == maxLevel ? 1 : 0));
 
   @override
   void mapAttribute() {

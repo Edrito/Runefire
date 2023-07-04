@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 Color buttonDownColor = Colors.brown.shade400;
 Color buttonUpColor = Colors.red.shade400;
-Color backgroundColor = const Color.fromARGB(255, 37, 112, 108);
+Color backgroundColor = const Color.fromARGB(255, 22, 1, 20);
 
 final defaultStyle = TextStyle(
   fontSize: Platform.isAndroid || Platform.isIOS ? 21 : 35,

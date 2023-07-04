@@ -25,6 +25,9 @@ class Portal extends Weapon
   ) : super(newUpgradeLevel, ancestor);
 
   @override
+  WeaponType weaponType = WeaponType.portal;
+
+  @override
   void applyWeaponUpgrade(int newUpgradeLevel) {
     removeWeaponUpgrade();
     switch (newUpgradeLevel) {
@@ -145,6 +148,8 @@ class Pistol extends Weapon
   ) : super(newUpgradeLevel, ancestor) {
     setSecondaryFunctionality = Bow.create(0, ancestor);
   }
+  @override
+  WeaponType weaponType = WeaponType.pistol;
 
   @override
   bool get allowRapidClicking => true;
@@ -182,8 +187,8 @@ class Pistol extends Weapon
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (.1, .2),
-    DamageType.energy: (0, .1)
+    DamageType.regular: (1, 2),
+    DamageType.energy: (2, 4)
   };
 
   @override
@@ -207,7 +212,7 @@ class Pistol extends Weapon
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 50;
+  double projectileVelocity = 100;
 
   @override
   ProjectileType? projectileType = ProjectileType.laser;
@@ -256,14 +261,15 @@ class Pistol extends Weapon
 class Shotgun extends Weapon
     with
         ProjectileFunctionality,
-        FullAutomatic,
+        SemiAutomatic,
         ReloadFunctionality,
         SecondaryFunctionality {
   Shotgun.create(
     super.newUpgradeLevel,
     super.ancestor,
   );
-
+  @override
+  WeaponType weaponType = WeaponType.shotgun;
   @override
   void applyWeaponUpgrade(int newUpgradeLevel) {
     removeWeaponUpgrade();
@@ -304,7 +310,7 @@ class Shotgun extends Weapon
   bool allowProjectileRotation = false;
 
   @override
-  int projectileCount = 4;
+  int projectileCount = 1;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -350,6 +356,9 @@ class Shotgun extends Weapon
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.regular;
 }
 
 class Bow extends Weapon
@@ -358,7 +367,8 @@ class Bow extends Weapon
     super.newUpgradeLevel,
     super.ancestor,
   );
-
+  @override
+  WeaponType weaponType = WeaponType.bow;
   @override
   void applyWeaponUpgrade(int newUpgradeLevel) {
     removeWeaponUpgrade();
@@ -444,7 +454,7 @@ class Bow extends Weapon
 }
 
 class Sword extends Weapon
-    with MeleeFunctionality, SecondaryFunctionality, SemiAutomatic
+    with MeleeFunctionality, SecondaryFunctionality, FullAutomatic
 // ,        ReloadFunctionality
 {
   Sword.create(
@@ -461,7 +471,7 @@ class Sword extends Weapon
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
 
-    maxAmmo = (attackHitboxPatterns.length / 2).round();
+    // maxAmmo = (attackHitboxPatterns.length / 2).round();
 
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");
@@ -469,10 +479,10 @@ class Sword extends Weapon
 
   @override
   void melee([double chargeAmount = 1]) {
-    if (entityAncestor is DashFunctionality) {
-      (entityAncestor as DashFunctionality)
-          .dashInit(hasStaminaCost: false, power: chargeAmount, aimAngle: true);
-    }
+    // if (entityAncestor is DashFunctionality) {
+    //   (entityAncestor as DashFunctionality)
+    //       .dashInit(power: chargeAmount, weapon: true);
+    // }
     super.melee(chargeAmount);
   }
 
@@ -549,9 +559,6 @@ class Sword extends Weapon
   double distanceFromPlayer = .2;
 
   @override
-  int projectileCount = 10;
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
@@ -560,29 +567,9 @@ class Sword extends Weapon
   };
   @override
   double baseAttackRate = .2;
-  @override
-  bool holdAndRelease = false;
 
   @override
-  double length = 10;
-
-  @override
-  int? maxAmmo;
-
-  @override
-  double maxSpreadDegrees = 270;
-
-  @override
-  int pierce = 100;
-
-  @override
-  late Sprite projectileSprite;
-
-  @override
-  double projectileVelocity = 0;
-
-  @override
-  double baseReloadTime = 1;
+  double length = 5;
 
   @override
   double tipPositionPercent = -.02;
@@ -591,10 +578,8 @@ class Sword extends Weapon
   double weaponRandomnessPercent = .05;
 
   @override
-  bool countIncreaseWithTime = false;
-  @override
-  ProjectileType? projectileType;
+  SemiAutoType semiAutoType = SemiAutoType.charge;
 
   @override
-  SemiAutoType semiAutoType = SemiAutoType.charge;
+  WeaponType weaponType = WeaponType.shiv;
 }

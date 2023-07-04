@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/experience.dart';
+import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
 
@@ -76,6 +77,32 @@ mixin DumbFollowAI on MovementFunctionality {
       onTick: _dumbFollowTargetTick,
     );
     add(targetUpdater!);
+  }
+}
+
+mixin AimAtPlayerFunctionality on AimFunctionality {
+  @override
+  void update(double dt) {
+    inputAimAngles[InputType.ai] =
+        (currentGameEnviroment!.player.center - center).normalized();
+    super.update(dt);
+  }
+}
+
+mixin DumbShoot on AttackFunctionality {
+  TimerComponent? shooter;
+  double interval = 2;
+  @override
+  Future<void> onLoad() {
+    shooter = TimerComponent(
+        period: interval,
+        onTick: () {
+          startAttacking();
+          endAttacking();
+        },
+        repeat: true)
+      ..addToParent(this);
+    return super.onLoad();
   }
 }
 

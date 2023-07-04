@@ -44,6 +44,7 @@ dependencies:
   window_manager: ^0.3.4
   flutter_animate: ^4.2.0
   uuid: ^3.0.7
+  recase: ^4.1.0
 
   
 

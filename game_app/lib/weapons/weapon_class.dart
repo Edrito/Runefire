@@ -74,7 +74,7 @@ abstract class Weapon extends Component {
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
     entityAncestor.add(this);
-    newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
+    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
     applyWeaponUpgrade(newUpgradeLevel);
   }
   Random rng = Random();
@@ -89,8 +89,9 @@ abstract class Weapon extends Component {
 
   bool get hasAltAttack => this is SecondaryFunctionality;
 
+  abstract WeaponType weaponType;
+
   int upgradeLevel = 0;
-  int maxLevel = 5;
 
   AimFunctionality entityAncestor;
 
@@ -158,7 +159,7 @@ abstract class Weapon extends Component {
   double get attackRateSecondComparison => 1 / attackRate;
 
   void applyWeaponUpgrade(int newUpgradeLevel) {
-    newUpgradeLevel = upgradeLevel.clamp(0, maxLevel);
+    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
   }
 
   void removeWeaponUpgrade() {}

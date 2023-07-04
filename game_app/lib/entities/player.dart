@@ -61,11 +61,7 @@ class Player extends Entity
   late MouseKeyboardCallbackWrapper mouseCallbackWrapper;
   @override
   Future<void> onLoad() async {
-    initialWeapons.addAll([
-      WeaponType.sword,
-      WeaponType.shotgun,
-      WeaponType.pistol,
-    ]);
+    initialWeapons.addAll(playerData.selectedWeapons.values);
 
     await loadAnimationSprites();
 
@@ -276,17 +272,15 @@ class Player extends Entity
   void killPlayer(bool showDeathScreen) {
     setEntityStatus(EntityStatus.dead);
 
-    spriteAnimationComponent.animationTicker?.onComplete = () {
-      Future.delayed(1.seconds).then(
-        (value) {
-          if (showDeathScreen) {
-            pauseGame(deathScreen.key, wipeMovement: true);
-          } else {
-            toggleGameStart(null);
-          }
-        },
-      );
-    };
+    Future.delayed(3.seconds).then(
+      (value) {
+        if (showDeathScreen) {
+          pauseGame(deathScreen.key, wipeMovement: true);
+        } else {
+          toggleGameStart(null);
+        }
+      },
+    );
   }
 
   @override
@@ -333,11 +327,17 @@ class Player extends Entity
   @override
   double baseInvincibilityDuration = 1;
 
-  @override
-  Map<DamageType, (double, double)> touchDamageLevels = {
-    DamageType.regular: (4, 10)
-  };
+  // @override
+  // Map<DamageType, (double, double)> touchDamageLevels = {
+  //   DamageType.regular: (4, 10)
+  // };
 
   @override
   double baseStamina = 100;
+
+  @override
+  double baseDashDistance = 20;
+
+  @override
+  double baseDashCooldown = 2;
 }

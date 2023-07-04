@@ -77,7 +77,9 @@ void toggleGameStart(String? route) {
       gameRouter.router.pushReplacementNamed(route);
     });
   } else {
-    gameRouter.overlays.add(overlays.mainMenu.key);
+    Future.delayed(const Duration(milliseconds: 50)).then((_) {
+      gameRouter.overlays.add(overlays.mainMenu.key);
+    });
   }
 }
 
@@ -85,8 +87,8 @@ late Function setStateMainMenu;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
   await Future.wait([
+    windowManager.ensureInitialized(),
     Flame.device.setLandscape(),
     Hive.initFlutter(),
   ]);
@@ -138,7 +140,6 @@ void main() async {
                 overlayBuilderMap: Map<String,
                     Widget Function(BuildContext, GameRouter)>.fromEntries([
                   overlays.pauseMenu,
-                  overlays.weaponModifyMenu,
                   overlays.mainMenu,
                   overlays.deathScreen,
                   overlays.attributeSelection,
@@ -148,9 +149,6 @@ void main() async {
       ),
     ),
   );
-  if (!startInGame) {
-    toggleGameStart(null);
-  }
 }
 
 class GameRouter extends Forge2DGame
@@ -188,6 +186,15 @@ class GameRouter extends Forge2DGame
     add(systemDataComponent);
     add(playerDataComponent);
     add(router);
+    // await mounted;
+  }
+
+  @override
+  void onMount() {
+    super.onMount();
+    if (!startInGame) {
+      gameRouter.overlays.add(overlays.mainMenu.key);
+    }
   }
 
   @override

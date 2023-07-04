@@ -10,22 +10,23 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/visuals.dart';
 
+import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
-import '../game/powerups.dart';
+import '../resources/powerups.dart';
 import '../resources/attributes.dart';
 import '../resources/attributes_enum.dart';
 import '../resources/enums.dart';
 import '../weapons/weapon_class.dart';
 
 mixin BaseAttributes {
-  bool get getIsJumping =>
-      this is JumpFunctionality ? (this as JumpFunctionality).isJumping : false;
-  bool get getIsDashing =>
-      this is DashFunctionality ? (this as DashFunctionality).isDashing : false;
+  bool get isJumping => false;
+  bool get isDashing => false;
+  bool isDead = false;
+  bool get isInvincible => isDead;
 
   //Temporary effects
-  Map<int, Powerup> currentPowerups = {};
-  Map<int, Powerup> currentPowerdowns = {};
+  Map<int, TemporaryAttribute> currentPowerups = {};
+  Map<int, TemporaryAttribute> currentPowerdowns = {};
 
   double get damageDuration => baseDamageDuration + damageDurationIncrease;
   final double baseDamageDuration = 2;
@@ -48,6 +49,10 @@ mixin MovementFunctionality on Entity {
       .normalized();
 
   void moveCharacter() {
+    if (isDead) {
+      return;
+    }
+
     final previousPulse = moveDelta;
 
     if (disableMovement || previousPulse.isZero()) {
@@ -65,7 +70,7 @@ mixin AimFunctionality on Entity {
   Vector2 lastAimingPosition = Vector2.zero();
 
   Vector2 get aimDelta {
-    if (this is HealthFunctionality && (this as HealthFunctionality).isDead) {
+    if (isDead) {
       return Vector2.zero();
     }
 
@@ -167,7 +172,19 @@ mixin AttackFunctionality on AimFunctionality {
   Future<void> initializeWeapons() async {
     int i = 0;
     for (var element in initialWeapons) {
-      carriedWeapons[i] = element.build(this, null, 0);
+      if (this is Player) {
+        final player = this as Player;
+        carriedWeapons[i] = element.build(
+            this,
+            player.playerData.selectedSecondaries[i],
+            player.playerData.unlockedWeapons[element] ?? 1);
+      } else {
+        carriedWeapons[i] = element.build(
+          this,
+          null,
+        );
+      }
+
       // if (carriedWeapons[i] is SecondaryFunctionality) {
       //   (carriedWeapons[i] as SecondaryFunctionality)
       //       .setSecondaryFunctionality = RapidFire(carriedWeapons[i]!, 4);
@@ -175,6 +192,20 @@ mixin AttackFunctionality on AimFunctionality {
       i++;
     }
     initialWeapons.clear();
+  }
+
+  @override
+  void permanentlyDisableEntity() {
+    endAttacking();
+    endAltAttacking();
+    if (currentWeapon != null) {
+      for (var element in currentWeapon!.parents.values) {
+        element.weaponSpriteAnimation?.removeFromParent();
+      }
+      currentWeapon = null;
+    }
+
+    super.permanentlyDisableEntity();
   }
 
   @override
@@ -291,9 +322,9 @@ mixin HealthFunctionality on Entity {
   double sameDamageSourceDuration = 1;
 
   double get remainingHealth => maxHealth - damageTaken;
-  bool isDead = false;
 
-  bool get isInvincible => invincibleTimer != null || isDead;
+  @override
+  bool get isInvincible => super.isInvincible || invincibleTimer != null;
 
   double damageTaken = 0;
   double recentDamage = 0;
@@ -309,27 +340,27 @@ mixin HealthFunctionality on Entity {
   @override
   void deadStatus() {
     isDead = true;
-    if (deathAnimation == null) {
-      spriteAnimationComponent.add(OpacityEffect.fadeOut(
-        EffectController(
-          duration: 1.5,
-        ),
-      ));
-      return;
-    }
+
+    permanentlyDisableEntity();
+
     tempAnimationPlaying = true;
     assert(!deathAnimation!.loop, "Temp animations must not loop");
     spriteAnimationComponent.animation = deathAnimation?.clone();
+
+    spriteAnimationComponent.add(OpacityEffect.fadeOut(
+      EffectController(
+          startDelay: rng.nextDouble() * 10,
+          duration: 1.5,
+          onMax: () => removeFromParent(),
+          curve: Curves.easeIn),
+    ));
     super.deadStatus();
   }
 
   @override
   void damageStatus() {
-    if (damageAnimation == null) return;
-    assert(!damageAnimation!.loop, "Temp animations must not loop");
-    tempAnimationPlaying = true;
-    spriteAnimationComponent.animation = damageAnimation?.clone();
-    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    applyTempAnimation(damageAnimation);
+
     super.damageStatus();
   }
 
@@ -464,11 +495,8 @@ mixin DodgeFunctionality on HealthFunctionality {
 
   @override
   void dodgeStatus() {
-    if (dodgeAnimation == null) return;
-    assert(!dodgeAnimation!.loop, "Temp animations must not loop");
-    tempAnimationPlaying = true;
-    spriteAnimationComponent.animation = dodgeAnimation?.clone();
-    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    applyTempAnimation(dodgeAnimation);
+
     super.dodgeStatus();
   }
 
@@ -603,51 +631,85 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
 }
 
 mixin DashFunctionality on StaminaFunctionality {
+  //STATUS
+  TimerComponent? dashTimerCooldown;
   abstract SpriteAnimation? dashAnimation;
+  double dashedDistance = 0;
+
+  @override
+  // TODO: implement isDashing
+  bool get isDashing => _isDashing;
+
+  bool _isDashing = false;
+  Vector2? dashDelta;
+
+  @override
+  bool get isInvincible =>
+      super.isInvincible || (invincibleWhileDashing && isDashing);
 
   //DASH
-  abstract double dashCooldown;
-  TimerComponent? dashTimerCooldown;
-  double dashedDistance = 0;
-  bool isDashing = false;
-  Vector2? dashDelta;
-  double dashSpeed = 15;
-  double dashDuration = .2;
-  double dashStaminaCost = 50;
+  double get dashCooldown =>
+      (baseDashCooldown - dashCooldownIncrease).clamp(0, double.infinity);
+  abstract double baseDashCooldown;
+  double dashCooldownIncrease = 0;
+
+  final bool baseInvincibleWhileDashing = false;
+  List<bool> invincibleWhileDashingIncrease = [];
+  bool get invincibleWhileDashing => boolAbilityDecipher(
+      baseInvincibleWhileDashing, invincibleWhileDashingIncrease);
+
+  final bool baseCollisionWhileDashing = false;
+  List<bool> collisionWhileDashingIncrease = [];
+  bool get collisionWhileDashing => boolAbilityDecipher(
+      baseCollisionWhileDashing, collisionWhileDashingIncrease);
+
+  final bool baseTeleportDash = false;
+  List<bool> teleportDashIncrease = [];
+  bool get teleportDash =>
+      boolAbilityDecipher(baseTeleportDash, teleportDashIncrease);
+
+  abstract double baseDashDistance;
+  double get dashDistance => baseDashDistance + dashDistanceIncrease;
+  double dashDistanceIncrease = 0;
+
+  double dashDuration = .1;
+
+  double baseDashStaminaCost = 50;
+  double get dashStaminaCost => baseDashStaminaCost - dashStaminaCostIncrease;
+  double dashStaminaCostIncrease = 0;
 
   @override
   void dashStatus() {
-    if (!dashCheck() || dashAnimation == null) return;
-    assert(!dashAnimation!.loop, "Temp animations must not loop");
-    tempAnimationPlaying = true;
-    spriteAnimationComponent.animation = dashAnimation?.clone();
-    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    if (!dashCheck()) return;
+    applyTempAnimation(dashAnimation);
+
     super.dashStatus();
   }
 
   bool dashCheck() {
     if (dashTimerCooldown != null ||
-        getIsJumping ||
+        isJumping ||
+        isDead ||
         disableMovement ||
         dashStaminaCost > remainingStamina) {
       return false;
     }
 
     dashInit();
+
     return true;
   }
 
-  void dashInit(
-      {double? power, bool hasStaminaCost = true, bool aimAngle = false}) {
-    if (hasStaminaCost) modifyStamina(-dashStaminaCost);
+  void dashInit({double? power, bool weapon = false}) {
+    if (!weapon) modifyStamina(-dashStaminaCost);
     if (power != null) {
       power *= 2;
     }
     power ??= 1;
 
-    dashDistanceGoal = dashSpeed * power;
-    isDashing = true;
-    if (aimAngle) {
+    dashDistanceGoal = dashDistance * power;
+    _isDashing = true;
+    if (weapon || teleportDash) {
       if (this is AimFunctionality) {
         dashDelta = (this as AimFunctionality).aimDelta;
       }
@@ -664,18 +726,20 @@ mixin DashFunctionality on StaminaFunctionality {
     }
 
     dashDelta = dashDelta!.normalized();
-    dashTimerCooldown = TimerComponent(
-      period: dashCooldown,
-      removeOnFinish: true,
-      repeat: false,
-      onTick: () {
-        dashTimerCooldown?.timer.stop();
-        dashTimerCooldown?.removeFromParent();
-        dashTimerCooldown = null;
-      },
-    );
+    if (!weapon) {
+      dashTimerCooldown = TimerComponent(
+        period: dashCooldown,
+        removeOnFinish: true,
+        repeat: false,
+        onTick: () {
+          dashTimerCooldown?.timer.stop();
+          dashTimerCooldown?.removeFromParent();
+          dashTimerCooldown = null;
+        },
+      );
 
-    add(dashTimerCooldown!);
+      add(dashTimerCooldown!);
+    }
   }
 
   double? dashDistanceGoal;
@@ -698,12 +762,13 @@ mixin DashFunctionality on StaminaFunctionality {
 
   void finishDash() {
     dashDelta = null;
-    isDashing = false;
+    _isDashing = false;
     dashedDistance = 0;
   }
 
   void dashMove(double dt) {
-    final distance = ((dashSpeed / dashDuration) * dt);
+    final double distance =
+        ((dashDistance / dashDuration) * dt).clamp(0, dashDistance);
 
     body.setTransform(body.position + (dashDelta! * distance), 0);
     dashedDistance += distance;
@@ -712,7 +777,11 @@ mixin DashFunctionality on StaminaFunctionality {
 
 mixin JumpFunctionality on StaminaFunctionality {
   //JUMP
-  bool isJumping = false;
+
+  @override
+  bool get isJumping => _isJumping;
+  bool _isJumping = false;
+
   bool isJumpingInvincible = false;
   double jumpDuration = .5;
   double jumpStaminaCost = 10;
@@ -724,18 +793,15 @@ mixin JumpFunctionality on StaminaFunctionality {
 
   @override
   void jumpStatus() {
-    if (!jumpCheck() || jumpAnimation == null) return;
-    assert(!jumpAnimation!.loop, "Temp animations must not loop");
-    tempAnimationPlaying = true;
-    spriteAnimationComponent.animation = jumpAnimation?.clone();
+    if (!jumpCheck()) return;
+    applyTempAnimation(jumpAnimation);
 
-    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
     super.jumpStatus();
   }
 
   void jump() {
     modifyStamina(-jumpStaminaCost);
-    isJumping = true;
+    _isJumping = true;
     double elapsed = 0;
     double min =
         (jumpDuration / 2) - jumpDuration * (jumpingInvinciblePercent / 2);
@@ -763,7 +829,7 @@ mixin JumpFunctionality on StaminaFunctionality {
 
               return !(elapsed >= jumpDuration || controller.completed);
             })).then((_) {
-      isJumping = false;
+      _isJumping = false;
     });
 
     spriteWrapper.add(ScaleEffect.by(
@@ -789,8 +855,9 @@ mixin JumpFunctionality on StaminaFunctionality {
 
   bool jumpCheck() {
     if (isJumping ||
-        getIsDashing ||
+        isDashing ||
         disableMovement ||
+        isDead ||
         jumpStaminaCost > remainingStamina) return false;
 
     jump();
@@ -817,15 +884,24 @@ mixin AttributeFunctionality on Entity {
   }
 
   void addRandomAttribute() {
-    addAttribute(
+    addAttributeEnum(
         AttributeEnum.values[rng.nextInt(AttributeEnum.values.length)]);
   }
 
-  void addAttribute(AttributeEnum attribute, [int level = 1]) {
+  void addAttributeEnum(AttributeEnum attribute, [int level = 1]) {
     if (currentAttributes.containsKey(attribute)) {
       currentAttributes[attribute]?.incrementLevel(level);
     } else {
       currentAttributes[attribute] = attribute.buildAttribute(level, this);
+    }
+  }
+
+  void addAttribute(Attribute attribute, [int level = 1]) {
+    if (currentAttributes.containsKey(attribute.attributeEnum)) {
+      currentAttributes[attribute.attributeEnum]?.incrementLevel(level);
+    } else {
+      currentAttributes[attribute.attributeEnum] = attribute;
+      attribute.applyAttribute();
     }
   }
 
@@ -841,6 +917,19 @@ mixin AttributeFunctionality on Entity {
     if (currentAttributes.containsKey(attributeEnum)) {
       currentAttributes[attributeEnum]?.removeAttribute();
       currentAttributes.remove(attributeEnum);
+    }
+  }
+
+  void remapAttributes() {
+    List<Attribute> tempList = [];
+    for (var element in currentAttributes.values) {
+      if (element.isApplied) {
+        element.unmapAttribute();
+        tempList.add(element);
+      }
+    }
+    for (var element in tempList) {
+      element.mapAttribute();
     }
   }
 

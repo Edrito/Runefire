@@ -1,7 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:flutter/material.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 
 import '../entities/enemy.dart';
@@ -112,7 +111,7 @@ mixin StandardProjectile on Projectile {
         !projectileHasExpired &&
         chainedTargets < weaponAncestor.maxChainingTargets) {
       int index = closeHomingBodies.indexWhere(
-          (element) => !hitIds.contains(element.hashCode) && !element.isDead);
+          (element) => !hitIds.contains(projectileId) && !element.isDead);
       if (index == -1) return;
       // delta = (closeHomingBodies[index].center - center).normalized();
       body.applyLinearImpulse(
@@ -152,7 +151,7 @@ mixin LaserProjectile on Projectile {
   @override
   Body createBody() {
     debugMode = false;
-    renderBody = false;
+    renderBody = true;
 
     laserShape = ChainShape()..createLoop(boxThroughEnemies);
 
@@ -185,8 +184,7 @@ mixin LaserProjectile on Projectile {
 
   bool infrontWeaponCheck(Body element) {
     return element.userData is Enemy &&
-        element.userData is HealthFunctionality &&
-        !(element.userData as HealthFunctionality).isDead &&
+        !(element.userData as Enemy).isDead &&
         isEntityInfrontOfHandAngle(element.position, originPosition, delta);
   }
 
@@ -297,23 +295,23 @@ mixin LaserProjectile on Projectile {
     return super.onLoad();
   }
 
-  @override
-  void render(Canvas canvas) {
-    var path = Path();
-    var paint = BasicPalette.lightBlue.paint();
-    paint.strokeWidth = width;
-    paint.style = PaintingStyle.stroke;
-    paint.strokeCap = StrokeCap.round;
+  // @override
+  // void render(Canvas canvas) {
+  // var path = Path();
+  // var paint = BasicPalette.lightBlue.paint();
+  // paint.strokeWidth = width;
+  // paint.style = PaintingStyle.stroke;
+  // paint.strokeCap = StrokeCap.round;
 
-    for (var element in lineThroughEnemies) {
-      path.lineTo(element.x, element.y);
-    }
+  // for (var element in lineThroughEnemies) {
+  //   path.lineTo(element.x, element.y);
+  // }
 
-    canvas.drawPath(path, paint);
-    canvas.drawPath(
-        path,
-        paint
-          ..strokeWidth = width * .6
-          ..color = Colors.black);
-  }
+  // canvas.drawPath(path, paint);
+  // canvas.drawPath(
+  //     path,
+  //     paint
+  //       ..strokeWidth = width * .6
+  //       ..color = Colors.black);
+  // }
 }

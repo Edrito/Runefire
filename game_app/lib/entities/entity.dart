@@ -27,10 +27,13 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   bool get isPlayer => this is Player;
 
+  void permanentlyDisableEntity() {}
+
   //STATUS
   Vector2 initPosition;
 
   EntityStatus? statusQueue;
+  EntityStatus? previousStatus;
   EntityStatus entityStatus = EntityStatus.spawn;
   abstract double height;
 
@@ -41,6 +44,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   abstract SpriteAnimation? spawnAnimation;
 
   SpriteAnimation? animationQueue;
+  SpriteAnimation? previousAnimation;
 
   bool tempAnimationPlaying = false;
 
@@ -59,36 +63,42 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void tickerComplete() {
     tempAnimationPlaying = false;
-    entityStatus = statusQueue ?? entityStatus;
-    spriteAnimationComponent.animation = animationQueue;
+    entityStatus = statusQueue ?? previousStatus ?? entityStatus;
+    spriteAnimationComponent.animation = animationQueue ??
+        previousAnimation ??
+        spriteAnimationComponent.animation;
+    previousAnimation = null;
+    previousStatus = null;
   }
 
   void spawnStatus() {
-    if (spawnAnimation == null) return;
-    assert(!spawnAnimation!.loop, "Temp animations must not loop");
-    tempAnimationPlaying = true;
-    spriteAnimationComponent.animation = spawnAnimation?.clone();
-    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+    applyTempAnimation(spawnAnimation);
   }
 
   void attackStatus(SpriteAnimation? attackAnimation) {
-    if (attackAnimation == null) return;
+    applyTempAnimation(attackAnimation);
+  }
 
-    assert(!attackAnimation.loop, "Temp animations must not loop");
+  void applyTempAnimation(SpriteAnimation? tempAnimation) {
+    if (tempAnimation == null) return;
+    previousAnimation = spriteAnimationComponent.animation;
+    previousStatus = entityStatus;
+    assert(!tempAnimation.loop, "Temp animations must not loop");
     tempAnimationPlaying = true;
-    spriteAnimationComponent.animation = attackAnimation.clone();
+    spriteAnimationComponent.animation = tempAnimation.clone();
     spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
   }
 
   void jumpStatus() {}
   void dashStatus() {}
   void deadStatus() {}
-
   void damageStatus() {}
   void dodgeStatus() {}
 
   void setEntityStatus(EntityStatus newEntityStatus,
       [SpriteAnimation? attackAnimation]) {
+    if (entityStatus == EntityStatus.dead) return;
+
     SpriteAnimation? animation;
     if (newEntityStatus == EntityStatus.spawn) {
       animation = spawnAnimation ?? idleAnimation;
@@ -146,7 +156,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
       default:
         animation = idleAnimation;
     }
-    animation ??= idleAnimation;
+    if (animation == null) return;
 
     if (tempAnimationPlaying) {
       statusQueue = newEntityStatus;

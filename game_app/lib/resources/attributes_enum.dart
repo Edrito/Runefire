@@ -1,7 +1,7 @@
-import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/resources/powerups.dart';
 
-import '../entities/entity.dart';
+import '../entities/entity_mixin.dart';
 import 'attributes.dart';
 
 enum AttributeRarity { unique, rare, uncommon, standard }
@@ -21,41 +21,45 @@ extension AttributeRarityExtension on AttributeRarity {
   }
 }
 
-enum AttributeType {
+enum AttributeCategory {
   mobility,
   projectile,
   magic,
   melee,
   defence,
   offense,
-  attack
+  attack,
+  temporary,
+  misc
 }
 
 enum AttributeEnum {
-  topSpeed,
-  attackRate,
+  topSpeed(
+      rarity: AttributeRarity.uncommon, category: AttributeCategory.mobility),
+  power(
+      rarity: AttributeRarity.uncommon, category: AttributeCategory.temporary),
+  attackRate(rarity: AttributeRarity.rare, category: AttributeCategory.attack);
+
+  const AttributeEnum(
+      {this.rarity = AttributeRarity.standard,
+      this.category = AttributeCategory.misc});
+
+  final AttributeRarity rarity;
+  final AttributeCategory category;
 }
 
 extension AllAttributesExtension on AttributeEnum {
-  Attribute buildAttribute(int level, Entity entity, [bool applyNow = true]) {
+  Attribute buildAttribute(int level, AttributeFunctionality entity,
+      [bool applyNow = true]) {
     switch (this) {
       case AttributeEnum.topSpeed:
-        return TopSpeedAttribute(level, entity, applyNow);
+        return TopSpeedAttribute(
+            level: level, entity: entity, applyNow: applyNow);
       case AttributeEnum.attackRate:
-        return AttackRateAttribute(level, entity, applyNow);
-    }
-  }
-}
-
-extension RarityAttributesExtension on AttributeEnum {
-  AttributeRarity get rarity {
-    switch (this) {
-      case AttributeEnum.topSpeed:
-        return AttributeRarity.standard;
-      case AttributeEnum.attackRate:
-        return AttributeRarity.unique;
-      default:
-        return AttributeRarity.standard;
+        return AttackRateAttribute(
+            level: level, entity: entity, applyNow: applyNow);
+      case AttributeEnum.power:
+        return PowerAttribute(level: level, entity: entity);
     }
   }
 }

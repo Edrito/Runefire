@@ -20,7 +20,6 @@ import 'package:game_app/entities/player.dart';
 import '../functions/custom_follow_behavior.dart';
 import '../functions/custom_joystick.dart';
 import '../main.dart';
-import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 import '../resources/overlays.dart';
 import '../resources/priorities.dart';
@@ -149,7 +148,8 @@ abstract class GameEnviroment extends Component
 
     initJoysticks();
 
-    player = Player(PlayerData(), ancestor: this, initPosition: Vector2.zero());
+    player = Player(gameRef.playerDataComponent.dataObject,
+        ancestor: this, initPosition: Vector2.zero());
     hud = GameHud(this);
     physicsComponent = Forge2DComponent();
     bounds = Bounds();

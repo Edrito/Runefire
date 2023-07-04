@@ -17,3 +17,8 @@ Future<SpriteAnimation> buildSpriteSheet(
       loop: loop,
       to: loop ? null : numberOfSprites);
 }
+
+bool boolAbilityDecipher(bool base, List<bool> boolIncrease) =>
+    [base, ...boolIncrease].fold<int>(
+        0, (previousValue, element) => previousValue + (element ? 1 : -1)) >
+    0;

@@ -6,7 +6,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/enemy_mixin.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/game/powerups.dart';
+import 'package:game_app/resources/powerups.dart';
 
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
@@ -15,68 +15,16 @@ import '../resources/physics_filter.dart';
 import '../resources/enums.dart';
 import '../resources/priorities.dart';
 
-class Dummy extends Enemy with HealthFunctionality {
-  Dummy({
-    required super.initPosition,
-    required super.ancestor,
-  });
-
-  EnemyType enemyType = EnemyType.flameHead;
-
-  @override
-  double height = 4;
-
-  @override
-  double baseInvincibilityDuration = 0.1;
-
-  @override
-  double baseHealth = 100;
-
-  @override
-  double touchDamage = 4;
-
-  @override
-  Future<void> loadAnimationSprites() async {
-    idleAnimation =
-        await buildSpriteSheet(10, 'enemy_sprites/idle.png', .1, true);
-    deathAnimation =
-        await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
-    runAnimation = await buildSpriteSheet(8, 'enemy_sprites/run.png', .1, true);
-  }
-
-  @override
-  Future<void> onLoad() async {
-    await loadAnimationSprites();
-    await super.onLoad();
-  }
-
-  @override
-  SpriteAnimation? damageAnimation;
-
-  @override
-  SpriteAnimation? deathAnimation;
-
-  @override
-  late SpriteAnimation idleAnimation;
-
-  @override
-  SpriteAnimation? runAnimation;
-
-  @override
-  SpriteAnimation? spawnAnimation;
-
-  @override
-  SpriteAnimation? walkAnimation;
-}
-
 class DummyTwo extends Enemy
     with
         HealthFunctionality,
-        DodgeFunctionality,
+        AimFunctionality,
+        AttackFunctionality,
         MovementFunctionality,
         DropExperienceFunctionality,
-        TouchDamageFunctionality,
-        DumbFollowScaredAI {
+        AimAtPlayerFunctionality,
+        DumbShoot,
+        DumbFollowRangeAI {
   DummyTwo({
     required super.initPosition,
     required super.ancestor,
@@ -85,12 +33,9 @@ class DummyTwo extends Enemy
   @override
   void update(double dt) {
     moveCharacter();
+    aimCharacter();
     super.update(dt);
   }
-
-  EnemyType enemyType = EnemyType.flameHead;
-  @override
-  double baseDodgeChance = .1;
 
   @override
   (double, double) xpRate = (0.001, 0.01);
@@ -102,7 +47,7 @@ class DummyTwo extends Enemy
   double baseInvincibilityDuration = 0.0;
 
   @override
-  double baseHealth = 100;
+  double baseHealth = 5;
 
   @override
   double baseSpeed = 2;
@@ -121,7 +66,7 @@ class DummyTwo extends Enemy
 
   @override
   Future<void> onLoad() async {
-    // initialWeapons.addAll([Sword.create]);
+    initialWeapons.addAll([WeaponType.shotgun]);
 //
     await loadAnimationSprites();
     await super.onLoad();
@@ -160,6 +105,16 @@ abstract class Enemy extends Entity with ContactCallbacks {
     required super.initPosition,
     required super.ancestor,
   });
+
+  bool collisionOnDeath = false;
+
+  @override
+  void preSolve(Object other, Contact contact, Manifold oldManifold) {
+    if (isDead) {
+      contact.setEnabled(collisionOnDeath);
+    }
+    super.preSolve(other, contact, oldManifold);
+  }
 
   @override
   // TODO: implement priority
@@ -230,8 +185,9 @@ class EnemyManagement extends Component {
     //       }),
     // );
 
-    add(PowerupItem(
-        Damage(), generateRandomGamePositionUsingViewport(true, mainGameRef)));
+    add(PowerupItem(PowerAttribute(level: 0, entity: mainGameRef.player),
+        generateRandomGamePositionUsingViewport(true, mainGameRef)));
+
     return super.onLoad();
   }
 }

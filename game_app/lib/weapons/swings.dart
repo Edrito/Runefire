@@ -122,7 +122,7 @@ class MeleeAttack extends PositionComponent {
       onTick: () {
         if (spriteAnimationComponent != null) {
           spriteAnimationComponent?.add(OpacityEffect.fadeOut(EffectController(
-            duration: .2,
+            duration: .05,
             onMax: () {
               removeFromParent();
             },
