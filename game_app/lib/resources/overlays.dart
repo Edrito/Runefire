@@ -9,7 +9,6 @@ import 'package:game_app/resources/visuals.dart';
 import '/resources/routes.dart' as routes;
 
 import '../main.dart';
-import 'enums.dart';
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
     MapEntry('PauseMenu', (context, gameRouter) {
@@ -71,7 +70,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
                           if (gameEnv != null) {
                             currentGameEnviroment?.player.killPlayer(false);
                           } else {
-                            toggleGameStart(null);
+                            changeMainMenuPage(MenuPages.startMenuPage, false);
                           }
                         },
                       )
@@ -135,7 +134,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                         "Give up",
                         gameRef: gameRouter,
                         onTap: () {
-                          toggleGameStart(null);
+                          changeMainMenuPage(MenuPages.startMenuPage, false);
                           resumeGame();
                         },
                       )

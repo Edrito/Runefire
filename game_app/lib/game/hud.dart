@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
+import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/player.dart';
 
@@ -13,6 +14,7 @@ class GameHud extends PositionComponent {
   GameHud(this.gameRef);
   int fps = 0;
   late final TextComponent fpsCounter;
+  late final TextComponent levelCounter;
   @override
   final double width = 100;
   GameEnviroment gameRef;
@@ -28,6 +30,12 @@ class GameHud extends PositionComponent {
         textRenderer: TextPaint(style: defaultStyle),
         position: Vector2(gameRef.gameCamera.viewport.size.x - 50, 5),
         text: fps.toString());
+    levelCounter = CaTextComponent(
+        anchor: Anchor.center,
+        textRenderer: TextPaint(style: defaultStyle),
+        position: Vector2(gameRef.gameCamera.viewport.size.x / 2, 25),
+        text: player.currentLevel.toString());
+    add(levelCounter);
     add(fpsCounter);
     return super.onLoad();
   }
@@ -38,17 +46,31 @@ class GameHud extends PositionComponent {
       fps = (1 / dt).round();
     }
     fpsCounter.text = fps.toString();
+    levelCounter.text = player.currentLevel.toString();
     fpsCounter.position.x = gameRef.gameCamera.viewport.size.x - 50;
+    levelCounter.position.x = gameRef.gameCamera.viewport.size.x / 2;
     super.update(dt);
   }
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect((const Offset(10, 10) & Size(player.maxHealth * 5, 10)),
+    canvas.drawRect(
+        (const Offset(0, 0) & Size(gameRef.gameCamera.viewport.size.x, 10)),
         Paint()..color = Colors.grey);
 
     canvas.drawRect(
-        (const Offset(10, 10) &
+        (const Offset(0, 0) &
+            Size(
+                gameRef.gameCamera.viewport.size.x *
+                    player.percentOfLevelGained,
+                10)),
+        Paint()..color = unlockedColor);
+
+    canvas.drawRect((const Offset(10, 25) & Size(player.maxHealth * 5, 10)),
+        Paint()..color = Colors.grey);
+
+    canvas.drawRect(
+        (const Offset(10, 25) &
             Size(
                 player.maxHealth *
                     5 *
@@ -56,17 +78,18 @@ class GameHud extends PositionComponent {
                 10)),
         Paint()..color = Colors.red);
 
-    canvas.drawRect((const Offset(10, 25) & Size(player.maxStamina * 2, 10)),
+    canvas.drawRect((const Offset(10, 40) & Size(player.maxStamina * 2, 10)),
         Paint()..color = Colors.grey);
     canvas.drawRect(
-        (const Offset(10, 25) &
+        (const Offset(10, 40) &
             Size(
                 player.maxStamina *
                     2 *
                     (player.remainingStamina / player.maxStamina),
                 10)),
         Paint()..color = Colors.yellow);
-
+    canvas.drawCircle(Offset(gameRef.gameCamera.viewport.size.x / 2, 20), 30,
+        BasicPalette.black.paint());
     super.render(canvas);
   }
 }

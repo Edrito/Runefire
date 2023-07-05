@@ -113,7 +113,7 @@ import 'package:game_app/main.dart';
 
 class PowerAttribute extends TemporaryAttribute {
   @override
-  double duration = 10;
+  double duration = 1;
 
   @override
   int uniqueId = 0;
@@ -163,7 +163,7 @@ abstract class TemporaryAttribute extends Attribute {
   @override
   void applyAttribute() {
     if (currentTimer != null) {
-      currentTimer?.timer.start();
+      currentTimer?.timer.reset();
     } else {
       currentTimer = TimerComponent(
           period: duration,

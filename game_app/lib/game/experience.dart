@@ -46,11 +46,12 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is! Map || other['object'] is ExperienceItem) return;
-    if (other['type'] == FixtureType.sensor) {
-      target = other['object'];
-    } else if (other['type'] == FixtureType.body) {
-      other['object'].experiencePointsGained +=
-          experienceAmount.experienceAmount;
+    final otherObject = other['object'];
+    final otherType = other['type'];
+    if (otherType == FixtureType.sensor) {
+      target = otherObject;
+    } else if (otherType == FixtureType.body && otherObject is Player) {
+      otherObject.gainExperience(experienceAmount.experienceAmount);
       removeFromParent();
     }
 

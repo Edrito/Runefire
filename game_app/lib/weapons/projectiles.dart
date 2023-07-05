@@ -20,7 +20,7 @@ class Bullet extends Projectile with StandardProjectile {
   double length = 1.5;
 
   @override
-  double ttl = 1.0;
+  double ttl = 2.0;
 }
 
 class Laser extends Projectile with LaserProjectile {

@@ -82,17 +82,18 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void createReloadBar() {
+    if (entityAncestor == null) return;
     reloadAnimation =
-        ReloadAnimation(reloadTime, entityAncestor, isSecondaryWeapon);
+        ReloadAnimation(reloadTime, entityAncestor!, isSecondaryWeapon);
 
-    entityAncestor.add(reloadAnimation!);
+    entityAncestor?.add(reloadAnimation!);
   }
 
   void reloadCheck() {
     if (remainingAttacks != 0 || reloadTimer != null || reloadTime == 0) return;
     if (removeSpriteOnAttack) {
-      entityAncestor.backJoint.weaponSpriteAnimation?.opacity = 1;
-      entityAncestor.handJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
     }
     createReloadBar();
     reloadTimer = TimerComponent(
@@ -129,21 +130,21 @@ mixin MeleeFunctionality on Weapon {
     if (attacksCompletedIndex >= attacksLength) {
       resetToFirstSwings();
     }
-    currentSwingPosition = entityAncestor.handJoint.position.clone();
-    currentSwingAngle = entityAncestor.handJoint.angle;
+    currentSwingPosition = entityAncestor?.handJoint.position.clone();
+    currentSwingAngle = entityAncestor?.handJoint.angle;
 
     int attackPatternIndex = (attacksCompletedIndex -
             (((attacksCompletedIndex / (attacksLength)).floor()) *
                 (attacksLength))) *
         2;
 
-    entityAncestor.setEntityStatus(
+    entityAncestor?.setEntityStatus(
         EntityStatus.attack,
         attackEntitySpriteAnimations.isNotEmpty
             ? attackEntitySpriteAnimations[attacksCompletedIndex]
             : null);
 
-    entityAncestor.add(MeleeAttack(
+    entityAncestor?.add(MeleeAttack(
       initPosition:
           (currentSwingPosition ?? Vector2.zero()) * distanceFromPlayer,
       initAngle: currentSwingAngle,
@@ -254,7 +255,7 @@ mixin ProjectileFunctionality on Weapon {
 
   Vector2 get handPosition =>
       (parents[WeaponSpritePosition.hand]!.weaponTip!.absolutePosition +
-              entityAncestor.body.position)
+              (entityAncestor?.body.position ?? Vector2.zero()))
           .clone() +
       ((entityAncestor is MovementFunctionality)
           ? (entityAncestor as MovementFunctionality).moveDelta
@@ -262,25 +263,25 @@ mixin ProjectileFunctionality on Weapon {
 
   Vector2 get handDelta =>
       (parents[WeaponSpritePosition.hand]!.weaponTipCenter!.absolutePosition -
-              entityAncestor.handJoint.absolutePosition)
+              (entityAncestor?.handJoint.absolutePosition ?? Vector2.zero()))
           .normalized();
 
   void shoot([double chargeAmount = 1]) {
     additionalCountCheck();
-    entityAncestor.ancestor.physicsComponent
+    entityAncestor?.ancestor.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
-    entityAncestor.ancestor.physicsComponent.add(generateParticle());
-    entityAncestor.handJoint.add(MoveEffect.by(Vector2(0, -.05),
+    entityAncestor?.ancestor.physicsComponent.add(generateParticle());
+    entityAncestor?.handJoint.add(MoveEffect.by(Vector2(0, -.05),
         EffectController(duration: .05, reverseDuration: .05)));
-    entityAncestor.handJoint.add(RotateEffect.by(
-        entityAncestor.handJoint.isFlippedHorizontally ? -.05 : .05,
+    entityAncestor?.handJoint.add(RotateEffect.by(
+        entityAncestor!.handJoint.isFlippedHorizontally ? -.05 : .05,
         EffectController(duration: .1, reverseDuration: .1)));
   }
 
   double particleLifespan = .15;
 
   Component generateParticle() {
-    Vector2 moveDelta = entityAncestor.body.linearVelocity;
+    Vector2 moveDelta = entityAncestor?.body.linearVelocity ?? Vector2.zero();
     var particleColor = Colors.orange.withOpacity(.5);
     final particle = Particle.generate(
       lifespan: particleLifespan,
@@ -450,8 +451,8 @@ mixin FullAutomatic on Weapon {
 
   void attackFinishTick() {
     if (removeSpriteOnAttack) {
-      entityAncestor.backJoint.weaponSpriteAnimation?.opacity = 1;
-      entityAncestor.handJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
     }
 
     attackTimer?.removeFromParent();

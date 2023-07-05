@@ -20,8 +20,8 @@ class Portal extends Weapon
         SemiAutomatic,
         ReloadFunctionality {
   Portal.create(
-    int newUpgradeLevel,
-    AimFunctionality ancestor,
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor);
 
   @override
@@ -138,21 +138,17 @@ class Portal extends Weapon
 
 class Pistol extends Weapon
     with
-        FullAutomatic,
+        SemiAutomatic,
         ProjectileFunctionality,
         ReloadFunctionality,
         SecondaryFunctionality {
   Pistol.create(
-    int newUpgradeLevel,
-    AimFunctionality ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
-    setSecondaryFunctionality = Bow.create(0, ancestor);
-  }
-  @override
-  WeaponType weaponType = WeaponType.pistol;
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor);
 
   @override
-  bool get allowRapidClicking => true;
+  WeaponType weaponType = WeaponType.pistol;
 
   @override
   void applyWeaponUpgrade(int newUpgradeLevel) {
@@ -183,22 +179,22 @@ class Pistol extends Weapon
   bool allowProjectileRotation = true;
 
   @override
-  int projectileCount = 5;
+  int projectileCount = 1;
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (1, 2),
-    DamageType.energy: (2, 4)
+    DamageType.regular: (3, 8),
+    // DamageType.energy: (2, 4)
   };
 
   @override
-  double baseAttackRate = .05;
+  double baseAttackRate = .5;
 
   @override
   bool get isHoming => false;
 
   @override
-  int get maxChainingTargets => 0;
+  int get maxChainingTargets => 5;
   @override
   double length = 3;
 
@@ -215,13 +211,13 @@ class Pistol extends Weapon
   double projectileVelocity = 100;
 
   @override
-  ProjectileType? projectileType = ProjectileType.laser;
+  ProjectileType? projectileType = ProjectileType.bullet;
 
   @override
   double tipPositionPercent = -.8;
 
   @override
-  double weaponRandomnessPercent = .4;
+  double weaponRandomnessPercent = .05;
 
   @override
   double distanceFromPlayer = .6;
@@ -252,10 +248,13 @@ class Pistol extends Weapon
   }
 
   @override
-  int? maxAmmo = 1000;
+  int? maxAmmo = 20;
 
   @override
-  double baseReloadTime = 1;
+  double baseReloadTime = 2;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.regular;
 }
 
 class Shotgun extends Weapon
@@ -265,9 +264,9 @@ class Shotgun extends Weapon
         ReloadFunctionality,
         SecondaryFunctionality {
   Shotgun.create(
-    super.newUpgradeLevel,
-    super.ancestor,
-  );
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor);
   @override
   WeaponType weaponType = WeaponType.shotgun;
   @override
@@ -364,9 +363,9 @@ class Shotgun extends Weapon
 class Bow extends Weapon
     with ProjectileFunctionality, SecondaryFunctionality, SemiAutomatic {
   Bow.create(
-    super.newUpgradeLevel,
-    super.ancestor,
-  );
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor);
   @override
   WeaponType weaponType = WeaponType.bow;
   @override
@@ -433,7 +432,7 @@ class Bow extends Weapon
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 50;
+  double projectileVelocity = 200;
 
   @override
   double tipPositionPercent = 0;
@@ -458,8 +457,8 @@ class Sword extends Weapon
 // ,        ReloadFunctionality
 {
   Sword.create(
-    int newUpgradeLevel,
-    AimFunctionality ancestor,
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     attackHitboxPatterns = [
       // (Vector2(6, -4), 0),

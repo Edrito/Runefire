@@ -50,7 +50,26 @@ abstract class GameEnviroment extends Component
     return true;
   }
 
+  int levelUpQueue = 0;
+  bool currentlyLevelingUp = false;
+  TimerComponent? levelUpQueueTimer;
   void displayLevelUpScreen() async {
+    if (currentlyLevelingUp) {
+      levelUpQueue++;
+      levelUpQueueTimer ??= TimerComponent(
+        period: .1,
+        removeOnFinish: true,
+        repeat: true,
+        onTick: () {
+          if (!currentlyLevelingUp) {
+            displayLevelUpScreen();
+            levelUpQueue--;
+          }
+        },
+      )..addToParent(this);
+      return;
+    }
+    currentlyLevelingUp = true;
     const count = 3;
     for (var i = 0; i < count; i++) {
       final upArrow = CaTextComponent(
@@ -65,7 +84,15 @@ abstract class GameEnviroment extends Component
         curve: Curves.fastLinearToSlowEaseIn,
         onMax: () {
           if (i == count - 1) {
+            print(player.currentLevel);
             pauseGame(attributeSelection.key);
+            currentlyLevelingUp = false;
+
+            if (levelUpQueue == 0) {
+              levelUpQueueTimer?.timer.stop();
+              levelUpQueueTimer?.removeFromParent();
+              levelUpQueueTimer = null;
+            }
           }
           upArrow.removeFromParent();
         },

@@ -104,11 +104,11 @@ class MeleeAttack extends PositionComponent {
 
     bodyComponent = MeleeDetection(size, this);
 
-    parentWeapon.entityAncestor.ancestor.physicsComponent.add(bodyComponent!);
+    parentWeapon.entityAncestor?.ancestor.physicsComponent.add(bodyComponent!);
 
     // anchor = Anchor.center;
     angle = radians(start.$2) +
-        (initAngle ?? parentWeapon.entityAncestor.handJoint.angle);
+        (initAngle ?? parentWeapon.entityAncestor?.handJoint.angle ?? 0);
     final rotatedStartPosition = rotateVector2(start.$1, angle);
     final rotatedEndPosition = rotateVector2(end.$1, angle);
 
@@ -162,8 +162,9 @@ class MeleeAttack extends PositionComponent {
   @override
   void update(double dt) {
     if (bodyComponent?.isLoaded ?? false) {
-      bodyComponent?.body
-          .setTransform(position + (parentWeapon.entityAncestor.center), angle);
+      bodyComponent?.body.setTransform(
+          position + (parentWeapon.entityAncestor?.center ?? Vector2.zero()),
+          angle);
     }
     super.update(dt);
   }

@@ -13,6 +13,7 @@ import 'package:game_app/resources/physics_filter.dart';
 
 import '../functions/vector_functions.dart';
 import '../main.dart';
+import '../pages/menu.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 
@@ -26,13 +27,11 @@ class Player extends Entity
         AttackFunctionality,
         MovementFunctionality,
         JumpFunctionality,
+        ExperienceFunctionality,
         DashFunctionality {
   Player(this.playerData,
       {required super.ancestor, required super.initPosition});
   final PlayerData playerData;
-
-  int experiencePointsGained = 0;
-  double xpSensorRadius = 10;
 
   Set<PhysicalKeyboardKey> physicalKeysPressed = {};
 
@@ -44,7 +43,7 @@ class Player extends Entity
     walkAnimation = await buildSpriteSheet(8, 'sprites/walk.png', .1, true);
     runAnimation = await buildSpriteSheet(8, 'sprites/run.png', .1, true);
     deathAnimation =
-        await buildSpriteSheet(8, 'enemy_sprites/death.png', .1, false);
+        await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
   }
 
   @override
@@ -131,7 +130,7 @@ class Player extends Entity
   void parseKeys(RawKeyEvent? event) {
     Vector2 moveAngle = Vector2.zero();
     try {
-      if (event == null) return;
+      if (event == null || isDead) return;
 
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
         moveAngle.x += 1;
@@ -272,12 +271,12 @@ class Player extends Entity
   void killPlayer(bool showDeathScreen) {
     setEntityStatus(EntityStatus.dead);
 
-    Future.delayed(3.seconds).then(
+    Future.delayed(2.seconds).then(
       (value) {
         if (showDeathScreen) {
           pauseGame(deathScreen.key, wipeMovement: true);
         } else {
-          toggleGameStart(null);
+          changeMainMenuPage(MenuPages.startMenuPage, false);
         }
       },
     );

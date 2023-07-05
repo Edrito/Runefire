@@ -7,6 +7,7 @@ import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/pages/menu.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
@@ -57,11 +58,12 @@ void resumeGame() {
   gameRouter.resumeEngine();
 }
 
-void changeMainMenuPage(MenuPages page) {
-  setStateMainMenu(() {
-    toggleGameStart(null);
-    menuPage = page;
-  });
+void changeMainMenuPage(MenuPages page, [bool setState = true]) {
+  toggleGameStart(null);
+  menuPage = page;
+  if (setState) {
+    setStateMainMenu(() {});
+  }
 }
 
 bool startInGame = true;
@@ -132,9 +134,13 @@ void main() async {
                   );
                 },
                 loadingBuilder: (p0) {
-                  return Container(
-                      color: const Color.fromARGB(255, 72, 37, 112),
-                      child: const CircularProgressIndicator());
+                  return Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Text(
+                      "LOADING",
+                      style: defaultStyle,
+                    ).animate().fadeIn(),
+                  );
                 },
                 game: gameRouter,
                 overlayBuilderMap: Map<String,

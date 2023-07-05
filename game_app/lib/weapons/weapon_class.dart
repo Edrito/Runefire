@@ -68,13 +68,15 @@ class PlayerAttachmentJointComponent extends PositionComponent
 }
 
 abstract class Weapon extends Component {
-  Weapon(int newUpgradeLevel, this.entityAncestor) {
+  Weapon(int? newUpgradeLevel, this.entityAncestor) {
     assert(
         this is! ProjectileFunctionality ||
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
-    entityAncestor.add(this);
-    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
+    entityAncestor?.add(this);
+
+    newUpgradeLevel ??= 1;
+    newUpgradeLevel = upgradeLevel.clamp(1, weaponType.maxLevel);
     applyWeaponUpgrade(newUpgradeLevel);
   }
   Random rng = Random();
@@ -93,7 +95,7 @@ abstract class Weapon extends Component {
 
   int upgradeLevel = 0;
 
-  AimFunctionality entityAncestor;
+  AimFunctionality? entityAncestor;
 
   double get durationHeld;
 
@@ -107,6 +109,7 @@ abstract class Weapon extends Component {
 
   List<DamageInstance> get damage {
     List<DamageInstance> returnList = [];
+    if (entityAncestor == null) return returnList;
 
     for (var element in baseDamageLevels.entries) {
       var min = element.value.$1;
@@ -118,7 +121,7 @@ abstract class Weapon extends Component {
       returnList.add(DamageInstance(
           damageBase: ((rng.nextDouble() * max - min) + min),
           damageType: element.key,
-          duration: entityAncestor.damageDuration));
+          duration: entityAncestor!.damageDuration));
     }
 
     return returnList;
@@ -176,8 +179,8 @@ abstract class Weapon extends Component {
   /// Returns true if an attack occured, otherwise false.
   void attackAttempt() {
     if (removeSpriteOnAttack) {
-      entityAncestor.backJoint.weaponSpriteAnimation?.opacity = 0;
-      entityAncestor.handJoint.weaponSpriteAnimation?.opacity = 0;
+      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 0;
+      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
     }
   }
 
@@ -207,9 +210,10 @@ abstract class SecondaryWeaponAbility extends Component {
   }
 
   void startAttacking() {
-    if (isCoolingDown) return;
-    reloadAnimation = ReloadAnimation(cooldown, weapon.entityAncestor, true)
-      ..addToParent(weapon.entityAncestor);
+    if (isCoolingDown || weapon.entityAncestor == null) return;
+
+    reloadAnimation = ReloadAnimation(cooldown, weapon.entityAncestor!, true)
+      ..addToParent(weapon.entityAncestor!);
 
     cooldownTimer = TimerComponent(
       period: cooldown,

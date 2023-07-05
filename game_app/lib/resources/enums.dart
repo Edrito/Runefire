@@ -92,12 +92,12 @@ extension ExperienceAmountExtension on ExperienceAmount {
     }
   }
 
-  int get experienceAmount {
+  double get experienceAmount {
     switch (this) {
       case ExperienceAmount.small:
-        return 5;
+        return 1;
       case ExperienceAmount.medium:
-        return 20;
+        return 10;
       case ExperienceAmount.large:
         return 100;
     }
@@ -173,39 +173,41 @@ enum WeaponSpritePosition { hand, mouse, back }
 
 enum AttackType { projectile, melee, special }
 
-enum SecondaryType {
-  reloadAndRapidFire,
-  pistol,
-}
-
 enum WeaponState { shooting, reloading, idle }
 
 extension SecondaryWeaponTypeExtension on SecondaryType {
-  // SecondaryWeaponFunctionality build(Weapon primaryWeaponAncestor,
-  //     [int upgradeLevel = 0]) {
-  //   switch (this) {
-  //     case SecondaryWeaponType.reloadAndRapidFire:
-  //       return Pistol.create(upgradeLevel, ancestor, secondaryWeapon);
-  //   }
-  // }
+  dynamic build(Weapon primaryWeaponAncestor, [int? upgradeLevel = 0]) {
+    switch (this) {
+      case SecondaryType.reloadAndRapidFire:
+        return RapidFire(primaryWeaponAncestor, 5);
+      case SecondaryType.pistol:
+        return Portal.create(
+            upgradeLevel, primaryWeaponAncestor.entityAncestor);
+    }
+  }
 }
 
 enum WeaponType {
-  pistol('assets/images/weapons/pistol.png', 5, AttackType.projectile),
-  shotgun('assets/images/weapons/shotgun.png', 5, AttackType.projectile),
-  portal('assets/images/weapons/portal.png', 5, AttackType.projectile),
-  shiv('assets/images/weapons/sword.png', 5, AttackType.melee),
-  bow('assets/images/weapons/bow.png', 10, AttackType.projectile);
+  pistol(Pistol.create, 'assets/images/weapons/pistol.png', 5,
+      AttackType.projectile),
+  shotgun(Shotgun.create, 'assets/images/weapons/shotgun.png', 5,
+      AttackType.projectile),
+  portal(Portal.create, 'assets/images/weapons/portal.png', 5,
+      AttackType.projectile),
+  shiv(Sword.create, 'assets/images/weapons/sword.png', 5, AttackType.melee),
+  bow(Bow.create, 'assets/images/weapons/bow.png', 10, AttackType.projectile);
 
-  const WeaponType(this.icon, this.maxLevel, this.attackType);
+  const WeaponType(
+      this.createFunction, this.icon, this.maxLevel, this.attackType);
   final String icon;
   final int maxLevel;
   final AttackType attackType;
+  final Function createFunction;
 }
 
 extension WeaponTypeFilename on WeaponType {
-  Weapon build(AimFunctionality ancestor, SecondaryType? secondaryWeaponType,
-      [int upgradeLevel = 0]) {
+  Weapon build(AimFunctionality? ancestor, SecondaryType? secondaryWeaponType,
+      [int? upgradeLevel = 0]) {
     Weapon? returnWeapon;
 
     switch (this) {
@@ -229,7 +231,8 @@ extension WeaponTypeFilename on WeaponType {
         break;
     }
     if (returnWeapon is SecondaryFunctionality) {
-      (returnWeapon).setSecondaryFunctionality = secondaryWeaponType;
+      (returnWeapon).setSecondaryFunctionality =
+          secondaryWeaponType?.build(returnWeapon, upgradeLevel);
     }
     return returnWeapon;
   }
@@ -265,4 +268,27 @@ class DamageInstance {
 
   DamageType damageType;
   double duration;
+}
+
+enum SecondaryType {
+  reloadAndRapidFire(
+      'assets/images/weapons/portal.png', 5, weaponIsReloadFunctionality),
+  pistol('assets/images/weapons/portal.png', 5, alwaysCompatible);
+
+  const SecondaryType(this.icon, this.maxLevel, this.compatibilityCheck);
+
+  ///Based on a input weapon, return true or false to
+  ///see if the weapon is compatible with the secondary ability
+  final CompatibilityFunction compatibilityCheck;
+  final String icon;
+  final int maxLevel;
+}
+
+typedef CompatibilityFunction = bool Function(Weapon);
+
+bool alwaysCompatible(Weapon weapon) => true;
+
+bool weaponIsReloadFunctionality(Weapon weapon) {
+  bool test = weapon is ReloadFunctionality;
+  return test;
 }

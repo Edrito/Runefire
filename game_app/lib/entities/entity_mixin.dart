@@ -185,10 +185,6 @@ mixin AttackFunctionality on AimFunctionality {
         );
       }
 
-      // if (carriedWeapons[i] is SecondaryFunctionality) {
-      //   (carriedWeapons[i] as SecondaryFunctionality)
-      //       .setSecondaryFunctionality = RapidFire(carriedWeapons[i]!, 4);
-      // }
       i++;
     }
     initialWeapons.clear();
@@ -953,5 +949,41 @@ mixin AttributeFunctionality on Entity {
       }
     }
     return returnList;
+  }
+}
+
+mixin ExperienceFunctionality on Entity {
+  double experiencePointsGained = 0;
+  int currentLevel = 0;
+
+  int get nextLevelExperienceRequired => pow(2, currentLevel + 1).toInt();
+  int get currentLevelExperienceRequired => pow(2, currentLevel).toInt();
+
+  void gainExperience(double experience) {
+    final nextLevelExperienceRequired = this.nextLevelExperienceRequired;
+    if (experiencePointsGained + experience >= nextLevelExperienceRequired) {
+      final remainingExperience =
+          (experience + experiencePointsGained) - nextLevelExperienceRequired;
+      experiencePointsGained = nextLevelExperienceRequired.toDouble();
+      currentLevel += 1;
+      ancestor.displayLevelUpScreen();
+
+      gainExperience(remainingExperience);
+    } else {
+      experiencePointsGained += experience;
+    }
+  }
+
+  double get xpSensorRadius => baseXpSensorRadius + xpSensorRadiusIncrease;
+  final double baseXpSensorRadius = 10;
+  double xpSensorRadiusIncrease = 0;
+
+  double get percentOfLevelGained {
+    final currentLevelExperienceRequired = this.currentLevelExperienceRequired;
+    final gapBetweenCurrentLevels =
+        nextLevelExperienceRequired - currentLevelExperienceRequired;
+    final experienceTowardsNextLevel =
+        experiencePointsGained - currentLevelExperienceRequired;
+    return experienceTowardsNextLevel / gapBetweenCurrentLevels;
   }
 }
