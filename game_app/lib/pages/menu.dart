@@ -360,22 +360,18 @@ class _DisplayCardsState extends State<DisplayCards>
         if (selectedIndex != -1 && widget.cards[selectedIndex] == card) {
           card = card.copyWith(isHighlightedInitial: true);
         }
-        displayedCards.add(Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: card,
-          ),
+        displayedCards.add(Padding(
+          padding: const EdgeInsets.all(10),
+          child: card,
         ));
       } else {
         if (card == selectedCard) {
           card =
               card.copyWith(isHighlightedInitial: true, isEndingInitial: true);
         }
-        displayedCards.add(Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: card,
-          ),
+        displayedCards.add(Padding(
+          padding: const EdgeInsets.all(10),
+          child: card,
         ));
       }
     }

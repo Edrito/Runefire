@@ -53,7 +53,19 @@ abstract class GameEnviroment extends Component
   int levelUpQueue = 0;
   bool currentlyLevelingUp = false;
   TimerComponent? levelUpQueueTimer;
-  void displayLevelUpScreen() async {
+
+  void levelUp() {
+    pauseGame(attributeSelection.key);
+    currentlyLevelingUp = false;
+
+    if (levelUpQueue == 0) {
+      levelUpQueueTimer?.timer.stop();
+      levelUpQueueTimer?.removeFromParent();
+      levelUpQueueTimer = null;
+    }
+  }
+
+  void preLevelUp() async {
     if (currentlyLevelingUp) {
       levelUpQueue++;
       levelUpQueueTimer ??= TimerComponent(
@@ -61,8 +73,8 @@ abstract class GameEnviroment extends Component
         removeOnFinish: true,
         repeat: true,
         onTick: () {
-          if (!currentlyLevelingUp) {
-            displayLevelUpScreen();
+          if (!currentlyLevelingUp && !player.isDead) {
+            preLevelUp();
             levelUpQueue--;
           }
         },
@@ -73,26 +85,18 @@ abstract class GameEnviroment extends Component
     const count = 3;
     for (var i = 0; i < count; i++) {
       final upArrow = CaTextComponent(
-          position: Vector2(4, -1),
+          position: Vector2(1, -.25),
           anchor: Anchor.center,
           priority: menuPriority,
           textRenderer:
-              TextPaint(style: defaultStyle.copyWith(fontSize: 5 * (i + 1))),
+              TextPaint(style: defaultStyle.copyWith(fontSize: 1 * (i + 1))),
           text: "^");
       final effectController = EffectController(
         duration: .3,
         curve: Curves.fastLinearToSlowEaseIn,
         onMax: () {
           if (i == count - 1) {
-            print(player.currentLevel);
-            pauseGame(attributeSelection.key);
-            currentlyLevelingUp = false;
-
-            if (levelUpQueue == 0) {
-              levelUpQueueTimer?.timer.stop();
-              levelUpQueueTimer?.removeFromParent();
-              levelUpQueueTimer = null;
-            }
+            levelUp();
           }
           upArrow.removeFromParent();
         },
@@ -100,7 +104,7 @@ abstract class GameEnviroment extends Component
 
       upArrow.addAll([
         MoveEffect.by(
-          Vector2(0, -4),
+          Vector2(0, -1),
           effectController,
         ),
       ]);
@@ -176,7 +180,7 @@ abstract class GameEnviroment extends Component
     initJoysticks();
 
     player = Player(gameRef.playerDataComponent.dataObject,
-        ancestor: this, initPosition: Vector2.zero());
+        gameEnv: this, initPosition: Vector2.zero());
     hud = GameHud(this);
     physicsComponent = Forge2DComponent();
     bounds = Bounds();
@@ -191,7 +195,7 @@ abstract class GameEnviroment extends Component
     player.mounted.whenComplete(() => gameCamera.viewfinder
         .add(CustomFollowBehavior(player, gameCamera.viewfinder)));
 
-    gameCamera.viewfinder.zoom = 10;
+    gameCamera.viewfinder.zoom = 50;
     return super.onLoad();
   }
 
@@ -332,7 +336,7 @@ abstract class GameEnviroment extends Component
 
 class Bounds extends BodyComponent {
   late ChainShape bounds;
-  final double maxArea = 500;
+  final double maxArea = 70;
   @override
   Body createBody() {
     bounds = ChainShape();

@@ -33,11 +33,20 @@ class GameHud extends PositionComponent {
     levelCounter = CaTextComponent(
         anchor: Anchor.center,
         textRenderer: TextPaint(style: defaultStyle),
-        position: Vector2(gameRef.gameCamera.viewport.size.x / 2, 25),
+        position: Vector2(gameRef.gameCamera.viewport.size.x / 2, 45),
         text: player.currentLevel.toString());
     add(levelCounter);
     add(fpsCounter);
     return super.onLoad();
+  }
+
+  @override
+  void onParentResize(Vector2 maxSize) {
+    if (isLoaded) {
+      fpsCounter.position.x = gameRef.gameCamera.viewport.size.x - 50;
+      levelCounter.position.x = gameRef.gameCamera.viewport.size.x / 2;
+    }
+    super.onParentResize(maxSize);
   }
 
   @override
@@ -47,8 +56,7 @@ class GameHud extends PositionComponent {
     }
     fpsCounter.text = fps.toString();
     levelCounter.text = player.currentLevel.toString();
-    fpsCounter.position.x = gameRef.gameCamera.viewport.size.x - 50;
-    levelCounter.position.x = gameRef.gameCamera.viewport.size.x / 2;
+
     super.update(dt);
   }
 
@@ -71,11 +79,7 @@ class GameHud extends PositionComponent {
 
     canvas.drawRect(
         (const Offset(10, 25) &
-            Size(
-                player.maxHealth *
-                    5 *
-                    (player.remainingHealth / player.maxHealth),
-                10)),
+            Size(player.maxHealth * 5 * player.healthPercentage, 10)),
         Paint()..color = Colors.red);
 
     canvas.drawRect((const Offset(10, 40) & Size(player.maxStamina * 2, 10)),
@@ -88,7 +92,7 @@ class GameHud extends PositionComponent {
                     (player.remainingStamina / player.maxStamina),
                 10)),
         Paint()..color = Colors.yellow);
-    canvas.drawCircle(Offset(gameRef.gameCamera.viewport.size.x / 2, 20), 30,
+    canvas.drawCircle(Offset(gameRef.gameCamera.viewport.size.x / 2, 40), 30,
         BasicPalette.black.paint());
     super.render(canvas);
   }

@@ -1,6 +1,8 @@
+import 'package:game_app/resources/area_effects.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/projectile_mixin.dart';
 
+import '../entities/entity_mixin.dart';
 import '../resources/enums.dart';
 
 class Bullet extends Projectile with StandardProjectile {
@@ -17,10 +19,48 @@ class Bullet extends Projectile with StandardProjectile {
   ProjectileType projectileType = ProjectileType.bullet;
 
   @override
-  double length = 1.5;
+  double length = .2;
 
   @override
   double ttl = 2.0;
+}
+
+class Fireball extends Projectile with StandardProjectile {
+  Fireball(
+      {required super.delta,
+      required super.originPosition,
+      required super.weaponAncestor,
+      super.power});
+
+  @override
+  double embedIntoEnemyChance = 0;
+
+  @override
+  ProjectileType projectileType = ProjectileType.fireball;
+
+  @override
+  double length = 1;
+
+  @override
+  double ttl = 2.0;
+
+  @override
+  void killBullet() {
+    weaponAncestor.entityAncestor?.gameEnv.physicsComponent.add(AreaEffect(
+      sourceEntity: weaponAncestor.entityAncestor!,
+      position: center,
+      radius: 5,
+      isInstant: true,
+      duration: 5,
+      onTick: (entity, areaId) {
+        if (entity is HealthFunctionality) {
+          entity.hitCheck(areaId,
+              [DamageInstance(damageBase: .1, damageType: DamageType.fire)]);
+        }
+      },
+    ));
+    super.killBullet();
+  }
 }
 
 class Laser extends Projectile with LaserProjectile {

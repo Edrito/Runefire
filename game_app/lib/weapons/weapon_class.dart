@@ -6,6 +6,7 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
+import '../functions/functions.dart';
 import '../resources/enums.dart';
 
 class PlayerAttachmentJointComponent extends PositionComponent
@@ -77,6 +78,7 @@ abstract class Weapon extends Component {
 
     newUpgradeLevel ??= 1;
     newUpgradeLevel = upgradeLevel.clamp(1, weaponType.maxLevel);
+
     applyWeaponUpgrade(newUpgradeLevel);
   }
   Random rng = Random();
@@ -86,6 +88,8 @@ abstract class Weapon extends Component {
   bool get isReloading => this is ReloadFunctionality
       ? (this as ReloadFunctionality).reloadTimer != null
       : false;
+
+  bool attackOnAnimationFinish = false;
 
   //META INFORMATION
 
@@ -107,25 +111,8 @@ abstract class Weapon extends Component {
   //DamageType, min, max
   abstract Map<DamageType, (double, double)> baseDamageLevels;
 
-  List<DamageInstance> get damage {
-    List<DamageInstance> returnList = [];
-    if (entityAncestor == null) return returnList;
-
-    for (var element in baseDamageLevels.entries) {
-      var min = element.value.$1;
-      var max = element.value.$2;
-      if (damageIncrease.containsKey(element.key)) {
-        min += damageIncrease[element.key]?.$1 ?? 0;
-        max += damageIncrease[element.key]?.$2 ?? 0;
-      }
-      returnList.add(DamageInstance(
-          damageBase: ((rng.nextDouble() * max - min) + min),
-          damageType: element.key,
-          duration: entityAncestor!.damageDuration));
-    }
-
-    return returnList;
-  }
+  List<DamageInstance> get damage => damageCalculations(
+      baseDamageLevels, damageIncrease, entityAncestor?.damageDuration);
 
   //ATTRIBUTES
   bool get weaponCanChain => maxChainingTargets > 0;
@@ -162,8 +149,18 @@ abstract class Weapon extends Component {
   double get attackRateSecondComparison => 1 / attackRate;
 
   void applyWeaponUpgrade(int newUpgradeLevel) {
-    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
+    newUpgradeLevel = upgradeLevel.clamp(1, weaponType.maxLevel);
   }
+
+  //Event functions that are modified from attributes
+  List<Function(Weapon, Entity)> onKillProjectile = [];
+  List<Function(Weapon, Entity)> onHitProjectile = [];
+  List<Function(Weapon, Entity)> onKillMelee = [];
+  List<Function(Weapon, Entity)> onHitMelee = [];
+  List<Function(Weapon)> onFireProjectile = [];
+  List<Function(Weapon)> onFireMelee = [];
+  List<Function(Weapon)> onReload = [];
+  List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
 
   void removeWeaponUpgrade() {}
 
@@ -187,11 +184,16 @@ abstract class Weapon extends Component {
   WeaponStatus weaponStatus = WeaponStatus.idle;
 
   ///Sets the current status of the weapon, i.e. idle, shooting, reloading
-  void setWeaponStatus(WeaponStatus weaponStatus) {
+  Future<void> setWeaponStatus(WeaponStatus weaponStatus) async {
     this.weaponStatus = weaponStatus;
+    List<Future> futures = [];
     for (var element in parents.entries) {
-      element.value.weaponSpriteAnimation?.setWeaponStatus(this.weaponStatus);
+      if (element.value.weaponSpriteAnimation == null) continue;
+
+      futures.add(element.value.weaponSpriteAnimation!
+          .setWeaponStatus(this.weaponStatus));
     }
+    await Future.wait(futures);
   }
 }
 
@@ -328,14 +330,14 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     animation = animationQueue;
   }
 
-  void setWeaponStatus(WeaponStatus newWeaponStatus,
-      [SpriteAnimation? attackAnimation]) {
+  Future<void> setWeaponStatus(WeaponStatus newWeaponStatus,
+      [SpriteAnimation? attackAnimation]) async {
     if (newWeaponStatus == WeaponStatus.spawn) {
       animation = spawnAnimation ?? idleAnimation;
       currentStatus = newWeaponStatus;
       return;
     }
-
+    attackAnimation ??= this.attackAnimation;
     if (newWeaponStatus == currentStatus &&
         [WeaponStatus.idle].contains(newWeaponStatus)) return;
 
@@ -382,5 +384,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     } else {
       currentStatus = newWeaponStatus;
     }
+
+    await animationTicker?.completed;
   }
 }

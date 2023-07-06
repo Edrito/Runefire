@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -18,22 +17,18 @@ import '../resources/priorities.dart';
 class DummyTwo extends Enemy
     with
         HealthFunctionality,
-        AimFunctionality,
-        AttackFunctionality,
         MovementFunctionality,
         DropExperienceFunctionality,
-        AimAtPlayerFunctionality,
-        DumbShoot,
-        DumbFollowRangeAI {
+        DumbFollowAI,
+        TouchDamageFunctionality {
   DummyTwo({
     required super.initPosition,
-    required super.ancestor,
+    required super.gameEnv,
   });
 
   @override
   void update(double dt) {
     moveCharacter();
-    aimCharacter();
     super.update(dt);
   }
 
@@ -41,7 +36,7 @@ class DummyTwo extends Enemy
   (double, double) xpRate = (0.001, 0.01);
 
   @override
-  double height = 4;
+  double height = 1;
 
   @override
   double baseInvincibilityDuration = 0.0;
@@ -50,7 +45,7 @@ class DummyTwo extends Enemy
   double baseHealth = 5;
 
   @override
-  double baseSpeed = 2;
+  double baseSpeed = .02;
 
   @override
   double touchDamage = 4;
@@ -66,7 +61,6 @@ class DummyTwo extends Enemy
 
   @override
   Future<void> onLoad() async {
-    initialWeapons.addAll([WeaponType.shotgun]);
 //
     await loadAnimationSprites();
     await super.onLoad();
@@ -95,7 +89,7 @@ class DummyTwo extends Enemy
   SpriteAnimation? dodgeAnimation;
 
   @override
-  Map<DamageType, (double, double)> touchDamageLevels = {
+  Map<DamageType, (double, double)> baseTouchDamage = {
     DamageType.energy: (1, 4)
   };
 }
@@ -103,7 +97,7 @@ class DummyTwo extends Enemy
 abstract class Enemy extends Entity with ContactCallbacks {
   Enemy({
     required super.initPosition,
-    required super.ancestor,
+    required super.gameEnv,
   });
 
   bool collisionOnDeath = false;
@@ -123,7 +117,7 @@ abstract class Enemy extends Entity with ContactCallbacks {
   @override
   Filter? filter = Filter()
     ..categoryBits = enemyCategory
-    ..maskBits = bulletCategory +
+    ..maskBits = attackCategory +
         playerCategory +
         enemyCategory +
         sensorCategory +
@@ -146,16 +140,17 @@ class EnemyManagement extends Component {
 
   @override
   FutureOr<void> onLoad() {
-    var section = 10.0;
-    for (var i = 1; i < 10; i++) {
-      for (var j = 1; j < 10; j++) {
-        section = section - ((Random().nextDouble() * 5) - 2.5);
-        add(DummyTwo(
-            initPosition: Vector2(section * i, section * j) -
-                mainGameRef.gameCamera.viewport.size / 15,
-            ancestor: mainGameRef));
-      }
-    }
+    var section = 5.0;
+    // for (var i = 1; i < 10; i++) {
+    //   for (var j = 1; j < 10; j++) {
+    //     section =
+    //         section - ((Random().nextDouble() * section / 2) - section / 4);
+    //     add(DummyTwo(
+    //         initPosition: Vector2(section * i, section * j) -
+    //             mainGameRef.gameCamera.viewport.size / 50,
+    //         gameEnv: mainGameRef));
+    //   }
+    // }
     // add(DummyTwo(
     //     initPosition: Vector2(0, 0) - mainGameRef.gameCamera.viewport.size / 15,
     //     ancestor: mainGameRef));

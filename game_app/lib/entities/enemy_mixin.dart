@@ -27,7 +27,7 @@ mixin DropExperienceFunctionality on HealthFunctionality {
       experienceAmount = ExperienceAmount.small;
     }
 
-    ancestor.add(ExperienceItem(experienceAmount, body.position));
+    gameEnv.add(ExperienceItem(experienceAmount, body.position));
     super.deadStatus();
   }
 }
@@ -44,7 +44,7 @@ mixin AimControlFunctionality on AimFunctionality {
       case AimPattern.player:
         updateFunction = () {
           inputAimAngles[InputType.ai] =
-              (ancestor.player.center - body.position).normalized();
+              (gameEnv.player.center - body.position).normalized();
         };
 
         break;
@@ -64,7 +64,7 @@ mixin DumbFollowAI on MovementFunctionality {
   double targetUpdateFrequency = .3;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (ancestor.player.center - body.position);
+    final newPosition = (gameEnv.player.center - body.position);
     moveVelocities[InputType.ai] = newPosition.normalized();
   }
 
@@ -108,15 +108,14 @@ mixin DumbShoot on AttackFunctionality {
 
 mixin DumbFollowRangeAI on MovementFunctionality {
   TimerComponent? targetUpdater;
-  double targetUpdateFrequency = .3;
-  double zoningDistance = 60;
+  double targetUpdateFrequency = .1;
+  double zoningDistance = 10;
 
   void _dumbFollowRangeTargetTick() {
-    final newPosition = (ancestor.player.center - body.position) -
-        ((ancestor.player.center - body.position).normalized() *
-            zoningDistance);
+    final newPosition = (gameEnv.player.center - body.position) -
+        ((gameEnv.player.center - body.position).normalized() * zoningDistance);
 
-    final dis = center.distanceTo(ancestor.player.center);
+    final dis = center.distanceTo(gameEnv.player.center);
 
     if (dis < zoningDistance * 1.1 && dis > zoningDistance * .9) {
       moveVelocities[InputType.ai] = Vector2.zero();
@@ -146,7 +145,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   bool inverse = false;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (ancestor.player.center - body.position);
+    final newPosition = (gameEnv.player.center - body.position);
 
     moveVelocities[InputType.ai] =
         newPosition.normalized() * (inverse ? -1 : 1);
@@ -159,13 +158,11 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
     inverse = true;
     targetUpdater?.onTick();
     if (inverseTimer == null) {
-      speedIncrease += 1;
       inverseTimer ??= TimerComponent(
         period: 3,
         onTick: () {
           inverse = false;
           inverseTimer = null;
-          speedIncrease -= 1;
         },
       );
       add(inverseTimer!);

@@ -198,155 +198,159 @@ class CustomCard extends StatelessWidget {
               : attribute.attributeEnum.rarity.color.brighten(.1),
           fontSize: 30);
 
-      Widget card = InkWell(
-          splashFactory: NoSplash.splashFactory,
-          hoverColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          onHover: (value) {
-            setState(
-              () {
-                isHighlighted = value;
-              },
-            );
-          },
-          onTap: () async {
-            if (isEnding!) return;
-            setState(
-              () {
-                isEnding = true;
-              },
-            );
-            if (onTap != null) {
-              onTap!();
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(3),
-            child: Container(
-              decoration: BoxDecoration(
-                  // color: attribute.attributeEnum.rarity.color.brighten(.9),
-                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  gradient: LinearGradient(colors: [
-                    attribute.attributeEnum.rarity.color.brighten(.98),
-                    attribute.attributeEnum.rarity.color.brighten(.9),
-                  ]),
-                  border: Border.all(
-                      color: attribute.attributeEnum.rarity.color.brighten(.15),
-                      width: 3)),
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(
-                          width: 50,
-                        ),
-                        Expanded(
-                          flex: 4,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: Text(
-                              attribute.title,
-                              style: style,
-                              textAlign: TextAlign.center,
-                            ),
+      Widget card = ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 300, maxHeight: 500),
+        child: InkWell(
+            splashFactory: NoSplash.splashFactory,
+            hoverColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            onHover: (value) {
+              setState(
+                () {
+                  isHighlighted = value;
+                },
+              );
+            },
+            onTap: () async {
+              if (isEnding!) return;
+              setState(
+                () {
+                  isEnding = true;
+                },
+              );
+              if (onTap != null) {
+                onTap!();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(3),
+              child: Container(
+                decoration: BoxDecoration(
+                    // color: attribute.attributeEnum.rarity.color.brighten(.9),
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    gradient: LinearGradient(colors: [
+                      attribute.attributeEnum.rarity.color.brighten(.98),
+                      attribute.attributeEnum.rarity.color.brighten(.9),
+                    ]),
+                    border: Border.all(
+                        color:
+                            attribute.attributeEnum.rarity.color.brighten(.15),
+                        width: 3)),
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            width: 50,
                           ),
-                        ),
-                        SizedBox(
-                          width: 50,
-                          child: GestureDetector(
+                          Expanded(
+                            flex: 4,
                             child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    border: Border.all(
-                                        color: Colors.black, width: 2)),
-                                child: const Icon(
-                                  Icons.question_mark,
-                                  color: Colors.black,
-                                ),
+                              padding: const EdgeInsets.all(4),
+                              child: Text(
+                                attribute.title,
+                                style: style,
+                                textAlign: TextAlign.center,
                               ),
                             ),
-                            onTap: () {
-                              setState(
-                                () {
-                                  showHelp = !showHelp;
-                                },
-                              );
-                            },
+                          ),
+                          SizedBox(
+                            width: 50,
+                            child: GestureDetector(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      border: Border.all(
+                                          color: Colors.black, width: 2)),
+                                  child: const Icon(
+                                    Icons.question_mark,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              onTap: () {
+                                setState(
+                                  () {
+                                    showHelp = !showHelp;
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!showHelp) ...[
+                      Expanded(
+                        flex: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Image.asset(
+                            'assets/images/${attribute.icon}',
+                            filterQuality: FilterQuality.none,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  if (!showHelp) ...[
-                    Expanded(
-                      flex: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.asset(
-                          'assets/images/${attribute.icon}',
-                          filterQuality: FilterQuality.none,
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            attribute.description(),
+                            style: style.copyWith(
+                                fontSize: (style.fontSize! * .6)),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          attribute.description(),
-                          style:
-                              style.copyWith(fontSize: (style.fontSize! * .6)),
-                          textAlign: TextAlign.center,
+                    ] else ...[
+                      Expanded(
+                        flex: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            attribute.description() +
+                                attribute.description() +
+                                attribute.description(),
+                            style: style.copyWith(
+                                fontSize: (style.fontSize! * .6)),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
-                    ),
-                  ] else ...[
-                    Expanded(
-                      flex: 3,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          attribute.description() +
-                              attribute.description() +
-                              attribute.description(),
-                          style:
-                              style.copyWith(fontSize: (style.fontSize! * .6)),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ]
-                ],
+                    ]
+                  ],
+                ),
               ),
-            ),
-          )
-              .animate(
-                target: isHighlighted! ? 1 : 0,
-                onInit: (controller) {
-                  if (isEnding!) {
-                    controller.forward(from: 1);
-                    controller.stop();
-                  }
-                },
-              )
-              .rotate(
-                  begin: 0,
-                  end: .005,
+            )
+                .animate(
+                  target: isHighlighted! ? 1 : 0,
+                  onInit: (controller) {
+                    if (isEnding!) {
+                      controller.forward(from: 1);
+                      controller.stop();
+                    }
+                  },
+                )
+                .rotate(
+                    begin: 0,
+                    end: .005,
+                    curve: Curves.easeInOut,
+                    duration: .1.seconds)
+                .scale(
                   curve: Curves.easeInOut,
-                  duration: .1.seconds)
-              .scale(
-                curve: Curves.easeInOut,
-                duration: .1.seconds,
-                begin: const Offset(1, 1),
-                end: const Offset(1.05, 1.05),
-              ));
+                  duration: .1.seconds,
+                  begin: const Offset(1, 1),
+                  end: const Offset(1.05, 1.05),
+                )),
+      );
       return (isEnding!
           ? Animate(
               effects: const [

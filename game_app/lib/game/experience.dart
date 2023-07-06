@@ -13,10 +13,9 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   ExperienceAmount experienceAmount;
   late SpriteComponent spriteComponent;
-  double size = 1.2;
+  double size = .2;
   Vector2 originPosition;
   double speed = 30;
-
   Player? target;
 
   set setTarget(Player player) => target = player;
@@ -30,12 +29,12 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
     spriteComponent.add(OpacityEffect.fadeIn(EffectController(duration: 1)));
     spriteComponent.add(MoveEffect.by(
-        Vector2(0, .75),
+        Vector2(0, .2),
         InfiniteEffectController(EffectController(
-            duration: .5,
-            reverseDuration: .5,
-            curve: Curves.easeInOut,
-            reverseCurve: Curves.easeInOut))));
+            duration: .7,
+            reverseDuration: .7,
+            curve: Curves.easeInOutCubic,
+            reverseCurve: Curves.easeInOutCubic))));
 
     add(spriteComponent);
     return super.onLoad();

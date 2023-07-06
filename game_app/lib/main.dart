@@ -305,7 +305,7 @@ class GameRouter extends Forge2DGame
 
       currentZoom += info.scrollDelta.game.normalized().y * -1;
 
-      currentZoom = currentZoom.clamp(3, 20);
+      currentZoom = currentZoom.clamp(3, 50);
       test.gameCamera.viewfinder.zoom = currentZoom;
     }
 

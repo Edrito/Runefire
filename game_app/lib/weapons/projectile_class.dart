@@ -25,7 +25,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   //Structure
   ProjectileFunctionality weaponAncestor;
-  double closeBodySensorRadius = 17.5;
+  double closeBodySensorRadius = 3;
   Vector2 originPosition;
   abstract double length;
   abstract double ttl;
@@ -33,7 +33,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   //Status
   Vector2 delta;
-  List<HealthFunctionality> closeHomingBodies = [];
+  List<HealthFunctionality> closeSensorBodies = [];
   TimerComponent? projectileDeathTimer;
   bool projectileHasExpired = false;
   bool homingComplete = false;
@@ -48,7 +48,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! HealthFunctionality || hitIds.contains(other.hashCode)) {
+    if (other is! HealthFunctionality || hitIds.contains(other.entityId)) {
       return;
     }
 
@@ -67,13 +67,13 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void sensorContact(HealthFunctionality other) {
-    closeHomingBodies.add(other);
+    closeSensorBodies.add(other);
     other.targetsHomingEntity++;
   }
 
   void bodyContact(HealthFunctionality other) {
     hitIds.add(other.entityId);
-    other.hit(projectileId, weaponAncestor.damage);
+    other.hitCheck(projectileId, weaponAncestor.damage);
   }
 
   @override
@@ -91,7 +91,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void sensorEndContact(HealthFunctionality other) {
-    closeHomingBodies.remove(other);
+    closeSensorBodies.remove(other);
     other.targetsHomingEntity--;
   }
 

@@ -104,7 +104,7 @@ extension ExperienceAmountExtension on ExperienceAmount {
   }
 }
 
-enum ProjectileType { bullet, arrow, laser }
+enum ProjectileType { bullet, arrow, laser, fireball }
 
 extension ProjectileTypeExtension on ProjectileType {
   BodyComponent generateProjectile(
@@ -125,8 +125,8 @@ extension ProjectileTypeExtension on ProjectileType {
             delta: delta,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
-      case ProjectileType.arrow:
-        return Bullet(
+      case ProjectileType.fireball:
+        return Fireball(
             weaponAncestor: ancestorVar,
             originPosition: originPositionVar,
             delta: delta,
@@ -264,7 +264,7 @@ class DamageInstance {
   }
 
   double damageBase;
-  int get damage => damageBase.ceil();
+  double get damage => damageBase;
 
   DamageType damageType;
   double duration;

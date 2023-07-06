@@ -18,6 +18,7 @@ mixin StandardProjectile on Projectile {
   void incrementHits() {
     enemiesHit++;
     projectileHasExpired = enemiesHit > weaponAncestor.pierce;
+
     if (projectileHasExpired) {
       killBullet();
     }
@@ -40,18 +41,18 @@ mixin StandardProjectile on Projectile {
     if (weaponAncestor.entityAncestor is Enemy) {
       bulletFilter
         ..maskBits = playerCategory
-        ..categoryBits = bulletCategory;
+        ..categoryBits = attackCategory;
     } else if (weaponAncestor.entityAncestor is Player) {
       bulletFilter
         ..maskBits = enemyCategory
-        ..categoryBits = bulletCategory;
+        ..categoryBits = attackCategory;
     }
 
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
-        density: 0.00001,
+        density: 0.0000001,
         isSensor: true,
         filter: bulletFilter);
 
@@ -61,10 +62,9 @@ mixin StandardProjectile on Projectile {
       type: BodyType.dynamic,
       linearDamping: (5 - (5 * power)).clamp(0, 5),
       bullet: true,
-      linearVelocity: delta * weaponAncestor.projectileVelocity,
+      linearVelocity: (delta * weaponAncestor.projectileVelocity),
       fixedRotation: !weaponAncestor.allowProjectileRotation,
     );
-
     var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
 
     if (weaponAncestor.isHoming || weaponAncestor.weaponCanChain) {
@@ -90,6 +90,7 @@ mixin StandardProjectile on Projectile {
   @override
   Future<void> onLoad() {
     createShapeComponent();
+
     return super.onLoad();
   }
 
@@ -99,9 +100,28 @@ mixin StandardProjectile on Projectile {
   //       Offset.zero, (body.linearVelocity.normalized() * -1).toOffset(), paint);
   // }
 
+  HealthFunctionality? target;
+
+  void setTarget(HealthFunctionality? target) {
+    this.target = target;
+    if (target != null) {
+      body.linearVelocity = Vector2.zero();
+    }
+  }
+
+  @override
+  void update(double dt) {
+    if (target != null) {
+      home(target!, dt);
+    }
+    super.update(dt);
+  }
+
   @override
   void bodyContact(HealthFunctionality other) {
     super.bodyContact(other);
+    setTarget(null);
+
     incrementHits();
     chain(other);
   }
@@ -110,13 +130,15 @@ mixin StandardProjectile on Projectile {
     if (weaponAncestor.weaponCanChain &&
         !projectileHasExpired &&
         chainedTargets < weaponAncestor.maxChainingTargets) {
-      int index = closeHomingBodies.indexWhere(
-          (element) => !hitIds.contains(projectileId) && !element.isDead);
-      if (index == -1) return;
-      // delta = (closeHomingBodies[index].center - center).normalized();
-      body.applyLinearImpulse(
-          (closeHomingBodies[index].center - center).normalized() *
-              weaponAncestor.projectileVelocity);
+      closeSensorBodies.sort((a, b) => rng.nextInt(2));
+      int index = closeSensorBodies.indexWhere(
+          (element) => !hitIds.contains(element.entityId) && !element.isDead);
+
+      if (index == -1) {
+        setTarget(null);
+        return;
+      }
+      setTarget(closeSensorBodies[index]);
       chainedTargets++;
       projectileDeathTimer?.timer.reset();
     }
@@ -124,18 +146,29 @@ mixin StandardProjectile on Projectile {
 
   @override
   void sensorContact(HealthFunctionality other) {
-    homingCalc(other);
+    homingCheck(other);
     super.sensorContact(other);
   }
 
-  void homingCalc(HealthFunctionality entity) {
+  void home(HealthFunctionality other, double dt) {
+    Vector2? closetPosition;
+
+    closetPosition = other.center;
+
+    final delta = (closetPosition - body.worldCenter).normalized();
+    final impulse = (delta * weaponAncestor.projectileVelocity) *
+        dt *
+        .000005 *
+        target!.center.distanceTo(center).clamp(.5, 3);
+    body.applyForce(impulse);
+
+    if (other.isDead) setTarget(null);
+  }
+
+  void homingCheck(HealthFunctionality other) {
     if (weaponAncestor.isHoming && !homingComplete) {
-      Vector2? closetPosition;
+      setTarget(other);
 
-      closetPosition = entity.center;
-
-      final test = (closetPosition - body.worldCenter).normalized();
-      body.applyLinearImpulse((test * weaponAncestor.projectileVelocity));
       homingComplete = true;
     }
   }
@@ -159,11 +192,11 @@ mixin LaserProjectile on Projectile {
     if (weaponAncestor.entityAncestor is Enemy) {
       bulletFilter
         ..maskBits = playerCategory
-        ..categoryBits = bulletCategory;
+        ..categoryBits = attackCategory;
     } else if (weaponAncestor.entityAncestor is Player) {
       bulletFilter
         ..maskBits = enemyCategory
-        ..categoryBits = bulletCategory;
+        ..categoryBits = attackCategory;
     }
     final fixtureDef = FixtureDef(laserShape,
         userData: {"type": FixtureType.body, "object": this},
@@ -248,7 +281,6 @@ mixin LaserProjectile on Projectile {
         chainedTargets++;
         homingComplete = true;
       } else {
-        print('here');
         newPointPosition = ((delta * pointStep) + previousDelta);
       }
 

@@ -1,12 +1,57 @@
+import 'package:flame/components.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/resources/powerups.dart';
 
 import '../pages/buttons.dart';
 import 'attributes_enum.dart';
 
+abstract class TemporaryAttribute extends Attribute {
+  TemporaryAttribute(
+      {required super.level, required super.entity, super.applyNow = false});
+
+  abstract double duration;
+  TimerComponent? currentTimer;
+  abstract int uniqueId;
+
+  @override
+  void remapAttribute() {
+    currentTimer?.timer.reset();
+    super.remapAttribute();
+  }
+
+  @override
+  void applyAttribute() {
+    if (currentTimer != null) {
+      currentTimer?.timer.reset();
+    } else {
+      currentTimer = TimerComponent(
+          period: duration,
+          onTick: () {
+            removeAttribute();
+            entity.removeAttribute(attributeEnum);
+          },
+          removeOnFinish: true)
+        ..addToParent(entity);
+    }
+    if (!isApplied) {
+      mapAttribute();
+      isApplied = true;
+    }
+  }
+
+  @override
+  void removeAttribute() {
+    if (isApplied) {
+      currentTimer?.removeFromParent();
+      currentTimer = null;
+      unmapAttribute();
+      isApplied = false;
+    }
+  }
+}
+
 abstract class Attribute {
   Attribute({required this.level, required this.entity, bool applyNow = true}) {
-    level = level.clamp(0, maxLevel);
+    level = level.clamp(1, maxLevel);
     if (applyNow) {
       applyAttribute();
     }
@@ -31,13 +76,20 @@ abstract class Attribute {
   ///then multiplying it again by the level of the attribute
   ///with an additional level for max level
   double increase(double base) =>
-      (factor ?? 0 * base) * (level + (level == maxLevel ? 1 : 0));
+      ((factor ?? 0) * base) * (level + (level == maxLevel ? 1 : 0));
 
   void applyAttribute() {
     if (!isApplied) {
       mapAttribute();
       isApplied = true;
     }
+  }
+
+  void remapAttribute() {
+    if (isApplied) {
+      unmapAttribute();
+    }
+    mapAttribute();
   }
 
   void removeAttribute() {
@@ -57,7 +109,7 @@ abstract class Attribute {
   void incrementLevel(int value) {
     removeAttribute();
     level += value;
-    level = level.clamp(0, maxLevel);
+    level = level.clamp(1, maxLevel);
     applyAttribute();
   }
 
@@ -74,9 +126,6 @@ abstract class Attribute {
 class TopSpeedAttribute extends Attribute {
   TopSpeedAttribute(
       {required super.level, required super.entity, super.applyNow});
-
-  @override
-  AttributeCategory attributeType = AttributeCategory.mobility;
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.topSpeed;

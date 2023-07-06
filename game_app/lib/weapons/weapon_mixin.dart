@@ -11,7 +11,6 @@ import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 
 import '../entities/entity.dart';
-import '../entities/entity_mixin.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
 
@@ -47,7 +46,7 @@ mixin ReloadFunctionality on Weapon {
   @override
   void attackAttempt() {
     //Do not attack if reloading
-    if (reloadTimer != null) {
+    if (isReloading) {
       return;
     }
 
@@ -90,11 +89,23 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void reloadCheck() {
-    if (remainingAttacks != 0 || reloadTimer != null || reloadTime == 0) return;
-    if (removeSpriteOnAttack) {
-      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
-      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
-    }
+    if (remainingAttacks != 0 || isReloading || reloadTime == 0) return;
+    reload();
+  }
+
+  @override
+  void endAttacking() {
+    // if (this is MeleeFunctionality) {
+    //   spentAttacks = 0;
+    // }
+    super.endAttacking();
+  }
+
+  void reload() {
+    // if (removeSpriteOnAttack) {
+    //   entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
+    //   entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
+    // }
     createReloadBar();
     reloadTimer = TimerComponent(
       period: reloadTime,
@@ -121,12 +132,19 @@ mixin MeleeFunctionality on Weapon {
   ///Must be the same length as [attacksLength] or 0
   List<SpriteAnimation> attackHitboxSpriteAnimations = [];
 
+  ///Must be the same length as [attacksLength] or 0
+  List<SpriteAnimation> attackWeaSpriteAnimations = [];
+
   ///Must be the same length as [attacksLength]
   List<Vector2> attackHitboxSizes = [];
 
   int get attacksLength => (attackHitboxPatterns.length / 2).ceil();
 
-  void melee([double chargeAmount = 1]) {
+  void melee([double chargeAmount = 1]) async {
+    attackOnAnimationFinish
+        ? await setWeaponStatus(WeaponStatus.attack)
+        : setWeaponStatus(WeaponStatus.attack);
+
     if (attacksCompletedIndex >= attacksLength) {
       resetToFirstSwings();
     }
@@ -224,13 +242,18 @@ mixin SecondaryFunctionality on Weapon {
 
 mixin ProjectileFunctionality on Weapon {
   abstract ProjectileType? projectileType;
-  abstract Sprite projectileSprite;
   abstract bool allowProjectileRotation;
   abstract int projectileCount;
   abstract double maxSpreadDegrees;
   abstract int pierce;
   abstract double projectileVelocity;
   abstract bool countIncreaseWithTime;
+
+  @override
+  FutureOr<void> onLoad() {
+    pierce = pierce.clamp(maxChainingTargets, double.infinity).toInt();
+    return super.onLoad();
+  }
 
   int? additionalCount;
 
@@ -256,21 +279,22 @@ mixin ProjectileFunctionality on Weapon {
   Vector2 get handPosition =>
       (parents[WeaponSpritePosition.hand]!.weaponTip!.absolutePosition +
               (entityAncestor?.body.position ?? Vector2.zero()))
-          .clone() +
-      ((entityAncestor is MovementFunctionality)
-          ? (entityAncestor as MovementFunctionality).moveDelta
-          : Vector2.zero());
+          .clone();
 
   Vector2 get handDelta =>
       (parents[WeaponSpritePosition.hand]!.weaponTipCenter!.absolutePosition -
               (entityAncestor?.handJoint.absolutePosition ?? Vector2.zero()))
           .normalized();
 
-  void shoot([double chargeAmount = 1]) {
+  void shoot([double chargeAmount = 1]) async {
+    attackOnAnimationFinish
+        ? await setWeaponStatus(WeaponStatus.attack)
+        : setWeaponStatus(WeaponStatus.attack);
+
     additionalCountCheck();
-    entityAncestor?.ancestor.physicsComponent
+    entityAncestor?.gameEnv.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
-    entityAncestor?.ancestor.physicsComponent.add(generateParticle());
+    // entityAncestor?.ancestor.physicsComponent.add(generateParticle());
     entityAncestor?.handJoint.add(MoveEffect.by(Vector2(0, -.05),
         EffectController(duration: .05, reverseDuration: .05)));
     entityAncestor?.handJoint.add(RotateEffect.by(
@@ -293,7 +317,7 @@ mixin ProjectileFunctionality on Weapon {
                 30 *
                 (.5 + rng.nextDouble()),
         child: CircleParticle(
-          radius: .2 * (.2 + rng.nextDouble()),
+          radius: .06 * (.06 + rng.nextDouble()),
           paint: Paint()..color = particleColor,
         ),
       ),
@@ -334,9 +358,11 @@ class ReloadAnimation extends PositionComponent {
   Entity entityAncestor;
   bool isSecondaryWeapon;
   @override
-  final height = .5;
+  final height = .2;
+  final lineHeight = .06;
+  final barWidth = .05;
 
-  final sidePadding = .5;
+  final sidePadding = .1;
 
   @override
   FutureOr<void> onLoad() {
@@ -357,13 +383,13 @@ class ReloadAnimation extends PositionComponent {
       },
     );
 
-    final movingBar = RectangleComponent(size: Vector2(.2, height));
+    final movingBar = RectangleComponent(size: Vector2(barWidth, height));
     movingBar.position = Vector2(sidePadding, height / -2);
     movingBar.add(MoveEffect.to(
         Vector2(size.x - sidePadding, movingBar.position.y),
         EffectController(duration: duration)));
 
-    final bar = RectangleComponent(size: Vector2(size.x, .15));
+    final bar = RectangleComponent(size: Vector2(size.x, lineHeight));
     bar.anchor = Anchor.centerLeft;
 
     if (isSecondaryWeapon) {

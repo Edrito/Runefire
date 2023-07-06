@@ -7,13 +7,16 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/entities/player_mixin.dart';
 import 'package:game_app/functions/functions.dart';
 import 'package:game_app/resources/overlays.dart';
 import 'package:game_app/resources/physics_filter.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../functions/vector_functions.dart';
 import '../main.dart';
 import '../pages/menu.dart';
+import '../resources/area_effects.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 
@@ -22,7 +25,6 @@ class Player extends Entity
         ContactCallbacks,
         StaminaFunctionality,
         HealthFunctionality,
-        AttributeFunctionality,
         AimFunctionality,
         AttackFunctionality,
         MovementFunctionality,
@@ -30,7 +32,7 @@ class Player extends Entity
         ExperienceFunctionality,
         DashFunctionality {
   Player(this.playerData,
-      {required super.ancestor, required super.initPosition});
+      {required super.gameEnv, required super.initPosition});
   final PlayerData playerData;
 
   Set<PhysicalKeyboardKey> physicalKeysPressed = {};
@@ -154,9 +156,32 @@ class Player extends Entity
       if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
         setEntityStatus(EntityStatus.dash);
       }
+      if (event.physicalKey == (PhysicalKeyboardKey.keyR)) {
+        if (currentWeapon is ReloadFunctionality) {
+          final currentWeaponReload = currentWeapon as ReloadFunctionality;
+          if (currentWeaponReload.isReloading ||
+              currentWeaponReload.spentAttacks == 0) return;
+
+          currentWeaponReload.reload();
+        }
+      }
 
       if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
-        ancestor.displayLevelUpScreen();
+        gameEnv.physicsComponent.add(AreaEffect(
+          sourceEntity: this,
+          position: (inputAimPositions[InputType.mouseMove] ?? Vector2.zero()) +
+              center,
+          radius: 5,
+          isInstant: false,
+          duration: 5,
+          onTick: (entity, areaId) {
+            if (entity is HealthFunctionality) {
+              entity.hitCheck(areaId, [
+                DamageInstance(damageBase: .1, damageType: DamageType.fire)
+              ]);
+            }
+          },
+        ));
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
@@ -216,23 +241,22 @@ class Player extends Entity
       case InputType.mouseMove:
         if (!isMounted) return;
         inputAimPositions[InputType.mouseMove] = vectorToGrid(
-                info.eventPosition.viewport,
-                ancestor.gameCamera.viewport.size) /
-            ancestor.gameCamera.viewfinder.zoom;
+                info.eventPosition.viewport, gameEnv.gameCamera.viewport.size) /
+            gameEnv.gameCamera.viewfinder.zoom;
         inputAimAngles[InputType.mouseMove] =
             inputAimPositions[InputType.mouseMove]!.normalized();
 
         break;
 
       case InputType.aimJoy:
-        final delta = ancestor.aimJoystick?.relativeDelta;
+        final delta = gameEnv.aimJoystick?.relativeDelta;
         if (delta == null || delta.isZero()) return;
         inputAimAngles[InputType.aimJoy] = delta.normalized();
 
         break;
 
       case InputType.moveJoy:
-        final delta = ancestor.moveJoystick?.relativeDelta;
+        final delta = gameEnv.moveJoystick?.relativeDelta;
         moveVelocities[InputType.moveJoy] =
             (delta ?? Vector2.zero()) * getMaxSpeed;
         break;
@@ -246,9 +270,8 @@ class Player extends Entity
 
       case InputType.mouseDrag:
         inputAimPositions[InputType.mouseMove] = vectorToGrid(
-                info.eventPosition.viewport,
-                ancestor.gameCamera.viewport.size) /
-            ancestor.gameCamera.viewfinder.zoom;
+                info.eventPosition.viewport, gameEnv.gameCamera.viewport.size) /
+            gameEnv.gameCamera.viewfinder.zoom;
         inputAimPositions[InputType.mouseDrag] =
             inputAimPositions[InputType.mouseMove]!;
         inputAimAngles[InputType.mouseDrag] =
@@ -288,13 +311,13 @@ class Player extends Entity
     ..categoryBits = playerCategory;
 
   @override
-  double height = 5;
+  double height = 1;
 
   @override
   double baseHealth = 50;
 
   @override
-  double baseSpeed = 10;
+  double baseSpeed = .1;
 
   @override
   EntityType entityType = EntityType.player;
@@ -335,7 +358,7 @@ class Player extends Entity
   double baseStamina = 100;
 
   @override
-  double baseDashDistance = 20;
+  double baseDashDistance = 5;
 
   @override
   double baseDashCooldown = 2;

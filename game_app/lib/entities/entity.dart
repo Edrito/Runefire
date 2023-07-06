@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flame/components.dart';
 import 'package:flame/rendering.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -14,16 +12,16 @@ import '../resources/enums.dart';
 import '../resources/priorities.dart';
 import 'entity_mixin.dart';
 
-abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
-  Entity({required this.initPosition, required this.ancestor}) {
+abstract class Entity extends BodyComponent<GameRouter>
+    with BaseAttributes, AttributeFunctionality {
+  Entity({required this.initPosition, required this.gameEnv}) {
     entityId = const Uuid().v4();
   }
 
   late String entityId;
-  Random rng = Random();
 
   abstract EntityType entityType;
-  GameEnviroment ancestor;
+  GameEnviroment gameEnv;
 
   bool get isPlayer => this is Player;
 
@@ -95,8 +93,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   void damageStatus() {}
   void dodgeStatus() {}
 
-  void setEntityStatus(EntityStatus newEntityStatus,
-      [SpriteAnimation? attackAnimation]) {
+  Future<void> setEntityStatus(EntityStatus newEntityStatus,
+      [SpriteAnimation? attackAnimation]) async {
     if (entityStatus == EntityStatus.dead) return;
 
     SpriteAnimation? animation;
@@ -165,6 +163,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
       entityStatus = newEntityStatus;
       spriteAnimationComponent.animation = animation;
     }
+
+    await spriteAnimationComponent.animationTicker?.completed;
   }
 
   @override

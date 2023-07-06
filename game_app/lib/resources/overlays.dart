@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/pages/buttons.dart';
 import 'package:game_app/pages/menu.dart';
+import 'package:game_app/resources/attributes.dart';
 import 'package:game_app/resources/visuals.dart';
 import '/resources/routes.dart' as routes;
 
@@ -160,9 +161,11 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> mainMenu =
   );
 });
 
+List<Attribute>? currentSelection;
+AnimationController? widgetController;
+
 MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
     MapEntry('AttributeSelection', (context, gameRouter) {
-  late AnimationController widgetController;
   FocusNode node = FocusNode();
   bool ignoring = false;
   node.requestFocus();
@@ -172,11 +175,12 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
       (gameRouter.router.currentRoute.children.whereType<GameEnviroment>())
           .first
           .player;
-  var list = player.buildAttributeSelection();
+
+  currentSelection ??= player.buildAttributeSelection();
 
   List<CustomCard> selection = [];
 
-  for (var element in list) {
+  for (var element in currentSelection ?? List<Attribute>.from([])) {
     CustomCard card = element.buildWidget(onTap: () {
       setState(() {
         ignoring = true;
@@ -184,7 +188,9 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
     }, onTapComplete: () {
       gameRouter.resumeEngine();
       player.addAttribute(element);
-      widgetController.forward(from: 0).then((value) => resumeGame());
+      widgetController
+          ?.forward(from: 0)
+          .then((value) => {resumeGame(), currentSelection = null});
     });
     selection.add(card);
   }

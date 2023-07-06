@@ -226,209 +226,200 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
     final size = MediaQuery.of(context).size;
     final playerData = playerDataComponent.dataObject;
 
-    Widget listView;
+    List<Widget> entries = [];
 
     if (!widget.isSecondaryAbility) {
       Iterable<WeaponType> shownWeapons =
           WeaponType.values.where((element) => element.attackType == weaponTab);
 
-      listView = ListView.builder(
-        shrinkWrap: true,
-        itemCount: shownWeapons.length,
-        itemBuilder: (context, index) {
-          WeaponType weaponType = shownWeapons.elementAt(index);
-          bool isEquiped =
-              playerData.selectedWeapons.values.contains(weaponType);
-          bool isUnlocked =
-              playerData.unlockedWeapons.keys.contains(weaponType);
-          int unlockedLevel = playerData.unlockedWeapons[weaponType] ?? 0;
+      for (var weaponType in shownWeapons) {
+        bool isEquiped = playerData.selectedWeapons.values.contains(weaponType);
+        bool isUnlocked = playerData.unlockedWeapons.keys.contains(weaponType);
+        int unlockedLevel = playerData.unlockedWeapons[weaponType] ?? 0;
 
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 100,
-              decoration: BoxDecoration(
-                  color: isEquiped
-                      ? equippedColor
-                      : isUnlocked
-                          ? unlockedColor
-                          : lockedColor,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: const [BoxShadow()]),
-              child: InkWell(
-                onTap: isUnlocked ? () => widget.onSelect(weaponType) : null,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
+        entries.add(Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            height: 100,
+            decoration: BoxDecoration(
+                color: isEquiped
+                    ? equippedColor
+                    : isUnlocked
+                        ? unlockedColor
+                        : lockedColor,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [BoxShadow()]),
+            child: InkWell(
+              onTap: isUnlocked ? () => widget.onSelect(weaponType) : null,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: RotatedBox(
+                                quarterTurns: 1,
+                                child: Image.asset(
+                                  weaponType.icon,
+                                  fit: BoxFit.fitWidth,
+                                  filterQuality: FilterQuality.low,
+                                  isAntiAlias: true,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                weaponType.name.titleCase,
+                                style: defaultStyle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                        flex: 3,
                         child: Row(
                           children: [
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: RotatedBox(
-                                  quarterTurns: 1,
-                                  child: Image.asset(
-                                    weaponType.icon,
-                                    fit: BoxFit.fitWidth,
-                                    filterQuality: FilterQuality.low,
-                                    isAntiAlias: true,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  weaponType.name.titleCase,
-                                  style: defaultStyle,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                          flex: 3,
-                          child: Row(
-                            children: [
-                              ...[
-                                for (var i = 0; i < unlockedLevel; i++)
-                                  buildUnlockIndicator(true)
-                              ],
-                              ...[
-                                for (var i = 0;
-                                    i < (weaponType.maxLevel - unlockedLevel);
-                                    i++)
-                                  buildUnlockIndicator(false)
-                              ]
+                            ...[
+                              for (var i = 0; i < unlockedLevel; i++)
+                                buildUnlockIndicator(true)
                             ],
-                          )),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      InkWell(
-                          onTap: () {
-                            playerData.unlockedWeapons[weaponType] ??= 0;
-                            playerData.unlockedWeapons[weaponType] =
-                                playerData.unlockedWeapons[weaponType]! + 1;
-                            playerDataComponent.notifyListeners();
-                          },
-                          child: SizedBox.square(
-                            dimension: 50,
-                            child: Container(
-                                decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: backgroundColor),
-                                child: Icon(
-                                  isUnlocked ? Icons.add : Icons.lock_open,
-                                  color: Colors.white,
-                                )),
-                          )),
-                    ],
-                  ),
+                            ...[
+                              for (var i = 0;
+                                  i < (weaponType.maxLevel - unlockedLevel);
+                                  i++)
+                                buildUnlockIndicator(false)
+                            ]
+                          ],
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    InkWell(
+                        onTap: () {
+                          playerData.unlockedWeapons[weaponType] ??= 0;
+                          playerData.unlockedWeapons[weaponType] =
+                              playerData.unlockedWeapons[weaponType]! + 1;
+                          playerDataComponent.notifyListeners();
+                        },
+                        child: SizedBox.square(
+                          dimension: 50,
+                          child: Container(
+                              decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: backgroundColor),
+                              child: Icon(
+                                isUnlocked ? Icons.add : Icons.lock_open,
+                                color: Colors.white,
+                              )),
+                        )),
+                  ],
                 ),
               ),
             ),
-          );
-        },
-      );
+          ),
+        ));
+      }
     } else {
       Iterable<SecondaryType> shownSecondaries = SecondaryType.values.where(
           (element) => element.compatibilityCheck(playerData
               .selectedWeapons[widget.isPrimary ? 0 : 1]!
               .createFunction(null, null)));
 
-      listView = ListView.builder(
-        shrinkWrap: true,
-        itemCount: shownSecondaries.length,
-        itemBuilder: (context, index) {
-          SecondaryType secondaryType = shownSecondaries.elementAt(index);
-          bool isEquiped =
-              playerData.selectedSecondaries[widget.isPrimary ? 0 : 1] ==
-                  (secondaryType);
-          bool isUnlocked =
-              playerData.unlockedSecondarys.keys.contains(secondaryType);
-          int unlockedLevel =
-              (playerData.unlockedSecondarys[secondaryType] ?? 0)
-                  .clamp(0, secondaryType.maxLevel);
+      for (var secondaryType in shownSecondaries) {
+        bool isEquiped =
+            playerData.selectedSecondaries[widget.isPrimary ? 0 : 1] ==
+                (secondaryType);
+        bool isUnlocked =
+            playerData.unlockedSecondarys.keys.contains(secondaryType);
+        int unlockedLevel = (playerData.unlockedSecondarys[secondaryType] ?? 0)
+            .clamp(1, secondaryType.maxLevel);
 
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                  color: isEquiped
-                      ? equippedColor
-                      : isUnlocked
-                          ? unlockedColor
-                          : lockedColor,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: const [BoxShadow()]),
-              width: 10,
-              child: InkWell(
-                onTap: isUnlocked ? () => widget.onSelect(secondaryType) : null,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
+        entries.add(Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+                color: isEquiped
+                    ? equippedColor
+                    : isUnlocked
+                        ? unlockedColor
+                        : lockedColor,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [BoxShadow()]),
+            width: 10,
+            child: InkWell(
+              onTap: isUnlocked ? () => widget.onSelect(secondaryType) : null,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              secondaryType.name.titleCase,
+                              style: defaultStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                        flex: 3,
                         child: Row(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                secondaryType.name.titleCase,
-                                style: defaultStyle,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                          flex: 3,
-                          child: Row(
-                            children: [
-                              ...[
-                                for (var i = 0; i < unlockedLevel; i++)
-                                  buildUnlockIndicator(true)
-                              ],
-                              ...[
-                                for (var i = 0;
-                                    i <
-                                        (secondaryType.maxLevel -
-                                            unlockedLevel);
-                                    i++)
-                                  buildUnlockIndicator(false)
-                              ]
+                            ...[
+                              for (var i = 0; i < unlockedLevel; i++)
+                                buildUnlockIndicator(true)
                             ],
-                          )),
-                      GestureDetector(
-                          onTap: () {
-                            playerData.unlockedSecondarys[secondaryType] ??= 0;
-                            playerData.unlockedSecondarys[secondaryType] =
-                                playerData.unlockedSecondarys[secondaryType]! +
-                                    1;
-                            playerDataComponent.notifyListeners();
-                          },
+                            ...[
+                              for (var i = 0;
+                                  i < (secondaryType.maxLevel - unlockedLevel);
+                                  i++)
+                                buildUnlockIndicator(false)
+                            ]
+                          ],
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    InkWell(
+                        onTap: () {
+                          playerData.unlockedSecondarys[secondaryType] ??= 0;
+                          playerData.unlockedSecondarys[secondaryType] =
+                              playerData.unlockedSecondarys[secondaryType]! + 1;
+                          playerDataComponent.notifyListeners();
+                        },
+                        child: SizedBox.square(
+                          dimension: 50,
                           child: Container(
                               decoration: const BoxDecoration(
-                                  shape: BoxShape.circle, color: unlockedColor),
+                                  shape: BoxShape.circle,
+                                  color: backgroundColor),
                               child: Icon(
                                 isUnlocked ? Icons.add : Icons.lock_open,
                                 color: Colors.white,
-                              ))),
-                    ],
-                  ),
+                              )),
+                        )),
+                  ],
                 ),
               ),
             ),
-          );
-        },
-      );
+          ),
+        ));
+      }
     }
 
     return Center(
@@ -474,7 +465,13 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                       )
                     ],
                   ),
-                Expanded(child: listView),
+                Expanded(
+                    child: ListView(
+                  children: entries
+                      .animate(interval: .1.seconds)
+                      .moveX(begin: -50, end: 0, curve: Curves.easeIn)
+                      .fadeIn(curve: Curves.easeIn),
+                )),
                 CustomButton(
                   "Back",
                   gameRef: widget.gameRef,
@@ -599,8 +596,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
           weaponSelector = WeaponSecondarySelector(
             isSecondaryAbility: true,
             onSelect: (secondaryType) {
-              if (playerDataComponent.dataObject.selectedSecondaries.values
-                  .contains(secondaryType)) return;
               setState(() {
                 playerDataComponent.dataObject.selectedSecondaries[0] =
                     secondaryType;
@@ -657,8 +652,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
           weaponSelector = WeaponSecondarySelector(
             isSecondaryAbility: true,
             onSelect: (secondaryType) {
-              if (playerDataComponent.dataObject.selectedSecondaries.values
-                  .contains(secondaryType)) return;
               setState(() {
                 playerDataComponent.dataObject.selectedSecondaries[1] =
                     secondaryType;
@@ -681,6 +674,13 @@ class _WeaponMenuState extends State<WeaponMenu> {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Select your weapons",
+                style: defaultStyle,
+              ),
+            ),
             const Spacer(),
             Row(
               mainAxisSize: MainAxisSize.min,

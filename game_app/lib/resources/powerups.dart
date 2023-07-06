@@ -152,50 +152,12 @@ class PowerAttribute extends TemporaryAttribute {
   String icon = "powerups/power.png";
 }
 
-abstract class TemporaryAttribute extends Attribute {
-  TemporaryAttribute(
-      {required super.level, required super.entity, super.applyNow = false});
-
-  abstract double duration;
-  TimerComponent? currentTimer;
-  abstract int uniqueId;
-
-  @override
-  void applyAttribute() {
-    if (currentTimer != null) {
-      currentTimer?.timer.reset();
-    } else {
-      currentTimer = TimerComponent(
-          period: duration,
-          onTick: () {
-            removeAttribute();
-            entity.removeAttribute(attributeEnum);
-          },
-          removeOnFinish: true)
-        ..addToParent(entity);
-    }
-    if (!isApplied) {
-      mapAttribute();
-      isApplied = true;
-    }
-  }
-
-  @override
-  void removeAttribute() {
-    if (isApplied) {
-      currentTimer?.removeFromParent();
-      unmapAttribute();
-      isApplied = false;
-    }
-  }
-}
-
 class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   PowerupItem(this.powerup, this.originPosition);
 
   TemporaryAttribute powerup;
   late SpriteComponent spriteComponent;
-  double size = 8;
+  double size = 1;
   Vector2 originPosition;
 
   @override

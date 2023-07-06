@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
-import 'package:flutter/material.dart';
 import 'package:game_app/functions/vector_functions.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -85,7 +84,7 @@ class Portal extends Weapon
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.fire: (500, 1000.0)
+    DamageType.fire: (100, 125.0)
   };
 
   @override
@@ -95,22 +94,22 @@ class Portal extends Weapon
   double length = 2;
 
   @override
-  int? maxAmmo = 5;
+  int? maxAmmo = 1;
 
   @override
   double maxSpreadDegrees = 270;
 
   @override
-  int pierce = 5;
+  int pierce = 0;
 
   @override
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 60;
+  double projectileVelocity = 10;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.fireball;
 
   @override
   double tipPositionPercent = -0;
@@ -123,17 +122,17 @@ class Portal extends Weapon
 
   @override
   FutureOr<void> onLoad() async {
-    circle = CircleComponent(
-        radius: .2, paint: Paint()..color = Colors.blue, anchor: Anchor.center);
-    add(circle);
+    // circle = CircleComponent(
+    //     radius: .2, paint: Paint()..color = Colors.blue, anchor: Anchor.center);
+    // add(circle);
     return super.onLoad();
   }
 
   @override
-  SemiAutoType semiAutoType = SemiAutoType.regular;
+  SemiAutoType semiAutoType = SemiAutoType.charge;
 
   @override
-  double baseReloadTime = 1;
+  double baseReloadTime = 3;
 }
 
 class Pistol extends Weapon
@@ -195,8 +194,9 @@ class Pistol extends Weapon
 
   @override
   int get maxChainingTargets => 5;
+
   @override
-  double length = 3;
+  double length = .5;
 
   @override
   double maxSpreadDegrees = 40;
@@ -208,7 +208,7 @@ class Pistol extends Weapon
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 100;
+  double projectileVelocity = 25;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -220,13 +220,13 @@ class Pistol extends Weapon
   double weaponRandomnessPercent = .05;
 
   @override
-  double distanceFromPlayer = .6;
+  double distanceFromPlayer = 0;
 
   @override
   FutureOr<void> onLoad() async {
-    circle = CircleComponent(
-        radius: .2, paint: Paint()..color = Colors.blue, anchor: Anchor.center);
-    add(circle);
+    // circle = CircleComponent(
+    //     radius: .2, paint: Paint()..color = Colors.blue, anchor: Anchor.center);
+    // add(circle);
     return super.onLoad();
   }
 
@@ -309,7 +309,7 @@ class Shotgun extends Weapon
   bool allowProjectileRotation = false;
 
   @override
-  int projectileCount = 1;
+  int projectileCount = 4;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -327,22 +327,22 @@ class Shotgun extends Weapon
   double length = 5;
 
   @override
-  int? maxAmmo = 5;
+  int? maxAmmo = 4;
 
   @override
   double maxSpreadDegrees = 50;
 
   @override
-  int pierce = 3;
+  int pierce = 4;
 
   @override
   late Sprite projectileSprite;
 
   @override
-  double projectileVelocity = 80;
+  double projectileVelocity = 200;
 
   @override
-  double baseReloadTime = .5;
+  double baseReloadTime = 1.5;
 
   @override
   double tipPositionPercent = -.02;
@@ -453,24 +453,29 @@ class Bow extends Weapon
 }
 
 class Sword extends Weapon
-    with MeleeFunctionality, SecondaryFunctionality, FullAutomatic
-// ,        ReloadFunctionality
-{
+    with
+        MeleeFunctionality,
+        // ProjectileFunctionality,
+        SecondaryFunctionality,
+        FullAutomatic,
+        ReloadFunctionality {
   Sword.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     attackHitboxPatterns = [
-      // (Vector2(6, -4), 0),
-      // (Vector2(0, 8), 45),
-      (Vector2(0, -4), 0),
-      (Vector2(0, 6), 0),
-      // (Vector2(-6, -4), 0),
-      // (Vector2(0, 8), -45),
+      (Vector2(.5, 0), -45),
+      (Vector2(-1, 1), 45),
+      // (Vector2(0, 0), 0),
+      // (Vector2(0, 3), 0),
+      (Vector2(-.5, 1), 45),
+      (Vector2(1, 0), -45),
+      (Vector2(.5, 1), -45),
+      (Vector2(-.5, -1), 45),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
 
-    // maxAmmo = (attackHitboxPatterns.length / 2).round();
+    maxAmmo = (attackHitboxPatterns.length / 2).round();
 
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");
@@ -489,8 +494,8 @@ class Sword extends Weapon
   FutureOr<void> onLoad() async {
     attackHitboxSpriteAnimations = [
       await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
-      // await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
-      // await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
     ];
 
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
@@ -565,10 +570,10 @@ class Sword extends Weapon
     DamageType.regular: (5, 10.0)
   };
   @override
-  double baseAttackRate = .2;
+  double baseAttackRate = .3;
 
   @override
-  double length = 5;
+  double length = 2;
 
   @override
   double tipPositionPercent = -.02;
@@ -581,4 +586,32 @@ class Sword extends Weapon
 
   @override
   WeaponType weaponType = WeaponType.shiv;
+
+  @override
+  bool allowProjectileRotation = false;
+
+  @override
+  bool countIncreaseWithTime = false;
+
+  @override
+  double maxSpreadDegrees = 50;
+
+  @override
+  int pierce = 1;
+
+  @override
+  int projectileCount = 3;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.fireball;
+
+  @override
+  double projectileVelocity = 20;
+
+  @override
+  int? maxAmmo;
+
+  @override
+  // TODO: implement baseReloadTime
+  double get baseReloadTime => 1;
 }

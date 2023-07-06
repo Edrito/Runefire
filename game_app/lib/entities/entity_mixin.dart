@@ -12,34 +12,50 @@ import 'package:game_app/resources/visuals.dart';
 
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
-import '../resources/powerups.dart';
+import '../main.dart';
 import '../resources/attributes.dart';
 import '../resources/attributes_enum.dart';
 import '../resources/enums.dart';
+import '../resources/priorities.dart';
 import '../weapons/weapon_class.dart';
 
-mixin BaseAttributes {
+//when back from shower
+//rework everything to the new bool system
+//rework everything to the base/increase system
+//rework everything to the new priority system
+//break functions up as much as possible to allow for easy overriding
+
+// final bool baseCollisionWhileDashing = false;
+// List<bool> collisionWhileDashingIncrease = [];
+// bool get collisionWhileDashing => boolAbilityDecipher(
+//     baseCollisionWhileDashing, collisionWhileDashingIncrease);
+
+mixin BaseAttributes on BodyComponent<GameRouter> {
   bool get isJumping => false;
   bool get isDashing => false;
   bool isDead = false;
-  bool get isInvincible => isDead;
 
-  //Temporary effects
-  Map<int, TemporaryAttribute> currentPowerups = {};
-  Map<int, TemporaryAttribute> currentPowerdowns = {};
+  final bool baseIsInvincible = false;
+  List<bool> isInvincibleIncrease = [];
+  bool get isInvincible =>
+      boolAbilityDecipher(baseIsInvincible, isInvincibleIncrease) || isDead;
 
   double get damageDuration => baseDamageDuration + damageDurationIncrease;
   final double baseDamageDuration = 2;
   double damageDurationIncrease = 0;
 
-  bool disableMovement = false;
+  final bool baseEnableMovement = true;
+  List<bool> enableMovementIncrease = [];
+  bool get enableMovement =>
+      boolAbilityDecipher(baseEnableMovement, enableMovementIncrease);
 }
 
 mixin MovementFunctionality on Entity {
   //MOVEMENT
   abstract final double baseSpeed;
-  double speedIncrease = 1;
-  double get getMaxSpeed => baseSpeed * speedIncrease;
+  double speedIncrease = 0;
+  double get getMaxSpeed => baseSpeed + speedIncrease;
+
   Map<InputType, Vector2?> moveVelocities = {};
 
   Vector2 get moveDelta => (moveVelocities[InputType.moveJoy] ??
@@ -49,13 +65,13 @@ mixin MovementFunctionality on Entity {
       .normalized();
 
   void moveCharacter() {
-    if (isDead) {
+    if (isDead || !enableMovement) {
       return;
     }
 
     final previousPulse = moveDelta;
 
-    if (disableMovement || previousPulse.isZero()) {
+    if (!enableMovement || previousPulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
       return;
     }
@@ -68,6 +84,7 @@ mixin MovementFunctionality on Entity {
 
 mixin AimFunctionality on Entity {
   Vector2 lastAimingPosition = Vector2.zero();
+  double handPositionFromBody = .1;
 
   Vector2 get aimDelta {
     if (isDead) {
@@ -136,17 +153,17 @@ mixin AimFunctionality on Entity {
   }
 
   void aimCharacter() {
-    if (disableMovement) return;
+    if (!enableMovement) return;
 
     final delta = aimDelta;
 
     handJoint.angle = -radiansBetweenPoints(
-      Vector2(0, 0.000001),
+      Vector2(0, 1),
       delta,
     );
     handJointBehindBodyCheck();
 
-    handJoint.position = delta.clone();
+    handJoint.position = delta.clone() * handPositionFromBody;
     lastAimingPosition = delta.clone();
 
     if (inputAimPositions.containsKey(InputType.mouseMove)) {
@@ -160,6 +177,7 @@ mixin AttackFunctionality on AimFunctionality {
 
   Map<int, Weapon> carriedWeapons = {};
   List<WeaponType> initialWeapons = [];
+
   bool isAttacking = false;
   bool isAltAttacking = false;
 
@@ -309,15 +327,16 @@ mixin HealthFunctionality on Entity {
   double invincibilityDurationIncrease = 0;
   double get invincibilityDuration =>
       baseInvincibilityDuration + invincibilityDurationIncrease;
-  TimerComponent? invincibleTimer;
-  abstract final double baseHealth;
 
+  TimerComponent? invincibleTimer;
+
+  double sameDamageSourceDuration = .5;
+
+  abstract final double baseHealth;
   double healthIncrease = 0;
   double get maxHealth => baseHealth + healthIncrease;
-
-  double sameDamageSourceDuration = 1;
-
   double get remainingHealth => maxHealth - damageTaken;
+  double get healthPercentage => remainingHealth / maxHealth;
 
   @override
   bool get isInvincible => super.isInvincible || invincibleTimer != null;
@@ -330,6 +349,7 @@ mixin HealthFunctionality on Entity {
   Map<String, TimerComponent> hitSourceInvincibility = {};
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
+
   abstract SpriteAnimation? deathAnimation;
   abstract SpriteAnimation? damageAnimation;
 
@@ -353,6 +373,65 @@ mixin HealthFunctionality on Entity {
     super.deadStatus();
   }
 
+  void buildDamageText(DamageInstance instance) {
+    final color = instance.getColor();
+
+    final test = TextPaint(
+        style: defaultStyle.copyWith(
+      fontSize: .65,
+      shadows: const [
+        BoxShadow(
+            color: Colors.black,
+            offset: Offset(.07, .07),
+            spreadRadius: .5,
+            blurRadius: .5)
+      ],
+      color: color,
+    ));
+    String damageString = "";
+    if (recentDamage < 1) {
+      damageString = recentDamage.toStringAsPrecision(1);
+    } else {
+      damageString = recentDamage.toStringAsFixed(0);
+    }
+    if (damageText == null) {
+      damageText = TextComponent(
+        text: damageString,
+        anchor: Anchor.bottomLeft,
+        textRenderer: test,
+        priority: playerOverlayPriority,
+        position: (Vector2.random() * .25) + Vector2(.25, -.5),
+      )
+        ..add(TimerComponent(
+          period: 1,
+          onTick: () {
+            damageText?.removeFromParent();
+            damageText = null;
+            recentDamage = 0;
+          },
+        ))
+        ..addToParent(this);
+    } else {
+      damageText!.text = damageString;
+      damageText!.children.whereType<TimerComponent>().first.timer.reset();
+
+      damageText!.textRenderer =
+          (damageText!.textRenderer as TextPaint).copyWith((p0) => p0.copyWith(
+                color: color.darken(.05),
+              ));
+
+      damageText!.add(
+        ScaleEffect.by(
+          Vector2.all(1.15),
+          EffectController(
+            duration: .05,
+            reverseDuration: .05,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   void damageStatus() {
     applyTempAnimation(damageAnimation);
@@ -360,20 +439,24 @@ mixin HealthFunctionality on Entity {
     super.damageStatus();
   }
 
-  bool takeDamage(String id, List<DamageInstance> damage) {
-    setEntityStatus(EntityStatus.damage);
-
+  void addDamageEffects() {
     final reversedController = EffectController(
       duration: .1,
       reverseDuration: .1,
     );
-    spriteAnimationComponent
-        .add(SizeEffect.by(Vector2.all(.5), reversedController));
-    spriteAnimationComponent.add(ColorEffect(
+
+    (SizeEffect.by(Vector2.all(.25), reversedController))
+        .addToParent(spriteAnimationComponent);
+
+    (ColorEffect(
       Colors.red,
       const Offset(0.0, 1),
       reversedController,
-    ));
+    )).addToParent(spriteAnimationComponent);
+  }
+
+  bool takeDamage(String id, List<DamageInstance> damage) {
+    setEntityStatus(EntityStatus.damage);
 
     if (invincibilityDuration > 0) {
       invincibleTimer = TimerComponent(
@@ -385,12 +468,13 @@ mixin HealthFunctionality on Entity {
     }
 
     DamageInstance largestEntry = damage.first;
+
     for (var element in damage) {
       damageTaken += element.damage;
       recentDamage += element.damage;
       if (element.damage > largestEntry.damage) largestEntry = element;
     }
-    final color = largestEntry.getColor();
+    damageTaken.clamp(0, maxHealth);
 
     if (remainingHealth <= 0) {
       if (this is Player) {
@@ -399,63 +483,15 @@ mixin HealthFunctionality on Entity {
         setEntityStatus(EntityStatus.dead);
       }
     }
-    final test = TextPaint(
-        style: defaultStyle.copyWith(
-      fontSize: 3,
-      shadows: const [
-        BoxShadow(
-            color: Colors.black,
-            offset: Offset(.3, .3),
-            spreadRadius: 3,
-            blurRadius: 3)
-      ],
-      color: color,
-    ));
-    if (damageText == null) {
-      damageText = TextComponent(
-        text: recentDamage.round().toString(),
-        anchor: Anchor.bottomLeft,
-        textRenderer: test,
-        position: Vector2.random() + Vector2(1, -1),
-      );
-      damageText?.addAll([
-        TimerComponent(
-          period: 1,
-          onTick: () {
-            damageText?.removeFromParent();
-            damageText = null;
-            recentDamage = 0;
-          },
-        )
-      ]);
-      add(damageText!);
-    } else {
-      damageText!.text = recentDamage.round().toString();
-      damageText!.children.whereType<TimerComponent>().first.timer.reset();
 
-      damageText!.textRenderer =
-          (damageText!.textRenderer as TextPaint).copyWith((p0) => p0.copyWith(
-                color: color.darken(.05),
-              ));
-
-      damageText!.addAll([
-        ScaleEffect.by(
-          Vector2.all(1.15),
-          EffectController(
-            duration: .05,
-            reverseDuration: .05,
-          ),
-        ),
-      ]);
-    }
-
+    buildDamageText(largestEntry);
+    addDamageEffects();
     return true;
   }
 
-  bool hit(String id, List<DamageInstance> damage) {
+  bool hitCheck(String id, List<DamageInstance> damage) {
     if (hitSourceInvincibility.containsKey(id) ||
         isInvincible ||
-        isDead ||
         (damage.fold<double>(0,
                 (previousValue, element) => previousValue += element.damage)) ==
             0 ||
@@ -479,14 +515,12 @@ mixin DodgeFunctionality on HealthFunctionality {
   //health
   double totalDamageDodged = 0;
   int dodges = 0;
+
   abstract final double baseDodgeChance;
   double dodgeChanceIncrease = 0;
-
   double get dodgeChance => (baseDodgeChance + dodgeChanceIncrease).clamp(0, 1);
-  @override
-  Random rng = Random();
-  //HEALTH
 
+  //HEALTH
   abstract SpriteAnimation? dodgeAnimation;
 
   @override
@@ -496,49 +530,57 @@ mixin DodgeFunctionality on HealthFunctionality {
     super.dodgeStatus();
   }
 
-  bool processDodge(List<DamageInstance> damage) {
+  void addDodgeText() {
+    final test = TextPaint(
+        style: TextStyle(
+      fontSize: 3,
+      fontFamily: "HeroSpeak",
+      fontWeight: FontWeight.bold,
+      fontStyle: FontStyle.italic,
+      shadows: const [
+        BoxShadow(
+            color: Colors.black26,
+            offset: Offset(.3, .3),
+            spreadRadius: 3,
+            blurRadius: 3)
+      ],
+      color: Colors.grey.shade100,
+    ));
+    final dodgeText = TextComponent(
+      text: "~",
+      anchor: Anchor.bottomLeft,
+      textRenderer: test,
+      position: Vector2.random() + Vector2(1, -1),
+    );
+    dodgeText.addAll([
+      MoveEffect.by(body.linearVelocity.normalized() * -3,
+          EffectController(duration: 1, curve: Curves.easeIn)),
+      TimerComponent(
+        period: 1,
+        removeOnFinish: true,
+        onTick: () {
+          dodgeText.removeFromParent();
+        },
+      )
+    ]);
+    add(dodgeText);
+  }
+
+  void dodge(List<DamageInstance> damage) {
+    totalDamageDodged += damage
+        .firstWhere((element) => element.damageType == DamageType.regular)
+        .damage;
+
+    dodges++;
+
+    addDodgeText();
+  }
+
+  bool dodgeCheck(List<DamageInstance> damage) {
     final random = rng.nextDouble();
     if (damage.any((element) => element.damageType == DamageType.regular) &&
         random < dodgeChance) {
-      totalDamageDodged += damage
-          .firstWhere((element) => element.damageType == DamageType.regular)
-          .damage;
-
-      dodges++;
-
-      final test = TextPaint(
-          style: TextStyle(
-        fontSize: 3,
-        fontFamily: "HeroSpeak",
-        fontWeight: FontWeight.bold,
-        fontStyle: FontStyle.italic,
-        shadows: const [
-          BoxShadow(
-              color: Colors.black26,
-              offset: Offset(.3, .3),
-              spreadRadius: 3,
-              blurRadius: 3)
-        ],
-        color: Colors.grey.shade100,
-      ));
-      final dodgeText = TextComponent(
-        text: "~",
-        anchor: Anchor.bottomLeft,
-        textRenderer: test,
-        position: Vector2.random() + Vector2(1, -1),
-      );
-      dodgeText.addAll([
-        MoveEffect.by(body.linearVelocity.normalized() * -3,
-            EffectController(duration: 1, curve: Curves.easeIn)),
-        TimerComponent(
-          period: 1,
-          removeOnFinish: true,
-          onTick: () {
-            dodgeText.removeFromParent();
-          },
-        )
-      ]);
-      add(dodgeText);
+      dodge(damage);
       return true;
     } else {
       return false;
@@ -547,54 +589,41 @@ mixin DodgeFunctionality on HealthFunctionality {
 
   @override
   bool takeDamage(String id, List<DamageInstance> damage) {
-    if (processDodge(damage)) {
-      return false;
-    } else {
-      return super.takeDamage(id, damage);
-    }
+    return (dodgeCheck(damage) ? false : super.takeDamage(id, damage));
   }
 }
 
 mixin TouchDamageFunctionality on ContactCallbacks, Entity {
+  //Touch Damage
+
   ///Min damage is added to min damage calculation, same with max
   Map<DamageType, (double, double)> touchDamageIncrease = {};
 
   //DamageType, min, max
-  abstract Map<DamageType, (double, double)> touchDamageLevels;
+  abstract Map<DamageType, (double, double)> baseTouchDamage;
 
-  List<DamageInstance> get damage {
-    List<DamageInstance> returnList = [];
-
-    for (var element in touchDamageLevels.entries) {
-      var min = element.value.$1;
-      var max = element.value.$2;
-      if (touchDamageIncrease.containsKey(element.key)) {
-        min += touchDamageIncrease[element.key]?.$1 ?? 0;
-        max += touchDamageIncrease[element.key]?.$2 ?? 0;
-      }
-      returnList.add(DamageInstance(
-          damageBase: ((rng.nextDouble() * max - min) + min),
-          damageType: element.key,
-          duration: damageDuration));
-    }
-
-    return returnList;
-  }
+  List<DamageInstance> get damage =>
+      damageCalculations(baseTouchDamage, touchDamageIncrease, damageDuration);
 
   List<Body> objectsHitting = [];
 
-  double hitRate = 1;
+  final double baseHitRate = 1;
+  double hitRateIncrease = 0;
+
+  ///Time interval between damage ticks
+  double get hitRate =>
+      (baseHitRate - hitRateIncrease).clamp(0, double.infinity);
 
   void damageCheck() {
-    if (touchDamageLevels.isEmpty) return;
+    if (baseTouchDamage.isEmpty || isDead) return;
 
     for (var element in objectsHitting) {
       final otherReference = element.userData;
       if (otherReference is! HealthFunctionality) continue;
       if (isPlayer && otherReference is Enemy) {
-        otherReference.hit(entityId, damage);
+        otherReference.hitCheck(entityId, damage);
       } else if (!isPlayer && otherReference is Player) {
-        otherReference.hit(entityId, damage);
+        otherReference.hitCheck(entityId, damage);
       }
     }
   }
@@ -633,7 +662,6 @@ mixin DashFunctionality on StaminaFunctionality {
   double dashedDistance = 0;
 
   @override
-  // TODO: implement isDashing
   bool get isDashing => _isDashing;
 
   bool _isDashing = false;
@@ -645,7 +673,8 @@ mixin DashFunctionality on StaminaFunctionality {
 
   //DASH
   double get dashCooldown =>
-      (baseDashCooldown - dashCooldownIncrease).clamp(0, double.infinity);
+      (baseDashCooldown - dashCooldownIncrease + dashDuration)
+          .clamp(0, double.infinity);
   abstract double baseDashCooldown;
   double dashCooldownIncrease = 0;
 
@@ -668,7 +697,10 @@ mixin DashFunctionality on StaminaFunctionality {
   double get dashDistance => baseDashDistance + dashDistanceIncrease;
   double dashDistanceIncrease = 0;
 
-  double dashDuration = .1;
+  final double baseDashDuration = .1;
+  double get dashDuration =>
+      (baseDashDuration - dashDurationIncrease).clamp(0, double.infinity);
+  double dashDurationIncrease = 0;
 
   double baseDashStaminaCost = 50;
   double get dashStaminaCost => baseDashStaminaCost - dashStaminaCostIncrease;
@@ -677,6 +709,7 @@ mixin DashFunctionality on StaminaFunctionality {
   @override
   void dashStatus() {
     if (!dashCheck()) return;
+    dashAnimation?.stepTime = dashDuration / dashAnimation!.frames.length;
     applyTempAnimation(dashAnimation);
 
     super.dashStatus();
@@ -686,7 +719,7 @@ mixin DashFunctionality on StaminaFunctionality {
     if (dashTimerCooldown != null ||
         isJumping ||
         isDead ||
-        disableMovement ||
+        !enableMovement ||
         dashStaminaCost > remainingStamina) {
       return false;
     }
@@ -779,17 +812,30 @@ mixin JumpFunctionality on StaminaFunctionality {
   bool _isJumping = false;
 
   bool isJumpingInvincible = false;
-  double jumpDuration = .5;
-  double jumpStaminaCost = 10;
+
+  final double baseJumpDuration = .6;
+  double get jumpDuration =>
+      (baseJumpDuration - jumpDurationIncrease).clamp(0, double.infinity);
+  double jumpDurationIncrease = 0;
+
+  double baseJumpStaminaCost = 10;
+  double get jumpStaminaCost => baseJumpStaminaCost - jumpStaminaCostIncrease;
+  double jumpStaminaCostIncrease = 0;
 
   //how much of the jumpduration the character is jumping to avoid dmg
-  double jumpingInvinciblePercent = .5;
+
+  double baseJumpingInvinciblePercent = .5;
+  double get jumpingInvinciblePercent =>
+      (baseJumpingInvinciblePercent + jumpingInvinciblePercentIncrease)
+          .clamp(0, 1);
+  double jumpingInvinciblePercentIncrease = 0;
 
   abstract SpriteAnimation? jumpAnimation;
 
   @override
   void jumpStatus() {
     if (!jumpCheck()) return;
+    jumpAnimation?.stepTime = jumpDuration / jumpAnimation!.frames.length;
     applyTempAnimation(jumpAnimation);
 
     super.jumpStatus();
@@ -817,6 +863,7 @@ mixin JumpFunctionality on StaminaFunctionality {
       reverseDuration: jumpDuration,
       reverseCurve: Curves.ease,
     );
+
     Future.doWhile(
         () => Future.delayed(const Duration(milliseconds: 25)).then((value) {
               elapsed += .025;
@@ -826,6 +873,7 @@ mixin JumpFunctionality on StaminaFunctionality {
               return !(elapsed >= jumpDuration || controller.completed);
             })).then((_) {
       _isJumping = false;
+      //Landing Functions Here //TODO
     });
 
     spriteWrapper.add(ScaleEffect.by(
@@ -833,17 +881,17 @@ mixin JumpFunctionality on StaminaFunctionality {
       controller,
     ));
     spriteWrapper.add(MoveEffect.by(
-      Vector2(0, -3),
+      Vector2(0, -1),
       controller,
     ));
     backJoint.add(MoveEffect.by(
-      Vector2(0, -3),
+      Vector2(0, -1),
       controllerD,
     ));
 
     if (this is AimFunctionality) {
       (this as AimFunctionality).handJoint.add(MoveEffect.by(
-            Vector2(0, -3),
+            Vector2(0, -1),
             controllerD,
           ));
     }
@@ -852,7 +900,7 @@ mixin JumpFunctionality on StaminaFunctionality {
   bool jumpCheck() {
     if (isJumping ||
         isDashing ||
-        disableMovement ||
+        !enableMovement ||
         isDead ||
         jumpStaminaCost > remainingStamina) return false;
 
@@ -862,8 +910,9 @@ mixin JumpFunctionality on StaminaFunctionality {
   }
 }
 
-mixin AttributeFunctionality on Entity {
+mixin AttributeFunctionality on BodyComponent<GameRouter> {
   Map<AttributeEnum, Attribute> currentAttributes = {};
+  Random rng = Random();
 
   void loadPlayerConfig(Map<String, dynamic> config) {}
   bool initalized = false;
@@ -892,7 +941,7 @@ mixin AttributeFunctionality on Entity {
     }
   }
 
-  void addAttribute(Attribute attribute, [int level = 1]) {
+  void addAttribute(Attribute attribute, [int level = 0]) {
     if (currentAttributes.containsKey(attribute.attributeEnum)) {
       currentAttributes[attribute.attributeEnum]?.incrementLevel(level);
     } else {
@@ -949,41 +998,5 @@ mixin AttributeFunctionality on Entity {
       }
     }
     return returnList;
-  }
-}
-
-mixin ExperienceFunctionality on Entity {
-  double experiencePointsGained = 0;
-  int currentLevel = 0;
-
-  int get nextLevelExperienceRequired => pow(2, currentLevel + 1).toInt();
-  int get currentLevelExperienceRequired => pow(2, currentLevel).toInt();
-
-  void gainExperience(double experience) {
-    final nextLevelExperienceRequired = this.nextLevelExperienceRequired;
-    if (experiencePointsGained + experience >= nextLevelExperienceRequired) {
-      final remainingExperience =
-          (experience + experiencePointsGained) - nextLevelExperienceRequired;
-      experiencePointsGained = nextLevelExperienceRequired.toDouble();
-      currentLevel += 1;
-      ancestor.displayLevelUpScreen();
-
-      gainExperience(remainingExperience);
-    } else {
-      experiencePointsGained += experience;
-    }
-  }
-
-  double get xpSensorRadius => baseXpSensorRadius + xpSensorRadiusIncrease;
-  final double baseXpSensorRadius = 10;
-  double xpSensorRadiusIncrease = 0;
-
-  double get percentOfLevelGained {
-    final currentLevelExperienceRequired = this.currentLevelExperienceRequired;
-    final gapBetweenCurrentLevels =
-        nextLevelExperienceRequired - currentLevelExperienceRequired;
-    final experienceTowardsNextLevel =
-        experiencePointsGained - currentLevelExperienceRequired;
-    return experienceTowardsNextLevel / gapBetweenCurrentLevels;
   }
 }

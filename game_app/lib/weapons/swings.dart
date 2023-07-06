@@ -20,7 +20,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is HealthFunctionality) {
-      other.hit(parentAttack.meleeId, parentAttack.parentWeapon.damage);
+      other.hitCheck(parentAttack.meleeId, parentAttack.parentWeapon.damage);
     }
 
     super.beginContact(other, contact);
@@ -104,13 +104,15 @@ class MeleeAttack extends PositionComponent {
 
     bodyComponent = MeleeDetection(size, this);
 
-    parentWeapon.entityAncestor?.ancestor.physicsComponent.add(bodyComponent!);
+    parentWeapon.entityAncestor?.gameEnv.physicsComponent.add(bodyComponent!);
 
     // anchor = Anchor.center;
+    final handAngle =
+        (initAngle ?? parentWeapon.entityAncestor?.handJoint.angle ?? 0);
     angle = radians(start.$2) +
         (initAngle ?? parentWeapon.entityAncestor?.handJoint.angle ?? 0);
-    final rotatedStartPosition = rotateVector2(start.$1, angle);
-    final rotatedEndPosition = rotateVector2(end.$1, angle);
+    final rotatedStartPosition = rotateVector2(start.$1, handAngle);
+    final rotatedEndPosition = rotateVector2(end.$1, handAngle);
 
     position = initPosition + rotatedStartPosition;
 
@@ -137,15 +139,15 @@ class MeleeAttack extends PositionComponent {
 
     final effectController = EffectController(
       duration: duration * 2,
-      curve: Curves.fastOutSlowIn,
+      curve: Curves.easeInOutCubicEmphasized,
     );
     final effectControllerTwo = EffectController(
         duration: duration / 2,
         reverseDuration: duration / 2,
-        curve: Curves.fastOutSlowIn,
-        reverseCurve: Curves.fastOutSlowIn);
+        curve: Curves.decelerate,
+        reverseCurve: Curves.decelerate);
     addAll([
-      ScaleEffect.to(Vector2.all(1), effectControllerTwo),
+      ScaleEffect.to(Vector2.all(1.02), effectControllerTwo),
       RotateEffect.by(
         radians(totalAngle),
         effectController,
