@@ -177,14 +177,15 @@ abstract class GameEnviroment extends Component
     gameCamera = CameraComponent(world: gameWorld);
     gameCamera.priority = backgroundPriority;
 
-    initJoysticks();
+    // initJoysticks();
 
     player = Player(gameRef.playerDataComponent.dataObject,
         gameEnv: this, initPosition: Vector2.zero());
     hud = GameHud(this);
     physicsComponent = Forge2DComponent();
     bounds = Bounds();
-    gameCamera.viewport.addAll([hud, moveJoystick!, aimJoystick!]);
+    gameCamera.viewport.addAll([hud]);
+    // gameCamera.viewport.addAll([ moveJoystick!, aimJoystick!]);
 
     super.add(gameCamera);
 

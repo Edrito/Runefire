@@ -44,7 +44,10 @@ mixin ExperienceFunctionality on Entity {
           (experience + experiencePointsGained) - nextLevelExperienceRequired;
       experiencePointsGained = nextLevelExperienceRequired.toDouble();
       currentLevel += 1;
+      gameEnv.hud.levelCounter.text = currentLevel.toString();
+
       if (isDead) return;
+
       gameEnv.preLevelUp();
       gainExperience(remainingExperience);
     } else {

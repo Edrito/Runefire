@@ -63,10 +63,6 @@ class Portal extends Weapon
   int get maxChainingTargets => 0;
 
   @override
-  // TODO: implement isHoming
-  bool get isHoming => false;
-
-  @override
   bool countIncreaseWithTime = false;
 
   late CircleComponent circle;
@@ -80,7 +76,7 @@ class Portal extends Weapon
   bool allowProjectileRotation = true;
 
   @override
-  int projectileCount = 1;
+  int attackCount = 1;
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
@@ -88,19 +84,16 @@ class Portal extends Weapon
   };
 
   @override
-  double baseAttackRate = 1;
+  double baseAttackTickRate = 1;
 
   @override
   double length = 2;
 
   @override
-  int? maxAmmo = 1;
-
-  @override
   double maxSpreadDegrees = 270;
 
   @override
-  int pierce = 0;
+  int basePierce = 0;
 
   @override
   late Sprite projectileSprite;
@@ -133,6 +126,27 @@ class Portal extends Weapon
 
   @override
   double baseReloadTime = 3;
+
+  @override
+  double baseWeaponRandomnessPercent = 0;
+
+  @override
+  int get baseAttackCount => 1;
+
+  @override
+  bool get baseCountIncreaseWithTime => false;
+
+  @override
+  bool get baseIsHoming => true;
+
+  @override
+  int get baseMaxAttacks => 1;
+
+  @override
+  int get baseMaxChainingTargets => 0;
+
+  @override
+  double get baseMaxSpreadDegrees => 20;
 }
 
 class Pistol extends Weapon
@@ -140,7 +154,8 @@ class Pistol extends Weapon
         SemiAutomatic,
         ProjectileFunctionality,
         ReloadFunctionality,
-        SecondaryFunctionality {
+        SecondaryFunctionality,
+        MultiWeaponCheck {
   Pistol.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -178,7 +193,7 @@ class Pistol extends Weapon
   bool allowProjectileRotation = true;
 
   @override
-  int projectileCount = 1;
+  int attackCount = 1;
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
@@ -187,10 +202,7 @@ class Pistol extends Weapon
   };
 
   @override
-  double baseAttackRate = .5;
-
-  @override
-  bool get isHoming => false;
+  double baseAttackTickRate = .5;
 
   @override
   int get maxChainingTargets => 5;
@@ -202,10 +214,7 @@ class Pistol extends Weapon
   double maxSpreadDegrees = 40;
 
   @override
-  int pierce = 5;
-
-  @override
-  late Sprite projectileSprite;
+  int basePierce = 5;
 
   @override
   double projectileVelocity = 25;
@@ -214,10 +223,10 @@ class Pistol extends Weapon
   ProjectileType? projectileType = ProjectileType.bullet;
 
   @override
-  double tipPositionPercent = -.8;
+  double tipPositionPercent = -.25;
 
   @override
-  double weaponRandomnessPercent = .05;
+  double weaponRandomnessPercent = .0;
 
   @override
   double distanceFromPlayer = 0;
@@ -248,13 +257,37 @@ class Pistol extends Weapon
   }
 
   @override
-  int? maxAmmo = 20;
-
-  @override
   double baseReloadTime = 2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
+
+  @override
+  double baseWeaponRandomnessPercent = 0.05;
+
+  @override
+  // TODO: implement baseAttackCount
+  int get baseAttackCount => 1;
+
+  @override
+  // TODO: implement baseCountIncreaseWithTime
+  bool get baseCountIncreaseWithTime => false;
+
+  @override
+  // TODO: implement baseIsHoming
+  bool get baseIsHoming => false;
+
+  @override
+  // TODO: implement baseMaxAttacks
+  int get baseMaxAttacks => 12;
+
+  @override
+  // TODO: implement baseMaxChainingTargets
+  int get baseMaxChainingTargets => 0;
+
+  @override
+  // TODO: implement baseMaxSpreadDegrees
+  double get baseMaxSpreadDegrees => 45;
 }
 
 class Shotgun extends Weapon
@@ -309,7 +342,7 @@ class Shotgun extends Weapon
   bool allowProjectileRotation = false;
 
   @override
-  int projectileCount = 4;
+  int attackCount = 4;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -321,22 +354,43 @@ class Shotgun extends Weapon
     DamageType.regular: (10, 20.0)
   };
   @override
-  double baseAttackRate = .5;
+  double baseAttackTickRate = .5;
 
   @override
   double length = 5;
 
   @override
-  int? maxAmmo = 4;
+  double baseWeaponRandomnessPercent = .05;
+
+  @override
+  int get baseAttackCount => 1;
+
+  @override
+  bool get baseCountIncreaseWithTime => false;
+
+  @override
+  bool get baseIsHoming => false;
+
+  @override
+  int baseMaxAttacks = 0;
+
+  @override
+  int get baseMaxChainingTargets => 0;
+
+  @override
+  double get baseMaxSpreadDegrees => 180;
+
+  @override
+  double weaponRandomnessPercent = .0;
+
+  @override
+  bool countIncreaseWithTime = false;
 
   @override
   double maxSpreadDegrees = 50;
 
   @override
-  int pierce = 4;
-
-  @override
-  late Sprite projectileSprite;
+  int basePierce = 4;
 
   @override
   double projectileVelocity = 200;
@@ -346,12 +400,6 @@ class Shotgun extends Weapon
 
   @override
   double tipPositionPercent = -.02;
-
-  @override
-  double weaponRandomnessPercent = .1;
-
-  @override
-  bool countIncreaseWithTime = false;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -393,7 +441,7 @@ class Bow extends Weapon
   @override
   ProjectileType? projectileType = ProjectileType.arrow;
   @override
-  int projectileCount = 1;
+  int attackCount = 1;
 
   @override
   double distanceFromPlayer = .2;
@@ -411,7 +459,7 @@ class Bow extends Weapon
   }
 
   @override
-  double baseAttackRate = .5;
+  double baseAttackTickRate = .5;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -426,10 +474,28 @@ class Bow extends Weapon
   double maxSpreadDegrees = 40;
 
   @override
-  int pierce = 5;
+  int basePierce = 5;
 
   @override
-  late Sprite projectileSprite;
+  double baseWeaponRandomnessPercent = .05;
+
+  @override
+  int get baseAttackCount => 1;
+
+  @override
+  bool get baseCountIncreaseWithTime => false;
+
+  @override
+  bool get baseIsHoming => false;
+
+  @override
+  int baseMaxAttacks = 0;
+
+  @override
+  int get baseMaxChainingTargets => 0;
+
+  @override
+  double get baseMaxSpreadDegrees => 180;
 
   @override
   double projectileVelocity = 200;
@@ -475,7 +541,7 @@ class Sword extends Weapon
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
 
-    maxAmmo = (attackHitboxPatterns.length / 2).round();
+    baseMaxAttacks = (attackHitboxPatterns.length / 2).round();
 
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");
@@ -570,7 +636,7 @@ class Sword extends Weapon
     DamageType.regular: (5, 10.0)
   };
   @override
-  double baseAttackRate = .3;
+  double baseAttackTickRate = .2;
 
   @override
   double length = 2;
@@ -582,13 +648,7 @@ class Sword extends Weapon
   double weaponRandomnessPercent = .05;
 
   @override
-  SemiAutoType semiAutoType = SemiAutoType.charge;
-
-  @override
   WeaponType weaponType = WeaponType.shiv;
-
-  @override
-  bool allowProjectileRotation = false;
 
   @override
   bool countIncreaseWithTime = false;
@@ -597,21 +657,29 @@ class Sword extends Weapon
   double maxSpreadDegrees = 50;
 
   @override
-  int pierce = 1;
-
-  @override
-  int projectileCount = 3;
-
-  @override
-  ProjectileType? projectileType = ProjectileType.fireball;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  int? maxAmmo;
-
-  @override
-  // TODO: implement baseReloadTime
   double get baseReloadTime => 1;
+
+  @override
+  int attackCount = 1;
+
+  @override
+  double baseWeaponRandomnessPercent = .05;
+
+  @override
+  int get baseAttackCount => 1;
+
+  @override
+  bool get baseCountIncreaseWithTime => false;
+
+  @override
+  bool get baseIsHoming => false;
+
+  @override
+  late int baseMaxAttacks;
+
+  @override
+  int get baseMaxChainingTargets => 0;
+
+  @override
+  double get baseMaxSpreadDegrees => 180;
 }

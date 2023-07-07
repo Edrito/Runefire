@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
+import 'package:flutter/animation.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -55,9 +57,17 @@ class PlayerAttachmentJointComponent extends PositionComponent
           anchor: Anchor.center,
           position: Vector2(weaponSpriteAnimation!.size.x * tipPositionPercent,
               weaponSpriteAnimation!.size.y));
+      // weaponTip!.add(CircleComponent(
+      //     radius: .1,
+      //     paint: BasicPalette.white.paint(),
+      //     anchor: Anchor.center));
       weaponTipCenter = PositionComponent(
           anchor: Anchor.center,
           position: Vector2(0, weaponSpriteAnimation!.size.y));
+      // weaponTipCenter!.add(CircleComponent(
+      //     radius: .1,
+      //     paint: BasicPalette.lightRed.paint(),
+      //     anchor: Anchor.center));
       weaponBase?.add(weaponSpriteAnimation!);
       weaponBase?.add(weaponTipCenter!);
       weaponBase?.add(weaponTip!);
@@ -81,17 +91,8 @@ abstract class Weapon extends Component {
 
     applyWeaponUpgrade(newUpgradeLevel);
   }
-  Random rng = Random();
-
-  bool isSecondaryWeapon = false;
-
-  bool get isReloading => this is ReloadFunctionality
-      ? (this as ReloadFunctionality).reloadTimer != null
-      : false;
-
-  bool attackOnAnimationFinish = false;
-
   //META INFORMATION
+  bool attackOnAnimationFinish = false;
 
   bool get hasAltAttack => this is SecondaryFunctionality;
 
@@ -102,6 +103,63 @@ abstract class Weapon extends Component {
   AimFunctionality? entityAncestor;
 
   double get durationHeld;
+
+  Random rng = Random();
+  bool isSecondaryWeapon = false;
+  bool get isReloading => this is ReloadFunctionality
+      ? (this as ReloadFunctionality).reloadTimer != null
+      : false;
+
+  //WEAPON ATTRIBUTES
+  abstract final int baseAttackCount;
+  int get attackCount =>
+      baseAttackCount +
+      additionalCountIncrease +
+      additionalDurationCountIncrease;
+
+  bool get countIncreaseWithTime => boolAbilityDecipher(
+      baseCountIncreaseWithTime, countIncreaseWithTimeIncrease);
+  abstract final bool baseCountIncreaseWithTime;
+  List<bool> countIncreaseWithTimeIncrease = [];
+
+  int additionalDurationCountIncrease = 0;
+  int additionalCountIncrease = 0;
+
+  void additionalCountCheck() {
+    if (countIncreaseWithTime) {
+      additionalDurationCountIncrease = durationHeld.round();
+    }
+  }
+
+  double get maxSpreadDegrees =>
+      baseMaxSpreadDegrees * maxSpreadDegreesIncrease;
+  abstract final double baseMaxSpreadDegrees;
+  double maxSpreadDegreesIncrease = 0;
+
+  bool get weaponCanChain => maxChainingTargets > 0;
+
+  int get maxChainingTargets =>
+      baseMaxChainingTargets + maxChainingTargetsIncrease;
+  abstract final int baseMaxChainingTargets;
+  int maxChainingTargetsIncrease = 0;
+
+  abstract final double baseAttackTickRate;
+  double attackTickRateIncrease = 0;
+  double get attackTickRate =>
+      (baseAttackTickRate - attackTickRateIncrease).clamp(0, double.infinity);
+
+  double get weaponRandomnessPercent =>
+      baseWeaponRandomnessPercent * weaponRandomnessPercentIncrease;
+  abstract double baseWeaponRandomnessPercent;
+  double weaponRandomnessPercentIncrease = 0;
+
+  bool get isHoming => boolAbilityDecipher(baseIsHoming, isHomingIncrease);
+  abstract final bool baseIsHoming;
+  List<bool> isHomingIncrease = [];
+
+  int get homingPower => baseHomingPower + homingPowerIncrease;
+  final int baseHomingPower = 1;
+  int homingPowerIncrease = 0;
 
   //DAMAGE increase flat
   //DamageType, min, max
@@ -115,17 +173,6 @@ abstract class Weapon extends Component {
       baseDamageLevels, damageIncrease, entityAncestor?.damageDuration);
 
   //ATTRIBUTES
-  bool get weaponCanChain => maxChainingTargets > 0;
-
-  int maxChainingTargets = 0;
-
-  abstract final double baseAttackRate;
-
-  double attackRateIncrease = 0;
-
-  double get attackRate => baseAttackRate - attackRateIncrease;
-
-  abstract double weaponRandomnessPercent;
 
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
@@ -137,8 +184,6 @@ abstract class Weapon extends Component {
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent> parents = {};
   bool removeSpriteOnAttack = false;
 
-  bool isHoming = false;
-
   @override
   FutureOr<void> onLoad() async {
     await super.onLoad();
@@ -146,7 +191,7 @@ abstract class Weapon extends Component {
   }
 
   //Weapon state info
-  double get attackRateSecondComparison => 1 / attackRate;
+  double get attackRateSecondComparison => 1 / attackTickRate;
 
   void applyWeaponUpgrade(int newUpgradeLevel) {
     newUpgradeLevel = upgradeLevel.clamp(1, weaponType.maxLevel);
@@ -162,22 +207,40 @@ abstract class Weapon extends Component {
   List<Function(Weapon)> onReload = [];
   List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
 
+  bool spritesHidden = false;
+
+  bool get attacksAreActive => false;
+
   void removeWeaponUpgrade() {}
 
   void startAltAttacking();
   void endAltAttacking();
 
   void startAttacking();
-  void endAttacking() {}
+  void endAttacking() {
+    spriteVisibilityCheck();
+  }
 
   void weaponSwappedFrom() {}
   void weaponSwappedTo() {}
 
   /// Returns true if an attack occured, otherwise false.
-  void attackAttempt() {
+  void attackAttempt() {}
+
+  void spriteVisibilityCheck() {
     if (removeSpriteOnAttack) {
-      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 0;
-      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
+      if (attacksAreActive && !spritesHidden) {
+        entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 0;
+        entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
+        spritesHidden = true;
+      } else if (!attacksAreActive && spritesHidden) {
+        final controller = EffectController(duration: .1, curve: Curves.easeIn);
+        entityAncestor?.backJoint.weaponSpriteAnimation
+            ?.add(OpacityEffect.fadeIn(controller));
+        entityAncestor?.handJoint.weaponSpriteAnimation
+            ?.add(OpacityEffect.fadeIn(controller));
+        spritesHidden = false;
+      }
     }
   }
 
@@ -194,90 +257,6 @@ abstract class Weapon extends Component {
           .setWeaponStatus(this.weaponStatus));
     }
     await Future.wait(futures);
-  }
-}
-
-abstract class SecondaryWeaponAbility extends Component {
-  SecondaryWeaponAbility(this.weapon, this.cooldown);
-
-  Weapon weapon;
-  double cooldown;
-  TimerComponent? cooldownTimer;
-  ReloadAnimation? reloadAnimation;
-  bool get isCoolingDown => cooldownTimer != null;
-
-  void removeReloadAnimation() {
-    reloadAnimation?.removeFromParent();
-    reloadAnimation = null;
-  }
-
-  void startAttacking() {
-    if (isCoolingDown || weapon.entityAncestor == null) return;
-
-    reloadAnimation = ReloadAnimation(cooldown, weapon.entityAncestor!, true)
-      ..addToParent(weapon.entityAncestor!);
-
-    cooldownTimer = TimerComponent(
-      period: cooldown,
-      removeOnFinish: true,
-      onTick: () {
-        cooldownTimer = null;
-      },
-    )..addToParent(this);
-  }
-
-  void endAttacking();
-}
-
-///Reloads the weapon and mag dumps at a firerate of approx 5x original
-class RapidFire extends SecondaryWeaponAbility {
-  RapidFire(super.weapon, super.cooldown, {this.attackRateIncrease = 5});
-  TimerComponent? rapidFireTimer;
-  bool get isCurrentlyRunning => rapidFireTimer != null;
-  double attackRateIncrease;
-  @override
-  void endAttacking() {}
-
-  @override
-  void startAttacking() async {
-    if (isCoolingDown || isCurrentlyRunning) return;
-
-    double weaponAttackRate = weapon.attackRate;
-    if (weapon is! ReloadFunctionality) {
-      return;
-    }
-
-    final reload = weapon as ReloadFunctionality;
-
-    if (reload.isReloading) {
-      reload.stopReloading();
-    } else {
-      reload.spentAttacks = 0;
-    }
-    rapidFireTimer = TimerComponent(
-      repeat: true,
-      period: weaponAttackRate / attackRateIncrease,
-      autoStart: true,
-      onTick: () {
-        if (weapon is SemiAutomatic) {
-          (weapon as SemiAutomatic).durationHeld = weapon.attackRate / 2;
-          weapon.attackAttempt();
-          (weapon as SemiAutomatic).durationHeld = 0;
-        } else {
-          weapon.attackAttempt();
-        }
-
-        reload.reloadCheck();
-        if (reload.isReloading) {
-          rapidFireTimer?.timer.stop();
-          rapidFireTimer?.removeFromParent();
-          rapidFireTimer = null;
-        }
-      },
-    );
-    add(rapidFireTimer!);
-
-    super.startAttacking();
   }
 }
 

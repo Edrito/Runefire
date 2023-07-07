@@ -81,7 +81,7 @@ mixin StandardProjectile on Projectile {
 
   void createShapeComponent() {
     circleComponent = CircleComponent(
-        radius: length / 2,
+        radius: size / 2,
         anchor: Anchor.center,
         paint: BasicPalette.red.paint());
     add(circleComponent);
@@ -90,7 +90,6 @@ mixin StandardProjectile on Projectile {
   @override
   Future<void> onLoad() {
     createShapeComponent();
-
     return super.onLoad();
   }
 
@@ -229,77 +228,77 @@ mixin LaserProjectile on Projectile {
   abstract final double baseWidth;
   late double width;
 
-  void homingAndChainCalculations() {
-    double distance = weaponAncestor.projectileVelocity;
+  // void homingAndChainCalculations() {
+  //   double distance = weaponAncestor.projectileVelocity;
 
-    List<Body> bodies = game.world.bodies
-        .where((element) => infrontWeaponCheck(element))
-        .toList();
+  //   // List<Body> bodies = game.world.bodies
+  //   //     .where((element) => infrontWeaponCheck(element))
+  //   //     .toList();
 
-    homingComplete = !weaponAncestor.isHoming;
+  //   homingComplete = !weaponAncestor.isHoming;
 
-    bodies.sort(
-      (a, b) => a.position
-          .distanceTo(originPosition)
-          .compareTo(b.position.distanceTo(originPosition)),
-    );
+  //   bodies.sort(
+  //     (a, b) => a.position
+  //         .distanceTo(originPosition)
+  //         .compareTo(b.position.distanceTo(originPosition)),
+  //   );
 
-    var amountOfPoints = precisionPerDistance * distance;
+  //   var amountOfPoints = precisionPerDistance * distance;
 
-    amountOfPoints = amountOfPoints.clamp(3, 200);
+  //   amountOfPoints = amountOfPoints.clamp(3, 200);
 
-    final pointStep = distance / amountOfPoints;
+  //   final pointStep = distance / amountOfPoints;
 
-    amountOfPoints = (amountOfPoints * .666 * power) + amountOfPoints * .333;
+  //   amountOfPoints = (amountOfPoints * .666 * power) + amountOfPoints * .333;
 
-    startChaining = weaponAncestor.isHoming && weaponAncestor.weaponCanChain;
+  //   startChaining = weaponAncestor.isHoming && weaponAncestor.weaponCanChain;
 
-    for (var i = 0; i < amountOfPoints; i++) {
-      Body? bodyToJumpTo;
-      Vector2 newPointPosition;
-      bool shouldChain =
-          chainedTargets < weaponAncestor.maxChainingTargets && startChaining;
+  //   for (var i = 0; i < amountOfPoints; i++) {
+  //     Body? bodyToJumpTo;
+  //     Vector2 newPointPosition;
+  //     bool shouldChain =
+  //         chainedTargets < weaponAncestor.maxChainingTargets && startChaining;
 
-      //if should be bouncing, bounce
-      if (!homingComplete || shouldChain) {
-        for (var element in bodies) {
-          if ((element.position - originPosition).distanceTo(previousDelta) <
-              closeBodySensorRadius) {
-            bodyToJumpTo = element;
-            break;
-          }
-        }
-      }
+  //     //if should be bouncing, bounce
+  //     if (!homingComplete || shouldChain) {
+  //       for (var element in bodies) {
+  //         if ((element.position - originPosition).distanceTo(previousDelta) <
+  //             closeBodySensorRadius) {
+  //           bodyToJumpTo = element;
+  //           break;
+  //         }
+  //       }
+  //     }
 
-      //if close body detected, jump to it
-      if (bodyToJumpTo != null) {
-        newPointPosition = bodyToJumpTo.position - originPosition;
-        delta = (bodyToJumpTo.position - originPosition - previousDelta)
-            .normalized();
-        bodies.remove(bodyToJumpTo);
+  //     //if close body detected, jump to it
+  //     if (bodyToJumpTo != null) {
+  //       newPointPosition = bodyToJumpTo.position - originPosition;
+  //       delta = (bodyToJumpTo.position - originPosition - previousDelta)
+  //           .normalized();
+  //       bodies.remove(bodyToJumpTo);
 
-        chainedTargets++;
-        homingComplete = true;
-      } else {
-        newPointPosition = ((delta * pointStep) + previousDelta);
-      }
+  //       chainedTargets++;
+  //       homingComplete = true;
+  //     } else {
+  //       newPointPosition = ((delta * pointStep) + previousDelta);
+  //     }
 
-      //TODO: rework check if other body is hit from this line
-      //if hit, then start chaining
-      if (weaponAncestor.weaponCanChain && !startChaining) {
-        for (var element in bodies) {
-          if ((element.position - originPosition).distanceTo(newPointPosition) <
-              3) {
-            startChaining = true;
-            break;
-          }
-        }
-      }
+  //     //TODO: rework check if other body is hit from this line
+  //     //if hit, then start chaining
+  //     if (weaponAncestor.weaponCanChain && !startChaining) {
+  //       for (var element in bodies) {
+  //         if ((element.position - originPosition).distanceTo(newPointPosition) <
+  //             3) {
+  //           startChaining = true;
+  //           break;
+  //         }
+  //       }
+  //     }
 
-      lineThroughEnemies.add(newPointPosition);
-      previousDelta = newPointPosition.clone();
-    }
-  }
+  //     lineThroughEnemies.add(newPointPosition);
+  //     previousDelta = newPointPosition.clone();
+  //   }
+  // }
 
   @override
   Future<void> onLoad() async {
@@ -312,7 +311,7 @@ mixin LaserProjectile on Projectile {
     lineThroughEnemies.add(previousDelta);
 
     if (weaponAncestor.isHoming || weaponAncestor.weaponCanChain) {
-      homingAndChainCalculations();
+      // homingAndChainCalculations();
     } else {
       double distance = weaponAncestor.projectileVelocity;
       distance = (distance * .666 * power) + distance * .333;

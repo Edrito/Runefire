@@ -19,7 +19,7 @@ class Bullet extends Projectile with StandardProjectile {
   ProjectileType projectileType = ProjectileType.bullet;
 
   @override
-  double length = .2;
+  double size = .2;
 
   @override
   double ttl = 2.0;
@@ -39,7 +39,7 @@ class Fireball extends Projectile with StandardProjectile {
   ProjectileType projectileType = ProjectileType.fireball;
 
   @override
-  double length = 1;
+  double size = 1;
 
   @override
   double ttl = 2.0;
@@ -69,14 +69,14 @@ class Laser extends Projectile with LaserProjectile {
       required super.originPosition,
       required super.weaponAncestor,
       super.power}) {
-    ttl = weaponAncestor.attackRate;
+    ttl = weaponAncestor.attackTickRate;
   }
 
   @override
   ProjectileType projectileType = ProjectileType.laser;
 
   @override
-  double length = 1.5;
+  double size = 1.5;
 
   @override
   double ttl = 0;

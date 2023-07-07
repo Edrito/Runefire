@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/main.dart';
 
 import '../pages/buttons.dart';
 import 'attributes_enum.dart';
@@ -102,7 +103,6 @@ abstract class Attribute {
   void mapAttribute();
   void unmapAttribute();
 
-  void update(double dt) {}
   AttributeEnum get attributeEnum;
 
   ///Increase or decrease the level based on the input value
@@ -116,7 +116,7 @@ abstract class Attribute {
   CustomCard buildWidget({Function? onTap, Function? onTapComplete}) {
     return CustomCard(
       this,
-      gameRef: entity.gameRef,
+      gameRef: gameRouter,
       onTap: onTap,
       onTapComplete: onTapComplete,
     );
@@ -184,7 +184,7 @@ class AttackRateAttribute extends Attribute {
     if (entity is! AttackFunctionality) return;
     var attack = entity as AttackFunctionality;
     for (var element in attack.carriedWeapons.values) {
-      element.attackRateIncrease += increase(element.baseAttackRate);
+      element.attackTickRateIncrease += increase(element.baseAttackTickRate);
     }
   }
 
@@ -193,7 +193,7 @@ class AttackRateAttribute extends Attribute {
     if (entity is! AttackFunctionality) return;
     var attack = entity as AttackFunctionality;
     for (var element in attack.carriedWeapons.values) {
-      element.attackRateIncrease -= increase(element.baseAttackRate);
+      element.attackTickRateIncrease -= increase(element.baseAttackTickRate);
     }
   }
 

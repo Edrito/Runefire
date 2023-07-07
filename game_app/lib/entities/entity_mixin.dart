@@ -12,7 +12,6 @@ import 'package:game_app/resources/visuals.dart';
 
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
-import '../main.dart';
 import '../resources/attributes.dart';
 import '../resources/attributes_enum.dart';
 import '../resources/enums.dart';
@@ -30,7 +29,23 @@ import '../weapons/weapon_class.dart';
 // bool get collisionWhileDashing => boolAbilityDecipher(
 //     baseCollisionWhileDashing, collisionWhileDashingIncrease);
 
-mixin BaseAttributes on BodyComponent<GameRouter> {
+mixin BaseStats on Entity {
+  int enemiesKilled = 0;
+  double damageDealt = 0;
+  double damageTaken = 0;
+  double damageHealed = 0;
+  double damageDodged = 0;
+  double damageReceived = 0;
+
+  int jumped = 0;
+  int dashed = 0;
+
+  int projectilesShot = 0;
+  int meleeSwings = 0;
+  int timesReloaded = 0;
+}
+
+mixin BaseAttributes on BodyComponent {
   bool get isJumping => false;
   bool get isDashing => false;
   bool isDead = false;
@@ -65,16 +80,13 @@ mixin MovementFunctionality on Entity {
       .normalized();
 
   void moveCharacter() {
-    if (isDead || !enableMovement) {
-      return;
-    }
-
     final previousPulse = moveDelta;
 
-    if (!enableMovement || previousPulse.isZero()) {
+    if (isDead || !enableMovement || previousPulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
       return;
     }
+    spriteFlipCheck();
 
     body.applyForce(previousPulse * getMaxSpeed);
 
@@ -86,7 +98,7 @@ mixin AimFunctionality on Entity {
   Vector2 lastAimingPosition = Vector2.zero();
   double handPositionFromBody = .1;
 
-  Vector2 get aimDelta {
+  Vector2 get inputAimDelta {
     if (isDead) {
       return Vector2.zero();
     }
@@ -97,8 +109,15 @@ mixin AimFunctionality on Entity {
         inputAimAngles[InputType.mouseMove] ??
         inputAimAngles[InputType.ai] ??
         ((this is MovementFunctionality)
-            ? (this as MovementFunctionality).moveDelta
-            : Vector2.zero());
+                ? (this as MovementFunctionality).moveDelta
+                : Vector2.zero())
+            .normalized();
+  }
+
+  Vector2 get handAimDelta {
+    return (handJoint.weaponTipCenter!.absolutePosition -
+            handJoint.weaponBase!.absolutePosition)
+        .normalized();
   }
 
   Map<InputType, Vector2> inputAimAngles = {};
@@ -118,7 +137,7 @@ mixin AimFunctionality on Entity {
   }
 
   @override
-  void flipSpriteCheck() {
+  void spriteFlipCheck() {
     final degree = -degrees(handJoint.angle);
     if ((degree < 180 && !flipped) || (degree >= 180 && flipped)) {
       flipSprite();
@@ -128,7 +147,7 @@ mixin AimFunctionality on Entity {
   void handJointBehindBodyCheck() {
     final deg = degrees(radiansBetweenPoints(
       Vector2(1, 0),
-      aimDelta,
+      inputAimDelta,
     ));
 
     if ((deg >= 0 && deg < 180 && !weaponBehind) ||
@@ -146,22 +165,17 @@ mixin AimFunctionality on Entity {
     super.flipSprite();
   }
 
-  @override
-  void update(double dt) {
-    aimCharacter();
-    super.update(dt);
-  }
-
   void aimCharacter() {
     if (!enableMovement) return;
 
-    final delta = aimDelta;
+    final delta = inputAimDelta;
 
     handJoint.angle = -radiansBetweenPoints(
       Vector2(0, 1),
       delta,
     );
     handJointBehindBodyCheck();
+    spriteFlipCheck();
 
     handJoint.position = delta.clone() * handPositionFromBody;
     lastAimingPosition = delta.clone();
@@ -605,41 +619,49 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   List<DamageInstance> get damage =>
       damageCalculations(baseTouchDamage, touchDamageIncrease, damageDuration);
 
-  List<Body> objectsHitting = [];
-
-  final double baseHitRate = 1;
-  double hitRateIncrease = 0;
+  Map<Body, TimerComponent> objectsHitting = {};
 
   ///Time interval between damage ticks
   double get hitRate =>
       (baseHitRate - hitRateIncrease).clamp(0, double.infinity);
+  final double baseHitRate = 1;
+  double hitRateIncrease = 0;
 
-  void damageCheck() {
-    if (baseTouchDamage.isEmpty || isDead) return;
-
-    for (var element in objectsHitting) {
-      final otherReference = element.userData;
-      if (otherReference is! HealthFunctionality) continue;
-      if (isPlayer && otherReference is Enemy) {
-        otherReference.hitCheck(entityId, damage);
-      } else if (!isPlayer && otherReference is Player) {
-        otherReference.hitCheck(entityId, damage);
-      }
+  void damageOther(Body other) {
+    final otherReference = other.userData;
+    if (otherReference is! HealthFunctionality) return;
+    if (isPlayer && otherReference is Enemy) {
+      otherReference.hitCheck(entityId, damage);
+    } else if (!isPlayer && otherReference is Player) {
+      otherReference.hitCheck(entityId, damage);
     }
   }
 
   @override
-  void update(double dt) {
-    damageCheck();
-    super.update(dt);
-  }
-
-  @override
   void beginContact(Object other, Contact contact) {
+    if (baseTouchDamage.isEmpty || isDead) return;
+    if (other is! HealthFunctionality) return;
     if (isPlayer && other is Enemy) {
-      objectsHitting.add(other.body);
+      objectsHitting[other.body] = TimerComponent(
+        period: hitRate,
+        repeat: true,
+        onTick: () {
+          damageOther(other.body);
+        },
+      )
+        ..addToParent(this)
+        ..onTick();
+      other.hitCheck(entityId, damage);
     } else if (!isPlayer && other is Player) {
-      objectsHitting.add(other.body);
+      objectsHitting[other.body] = TimerComponent(
+        period: hitRate,
+        repeat: true,
+        onTick: () {
+          damageOther(other.body);
+        },
+      )
+        ..addToParent(this)
+        ..onTick();
     }
 
     super.beginContact(other, contact);
@@ -648,6 +670,7 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   @override
   void endContact(Object other, Contact contact) {
     if (other is BodyComponent) {
+      objectsHitting[other.body]?.removeFromParent();
       objectsHitting.remove(other.body);
     }
 
@@ -740,7 +763,7 @@ mixin DashFunctionality on StaminaFunctionality {
     _isDashing = true;
     if (weapon || teleportDash) {
       if (this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).aimDelta;
+        dashDelta = (this as AimFunctionality).inputAimDelta;
       }
       if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
         dashDelta = (this as MovementFunctionality).moveDelta;
@@ -750,7 +773,7 @@ mixin DashFunctionality on StaminaFunctionality {
         dashDelta = (this as MovementFunctionality).moveDelta;
       }
       if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).aimDelta;
+        dashDelta = (this as AimFunctionality).inputAimDelta;
       }
     }
 
@@ -910,7 +933,7 @@ mixin JumpFunctionality on StaminaFunctionality {
   }
 }
 
-mixin AttributeFunctionality on BodyComponent<GameRouter> {
+mixin AttributeFunctionality on BodyComponent {
   Map<AttributeEnum, Attribute> currentAttributes = {};
   Random rng = Random();
 

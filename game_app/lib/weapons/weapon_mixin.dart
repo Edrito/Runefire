@@ -7,6 +7,9 @@ import 'package:flame/palette.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/weapons/projectile_class.dart';
+import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 
@@ -14,22 +17,33 @@ import '../entities/entity.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
 
+mixin MultiWeaponCheck on Weapon {
+  @override
+  void attackAttempt() {
+    if ((entityAncestor as AttackFunctionality).currentWeapon != this) return;
+
+    super.attackAttempt();
+  }
+}
+
 mixin ReloadFunctionality on Weapon {
-  abstract int? maxAmmo;
+  int get maxAttacks => baseMaxAttacks + maxAttacksIncrease;
+  abstract final int baseMaxAttacks;
+  int maxAttacksIncrease = 0;
 
   ///How long in seconds to reload
   abstract final double baseReloadTime;
-
   double reloadTimeIncrease = 0;
+  double get reloadTime =>
+      (baseReloadTime - reloadTimeIncrease).clamp(0, double.infinity);
 
-  double get reloadTime => baseReloadTime - reloadTimeIncrease;
-
+  //Status of reloading
   int spentAttacks = 0;
 
-  ///Instance of reloading visual
   PositionComponent? reloadAnimation;
 
-  int? get remainingAttacks => maxAmmo == null ? null : maxAmmo! - spentAttacks;
+  int? get remainingAttacks =>
+      maxAttacks == 0 ? null : maxAttacks - spentAttacks;
 
   ///Timer that when completes finishes reload
   TimerComponent? reloadTimer;
@@ -37,8 +51,8 @@ mixin ReloadFunctionality on Weapon {
   @override
   FutureOr<void> onLoad() {
     if (this is MeleeFunctionality) {
-      assert(maxAmmo == (this as MeleeFunctionality).attacksLength ||
-          maxAmmo == null);
+      assert(maxAttacks == (this as MeleeFunctionality).attacksLength ||
+          maxAttacks == 0);
     }
     return super.onLoad();
   }
@@ -93,19 +107,10 @@ mixin ReloadFunctionality on Weapon {
     reload();
   }
 
-  @override
-  void endAttacking() {
-    // if (this is MeleeFunctionality) {
-    //   spentAttacks = 0;
-    // }
-    super.endAttacking();
-  }
-
   void reload() {
-    // if (removeSpriteOnAttack) {
-    //   entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
-    //   entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
-    // }
+    if (this is MeleeFunctionality) {
+      (this as MeleeFunctionality).resetToFirstSwings();
+    }
     createReloadBar();
     reloadTimer = TimerComponent(
       period: reloadTime,
@@ -138,7 +143,21 @@ mixin MeleeFunctionality on Weapon {
   ///Must be the same length as [attacksLength]
   List<Vector2> attackHitboxSizes = [];
 
+  int attacksCompletedIndex = 0;
+  Vector2? currentSwingPosition;
+  List<double> currentSwingAngles = [];
+
+  @override
+  bool get attacksAreActive => activeSwings.isNotEmpty;
+  List<MeleeAttack> activeSwings = [];
+
   int get attacksLength => (attackHitboxPatterns.length / 2).ceil();
+
+  int get currentAttackPatternIndex =>
+      (attacksCompletedIndex -
+          (((attacksCompletedIndex / (attacksLength)).floor()) *
+              (attacksLength))) *
+      2;
 
   void melee([double chargeAmount = 1]) async {
     attackOnAnimationFinish
@@ -148,13 +167,8 @@ mixin MeleeFunctionality on Weapon {
     if (attacksCompletedIndex >= attacksLength) {
       resetToFirstSwings();
     }
-    currentSwingPosition = entityAncestor?.handJoint.position.clone();
-    currentSwingAngle = entityAncestor?.handJoint.angle;
-
-    int attackPatternIndex = (attacksCompletedIndex -
-            (((attacksCompletedIndex / (attacksLength)).floor()) *
-                (attacksLength))) *
-        2;
+    currentSwingPosition = Vector2.zero();
+    final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
 
     entityAncestor?.setEntityStatus(
         EntityStatus.attack,
@@ -162,22 +176,31 @@ mixin MeleeFunctionality on Weapon {
             ? attackEntitySpriteAnimations[attacksCompletedIndex]
             : null);
 
-    entityAncestor?.add(MeleeAttack(
-      initPosition:
-          (currentSwingPosition ?? Vector2.zero()) * distanceFromPlayer,
-      initAngle: currentSwingAngle,
-      index: attackPatternIndex,
-      parentWeapon: this,
-    ));
+    List<Component> returnList = [];
 
+    List<double> temp =
+        splitRadInCone(currentSwingAngle, attackCount + (0 ?? 0), 360);
+
+    for (var deltaDirection in temp) {
+      currentSwingAngles.add(deltaDirection);
+
+      returnList.add(MeleeAttack(
+        initPosition: (Vector2.zero()) * distanceFromPlayer,
+        initAngle: deltaDirection,
+        index: currentAttackPatternIndex,
+        parentWeapon: this,
+      ));
+    }
+
+    entityAncestor?.addAll(returnList);
     attacksCompletedIndex++;
   }
 
-  int attacksCompletedIndex = 0;
-
   @override
   void endAttacking() {
-    resetToFirstSwings();
+    if (this is! ReloadFunctionality) {
+      resetToFirstSwings();
+    }
     super.endAttacking();
   }
 
@@ -193,13 +216,10 @@ mixin MeleeFunctionality on Weapon {
   }
 
   void resetToFirstSwings() {
-    currentSwingAngle = null;
+    currentSwingAngles.clear();
     currentSwingPosition = null;
     attacksCompletedIndex = 0;
   }
-
-  Vector2? currentSwingPosition;
-  double? currentSwingAngle;
 }
 
 mixin SecondaryFunctionality on Weapon {
@@ -230,37 +250,33 @@ mixin SecondaryFunctionality on Weapon {
   @override
   void startAltAttacking() {
     _secondaryWeapon?.startAttacking();
-    _secondaryWeaponAbility?.startAttacking();
+    _secondaryWeaponAbility?.startAbilityCheck();
   }
 
   @override
   void endAltAttacking() {
     _secondaryWeapon?.endAttacking();
-    _secondaryWeaponAbility?.endAttacking();
+    _secondaryWeaponAbility?.endAbility();
   }
 }
 
 mixin ProjectileFunctionality on Weapon {
+  //META
   abstract ProjectileType? projectileType;
   abstract bool allowProjectileRotation;
-  abstract int projectileCount;
-  abstract double maxSpreadDegrees;
-  abstract int pierce;
+
+  abstract int basePierce;
+  int get pierce => basePierce + pierceIncrease;
+  int pierceIncrease = 0;
+
   abstract double projectileVelocity;
-  abstract bool countIncreaseWithTime;
+
+  List<Projectile> activeProjectiles = [];
 
   @override
   FutureOr<void> onLoad() {
-    pierce = pierce.clamp(maxChainingTargets, double.infinity).toInt();
+    basePierce = basePierce.clamp(maxChainingTargets, double.infinity).toInt();
     return super.onLoad();
-  }
-
-  int? additionalCount;
-
-  void additionalCountCheck() {
-    if (countIncreaseWithTime) {
-      additionalCount = durationHeld.round();
-    }
   }
 
   @override
@@ -275,16 +291,6 @@ mixin ProjectileFunctionality on Weapon {
   }
 
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
-
-  Vector2 get handPosition =>
-      (parents[WeaponSpritePosition.hand]!.weaponTip!.absolutePosition +
-              (entityAncestor?.body.position ?? Vector2.zero()))
-          .clone();
-
-  Vector2 get handDelta =>
-      (parents[WeaponSpritePosition.hand]!.weaponTipCenter!.absolutePosition -
-              (entityAncestor?.handJoint.absolutePosition ?? Vector2.zero()))
-          .normalized();
 
   void shoot([double chargeAmount = 1]) async {
     attackOnAnimationFinish
@@ -311,9 +317,13 @@ mixin ProjectileFunctionality on Weapon {
       lifespan: particleLifespan,
       count: 10,
       generator: (i) => AcceleratedParticle(
-        position: handPosition,
+        position: weaponTipPosition,
         speed: moveDelta +
-            (randomizeVector2Delta(handDelta, .45).normalized()).clone() *
+            (randomizeVector2Delta(
+                            entityAncestor?.inputAimDelta ?? Vector2.zero(),
+                            .45)
+                        .normalized())
+                    .clone() *
                 30 *
                 (.5 + rng.nextDouble()),
         child: CircleParticle(
@@ -326,24 +336,26 @@ mixin ProjectileFunctionality on Weapon {
     return ParticleSystemComponent(particle: particle);
   }
 
-  List<BodyComponent> generateProjectileFunction([double chargeAmount = 1]) {
-    var deltaDirection = handDelta;
+  Vector2 get weaponTipPosition =>
+      (parents[WeaponSpritePosition.hand]!.weaponTip!.absolutePosition +
+          entityAncestor!.center);
 
+  List<BodyComponent> generateProjectileFunction([double chargeAmount = 1]) {
     List<BodyComponent> returnList = [];
 
-    List<Vector2> temp = splitVector2DeltaInCone(deltaDirection,
-        projectileCount + (additionalCount ?? 0), maxSpreadDegrees);
+    List<Vector2> temp = splitVector2DeltaIntoArea(
+        entityAncestor?.handAimDelta ?? Vector2.zero(),
+        attackCount + (additionalDurationCountIncrease ?? 0),
+        maxSpreadDegrees);
 
     for (var deltaDirection in temp) {
       if (projectileType == null) continue;
       final delta =
-          (randomizeVector2Delta(deltaDirection, weaponRandomnessPercent)
-                  .normalized())
-              .clone();
+          (randomizeVector2Delta(deltaDirection, weaponRandomnessPercent));
 
       returnList.add(projectileType!.generateProjectile(
           delta: delta,
-          originPositionVar: handPosition,
+          originPositionVar: weaponTipPosition,
           ancestorVar: this,
           chargeAmount: chargeAmount));
     }
@@ -419,7 +431,7 @@ mixin SemiAutomatic on Weapon {
 
   double get holdDurationPercentOfAttackRate =>
       semiAutoType == SemiAutoType.charge
-          ? clampDouble(durationHeld / attackRate, 0, 1)
+          ? clampDouble(durationHeld / attackTickRate, 0, 1)
           : 1;
 
   @override
@@ -435,7 +447,7 @@ mixin SemiAutomatic on Weapon {
     isAttacking = false;
     switch (semiAutoType) {
       case SemiAutoType.release:
-        if (durationHeld > attackRate) {
+        if (durationHeld > attackTickRate) {
           attackAttempt();
         }
         break;
@@ -461,7 +473,7 @@ mixin SemiAutomatic on Weapon {
 
 mixin FullAutomatic on Weapon {
   @override
-  double get durationHeld => attackTicks * attackRate;
+  double get durationHeld => attackTicks * attackTickRate;
 
   bool stopAttacking = false;
   bool allowRapidClicking = false;
@@ -476,11 +488,6 @@ mixin FullAutomatic on Weapon {
   }
 
   void attackFinishTick() {
-    if (removeSpriteOnAttack) {
-      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
-      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
-    }
-
     attackTimer?.removeFromParent();
     attackTicks = 0;
     attackTimer = null;
@@ -507,7 +514,7 @@ mixin FullAutomatic on Weapon {
     }
 
     attackTimer ??= TimerComponent(
-      period: attackRate,
+      period: attackTickRate,
       repeat: true,
       onTick: () {
         if (stopAttacking) {

@@ -19,8 +19,8 @@ class ForestGame extends GameEnviroment {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    forestBackground = level.buildBackground(this);
-    add(forestBackground);
+    // forestBackground = level.buildBackground(this);
+    // player.add(forestBackground);
     enemyManagement = EnemyManagement(this);
     add(enemyManagement);
   }

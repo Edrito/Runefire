@@ -13,7 +13,7 @@ class GameHud extends PositionComponent {
   late final Player player;
   GameHud(this.gameRef);
   int fps = 0;
-  late final TextComponent fpsCounter;
+  late final FpsTextComponent fpsCounter;
   late final TextComponent levelCounter;
   @override
   final double width = 100;
@@ -25,11 +25,11 @@ class GameHud extends PositionComponent {
     // add(RectangleComponent(
     //     position: Vector2.zero(), size: game.gameCamera.viewport.size / 11));
 
-    fpsCounter = CaTextComponent(
-        anchor: Anchor.topLeft,
-        textRenderer: TextPaint(style: defaultStyle),
-        position: Vector2(gameRef.gameCamera.viewport.size.x - 50, 5),
-        text: fps.toString());
+    fpsCounter = FpsTextComponent(
+      anchor: Anchor.topLeft,
+      textRenderer: TextPaint(style: defaultStyle),
+      position: Vector2(gameRef.gameCamera.viewport.size.x - 50, 5),
+    );
     levelCounter = CaTextComponent(
         anchor: Anchor.center,
         textRenderer: TextPaint(style: defaultStyle),
@@ -47,17 +47,6 @@ class GameHud extends PositionComponent {
       levelCounter.position.x = gameRef.gameCamera.viewport.size.x / 2;
     }
     super.onParentResize(maxSize);
-  }
-
-  @override
-  void update(double dt) {
-    if (dt != 0) {
-      fps = (1 / dt).round();
-    }
-    fpsCounter.text = fps.toString();
-    levelCounter.text = player.currentLevel.toString();
-
-    super.update(dt);
   }
 
   @override

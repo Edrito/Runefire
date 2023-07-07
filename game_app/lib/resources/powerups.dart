@@ -7,7 +7,6 @@ import 'package:game_app/resources/attributes_enum.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/entities/player.dart';
-import 'package:game_app/main.dart';
 
 // class WeaponUtility extends Powerup {
 //   @override
@@ -152,7 +151,7 @@ class PowerAttribute extends TemporaryAttribute {
   String icon = "powerups/power.png";
 }
 
-class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
+class PowerupItem extends BodyComponent with ContactCallbacks {
   PowerupItem(this.powerup, this.originPosition);
 
   TemporaryAttribute powerup;
@@ -167,9 +166,13 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
         size: Vector2.all(size),
         anchor: Anchor.center);
     spriteComponent.add(MoveEffect.by(
-        Vector2(0, 1.2),
-        InfiniteEffectController(
-            EffectController(duration: .5, reverseDuration: .5))));
+        Vector2(0, .25),
+        InfiniteEffectController(EffectController(
+          duration: .5,
+          reverseDuration: .5,
+          curve: Curves.easeInOut,
+          reverseCurve: Curves.easeInOut,
+        ))));
     add(spriteComponent);
     return super.onLoad();
   }

@@ -16,7 +16,6 @@ import 'package:game_app/weapons/weapon_mixin.dart';
 import '../functions/vector_functions.dart';
 import '../main.dart';
 import '../pages/menu.dart';
-import '../resources/area_effects.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 
@@ -54,7 +53,7 @@ class Player extends Entity
     moveVelocities.clear();
     inputAimAngles.clear();
     inputAimPositions.clear();
-    game.mouseCallback.remove(mouseCallbackWrapper);
+    gameEnv.game.mouseCallback.remove(mouseCallbackWrapper);
 
     super.onRemove();
   }
@@ -71,7 +70,7 @@ class Player extends Entity
     mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
     mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
     mouseCallbackWrapper.keyEvent = (event) => onKeyEvent(event);
-    game.mouseCallback.add(mouseCallbackWrapper);
+    gameEnv.game.mouseCallback.add(mouseCallbackWrapper);
 
     await super.onLoad();
   }
@@ -123,7 +122,7 @@ class Player extends Entity
 
   @override
   void update(double dt) {
-    if (!isDead && !isDashing) {
+    if (!isDead) {
       moveCharacter();
     }
     super.update(dt);
@@ -167,21 +166,11 @@ class Player extends Entity
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
-        gameEnv.physicsComponent.add(AreaEffect(
-          sourceEntity: this,
-          position: (inputAimPositions[InputType.mouseMove] ?? Vector2.zero()) +
-              center,
-          radius: 5,
-          isInstant: false,
-          duration: 5,
-          onTick: (entity, areaId) {
-            if (entity is HealthFunctionality) {
-              entity.hitCheck(areaId, [
-                DamageInstance(damageBase: .1, damageType: DamageType.fire)
-              ]);
-            }
-          },
-        ));
+        gameEnv.add(SpriteAnimationComponent(
+            animation: idleAnimation,
+            position: generateRandomGamePositionUsingViewport(true, gameEnv)));
+        debugCount++;
+        print(debugCount);
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
@@ -195,6 +184,8 @@ class Player extends Entity
       }
     }
   }
+
+  int debugCount = 0;
 
   @override
   double dashCooldown = 1;
@@ -289,6 +280,7 @@ class Player extends Entity
       default:
       // Code to handle unknown or unexpected input type
     }
+    aimCharacter();
   }
 
   void killPlayer(bool showDeathScreen) {

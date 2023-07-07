@@ -8,11 +8,12 @@ import '../entities/player.dart';
 import '../main.dart';
 import '../resources/enums.dart';
 
-class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
+class ExperienceItem extends BodyComponent with ContactCallbacks {
   ExperienceItem(this.experienceAmount, this.originPosition);
 
   ExperienceAmount experienceAmount;
   late SpriteComponent spriteComponent;
+
   double size = .2;
   Vector2 originPosition;
   double speed = 30;
@@ -57,8 +58,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
     super.beginContact(other, contact);
   }
 
-  @override
-  void update(double dt) {
+  void home(double dt) {
     if (target != null) {
       body.setTransform(
           center +
@@ -68,6 +68,11 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
           angle);
       // body.applyLinearImpulse((target!.center - center).normalized() /speed);
     }
+  }
+
+  @override
+  void update(double dt) {
+    home(dt);
     super.update(dt);
   }
 

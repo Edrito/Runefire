@@ -10,8 +10,7 @@ import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
 
-abstract class Projectile extends BodyComponent<GameRouter>
-    with ContactCallbacks {
+abstract class Projectile extends BodyComponent with ContactCallbacks {
   Projectile(
       {required this.delta,
       required this.originPosition,
@@ -27,7 +26,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   ProjectileFunctionality weaponAncestor;
   double closeBodySensorRadius = 3;
   Vector2 originPosition;
-  abstract double length;
+  abstract double size;
   abstract double ttl;
   abstract ProjectileType projectileType;
 
@@ -104,8 +103,14 @@ abstract class Projectile extends BodyComponent<GameRouter>
       },
     );
     add(projectileDeathTimer!);
-
+    weaponAncestor.activeProjectiles.add(this);
     return super.onLoad();
+  }
+
+  @override
+  void onRemove() {
+    weaponAncestor.activeProjectiles.remove(this);
+    super.onRemove();
   }
 
   void killBullet() async {

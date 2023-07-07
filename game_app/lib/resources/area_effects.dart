@@ -48,7 +48,8 @@ class AreaEffect extends BodyComponent with ContactCallbacks {
   late SpriteAnimationComponent spriteAnimationComponent;
   late CircleComponent circleComponent;
 
-  Map<Entity, double> affectedEntities = {};
+  Map<Entity, TimerComponent> affectedEntities = {};
+  bool isKilled = false;
 
   @override
   Future<void> onLoad() {
@@ -79,8 +80,18 @@ class AreaEffect extends BodyComponent with ContactCallbacks {
     if (other is! Entity) return;
     if (other == sourceEntity) return;
     if (affectedEntities.containsKey(other)) return;
-    affectedEntities[other] = 0;
-    doOnTick(other);
+    if (isInstant) {
+      doOnTick(other);
+    } else {
+      affectedEntities[other] = TimerComponent(
+          period: tickRate,
+          repeat: true,
+          onTick: () {
+            doOnTick(other);
+          })
+        ..addToParent(this)
+        ..onTick();
+    }
 
     super.beginContact(other, contact);
   }
@@ -92,30 +103,21 @@ class AreaEffect extends BodyComponent with ContactCallbacks {
     onTick(entity, areaId);
   }
 
+  void instantChecker() {
+    if (!isKilled && isInstant && body.isActive) {
+      if (aliveForOneTick) {
+        killArea();
+      }
+      aliveForOneTick = true;
+    }
+  }
+
   @override
   void update(double dt) {
-    if (!isKilled) {
-      if (!isInstant) {
-        affectedEntities.forEach((key, value) {
-          affectedEntities[key] = value + dt;
-          if (value >= tickRate) {
-            affectedEntities[key] = 0;
-            doOnTick(key);
-          }
-        });
-      } else if (body.isActive) {
-        if (aliveForOneTick) {
-          killArea();
-        }
-
-        aliveForOneTick = true;
-      }
-    }
-
+    instantChecker();
     super.update(dt);
   }
 
-  bool isKilled = false;
   void killArea() {
     isKilled = true;
     affectedEntities.clear();
@@ -139,6 +141,7 @@ class AreaEffect extends BodyComponent with ContactCallbacks {
   void endContact(Object other, Contact contact) {
     if (other is! Entity) return;
     if (isInstant) return;
+    affectedEntities[other]?.removeFromParent();
     affectedEntities.remove(other);
 
     super.endContact(other, contact);

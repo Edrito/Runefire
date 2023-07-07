@@ -69,7 +69,7 @@ class MeleeAttack extends PositionComponent {
       required this.parentWeapon}) {
     start = parentWeapon.attackHitboxPatterns[index];
     end = parentWeapon.attackHitboxPatterns[index + 1];
-    duration = parentWeapon.attackRate;
+    duration = parentWeapon.attackTickRate;
     meleeId = const Uuid().v4();
   }
 
@@ -89,6 +89,9 @@ class MeleeAttack extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
+    parentWeapon.activeSwings.add(this);
+    parentWeapon.spriteVisibilityCheck();
+
     size = parentWeapon.attackHitboxSizes[(index / 2).round()];
 
     if (parentWeapon.attackHitboxSpriteAnimations.isNotEmpty) {
@@ -124,16 +127,14 @@ class MeleeAttack extends PositionComponent {
       onTick: () {
         if (spriteAnimationComponent != null) {
           spriteAnimationComponent?.add(OpacityEffect.fadeOut(EffectController(
-            duration: .05,
+            duration: .15,
             onMax: () {
-              removeFromParent();
+              removeSwing();
             },
           )));
         } else {
-          removeFromParent();
+          removeSwing();
         }
-
-        bodyComponent?.removeFromParent();
       },
     ));
 
@@ -159,6 +160,14 @@ class MeleeAttack extends PositionComponent {
     ]);
 
     return super.onLoad();
+  }
+
+  void removeSwing() {
+    removeFromParent();
+    parentWeapon.activeSwings.remove(this);
+    parentWeapon.spriteVisibilityCheck();
+
+    bodyComponent?.removeFromParent();
   }
 
   @override

@@ -10,6 +10,7 @@ import '../game/background.dart';
 import '../game/enviroment.dart';
 import '../game/forest_game.dart';
 import '../weapons/projectiles.dart';
+import '../weapons/secondary_abilities.dart';
 import '../weapons/weapon_class.dart';
 
 enum EntityType { player, enemy, npc }
@@ -183,6 +184,8 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
       case SecondaryType.pistol:
         return Portal.create(
             upgradeLevel, primaryWeaponAncestor.entityAncestor);
+      case SecondaryType.explodeProjectiles:
+        return ExplodeProjectile(primaryWeaponAncestor, 5);
     }
   }
 }
@@ -273,7 +276,9 @@ class DamageInstance {
 enum SecondaryType {
   reloadAndRapidFire(
       'assets/images/weapons/portal.png', 5, weaponIsReloadFunctionality),
-  pistol('assets/images/weapons/portal.png', 5, alwaysCompatible);
+  pistol('assets/images/weapons/portal.png', 5, alwaysCompatible),
+  explodeProjectiles(
+      'assets/images/weapons/portal.png', 5, weaponIsProjectileFunctionality);
 
   const SecondaryType(this.icon, this.maxLevel, this.compatibilityCheck);
 
@@ -290,5 +295,10 @@ bool alwaysCompatible(Weapon weapon) => true;
 
 bool weaponIsReloadFunctionality(Weapon weapon) {
   bool test = weapon is ReloadFunctionality;
+  return test;
+}
+
+bool weaponIsProjectileFunctionality(Weapon weapon) {
+  bool test = weapon is ProjectileFunctionality;
   return test;
 }

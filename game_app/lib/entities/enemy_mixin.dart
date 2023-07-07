@@ -80,15 +80,6 @@ mixin DumbFollowAI on MovementFunctionality {
   }
 }
 
-mixin AimAtPlayerFunctionality on AimFunctionality {
-  @override
-  void update(double dt) {
-    inputAimAngles[InputType.ai] =
-        (currentGameEnviroment!.player.center - center).normalized();
-    super.update(dt);
-  }
-}
-
 mixin DumbShoot on AttackFunctionality {
   TimerComponent? shooter;
   double interval = 2;

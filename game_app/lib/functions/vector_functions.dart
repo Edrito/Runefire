@@ -99,7 +99,7 @@ Vector2 randomizeVector2Delta(Vector2 element, double percent) {
 //                                       ___/
 //                               ---*****
 //
-List<Vector2> splitVector2DeltaInCone(
+List<Vector2> splitVector2DeltaIntoArea(
     Vector2 angle, int count, double maxAngleVarianceDegrees) {
   if (count == 1) return [angle];
   List<Vector2> angles = [];
@@ -124,6 +124,31 @@ List<Vector2> splitVector2DeltaInCone(
     double y = sin(currentAngle);
 
     angles.add(Vector2(x, y));
+  }
+
+  return angles;
+}
+
+List<double> splitRadInCone(
+    double angle, int count, double maxAngleVarianceDegrees) {
+  if (count == 1) return [angle];
+  List<double> angles = [];
+
+  // Convert maxAngleVariance from degrees to radians
+  double maxAngleVariance = radians(maxAngleVarianceDegrees);
+
+  // Calculate the step size for evenly spreading the angles
+  double stepSize = maxAngleVariance / (count - 1);
+
+  // Calculate the starting angle
+
+  // Generate the angles
+  angle -= maxAngleVariance / 2;
+
+  for (int i = 0; i < count; i++) {
+    double currentAngle = angle + (stepSize * i);
+
+    angles.add(currentAngle);
   }
 
   return angles;

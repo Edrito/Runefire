@@ -72,7 +72,7 @@ abstract class BackgroundComponent extends ParallaxComponent<GameRouter> {
       parallax!.baseVelocity
           .setFrom((gameReference.player.center - lastPlayerPosition) / dt);
       lastPlayerPosition.setFrom(gameReference.player.center);
-      position.setFrom(gameReference.player.center);
+      // position.setFrom(gameReference.player.center);
     }
 
     super.update(dt);

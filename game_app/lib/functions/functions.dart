@@ -21,10 +21,16 @@ Future<SpriteAnimation> buildSpriteSheet(
       to: loop ? null : numberOfSprites);
 }
 
-bool boolAbilityDecipher(bool base, List<bool> boolIncrease) =>
-    [base, ...boolIncrease].fold<int>(
-        0, (previousValue, element) => previousValue + (element ? 1 : -1)) >
-    0;
+bool boolAbilityDecipher(bool base, List<bool> boolIncrease) {
+  if (boolIncrease.isEmpty) {
+    return base;
+  }
+  return [base, ...boolIncrease].fold<int>(
+          0,
+          (previousValue, element) =>
+              previousValue + ((element) ? 0 : (element ? 1 : -1))) >=
+      0;
+}
 
 List<DamageInstance> damageCalculations(Map<DamageType, (double, double)> base,
     Map<DamageType, (double, double)> increase, double? duration) {

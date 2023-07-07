@@ -12,7 +12,7 @@ import '../resources/enums.dart';
 import '../resources/priorities.dart';
 import 'entity_mixin.dart';
 
-abstract class Entity extends BodyComponent<GameRouter>
+abstract class Entity extends BodyComponent
     with BaseAttributes, AttributeFunctionality {
   Entity({required this.initPosition, required this.gameEnv}) {
     entityId = const Uuid().v4();
@@ -169,7 +169,7 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   @override
   void onRemove() {
-    if (!gameRef.router.currentRoute.maintainState) {
+    if (!gameEnv.game.router.currentRoute.maintainState) {
       super.onRemove();
     }
   }
@@ -220,18 +220,15 @@ abstract class Entity extends BodyComponent<GameRouter>
         size: spriteAnimationComponent.size, anchor: Anchor.center);
     spriteWrapper.flipHorizontallyAroundCenter();
     add(spriteWrapper..add(spriteAnimationComponent));
+    // add(spriteWrapper
+    //   ..add(CircleComponent(radius: height, paint: BasicPalette.red.paint())));
+
     add(backJoint);
 
     return super.onLoad();
   }
 
-  @override
-  void update(double dt) {
-    flipSpriteCheck();
-    super.update(dt);
-  }
-
-  void flipSpriteCheck() {
+  void spriteFlipCheck() {
     final movement = body.linearVelocity.x;
     if ((movement > 0 && !flipped) || (movement <= 0 && flipped)) {
       flipSprite();
