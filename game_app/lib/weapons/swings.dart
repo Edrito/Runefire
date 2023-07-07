@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/animation.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -9,9 +9,10 @@ import 'package:uuid/uuid.dart';
 
 import '../functions/vector_functions.dart';
 import '../entities/enemy.dart';
+import '../main.dart';
 import '../resources/enums.dart';
 
-class MeleeDetection extends BodyComponent with ContactCallbacks {
+class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
   MeleeDetection(this.size, this.parentAttack);
   MeleeAttack parentAttack;
   final Vector2 size;
@@ -64,7 +65,7 @@ class MeleeDetection extends BodyComponent with ContactCallbacks {
 class MeleeAttack extends PositionComponent {
   MeleeAttack(
       {required this.initPosition,
-      this.initAngle,
+      required this.initAngle,
       required this.index,
       required this.parentWeapon}) {
     start = parentWeapon.attackHitboxPatterns[index];
@@ -85,7 +86,7 @@ class MeleeAttack extends PositionComponent {
   MeleeFunctionality parentWeapon;
   BodyComponent? bodyComponent;
   Vector2 initPosition;
-  double? initAngle;
+  double initAngle;
 
   @override
   Future<void> onLoad() async {
@@ -110,12 +111,9 @@ class MeleeAttack extends PositionComponent {
     parentWeapon.entityAncestor?.gameEnv.physicsComponent.add(bodyComponent!);
 
     // anchor = Anchor.center;
-    final handAngle =
-        (initAngle ?? parentWeapon.entityAncestor?.handJoint.angle ?? 0);
-    angle = radians(start.$2) +
-        (initAngle ?? parentWeapon.entityAncestor?.handJoint.angle ?? 0);
-    final rotatedStartPosition = rotateVector2(start.$1, handAngle);
-    final rotatedEndPosition = rotateVector2(end.$1, handAngle);
+    angle = radians(start.$2) + initAngle;
+    final rotatedStartPosition = rotateVector2(start.$1, initAngle);
+    final rotatedEndPosition = rotateVector2(end.$1, initAngle);
 
     position = initPosition + rotatedStartPosition;
 
@@ -153,7 +151,7 @@ class MeleeAttack extends PositionComponent {
         radians(totalAngle),
         effectController,
       ),
-      MoveEffect.by(
+      MoveEffect.to(
         rotatedEndPosition,
         effectController,
       )

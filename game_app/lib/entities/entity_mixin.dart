@@ -12,6 +12,7 @@ import 'package:game_app/resources/visuals.dart';
 
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
+import '../main.dart';
 import '../resources/attributes.dart';
 import '../resources/attributes_enum.dart';
 import '../resources/enums.dart';
@@ -45,7 +46,7 @@ mixin BaseStats on Entity {
   int timesReloaded = 0;
 }
 
-mixin BaseAttributes on BodyComponent {
+mixin BaseAttributes on BodyComponent<GameRouter> {
   bool get isJumping => false;
   bool get isDashing => false;
   bool isDead = false;
@@ -63,6 +64,8 @@ mixin BaseAttributes on BodyComponent {
   List<bool> enableMovementIncrease = [];
   bool get enableMovement =>
       boolAbilityDecipher(baseEnableMovement, enableMovementIncrease);
+
+  int additionalCountIncrease = 0;
 }
 
 mixin MovementFunctionality on Entity {
@@ -127,10 +130,16 @@ mixin AimFunctionality on Entity {
 
   @override
   Future<void> onLoad() {
-    handJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.hand,
-        anchor: Anchor.center, size: Vector2.zero());
-    mouseJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.mouse,
-        anchor: Anchor.center, size: Vector2.zero());
+    handJoint = PlayerAttachmentJointComponent(
+      WeaponSpritePosition.hand,
+      anchor: Anchor.center,
+      size: Vector2.zero(),
+    );
+    mouseJoint = PlayerAttachmentJointComponent(
+      WeaponSpritePosition.mouse,
+      anchor: Anchor.center,
+      size: Vector2.zero(),
+    );
     add(handJoint);
     add(mouseJoint);
     return super.onLoad();
@@ -385,6 +394,7 @@ mixin HealthFunctionality on Entity {
           curve: Curves.easeIn),
     ));
     super.deadStatus();
+    removeFromParent();
   }
 
   void buildDamageText(DamageInstance instance) {
@@ -933,7 +943,7 @@ mixin JumpFunctionality on StaminaFunctionality {
   }
 }
 
-mixin AttributeFunctionality on BodyComponent {
+mixin AttributeFunctionality on BodyComponent<GameRouter> {
   Map<AttributeEnum, Attribute> currentAttributes = {};
   Random rng = Random();
 

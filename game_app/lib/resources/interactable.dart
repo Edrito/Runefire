@@ -9,7 +9,7 @@ import 'package:game_app/resources/priorities.dart';
 import '../entities/player.dart';
 import 'enums.dart';
 
-class InteractableComponent extends BodyComponent
+class InteractableComponent extends BodyComponent<GameRouter>
     with ContactCallbacks, KeyboardHandler {
   InteractableComponent(this.initialPosition, this.spriteComponent,
       this.onInteract, this.useKey, this.displayedTextString);

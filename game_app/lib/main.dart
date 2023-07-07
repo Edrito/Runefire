@@ -1,10 +1,11 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -89,7 +90,7 @@ late Function setStateMainMenu;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!kIsWeb) {
+  if (Platform.isWindows) {
     await windowManager.ensureInitialized();
   }
   await Future.wait([
@@ -159,7 +160,7 @@ void main() async {
   );
 }
 
-class GameRouter extends FlameGame
+class GameRouter extends Forge2DGame
     with
         ScrollDetector,
         SecondaryTapDetector,
@@ -168,8 +169,7 @@ class GameRouter extends FlameGame
   late final RouterComponent router;
 
   GameRouter(this._systemData, this._playerData)
-  // : super(gravity: Vector2.zero(), zoom: 1)
-  {
+      : super(gravity: Vector2.zero(), zoom: 1) {
     playerDataComponent = PlayerDataComponent(_playerData);
     systemDataComponent = SystemDataComponent(_systemData);
   }

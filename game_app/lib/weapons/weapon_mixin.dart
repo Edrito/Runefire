@@ -345,13 +345,14 @@ mixin ProjectileFunctionality on Weapon {
 
     List<Vector2> temp = splitVector2DeltaIntoArea(
         entityAncestor?.handAimDelta ?? Vector2.zero(),
-        attackCount + (additionalDurationCountIncrease ?? 0),
+        attackCount,
         maxSpreadDegrees);
 
     for (var deltaDirection in temp) {
       if (projectileType == null) continue;
       final delta =
           (randomizeVector2Delta(deltaDirection, weaponRandomnessPercent));
+      print(attackCount);
 
       returnList.add(projectileType!.generateProjectile(
           delta: delta,

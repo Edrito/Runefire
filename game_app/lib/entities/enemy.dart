@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/enemy_mixin.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/pages/weapon_menu.dart';
 import 'package:game_app/resources/powerups.dart';
 
 import '../functions/functions.dart';
@@ -62,7 +62,6 @@ class DummyTwo extends Enemy
 
   @override
   Future<void> onLoad() async {
-//
     await loadAnimationSprites();
     await super.onLoad();
     // startAttacking();
@@ -87,9 +86,6 @@ class DummyTwo extends Enemy
   SpriteAnimation? walkAnimation;
 
   @override
-  SpriteAnimation? dodgeAnimation;
-
-  @override
   Map<DamageType, (double, double)> baseTouchDamage = {
     DamageType.energy: (1, 4)
   };
@@ -99,7 +95,9 @@ abstract class Enemy extends Entity with ContactCallbacks {
   Enemy({
     required super.initPosition,
     required super.gameEnv,
-  });
+  }) {
+    priority = enemyPriority;
+  }
 
   bool collisionOnDeath = false;
 
@@ -136,22 +134,26 @@ abstract class Enemy extends Entity with ContactCallbacks {
 
 class EnemyManagement extends Component {
   int enemiesSpawned = 0;
-  EnemyManagement(this.mainGameRef);
-  GameEnviroment mainGameRef;
+  EnemyManagement(this.gameEnv);
+  GameEnviroment gameEnv;
+
+  void generateEnemies() {
+    var section = 5.0;
+    for (var i = 1; i < 5; i++) {
+      for (var j = 1; j < 10; j++) {
+        section = section - ((rng.nextDouble() * section / 2) - section / 4);
+        gameEnv.physicsComponent.add(DummyTwo(
+            initPosition: Vector2(section * i, section * j) -
+                gameEnv.gameCamera.viewport.size / 50,
+            gameEnv: gameEnv));
+      }
+    }
+  }
 
   @override
   FutureOr<void> onLoad() {
-    var section = 5.0;
-    for (var i = 1; i < 20; i++) {
-      for (var j = 1; j < 10; j++) {
-        section =
-            section - ((Random().nextDouble() * section / 2) - section / 4);
-        add(DummyTwo(
-            initPosition: Vector2(section * i, section * j) -
-                mainGameRef.gameCamera.viewport.size / 50,
-            gameEnv: mainGameRef));
-      }
-    }
+    priority = enemyPriority;
+
     // add(DummyTwo(
     //     initPosition: Vector2(0, 0) - mainGameRef.gameCamera.viewport.size / 15,
     //     ancestor: mainGameRef));
@@ -181,8 +183,8 @@ class EnemyManagement extends Component {
     //       }),
     // );
 
-    add(PowerupItem(PowerAttribute(level: 0, entity: mainGameRef.player),
-        generateRandomGamePositionUsingViewport(true, mainGameRef)));
+    add(PowerupItem(PowerAttribute(level: 0, entity: gameEnv.player),
+        generateRandomGamePositionUsingViewport(true, gameEnv)));
 
     return super.onLoad();
   }

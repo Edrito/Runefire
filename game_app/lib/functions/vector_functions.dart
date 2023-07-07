@@ -311,3 +311,39 @@ Vector2 newPosition(Vector2 origin, double angleInDegrees, double distance) {
   // Return new position
   return Vector2(newX, newY);
 }
+
+List<Vector2> triangleZoomEffect(
+  double baseWidth,
+  double height,
+  Vector2 previousPoint,
+  Vector2 currentPoint,
+  double bendFactor,
+) {
+  // Calculate the midpoint between the previous and current points
+  Vector2 midPoint = (previousPoint + currentPoint) / 2;
+
+  // Calculate the control point that creates the bending effect
+  Vector2 controlPoint = midPoint + Vector2(bendFactor, 0);
+
+  // Calculate the remaining points of the triangle
+  Vector2 vertexA = previousPoint;
+  Vector2 vertexB = controlPoint;
+  Vector2 vertexC = currentPoint;
+
+  // Calculate the offset for the base width
+  double halfBaseWidth = baseWidth / 2;
+
+  // Calculate the height offset
+  double heightOffset = height / 2;
+
+  // Adjust the triangle vertices based on the base width and height
+  vertexA.x -= halfBaseWidth;
+  vertexA.y -= heightOffset;
+  vertexB.x -= halfBaseWidth;
+  vertexB.y -= heightOffset;
+  vertexC.x -= halfBaseWidth;
+  vertexC.y -= heightOffset;
+
+  // Return the triangle vertices as a list
+  return [vertexA, vertexB, vertexC];
+}

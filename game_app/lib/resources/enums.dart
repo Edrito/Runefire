@@ -81,15 +81,21 @@ enum InputType {
 }
 
 extension ExperienceAmountExtension on ExperienceAmount {
-  String getSpriteString() {
+  ShapeComponent getShapeComponent(double radius) {
     switch (this) {
       case ExperienceAmount.small:
-        return 'experience/small.png';
+        return CircleComponent(radius: radius, anchor: Anchor.center);
       case ExperienceAmount.medium:
-        return 'experience/medium.png';
+        return RectangleComponent(
+            size: Vector2.all(radius), anchor: Anchor.center);
 
       case ExperienceAmount.large:
-        return 'experience/large.png';
+        return PolygonComponent([
+          Vector2(0, -radius),
+          Vector2(radius, 0),
+          Vector2(0, radius),
+          Vector2(-radius, 0)
+        ], anchor: Anchor.center);
     }
   }
 
@@ -101,6 +107,17 @@ extension ExperienceAmountExtension on ExperienceAmount {
         return 10;
       case ExperienceAmount.large:
         return 100;
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case ExperienceAmount.small:
+        return Colors.lightBlue.shade200;
+      case ExperienceAmount.medium:
+        return Colors.green.shade200;
+      case ExperienceAmount.large:
+        return Colors.purple.shade200;
     }
   }
 }

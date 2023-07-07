@@ -9,8 +9,10 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_mixin.dart';
 import 'package:game_app/functions/functions.dart';
+import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/resources/overlays.dart';
 import 'package:game_app/resources/physics_filter.dart';
+import 'package:game_app/resources/priorities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../functions/vector_functions.dart';
@@ -62,6 +64,7 @@ class Player extends Entity
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll(playerData.selectedWeapons.values);
+    priority = playerPriority;
 
     await loadAnimationSprites();
 
@@ -166,11 +169,7 @@ class Player extends Entity
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
-        gameEnv.add(SpriteAnimationComponent(
-            animation: idleAnimation,
-            position: generateRandomGamePositionUsingViewport(true, gameEnv)));
-        debugCount++;
-        print(debugCount);
+        (gameEnv as ForestGame).enemyManagement.generateEnemies();
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
@@ -243,6 +242,7 @@ class Player extends Entity
         final delta = gameEnv.aimJoystick?.relativeDelta;
         if (delta == null || delta.isZero()) return;
         inputAimAngles[InputType.aimJoy] = delta.normalized();
+        startAttacking();
 
         break;
 
@@ -272,6 +272,7 @@ class Player extends Entity
 
         break;
       case InputType.mouseDragStart:
+        if (!inputAimAngles.containsKey(InputType.mouseMove)) return;
         startAttacking();
         break;
       case InputType.secondaryClick:
@@ -309,7 +310,7 @@ class Player extends Entity
   double baseHealth = 50;
 
   @override
-  double baseSpeed = .1;
+  double baseSpeed = .06;
 
   @override
   EntityType entityType = EntityType.player;

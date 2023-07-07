@@ -172,6 +172,7 @@ abstract class GameEnviroment extends Component
     windowManager.addListener(this);
     children.register<CameraComponent>();
     gameWorld = World();
+    gameWorld.priority = worldPriority;
     super.add(gameWorld);
 
     gameCamera = CameraComponent(world: gameWorld);
@@ -183,20 +184,22 @@ abstract class GameEnviroment extends Component
         gameEnv: this, initPosition: Vector2.zero());
     hud = GameHud(this);
     physicsComponent = Forge2DComponent();
+    physicsComponent.priority = enemyPriority;
     bounds = Bounds();
     gameCamera.viewport.addAll([hud]);
-    // gameCamera.viewport.addAll([ moveJoystick!, aimJoystick!]);
-
+    // gameCamera.viewport.addAll([moveJoystick!, aimJoystick!]);
+    gameCamera.priority = backgroundPriority;
     super.add(gameCamera);
 
+    player.priority = playerPriority;
     add(player);
     add(physicsComponent);
     add(bounds);
-
-    player.mounted.whenComplete(() => gameCamera.viewfinder
-        .add(CustomFollowBehavior(player, gameCamera.viewfinder)));
+    player.mounted.whenComplete(
+        () => add(CustomFollowBehavior(player, gameCamera.viewfinder)));
 
     gameCamera.viewfinder.zoom = 50;
+
     return super.onLoad();
   }
 
@@ -335,7 +338,7 @@ abstract class GameEnviroment extends Component
   }
 }
 
-class Bounds extends BodyComponent {
+class Bounds extends BodyComponent<GameRouter> {
   late ChainShape bounds;
   final double maxArea = 70;
   @override

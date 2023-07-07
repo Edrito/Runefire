@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/main.dart';
 
+import '../main.dart';
 import '../pages/buttons.dart';
 import 'attributes_enum.dart';
 

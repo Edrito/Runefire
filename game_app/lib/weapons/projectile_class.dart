@@ -10,7 +10,8 @@ import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
 
-abstract class Projectile extends BodyComponent with ContactCallbacks {
+abstract class Projectile extends BodyComponent<GameRouter>
+    with ContactCallbacks {
   Projectile(
       {required this.delta,
       required this.originPosition,

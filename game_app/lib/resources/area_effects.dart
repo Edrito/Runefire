@@ -8,8 +8,9 @@ import 'package:game_app/resources/physics_filter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../entities/entity.dart';
+import '../main.dart';
 
-class AreaEffect extends BodyComponent with ContactCallbacks {
+class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   AreaEffect({
     this.spawnAnimation,
     this.playAnimation,

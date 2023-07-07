@@ -12,7 +12,7 @@ import '../resources/enums.dart';
 import '../resources/priorities.dart';
 import 'entity_mixin.dart';
 
-abstract class Entity extends BodyComponent
+abstract class Entity extends BodyComponent<GameRouter>
     with BaseAttributes, AttributeFunctionality {
   Entity({required this.initPosition, required this.gameEnv}) {
     entityId = const Uuid().v4();
@@ -219,9 +219,15 @@ abstract class Entity extends BodyComponent
     spriteWrapper = PositionComponent(
         size: spriteAnimationComponent.size, anchor: Anchor.center);
     spriteWrapper.flipHorizontallyAroundCenter();
+    // if (isPlayer) {
     add(spriteWrapper..add(spriteAnimationComponent));
-    // add(spriteWrapper
-    //   ..add(CircleComponent(radius: height, paint: BasicPalette.red.paint())));
+    // } else {
+    //   add(spriteWrapper
+    //     ..add(CircleComponent(
+    //       radius: height / 2,
+    //       paint: BasicPalette.blue.paint(),
+    //     )));
+    // }
 
     add(backJoint);
 

@@ -8,6 +8,8 @@ import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/physics_filter.dart';
 import 'package:game_app/entities/player.dart';
 
+import '../main.dart';
+
 // class WeaponUtility extends Powerup {
 //   @override
 //   double duration = 10;
@@ -151,7 +153,7 @@ class PowerAttribute extends TemporaryAttribute {
   String icon = "powerups/power.png";
 }
 
-class PowerupItem extends BodyComponent with ContactCallbacks {
+class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   PowerupItem(this.powerup, this.originPosition);
 
   TemporaryAttribute powerup;

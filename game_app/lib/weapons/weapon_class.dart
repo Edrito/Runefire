@@ -1,15 +1,20 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
-import 'package:flutter/animation.dart';
+import 'package:flame/palette.dart';
+import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../functions/functions.dart';
+import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
+import '../resources/priorities.dart';
 
 class PlayerAttachmentJointComponent extends PositionComponent
     with HasAncestor<Entity> {
@@ -112,9 +117,10 @@ abstract class Weapon extends Component {
 
   //WEAPON ATTRIBUTES
   abstract final int baseAttackCount;
+
   int get attackCount =>
       baseAttackCount +
-      additionalCountIncrease +
+      (entityAncestor?.additionalCountIncrease ?? 0) +
       additionalDurationCountIncrease;
 
   bool get countIncreaseWithTime => boolAbilityDecipher(
@@ -123,7 +129,6 @@ abstract class Weapon extends Component {
   List<bool> countIncreaseWithTimeIncrease = [];
 
   int additionalDurationCountIncrease = 0;
-  int additionalCountIncrease = 0;
 
   void additionalCountCheck() {
     if (countIncreaseWithTime) {
@@ -132,7 +137,7 @@ abstract class Weapon extends Component {
   }
 
   double get maxSpreadDegrees =>
-      baseMaxSpreadDegrees * maxSpreadDegreesIncrease;
+      baseMaxSpreadDegrees + maxSpreadDegreesIncrease;
   abstract final double baseMaxSpreadDegrees;
   double maxSpreadDegreesIncrease = 0;
 
@@ -244,6 +249,63 @@ abstract class Weapon extends Component {
     }
   }
 
+  Map<MeleeAttack, (List<Vector2>, List<Vector2>)> behindEffects = {};
+
+  @override
+  void render(Canvas canvas) {
+    if (this is MeleeFunctionality) {
+      final melee = this as MeleeFunctionality;
+      if (melee.attacksAreActive) {
+        for (var element in melee.activeSwings) {
+          if (!behindEffects.containsKey(element)) {
+            behindEffects[element] = (
+              [element.position],
+              [newPosition(element.position, -degrees(element.angle), length)]
+            );
+          } else {
+            {
+              behindEffects[element] = (
+                [
+                  ...behindEffects[element]!.$1,
+                  element.position,
+                ],
+                [
+                  ...behindEffects[element]!.$2,
+                  newPosition(
+                      element.position, -degrees(element.angle), length),
+                ]
+              );
+            }
+          }
+        }
+        behindEffects
+            .removeWhere((key, value) => !melee.activeSwings.contains(key));
+      } else {
+        behindEffects.clear();
+      }
+    }
+
+    for (var element in behindEffects.values) {
+      List<Offset> offsets = [];
+
+      for (var i = 0; i < element.$1.length - 1; i++) {
+        offsets.add(element.$1.elementAt(i).toOffset());
+        offsets.add(element.$2.elementAt(i).toOffset());
+      }
+      if (offsets.isEmpty) return;
+      canvas.drawVertices(
+          ui.Vertices(VertexMode.triangleStrip, offsets),
+          BlendMode.color,
+          BasicPalette.red.paint()
+            ..style = PaintingStyle.fill
+            ..shader = ui.Gradient.linear(offsets.first, offsets.last,
+                [Colors.transparent, Colors.yellow])
+            ..strokeWidth = .1);
+    }
+
+    super.render(canvas);
+  }
+
   WeaponStatus weaponStatus = WeaponStatus.idle;
 
   ///Sets the current status of the weapon, i.e. idle, shooting, reloading
@@ -278,6 +340,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     anchor = Anchor.topCenter;
     size = animation!.frames.first.sprite.srcSize.scaled(
         parentJoint.weapon!.length / animation!.frames.first.sprite.srcSize.y);
+    priority = attackPriority;
   }
   WeaponStatus currentStatus = WeaponStatus.idle;
   PlayerAttachmentJointComponent parentJoint;
