@@ -1,27 +1,25 @@
 import 'package:flame/components.dart';
-import 'package:flame/rendering.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 import 'package:uuid/uuid.dart';
 
-import '../game/enviroment.dart';
 import '../resources/enums.dart';
 // ignore: unused_import
-import '../resources/priorities.dart';
+import '../resources/constants/priorities.dart';
 import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter>
     with BaseAttributes, AttributeFunctionality {
-  Entity({required this.initPosition, required this.gameEnv}) {
+  Entity({required this.initPosition, required this.gameEnviroment}) {
     entityId = const Uuid().v4();
   }
 
   late String entityId;
 
   abstract EntityType entityType;
-  GameEnviroment gameEnv;
+  dynamic gameEnviroment;
 
   bool get isPlayer => this is Player;
 
@@ -48,7 +46,7 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   late SpriteAnimationComponent spriteAnimationComponent;
   late PositionComponent spriteWrapper;
-  late Shadow3DDecorator shadow3DDecorator;
+  // late Shadow3DDecorator shadow3DDecorator;
 
   bool flipped = false;
 
@@ -154,7 +152,6 @@ abstract class Entity extends BodyComponent<GameRouter>
       default:
         animation = idleAnimation;
     }
-    if (animation == null) return;
 
     if (tempAnimationPlaying) {
       statusQueue = newEntityStatus;
@@ -164,12 +161,14 @@ abstract class Entity extends BodyComponent<GameRouter>
       spriteAnimationComponent.animation = animation;
     }
 
-    await spriteAnimationComponent.animationTicker?.completed;
+    if (!(spriteAnimationComponent.animation?.loop ?? false)) {
+      await spriteAnimationComponent.animationTicker?.completed;
+    }
   }
 
   @override
   void onRemove() {
-    if (!gameEnv.game.router.currentRoute.maintainState) {
+    if (!game.router.currentRoute.maintainState) {
       super.onRemove();
     }
   }
@@ -205,17 +204,17 @@ abstract class Entity extends BodyComponent<GameRouter>
         size: Vector2.zero(),
         priority: playerBackPriority);
 
-    shadow3DDecorator = Shadow3DDecorator(
-        base: spriteAnimationComponent.size,
-        angle: 1.4,
-        xShift: 250,
-        yScale: 2,
-        opacity: 1,
-        blur: .2)
-      ..base.y += -.8
-      ..base.x -= 1;
+    // shadow3DDecorator = Shadow3DDecorator(
+    //     base: spriteAnimationComponent.size,
+    //     angle: 1.4,
+    //     xShift: 250,
+    //     yScale: 2,
+    //     opacity: 1,
+    //     blur: .2)
+    //   ..base.y += -.8
+    //   ..base.x -= 1;
 
-    spriteAnimationComponent.decorator = shadow3DDecorator;
+    // spriteAnimationComponent.decorator = shadow3DDecorator;
     spriteWrapper = PositionComponent(
         size: spriteAnimationComponent.size, anchor: Anchor.center);
     spriteWrapper.flipHorizontallyAroundCenter();
@@ -242,7 +241,7 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   void flipSprite() {
-    shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
+    // shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
     backJoint.flipHorizontallyAroundCenter();
     spriteWrapper.flipHorizontallyAroundCenter();
     flipped = !flipped;

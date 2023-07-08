@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/weapons/enemy_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/weapons.dart';
 
@@ -46,25 +47,9 @@ enum JoystickDirection {
 
 extension CharacterTypeFilename on CharacterType {}
 
-enum EnemyType {
-  flameHead,
-}
-
-enum GameLevel { space, forest, home }
+enum GameLevel { forest, space, garden, menu }
 
 enum CharacterType { wizard, rogue }
-
-extension EnemyTypeFilename on EnemyType {
-  String getFilename() {
-    switch (this) {
-      case EnemyType.flameHead:
-        return 'flame_head.png';
-
-      default:
-        return '';
-    }
-  }
-}
 
 enum ExperienceAmount { small, medium, large }
 
@@ -161,27 +146,28 @@ extension ProjectileTypeExtension on ProjectileType {
 }
 
 extension GameLevelExtension on GameLevel {
-  String getTileFilename() {
+  // String getTileFilename() {
+  //   switch (this) {
+  //     case GameLevel.space:
+  //       return 'isometric-sandbox-map.tmx';
+  //     case GameLevel.forest:
+  //       return 'isometric-sandbox-map.tmx';
+  //     case GameLevel.home:
+  //       return 'home-room.tmx';
+  //     default:
+  //       return '';
+  //   }
+  // }
+
+  BackgroundComponent buildBackground(Enviroment gameRef) {
     switch (this) {
-      case GameLevel.space:
-        return 'isometric-sandbox-map.tmx';
+      // case GameLevel.space:
+      //   return ForestBackground(gameRef);
       case GameLevel.forest:
-        return 'isometric-sandbox-map.tmx';
-      case GameLevel.home:
-        return 'home-room.tmx';
+        return ForestBackground(gameRef);
+      case GameLevel.menu:
+        return BlankBackground(gameRef);
       default:
-        return '';
-    }
-  }
-
-  BackgroundComponent buildBackground(GameEnviroment gameRef) {
-    switch (this) {
-      case GameLevel.space:
-        return ForestBackground(gameRef);
-      case GameLevel.forest:
-        return ForestBackground(gameRef);
-
-      case GameLevel.home:
         return ForestBackground(gameRef);
     }
   }
@@ -209,20 +195,24 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 
 enum WeaponType {
   pistol(Pistol.create, 'assets/images/weapons/pistol.png', 5,
-      AttackType.projectile),
+      AttackType.projectile, 0),
   shotgun(Shotgun.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile),
+      AttackType.projectile, 500),
   portal(Portal.create, 'assets/images/weapons/portal.png', 5,
-      AttackType.projectile),
-  shiv(Sword.create, 'assets/images/weapons/sword.png', 5, AttackType.melee),
-  bow(Bow.create, 'assets/images/weapons/bow.png', 10, AttackType.projectile);
+      AttackType.projectile, 1000),
+  shiv(Sword.create, 'assets/images/weapons/sword.png', 5, AttackType.melee, 0),
+  bow(Bow.create, 'assets/images/weapons/bow.png', 10, AttackType.projectile,
+      500),
+  blankMelee(BlankMelee.create, 'assets/images/weapons/bow.png', 5,
+      AttackType.melee, 0);
 
-  const WeaponType(
-      this.createFunction, this.icon, this.maxLevel, this.attackType);
+  const WeaponType(this.createFunction, this.icon, this.maxLevel,
+      this.attackType, this.baseCost);
   final String icon;
   final int maxLevel;
   final AttackType attackType;
   final Function createFunction;
+  final int baseCost;
 }
 
 extension WeaponTypeFilename on WeaponType {
@@ -248,6 +238,9 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.portal:
         returnWeapon = Portal.create(upgradeLevel, ancestor);
+        break;
+      case WeaponType.blankMelee:
+        returnWeapon = BlankMelee.create(ancestor);
         break;
     }
     if (returnWeapon is SecondaryFunctionality) {

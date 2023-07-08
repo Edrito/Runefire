@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui';
+import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -82,6 +82,10 @@ mixin ReloadFunctionality on Weapon {
       fullAuto.attackTimer?.onTick();
     }
 
+    removeReloadAnimation();
+  }
+
+  void removeReloadAnimation() {
     reloadAnimation?.removeFromParent();
     reloadAnimation = null;
   }
@@ -89,8 +93,7 @@ mixin ReloadFunctionality on Weapon {
   @override
   void weaponSwappedFrom() {
     //Remove reload animation if weapon changes
-    reloadAnimation?.removeFromParent();
-    reloadAnimation = null;
+    removeReloadAnimation();
     super.weaponSwappedFrom();
   }
 
@@ -131,7 +134,7 @@ mixin MeleeFunctionality on Weapon {
   ///Finish position - Finish angle
   List<(Vector2, double)> attackHitboxPatterns = [];
 
-  ///Must be the same length as [attacksLength] or 0
+  ///If melee, must be the same length as [attacksLength] or 0
   List<SpriteAnimation> attackEntitySpriteAnimations = [];
 
   ///Must be the same length as [attacksLength] or 0
@@ -170,16 +173,22 @@ mixin MeleeFunctionality on Weapon {
     currentSwingPosition = Vector2.zero();
     final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
 
-    entityAncestor?.setEntityStatus(
-        EntityStatus.attack,
-        attackEntitySpriteAnimations.isNotEmpty
-            ? attackEntitySpriteAnimations[attacksCompletedIndex]
-            : null);
+    attackOnAnimationFinish
+        ? await entityAncestor?.setEntityStatus(
+            EntityStatus.attack,
+            attackEntitySpriteAnimations.isNotEmpty
+                ? attackEntitySpriteAnimations[attacksCompletedIndex]
+                : null)
+        : entityAncestor?.setEntityStatus(
+            EntityStatus.attack,
+            attackEntitySpriteAnimations.isNotEmpty
+                ? attackEntitySpriteAnimations[attacksCompletedIndex]
+                : null);
 
     List<Component> returnList = [];
 
     List<double> temp =
-        splitRadInCone(currentSwingAngle, attackCount + (0 ?? 0), 360);
+        splitRadInCone(currentSwingAngle, attackCount, maxSpreadDegrees);
 
     for (var deltaDirection in temp) {
       currentSwingAngles.add(deltaDirection);
@@ -244,6 +253,10 @@ mixin SecondaryFunctionality on Weapon {
   @override
   void weaponSwappedFrom() {
     _secondaryWeaponAbility?.removeReloadAnimation();
+    if (_secondaryWeapon is ReloadFunctionality) {
+      final reload = _secondaryWeapon as ReloadFunctionality;
+      reload.removeReloadAnimation();
+    }
     super.weaponSwappedFrom();
   }
 
@@ -298,7 +311,7 @@ mixin ProjectileFunctionality on Weapon {
         : setWeaponStatus(WeaponStatus.attack);
 
     additionalCountCheck();
-    entityAncestor?.gameEnv.physicsComponent
+    entityAncestor?.gameEnviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
     // entityAncestor?.ancestor.physicsComponent.add(generateParticle());
     entityAncestor?.handJoint.add(MoveEffect.by(Vector2(0, -.05),
@@ -432,7 +445,7 @@ mixin SemiAutomatic on Weapon {
 
   double get holdDurationPercentOfAttackRate =>
       semiAutoType == SemiAutoType.charge
-          ? clampDouble(durationHeld / attackTickRate, 0, 1)
+          ? ui.clampDouble(durationHeld / attackTickRate, 0, 1)
           : 1;
 
   @override
@@ -525,5 +538,72 @@ mixin FullAutomatic on Weapon {
         }
       },
     )..addToParent(this);
+  }
+}
+
+mixin MeleeTrailEffect on MeleeFunctionality {
+  Map<MeleeAttack, (List<Vector2>, List<Vector2>)> behindEffects = {};
+
+  final double baseBeginPercent = .4;
+
+  @override
+  void render(Canvas canvas) {
+    if (attacksAreActive) {
+      for (var element in activeSwings) {
+        if (!behindEffects.containsKey(element)) {
+          behindEffects[element] = (
+            [
+              newPosition(element.position, -degrees(element.angle),
+                      length * baseBeginPercent)
+                  .clone()
+            ],
+            [
+              newPosition(element.position, -degrees(element.angle), length)
+                  .clone()
+            ]
+          );
+        } else {
+          {
+            behindEffects[element] = (
+              [
+                ...behindEffects[element]!.$1,
+                newPosition(element.position, -degrees(element.angle),
+                        length * baseBeginPercent)
+                    .clone(),
+              ],
+              [
+                ...behindEffects[element]!.$2,
+                newPosition(element.position, -degrees(element.angle), length)
+                    .clone(),
+              ]
+            );
+          }
+        }
+      }
+      behindEffects.removeWhere((key, value) => !activeSwings.contains(key));
+    } else {
+      behindEffects.clear();
+    }
+
+    for (var element in behindEffects.entries) {
+      List<Offset> offsets = [];
+
+      for (var i = 0; i < element.value.$1.length - 1; i++) {
+        offsets.add(element.value.$1.elementAt(i).toOffset());
+        offsets.add(element.value.$2.elementAt(i).toOffset());
+      }
+      if (offsets.isEmpty) return;
+
+      canvas.drawVertices(
+          ui.Vertices(VertexMode.triangleStrip, offsets),
+          BlendMode.color,
+          BasicPalette.red.paint()
+            ..style = PaintingStyle.fill
+            ..shader = ui.Gradient.linear(offsets.first, offsets.last,
+                [Colors.transparent, Colors.yellow])
+            ..strokeWidth = 0);
+    }
+
+    super.render(canvas);
   }
 }

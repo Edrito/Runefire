@@ -1,20 +1,16 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
-import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../functions/functions.dart';
-import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
-import '../resources/priorities.dart';
+import '../resources/constants/priorities.dart';
 
 class PlayerAttachmentJointComponent extends PositionComponent
     with HasAncestor<Entity> {
@@ -44,6 +40,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
     weaponBase?.removeFromParent();
     weaponTipCenter?.removeFromParent();
     weapon = null;
+    weaponBase = null;
   }
 
   Future<void> addWeaponClass(Weapon newWeapon) async {
@@ -77,8 +74,9 @@ class PlayerAttachmentJointComponent extends PositionComponent
       weaponBase?.add(weaponTipCenter!);
       weaponBase?.add(weaponTip!);
     }
-
-    add(weaponBase!);
+    if (weaponBase!.parent == null) {
+      add(weaponBase!);
+    }
     weapon!.parents[jointPosition] = this;
   }
 }
@@ -91,8 +89,8 @@ abstract class Weapon extends Component {
         "Projectile weapon types need a projectile type");
     entityAncestor?.add(this);
 
-    newUpgradeLevel ??= 1;
-    newUpgradeLevel = upgradeLevel.clamp(1, weaponType.maxLevel);
+    newUpgradeLevel ??= 0;
+    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
 
     applyWeaponUpgrade(newUpgradeLevel);
   }
@@ -181,7 +179,7 @@ abstract class Weapon extends Component {
 
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
-  FutureOr<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  FutureOr<WeaponSpriteAnimation?> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint);
   abstract double distanceFromPlayer;
   abstract double tipPositionPercent;
@@ -199,7 +197,7 @@ abstract class Weapon extends Component {
   double get attackRateSecondComparison => 1 / attackTickRate;
 
   void applyWeaponUpgrade(int newUpgradeLevel) {
-    newUpgradeLevel = upgradeLevel.clamp(1, weaponType.maxLevel);
+    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
   }
 
   //Event functions that are modified from attributes
@@ -247,63 +245,6 @@ abstract class Weapon extends Component {
         spritesHidden = false;
       }
     }
-  }
-
-  Map<MeleeAttack, (List<Vector2>, List<Vector2>)> behindEffects = {};
-
-  @override
-  void render(Canvas canvas) {
-    if (this is MeleeFunctionality) {
-      final melee = this as MeleeFunctionality;
-      if (melee.attacksAreActive) {
-        for (var element in melee.activeSwings) {
-          if (!behindEffects.containsKey(element)) {
-            behindEffects[element] = (
-              [element.position],
-              [newPosition(element.position, -degrees(element.angle), length)]
-            );
-          } else {
-            {
-              behindEffects[element] = (
-                [
-                  ...behindEffects[element]!.$1,
-                  element.position,
-                ],
-                [
-                  ...behindEffects[element]!.$2,
-                  newPosition(
-                      element.position, -degrees(element.angle), length),
-                ]
-              );
-            }
-          }
-        }
-        behindEffects
-            .removeWhere((key, value) => !melee.activeSwings.contains(key));
-      } else {
-        behindEffects.clear();
-      }
-    }
-
-    for (var element in behindEffects.values) {
-      List<Offset> offsets = [];
-
-      for (var i = 0; i < element.$1.length - 1; i++) {
-        offsets.add(element.$1.elementAt(i).toOffset());
-        offsets.add(element.$2.elementAt(i).toOffset());
-      }
-      if (offsets.isEmpty) return;
-      canvas.drawVertices(
-          ui.Vertices(VertexMode.triangleStrip, offsets),
-          BlendMode.color,
-          BasicPalette.red.paint()
-            ..style = PaintingStyle.fill
-            ..shader = ui.Gradient.linear(offsets.first, offsets.last,
-                [Colors.transparent, Colors.yellow])
-            ..strokeWidth = .1);
-    }
-
-    super.render(canvas);
   }
 
   WeaponStatus weaponStatus = WeaponStatus.idle;
@@ -427,6 +368,8 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
       currentStatus = newWeaponStatus;
     }
 
-    await animationTicker?.completed;
+    if (!(animation?.loop ?? false)) {
+      await animationTicker?.completed;
+    }
   }
 }

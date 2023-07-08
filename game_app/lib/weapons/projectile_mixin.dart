@@ -8,7 +8,7 @@ import '../entities/entity_mixin.dart';
 import '../entities/player.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
-import '../resources/physics_filter.dart';
+import '../resources/constants/physics_filter.dart';
 
 mixin StandardProjectile on Projectile {
   late final CircleComponent circleComponent;

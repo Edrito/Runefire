@@ -16,7 +16,7 @@ import '../main.dart';
 import '../resources/attributes.dart';
 import '../resources/attributes_enum.dart';
 import '../resources/enums.dart';
-import '../resources/priorities.dart';
+import '../resources/constants/priorities.dart';
 import '../weapons/weapon_class.dart';
 
 //when back from shower
@@ -730,7 +730,7 @@ mixin DashFunctionality on StaminaFunctionality {
   double get dashDistance => baseDashDistance + dashDistanceIncrease;
   double dashDistanceIncrease = 0;
 
-  final double baseDashDuration = .1;
+  final double baseDashDuration = .2;
   double get dashDuration =>
       (baseDashDuration - dashDurationIncrease).clamp(0, double.infinity);
   double dashDurationIncrease = 0;
@@ -742,7 +742,7 @@ mixin DashFunctionality on StaminaFunctionality {
   @override
   void dashStatus() {
     if (!dashCheck()) return;
-    dashAnimation?.stepTime = dashDuration / dashAnimation!.frames.length;
+    dashAnimation?.stepTime = dashDuration / dashAnimation!.frames.length * 2;
     applyTempAnimation(dashAnimation);
 
     super.dashStatus();
@@ -1020,14 +1020,17 @@ mixin AttributeFunctionality on BodyComponent<GameRouter> {
 
   List<Attribute> buildAttributeSelection() {
     List<Attribute> returnList = [];
-
+    final potentialCandidates = AttributeEnum.values
+        .where((element) => element.category != AttributeCategory.temporary)
+        .toList();
     for (var i = 0; i < 3; i++) {
-      final attr =
-          AttributeEnum.values[rng.nextInt(AttributeEnum.values.length)];
+      final attr = potentialCandidates
+          .elementAt(rng.nextInt(potentialCandidates.length));
+
       if (currentAttributes.containsKey(attr)) {
         returnList.add(currentAttributes[attr]!);
       } else {
-        returnList.add(attr.buildAttribute(1, this, false));
+        returnList.add(attr.buildAttribute(0, this, false));
       }
     }
     return returnList;

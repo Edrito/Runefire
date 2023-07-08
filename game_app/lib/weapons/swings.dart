@@ -3,7 +3,7 @@ import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/animation.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/resources/physics_filter.dart';
+import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 
@@ -79,8 +79,8 @@ class MeleeAttack extends PositionComponent {
 
   late double duration;
   late String meleeId;
-  late final SpriteAnimation? spriteAnimation;
-  late final SpriteAnimationComponent? spriteAnimationComponent;
+  SpriteAnimation? spriteAnimation;
+  SpriteAnimationComponent? spriteAnimationComponent;
 
   int index;
   MeleeFunctionality parentWeapon;
@@ -108,7 +108,8 @@ class MeleeAttack extends PositionComponent {
 
     bodyComponent = MeleeDetection(size, this);
 
-    parentWeapon.entityAncestor?.gameEnv.physicsComponent.add(bodyComponent!);
+    parentWeapon.entityAncestor?.gameEnviroment.physicsComponent
+        .add(bodyComponent!);
 
     // anchor = Anchor.center;
     angle = radians(start.$2) + initAngle;

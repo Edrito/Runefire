@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:game_app/resources/enums.dart';
 
-import '../pages/weapon_menu.dart';
+import '../main.dart';
 
 Future<SpriteAnimation> buildSpriteSheet(
   int numberOfSprites,

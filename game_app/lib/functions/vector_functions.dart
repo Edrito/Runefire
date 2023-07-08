@@ -236,8 +236,8 @@ Vector2 rotateVector2(Vector2 vector, double rad) {
 //   return deltaList;
 // }
 
-Vector2 generateRandomGamePositionUsingViewport(
-    bool internal, GameEnviroment gameRef) {
+Vector2 generateRandomGamePositionInViewport(
+    bool internal, Enviroment gameRef) {
   const paddingDouble = 10.0;
   final padding = Vector2.all(paddingDouble);
   final random = Vector2.random();

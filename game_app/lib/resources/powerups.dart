@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/resources/attributes.dart';
 import 'package:game_app/resources/attributes_enum.dart';
 import 'package:game_app/resources/enums.dart';
-import 'package:game_app/resources/physics_filter.dart';
+import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/entities/player.dart';
 
 import '../main.dart';

@@ -1,148 +1,12 @@
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/attributes_enum.dart';
 
 import '../resources/attributes.dart';
 import '../resources/visuals.dart';
-
-class CustomButton extends StatelessWidget {
-  const CustomButton(
-    this.text, {
-    required this.gameRef,
-    this.isHighlightedInitial = false,
-    this.onTap,
-    this.onSecondaryTap,
-    this.onTapDown,
-    this.onTapUp,
-    this.onTapCancel,
-    this.onSecondaryTapDown,
-    this.onSecondaryTapUp,
-    this.onSecondaryTapCancel,
-    Key? key,
-  }) : super(key: key);
-
-  final GameRouter gameRef;
-  final Function? onTap;
-  final Function(TapDownDetails)? onTapDown;
-  final Function(TapUpDetails)? onTapUp;
-  final Function? onTapCancel;
-  final Function? onSecondaryTap;
-  final Function(TapDownDetails)? onSecondaryTapDown;
-  final Function(TapUpDetails)? onSecondaryTapUp;
-  final Function? onSecondaryTapCancel;
-  final bool isHighlightedInitial;
-  final String text;
-
-  CustomButton copyWith({
-    GameRouter? gameRef,
-    Function? onTap,
-    Function(TapDownDetails)? onTapDown,
-    Function(TapUpDetails)? onTapUp,
-    Function? onTapCancel,
-    Function? onSecondaryTap,
-    Function(TapDownDetails)? onSecondaryTapDown,
-    Function(TapUpDetails)? onSecondaryTapUp,
-    Function? onSecondaryTapCancel,
-    bool? isHighlightedInitial,
-    String? text,
-    Key? key,
-  }) {
-    return CustomButton(
-      text ?? this.text,
-      gameRef: gameRef ?? this.gameRef,
-      isHighlightedInitial: isHighlightedInitial ?? this.isHighlightedInitial,
-      onTap: onTap ?? this.onTap,
-      onTapDown: onTapDown ?? this.onTapDown,
-      onTapUp: onTapUp ?? this.onTapUp,
-      onTapCancel: onTapCancel ?? this.onTapCancel,
-      onSecondaryTap: onSecondaryTap ?? this.onSecondaryTap,
-      onSecondaryTapDown: onSecondaryTapDown ?? this.onSecondaryTapDown,
-      onSecondaryTapUp: onSecondaryTapUp ?? this.onSecondaryTapUp,
-      onSecondaryTapCancel: onSecondaryTapCancel ?? this.onSecondaryTapCancel,
-      key: key ?? this.key,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    bool? isHighlighted;
-
-    return StatefulBuilder(builder: (context, setstate) {
-      TextStyle style = defaultStyle.copyWith(
-        color: isHighlighted ?? isHighlightedInitial
-            ? buttonDownColor
-            : buttonUpColor,
-      );
-      return InkWell(
-        splashFactory: NoSplash.splashFactory,
-        hoverColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        onHover: (value) {
-          setstate(
-            () {
-              isHighlighted = value;
-            },
-          );
-        },
-        onTap: () {
-          if (onTap != null) {
-            onTap!();
-          }
-        },
-        onTapCancel: () {
-          if (onTapCancel != null) {
-            onTapCancel!();
-          }
-        },
-        onTapDown: (details) {
-          if (onTapDown != null) {
-            onTapDown!(details);
-          }
-        },
-        onTapUp: (details) {
-          if (onTapUp != null) {
-            onTapUp!(details);
-          }
-        },
-        onSecondaryTap: () {
-          if (onSecondaryTap != null) {
-            onSecondaryTap!();
-          }
-        },
-        onSecondaryTapDown: (details) {
-          if (onSecondaryTapDown != null) {
-            onSecondaryTapDown!(details);
-          }
-        },
-        onSecondaryTapUp: (details) {
-          if (onSecondaryTapUp != null) {
-            onSecondaryTapUp!(details);
-          }
-        },
-        onSecondaryTapCancel: () {
-          if (onSecondaryTapCancel != null) {
-            onSecondaryTapCancel!();
-          }
-        },
-        child: Padding(
-          padding: isHighlighted ?? isHighlightedInitial
-              ? const EdgeInsets.all(3)
-              : const EdgeInsets.only(
-                  right: 6,
-                  bottom: 6,
-                ),
-          child: Text(
-            text,
-            style: style,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    });
-  }
-}
 
 class CustomCard extends StatelessWidget {
   const CustomCard(
@@ -190,13 +54,40 @@ class CustomCard extends StatelessWidget {
     return StatefulBuilder(builder: (context, setState) {
       isEnding ??= isEndingInitial;
       isHighlighted ??= isHighlightedInitial;
-
+      final highlightColor = isHighlighted!
+          ? buttonDownColor
+          : attribute.attributeEnum.rarity.color.brighten(.1);
       isHighlighted = isHighlighted! || isEnding!;
-      TextStyle style = defaultStyle.copyWith(
-          color: isHighlighted!
-              ? buttonDownColor
-              : attribute.attributeEnum.rarity.color.brighten(.1),
-          fontSize: 30);
+      TextStyle style =
+          defaultStyle.copyWith(color: highlightColor, fontSize: 30);
+
+      List<Widget> levelIndicators = [];
+
+      for (int i = 0; i < attribute.level; i++) {
+        levelIndicators.add(
+          Padding(
+            padding: const EdgeInsets.all(2),
+            child: Icon(
+              Icons.star,
+              color: highlightColor,
+              size: 20,
+            ),
+          ),
+        );
+      }
+
+      for (var i = 0; i < attribute.maxLevel - attribute.level; i++) {
+        levelIndicators.add(
+          Padding(
+            padding: const EdgeInsets.all(2),
+            child: Icon(
+              Icons.star_outline,
+              color: highlightColor,
+              size: 20,
+            ),
+          ),
+        );
+      }
 
       Widget card = ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 300, maxHeight: 500),
@@ -226,16 +117,13 @@ class CustomCard extends StatelessWidget {
               padding: const EdgeInsets.all(3),
               child: Container(
                 decoration: BoxDecoration(
-                    // color: attribute.attributeEnum.rarity.color.brighten(.9),
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    // borderRadius: const BorderRadius.all(Radius.circular(20)),
                     gradient: LinearGradient(colors: [
                       attribute.attributeEnum.rarity.color.brighten(.98),
                       attribute.attributeEnum.rarity.color.brighten(.9),
                     ]),
                     border: Border.all(
-                        color:
-                            attribute.attributeEnum.rarity.color.brighten(.15),
-                        width: 3)),
+                        color: highlightColor.brighten(.15), width: 3)),
                 child: Column(
                   children: [
                     const SizedBox(
@@ -310,6 +198,16 @@ class CustomCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                      SizedBox(
+                        height: 80,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: levelIndicators,
+                          ),
+                        ),
+                      )
                     ] else ...[
                       Expanded(
                         flex: 3,
@@ -365,5 +263,109 @@ class CustomCard extends StatelessWidget {
               child: card)
           : card);
     });
+  }
+}
+
+class DisplayCards extends StatefulWidget {
+  const DisplayCards({required this.cards, this.ending = false, super.key});
+  final List<CustomCard> cards;
+  final bool ending;
+  @override
+  State<DisplayCards> createState() => _DisplayCardsState();
+}
+
+class _DisplayCardsState extends State<DisplayCards>
+    with TickerProviderStateMixin {
+  int selectedIndex = -1;
+  FocusNode focusNode = FocusNode();
+  CustomCard? selectedCard;
+  bool loaded = false;
+  @override
+  void initState() {
+    super.initState();
+    focusNode.requestFocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> displayedCards = [];
+
+    for (CustomCard card in widget.cards) {
+      if (selectedCard == null) {
+        if (selectedIndex != -1 && widget.cards[selectedIndex] == card) {
+          card = card.copyWith(isHighlightedInitial: true);
+        }
+        displayedCards.add(Padding(
+          padding: const EdgeInsets.all(10),
+          child: card,
+        ));
+      } else {
+        if (card == selectedCard) {
+          card =
+              card.copyWith(isHighlightedInitial: true, isEndingInitial: true);
+        }
+        displayedCards.add(Padding(
+          padding: const EdgeInsets.all(10),
+          child: card,
+        ));
+      }
+    }
+
+    return IgnorePointer(
+      ignoring: selectedCard != null,
+      child: Listener(
+        onPointerDown: (event) {
+          selectedIndex = -1;
+        },
+        child: KeyboardListener(
+          focusNode: focusNode,
+          autofocus: true,
+          onKeyEvent: (value) {
+            if (value is KeyUpEvent ||
+                value is KeyRepeatEvent ||
+                widget.ending ||
+                !loaded) return;
+            if (value.logicalKey == LogicalKeyboardKey.enter ||
+                value.logicalKey == LogicalKeyboardKey.space) {
+              if (selectedIndex != -1) {
+                setState(() {
+                  selectedCard = widget.cards[selectedIndex];
+                  selectedCard?.onTap!();
+                });
+              }
+            } else if (value.logicalKey == LogicalKeyboardKey.keyA ||
+                value.logicalKey == LogicalKeyboardKey.arrowLeft) {
+              setState(() {
+                selectedIndex--;
+                if (selectedIndex < 0) {
+                  selectedIndex = widget.cards.length - 1;
+                }
+              });
+            } else if (value.logicalKey == LogicalKeyboardKey.keyD ||
+                value.logicalKey == LogicalKeyboardKey.arrowRight) {
+              setState(() {
+                selectedIndex++;
+                if (selectedIndex > widget.cards.length - 1) {
+                  selectedIndex = 0;
+                }
+              });
+            }
+          },
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: displayedCards
+                  .animate(onComplete: (_) => loaded = true)
+                  .fadeIn(
+                    duration: .2.seconds,
+                    curve: Curves.decelerate,
+                  )
+                  .moveY(
+                      duration: .2.seconds,
+                      curve: Curves.decelerate,
+                      begin: 50,
+                      end: 0)),
+        ),
+      ),
+    );
   }
 }

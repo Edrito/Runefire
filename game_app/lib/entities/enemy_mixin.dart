@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/game/experience.dart';
+import 'package:game_app/entities/experience.dart';
 import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
@@ -27,7 +27,7 @@ mixin DropExperienceFunctionality on HealthFunctionality {
       experienceAmount = ExperienceAmount.small;
     }
 
-    gameEnv.add(ExperienceItem(experienceAmount, body.position));
+    gameEnviroment.add(ExperienceItem(experienceAmount, body.position));
     super.deadStatus();
   }
 }
@@ -44,7 +44,7 @@ mixin AimControlFunctionality on AimFunctionality {
       case AimPattern.player:
         updateFunction = () {
           inputAimAngles[InputType.ai] =
-              (gameEnv.player.center - body.position).normalized();
+              (gameEnviroment.player.center - body.position).normalized();
         };
 
         break;
@@ -64,7 +64,7 @@ mixin DumbFollowAI on MovementFunctionality {
   double targetUpdateFrequency = .3;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnv.player.center - body.position);
+    final newPosition = (gameEnviroment.player.center - body.position);
     moveVelocities[InputType.ai] = newPosition.normalized();
   }
 
@@ -103,10 +103,11 @@ mixin DumbFollowRangeAI on MovementFunctionality {
   double zoningDistance = 10;
 
   void _dumbFollowRangeTargetTick() {
-    final newPosition = (gameEnv.player.center - body.position) -
-        ((gameEnv.player.center - body.position).normalized() * zoningDistance);
+    final newPosition = (gameEnviroment.player.center - body.position) -
+        ((gameEnviroment.player.center - body.position).normalized() *
+            zoningDistance);
 
-    final dis = center.distanceTo(gameEnv.player.center);
+    final dis = center.distanceTo(gameEnviroment.player.center);
 
     if (dis < zoningDistance * 1.1 && dis > zoningDistance * .9) {
       moveVelocities[InputType.ai] = Vector2.zero();
@@ -136,7 +137,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   bool inverse = false;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnv.player.center - body.position);
+    final newPosition = (gameEnviroment.player.center - body.position);
 
     moveVelocities[InputType.ai] =
         newPosition.normalized() * (inverse ? -1 : 1);

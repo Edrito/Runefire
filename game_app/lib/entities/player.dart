@@ -10,14 +10,14 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_mixin.dart';
 import 'package:game_app/functions/functions.dart';
 import 'package:game_app/game/forest_game.dart';
-import 'package:game_app/resources/overlays.dart';
-import 'package:game_app/resources/physics_filter.dart';
-import 'package:game_app/resources/priorities.dart';
+import 'package:game_app/overlays/overlays.dart';
+import 'package:game_app/resources/constants/physics_filter.dart';
+import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../functions/vector_functions.dart';
 import '../main.dart';
-import '../pages/menu.dart';
+import '../overlays/menus.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 
@@ -32,8 +32,8 @@ class Player extends Entity
         JumpFunctionality,
         ExperienceFunctionality,
         DashFunctionality {
-  Player(this.playerData,
-      {required super.gameEnv, required super.initPosition});
+  Player(this.playerData, this.isDisplay,
+      {required super.gameEnviroment, required super.initPosition});
   final PlayerData playerData;
 
   Set<PhysicalKeyboardKey> physicalKeysPressed = {};
@@ -49,13 +49,15 @@ class Player extends Entity
         await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
   }
 
+  bool isDisplay;
   @override
   void onRemove() {
     physicalKeysPressed.clear();
     moveVelocities.clear();
     inputAimAngles.clear();
     inputAimPositions.clear();
-    gameEnv.game.mouseCallback.remove(mouseCallbackWrapper);
+
+    game.mouseCallback.remove(mouseCallbackWrapper);
 
     super.onRemove();
   }
@@ -64,16 +66,20 @@ class Player extends Entity
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll(playerData.selectedWeapons.values);
+    // initialWeapons.add(WeaponType.blankMelee);
+    // initialWeapons.add(WeaponType.shiv);
     priority = playerPriority;
 
     await loadAnimationSprites();
-
     mouseCallbackWrapper = MouseKeyboardCallbackWrapper();
-    mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();
-    mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
-    mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
+    if (!isDisplay) {
+      mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();
+      mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
+      mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
+    }
+
     mouseCallbackWrapper.keyEvent = (event) => onKeyEvent(event);
-    gameEnv.game.mouseCallback.add(mouseCallbackWrapper);
+    game.mouseCallback.add(mouseCallbackWrapper);
 
     await super.onLoad();
   }
@@ -134,6 +140,13 @@ class Player extends Entity
   void parseKeys(RawKeyEvent? event) {
     Vector2 moveAngle = Vector2.zero();
     try {
+      if (isDisplay) {
+        if (gameIsPaused || event is! RawKeyDownEvent) return;
+
+        if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
+          swapWeapon();
+        }
+      }
       if (event == null || isDead) return;
 
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
@@ -169,7 +182,10 @@ class Player extends Entity
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
-        (gameEnv as ForestGame).enemyManagement.generateEnemies();
+        (gameEnviroment as ForestGame).enemyManagement.generateEnemies();
+      }
+      if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
+        preLevelUp();
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
@@ -227,19 +243,22 @@ class Player extends Entity
   }
 
   void gestureEventStart(InputType inputType, PositionInfo info) {
+    if (isDisplay && inputType != InputType.mouseMove) return;
+
     switch (inputType) {
       case InputType.mouseMove:
         if (!isMounted) return;
         inputAimPositions[InputType.mouseMove] = vectorToGrid(
-                info.eventPosition.viewport, gameEnv.gameCamera.viewport.size) /
-            gameEnv.gameCamera.viewfinder.zoom;
+                info.eventPosition.viewport,
+                gameEnviroment.gameCamera.viewport.size) /
+            gameEnviroment.gameCamera.viewfinder.zoom;
         inputAimAngles[InputType.mouseMove] =
             inputAimPositions[InputType.mouseMove]!.normalized();
 
         break;
 
       case InputType.aimJoy:
-        final delta = gameEnv.aimJoystick?.relativeDelta;
+        final delta = gameEnviroment.aimJoystick?.relativeDelta;
         if (delta == null || delta.isZero()) return;
         inputAimAngles[InputType.aimJoy] = delta.normalized();
         startAttacking();
@@ -247,7 +266,7 @@ class Player extends Entity
         break;
 
       case InputType.moveJoy:
-        final delta = gameEnv.moveJoystick?.relativeDelta;
+        final delta = gameEnviroment.moveJoystick?.relativeDelta;
         moveVelocities[InputType.moveJoy] =
             (delta ?? Vector2.zero()) * getMaxSpeed;
         break;
@@ -261,8 +280,9 @@ class Player extends Entity
 
       case InputType.mouseDrag:
         inputAimPositions[InputType.mouseMove] = vectorToGrid(
-                info.eventPosition.viewport, gameEnv.gameCamera.viewport.size) /
-            gameEnv.gameCamera.viewfinder.zoom;
+                info.eventPosition.viewport,
+                gameEnviroment.gameCamera.viewport.size) /
+            gameEnviroment.gameCamera.viewfinder.zoom;
         inputAimPositions[InputType.mouseDrag] =
             inputAimPositions[InputType.mouseMove]!;
         inputAimAngles[InputType.mouseDrag] =
@@ -275,9 +295,9 @@ class Player extends Entity
         if (!inputAimAngles.containsKey(InputType.mouseMove)) return;
         startAttacking();
         break;
-      case InputType.secondaryClick:
-        startAltAttacking();
-        break;
+      // case InputType.secondaryClick:
+      //   startAltAttacking();
+      //   break;
       default:
       // Code to handle unknown or unexpected input type
     }

@@ -46,7 +46,8 @@ class Fireball extends Projectile with StandardProjectile {
 
   @override
   void killBullet() {
-    weaponAncestor.entityAncestor?.gameEnv.physicsComponent.add(AreaEffect(
+    weaponAncestor.entityAncestor?.gameEnviroment.physicsComponent
+        .add(AreaEffect(
       sourceEntity: weaponAncestor.entityAncestor!,
       position: center,
       radius: 5,

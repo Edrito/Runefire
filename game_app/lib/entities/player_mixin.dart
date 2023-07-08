@@ -1,5 +1,15 @@
 import 'dart:math';
 
+import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide MoveEffect;
+
+import '../functions/custom_mixins.dart';
+import '../main.dart';
+import '../overlays/overlays.dart';
+import '../resources/constants/priorities.dart';
+import '../resources/visuals.dart';
 import 'entity.dart';
 
 mixin ExperienceFunctionality on Entity {
@@ -8,8 +18,71 @@ mixin ExperienceFunctionality on Entity {
   final double growthMultiplier = 1.2;
   final double baseExperiencePerLevel = 50;
   double get xpSensorRadius => baseXpSensorRadius + xpSensorRadiusIncrease;
-  final double baseXpSensorRadius = 3;
+  final double baseXpSensorRadius = 2;
   double xpSensorRadiusIncrease = 0;
+
+  int levelUpQueue = 0;
+  bool currentlyLevelingUp = false;
+  TimerComponent? levelUpQueueTimer;
+
+  void levelUp() {
+    pauseGame(attributeSelection.key);
+    currentlyLevelingUp = false;
+
+    if (levelUpQueue == 0) {
+      levelUpQueueTimer?.timer.stop();
+      levelUpQueueTimer?.removeFromParent();
+      levelUpQueueTimer = null;
+    }
+  }
+
+  void preLevelUp() async {
+    if (currentlyLevelingUp) {
+      levelUpQueue++;
+      levelUpQueueTimer ??= TimerComponent(
+        period: .1,
+        removeOnFinish: true,
+        repeat: true,
+        onTick: () {
+          if (!currentlyLevelingUp && !isDead) {
+            preLevelUp();
+            levelUpQueue--;
+          }
+        },
+      )..addToParent(this);
+      return;
+    }
+    currentlyLevelingUp = true;
+    const count = 3;
+    for (var i = 0; i < count; i++) {
+      final upArrow = CaTextComponent(
+          position: Vector2(1, -.25),
+          anchor: Anchor.center,
+          priority: menuPriority,
+          textRenderer:
+              TextPaint(style: defaultStyle.copyWith(fontSize: 1 * (i + 1))),
+          text: "^");
+      final effectController = EffectController(
+        duration: .3,
+        curve: Curves.fastLinearToSlowEaseIn,
+        onMax: () {
+          if (i == count - 1) {
+            levelUp();
+          }
+          upArrow.removeFromParent();
+        },
+      );
+
+      upArrow.addAll([
+        MoveEffect.by(
+          Vector2(0, -1),
+          effectController,
+        ),
+      ]);
+      add(upArrow);
+      await Future.delayed(.3.seconds);
+    }
+  }
 
   int calculateExperienceRequired(int level) {
     // Define the base experience required for level 1
@@ -44,11 +117,11 @@ mixin ExperienceFunctionality on Entity {
           (experience + experiencePointsGained) - nextLevelExperienceRequired;
       experiencePointsGained = nextLevelExperienceRequired.toDouble();
       currentLevel += 1;
-      gameEnv.hud.levelCounter.text = currentLevel.toString();
+      gameEnviroment.hud.setLevel(currentLevel);
 
       if (isDead) return;
 
-      gameEnv.preLevelUp();
+      preLevelUp();
       gainExperience(remainingExperience);
     } else {
       experiencePointsGained += experience;

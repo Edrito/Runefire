@@ -10,19 +10,21 @@ import 'package:game_app/resources/visuals.dart';
 import 'package:recase/recase.dart';
 import '../resources/data_classes/player_data.dart';
 import 'buttons.dart';
-import '/resources/routes.dart' as routes;
-import 'menu.dart';
+import 'menus.dart';
 
-class DisplayEquipedWeapon extends StatelessWidget {
-  const DisplayEquipedWeapon(
+class WeaponTile extends StatelessWidget {
+  const WeaponTile(
       {required this.onTap,
       required this.weaponType,
       required this.level,
+      required this.isPrimary,
       super.key});
   final Function onTap;
   final WeaponType weaponType;
   final int level;
   final radius = 20.0;
+  final bool isPrimary;
+
   @override
   Widget build(BuildContext context) {
     bool isHover = false;
@@ -38,16 +40,10 @@ class DisplayEquipedWeapon extends StatelessWidget {
             isHover = value;
           });
         },
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-              color:
-                  (isHover ? buttonDownColor : buttonUpColor).withOpacity(.4),
-              borderRadius: BorderRadius.circular(radius)),
-          child: SizedBox.square(
+        child: Stack(children: [
+          SizedBox.square(
             dimension: 225,
             child: Column(
-              // mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
@@ -58,14 +54,6 @@ class DisplayEquipedWeapon extends StatelessWidget {
                     height: 100,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Level $level",
-                    style: defaultStyle.copyWith(
-                        color: isHover ? buttonDownColor : buttonUpColor),
-                  ),
-                )
               ],
             )
                 .animate(
@@ -76,26 +64,60 @@ class DisplayEquipedWeapon extends StatelessWidget {
                     begin: 5,
                     end: -5,
                     duration: 1.seconds,
-                    curve: Curves.easeInOut),
+                    curve: Curves.easeInOut)
+                .animate(
+                  target: isHover ? 1 : 0,
+                )
+                .moveY(
+                    end: -15,
+                    begin: 0,
+                    duration: .5.seconds,
+                    curve: Curves.easeInCubic),
           ),
-        ),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform:
+                      isPrimary ? Matrix4.rotationY(pi) : Matrix4.rotationX(0),
+                  child: Image.asset(
+                    'assets/images/decorations/under_item.png',
+                    filterQuality: FilterQuality.none,
+                    width: 150,
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
+              ),
+            ),
+          ).animate(
+            target: isHover ? 1 : 0,
+          )
+          // .rotate(
+          //     end: isPrimary ? 1 : -1,
+          //     begin: 0,
+          //     duration: .5.seconds,
+          //     curve: Curves.decelerate),
+        ]),
       );
     });
   }
 }
 
-final rng = Random();
-
-class DisplayEquipedAbility extends StatelessWidget {
-  const DisplayEquipedAbility(
+class SecondaryTile extends StatelessWidget {
+  const SecondaryTile(
       {required this.onTap,
       required this.secondaryType,
+      required this.isPrimary,
       required this.level,
       super.key});
   final Function onTap;
   final SecondaryType secondaryType;
   final int level;
   final radius = 20.0;
+  final bool isPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -112,16 +134,10 @@ class DisplayEquipedAbility extends StatelessWidget {
             isHover = value;
           });
         },
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-              color:
-                  (isHover ? buttonDownColor : buttonUpColor).withOpacity(.4),
-              borderRadius: BorderRadius.circular(radius)),
-          child: SizedBox.square(
+        child: Stack(children: [
+          SizedBox.square(
             dimension: 100,
             child: Column(
-              // mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
@@ -132,18 +148,37 @@ class DisplayEquipedAbility extends StatelessWidget {
                   ),
                 ),
               ],
-            )
-                .animate(
-                  onPlay: randomBegin,
-                  onComplete: onComplete,
-                )
-                .moveY(
-                    begin: 3,
-                    end: -3,
-                    duration: 1.seconds,
-                    curve: Curves.easeInOut),
+            ),
+          )
+              .animate(
+                onPlay: randomBegin,
+                onComplete: onComplete,
+              )
+              .moveY(
+                  begin: 5,
+                  end: -5,
+                  duration: 1.seconds,
+                  curve: Curves.easeInOut),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform:
+                      isPrimary ? Matrix4.rotationY(pi) : Matrix4.rotationX(0),
+                  child: Image.asset(
+                    'assets/images/decorations/under_item.png',
+                    filterQuality: FilterQuality.none,
+                    width: 150,
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+        ]),
       );
     });
   }
@@ -225,7 +260,8 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final playerData = playerDataComponent.dataObject;
-
+    final borderColor = backgroundColor2.brighten(.1);
+    const borderWidth = 5.0;
     List<Widget> entries = [];
 
     if (!widget.isSecondaryAbility) {
@@ -242,13 +278,13 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
           child: Container(
             height: 100,
             decoration: BoxDecoration(
-                color: isEquiped
-                    ? equippedColor
-                    : isUnlocked
-                        ? unlockedColor
-                        : lockedColor,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: const [BoxShadow()]),
+                color: (isEquiped
+                        ? equippedColor
+                        : isUnlocked
+                            ? unlockedColor
+                            : lockedColor)
+                    .withOpacity(.85),
+                border: Border.all(width: borderWidth / 2)),
             child: InkWell(
               onTap: isUnlocked ? () => widget.onSelect(weaponType) : null,
               child: Padding(
@@ -316,7 +352,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                           child: Container(
                               decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: backgroundColor),
+                                  color: backgroundColor1),
                               child: Icon(
                                 isUnlocked ? Icons.add : Icons.lock_open,
                                 color: Colors.white,
@@ -342,7 +378,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
         bool isUnlocked =
             playerData.unlockedSecondarys.keys.contains(secondaryType);
         int unlockedLevel = (playerData.unlockedSecondarys[secondaryType] ?? 0)
-            .clamp(1, secondaryType.maxLevel);
+            .clamp(0, secondaryType.maxLevel);
 
         entries.add(Padding(
           padding: const EdgeInsets.all(8.0),
@@ -407,7 +443,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                           child: Container(
                               decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: backgroundColor),
+                                  color: backgroundColor1),
                               child: Icon(
                                 isUnlocked ? Icons.add : Icons.lock_open,
                                 color: Colors.white,
@@ -422,19 +458,20 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
       }
     }
 
-    return Center(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: size.width * .8,
-          height: size.height * .8,
-          decoration: BoxDecoration(
-            color: backgroundColor.brighten(.1),
-          ),
-          child: Tab(
+    return ClipRRect(
+      child: Container(
+        color: backgroundColor1.brighten(.1).withOpacity(.5),
+        child: Center(
+          child: Container(
+            width: size.width * .8,
+            height: size.height * .8,
+            decoration: BoxDecoration(
+              border: Border.all(color: borderColor, width: borderWidth),
+              color: backgroundColor2.brighten(.1).withOpacity(.35),
+            ),
             child: Column(
               children: [
-                if (!widget.isSecondaryAbility)
+                if (!widget.isSecondaryAbility) ...[
                   Row(
                     children: [
                       for (var i = 0; i < AttackType.values.length; i++)
@@ -448,7 +485,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                             child: Container(
                               color: AttackType.values[i] == weaponTab
                                   ? unlockedColor
-                                  : backgroundColor.brighten(.15),
+                                  : backgroundColor1.brighten(.15),
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
@@ -465,17 +502,28 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                       )
                     ],
                   ),
+                  Container(
+                    height: borderWidth,
+                    color: borderColor,
+                  )
+                ],
                 Expanded(
-                    child: ListView(
-                  children: entries
-                      .animate(interval: .1.seconds)
-                      .moveX(begin: -50, end: 0, curve: Curves.easeIn)
-                      .fadeIn(curve: Curves.easeIn),
+                    child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListView(
+                    children: entries
+                        .animate(interval: .1.seconds)
+                        .moveX(begin: -50, end: 0, curve: Curves.easeIn)
+                        .fadeIn(curve: Curves.easeIn),
+                  ),
                 )),
-                CustomButton(
-                  "Back",
-                  gameRef: widget.gameRef,
-                  onTap: () => widget.onBack(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CustomButton(
+                    "Back",
+                    gameRef: widget.gameRef,
+                    onTap: () => widget.onBack(),
+                  ),
                 )
               ],
             ),
@@ -529,13 +577,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
       crossAxisAlignment:
           isPrimary ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            isPrimary ? "Primary" : "Secondary",
-            style: defaultStyle,
-          ),
-        ),
         Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -558,10 +599,11 @@ class _WeaponMenuState extends State<WeaponMenu> {
     final secondaryEntries =
         playerDataComponent.dataObject.selectedSecondaries.entries;
 
-    Widget primaryWeaponTile = DisplayEquipedWeapon(
+    Widget primaryWeaponTile = WeaponTile(
       level:
           playerDataComponent.dataObject.unlockedWeapons[entries.first.value] ??
               0,
+      isPrimary: true,
       weaponType: entries.first.value,
       onTap: () {
         setState(() {
@@ -586,7 +628,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
         });
       },
     );
-    Widget primarySecondaryTile = DisplayEquipedAbility(
+    Widget primarySecondaryTile = SecondaryTile(
+      isPrimary: true,
       level: playerDataComponent
               .dataObject.unlockedSecondarys[secondaryEntries.first.value] ??
           0,
@@ -613,10 +656,11 @@ class _WeaponMenuState extends State<WeaponMenu> {
         });
       },
     );
-    Widget secondaryWeaponTile = DisplayEquipedWeapon(
+    Widget secondaryWeaponTile = WeaponTile(
       level:
           playerDataComponent.dataObject.unlockedWeapons[entries.last.value] ??
               0,
+      isPrimary: false,
       weaponType: entries.last.value,
       onTap: () {
         setState(() {
@@ -642,7 +686,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
       },
     );
 
-    Widget secondarySecondaryTile = DisplayEquipedAbility(
+    Widget secondarySecondaryTile = SecondaryTile(
+      isPrimary: false,
       level: playerDataComponent
               .dataObject.unlockedSecondarys[secondaryEntries.last.value] ??
           0,
@@ -686,14 +731,14 @@ class _WeaponMenuState extends State<WeaponMenu> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                const Spacer(),
+                // const Spacer(),
                 buildWeaponTile(primaryWeaponTile, primarySecondaryTile, true),
                 const Spacer(
-                  flex: 3,
+                  flex: 4,
                 ),
                 buildWeaponTile(
                     secondaryWeaponTile, secondarySecondaryTile, false),
-                const Spacer(),
+                // const Spacer(),
               ],
             ),
             const Spacer(),
@@ -725,116 +770,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
           ],
         ),
         if (weaponSelector != null) weaponSelector!,
-      ],
-    );
-  }
-}
-
-class LevelMenu extends StatefulWidget {
-  const LevelMenu({
-    super.key,
-    required this.gameRef,
-  });
-  final GameRouter gameRef;
-
-  @override
-  State<LevelMenu> createState() => _LevelMenuState();
-}
-
-class _LevelMenuState extends State<LevelMenu> {
-  GameLevel? selectedLevel;
-
-  Widget buildTile(GameLevel level) {
-    bool isHovering = false;
-    return StatefulBuilder(builder: (context, setstate) {
-      bool isSelected = level == selectedLevel;
-      return SizedBox.square(
-        dimension: 200,
-        child: InkWell(
-          radius: 10,
-          onHover: (value) {
-            setstate(
-              () {
-                isHovering = value;
-              },
-            );
-          },
-          onTap: () {
-            setState(() {
-              selectedLevel = level;
-            });
-          },
-          child: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: isHovering
-                    ? Colors.green
-                    : isSelected
-                        ? Colors.blue
-                        : Colors.white,
-                borderRadius: BorderRadius.circular(10)),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                level.name.titleCase,
-                style: defaultStyle,
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> levels = [];
-
-    for (var element in GameLevel.values) {
-      levels.add(Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: buildTile(element),
-      ));
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Spacer(),
-        SizedBox(
-          height: 200,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            shrinkWrap: true,
-            children: levels,
-          ),
-        ),
-        const Spacer(),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: CustomButton(
-                "Back",
-                gameRef: widget.gameRef,
-                onTap: () {
-                  changeMainMenuPage(MenuPages.weaponMenu);
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: CustomButton(
-                "Begin",
-                gameRef: widget.gameRef,
-                onTap: () {
-                  toggleGameStart(routes.gameplay);
-                },
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }

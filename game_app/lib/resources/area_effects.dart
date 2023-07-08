@@ -4,7 +4,7 @@ import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/animation.dart';
 import 'package:game_app/resources/enums.dart';
-import 'package:game_app/resources/physics_filter.dart';
+import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../entities/entity.dart';

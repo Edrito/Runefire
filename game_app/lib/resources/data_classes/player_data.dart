@@ -34,8 +34,8 @@ class PlayerData extends DataClass {
     1: WeaponType.shiv,
   };
   Map<int, SecondaryType> selectedSecondaries = {
+    0: SecondaryType.explodeProjectiles,
     1: SecondaryType.pistol,
-    0: SecondaryType.reloadAndRapidFire
   };
 
   // WeaponType selectedWeapon1 = WeaponType.pistol;

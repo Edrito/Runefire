@@ -4,10 +4,10 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
-import 'package:game_app/pages/weapon_menu.dart';
-import 'package:game_app/resources/physics_filter.dart';
+import 'package:game_app/overlays/weapon_menu.dart';
+import 'package:game_app/resources/constants/physics_filter.dart';
 
-import '../entities/player.dart';
+import 'player.dart';
 import '../functions/custom_mixins.dart';
 import '../functions/vector_functions.dart';
 import '../main.dart';

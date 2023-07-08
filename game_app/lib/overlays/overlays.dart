@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/game/enviroment.dart';
-import 'package:game_app/pages/buttons.dart';
-import 'package:game_app/pages/menu.dart';
+import 'package:game_app/game/enviroment_mixin.dart';
+import 'package:game_app/overlays/buttons.dart';
+import 'package:game_app/overlays/menus.dart';
 import 'package:game_app/resources/attributes.dart';
 import 'package:game_app/resources/visuals.dart';
-import '/resources/routes.dart' as routes;
+import '../resources/constants/routes.dart' as routes;
 
 import '../main.dart';
+import 'cards.dart';
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
     MapEntry('PauseMenu', (context, gameRouter) {
@@ -50,7 +52,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
                   width: size.width / 3,
                   height: size.height / 4,
                   decoration: BoxDecoration(
-                      color: backgroundColor.darken(.1),
+                      color: backgroundColor1.darken(.1),
                       borderRadius:
                           const BorderRadius.all(Radius.circular(20))),
                   child: DisplayButtons(
@@ -67,9 +69,12 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
                         gameRef: gameRouter,
                         onTap: () {
                           resumeGame();
-                          final gameEnv = currentGameEnviroment;
-                          if (gameEnv != null) {
-                            currentGameEnviroment?.player.killPlayer(false);
+                          final gameEnviroment = currentEnviroment;
+                          if (gameEnviroment != null &&
+                              gameEnviroment is PlayerFunctionality) {
+                            (currentEnviroment as PlayerFunctionality)
+                                .player
+                                ?.killPlayer(false);
                           } else {
                             changeMainMenuPage(MenuPages.startMenuPage, false);
                           }
@@ -109,7 +114,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
               width: size.width / 3,
               height: size.height / 4,
               decoration: BoxDecoration(
-                  color: backgroundColor.darken(.1),
+                  color: backgroundColor1.darken(.1),
                   borderRadius: const BorderRadius.all(Radius.circular(20))),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -176,7 +181,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
           .first
           .player;
 
-  currentSelection ??= player.buildAttributeSelection();
+  currentSelection ??= player?.buildAttributeSelection();
 
   List<CustomCard> selection = [];
 
@@ -187,7 +192,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
       });
     }, onTapComplete: () {
       gameRouter.resumeEngine();
-      player.addAttribute(element);
+      player?.addAttributeEnum(element.attributeEnum);
       widgetController
           ?.forward(from: 0)
           .then((value) => {resumeGame(), currentSelection = null});

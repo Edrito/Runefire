@@ -1,7 +1,7 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 
-import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -9,24 +9,26 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/game/forest_game.dart';
-import 'package:game_app/pages/menu.dart';
+import 'package:game_app/overlays/menus.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
 import 'package:game_app/resources/data_classes/system_data.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'game/enviroment.dart';
-import 'resources/routes.dart' as routes;
-import 'resources/overlays.dart' as overlays;
+import 'game/menu_game.dart';
+import 'resources/constants/routes.dart' as routes;
+import 'overlays/overlays.dart' as overlays;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
+final rng = Random();
 late GameRouter gameRouter;
 late MenuPages menuPage;
 String? currentOverlay;
 
-GameEnviroment? get currentGameEnviroment {
-  var result =
-      gameRouter.router.currentRoute.children.whereType<GameEnviroment>();
+Enviroment? get currentEnviroment {
+  var result = gameRouter.router.currentRoute.children.whereType<Enviroment>();
 
   if (result.isNotEmpty) {
     return result.first;
@@ -43,10 +45,10 @@ void pauseGame(String overlay,
   gameRouter.overlays.add(overlay);
   currentOverlay = overlay;
   if (wipeMovement) {
-    final game = currentGameEnviroment;
-    if (game != null) {
-      game.player.physicalKeysPressed.clear();
-      game.player.parseKeys(null);
+    final game = currentEnviroment;
+    if (game != null && game is PlayerFunctionality) {
+      game.player?.physicalKeysPressed.clear();
+      game.player?.parseKeys(null);
     }
   }
 
@@ -61,6 +63,16 @@ void resumeGame() {
 
 void changeMainMenuPage(MenuPages page, [bool setState = true]) {
   toggleGameStart(null);
+  MenuGame? menuGame;
+  if (currentEnviroment is MenuGame) {
+    menuGame = currentEnviroment as MenuGame;
+  }
+
+  if (page == MenuPages.weaponMenu) {
+    menuGame?.addPlayer();
+  } else {
+    menuGame?.removePlayer();
+  }
   menuPage = page;
   if (setState) {
     setStateMainMenu(() {});
@@ -132,9 +144,7 @@ void main() async {
             onKey: gameRouter.onKeyEvent,
             child: GameWidget(
                 backgroundBuilder: (context) {
-                  return Container(
-                    color: backgroundColor,
-                  );
+                  return const BackgroundWidget();
                 },
                 loadingBuilder: (p0) {
                   return Padding(
@@ -185,9 +195,8 @@ class GameRouter extends Forge2DGame
   void onLoad() async {
     router = RouterComponent(
       routes: {
-        routes.blank: Route(Component.new, maintainState: false),
+        routes.blank: Route(MenuGame.new, maintainState: false),
         routes.transition: Route(ForestGame.new, maintainState: false),
-        // routes.homeroom: Route(HomeRoom.new, maintainState: false),
         routes.gameplay: Route(ForestGame.new, maintainState: false),
       },
       initialRoute: startInGame ? routes.gameplay : routes.blank,
@@ -195,7 +204,6 @@ class GameRouter extends Forge2DGame
     add(systemDataComponent);
     add(playerDataComponent);
     add(router);
-    // await mounted;
   }
 
   @override
@@ -301,8 +309,8 @@ class GameRouter extends Forge2DGame
 
   @override
   void onScroll(PointerScrollInfo info) {
-    if (router.currentRoute.children.first is GameEnviroment) {
-      final test = (router.currentRoute.children.first as GameEnviroment);
+    if (router.currentRoute.children.first is Enviroment) {
+      final test = (router.currentRoute.children.first as Enviroment);
 
       var currentZoom = test.gameCamera.viewfinder.zoom;
 

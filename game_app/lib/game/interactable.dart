@@ -2,12 +2,12 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/services/raw_keyboard.dart';
-import 'package:game_app/resources/physics_filter.dart';
+import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/main.dart';
-import 'package:game_app/resources/priorities.dart';
+import 'package:game_app/resources/constants/priorities.dart';
 
 import '../entities/player.dart';
-import 'enums.dart';
+import '../resources/enums.dart';
 
 class InteractableComponent extends BodyComponent<GameRouter>
     with ContactCallbacks, KeyboardHandler {

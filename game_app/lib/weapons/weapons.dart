@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
-import 'package:flame_forge2d/body_component.dart';
 import 'package:game_app/functions/vector_functions.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -9,8 +8,6 @@ import 'package:game_app/weapons/weapon_mixin.dart';
 import '../entities/entity_mixin.dart';
 import '../functions/functions.dart';
 import '../resources/enums.dart';
-
-typedef BodyComponentFunction = List<BodyComponent> Function();
 
 class Portal extends Weapon
     with
@@ -272,7 +269,7 @@ class Pistol extends Weapon
   int get baseMaxChainingTargets => 0;
 
   @override
-  double get baseMaxSpreadDegrees => 2450;
+  double get baseMaxSpreadDegrees => 270;
 }
 
 class Shotgun extends Weapon
@@ -508,30 +505,14 @@ class Sword extends Weapon
         MeleeFunctionality,
         // ProjectileFunctionality,
         SecondaryFunctionality,
-        FullAutomatic
+        FullAutomatic,
+        MeleeTrailEffect
 // ,        ReloadFunctionality
 {
   Sword.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
-    attackHitboxPatterns = [
-      (Vector2(0, 0), -45),
-      (Vector2(-1, 0), 45),
-      // (Vector2(0, 0), 0),
-      // (Vector2(0, 3), 0),
-      (Vector2(-.5, 1), 45),
-      (Vector2(1, 0), -45),
-      // (Vector2(.5, 1), -45),
-      // (Vector2(-.5, -.2), 60),
-    ];
-    spirteComponentPositions.add(WeaponSpritePosition.back);
-
-    baseMaxAttacks = (attackHitboxPatterns.length / 2).round();
-
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-  }
+  ) : super(newUpgradeLevel, ancestor);
 
   @override
   void melee([double chargeAmount = 1]) {
@@ -544,11 +525,26 @@ class Sword extends Weapon
 
   @override
   FutureOr<void> onLoad() async {
-    attackHitboxSpriteAnimations = [
-      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
-      await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
-      // await buildSpriteSheet(1, 'weapons/sword.png', 1, true),
+    attackHitboxPatterns = [
+      (Vector2(0, 0), -45),
+      (Vector2(-1, 0), 45),
+      // (Vector2(0, 0), 0),
+      // (Vector2(0, 3), 0),
+      (Vector2(-.5, 1), 45),
+      (Vector2(1, 0), -45),
+      // (Vector2(.5, 1), -45),
+      // (Vector2(-.5, -.2), 60),
     ];
+    spirteComponentPositions.add(WeaponSpritePosition.back);
+
+    assert(
+        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
+    baseMaxAttacks = (attackHitboxPatterns.length / 2).round();
+
+    for (var i = 0; i < baseMaxAttacks; i++) {
+      attackHitboxSpriteAnimations
+          .add(await buildSpriteSheet(1, 'weapons/sword.png', 1, true));
+    }
 
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
         [],
@@ -640,19 +636,10 @@ class Sword extends Weapon
   bool countIncreaseWithTime = false;
 
   @override
-  double maxSpreadDegrees = 50;
-
-  @override
-  double get baseReloadTime => 1;
-
-  @override
-  int attackCount = 3;
-
-  @override
   double baseWeaponRandomnessPercent = .05;
 
   @override
-  int get baseAttackCount => 1;
+  int get baseAttackCount => 2;
 
   @override
   bool get baseCountIncreaseWithTime => false;
@@ -667,5 +654,5 @@ class Sword extends Weapon
   int get baseMaxChainingTargets => 0;
 
   @override
-  double get baseMaxSpreadDegrees => 180;
+  double get baseMaxSpreadDegrees => 90;
 }

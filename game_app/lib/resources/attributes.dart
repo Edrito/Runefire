@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../main.dart';
-import '../pages/buttons.dart';
+import '../overlays/cards.dart';
 import 'attributes_enum.dart';
 
 abstract class TemporaryAttribute extends Attribute {
@@ -52,7 +52,7 @@ abstract class TemporaryAttribute extends Attribute {
 
 abstract class Attribute {
   Attribute({required this.level, required this.entity, bool applyNow = true}) {
-    level = level.clamp(1, maxLevel);
+    level = level.clamp(0, maxLevel);
     if (applyNow) {
       applyAttribute();
     }
@@ -109,7 +109,7 @@ abstract class Attribute {
   void incrementLevel(int value) {
     removeAttribute();
     level += value;
-    level = level.clamp(1, maxLevel);
+    level = level.clamp(0, maxLevel);
     applyAttribute();
   }
 
