@@ -259,7 +259,10 @@ typedef WeaponCreateFunction = Weapon Function(Entity);
 
 class DamageInstance {
   DamageInstance(
-      {required this.damageBase, required this.damageType, this.duration = 1});
+      {required this.damageBase,
+      required this.source,
+      required this.damageType,
+      this.duration = 1});
 
   Color getColor() {
     switch (damageType) {
@@ -276,6 +279,8 @@ class DamageInstance {
     }
   }
 
+  Entity source;
+
   double damageBase;
   double get damage => damageBase;
 
@@ -285,18 +290,20 @@ class DamageInstance {
 
 enum SecondaryType {
   reloadAndRapidFire(
-      'assets/images/weapons/portal.png', 5, weaponIsReloadFunctionality),
-  pistol('assets/images/weapons/portal.png', 5, alwaysCompatible),
-  explodeProjectiles(
-      'assets/images/weapons/portal.png', 5, weaponIsProjectileFunctionality);
+      'assets/images/weapons/portal.png', 5, weaponIsReloadFunctionality, 500),
+  pistol('assets/images/weapons/portal.png', 5, alwaysCompatible, 500),
+  explodeProjectiles('assets/images/weapons/portal.png', 5,
+      weaponIsProjectileFunctionality, 500);
 
-  const SecondaryType(this.icon, this.maxLevel, this.compatibilityCheck);
+  const SecondaryType(
+      this.icon, this.maxLevel, this.compatibilityCheck, this.baseCost);
 
   ///Based on a input weapon, return true or false to
   ///see if the weapon is compatible with the secondary ability
   final CompatibilityFunction compatibilityCheck;
   final String icon;
   final int maxLevel;
+  final int baseCost;
 }
 
 typedef CompatibilityFunction = bool Function(Weapon);

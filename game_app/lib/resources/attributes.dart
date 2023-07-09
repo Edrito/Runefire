@@ -1,13 +1,15 @@
 import 'package:flame/components.dart';
+import 'package:game_app/entities/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../main.dart';
 import '../overlays/cards.dart';
+import 'area_effects.dart';
 import 'attributes_enum.dart';
+import 'enums.dart';
 
 abstract class TemporaryAttribute extends Attribute {
-  TemporaryAttribute(
-      {required super.level, required super.entity, super.applyNow = false});
+  TemporaryAttribute({required super.level, required super.entity});
 
   abstract double duration;
   TimerComponent? currentTimer;
@@ -51,11 +53,11 @@ abstract class TemporaryAttribute extends Attribute {
 }
 
 abstract class Attribute {
-  Attribute({required this.level, required this.entity, bool applyNow = true}) {
+  Attribute({required this.level, required this.entity}) {
     level = level.clamp(0, maxLevel);
-    if (applyNow) {
-      applyAttribute();
-    }
+    // if (applyNow) {
+    //   applyAttribute();
+    // }
   }
 
   bool get isTemporary => this is TemporaryAttribute;
@@ -124,8 +126,7 @@ abstract class Attribute {
 }
 
 class TopSpeedAttribute extends Attribute {
-  TopSpeedAttribute(
-      {required super.level, required super.entity, super.applyNow});
+  TopSpeedAttribute({required super.level, required super.entity});
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.topSpeed;
@@ -167,8 +168,7 @@ class TopSpeedAttribute extends Attribute {
 }
 
 class AttackRateAttribute extends Attribute {
-  AttackRateAttribute(
-      {required super.level, required super.entity, super.applyNow});
+  AttackRateAttribute({required super.level, required super.entity});
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.attackRate;
@@ -207,6 +207,71 @@ class AttackRateAttribute extends Attribute {
   String description() {
     if (remainingLevels != 1) {
       return "Increase your attack rate!";
+    } else {
+      return "Max Level";
+    }
+  }
+}
+
+class ExplosiveDashAttribute extends Attribute {
+  ExplosiveDashAttribute({required super.level, required super.entity});
+
+  @override
+  AttributeEnum attributeEnum = AttributeEnum.explosiveDash;
+
+  @override
+  double get factor => .25;
+
+  @override
+  int get maxLevel => 5;
+
+  double baseSize = .5;
+
+  void onDash() {
+    final explosion = AreaEffect(
+      sourceEntity: entity,
+      position: entity.center,
+      radius: baseSize + increase(baseSize),
+      isInstant: false,
+      duration: entity.damageDuration,
+      onTick: (entity, areaId) {
+        if (entity is HealthFunctionality) {
+          entity.hitCheck(areaId, [
+            DamageInstance(
+                damageBase: increase(1),
+                damageType: DamageType.fire,
+                source: entity)
+          ]);
+        }
+      },
+    );
+    entity.gameEnviroment.physicsComponent.add(explosion);
+  }
+
+  @override
+  void mapAttribute() {
+    if (entity is! AttributeFunctionsFunctionality) return;
+    final attributeFunctions = entity as AttributeFunctionsFunctionality;
+    attributeFunctions.dashBeginFunctions.add(onDash);
+  }
+
+  @override
+  void unmapAttribute() {
+    if (entity is! AttributeFunctionsFunctionality) return;
+    final attributeFunctions = entity as AttributeFunctionsFunctionality;
+    attributeFunctions.dashBeginFunctions.remove(onDash);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Explosive Dash!";
+
+  @override
+  String description() {
+    if (remainingLevels != 1) {
+      return "Never skip leg day.";
     } else {
       return "Max Level";
     }

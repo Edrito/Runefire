@@ -8,7 +8,6 @@ import 'package:game_app/overlays/buttons.dart';
 import 'package:game_app/overlays/menus.dart';
 import 'package:game_app/resources/attributes.dart';
 import 'package:game_app/resources/visuals.dart';
-import '../resources/constants/routes.dart' as routes;
 
 import '../main.dart';
 import 'cards.dart';
@@ -68,15 +67,14 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
                         "Give up",
                         gameRef: gameRouter,
                         onTap: () {
-                          resumeGame();
                           final gameEnviroment = currentEnviroment;
-                          if (gameEnviroment != null &&
-                              gameEnviroment is PlayerFunctionality) {
+                          if (gameEnviroment is PlayerFunctionality) {
+                            resumeGame();
                             (currentEnviroment as PlayerFunctionality)
                                 .player
                                 ?.killPlayer(false);
                           } else {
-                            changeMainMenuPage(MenuPages.startMenuPage, false);
+                            endGame(false);
                           }
                         },
                       )
@@ -132,16 +130,14 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                         "Try again",
                         gameRef: gameRouter,
                         onTap: () {
-                          toggleGameStart(routes.gameplay);
-                          resumeGame();
+                          endGame(true);
                         },
                       ),
                       CustomButton(
                         "Give up",
                         gameRef: gameRouter,
                         onTap: () {
-                          changeMainMenuPage(MenuPages.startMenuPage, false);
-                          resumeGame();
+                          endGame();
                         },
                       )
                     ]),

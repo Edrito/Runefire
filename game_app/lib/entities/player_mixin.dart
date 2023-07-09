@@ -68,6 +68,7 @@ mixin ExperienceFunctionality on Entity {
         onMax: () {
           if (i == count - 1) {
             levelUp();
+            levelUpFunctionsCall();
           }
           upArrow.removeFromParent();
         },
@@ -81,6 +82,15 @@ mixin ExperienceFunctionality on Entity {
       ]);
       add(upArrow);
       await Future.delayed(.3.seconds);
+    }
+  }
+
+  void levelUpFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onLevelUp.isNotEmpty) {
+      for (var element in attr.onLevelUp) {
+        element();
+      }
     }
   }
 
@@ -138,4 +148,18 @@ mixin ExperienceFunctionality on Entity {
   }
 }
 
-mixin AttributeFunctionsFunctionality on Entity {}
+mixin BaseStats on Entity {
+  int enemiesKilled = 0;
+  double damageDealt = 0;
+  double damageTaken = 0;
+  double damageHealed = 0;
+  double damageDodged = 0;
+  double damageReceived = 0;
+
+  int jumped = 0;
+  int dashed = 0;
+
+  int projectilesShot = 0;
+  int meleeSwings = 0;
+  int timesReloaded = 0;
+}

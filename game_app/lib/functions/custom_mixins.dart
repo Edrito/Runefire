@@ -13,6 +13,22 @@ mixin HasOpacityProvider on Component {
   }
 }
 
+extension ColorExtension on Color {
+  /// Merges two colors based on a merge factor between 0 and 1.
+  Color mergeWith(Color other, double mergeFactor) {
+    mergeFactor = mergeFactor.clamp(0.0, 1.0);
+
+    int mergedRed =
+        ((red + (other.red - red) * mergeFactor).round()).clamp(0, 255);
+    int mergedGreen =
+        ((green + (other.green - green) * mergeFactor).round()).clamp(0, 255);
+    int mergedBlue =
+        ((blue + (other.blue - blue) * mergeFactor).round()).clamp(0, 255);
+
+    return Color.fromARGB(alpha, mergedRed, mergedGreen, mergedBlue);
+  }
+}
+
 class CaTextComponent extends TextComponent with HasOpacityProvider {
   CaTextComponent(
       {super.anchor,

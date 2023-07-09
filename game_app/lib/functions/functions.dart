@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:game_app/resources/enums.dart';
 
+import '../entities/entity.dart';
 import '../main.dart';
 
 Future<SpriteAnimation> buildSpriteSheet(
@@ -32,8 +33,11 @@ bool boolAbilityDecipher(bool base, List<bool> boolIncrease) {
       0;
 }
 
-List<DamageInstance> damageCalculations(Map<DamageType, (double, double)> base,
-    Map<DamageType, (double, double)> increase, double? duration) {
+List<DamageInstance> damageCalculations(
+    Map<DamageType, (double, double)> base,
+    Map<DamageType, (double, double)> increase,
+    double? duration,
+    Entity source) {
   List<DamageInstance> returnList = [];
 
   for (var element in base.entries) {
@@ -45,6 +49,7 @@ List<DamageInstance> damageCalculations(Map<DamageType, (double, double)> base,
     }
 
     returnList.add(DamageInstance(
+        source: source,
         damageBase: ((rng.nextDouble() * max - min) + min),
         damageType: element.key,
         duration: duration ?? 1));

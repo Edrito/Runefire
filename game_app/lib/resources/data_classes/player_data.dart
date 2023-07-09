@@ -1,3 +1,4 @@
+import '../../entities/player.dart';
 import '../enums.dart';
 import 'package:hive/hive.dart';
 
@@ -27,6 +28,12 @@ class PlayerData extends DataClass {
   int totalGamesStarted = 0;
   int totalDeaths = 0;
 
+  ///Update information from player, saving to file
+  void updateInformation(Player player) {
+    //Parse player data
+    // save();
+  }
+
   List<GameLevel> completedLevels = [];
 
   Map<int, WeaponType> selectedWeapons = {
@@ -46,11 +53,11 @@ class PlayerData extends DataClass {
   // SecondaryWeaponType selectedSecondary2 = SecondaryWeaponType.pistol;
 
   Map<WeaponType, int> unlockedWeapons = {
-    WeaponType.pistol: 1,
-    WeaponType.shiv: 1,
+    WeaponType.pistol: 0,
+    WeaponType.shiv: 0,
   };
   Map<SecondaryType, int> unlockedSecondarys = {
-    SecondaryType.pistol: 1,
-    SecondaryType.reloadAndRapidFire: 1
+    SecondaryType.pistol: 0,
+    SecondaryType.reloadAndRapidFire: 0
   };
 }

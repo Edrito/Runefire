@@ -30,7 +30,7 @@ abstract class SecondaryWeaponAbility extends Component {
   void startAbilityCheck() {
     if (isCoolingDown || weapon.entityAncestor == null) return;
 
-    reloadAnimation = ReloadAnimation(cooldown, weapon.entityAncestor!, true)
+    reloadAnimation = ReloadAnimation(cooldown, weapon, true)
       ..addToParent(weapon.entityAncestor!);
 
     cooldownTimer = TimerComponent(
@@ -167,8 +167,12 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
         duration: 5,
         onTick: (entity, areaId) {
           if (entity is HealthFunctionality) {
-            entity.hitCheck(areaId,
-                [DamageInstance(damageBase: .1, damageType: DamageType.fire)]);
+            entity.hitCheck(areaId, [
+              DamageInstance(
+                  damageBase: .1,
+                  damageType: DamageType.fire,
+                  source: weapon.entityAncestor!)
+            ]);
           }
         },
       ));

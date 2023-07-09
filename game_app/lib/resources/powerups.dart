@@ -2,11 +2,11 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/entities/attributes_mixin.dart';
 import 'package:game_app/resources/attributes.dart';
 import 'package:game_app/resources/attributes_enum.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
-import 'package:game_app/entities/player.dart';
 
 import '../main.dart';
 
@@ -186,7 +186,7 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Player) return;
+    if (other is! AttributeFunctionality) return;
     other.addAttribute(powerup);
     removeFromParent();
     super.beginContact(other, contact);

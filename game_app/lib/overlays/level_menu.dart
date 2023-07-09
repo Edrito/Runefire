@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/visuals.dart';
@@ -71,6 +72,14 @@ class _LevelMenuState extends State<LevelMenu> {
     });
   }
 
+  Function? exitFunction;
+
+  void onExit() {
+    if (exitFunction != null) {
+      exitFunction!();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Widget> levels = [];
@@ -92,7 +101,14 @@ class _LevelMenuState extends State<LevelMenu> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             shrinkWrap: true,
-            children: levels,
+            children: levels
+                .animate(interval: .1.seconds)
+                .moveY(
+                    begin: 20,
+                    curve: Curves.fastEaseInToSlowEaseOut,
+                    duration: 1.seconds)
+                .fadeIn(
+                    curve: Curves.fastEaseInToSlowEaseOut, duration: 1.seconds),
           ),
         ),
         const Spacer(),
@@ -105,7 +121,11 @@ class _LevelMenuState extends State<LevelMenu> {
                 "Back",
                 gameRef: widget.gameRef,
                 onTap: () {
-                  changeMainMenuPage(MenuPages.weaponMenu);
+                  setState(() {
+                    exitFunction = () {
+                      changeMainMenuPage(MenuPages.weaponMenu);
+                    };
+                  });
                 },
               ),
             ),
@@ -115,14 +135,24 @@ class _LevelMenuState extends State<LevelMenu> {
                 "Begin",
                 gameRef: widget.gameRef,
                 onTap: () {
-                  if (selectedLevel == null) return;
-                  toggleGameStart(routes.gameplay);
+                  setState(() {
+                    exitFunction = () {
+                      toggleGameStart(routes.gameplay);
+                    };
+                  });
                 },
               ),
             ),
           ],
         ),
       ],
-    );
+    )
+        .animate(
+          target: exitFunction != null ? 1 : 0,
+          onComplete: (controller) {
+            onExit();
+          },
+        )
+        .fadeOut();
   }
 }

@@ -15,6 +15,7 @@ import 'package:game_app/overlays/menus.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
 import 'package:game_app/resources/data_classes/system_data.dart';
 import 'package:game_app/resources/visuals.dart';
+import 'entities/player.dart';
 import 'game/enviroment.dart';
 import 'game/menu_game.dart';
 import 'resources/constants/routes.dart' as routes;
@@ -26,6 +27,7 @@ final rng = Random();
 late GameRouter gameRouter;
 late MenuPages menuPage;
 String? currentOverlay;
+bool get gameIsPaused => gameRouter.paused;
 
 Enviroment? get currentEnviroment {
   var result = gameRouter.router.currentRoute.children.whereType<Enviroment>();
@@ -37,11 +39,20 @@ Enviroment? get currentEnviroment {
   }
 }
 
-bool get gameIsPaused => gameRouter.paused;
+Player? get currentPlayer {
+  Player? player;
+  final currentEnviromentTemp = currentEnviroment;
+  if (currentEnviromentTemp is PlayerFunctionality) {
+    player = currentEnviromentTemp.player;
+  }
+  return player;
+}
+
+bool transitionOccuring = false;
 
 void pauseGame(String overlay,
     {bool pauseGame = true, bool wipeMovement = false}) {
-  if (currentOverlay != null) return;
+  if (currentOverlay != null || transitionOccuring) return;
   gameRouter.overlays.add(overlay);
   currentOverlay = overlay;
   if (wipeMovement) {
@@ -61,8 +72,7 @@ void resumeGame() {
   gameRouter.resumeEngine();
 }
 
-void changeMainMenuPage(MenuPages page, [bool setState = true]) {
-  toggleGameStart(null);
+void handlePlayerPreview(MenuPages page) {
   MenuGame? menuGame;
   if (currentEnviroment is MenuGame) {
     menuGame = currentEnviroment as MenuGame;
@@ -73,6 +83,12 @@ void changeMainMenuPage(MenuPages page, [bool setState = true]) {
   } else {
     menuGame?.removePlayer();
   }
+}
+
+void changeMainMenuPage(MenuPages page, [bool setState = true]) {
+  toggleGameStart(null);
+  handlePlayerPreview(page);
+
   menuPage = page;
   if (setState) {
     setStateMainMenu(() {});
@@ -80,22 +96,38 @@ void changeMainMenuPage(MenuPages page, [bool setState = true]) {
 }
 
 bool startInGame = true;
+late String currentRoute;
 
 ///null route = go to main menu
 ///string route = leave main menu to route
 void toggleGameStart(String? route) {
   gameRouter.router.pushReplacementNamed(routes.blank);
-
   resumeGame();
   if (route != null) {
     Future.delayed(const Duration(milliseconds: 50)).then((_) {
-      gameRouter.router.pushReplacementNamed(route);
+      gameRouter.router.pushReplacementNamed(route!);
     });
   } else {
+    route = routes.blank;
     Future.delayed(const Duration(milliseconds: 50)).then((_) {
       gameRouter.overlays.add(overlays.mainMenu.key);
     });
   }
+  currentRoute = route;
+}
+
+void endGame([bool restart = false]) {
+  final player = currentPlayer;
+  if (player != null) {
+    gameRouter.playerDataComponent.dataObject.updateInformation(player);
+  }
+
+  if (!restart) {
+    changeMainMenuPage(MenuPages.startMenuPage, false);
+  } else {
+    toggleGameStart(routes.gameplay);
+  }
+  resumeGame();
 }
 
 late Function setStateMainMenu;
@@ -128,6 +160,8 @@ void main() async {
   gameRouter = GameRouter(systemData, playerData);
   menuPage = MenuPages.startMenuPage;
 
+  currentRoute = startInGame ? routes.gameplay : routes.blank;
+
   runApp(
     Material(
       child: Directionality(
@@ -144,6 +178,9 @@ void main() async {
             onKey: gameRouter.onKeyEvent,
             child: GameWidget(
                 backgroundBuilder: (context) {
+                  if (currentRoute == routes.gameplay) {
+                    return const SizedBox();
+                  }
                   return const BackgroundWidget();
                 },
                 loadingBuilder: (p0) {
@@ -199,7 +236,7 @@ class GameRouter extends Forge2DGame
         routes.transition: Route(ForestGame.new, maintainState: false),
         routes.gameplay: Route(ForestGame.new, maintainState: false),
       },
-      initialRoute: startInGame ? routes.gameplay : routes.blank,
+      initialRoute: currentRoute,
     );
     add(systemDataComponent);
     add(playerDataComponent);

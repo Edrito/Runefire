@@ -97,6 +97,11 @@ abstract class Weapon extends Component {
   //META INFORMATION
   bool attackOnAnimationFinish = false;
 
+  AttributeWeaponFunctionsFunctionality? get attributeFunctionsFunctionality =>
+      this is AttributeWeaponFunctionsFunctionality
+          ? this as AttributeWeaponFunctionsFunctionality
+          : null;
+
   bool get hasAltAttack => this is SecondaryFunctionality;
 
   abstract WeaponType weaponType;
@@ -172,8 +177,8 @@ abstract class Weapon extends Component {
   //DamageType, min, max
   abstract Map<DamageType, (double, double)> baseDamageLevels;
 
-  List<DamageInstance> get damage => damageCalculations(
-      baseDamageLevels, damageIncrease, entityAncestor?.damageDuration);
+  List<DamageInstance> get damage => damageCalculations(baseDamageLevels,
+      damageIncrease, entityAncestor?.damageDuration, entityAncestor!);
 
   //ATTRIBUTES
 
@@ -199,16 +204,6 @@ abstract class Weapon extends Component {
   void applyWeaponUpgrade(int newUpgradeLevel) {
     newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
   }
-
-  //Event functions that are modified from attributes
-  List<Function(Weapon, Entity)> onKillProjectile = [];
-  List<Function(Weapon, Entity)> onHitProjectile = [];
-  List<Function(Weapon, Entity)> onKillMelee = [];
-  List<Function(Weapon, Entity)> onHitMelee = [];
-  List<Function(Weapon)> onFireProjectile = [];
-  List<Function(Weapon)> onFireMelee = [];
-  List<Function(Weapon)> onReload = [];
-  List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
 
   bool spritesHidden = false;
 
@@ -261,6 +256,11 @@ abstract class Weapon extends Component {
     }
     await Future.wait(futures);
   }
+}
+
+abstract class PlayerWeapon extends Weapon
+    with AttributeWeaponFunctionsFunctionality, SecondaryFunctionality {
+  PlayerWeapon(super.newUpgradeLevel, super.entityAncestor);
 }
 
 ///Custom SpriteAnimation that attaches to each joint on an entity that is defined

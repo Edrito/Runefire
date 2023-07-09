@@ -16,6 +16,7 @@ import 'package:game_app/weapons/weapon_class.dart';
 import '../entities/entity.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
+import '../resources/visuals.dart';
 
 mixin MultiWeaponCheck on Weapon {
   @override
@@ -30,6 +31,9 @@ mixin ReloadFunctionality on Weapon {
   int get maxAttacks => baseMaxAttacks + maxAttacksIncrease;
   abstract final int baseMaxAttacks;
   int maxAttacksIncrease = 0;
+
+  double get percentReloaded =>
+      (reloadTimer?.timer.current ?? reloadTime) / reloadTime;
 
   ///How long in seconds to reload
   abstract final double baseReloadTime;
@@ -99,8 +103,7 @@ mixin ReloadFunctionality on Weapon {
 
   void createReloadBar() {
     if (entityAncestor == null) return;
-    reloadAnimation =
-        ReloadAnimation(reloadTime, entityAncestor!, isSecondaryWeapon);
+    reloadAnimation = ReloadAnimation(reloadTime, this, isSecondaryWeapon);
 
     entityAncestor?.add(reloadAnimation!);
   }
@@ -379,29 +382,47 @@ mixin ProjectileFunctionality on Weapon {
 }
 
 class ReloadAnimation extends PositionComponent {
-  ReloadAnimation(this.duration, this.entityAncestor, this.isSecondaryWeapon);
+  ReloadAnimation(this.duration, this.weaponAncestor, this.isSecondaryWeapon);
   double duration;
-  Entity entityAncestor;
+  Weapon weaponAncestor;
   bool isSecondaryWeapon;
   @override
-  final height = .2;
-  final lineHeight = .06;
+  final height = .06;
   final barWidth = .05;
+  final sidePadding = .025;
 
-  final sidePadding = .1;
+  Color get color => isSecondaryWeapon ? Colors.red : Colors.pink;
+
+  double get percentReloaded => (durationTimer.timer.current) / duration;
+
+  @override
+  render(Canvas canvas) {
+    buildProgressBar(
+        canvas: canvas,
+        percentProgress: percentReloaded,
+        color: color,
+        size: size,
+        heightOfBar: height,
+        widthOfBar: barWidth,
+        padding: sidePadding,
+        peak: 1,
+        growth: 0);
+
+    super.render(canvas);
+  }
+
+  late final TimerComponent durationTimer;
 
   @override
   FutureOr<void> onLoad() {
-    final parentSize = entityAncestor.spriteWrapper.size;
-
-    size = parentSize;
+    final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
 
     size.y = height;
-
+    size.x = parentSize.x * 1.5;
     anchor = Anchor.center;
-    position.y = parentSize.y / -2;
+    position.y = parentSize.y * -0.95;
 
-    final timer = TimerComponent(
+    durationTimer = TimerComponent(
       period: duration,
       removeOnFinish: true,
       onTick: () {
@@ -409,24 +430,12 @@ class ReloadAnimation extends PositionComponent {
       },
     );
 
-    final movingBar = RectangleComponent(size: Vector2(barWidth, height));
-    movingBar.position = Vector2(sidePadding, height / -2);
-    movingBar.add(MoveEffect.to(
-        Vector2(size.x - sidePadding, movingBar.position.y),
-        EffectController(duration: duration)));
-
-    final bar = RectangleComponent(size: Vector2(size.x, lineHeight));
-    bar.anchor = Anchor.centerLeft;
-
     if (isSecondaryWeapon) {
-      position.y += -height * 1.5;
-      movingBar.setColor(BasicPalette.green.color);
-      bar.setColor(BasicPalette.green.color);
+      position.y += -height * 2.25;
     }
+
     addAll([
-      movingBar,
-      bar,
-      timer,
+      durationTimer,
     ]);
 
     return super.onLoad();
@@ -606,4 +615,16 @@ mixin MeleeTrailEffect on MeleeFunctionality {
 
     super.render(canvas);
   }
+}
+
+mixin AttributeWeaponFunctionsFunctionality on Weapon {
+  //Event functions that are modified from attributes
+  List<Function(Weapon, Entity owner)> onKillProjectile = [];
+  List<Function(Weapon, Entity other)> onHitProjectile = [];
+  List<Function(Weapon, Entity owner)> onKillMelee = [];
+  List<Function(Weapon, Entity other)> onHitMelee = [];
+  List<Function(Weapon)> onFireProjectile = [];
+  List<Function(Weapon)> onFireMelee = [];
+  List<Function(Weapon)> onReload = [];
+  List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
 }

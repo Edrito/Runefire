@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:math';
-import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
@@ -102,33 +100,20 @@ class GameHud extends PositionComponent {
       const heightOfBar = 30.0;
       const padding = 3.0;
       const peak = 1.2;
-      const exponentialGrowth = 6;
+      const exponentialGrowth = 6.0;
       final viewportSize = gameRef.gameCamera.viewport.size;
 
-      final noXpPaint = Paint()
-        ..shader = ui.Gradient.linear(Offset.zero, Offset(viewportSize.x, 0),
-            [Colors.grey.shade900, Colors.grey.shade700]);
-      final xpPaint = Paint()
-        ..shader = ui.Gradient.linear(
-            Offset.zero, Offset(viewportSize.x, 0), [Colors.pink, Colors.red]);
-
-      final amountOfBars = (viewportSize.x / (widthOfBar + padding)).floor();
-      final iteration = (viewportSize.x - padding / 2) / amountOfBars;
-      final xpCutOff = player!.percentOfLevelGained * amountOfBars;
-      for (var i = 0; i < amountOfBars; i++) {
-        final iRatio = i / amountOfBars;
-        if (iRatio > loadInPercent) continue;
-        final ratio = iRatio * peak;
-        final isXpBar = xpCutOff > i;
-        canvas.drawRect(
-            (Offset((padding / 2) + (iteration * i), 0) &
-                Size(
-                  widthOfBar,
-                  (heightOfBar / 3) +
-                      heightOfBar * pow(ratio, exponentialGrowth),
-                )),
-            isXpBar ? xpPaint : noXpPaint);
-      }
+      buildProgressBar(
+          canvas: canvas,
+          percentProgress: player!.percentOfLevelGained,
+          color: Colors.pink,
+          size: viewportSize,
+          heightOfBar: heightOfBar,
+          widthOfBar: widthOfBar,
+          padding: padding,
+          loadInPercent: loadInPercent,
+          peak: peak,
+          growth: exponentialGrowth);
 
       //Health and Stamina
 

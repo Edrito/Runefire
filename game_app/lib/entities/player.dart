@@ -17,9 +17,9 @@ import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../functions/vector_functions.dart';
 import '../main.dart';
-import '../overlays/menus.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
+import 'attributes_mixin.dart';
 
 class Player extends Entity
     with
@@ -28,10 +28,12 @@ class Player extends Entity
         HealthFunctionality,
         AimFunctionality,
         AttackFunctionality,
+        AttributeFunctionality,
         MovementFunctionality,
         JumpFunctionality,
         ExperienceFunctionality,
-        DashFunctionality {
+        DashFunctionality,
+        AttributeFunctionsFunctionality {
   Player(this.playerData, this.isDisplay,
       {required super.gameEnviroment, required super.initPosition});
   final PlayerData playerData;
@@ -72,11 +74,11 @@ class Player extends Entity
 
     await loadAnimationSprites();
     mouseCallbackWrapper = MouseKeyboardCallbackWrapper();
-    if (!isDisplay) {
-      mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();
-      mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
-      mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
-    }
+    // if (!isDisplay) {
+    mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();
+    mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
+    mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
+    // }
 
     mouseCallbackWrapper.keyEvent = (event) => onKeyEvent(event);
     game.mouseCallback.add(mouseCallbackWrapper);
@@ -140,13 +142,6 @@ class Player extends Entity
   void parseKeys(RawKeyEvent? event) {
     Vector2 moveAngle = Vector2.zero();
     try {
-      if (isDisplay) {
-        if (gameIsPaused || event is! RawKeyDownEvent) return;
-
-        if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
-          swapWeapon();
-        }
-      }
       if (event == null || isDead) return;
 
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
@@ -181,15 +176,19 @@ class Player extends Entity
         }
       }
 
+      if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
+        swapWeapon();
+      }
+
+      if (isDisplay) {
+        return;
+      }
       if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
         (gameEnviroment as ForestGame).enemyManagement.generateEnemies();
       }
+
       if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
         preLevelUp();
-      }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
-        swapWeapon();
       }
     } finally {
       if (moveAngle.isZero()) {
@@ -243,7 +242,7 @@ class Player extends Entity
   }
 
   void gestureEventStart(InputType inputType, PositionInfo info) {
-    if (isDisplay && inputType != InputType.mouseMove) return;
+    // if (isDisplay && inputType != InputType.mouseMove) return;
 
     switch (inputType) {
       case InputType.mouseMove:
@@ -306,13 +305,14 @@ class Player extends Entity
 
   void killPlayer(bool showDeathScreen) {
     setEntityStatus(EntityStatus.dead);
-
+    transitionOccuring = true;
     Future.delayed(2.seconds).then(
       (value) {
+        transitionOccuring = false;
         if (showDeathScreen) {
           pauseGame(deathScreen.key, wipeMovement: true);
         } else {
-          changeMainMenuPage(MenuPages.startMenuPage, false);
+          endGame(false);
         }
       },
     );

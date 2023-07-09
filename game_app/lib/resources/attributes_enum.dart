@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_app/resources/powerups.dart';
 
-import '../entities/entity_mixin.dart';
+import '../entities/attributes_mixin.dart';
 import 'attributes.dart';
 
 enum AttributeRarity { unique, rare, uncommon, standard }
@@ -38,7 +38,9 @@ enum AttributeEnum {
       rarity: AttributeRarity.uncommon, category: AttributeCategory.mobility),
   power(
       rarity: AttributeRarity.uncommon, category: AttributeCategory.temporary),
-  attackRate(rarity: AttributeRarity.rare, category: AttributeCategory.attack);
+  attackRate(rarity: AttributeRarity.rare, category: AttributeCategory.attack),
+  explosiveDash(
+      rarity: AttributeRarity.rare, category: AttributeCategory.mobility);
 
   const AttributeEnum(
       {this.rarity = AttributeRarity.standard,
@@ -49,17 +51,16 @@ enum AttributeEnum {
 }
 
 extension AllAttributesExtension on AttributeEnum {
-  Attribute buildAttribute(int level, AttributeFunctionality entity,
-      [bool applyNow = true]) {
+  Attribute buildAttribute(int level, AttributeFunctionality entity) {
     switch (this) {
       case AttributeEnum.topSpeed:
-        return TopSpeedAttribute(
-            level: level, entity: entity, applyNow: applyNow);
+        return TopSpeedAttribute(level: level, entity: entity);
       case AttributeEnum.attackRate:
-        return AttackRateAttribute(
-            level: level, entity: entity, applyNow: applyNow);
+        return AttackRateAttribute(level: level, entity: entity);
       case AttributeEnum.power:
         return PowerAttribute(level: level, entity: entity);
+      case AttributeEnum.explosiveDash:
+        return ExplosiveDashAttribute(level: level, entity: entity);
     }
   }
 }

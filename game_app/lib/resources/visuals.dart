@@ -1,19 +1,32 @@
 import 'dart:io';
 import 'dart:math';
-
+import 'dart:ui' as ui;
 import 'package:flame/extensions.dart';
+import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:window_manager/window_manager.dart';
 import '../main.dart';
 
-const Color buttonDownColor = Color.fromARGB(255, 58, 58, 58);
-const Color buttonUpColor = Color.fromARGB(255, 239, 80, 114);
-const Color backgroundColor1 = Color.fromARGB(255, 22, 0, 20);
-const Color backgroundColor2 = Color.fromARGB(255, 158, 48, 147);
-const Color unlockedColor = Color.fromARGB(255, 122, 89, 118);
-const Color equippedColor = Color.fromARGB(255, 204, 131, 197);
-const Color lockedColor = Color.fromARGB(255, 61, 36, 58);
+const uiWidthMax = 1300.0;
+
+extension CustomColors on BasicPalette {
+  static const PaletteEntry secondaryColorPalette =
+      PaletteEntry(secondaryColor);
+  static const PaletteEntry primaryColorPalette = PaletteEntry(primaryColor);
+}
+
+const Color primaryColor = ui.Color.fromARGB(255, 255, 67, 123);
+const Color secondaryColor = ui.Color.fromARGB(255, 67, 186, 255);
+const Color buttonDownColor = secondaryColor;
+const Color buttonUpColor = primaryColor;
+const Color backgroundColor1 = ui.Color.fromARGB(255, 22, 0, 5);
+const Color backgroundColor2 = ui.Color.fromARGB(255, 48, 99, 158);
+const Color lockedColor = ui.Color.fromARGB(255, 70, 41, 66);
+const Color hoverColor = ui.Color.fromARGB(255, 180, 152, 176);
+const Color unlockedColor = Color.fromARGB(255, 175, 124, 168);
+const Color secondaryEquippedColor = ui.Color.fromARGB(255, 255, 113, 113);
+const Color levelUnlockedUnequipped = ui.Color.fromARGB(255, 180, 180, 180);
 
 final defaultStyle = TextStyle(
   fontSize: Platform.isAndroid || Platform.isIOS ? 21 : 35,
@@ -22,9 +35,9 @@ final defaultStyle = TextStyle(
   color: buttonUpColor,
   shadows: const [
     BoxShadow(
-        color: Colors.black12,
-        offset: Offset(3, 3),
-        spreadRadius: 3,
+        color: Colors.black45,
+        offset: Offset(2, 2),
+        spreadRadius: 2,
         blurRadius: 0)
   ],
 );
@@ -61,17 +74,58 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
 
   // late Timer timer;
 
-  @override
-  void onWindowResized() {
+  void resetStars() {
     setState(() {
-      gameSize = null;
+      gameSize = MediaQuery.of(context).size;
+    });
+  }
+
+  @override
+  void onWindowEnterFullScreen() {
+    resetStars();
+    super.onWindowEnterFullScreen();
+  }
+
+  @override
+  void onWindowMaximize() {
+    Future.delayed(const Duration(milliseconds: 100)).then((value) {
+      resetStars();
     });
 
-    super.onWindowResized();
+    super.onWindowMaximize();
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    Future.delayed(const Duration(milliseconds: 100)).then((value) {
+      resetStars();
+    });
+    super.onWindowUnmaximize();
+  }
+
+  @override
+  void onWindowLeaveFullScreen() {
+    resetStars();
+    super.onWindowEnterFullScreen();
+  }
+
+  @override
+  void onWindowResized() {
+    resetStars();
+
+    super.onWindowResize();
+  }
+
+  @override
+  void dispose() {
+    _controllerBackground.dispose();
+    _controllerForeground.dispose();
+
+    super.dispose();
   }
 
   Widget buildStar(double heightThird) {
-    final yPos = rng.nextDouble() * gameSize!.height * .8;
+    final yPos = rng.nextDouble() * gameSize!.height * .6;
     var opacity = 1.0;
     if (yPos > heightThird) {
       opacity = 1 - (yPos - heightThird) / heightThird;
@@ -84,7 +138,8 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
         child: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(opacity),
+            color: Colors.white
+                .withOpacity(opacity - (opacity * .5 * rng.nextDouble())),
           ),
           width: 3 + (rng.nextDouble() * 2),
           height: 3 + (rng.nextDouble() * 2),
@@ -115,20 +170,24 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter)),
         ),
-        for (var i = 0; i < 50; i++) buildStar(heightThird),
-
+        for (var i = 0; i < 100; i++) buildStar(heightThird),
         Positioned.fill(
             child: Center(
-          child: Container(
-            alignment: Alignment.center,
-            height: heightThird * 2,
-            width: heightThird * 2,
-            decoration: BoxDecoration(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 500, maxWidth: 500),
+            child: Container(
+              alignment: Alignment.center,
+              height: heightThird * 2,
+              width: heightThird * 2,
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(colors: [
-                  backgroundColor1.brighten(.5),
-                  Colors.pink,
-                ], begin: Alignment.bottomCenter, end: Alignment.topCenter)),
+                  unlockedColor.brighten(.2),
+                  primaryColor,
+                  // Colors.transparent,
+                ], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+              ),
+            ),
           ),
         )
                 .animate(
@@ -143,7 +202,6 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
                     end: 0)
                 .animate()
                 .fadeIn(curve: Curves.easeInOutCubic, duration: 2.seconds)),
-
         Align(
           alignment: Alignment.bottomCenter,
           child: AnimatedBuilder(
@@ -155,8 +213,11 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
                 child: Container(
                   decoration: BoxDecoration(
                       gradient: LinearGradient(colors: [
-                    const Color.fromARGB(255, 73, 26, 48),
-                    const Color.fromARGB(255, 213, 0, 99).darken(.5),
+                    secondaryColor.darken(.7),
+                    secondaryColor.darken(.3),
+                  ], stops: const [
+                    .1,
+                    .6
                   ], begin: Alignment.bottomCenter, end: Alignment.topCenter)),
                 ),
               );
@@ -173,21 +234,19 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
                 clipper: WaveClipper(waveOffset, true),
                 child: Container(
                   // height: heightThird,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                       gradient: LinearGradient(colors: [
-                    Color.fromARGB(255, 122, 48, 70),
-                    Color.fromARGB(255, 124, 30, 50)
+                    primaryColor.darken(.5),
+                    primaryColor.darken(.1),
+                  ], stops: const [
+                    0,
+                    .3
                   ], begin: Alignment.bottomCenter, end: Alignment.topCenter)),
                 ),
               );
             },
           ),
         ),
-
-        // ClipPath(
-        //   clipper: WaveClipper(),
-        //   child: Container(color: Colors.blue),
-        // ),
       ]),
     );
   }
@@ -217,4 +276,41 @@ class WaveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(WaveClipper oldClipper) => true;
+}
+
+void buildProgressBar(
+    {required Canvas canvas,
+    required double percentProgress,
+    required Color color,
+    required Vector2 size,
+    double widthOfBar = .2,
+    double heightOfBar = .5,
+    double padding = .1,
+    double peak = 1.2,
+    double growth = 5,
+    double loadInPercent = 1.0}) {
+  final noXpPaint = Paint()
+    ..shader = ui.Gradient.linear(Offset.zero, Offset(size.x, 0),
+        [Colors.grey.shade900, Colors.grey.shade700]);
+  final xpPaint = Paint()
+    ..shader = ui.Gradient.linear(
+        Offset.zero, Offset(size.x, 0), [color.brighten(.2), color]);
+
+  final amountOfBars = (size.x / (widthOfBar + padding)).floor();
+  final iteration = (size.x - padding / 2) / amountOfBars;
+  final xpCutOff = percentProgress * amountOfBars;
+
+  for (var i = 0; i < amountOfBars; i++) {
+    final iRatio = i / amountOfBars;
+    if (iRatio > loadInPercent) continue;
+    final ratio = iRatio * peak;
+    final isXpBar = xpCutOff > i;
+    canvas.drawRect(
+        (Offset((padding / 2) + (iteration * i), 0) &
+            Size(
+              widthOfBar,
+              (heightOfBar / 3) + heightOfBar * pow(ratio, growth),
+            )),
+        isXpBar ? xpPaint : noXpPaint);
+  }
 }

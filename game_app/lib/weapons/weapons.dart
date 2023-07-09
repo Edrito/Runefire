@@ -9,12 +9,8 @@ import '../entities/entity_mixin.dart';
 import '../functions/functions.dart';
 import '../resources/enums.dart';
 
-class Portal extends Weapon
-    with
-        ProjectileFunctionality,
-        SecondaryFunctionality,
-        SemiAutomatic,
-        ReloadFunctionality {
+class Portal extends PlayerWeapon
+    with ProjectileFunctionality, SemiAutomatic, ReloadFunctionality {
   Portal.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -146,12 +142,11 @@ class Portal extends Weapon
   double get baseMaxSpreadDegrees => 45;
 }
 
-class Pistol extends Weapon
+class Pistol extends PlayerWeapon
     with
         FullAutomatic,
         ProjectileFunctionality,
         ReloadFunctionality,
-        SecondaryFunctionality,
         MultiWeaponCheck {
   Pistol.create(
     int? newUpgradeLevel,
@@ -272,12 +267,8 @@ class Pistol extends Weapon
   double get baseMaxSpreadDegrees => 270;
 }
 
-class Shotgun extends Weapon
-    with
-        ProjectileFunctionality,
-        SemiAutomatic,
-        ReloadFunctionality,
-        SecondaryFunctionality {
+class Shotgun extends PlayerWeapon
+    with ProjectileFunctionality, SemiAutomatic, ReloadFunctionality {
   Shotgun.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -390,8 +381,7 @@ class Shotgun extends Weapon
   SemiAutoType semiAutoType = SemiAutoType.regular;
 }
 
-class Bow extends Weapon
-    with ProjectileFunctionality, SecondaryFunctionality, SemiAutomatic {
+class Bow extends PlayerWeapon with ProjectileFunctionality, SemiAutomatic {
   Bow.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -500,11 +490,11 @@ class Bow extends Weapon
   };
 }
 
-class Sword extends Weapon
+class Sword extends PlayerWeapon
     with
         MeleeFunctionality,
         // ProjectileFunctionality,
-        SecondaryFunctionality,
+
         FullAutomatic,
         MeleeTrailEffect
 // ,        ReloadFunctionality
@@ -518,7 +508,7 @@ class Sword extends Weapon
   void melee([double chargeAmount = 1]) {
     // if (entityAncestor is DashFunctionality) {
     //   (entityAncestor as DashFunctionality)
-    //       .dashInit(power: chargeAmount, weapon: true);
+    //       .dashInit(power: chargeAmount, PlayerWeapon: true);
     // }
     super.melee(chargeAmount);
   }

@@ -30,22 +30,6 @@ import '../weapons/weapon_class.dart';
 // bool get collisionWhileDashing => boolAbilityDecipher(
 //     baseCollisionWhileDashing, collisionWhileDashingIncrease);
 
-mixin BaseStats on Entity {
-  int enemiesKilled = 0;
-  double damageDealt = 0;
-  double damageTaken = 0;
-  double damageHealed = 0;
-  double damageDodged = 0;
-  double damageReceived = 0;
-
-  int jumped = 0;
-  int dashed = 0;
-
-  int projectilesShot = 0;
-  int meleeSwings = 0;
-  int timesReloaded = 0;
-}
-
 mixin BaseAttributes on BodyComponent<GameRouter> {
   bool get isJumping => false;
   bool get isDashing => false;
@@ -82,6 +66,15 @@ mixin MovementFunctionality on Entity {
           Vector2.zero())
       .normalized();
 
+  void moveFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onMove.isNotEmpty) {
+      for (var element in attr.onMove) {
+        element();
+      }
+    }
+  }
+
   void moveCharacter() {
     final previousPulse = moveDelta;
 
@@ -92,7 +85,7 @@ mixin MovementFunctionality on Entity {
     spriteFlipCheck();
 
     body.applyForce(previousPulse * getMaxSpeed);
-
+    moveFunctionsCall();
     setEntityStatus(EntityStatus.run);
   }
 }
@@ -196,7 +189,14 @@ mixin AimFunctionality on Entity {
 }
 
 mixin AttackFunctionality on AimFunctionality {
-  Weapon? currentWeapon;
+  Weapon? get currentWeapon => carriedWeapons[weaponIndex];
+  int weaponIndex = 0;
+  void incrementWeaponIndex() {
+    weaponIndex++;
+    if (weaponIndex >= carriedWeapons.length) {
+      weaponIndex = 0;
+    }
+  }
 
   Map<int, Weapon> carriedWeapons = {};
   List<WeaponType> initialWeapons = [];
@@ -211,24 +211,30 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> initializeWeapons() async {
-    int i = 0;
-    for (var element in initialWeapons) {
-      if (this is Player) {
-        final player = this as Player;
+    carriedWeapons.clear();
+
+    if (isPlayer) {
+      final player = this as Player;
+      final playerData = player.playerData;
+      for (var i = 0; i < player.playerData.selectedWeapons.length; i++) {
+        final element = playerData.selectedWeapons[i]!;
         carriedWeapons[i] = element.build(
             this,
             player.playerData.selectedSecondaries[i],
-            player.playerData.unlockedWeapons[element] ?? 1);
-      } else {
+            player.playerData.unlockedWeapons[element] ?? 0);
+      }
+    } else {
+      int i = 0;
+      for (var element in initialWeapons) {
         carriedWeapons[i] = element.build(
           this,
           null,
         );
+        i++;
       }
-
-      i++;
     }
-    initialWeapons.clear();
+
+    setWeapon(currentWeapon!);
   }
 
   @override
@@ -239,7 +245,6 @@ mixin AttackFunctionality on AimFunctionality {
       for (var element in currentWeapon!.parents.values) {
         element.weaponSpriteAnimation?.removeFromParent();
       }
-      currentWeapon = null;
     }
 
     super.permanentlyDisableEntity();
@@ -277,9 +282,6 @@ mixin AttackFunctionality on AimFunctionality {
     await mouseJoint.loaded
         .whenComplete(() => mouseJoint.addWeaponClass(weapon));
     await backJoint.loaded.whenComplete(() => backJoint.addWeaponClass(weapon));
-    currentWeapon?.weaponSwappedFrom();
-    currentWeapon = weapon;
-    currentWeapon?.weaponSwappedTo();
   }
 
   void startAttacking() async {
@@ -301,15 +303,13 @@ mixin AttackFunctionality on AimFunctionality {
     if (isAltAttacking) {
       currentWeapon?.endAltAttacking();
     }
-    int key = (carriedWeapons.entries
-            .firstWhere((element) => element.value == currentWeapon)
-            .key) +
-        1;
-    if (!carriedWeapons.containsKey(key)) {
-      await setWeapon(carriedWeapons.entries.first.value);
-    } else {
-      await setWeapon(carriedWeapons[key]!);
-    }
+    currentWeapon?.weaponSwappedFrom();
+
+    incrementWeaponIndex();
+    await setWeapon(currentWeapon!);
+
+    currentWeapon?.weaponSwappedTo();
+
     if (isAttacking) {
       currentWeapon?.startAttacking();
     }
@@ -393,8 +393,19 @@ mixin HealthFunctionality on Entity {
           onMax: () => removeFromParent(),
           curve: Curves.easeIn),
     ));
+
+    deadFunctionsCall();
     super.deadStatus();
     removeFromParent();
+  }
+
+  void deadFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onDeath.isNotEmpty) {
+      for (var element in attr.onDeath) {
+        element();
+      }
+    }
   }
 
   void buildDamageText(DamageInstance instance) {
@@ -456,6 +467,15 @@ mixin HealthFunctionality on Entity {
     }
   }
 
+  void onHitFunctionsCall(Entity other) {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onHit.isNotEmpty) {
+      for (var element in attr.onHit) {
+        element(this, other);
+      }
+    }
+  }
+
   @override
   void damageStatus() {
     applyTempAnimation(damageAnimation);
@@ -510,6 +530,7 @@ mixin HealthFunctionality on Entity {
 
     buildDamageText(largestEntry);
     addDamageEffects();
+    onHitFunctionsCall(damage.first.source);
     return true;
   }
 
@@ -626,8 +647,8 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   //DamageType, min, max
   abstract Map<DamageType, (double, double)> baseTouchDamage;
 
-  List<DamageInstance> get damage =>
-      damageCalculations(baseTouchDamage, touchDamageIncrease, damageDuration);
+  List<DamageInstance> get damage => damageCalculations(
+      baseTouchDamage, touchDamageIncrease, damageDuration, this);
 
   Map<Body, TimerComponent> objectsHitting = {};
 
@@ -762,8 +783,8 @@ mixin DashFunctionality on StaminaFunctionality {
     return true;
   }
 
-  void dashInit({double? power, bool weapon = false}) {
-    if (!weapon) modifyStamina(-dashStaminaCost);
+  void dashInit({double? power, bool weaponSource = false}) {
+    if (!weaponSource) modifyStamina(-dashStaminaCost);
     if (power != null) {
       power *= 2;
     }
@@ -771,7 +792,7 @@ mixin DashFunctionality on StaminaFunctionality {
 
     dashDistanceGoal = dashDistance * power;
     _isDashing = true;
-    if (weapon || teleportDash) {
+    if (weaponSource || teleportDash) {
       if (this is AimFunctionality) {
         dashDelta = (this as AimFunctionality).inputAimDelta;
       }
@@ -788,7 +809,7 @@ mixin DashFunctionality on StaminaFunctionality {
     }
 
     dashDelta = dashDelta!.normalized();
-    if (!weapon) {
+    if (!weaponSource) {
       dashTimerCooldown = TimerComponent(
         period: dashCooldown,
         removeOnFinish: true,
@@ -801,6 +822,35 @@ mixin DashFunctionality on StaminaFunctionality {
       );
 
       add(dashTimerCooldown!);
+
+      dashBeginFunctionsCall();
+    }
+  }
+
+  void dashBeginFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.dashBeginFunctions.isNotEmpty) {
+      for (var element in attr.dashBeginFunctions) {
+        element();
+      }
+    }
+  }
+
+  void dashEndFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.dashEndFunctions.isNotEmpty) {
+      for (var element in attr.dashEndFunctions) {
+        element();
+      }
+    }
+  }
+
+  void dashOngoingFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.dashOngoingFunctions.isNotEmpty) {
+      for (var element in attr.dashOngoingFunctions) {
+        element();
+      }
     }
   }
 
@@ -823,6 +873,7 @@ mixin DashFunctionality on StaminaFunctionality {
   }
 
   void finishDash() {
+    dashEndFunctionsCall();
     dashDelta = null;
     _isDashing = false;
     dashedDistance = 0;
@@ -834,6 +885,7 @@ mixin DashFunctionality on StaminaFunctionality {
 
     body.setTransform(body.position + (dashDelta! * distance), 0);
     dashedDistance += distance;
+    dashOngoingFunctionsCall();
   }
 }
 
@@ -864,6 +916,33 @@ mixin JumpFunctionality on StaminaFunctionality {
   double jumpingInvinciblePercentIncrease = 0;
 
   abstract SpriteAnimation? jumpAnimation;
+
+  void jumpBeginFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.jumpBeginFunctions.isNotEmpty) {
+      for (var element in attr.jumpBeginFunctions) {
+        element();
+      }
+    }
+  }
+
+  void jumpEndFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.jumpEndFunctions.isNotEmpty) {
+      for (var element in attr.jumpEndFunctions) {
+        element();
+      }
+    }
+  }
+
+  void jumpOngoingFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.jumpOngoingFunctions.isNotEmpty) {
+      for (var element in attr.jumpOngoingFunctions) {
+        element();
+      }
+    }
+  }
 
   @override
   void jumpStatus() {
@@ -902,11 +981,12 @@ mixin JumpFunctionality on StaminaFunctionality {
               elapsed += .025;
 
               isJumpingInvincible = elapsed > min && elapsed < max;
+              jumpOngoingFunctionsCall();
 
               return !(elapsed >= jumpDuration || controller.completed);
             })).then((_) {
       _isJumping = false;
-      //Landing Functions Here //TODO
+      jumpEndFunctionsCall();
     });
 
     spriteWrapper.add(ScaleEffect.by(
@@ -928,6 +1008,7 @@ mixin JumpFunctionality on StaminaFunctionality {
             controllerD,
           ));
     }
+    jumpBeginFunctionsCall();
   }
 
   bool jumpCheck() {
@@ -940,99 +1021,5 @@ mixin JumpFunctionality on StaminaFunctionality {
     jump();
 
     return true;
-  }
-}
-
-mixin AttributeFunctionality on BodyComponent<GameRouter> {
-  Map<AttributeEnum, Attribute> currentAttributes = {};
-  Random rng = Random();
-
-  void loadPlayerConfig(Map<String, dynamic> config) {}
-  bool initalized = false;
-
-  ///Initial Attribtes and their initial level
-  ///i.e. Max Speed : Level 3
-  void initAttributes(Map<AttributeEnum, int> attributesToAdd) {
-    if (initalized) return;
-    for (var element in attributesToAdd.entries) {
-      currentAttributes[element.key] =
-          element.key.buildAttribute(element.value, this, true);
-    }
-    initalized = true;
-  }
-
-  void addRandomAttribute() {
-    addAttributeEnum(
-        AttributeEnum.values[rng.nextInt(AttributeEnum.values.length)]);
-  }
-
-  void addAttributeEnum(AttributeEnum attribute, [int level = 1]) {
-    if (currentAttributes.containsKey(attribute)) {
-      currentAttributes[attribute]?.incrementLevel(level);
-    } else {
-      currentAttributes[attribute] = attribute.buildAttribute(level, this);
-    }
-  }
-
-  void addAttribute(Attribute attribute, [int level = 0]) {
-    if (currentAttributes.containsKey(attribute.attributeEnum)) {
-      currentAttributes[attribute.attributeEnum]?.incrementLevel(level);
-    } else {
-      currentAttributes[attribute.attributeEnum] = attribute;
-      attribute.applyAttribute();
-    }
-  }
-
-  void clearAttributes() {
-    for (var element in currentAttributes.entries) {
-      element.value.removeAttribute();
-    }
-    currentAttributes.clear();
-    initalized = false;
-  }
-
-  void removeAttribute(AttributeEnum attributeEnum) {
-    if (currentAttributes.containsKey(attributeEnum)) {
-      currentAttributes[attributeEnum]?.removeAttribute();
-      currentAttributes.remove(attributeEnum);
-    }
-  }
-
-  void remapAttributes() {
-    List<Attribute> tempList = [];
-    for (var element in currentAttributes.values) {
-      if (element.isApplied) {
-        element.unmapAttribute();
-        tempList.add(element);
-      }
-    }
-    for (var element in tempList) {
-      element.mapAttribute();
-    }
-  }
-
-  void modifyLevel(AttributeEnum attributeEnum, [int amount = 0]) {
-    if (currentAttributes.containsKey(attributeEnum)) {
-      var attr = currentAttributes[attributeEnum]!;
-      attr.incrementLevel(amount);
-    }
-  }
-
-  List<Attribute> buildAttributeSelection() {
-    List<Attribute> returnList = [];
-    final potentialCandidates = AttributeEnum.values
-        .where((element) => element.category != AttributeCategory.temporary)
-        .toList();
-    for (var i = 0; i < 3; i++) {
-      final attr = potentialCandidates
-          .elementAt(rng.nextInt(potentialCandidates.length));
-
-      if (currentAttributes.containsKey(attr)) {
-        returnList.add(currentAttributes[attr]!);
-      } else {
-        returnList.add(attr.buildAttribute(0, this, false));
-      }
-    }
-    return returnList;
   }
 }
