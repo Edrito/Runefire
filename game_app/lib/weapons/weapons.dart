@@ -20,25 +20,14 @@ class Portal extends PlayerWeapon
   WeaponType weaponType = WeaponType.portal;
 
   @override
-  void applyWeaponUpgrade(int newUpgradeLevel) {
-    removeWeaponUpgrade();
-    switch (newUpgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-    super.applyWeaponUpgrade(newUpgradeLevel);
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
   }
 
   @override
-  void removeWeaponUpgrade() {
-    switch (upgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-  }
-
+  void unMapUpgrade() {}
   @override
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
@@ -47,7 +36,7 @@ class Portal extends PlayerWeapon
         return WeaponSpriteAnimation(
             parentJoint: parentJoint,
             idleAnimation:
-                await buildSpriteSheet(5, 'weapons/portal.png', 1, true));
+                await buildSpriteSheet(1, 'weapons/portal.png', 1, true));
     }
   }
 
@@ -80,7 +69,7 @@ class Portal extends PlayerWeapon
   double baseAttackTickRate = .5;
 
   @override
-  double length = 2;
+  double length = 1;
 
   @override
   double maxSpreadDegrees = 270;
@@ -157,24 +146,14 @@ class Pistol extends PlayerWeapon
   WeaponType weaponType = WeaponType.pistol;
 
   @override
-  void applyWeaponUpgrade(int newUpgradeLevel) {
-    removeWeaponUpgrade();
-    switch (newUpgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-    super.applyWeaponUpgrade(newUpgradeLevel);
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
   }
 
   @override
-  void removeWeaponUpgrade() {
-    switch (upgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-  }
+  void unMapUpgrade() {}
 
   late CircleComponent circle;
 
@@ -191,7 +170,7 @@ class Pistol extends PlayerWeapon
   double baseAttackTickRate = .2;
 
   @override
-  int get maxChainingTargets => 5;
+  int get maxChainingTargets => 0;
 
   @override
   double length = .5;
@@ -243,28 +222,25 @@ class Pistol extends PlayerWeapon
   double baseReloadTime = 2;
 
   @override
-  SemiAutoType semiAutoType = SemiAutoType.regular;
-
-  @override
   double baseWeaponRandomnessPercent = 0.05;
 
   @override
-  int get baseAttackCount => 3;
+  int get baseAttackCount => 1;
 
   @override
-  bool get baseCountIncreaseWithTime => false;
+  bool get baseCountIncreaseWithTime => true;
 
   @override
   bool get baseIsHoming => false;
 
   @override
-  int get baseMaxAttacks => 8;
+  int get baseMaxAttacks => 12;
 
   @override
   int get baseMaxChainingTargets => 0;
 
   @override
-  double get baseMaxSpreadDegrees => 270;
+  double get baseMaxSpreadDegrees => 30;
 }
 
 class Shotgun extends PlayerWeapon
@@ -275,25 +251,16 @@ class Shotgun extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor);
   @override
   WeaponType weaponType = WeaponType.shotgun;
+
   @override
-  void applyWeaponUpgrade(int newUpgradeLevel) {
-    removeWeaponUpgrade();
-    switch (newUpgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-    super.applyWeaponUpgrade(newUpgradeLevel);
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
   }
 
   @override
-  void removeWeaponUpgrade() {
-    switch (upgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-  }
+  void unMapUpgrade() {}
 
   @override
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
@@ -315,9 +282,6 @@ class Shotgun extends PlayerWeapon
   bool allowProjectileRotation = false;
 
   @override
-  int attackCount = 4;
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [
     WeaponSpritePosition.hand,
   ];
@@ -330,13 +294,13 @@ class Shotgun extends PlayerWeapon
   double baseAttackTickRate = .5;
 
   @override
-  double length = 5;
+  double length = 1;
 
   @override
   double baseWeaponRandomnessPercent = .05;
 
   @override
-  int get baseAttackCount => 1;
+  int get baseAttackCount => 4;
 
   @override
   bool get baseCountIncreaseWithTime => false;
@@ -345,7 +309,7 @@ class Shotgun extends PlayerWeapon
   bool get baseIsHoming => false;
 
   @override
-  int baseMaxAttacks = 0;
+  int baseMaxAttacks = 5;
 
   @override
   int get baseMaxChainingTargets => 0;
@@ -366,7 +330,7 @@ class Shotgun extends PlayerWeapon
   int basePierce = 4;
 
   @override
-  double projectileVelocity = 200;
+  double projectileVelocity = 20;
 
   @override
   double baseReloadTime = 1.5;
@@ -388,32 +352,21 @@ class Bow extends PlayerWeapon with ProjectileFunctionality, SemiAutomatic {
   ) : super(newUpgradeLevel, ancestor);
   @override
   WeaponType weaponType = WeaponType.bow;
+
   @override
-  void applyWeaponUpgrade(int newUpgradeLevel) {
-    removeWeaponUpgrade();
-    switch (newUpgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-    super.applyWeaponUpgrade(newUpgradeLevel);
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
   }
 
   @override
-  void removeWeaponUpgrade() {
-    switch (upgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-  }
+  void unMapUpgrade() {}
 
   @override
   bool allowProjectileRotation = true;
   @override
   ProjectileType? projectileType = ProjectileType.arrow;
-  @override
-  int attackCount = 1;
 
   @override
   double distanceFromPlayer = .2;
@@ -486,7 +439,8 @@ class Bow extends PlayerWeapon with ProjectileFunctionality, SemiAutomatic {
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (50, 100.0)
+    DamageType.regular: (50, 100.0),
+    DamageType.fire: (5, 10.0)
   };
 }
 
@@ -556,24 +510,14 @@ class Sword extends PlayerWeapon
   }
 
   @override
-  void applyWeaponUpgrade(int newUpgradeLevel) {
-    removeWeaponUpgrade();
-    switch (newUpgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-    super.applyWeaponUpgrade(newUpgradeLevel);
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
   }
 
   @override
-  void removeWeaponUpgrade() {
-    switch (upgradeLevel) {
-      case 0:
-        break;
-      default:
-    }
-  }
+  void unMapUpgrade() {}
 
   @override
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(

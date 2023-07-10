@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/resources/powerups.dart';
 
 import '../entities/attributes_mixin.dart';
+import '../entities/entity.dart';
 import 'attributes.dart';
 
 enum AttributeRarity { unique, rare, uncommon, standard }
@@ -16,7 +17,7 @@ extension AttributeRarityExtension on AttributeRarity {
       case AttributeRarity.rare:
         return Colors.purple;
       case AttributeRarity.unique:
-        return const Color.fromARGB(255, 185, 105, 0);
+        return const Color.fromARGB(255, 252, 185, 0);
     }
   }
 }
@@ -40,7 +41,7 @@ enum AttributeEnum {
       rarity: AttributeRarity.uncommon, category: AttributeCategory.temporary),
   attackRate(rarity: AttributeRarity.rare, category: AttributeCategory.attack),
   explosiveDash(
-      rarity: AttributeRarity.rare, category: AttributeCategory.mobility);
+      rarity: AttributeRarity.unique, category: AttributeCategory.mobility);
 
   const AttributeEnum(
       {this.rarity = AttributeRarity.standard,
@@ -51,16 +52,35 @@ enum AttributeEnum {
 }
 
 extension AllAttributesExtension on AttributeEnum {
-  Attribute buildAttribute(int level, AttributeFunctionality entity) {
+  Attribute buildAttribute(int level, AttributeFunctionality victimEntity,
+      Entity perpetratorEntity) {
     switch (this) {
       case AttributeEnum.topSpeed:
-        return TopSpeedAttribute(level: level, entity: entity);
+        return TopSpeedAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
       case AttributeEnum.attackRate:
-        return AttackRateAttribute(level: level, entity: entity);
+        return AttackRateAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
       case AttributeEnum.power:
-        return PowerAttribute(level: level, entity: entity);
+        return PowerAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
       case AttributeEnum.explosiveDash:
-        return ExplosiveDashAttribute(level: level, entity: entity);
+        return ExplosiveDashAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
     }
   }
 }
+
+enum StatusEffects { stun, slow, burn, freeze, bleed, electric, misc }

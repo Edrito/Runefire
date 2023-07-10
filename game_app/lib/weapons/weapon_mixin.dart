@@ -12,11 +12,11 @@ import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
+import 'package:recase/recase.dart';
 
 import '../entities/entity.dart';
 import '../functions/vector_functions.dart';
 import '../resources/enums.dart';
-import '../resources/visuals.dart';
 
 mixin MultiWeaponCheck on Weapon {
   @override
@@ -43,8 +43,6 @@ mixin ReloadFunctionality on Weapon {
 
   //Status of reloading
   int spentAttacks = 0;
-
-  PositionComponent? reloadAnimation;
 
   int? get remainingAttacks =>
       maxAttacks == 0 ? null : maxAttacks - spentAttacks;
@@ -90,22 +88,14 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void removeReloadAnimation() {
-    reloadAnimation?.removeFromParent();
-    reloadAnimation = null;
-  }
-
-  @override
-  void weaponSwappedFrom() {
-    //Remove reload animation if weapon changes
-    removeReloadAnimation();
-    super.weaponSwappedFrom();
+    entityAncestor?.entityStatusWrapper
+        .removeReloadAnimation(weaponId, isSecondaryWeapon);
   }
 
   void createReloadBar() {
     if (entityAncestor == null) return;
-    reloadAnimation = ReloadAnimation(reloadTime, this, isSecondaryWeapon);
-
-    entityAncestor?.add(reloadAnimation!);
+    entityAncestor!.entityStatusWrapper.addReloadAnimation(
+        weaponId, reloadTime, reloadTimer!, isSecondaryWeapon);
   }
 
   void reloadCheck() {
@@ -117,15 +107,14 @@ mixin ReloadFunctionality on Weapon {
     if (this is MeleeFunctionality) {
       (this as MeleeFunctionality).resetToFirstSwings();
     }
-    createReloadBar();
     reloadTimer = TimerComponent(
       period: reloadTime,
       removeOnFinish: true,
       onTick: () {
         stopReloading();
       },
-    );
-    add(reloadTimer!);
+    )..addToParent(this);
+    createReloadBar();
   }
 }
 
@@ -240,7 +229,7 @@ mixin SecondaryFunctionality on Weapon {
       _secondaryWeapon = item;
       _secondaryWeapon?.parents = parents;
       _secondaryWeapon?.isSecondaryWeapon = true;
-
+      _secondaryWeapon?.weaponId = weaponId;
       assert(_secondaryWeapon is! FullAutomatic);
     } else if (item is SecondaryWeaponAbility) {
       _secondaryWeaponAbility = item;
@@ -254,12 +243,16 @@ mixin SecondaryFunctionality on Weapon {
   SecondaryWeaponAbility? _secondaryWeaponAbility;
 
   @override
+  void weaponSwappedTo() {
+    final entityStatusWrapper = entityAncestor?.entityStatusWrapper;
+    entityStatusWrapper?.showReloadAnimations(weaponId);
+    super.weaponSwappedTo();
+  }
+
+  @override
   void weaponSwappedFrom() {
-    _secondaryWeaponAbility?.removeReloadAnimation();
-    if (_secondaryWeapon is ReloadFunctionality) {
-      final reload = _secondaryWeapon as ReloadFunctionality;
-      reload.removeReloadAnimation();
-    }
+    final entityStatusWrapper = entityAncestor?.entityStatusWrapper;
+    entityStatusWrapper?.hideReloadAnimations(weaponId);
     super.weaponSwappedFrom();
   }
 
@@ -368,7 +361,6 @@ mixin ProjectileFunctionality on Weapon {
       if (projectileType == null) continue;
       final delta =
           (randomizeVector2Delta(deltaDirection, weaponRandomnessPercent));
-      print(attackCount);
 
       returnList.add(projectileType!.generateProjectile(
           delta: delta,
@@ -378,67 +370,6 @@ mixin ProjectileFunctionality on Weapon {
     }
 
     return returnList;
-  }
-}
-
-class ReloadAnimation extends PositionComponent {
-  ReloadAnimation(this.duration, this.weaponAncestor, this.isSecondaryWeapon);
-  double duration;
-  Weapon weaponAncestor;
-  bool isSecondaryWeapon;
-  @override
-  final height = .06;
-  final barWidth = .05;
-  final sidePadding = .025;
-
-  Color get color => isSecondaryWeapon ? Colors.red : Colors.pink;
-
-  double get percentReloaded => (durationTimer.timer.current) / duration;
-
-  @override
-  render(Canvas canvas) {
-    buildProgressBar(
-        canvas: canvas,
-        percentProgress: percentReloaded,
-        color: color,
-        size: size,
-        heightOfBar: height,
-        widthOfBar: barWidth,
-        padding: sidePadding,
-        peak: 1,
-        growth: 0);
-
-    super.render(canvas);
-  }
-
-  late final TimerComponent durationTimer;
-
-  @override
-  FutureOr<void> onLoad() {
-    final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
-
-    size.y = height;
-    size.x = parentSize.x * 1.5;
-    anchor = Anchor.center;
-    position.y = parentSize.y * -0.95;
-
-    durationTimer = TimerComponent(
-      period: duration,
-      removeOnFinish: true,
-      onTick: () {
-        removeFromParent();
-      },
-    );
-
-    if (isSecondaryWeapon) {
-      position.y += -height * 2.25;
-    }
-
-    addAll([
-      durationTimer,
-    ]);
-
-    return super.onLoad();
   }
 }
 
@@ -627,4 +558,72 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   List<Function(Weapon)> onFireMelee = [];
   List<Function(Weapon)> onReload = [];
   List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
+}
+
+String buildWeaponDescription(
+    WeaponDescription weaponDescription, WeaponType weapon, int level,
+    [bool isUnlocked = true]) {
+  String returnString = "";
+
+  if (!isUnlocked) return " - ";
+  final builtWeapon = weapon.build(null, null, level);
+
+  switch (weaponDescription) {
+    case WeaponDescription.attackRate:
+      returnString =
+          "${builtWeapon.attackRateSecondComparison.toStringAsFixed(0)}/s";
+      break;
+    case WeaponDescription.damage:
+      bool firstLoop = true;
+      for (var element in builtWeapon.baseDamageLevels.entries) {
+        if (firstLoop) {
+          firstLoop = false;
+        } else {
+          returnString += "\n";
+        }
+        returnString +=
+            "${element.key.name.titleCase}: ${element.value.$1.toStringAsFixed(0)} - ${element.value.$2.toStringAsFixed(0)}";
+      }
+
+      break;
+
+    case WeaponDescription.reloadTime:
+      if (builtWeapon is ReloadFunctionality) {
+        returnString = "${builtWeapon.reloadTime.toStringAsFixed(0)} s";
+      } else {
+        returnString = "";
+      }
+      break;
+    case WeaponDescription.semiOrAuto:
+      if (builtWeapon is SemiAutomatic) {
+        switch (builtWeapon.semiAutoType) {
+          case SemiAutoType.regular:
+            returnString = "Semi-Auto";
+            break;
+          case SemiAutoType.release:
+            returnString = "Release";
+            break;
+          case SemiAutoType.charge:
+            returnString = "Charge";
+            break;
+        }
+      } else if (builtWeapon is FullAutomatic) {
+        returnString = "Full-Auto";
+      }
+
+      break;
+    // case WeaponDescription.attackType:
+    //   returnString = weapon.attackType.name.titleCase;
+    //   break;
+    case WeaponDescription.attackCount:
+      returnString = "${builtWeapon.attackCount} attack(s)";
+
+      break;
+
+    default:
+      // Handle other cases (if any)
+      break;
+  }
+
+  return returnString;
 }

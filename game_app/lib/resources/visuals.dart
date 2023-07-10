@@ -22,11 +22,11 @@ const Color buttonDownColor = secondaryColor;
 const Color buttonUpColor = primaryColor;
 const Color backgroundColor1 = ui.Color.fromARGB(255, 22, 0, 5);
 const Color backgroundColor2 = ui.Color.fromARGB(255, 48, 99, 158);
-const Color lockedColor = ui.Color.fromARGB(255, 70, 41, 66);
-const Color hoverColor = ui.Color.fromARGB(255, 180, 152, 176);
-const Color unlockedColor = Color.fromARGB(255, 175, 124, 168);
+const Color lockedColor = ui.Color.fromARGB(255, 49, 49, 49);
+const Color hoverColor = ui.Color.fromARGB(255, 0, 59, 107);
+const Color unlockedColor = ui.Color.fromARGB(255, 24, 24, 24);
 const Color secondaryEquippedColor = ui.Color.fromARGB(255, 255, 113, 113);
-const Color levelUnlockedUnequipped = ui.Color.fromARGB(255, 180, 180, 180);
+const Color levelUnlockedUnequipped = ui.Color.fromARGB(255, 119, 31, 57);
 
 final defaultStyle = TextStyle(
   fontSize: Platform.isAndroid || Platform.isIOS ? 21 : 35,
@@ -34,11 +34,11 @@ final defaultStyle = TextStyle(
   fontWeight: FontWeight.bold,
   color: buttonUpColor,
   shadows: const [
-    BoxShadow(
-        color: Colors.black45,
-        offset: Offset(2, 2),
-        spreadRadius: 2,
-        blurRadius: 0)
+    // BoxShadow(
+    //     color: Colors.black45,
+    //     offset: Offset(2, 2),
+    //     spreadRadius: 2,
+    //     blurRadius: 0)
   ],
 );
 
@@ -75,6 +75,7 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
   // late Timer timer;
 
   void resetStars() {
+    if (!mounted) return;
     setState(() {
       gameSize = MediaQuery.of(context).size;
     });
@@ -120,7 +121,7 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
   void dispose() {
     _controllerBackground.dispose();
     _controllerForeground.dispose();
-
+    windowManager.removeListener(this);
     super.dispose();
   }
 

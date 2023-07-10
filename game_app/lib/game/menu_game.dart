@@ -27,6 +27,7 @@ class MenuGame extends Enviroment with PlayerFunctionality {
   void initPlatforms() async {
     const platformsLength = 5;
     for (var i = 0; i < platformsLength; i++) {
+      if (player == null) return;
       final rectSize = Vector2(1.4 - (1.4 * i / platformsLength), .15);
       final rectPos = Vector2(0, ((player!.height / 2) - .15) - (i * -.2));
       final rect = RectangleComponent(

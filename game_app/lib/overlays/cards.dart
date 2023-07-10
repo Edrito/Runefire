@@ -55,37 +55,56 @@ class CustomCard extends StatelessWidget {
       isEnding ??= isEndingInitial;
       isHighlighted ??= isHighlightedInitial;
       final highlightColor = isHighlighted!
-          ? buttonDownColor
+          ? attribute.attributeEnum.rarity.color.darken(.4)
           : attribute.attributeEnum.rarity.color.brighten(.1);
+
       isHighlighted = isHighlighted! || isEnding!;
-      TextStyle style =
-          defaultStyle.copyWith(color: highlightColor, fontSize: 30);
+
+      TextStyle style = defaultStyle.copyWith(
+          color: highlightColor.brighten(.1), fontSize: 30, shadows: []);
 
       List<Widget> levelIndicators = [];
 
-      for (int i = 0; i < attribute.level; i++) {
-        levelIndicators.add(
-          Padding(
-            padding: const EdgeInsets.all(2),
-            child: Icon(
-              Icons.star,
-              color: highlightColor,
-              size: 20,
-            ),
-          ),
-        );
+      for (int i = 0; i < attribute.upgradeLevel; i++) {
+        levelIndicators.add(Padding(
+                padding: const EdgeInsets.all(2),
+                child: Container(
+                  transform: Matrix4.skewX(-.4)..translate(5.0),
+                  height: 20,
+                  width: 20,
+                  color: highlightColor.brighten(.5),
+                ))
+            // Padding(
+            //   padding: const EdgeInsets.all(2),
+            //   child: Icon(
+            //     Icons.star,
+            //     color: highlightColor,
+            //     size: 20,
+            //   ),
+            // ),
+            );
       }
 
-      for (var i = 0; i < attribute.maxLevel - attribute.level; i++) {
+      for (var i = 0; i < attribute.maxLevel - attribute.upgradeLevel; i++) {
         levelIndicators.add(
           Padding(
-            padding: const EdgeInsets.all(2),
-            child: Icon(
-              Icons.star_outline,
-              color: highlightColor,
-              size: 20,
-            ),
-          ),
+              padding: const EdgeInsets.all(2),
+              child: Container(
+                transform: Matrix4.skewX(-.4)..translate(5.0),
+                decoration: BoxDecoration(
+                    border: Border.all(
+                        color: highlightColor.brighten(.5), width: 2)),
+                height: 20,
+                width: 20,
+                // color: highlightColor,
+              )
+
+              // Icon(
+              //   Icons.star_outline,
+              //   color: ,
+              //   size: 20,
+              // ),
+              ),
         );
       }
 
@@ -117,68 +136,19 @@ class CustomCard extends StatelessWidget {
               padding: const EdgeInsets.all(3),
               child: Container(
                 decoration: BoxDecoration(
-                    // borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    gradient: LinearGradient(colors: [
-                      attribute.attributeEnum.rarity.color.brighten(.98),
-                      attribute.attributeEnum.rarity.color.brighten(.9),
-                    ]),
-                    border: Border.all(
-                        color: highlightColor.brighten(.15), width: 3)),
-                child: Column(
+                  // borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  gradient: LinearGradient(colors: [
+                    highlightColor.brighten(.98),
+                    highlightColor.brighten(.85),
+                  ]),
+                  // border: Border.all(
+                  //     color: highlightColor.brighten(.15), width: 3),
+                ),
+                child: Stack(
                   children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            width: 50,
-                          ),
-                          Expanded(
-                            flex: 4,
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Text(
-                                attribute.title,
-                                style: style,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 50,
-                            child: GestureDetector(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white,
-                                      border: Border.all(
-                                          color: Colors.black, width: 2)),
-                                  child: const Icon(
-                                    Icons.question_mark,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              onTap: () {
-                                setState(
-                                  () {
-                                    showHelp = !showHelp;
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (!showHelp) ...[
-                      Expanded(
-                        flex: 2,
+                    if (!showHelp)
+                      Align(
+                        alignment: Alignment.center,
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Image.asset(
@@ -187,43 +157,128 @@ class CustomCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            attribute.description(),
-                            style: style.copyWith(
-                                fontSize: (style.fontSize! * .6)),
-                            textAlign: TextAlign.center,
+                    Positioned.fill(
+                      child: Column(
+                        children: [
+                          const Spacer(
+                            flex: 1,
                           ),
-                        ),
+                          Expanded(
+                            child: ClipRect(
+                              child: Container(
+                                transform: Matrix4.skewY(-.2)
+                                  ..translate(0.0, 75.0),
+                                decoration: BoxDecoration(
+                                  color: highlightColor.darken(.5),
+                                ),
+                                height: 250,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(
-                        height: 80,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: levelIndicators,
+                    ),
+                    Column(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            // crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(
+                                width: 50,
+                              ),
+                              Expanded(
+                                flex: 4,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Text(
+                                    attribute.title,
+                                    style: style,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Container(
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: highlightColor, width: 2)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 5, top: 5),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Text(
+                                            "?",
+                                            style: style,
+                                          ),
+                                        ),
+                                      )),
+                                ),
+                                onTap: () {
+                                  setState(
+                                    () {
+                                      showHelp = !showHelp;
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
-                      )
-                    ] else ...[
-                      Expanded(
-                        flex: 3,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            attribute.description() +
-                                attribute.description() +
-                                attribute.description(),
-                            style: style.copyWith(
-                                fontSize: (style.fontSize! * .6)),
-                            textAlign: TextAlign.center,
+                        if (!showHelp) ...[
+                          const Spacer(
+                            flex: 2,
                           ),
-                        ),
-                      ),
-                    ]
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      attribute.description(),
+                                      style: style.copyWith(
+                                          fontSize: (style.fontSize! * .6),
+                                          color: highlightColor.brighten(.5)),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 80,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Wrap(
+                                        alignment: WrapAlignment.center,
+                                        children: levelIndicators,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ] else ...[
+                          Expanded(
+                            flex: 3,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Text(
+                                attribute.help(),
+                                style: style.copyWith(
+                                    fontSize: (style.fontSize! * .6)),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                          ),
+                        ]
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -262,7 +317,13 @@ class CustomCard extends StatelessWidget {
               },
               child: card)
           : card);
-    });
+    })
+        .animate(
+          onPlay: (controller) => controller.forward(from: rng.nextDouble()),
+          onComplete: (controller) =>
+              controller.reverse().then((value) => controller.forward()),
+        )
+        .moveY(end: 4, curve: Curves.easeInOut, duration: 1.seconds);
   }
 }
 

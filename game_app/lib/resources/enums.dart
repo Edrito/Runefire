@@ -18,6 +18,18 @@ enum EntityType { player, enemy, npc }
 
 enum FixtureType { sensor, body }
 
+enum WeaponDescription {
+  attackRate,
+  damage,
+  reloadTime,
+  semiOrAuto,
+  attackCount,
+}
+
+// enum SecondaryAbilityDescription{
+
+// }
+
 enum EntityStatus {
   dodge,
   spawn,
@@ -87,11 +99,11 @@ extension ExperienceAmountExtension on ExperienceAmount {
   double get experienceAmount {
     switch (this) {
       case ExperienceAmount.small:
-        return 1;
+        return 5;
       case ExperienceAmount.medium:
-        return 10;
+        return 20;
       case ExperienceAmount.large:
-        return 100;
+        return 150;
     }
   }
 
@@ -180,15 +192,15 @@ enum AttackType { projectile, melee, special }
 enum WeaponState { shooting, reloading, idle }
 
 extension SecondaryWeaponTypeExtension on SecondaryType {
-  dynamic build(Weapon primaryWeaponAncestor, [int? upgradeLevel = 0]) {
+  dynamic build(Weapon? primaryWeaponAncestor, [int upgradeLevel = 0]) {
     switch (this) {
       case SecondaryType.reloadAndRapidFire:
-        return RapidFire(primaryWeaponAncestor, 5);
+        return RapidFire(primaryWeaponAncestor, 5, upgradeLevel);
       case SecondaryType.pistol:
         return Portal.create(
-            upgradeLevel, primaryWeaponAncestor.entityAncestor);
+            upgradeLevel, primaryWeaponAncestor?.entityAncestor);
       case SecondaryType.explodeProjectiles:
-        return ExplodeProjectile(primaryWeaponAncestor, 5);
+        return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
     }
   }
 }
@@ -202,7 +214,7 @@ enum WeaponType {
       AttackType.projectile, 1000),
   shiv(Sword.create, 'assets/images/weapons/sword.png', 5, AttackType.melee, 0),
   bow(Bow.create, 'assets/images/weapons/bow.png', 10, AttackType.projectile,
-      500),
+      5000),
   blankMelee(BlankMelee.create, 'assets/images/weapons/bow.png', 5,
       AttackType.melee, 0);
 
@@ -217,7 +229,7 @@ enum WeaponType {
 
 extension WeaponTypeFilename on WeaponType {
   Weapon build(AimFunctionality? ancestor, SecondaryType? secondaryWeaponType,
-      [int? upgradeLevel = 0]) {
+      [int upgradeLevel = 0]) {
     Weapon? returnWeapon;
 
     switch (this) {
@@ -240,11 +252,11 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = Portal.create(upgradeLevel, ancestor);
         break;
       case WeaponType.blankMelee:
-        returnWeapon = BlankMelee.create(ancestor);
+        returnWeapon = BlankMelee.create(upgradeLevel, ancestor);
         break;
     }
     if (returnWeapon is SecondaryFunctionality) {
-      (returnWeapon).setSecondaryFunctionality =
+      returnWeapon.setSecondaryFunctionality =
           secondaryWeaponType?.build(returnWeapon, upgradeLevel);
     }
     return returnWeapon;

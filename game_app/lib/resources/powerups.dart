@@ -127,7 +127,10 @@ class PowerAttribute extends TemporaryAttribute {
   @override
   String title = "Strength and POWER";
 
-  PowerAttribute({required super.level, required super.entity});
+  PowerAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
 
   @override
   // TODO: implement attributeEnum
@@ -187,7 +190,7 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is! AttributeFunctionality) return;
-    other.addAttribute(powerup);
+    other.addAttributeEnum(powerup.attributeEnum);
     removeFromParent();
     super.beginContact(other, contact);
   }

@@ -72,7 +72,7 @@ abstract class Enviroment extends Component
     //Camera
     gameCamera = CameraComponent(world: gameWorld);
     gameCamera.priority = backgroundPriority;
-    gameCamera.viewfinder.zoom = 50;
+    gameCamera.viewfinder.zoom = 75;
     super.add(gameCamera);
 
     //Physics
@@ -95,7 +95,7 @@ abstract class Enviroment extends Component
 abstract class GameEnviroment extends Enviroment
     with
         PlayerFunctionality,
-        JoystickFunctionality,
+        // JoystickFunctionality,
         PauseOnFocusLost,
         BoundsFunctionality,
         HudFunctionality {

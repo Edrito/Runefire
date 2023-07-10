@@ -95,7 +95,7 @@ void changeMainMenuPage(MenuPages page, [bool setState = true]) {
   }
 }
 
-bool startInGame = true;
+bool startInGame = false;
 late String currentRoute;
 
 ///null route = go to main menu
@@ -346,16 +346,16 @@ class GameRouter extends Forge2DGame
 
   @override
   void onScroll(PointerScrollInfo info) {
-    if (router.currentRoute.children.first is Enviroment) {
-      final test = (router.currentRoute.children.first as Enviroment);
+    // if (router.currentRoute.children.first is Enviroment) {
+    //   final test = (router.currentRoute.children.first as Enviroment);
 
-      var currentZoom = test.gameCamera.viewfinder.zoom;
+    //   var currentZoom = test.gameCamera.viewfinder.zoom;
 
-      currentZoom += info.scrollDelta.game.normalized().y * -1;
+    //   currentZoom += info.scrollDelta.game.normalized().y * -1;
 
-      currentZoom = currentZoom.clamp(3, 50);
-      test.gameCamera.viewfinder.zoom = currentZoom;
-    }
+    //   currentZoom = currentZoom.clamp(3, 100);
+    //   test.gameCamera.viewfinder.zoom = currentZoom;
+    // }
 
     super.onScroll(info);
   }

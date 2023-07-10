@@ -14,9 +14,8 @@ class BlankMelee extends Weapon
         SecondaryFunctionality,
         FullAutomatic,
         MeleeTrailEffect {
-  BlankMelee.create(
-    AimFunctionality? ancestor,
-  ) : super(1, ancestor);
+  BlankMelee.create(int? newUpgradeLevel, AimFunctionality? ancestor)
+      : super(newUpgradeLevel ?? 1, ancestor);
 
   @override
   void melee([double chargeAmount = 1]) {
@@ -54,14 +53,14 @@ class BlankMelee extends Weapon
   }
 
   @override
-  void applyWeaponUpgrade(int newUpgradeLevel) {
-    removeWeaponUpgrade();
+  void mapUpgrade() {
+    unMapUpgrade();
 
-    super.applyWeaponUpgrade(newUpgradeLevel);
+    super.mapUpgrade();
   }
 
   @override
-  void removeWeaponUpgrade() {}
+  void unMapUpgrade() {}
 
   @override
   // TODO: implement attackOnAnimationFinish
@@ -71,6 +70,14 @@ class BlankMelee extends Weapon
   Future<WeaponSpriteAnimation?> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     return null;
+  }
+
+  @override
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+    }
   }
 
   @override

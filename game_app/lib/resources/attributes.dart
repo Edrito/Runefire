@@ -2,59 +2,67 @@ import 'package:flame/components.dart';
 import 'package:game_app/entities/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
+import '../entities/entity.dart';
 import '../main.dart';
 import '../overlays/cards.dart';
 import 'area_effects.dart';
 import 'attributes_enum.dart';
 import 'enums.dart';
+import '../functions/custom_mixins.dart';
 
 abstract class TemporaryAttribute extends Attribute {
-  TemporaryAttribute({required super.level, required super.entity});
+  TemporaryAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
 
   abstract double duration;
   TimerComponent? currentTimer;
   abstract int uniqueId;
 
   @override
-  void remapAttribute() {
+  void reMapUpgrade() {
     currentTimer?.timer.reset();
-    super.remapAttribute();
+    super.reMapUpgrade();
   }
 
   @override
-  void applyAttribute() {
+  void applyUpgrade() {
     if (currentTimer != null) {
       currentTimer?.timer.reset();
     } else {
       currentTimer = TimerComponent(
           period: duration,
           onTick: () {
-            removeAttribute();
-            entity.removeAttribute(attributeEnum);
+            removeUpgrade();
+            victimEntity.removeAttribute(attributeEnum);
           },
           removeOnFinish: true)
-        ..addToParent(entity);
+        ..addToParent(victimEntity);
     }
     if (!isApplied) {
-      mapAttribute();
+      mapUpgrade();
       isApplied = true;
     }
   }
 
   @override
-  void removeAttribute() {
+  void removeUpgrade() {
     if (isApplied) {
       currentTimer?.removeFromParent();
       currentTimer = null;
-      unmapAttribute();
+      unMapUpgrade();
       isApplied = false;
     }
   }
 }
 
-abstract class Attribute {
-  Attribute({required this.level, required this.entity}) {
-    level = level.clamp(0, maxLevel);
+abstract class Attribute with UpgradeFunctions {
+  Attribute(
+      {int level = 0,
+      required this.victimEntity,
+      required this.perpetratorEntity}) {
+    upgradeLevel = level.clamp(0, maxLevel);
     // if (applyNow) {
     //   applyAttribute();
     // }
@@ -63,15 +71,19 @@ abstract class Attribute {
   bool get isTemporary => this is TemporaryAttribute;
 
   String description();
+  String help() {
+    return "An increase of ${((factor ?? 0) * 100)}% of your base attribute with an additional ${((factor ?? 0) * 100)}% at max level.";
+  }
+
   abstract String icon;
   abstract String title;
   double? factor;
 
-  int level;
-  AttributeFunctionality entity;
+  AttributeFunctionality victimEntity;
+  Entity perpetratorEntity;
   bool isApplied = false;
 
-  int get remainingLevels => maxLevel - level;
+  int get remainingLevels => maxLevel - upgradeLevel;
 
   int maxLevel = 5;
 
@@ -79,41 +91,12 @@ abstract class Attribute {
   ///then multiplying it again by the level of the attribute
   ///with an additional level for max level
   double increase(double base) =>
-      ((factor ?? 0) * base) * (level + (level == maxLevel ? 1 : 0));
-
-  void applyAttribute() {
-    if (!isApplied) {
-      mapAttribute();
-      isApplied = true;
-    }
-  }
-
-  void remapAttribute() {
-    if (isApplied) {
-      unmapAttribute();
-    }
-    mapAttribute();
-  }
-
-  void removeAttribute() {
-    if (isApplied) {
-      unmapAttribute();
-      isApplied = false;
-    }
-  }
-
-  void mapAttribute();
-  void unmapAttribute();
+      ((factor ?? 0) * base) *
+      (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
 
   AttributeEnum get attributeEnum;
 
   ///Increase or decrease the level based on the input value
-  void incrementLevel(int value) {
-    removeAttribute();
-    level += value;
-    level = level.clamp(0, maxLevel);
-    applyAttribute();
-  }
 
   CustomCard buildWidget({Function? onTap, Function? onTapComplete}) {
     return CustomCard(
@@ -126,7 +109,10 @@ abstract class Attribute {
 }
 
 class TopSpeedAttribute extends Attribute {
-  TopSpeedAttribute({required super.level, required super.entity});
+  TopSpeedAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.topSpeed;
@@ -138,16 +124,16 @@ class TopSpeedAttribute extends Attribute {
   int get maxLevel => 5;
 
   @override
-  void mapAttribute() {
-    if (entity is! MovementFunctionality) return;
-    var move = entity as MovementFunctionality;
+  void mapUpgrade() {
+    if (victimEntity is! MovementFunctionality) return;
+    var move = victimEntity as MovementFunctionality;
     move.speedIncrease += increase(move.baseSpeed);
   }
 
   @override
-  void unmapAttribute() {
-    if (entity is! MovementFunctionality) return;
-    var move = entity as MovementFunctionality;
+  void unMapUpgrade() {
+    if (victimEntity is! MovementFunctionality) return;
+    var move = victimEntity as MovementFunctionality;
     move.speedIncrease -= increase(move.baseSpeed);
   }
 
@@ -168,7 +154,10 @@ class TopSpeedAttribute extends Attribute {
 }
 
 class AttackRateAttribute extends Attribute {
-  AttackRateAttribute({required super.level, required super.entity});
+  AttackRateAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.attackRate;
@@ -180,18 +169,18 @@ class AttackRateAttribute extends Attribute {
   int get maxLevel => 10;
 
   @override
-  void mapAttribute() {
-    if (entity is! AttackFunctionality) return;
-    var attack = entity as AttackFunctionality;
+  void mapUpgrade() {
+    if (victimEntity is! AttackFunctionality) return;
+    var attack = victimEntity as AttackFunctionality;
     for (var element in attack.carriedWeapons.values) {
       element.attackTickRateIncrease += increase(element.baseAttackTickRate);
     }
   }
 
   @override
-  void unmapAttribute() {
-    if (entity is! AttackFunctionality) return;
-    var attack = entity as AttackFunctionality;
+  void unMapUpgrade() {
+    if (victimEntity is! AttackFunctionality) return;
+    var attack = victimEntity as AttackFunctionality;
     for (var element in attack.carriedWeapons.values) {
       element.attackTickRateIncrease -= increase(element.baseAttackTickRate);
     }
@@ -214,7 +203,10 @@ class AttackRateAttribute extends Attribute {
 }
 
 class ExplosiveDashAttribute extends Attribute {
-  ExplosiveDashAttribute({required super.level, required super.entity});
+  ExplosiveDashAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
 
   @override
   AttributeEnum attributeEnum = AttributeEnum.explosiveDash;
@@ -229,11 +221,11 @@ class ExplosiveDashAttribute extends Attribute {
 
   void onDash() {
     final explosion = AreaEffect(
-      sourceEntity: entity,
-      position: entity.center,
+      sourceEntity: victimEntity,
+      position: victimEntity.center,
       radius: baseSize + increase(baseSize),
       isInstant: false,
-      duration: entity.damageDuration,
+      duration: victimEntity.damageDuration,
       onTick: (entity, areaId) {
         if (entity is HealthFunctionality) {
           entity.hitCheck(areaId, [
@@ -245,20 +237,20 @@ class ExplosiveDashAttribute extends Attribute {
         }
       },
     );
-    entity.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity.gameEnviroment.physicsComponent.add(explosion);
   }
 
   @override
-  void mapAttribute() {
-    if (entity is! AttributeFunctionsFunctionality) return;
-    final attributeFunctions = entity as AttributeFunctionsFunctionality;
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attributeFunctions = victimEntity as AttributeFunctionsFunctionality;
     attributeFunctions.dashBeginFunctions.add(onDash);
   }
 
   @override
-  void unmapAttribute() {
-    if (entity is! AttributeFunctionsFunctionality) return;
-    final attributeFunctions = entity as AttributeFunctionsFunctionality;
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attributeFunctions = victimEntity as AttributeFunctionsFunctionality;
     attributeFunctions.dashBeginFunctions.remove(onDash);
   }
 

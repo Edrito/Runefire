@@ -59,3 +59,40 @@ class SquareParticle extends Particle {
         paint);
   }
 }
+
+mixin UpgradeFunctions {
+  int upgradeLevel = 0;
+
+  void changeLevel(int newUpgradeLevel, int maxLevel) {
+    removeUpgrade();
+    upgradeLevel = newUpgradeLevel.clamp(0, maxLevel);
+    applyUpgrade();
+  }
+
+  void reMapUpgrade() {
+    removeUpgrade();
+    applyUpgrade();
+  }
+
+  void applyUpgrade() {
+    if (upgradeApplied) {
+      return;
+    }
+    mapUpgrade();
+    upgradeApplied = true;
+  }
+
+  void mapUpgrade() {}
+
+  void removeUpgrade() {
+    if (!upgradeApplied) {
+      return;
+    }
+    unMapUpgrade();
+    upgradeApplied = false;
+  }
+
+  void unMapUpgrade() {}
+
+  bool upgradeApplied = false;
+}

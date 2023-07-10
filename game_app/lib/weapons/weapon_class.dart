@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
-import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
+import 'package:uuid/uuid.dart';
+import '../functions/custom_mixins.dart';
 
 import '../functions/functions.dart';
 import '../resources/enums.dart';
@@ -57,22 +58,25 @@ class PlayerAttachmentJointComponent extends PositionComponent
           await newWeapon.buildSpriteAnimationComponent(this);
       weaponTip = PositionComponent(
           anchor: Anchor.center,
-          position: Vector2(weaponSpriteAnimation!.size.x * tipPositionPercent,
-              weaponSpriteAnimation!.size.y));
+          position: Vector2(
+              (weaponSpriteAnimation?.size.x ?? newWeapon.length) *
+                  tipPositionPercent,
+              (weaponSpriteAnimation?.size.y ?? newWeapon.length)));
       // weaponTip!.add(CircleComponent(
       //     radius: .1,
       //     paint: BasicPalette.white.paint(),
       //     anchor: Anchor.center));
       weaponTipCenter = PositionComponent(
           anchor: Anchor.center,
-          position: Vector2(0, weaponSpriteAnimation!.size.y));
+          position:
+              Vector2(0, weaponSpriteAnimation?.size.y ?? newWeapon.length));
       // weaponTipCenter!.add(CircleComponent(
       //     radius: .1,
       //     paint: BasicPalette.lightRed.paint(),
       //     anchor: Anchor.center));
-      weaponBase?.add(weaponSpriteAnimation!);
-      weaponBase?.add(weaponTipCenter!);
-      weaponBase?.add(weaponTip!);
+      weaponSpriteAnimation?.addToParent(weaponBase!);
+      weaponTipCenter?.addToParent(weaponBase!);
+      weaponTip?.addToParent(weaponBase!);
     }
     if (weaponBase!.parent == null) {
       add(weaponBase!);
@@ -81,7 +85,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
   }
 }
 
-abstract class Weapon extends Component {
+abstract class Weapon extends Component with UpgradeFunctions {
   Weapon(int? newUpgradeLevel, this.entityAncestor) {
     assert(
         this is! ProjectileFunctionality ||
@@ -90,12 +94,14 @@ abstract class Weapon extends Component {
     entityAncestor?.add(this);
 
     newUpgradeLevel ??= 0;
-    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
+    changeLevel(newUpgradeLevel, weaponType.maxLevel);
 
-    applyWeaponUpgrade(newUpgradeLevel);
+    weaponId = const Uuid().v4();
   }
   //META INFORMATION
   bool attackOnAnimationFinish = false;
+
+  late String weaponId;
 
   AttributeWeaponFunctionsFunctionality? get attributeFunctionsFunctionality =>
       this is AttributeWeaponFunctionsFunctionality
@@ -106,6 +112,7 @@ abstract class Weapon extends Component {
 
   abstract WeaponType weaponType;
 
+  @override
   int upgradeLevel = 0;
 
   AimFunctionality? entityAncestor;
@@ -135,7 +142,7 @@ abstract class Weapon extends Component {
 
   void additionalCountCheck() {
     if (countIncreaseWithTime) {
-      additionalDurationCountIncrease = durationHeld.round();
+      additionalDurationCountIncrease = durationHeld.round().clamp(0, 6);
     }
   }
 
@@ -201,21 +208,16 @@ abstract class Weapon extends Component {
   //Weapon state info
   double get attackRateSecondComparison => 1 / attackTickRate;
 
-  void applyWeaponUpgrade(int newUpgradeLevel) {
-    newUpgradeLevel = upgradeLevel.clamp(0, weaponType.maxLevel);
-  }
-
   bool spritesHidden = false;
 
   bool get attacksAreActive => false;
-
-  void removeWeaponUpgrade() {}
 
   void startAltAttacking();
   void endAltAttacking();
 
   void startAttacking();
   void endAttacking() {
+    additionalDurationCountIncrease = 0;
     spriteVisibilityCheck();
   }
 
@@ -232,11 +234,15 @@ abstract class Weapon extends Component {
         entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
         spritesHidden = true;
       } else if (!attacksAreActive && spritesHidden) {
-        final controller = EffectController(duration: .1, curve: Curves.easeIn);
-        entityAncestor?.backJoint.weaponSpriteAnimation
-            ?.add(OpacityEffect.fadeIn(controller));
-        entityAncestor?.handJoint.weaponSpriteAnimation
-            ?.add(OpacityEffect.fadeIn(controller));
+        // print("here");
+        // final controller = EffectController(duration: .1, curve: Curves.easeIn);
+        // entityAncestor?.backJoint.weaponSpriteAnimation
+        //     ?.add(OpacityEffect.fadeIn(controller));
+        // entityAncestor?.handJoint.weaponSpriteAnimation
+        //     ?.add(OpacityEffect.fadeIn(controller));
+
+        entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
+        entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
         spritesHidden = false;
       }
     }

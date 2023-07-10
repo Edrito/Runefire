@@ -31,6 +31,10 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void permanentlyDisableEntity() {}
 
+  double get entityStatusHeight => (height / 2) + (height / 4);
+
+  late EntityStatusEffectsWrapper entityStatusWrapper;
+
   //STATUS
   Vector2 initPosition;
 
@@ -233,6 +237,10 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     //       paint: BasicPalette.blue.paint(),
     //     )));
     // }
+    entityStatusWrapper = EntityStatusEffectsWrapper(
+        position: Vector2(0, -entityStatusHeight),
+        size: Vector2(spriteAnimationComponent.width * 1.5, 0))
+      ..addToParent(this);
 
     add(backJoint);
 

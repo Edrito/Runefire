@@ -238,11 +238,12 @@ Vector2 rotateVector2(Vector2 vector, double rad) {
 
 Vector2 generateRandomGamePositionInViewport(
     bool internal, Enviroment gameRef) {
-  const paddingDouble = 10.0;
+  const paddingDouble = 1.0;
   final padding = Vector2.all(paddingDouble);
   final random = Vector2.random();
 
-  Vector2 initalArea = gameRef.gameCamera.viewport.size;
+  Vector2 initalArea =
+      gameRef.gameCamera.viewport.size / gameRef.gameCamera.viewfinder.zoom;
   Vector2 area = Vector2.zero();
   if (internal) {
     area = initalArea + (padding * 2);
@@ -272,8 +273,10 @@ Vector2 generateRandomGamePositionInViewport(
     }
   }
 
-  return (vectorToGrid(area, gameRef.gameCamera.viewport.size) / 15) +
-      gameRef.gameCamera.viewfinder.position;
+  return (area -
+      ((gameRef.gameCamera.viewport.size / gameRef.gameCamera.viewfinder.zoom) /
+          2) +
+      gameRef.gameCamera.viewfinder.position);
 }
 
 double radiansBetweenPoints(Vector2 v1, Vector2 v2) {

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
@@ -13,8 +11,6 @@ import 'package:game_app/resources/visuals.dart';
 import '../functions/functions.dart';
 import '../functions/vector_functions.dart';
 import '../main.dart';
-import '../resources/attributes.dart';
-import '../resources/attributes_enum.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
 import '../weapons/weapon_class.dart';
@@ -375,6 +371,8 @@ mixin HealthFunctionality on Entity {
 
   abstract SpriteAnimation? deathAnimation;
   abstract SpriteAnimation? damageAnimation;
+  Vector2? baseSize;
+  Vector2? baseTextSize;
 
   @override
   void deadStatus() {
@@ -396,7 +394,6 @@ mixin HealthFunctionality on Entity {
 
     deadFunctionsCall();
     super.deadStatus();
-    removeFromParent();
   }
 
   void deadFunctionsCall() {
@@ -410,10 +407,11 @@ mixin HealthFunctionality on Entity {
 
   void buildDamageText(DamageInstance instance) {
     final color = instance.getColor();
+    const fontSize = .55;
 
     final test = TextPaint(
         style: defaultStyle.copyWith(
-      fontSize: .65,
+      fontSize: fontSize,
       shadows: const [
         BoxShadow(
             color: Colors.black,
@@ -435,7 +433,7 @@ mixin HealthFunctionality on Entity {
         anchor: Anchor.bottomLeft,
         textRenderer: test,
         priority: playerOverlayPriority,
-        position: (Vector2.random() * .25) + Vector2(.25, -.5),
+        position: (Vector2.random() * .25) + Vector2(.35, .35),
       )
         ..add(TimerComponent(
           period: 1,
@@ -450,14 +448,14 @@ mixin HealthFunctionality on Entity {
       damageText!.text = damageString;
       damageText!.children.whereType<TimerComponent>().first.timer.reset();
 
-      damageText!.textRenderer =
-          (damageText!.textRenderer as TextPaint).copyWith((p0) => p0.copyWith(
-                color: color.darken(.05),
-              ));
-
+      damageText!.textRenderer = (damageText!.textRenderer as TextPaint)
+          .copyWith((p0) => p0.copyWith(
+              color: color.darken(.05),
+              fontSize: (p0.fontSize! * 1.02).clamp(fontSize, fontSize * 1.1)));
+      baseTextSize ??= damageText!.size;
       damageText!.add(
         ScaleEffect.by(
-          Vector2.all(1.15),
+          baseTextSize! * (1 + (.3 * rng.nextDouble())),
           EffectController(
             duration: .05,
             reverseDuration: .05,
@@ -483,17 +481,19 @@ mixin HealthFunctionality on Entity {
     super.damageStatus();
   }
 
-  void addDamageEffects() {
+  void addDamageEffects(Color color) {
     final reversedController = EffectController(
-      duration: .1,
+      duration: .2,
       reverseDuration: .1,
     );
 
-    (SizeEffect.by(Vector2.all(.25), reversedController))
+    baseSize ??= spriteAnimationComponent.size;
+    (SizeEffect.to(
+            baseSize! * (1 + (.2 * rng.nextDouble())), reversedController))
         .addToParent(spriteAnimationComponent);
 
     (ColorEffect(
-      Colors.red,
+      color,
       const Offset(0.0, 1),
       reversedController,
     )).addToParent(spriteAnimationComponent);
@@ -529,7 +529,7 @@ mixin HealthFunctionality on Entity {
     }
 
     buildDamageText(largestEntry);
-    addDamageEffects();
+    addDamageEffects(largestEntry.getColor());
     onHitFunctionsCall(damage.first.source);
     return true;
   }
