@@ -1,7 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/player.dart';
-import 'package:game_app/entities/player_mixin.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 import 'package:uuid/uuid.dart';
@@ -9,7 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../resources/enums.dart';
 // ignore: unused_import
 import '../resources/constants/priorities.dart';
-import 'attributes_mixin.dart';
+import '../attributes/attributes_mixin.dart';
 import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
@@ -170,6 +169,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
       entityStatus = newEntityStatus;
       spriteAnimationComponent.animation = animation;
     }
+
+    spriteAnimationComponent.animation ??= animationQueue ?? idleAnimation;
 
     if (!(spriteAnimationComponent.animation?.loop ?? false)) {
       await spriteAnimationComponent.animationTicker?.completed;

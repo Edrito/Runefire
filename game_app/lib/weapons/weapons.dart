@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
-import 'package:game_app/functions/vector_functions.dart';
+import 'package:game_app/resources/functions/vector_functions.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../entities/entity_mixin.dart';
-import '../functions/functions.dart';
+import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
 
 class Portal extends PlayerWeapon
@@ -162,8 +162,11 @@ class Pistol extends PlayerWeapon
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (3, 8),
-    // DamageType.energy: (2, 4)
+    DamageType.regular: (1, 2),
+    DamageType.magic: (1, 2),
+    DamageType.energy: (1, 2),
+    DamageType.psychic: (1, 2),
+    DamageType.fire: (1, 2),
   };
 
   @override
@@ -447,8 +450,7 @@ class Bow extends PlayerWeapon with ProjectileFunctionality, SemiAutomatic {
 class Sword extends PlayerWeapon
     with
         MeleeFunctionality,
-        // ProjectileFunctionality,
-
+        ProjectileFunctionality,
         FullAutomatic,
         MeleeTrailEffect
 // ,        ReloadFunctionality
@@ -459,12 +461,12 @@ class Sword extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor);
 
   @override
-  void melee([double chargeAmount = 1]) {
+  void attack([double chargeAmount = 1]) {
     // if (entityAncestor is DashFunctionality) {
     //   (entityAncestor as DashFunctionality)
     //       .dashInit(power: chargeAmount, PlayerWeapon: true);
     // }
-    super.melee(chargeAmount);
+    super.attack(chargeAmount);
   }
 
   @override
@@ -549,7 +551,7 @@ class Sword extends PlayerWeapon
 
   @override
   Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (5, 10.0)
+    DamageType.fire: (5, 10.0)
   };
   @override
   double baseAttackTickRate = .3;
@@ -573,7 +575,7 @@ class Sword extends PlayerWeapon
   double baseWeaponRandomnessPercent = .05;
 
   @override
-  int get baseAttackCount => 2;
+  int get baseAttackCount => 10;
 
   @override
   bool get baseCountIncreaseWithTime => false;
@@ -588,5 +590,20 @@ class Sword extends PlayerWeapon
   int get baseMaxChainingTargets => 0;
 
   @override
-  double get baseMaxSpreadDegrees => 90;
+  double get baseMaxSpreadDegrees => 180;
+
+  @override
+  bool allowProjectileRotation = false;
+
+  @override
+  int basePierce = 2;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.bullet;
+
+  @override
+  double projectileVelocity = 20;
+
+  @override
+  double baseMeleeStaminaCost = 5;
 }

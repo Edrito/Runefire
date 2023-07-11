@@ -7,13 +7,16 @@ import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/visuals.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
-import '../functions/functions.dart';
-import '../functions/vector_functions.dart';
+import '../resources/functions/functions.dart';
+import '../resources/functions/vector_functions.dart';
 import '../main.dart';
+import '../attributes/attributes_enum.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
 import '../weapons/weapon_class.dart';
+import '../attributes/attributes_mixin.dart';
 
 //when back from shower
 //rework everything to the new bool system
@@ -90,11 +93,10 @@ mixin AimFunctionality on Entity {
   Vector2 lastAimingPosition = Vector2.zero();
   double handPositionFromBody = .1;
 
-  Vector2 get inputAimDelta {
+  Vector2 get inputAimVectors {
     if (isDead) {
-      return Vector2.zero();
+      return lastAimingPosition;
     }
-
     return inputAimAngles[InputType.aimJoy] ??
         inputAimAngles[InputType.tapClick] ??
         inputAimAngles[InputType.mouseDrag] ??
@@ -106,11 +108,15 @@ mixin AimFunctionality on Entity {
             .normalized();
   }
 
-  Vector2 get handAimDelta {
+  Vector2 get handJointAimDelta {
     return (handJoint.weaponTipCenter!.absolutePosition -
             handJoint.weaponBase!.absolutePosition)
         .normalized();
   }
+
+  // Vector2 get aimDelta {
+  //   return (inputAimVectors - center).normalized();
+  // }
 
   Map<InputType, Vector2> inputAimAngles = {};
   Map<InputType, Vector2> inputAimPositions = {};
@@ -145,7 +151,7 @@ mixin AimFunctionality on Entity {
   void handJointBehindBodyCheck() {
     final deg = degrees(radiansBetweenPoints(
       Vector2(1, 0),
-      inputAimDelta,
+      inputAimVectors,
     ));
 
     if ((deg >= 0 && deg < 180 && !weaponBehind) ||
@@ -166,7 +172,7 @@ mixin AimFunctionality on Entity {
   void aimCharacter() {
     if (!enableMovement) return;
 
-    final delta = inputAimDelta;
+    final delta = inputAimVectors;
 
     handJoint.angle = -radiansBetweenPoints(
       Vector2(0, 1),
@@ -238,7 +244,7 @@ mixin AttackFunctionality on AimFunctionality {
     endAttacking();
     endAltAttacking();
     if (currentWeapon != null) {
-      for (var element in currentWeapon!.parents.values) {
+      for (var element in currentWeapon!.weaponAttachmentPoints.values) {
         element.weaponSpriteAnimation?.removeFromParent();
       }
     }
@@ -323,19 +329,40 @@ mixin StaminaFunctionality on Entity {
   double staminaUsed = 0;
 
   ///Requires a positive value to reduce the amount of stamina used
-  ///+5 = 5 more stamina to use
+  ///5 = 5 more stamina, -5 = 5 less stamina
   void modifyStamina(double amount) =>
       staminaUsed = (staminaUsed -= amount).clamp(0, maxStamina);
 
   /// Amount of stamina regenerated per second
-  final double baseStaminaRegen = 20;
+  final double baseStaminaRegen = 50;
   double staminaRegenIncrease = 0;
   double get staminaRegen => baseStaminaRegen + staminaRegenIncrease;
-  double get increaseRegenSpeed => ((remainingStamina / maxStamina) + .5);
+  double get increaseStaminaRegenSpeed =>
+      ((remainingStamina / maxStamina) + .5);
 
   @override
   void update(double dt) {
-    modifyStamina(staminaRegen * dt * increaseRegenSpeed);
+    modifyStamina(staminaRegen * dt * increaseStaminaRegenSpeed);
+    super.update(dt);
+  }
+}
+
+mixin HealthRegenFunctionality on HealthFunctionality {
+  ///Requires a positive value to increase the amount of health
+  ///5 = 5 more health, -5 = 5 less health
+  void modifyHealth(double amount) =>
+      damageTaken = (damageTaken -= amount).clamp(0, maxHealth);
+
+  /// Amount of health regenerated per second
+  final double baseHealthRegen = .35;
+  double healthRegenIncrease = 0;
+  double get healthRegen => baseHealthRegen + healthRegenIncrease;
+  double get increaseHealthRegenSpeed => ((remainingHealth / maxHealth) + .5);
+
+  @override
+  void update(double dt) {
+    modifyHealth(healthRegen * dt * increaseHealthRegenSpeed);
+
     super.update(dt);
   }
 }
@@ -423,7 +450,7 @@ mixin HealthFunctionality on Entity {
     ));
     String damageString = "";
     if (recentDamage < 1) {
-      damageString = recentDamage.toStringAsPrecision(1);
+      damageString = recentDamage.toStringAsFixed(1);
     } else {
       damageString = recentDamage.toStringAsFixed(0);
     }
@@ -436,7 +463,7 @@ mixin HealthFunctionality on Entity {
         position: (Vector2.random() * .25) + Vector2(.35, .35),
       )
         ..add(TimerComponent(
-          period: 1,
+          period: 2,
           onTick: () {
             damageText?.removeFromParent();
             damageText = null;
@@ -450,15 +477,17 @@ mixin HealthFunctionality on Entity {
 
       damageText!.textRenderer = (damageText!.textRenderer as TextPaint)
           .copyWith((p0) => p0.copyWith(
-              color: color.darken(.05),
+              color: p0.color!.brighten(.01),
               fontSize: (p0.fontSize! * 1.02).clamp(fontSize, fontSize * 1.1)));
       baseTextSize ??= damageText!.size;
+
       damageText!.add(
-        ScaleEffect.by(
-          baseTextSize! * (1 + (.3 * rng.nextDouble())),
+        ScaleEffect.to(
+          baseTextSize! * (1 + (.2 * rng.nextDouble())),
           EffectController(
             duration: .05,
-            reverseDuration: .05,
+            curve: Curves.decelerate,
+            reverseDuration: .1,
           ),
         ),
       );
@@ -469,7 +498,7 @@ mixin HealthFunctionality on Entity {
     final attr = attributeFunctionsFunctionality;
     if (attr != null && attr.onHit.isNotEmpty) {
       for (var element in attr.onHit) {
-        element(this, other);
+        element(other);
       }
     }
   }
@@ -499,7 +528,10 @@ mixin HealthFunctionality on Entity {
     )).addToParent(spriteAnimationComponent);
   }
 
-  bool takeDamage(String id, List<DamageInstance> damage) {
+  bool takeDamage(String id, List<DamageInstance> damage,
+      [bool applyStatusEffect = true]) {
+    if (damage.isEmpty) return false;
+
     setEntityStatus(EntityStatus.damage);
 
     if (invincibilityDuration > 0) {
@@ -526,15 +558,53 @@ mixin HealthFunctionality on Entity {
       } else {
         setEntityStatus(EntityStatus.dead);
       }
+      callOtherWeaponOnKillFunctions(damage);
     }
-
+    if (applyStatusEffect) {
+      this.applyStatusEffect(damage);
+    }
     buildDamageText(largestEntry);
     addDamageEffects(largestEntry.getColor());
     onHitFunctionsCall(damage.first.source);
     return true;
   }
 
-  bool hitCheck(String id, List<DamageInstance> damage) {
+  void applyStatusEffect(List<DamageInstance> damage) {
+    if (this is! AttributeFunctionality) return;
+    final attr = this as AttributeFunctionality;
+    for (var element in damage) {
+      DamageType damageType = element.damageType;
+
+      //TODO finish this
+      switch (damageType) {
+        case DamageType.fire:
+          attr.addAttributeEnum(AttributeEnum.fireDamage,
+              perpetratorEntity: element.source);
+          break;
+        default:
+          attr.addAttributeEnum(AttributeEnum.fireDamage,
+              perpetratorEntity: element.source);
+      }
+    }
+  }
+
+  void callOtherWeaponOnKillFunctions(List<DamageInstance> damage) {
+    final weaponFunctions = damage
+        .where((element) =>
+            element.sourceWeapon is AttributeWeaponFunctionsFunctionality)
+        .toList();
+    if (weaponFunctions.isNotEmpty) {
+      final weapon = weaponFunctions.first.sourceWeapon
+          as AttributeWeaponFunctionsFunctionality;
+
+      for (var element in weapon.onKill) {
+        element(this);
+      }
+    }
+  }
+
+  bool hitCheck(String id, List<DamageInstance> damage,
+      [bool applyStatusEffect = true]) {
     if (hitSourceInvincibility.containsKey(id) ||
         isInvincible ||
         (damage.fold<double>(0,
@@ -552,7 +622,7 @@ mixin HealthFunctionality on Entity {
         })
       ..addToParent(this);
 
-    return takeDamage(id, damage);
+    return takeDamage(id, damage, applyStatusEffect);
   }
 }
 
@@ -623,6 +693,7 @@ mixin DodgeFunctionality on HealthFunctionality {
 
   bool dodgeCheck(List<DamageInstance> damage) {
     final random = rng.nextDouble();
+
     if (damage.any((element) => element.damageType == DamageType.regular) &&
         random < dodgeChance) {
       dodge(damage);
@@ -633,8 +704,17 @@ mixin DodgeFunctionality on HealthFunctionality {
   }
 
   @override
-  bool takeDamage(String id, List<DamageInstance> damage) {
-    return (dodgeCheck(damage) ? false : super.takeDamage(id, damage));
+  bool takeDamage(String id, List<DamageInstance> damage,
+      [bool applyStatusEffect = true]) {
+    List<DamageInstance> filtedDamage = [];
+    for (var element in damage) {
+      if (dodgeCheck([element])) {
+        continue;
+      } else {
+        filtedDamage.add(element);
+      }
+    }
+    return super.takeDamage(id, filtedDamage, applyStatusEffect);
   }
 }
 
@@ -648,7 +728,7 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   abstract Map<DamageType, (double, double)> baseTouchDamage;
 
   List<DamageInstance> get damage => damageCalculations(
-      baseTouchDamage, touchDamageIncrease, damageDuration, this);
+      baseTouchDamage, touchDamageIncrease, damageDuration, this, null);
 
   Map<Body, TimerComponent> objectsHitting = {};
 
@@ -661,10 +741,19 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   void damageOther(Body other) {
     final otherReference = other.userData;
     if (otherReference is! HealthFunctionality) return;
-    if (isPlayer && otherReference is Enemy) {
+    if ((isPlayer && otherReference is Enemy) ||
+        (!isPlayer && otherReference is Player)) {
       otherReference.hitCheck(entityId, damage);
-    } else if (!isPlayer && otherReference is Player) {
-      otherReference.hitCheck(entityId, damage);
+      touchFunctions(otherReference);
+    }
+  }
+
+  void touchFunctions(HealthFunctionality other) {
+    if (this is AttributeFunctionsFunctionality) {
+      final attributeFunctions = this as AttributeFunctionsFunctionality;
+      for (var element in attributeFunctions.onTouch) {
+        element(other);
+      }
     }
   }
 
@@ -756,7 +845,7 @@ mixin DashFunctionality on StaminaFunctionality {
       (baseDashDuration - dashDurationIncrease).clamp(0, double.infinity);
   double dashDurationIncrease = 0;
 
-  double baseDashStaminaCost = 50;
+  double baseDashStaminaCost = 28;
   double get dashStaminaCost => baseDashStaminaCost - dashStaminaCostIncrease;
   double dashStaminaCostIncrease = 0;
 
@@ -794,7 +883,7 @@ mixin DashFunctionality on StaminaFunctionality {
     _isDashing = true;
     if (weaponSource || teleportDash) {
       if (this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).inputAimDelta;
+        dashDelta = (this as AimFunctionality).inputAimVectors;
       }
       if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
         dashDelta = (this as MovementFunctionality).moveDelta;
@@ -804,7 +893,7 @@ mixin DashFunctionality on StaminaFunctionality {
         dashDelta = (this as MovementFunctionality).moveDelta;
       }
       if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).inputAimDelta;
+        dashDelta = (this as AimFunctionality).inputAimVectors;
       }
     }
 

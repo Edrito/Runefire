@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_app/resources/powerups.dart';
+import 'package:game_app/attributes/temporary_attributes.dart';
 
-import '../entities/attributes_mixin.dart';
+import 'attributes_mixin.dart';
 import '../entities/entity.dart';
 import 'attributes.dart';
 
@@ -35,12 +35,13 @@ enum AttributeCategory {
 }
 
 enum AttributeEnum {
+  fireDamage(category: AttributeCategory.temporary),
+
   topSpeed(
       rarity: AttributeRarity.uncommon, category: AttributeCategory.mobility),
-  power(
-      rarity: AttributeRarity.uncommon, category: AttributeCategory.temporary),
+  power(category: AttributeCategory.temporary),
   attackRate(rarity: AttributeRarity.rare, category: AttributeCategory.attack),
-  explosiveDash(
+  enemyExplosion(
       rarity: AttributeRarity.unique, category: AttributeCategory.mobility);
 
   const AttributeEnum(
@@ -61,6 +62,12 @@ extension AllAttributesExtension on AttributeEnum {
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
+      case AttributeEnum.fireDamage:
+        return FireDamageAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
       case AttributeEnum.attackRate:
         return AttackRateAttribute(
           level: level,
@@ -73,8 +80,8 @@ extension AllAttributesExtension on AttributeEnum {
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
-      case AttributeEnum.explosiveDash:
-        return ExplosiveDashAttribute(
+      case AttributeEnum.enemyExplosion:
+        return ExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,

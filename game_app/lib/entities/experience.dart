@@ -8,8 +8,8 @@ import 'package:game_app/overlays/weapon_menu.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
 import 'player.dart';
-import '../functions/custom_mixins.dart';
-import '../functions/vector_functions.dart';
+import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/vector_functions.dart';
 import '../main.dart';
 import '../resources/enums.dart';
 

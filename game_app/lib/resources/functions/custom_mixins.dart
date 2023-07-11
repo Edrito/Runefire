@@ -69,6 +69,10 @@ mixin UpgradeFunctions {
     applyUpgrade();
   }
 
+  void incrementLevel(int increment, int maxLevel) {
+    changeLevel(upgradeLevel + increment, maxLevel);
+  }
+
   void reMapUpgrade() {
     removeUpgrade();
     applyUpgrade();

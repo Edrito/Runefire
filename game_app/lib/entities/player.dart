@@ -8,18 +8,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_mixin.dart';
-import 'package:game_app/functions/functions.dart';
-import 'package:game_app/game/forest_game.dart';
+import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/overlays/overlays.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
-import '../functions/vector_functions.dart';
+import '../resources/functions/vector_functions.dart';
+import '../game/forest_game.dart';
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
-import 'attributes_mixin.dart';
+import '../attributes/attributes_mixin.dart';
 
 class Player extends Entity
     with
@@ -29,11 +29,12 @@ class Player extends Entity
         AimFunctionality,
         AttackFunctionality,
         AttributeFunctionality,
+        AttributeFunctionsFunctionality,
         MovementFunctionality,
         JumpFunctionality,
         ExperienceFunctionality,
         DashFunctionality,
-        AttributeFunctionsFunctionality {
+        HealthRegenFunctionality {
   Player(this.playerData, this.isDisplay,
       {required super.gameEnviroment, required super.initPosition});
   final PlayerData playerData;
@@ -65,12 +66,17 @@ class Player extends Entity
   }
 
   late MouseKeyboardCallbackWrapper mouseCallbackWrapper;
+
+  late final CircleComponent circleComponent;
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll(playerData.selectedWeapons.values);
     // initialWeapons.add(WeaponType.blankMelee);
     // initialWeapons.add(WeaponType.shiv);
     priority = playerPriority;
+
+    // circleComponent = CircleComponent(radius: .1, position: Vector2(0, 0));
+    // add(circleComponent);
 
     await loadAnimationSprites();
     mouseCallbackWrapper = MouseKeyboardCallbackWrapper();
@@ -136,6 +142,9 @@ class Player extends Entity
     if (!isDead) {
       moveCharacter();
     }
+
+    // circleComponent.position =
+    //     inputAimPositions[InputType.mouseMove] ?? Vector2.zero();
     super.update(dt);
   }
 
@@ -185,6 +194,11 @@ class Player extends Entity
       }
       if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
         (gameEnviroment as ForestGame).enemyManagement.generateEnemies();
+
+        // for (var element2 in StatusEffects.values) {
+        //   entityStatusWrapper.addStatusEffect(
+        //       5, element2, TimerComponent(period: 5)..addToParent(this), 1);
+        // }
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
@@ -247,13 +261,13 @@ class Player extends Entity
     switch (inputType) {
       case InputType.mouseMove:
         if (!isMounted) return;
-        inputAimPositions[InputType.mouseMove] = vectorToGrid(
+        inputAimPositions[InputType.mouseMove] = (shiftCoordinatesToCenter(
                 info.eventPosition.viewport,
                 gameEnviroment.gameCamera.viewport.size) /
-            gameEnviroment.gameCamera.viewfinder.zoom;
+            gameEnviroment.gameCamera.viewfinder.zoom);
         inputAimAngles[InputType.mouseMove] =
             inputAimPositions[InputType.mouseMove]!.normalized();
-
+        // print(inputAimPositions[InputType.mouseMove]);
         break;
 
       case InputType.aimJoy:
@@ -271,14 +285,20 @@ class Player extends Entity
         break;
 
       case InputType.tapClick:
-        inputAimAngles[InputType.tapClick] =
-            (info.eventPosition.game - center).normalized();
+        inputAimPositions[InputType.tapClick] = shiftCoordinatesToCenter(
+                info.eventPosition.viewport,
+                gameEnviroment.gameCamera.viewport.size) /
+            gameEnviroment.gameCamera.viewfinder.zoom;
+        // inputAimAngles[InputType.mouseMove] =
+        //     inputAimPositions[InputType.mouseMove]!.normalized();
+        // inputAimAngles[InputType.tapClick] =
+        //     (info.eventPosition.game - center).normalized();
         startAttacking();
         inputAimAngles.remove(InputType.tapClick);
         break;
 
       case InputType.mouseDrag:
-        inputAimPositions[InputType.mouseMove] = vectorToGrid(
+        inputAimPositions[InputType.mouseMove] = shiftCoordinatesToCenter(
                 info.eventPosition.viewport,
                 gameEnviroment.gameCamera.viewport.size) /
             gameEnviroment.gameCamera.viewfinder.zoom;

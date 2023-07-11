@@ -2,8 +2,9 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:game_app/resources/enums.dart';
 
-import '../entities/entity.dart';
-import '../main.dart';
+import '../../entities/entity.dart';
+import '../../main.dart';
+import '../../weapons/weapon_class.dart';
 
 Future<SpriteAnimation> buildSpriteSheet(
   int numberOfSprites,
@@ -37,7 +38,8 @@ List<DamageInstance> damageCalculations(
     Map<DamageType, (double, double)> base,
     Map<DamageType, (double, double)> increase,
     double? duration,
-    Entity source) {
+    Entity source,
+    Weapon? sourceWeapon) {
   List<DamageInstance> returnList = [];
 
   for (var element in base.entries) {
@@ -52,7 +54,8 @@ List<DamageInstance> damageCalculations(
         source: source,
         damageBase: ((rng.nextDouble() * max - min) + min),
         damageType: element.key,
-        duration: duration ?? 1));
+        duration: duration ?? 1,
+        sourceWeapon: sourceWeapon));
   }
 
   return returnList;

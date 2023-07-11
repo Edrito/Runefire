@@ -22,6 +22,7 @@ enum WeaponDescription {
   attackRate,
   damage,
   reloadTime,
+  velocity,
   semiOrAuto,
   attackCount,
 }
@@ -274,7 +275,8 @@ class DamageInstance {
       {required this.damageBase,
       required this.source,
       required this.damageType,
-      this.duration = 1});
+      this.duration = 1,
+      this.sourceWeapon});
 
   Color getColor() {
     switch (damageType) {
@@ -292,6 +294,7 @@ class DamageInstance {
   }
 
   Entity source;
+  Weapon? sourceWeapon;
 
   double damageBase;
   double get damage => damageBase;

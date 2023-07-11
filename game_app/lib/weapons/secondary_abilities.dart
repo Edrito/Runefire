@@ -1,5 +1,5 @@
 import 'package:flame/components.dart';
-import 'package:game_app/entities/attributes_mixin.dart';
+import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
@@ -7,7 +7,7 @@ import '../entities/entity_mixin.dart';
 import '../resources/area_effects.dart';
 import '../resources/enums.dart';
 
-import '../functions/custom_mixins.dart';
+import '../resources/functions/custom_mixins.dart';
 
 abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   SecondaryWeaponAbility(this.weapon, this.cooldown, int? newUpgradeLevel) {

@@ -6,7 +6,7 @@ import 'package:game_app/weapons/projectile_class.dart';
 import '../entities/enemy.dart';
 import '../entities/entity_mixin.dart';
 import '../entities/player.dart';
-import '../functions/vector_functions.dart';
+import '../resources/functions/vector_functions.dart';
 import '../resources/enums.dart';
 import '../resources/constants/physics_filter.dart';
 

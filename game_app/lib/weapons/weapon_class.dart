@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flutter/widgets.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
-import '../functions/custom_mixins.dart';
+import '../resources/functions/custom_mixins.dart';
 
-import '../functions/functions.dart';
+import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
 
@@ -42,6 +42,9 @@ class PlayerAttachmentJointComponent extends PositionComponent
     weaponTipCenter?.removeFromParent();
     weapon = null;
     weaponBase = null;
+    weaponTip = null;
+    weaponTipCenter = null;
+    weaponSpriteAnimation = null;
   }
 
   Future<void> addWeaponClass(Weapon newWeapon) async {
@@ -81,7 +84,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
     if (weaponBase!.parent == null) {
       add(weaponBase!);
     }
-    weapon!.parents[jointPosition] = this;
+    weapon!.weaponAttachmentPoints[jointPosition] = this;
   }
 }
 
@@ -111,9 +114,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
   bool get hasAltAttack => this is SecondaryFunctionality;
 
   abstract WeaponType weaponType;
-
-  @override
-  int upgradeLevel = 0;
 
   AimFunctionality? entityAncestor;
 
@@ -185,7 +185,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   abstract Map<DamageType, (double, double)> baseDamageLevels;
 
   List<DamageInstance> get damage => damageCalculations(baseDamageLevels,
-      damageIncrease, entityAncestor?.damageDuration, entityAncestor!);
+      damageIncrease, entityAncestor?.damageDuration, entityAncestor!, this);
 
   //ATTRIBUTES
 
@@ -196,7 +196,8 @@ abstract class Weapon extends Component with UpgradeFunctions {
   abstract double distanceFromPlayer;
   abstract double tipPositionPercent;
   abstract double length;
-  Map<WeaponSpritePosition, PlayerAttachmentJointComponent> parents = {};
+  Map<WeaponSpritePosition, PlayerAttachmentJointComponent>
+      weaponAttachmentPoints = {};
   bool removeSpriteOnAttack = false;
 
   @override
@@ -224,8 +225,13 @@ abstract class Weapon extends Component with UpgradeFunctions {
   void weaponSwappedFrom() {}
   void weaponSwappedTo() {}
 
+  @mustCallSuper
+  void attack([double holdDurationPercent = 1]) {}
+
   /// Returns true if an attack occured, otherwise false.
-  void attackAttempt() {}
+  void attackAttempt([double holdDurationPercent = 1]) {
+    attack(holdDurationPercent);
+  }
 
   void spriteVisibilityCheck() {
     if (removeSpriteOnAttack) {
@@ -234,10 +240,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
         entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
         spritesHidden = true;
       } else if (!attacksAreActive && spritesHidden) {
-        // print("here");
         // final controller = EffectController(duration: .1, curve: Curves.easeIn);
+
         // entityAncestor?.backJoint.weaponSpriteAnimation
         //     ?.add(OpacityEffect.fadeIn(controller));
+
         // entityAncestor?.handJoint.weaponSpriteAnimation
         //     ?.add(OpacityEffect.fadeIn(controller));
 
@@ -254,7 +261,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   Future<void> setWeaponStatus(WeaponStatus weaponStatus) async {
     this.weaponStatus = weaponStatus;
     List<Future> futures = [];
-    for (var element in parents.entries) {
+    for (var element in weaponAttachmentPoints.entries) {
       if (element.value.weaponSpriteAnimation == null) continue;
 
       futures.add(element.value.weaponSpriteAnimation!

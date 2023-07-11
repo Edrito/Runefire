@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 
-import '../game/enviroment.dart';
+import '../../game/enviroment.dart';
 import 'package:forge2d/src/settings.dart' as settings;
 
-Vector2 vectorToGrid(Vector2 v1, Vector2 size) {
+Vector2 shiftCoordinatesToCenter(Vector2 v1, Vector2 size) {
   return ((v1) - size / 2);
 }
 

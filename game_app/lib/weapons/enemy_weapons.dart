@@ -5,7 +5,7 @@ import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../entities/entity_mixin.dart';
-import '../functions/functions.dart';
+import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
 
 class BlankMelee extends Weapon
@@ -18,12 +18,12 @@ class BlankMelee extends Weapon
       : super(newUpgradeLevel ?? 1, ancestor);
 
   @override
-  void melee([double chargeAmount = 1]) {
+  void attack([double chargeAmount = 1]) {
     // if (entityAncestor is DashFunctionality) {
     //   (entityAncestor as DashFunctionality)
     //       .dashInit(power: chargeAmount, weapon: true);
     // }
-    super.melee(chargeAmount);
+    super.attack(chargeAmount);
   }
 
   @override
@@ -132,4 +132,7 @@ class BlankMelee extends Weapon
 
   @override
   double get baseMaxSpreadDegrees => 25;
+
+  @override
+  double baseMeleeStaminaCost = 0;
 }

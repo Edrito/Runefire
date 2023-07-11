@@ -6,21 +6,23 @@ import 'package:game_app/entities/enemy_mixin.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
-import '../functions/functions.dart';
-import '../functions/vector_functions.dart';
+import '../resources/functions/functions.dart';
+import '../resources/functions/vector_functions.dart';
 import '../game/enviroment.dart';
 import '../main.dart';
 import '../resources/constants/physics_filter.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
+import '../attributes/attributes_mixin.dart';
 
 class DummyTwo extends Enemy
     with
         HealthFunctionality,
-        MovementFunctionality,
-        DropExperienceFunctionality,
-        DumbFollowAI,
-        TouchDamageFunctionality {
+        // MovementFunctionality,
+        DropExperienceFunctionality
+// DumbFollowAI,
+// TouchDamageFunctionality
+{
   DummyTwo({
     required super.initPosition,
     required super.gameEnviroment,
@@ -28,7 +30,7 @@ class DummyTwo extends Enemy
 
   @override
   void update(double dt) {
-    moveCharacter();
+    // moveCharacter();
     super.update(dt);
   }
 
@@ -42,7 +44,7 @@ class DummyTwo extends Enemy
   double baseInvincibilityDuration = 0.0;
 
   @override
-  double baseHealth = 25;
+  double baseHealth = 50000000;
 
   @override
   double baseSpeed = .0175;
@@ -90,7 +92,11 @@ class DummyTwo extends Enemy
   };
 }
 
-abstract class Enemy extends Entity with ContactCallbacks {
+abstract class Enemy extends Entity
+    with
+        ContactCallbacks,
+        AttributeFunctionality,
+        AttributeFunctionsFunctionality {
   Enemy({
     required super.initPosition,
     required super.gameEnviroment,
@@ -151,30 +157,17 @@ class EnemyManagement extends Component {
   FutureOr<void> onLoad() {
     priority = enemyPriority;
 
-    add(TimerComponent(
-      period: 2,
-      repeat: true,
-      onTick: () {
-        generateEnemies();
-        // if (rng.nextBool()) {
-        //   add(PowerupItem(
-        //       PowerAttribute(
-        //           level: 0,
-        //           victimEntity: gameEnviroment.player!,
-        //           perpetratorEntity: gameEnviroment.player!),
-        //       generateRandomGamePositionInViewport(true, gameEnviroment)));
-        // }
-        // add(CircleComponent(
-        //     radius: .1,
-        //     position:
-        //         generateRandomGamePositionInViewport(true, gameEnviroment)));
-        // add(CircleComponent(
-        //     radius: .1,
-        //     paint: BasicPalette.blue.paint(),
-        //     position:
-        //         generateRandomGamePositionInViewport(false, gameEnviroment)));
-      },
-    )..onTick());
+    // add(TimerComponent(
+    //   period: 2,
+    //   repeat: true,
+    //   onTick: () {
+    //     generateEnemies();
+
+    //   },
+    // )..onTick());
+
+    gameEnviroment.physicsComponent.add(
+        DummyTwo(initPosition: Vector2.zero(), gameEnviroment: gameEnviroment));
     return super.onLoad();
   }
 }

@@ -6,7 +6,7 @@ import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/overlays/buttons.dart';
 import 'package:game_app/overlays/menus.dart';
-import 'package:game_app/resources/attributes.dart';
+import 'package:game_app/attributes/attributes.dart';
 import 'package:game_app/resources/visuals.dart';
 
 import '../main.dart';
@@ -189,9 +189,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
     }, onTapComplete: () {
       gameRouter.resumeEngine();
       player?.addAttributeEnum(element.attributeEnum);
-      widgetController
-          ?.forward(from: 0)
+      final upperBound = widgetController?.upperBound ?? 1;
+      Future.delayed(upperBound.seconds)
           .then((value) => {resumeGame(), currentSelection = null});
+      widgetController?.forward(from: 0);
     });
     selection.add(card);
   }

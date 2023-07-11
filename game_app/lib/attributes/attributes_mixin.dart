@@ -4,9 +4,10 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 
-import '../resources/attributes.dart';
-import '../resources/attributes_enum.dart';
+import 'attributes.dart';
+import 'attributes_enum.dart';
 import '../resources/visuals.dart';
 
 mixin AttributeFunctionality on Entity {
@@ -36,7 +37,7 @@ mixin AttributeFunctionality on Entity {
       {int level = 1, Entity? perpetratorEntity}) {
     if (currentAttributes.containsKey(attribute)) {
       currentAttributes[attribute]
-          ?.changeLevel(level, currentAttributes[attribute]!.maxLevel);
+          ?.incrementLevel(level, currentAttributes[attribute]!.maxLevel);
     } else {
       currentAttributes[attribute] = attribute.buildAttribute(
           level, this, perpetratorEntity ?? this)
@@ -109,11 +110,21 @@ mixin AttributeFunctionsFunctionality on Entity {
   List<EntityOwnerFunction> jumpOngoingFunctions = [];
   List<EntityOwnerFunction> jumpEndFunctions = [];
 
-  List<Function(Entity owner, Entity source)> onHit = [];
-
+  List<Function(Entity source)> onHit = [];
   List<EntityOwnerFunction> onMove = [];
   List<EntityOwnerFunction> onDeath = [];
   List<EntityOwnerFunction> onLevelUp = [];
+
+  List<Function(HealthFunctionality other)> onTouch = [];
+  List<Function(double dt)> onUpdate = [];
+
+  @override
+  void update(double dt) {
+    for (var element in onUpdate) {
+      element(dt);
+    }
+    super.update(dt);
+  }
 }
 
 class StatusEffect extends PositionComponent {
@@ -123,6 +134,24 @@ class StatusEffect extends PositionComponent {
   final StatusEffects effect;
   final TimerComponent timer;
   final int level;
+  final double spriteSize = .2;
+
+  late SpriteAnimationComponent spriteAnimationComponent;
+
+  @override
+  FutureOr<void> onLoad() async {
+    size = Vector2.all(spriteSize);
+    anchor = Anchor.center;
+
+    spriteAnimationComponent = SpriteAnimationComponent(
+        animation: await getEffectSprite(effect),
+        size: size,
+        anchor: Anchor.center);
+
+    spriteAnimationComponent.size = size * ((level.toDouble() / 10) + 1);
+    add(spriteAnimationComponent);
+    return super.onLoad();
+  }
 }
 
 class EntityStatusEffectsWrapper extends PositionComponent {
@@ -131,10 +160,28 @@ class EntityStatusEffectsWrapper extends PositionComponent {
   }
 
   ///ID, Effect
-  Set<StatusEffect> statusEffects = {};
+  Map<StatusEffects, StatusEffect> activeStatusEffects = {};
+
+  double getXPosition(StatusEffects effect) {
+    return ((effect.index + 1) / StatusEffects.values.length) * (width);
+  }
 
   void addStatusEffect(
-      double duration, StatusEffects effect, TimerComponent timer, int level) {}
+      double duration, StatusEffects effect, TimerComponent timer, int level) {
+    activeStatusEffects[effect]?.removeFromParent();
+
+    activeStatusEffects[effect] =
+        (StatusEffect(duration, effect, timer, level));
+    final posX = getXPosition(effect);
+    activeStatusEffects[effect]!.position.x = posX;
+    activeStatusEffects[effect]!.position.y = -.2;
+    activeStatusEffects[effect]?.addToParent(this);
+  }
+
+  void removeStatusEffect(StatusEffects statusEffects) {
+    activeStatusEffects[statusEffects]?.removeFromParent();
+    activeStatusEffects.remove(statusEffects);
+  }
 
   ///ID, Animation
   Map<String, ReloadAnimation> reloadAnimations = {};

@@ -74,6 +74,16 @@ abstract class Projectile extends BodyComponent<GameRouter>
   void bodyContact(HealthFunctionality other) {
     hitIds.add(other.entityId);
     other.hitCheck(projectileId, weaponAncestor.damage);
+    onHitFunctions(other);
+  }
+
+  void onHitFunctions(HealthFunctionality other) {
+    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
+      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
+      for (var element in weapon.onHitProjectile) {
+        element(other);
+      }
+    }
   }
 
   @override

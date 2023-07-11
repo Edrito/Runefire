@@ -6,7 +6,7 @@ import 'package:flame/effects.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide MoveEffect;
 
-import '../functions/custom_mixins.dart';
+import '../resources/functions/custom_mixins.dart';
 import '../main.dart';
 import '../overlays/overlays.dart';
 import '../resources/constants/priorities.dart';

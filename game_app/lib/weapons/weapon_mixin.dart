@@ -14,16 +14,15 @@ import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:recase/recase.dart';
 
-import '../entities/entity.dart';
-import '../functions/vector_functions.dart';
+import '../resources/functions/vector_functions.dart';
 import '../resources/enums.dart';
 
 mixin MultiWeaponCheck on Weapon {
   @override
-  void attackAttempt() {
+  void attackAttempt([double holdDurationPercent = 1]) {
     if ((entityAncestor as AttackFunctionality).currentWeapon != this) return;
 
-    super.attackAttempt();
+    super.attackAttempt(holdDurationPercent);
   }
 }
 
@@ -60,14 +59,14 @@ mixin ReloadFunctionality on Weapon {
   }
 
   @override
-  void attackAttempt() {
+  void attackAttempt([double holdDurationPercent = 1]) {
     //Do not attack if reloading
     if (isReloading) {
       return;
     }
 
     spentAttacks++;
-    super.attackAttempt();
+    super.attackAttempt(holdDurationPercent);
 
     //Check if needs to reload after an attack
     reloadCheck();
@@ -107,6 +106,13 @@ mixin ReloadFunctionality on Weapon {
     if (this is MeleeFunctionality) {
       (this as MeleeFunctionality).resetToFirstSwings();
     }
+    if (this is AttributeWeaponFunctionsFunctionality) {
+      final attributeWeaponFunctions =
+          this as AttributeWeaponFunctionsFunctionality;
+      for (var attribute in attributeWeaponFunctions.onReload) {
+        attribute();
+      }
+    }
     reloadTimer = TimerComponent(
       period: reloadTime,
       removeOnFinish: true,
@@ -138,9 +144,14 @@ mixin MeleeFunctionality on Weapon {
   ///Must be the same length as [attacksLength]
   List<Vector2> attackHitboxSizes = [];
 
-  int attacksCompletedIndex = 0;
+  int meleeAttacksCompletedIndex = 0;
   Vector2? currentSwingPosition;
   List<double> currentSwingAngles = [];
+
+  abstract double baseMeleeStaminaCost;
+  double get meleeStaminaCost =>
+      baseMeleeStaminaCost - meleeStaminaCostIncrease;
+  double meleeStaminaCostIncrease = 0;
 
   @override
   bool get attacksAreActive => activeSwings.isNotEmpty;
@@ -149,35 +160,15 @@ mixin MeleeFunctionality on Weapon {
   int get attacksLength => (attackHitboxPatterns.length / 2).ceil();
 
   int get currentAttackPatternIndex =>
-      (attacksCompletedIndex -
-          (((attacksCompletedIndex / (attacksLength)).floor()) *
+      (meleeAttacksCompletedIndex -
+          (((meleeAttacksCompletedIndex / (attacksLength)).floor()) *
               (attacksLength))) *
       2;
 
-  void melee([double chargeAmount = 1]) async {
-    attackOnAnimationFinish
-        ? await setWeaponStatus(WeaponStatus.attack)
-        : setWeaponStatus(WeaponStatus.attack);
-
-    if (attacksCompletedIndex >= attacksLength) {
-      resetToFirstSwings();
-    }
-    currentSwingPosition = Vector2.zero();
-    final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
-
-    attackOnAnimationFinish
-        ? await entityAncestor?.setEntityStatus(
-            EntityStatus.attack,
-            attackEntitySpriteAnimations.isNotEmpty
-                ? attackEntitySpriteAnimations[attacksCompletedIndex]
-                : null)
-        : entityAncestor?.setEntityStatus(
-            EntityStatus.attack,
-            attackEntitySpriteAnimations.isNotEmpty
-                ? attackEntitySpriteAnimations[attacksCompletedIndex]
-                : null);
-
+  @override
+  void attack([double chargeAmount = 1]) async {
     List<Component> returnList = [];
+    final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
 
     List<double> temp =
         splitRadInCone(currentSwingAngle, attackCount, maxSpreadDegrees);
@@ -194,7 +185,8 @@ mixin MeleeFunctionality on Weapon {
     }
 
     entityAncestor?.addAll(returnList);
-    attacksCompletedIndex++;
+    meleeAttacksCompletedIndex++;
+    super.attack(chargeAmount);
   }
 
   @override
@@ -206,20 +198,45 @@ mixin MeleeFunctionality on Weapon {
   }
 
   @override
-  void attackAttempt() {
-    var holdDurationPercent = 1.0;
+  void attackAttempt([double holdDurationPercent = 1]) async {
+    if (meleeAttacksCompletedIndex >= attacksLength) {
+      resetToFirstSwings();
+    }
+    currentSwingPosition = Vector2.zero();
+
+    if (entityAncestor is StaminaFunctionality) {
+      final stamina = entityAncestor as StaminaFunctionality;
+      if (stamina.remainingStamina < meleeStaminaCost) return;
+      stamina.modifyStamina(-meleeStaminaCost);
+    }
+
     if (this is SemiAutomatic) {
       holdDurationPercent =
           (this as SemiAutomatic).holdDurationPercentOfAttackRate;
     }
-    melee(holdDurationPercent);
+
+    attackOnAnimationFinish
+        ? await setWeaponStatus(WeaponStatus.attack)
+        : setWeaponStatus(WeaponStatus.attack);
+
+    attackOnAnimationFinish
+        ? await entityAncestor?.setEntityStatus(
+            EntityStatus.attack,
+            attackEntitySpriteAnimations.isNotEmpty
+                ? attackEntitySpriteAnimations[meleeAttacksCompletedIndex]
+                : null)
+        : entityAncestor?.setEntityStatus(
+            EntityStatus.attack,
+            attackEntitySpriteAnimations.isNotEmpty
+                ? attackEntitySpriteAnimations[meleeAttacksCompletedIndex]
+                : null);
     super.attackAttempt();
   }
 
   void resetToFirstSwings() {
     currentSwingAngles.clear();
     currentSwingPosition = null;
-    attacksCompletedIndex = 0;
+    meleeAttacksCompletedIndex = 0;
   }
 }
 
@@ -227,7 +244,7 @@ mixin SecondaryFunctionality on Weapon {
   set setSecondaryFunctionality(dynamic item) {
     if (item is Weapon) {
       _secondaryWeapon = item;
-      _secondaryWeapon?.parents = parents;
+      _secondaryWeapon?.weaponAttachmentPoints = weaponAttachmentPoints;
       _secondaryWeapon?.isSecondaryWeapon = true;
       _secondaryWeapon?.weaponId = weaponId;
       assert(_secondaryWeapon is! FullAutomatic);
@@ -289,32 +306,33 @@ mixin ProjectileFunctionality on Weapon {
   }
 
   @override
-  void attackAttempt() {
-    var holdDurationPercent = 1.0;
+  void attackAttempt([double holdDurationPercent = 1]) async {
     if (this is SemiAutomatic) {
       holdDurationPercent =
           (this as SemiAutomatic).holdDurationPercentOfAttackRate;
     }
-    shoot(holdDurationPercent);
-    super.attackAttempt();
-  }
-
-  Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
-
-  void shoot([double chargeAmount = 1]) async {
     attackOnAnimationFinish
         ? await setWeaponStatus(WeaponStatus.attack)
         : setWeaponStatus(WeaponStatus.attack);
 
     additionalCountCheck();
+    super.attackAttempt(holdDurationPercent);
+  }
+
+  Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
+
+  @override
+  void attack([double chargeAmount = 1]) async {
     entityAncestor?.gameEnviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
-    // entityAncestor?.ancestor.physicsComponent.add(generateParticle());
+
     entityAncestor?.handJoint.add(MoveEffect.by(Vector2(0, -.05),
         EffectController(duration: .05, reverseDuration: .05)));
     entityAncestor?.handJoint.add(RotateEffect.by(
         entityAncestor!.handJoint.isFlippedHorizontally ? -.05 : .05,
         EffectController(duration: .1, reverseDuration: .1)));
+
+    super.attack(chargeAmount);
   }
 
   double particleLifespan = .15;
@@ -329,7 +347,7 @@ mixin ProjectileFunctionality on Weapon {
         position: weaponTipPosition,
         speed: moveDelta +
             (randomizeVector2Delta(
-                            entityAncestor?.inputAimDelta ?? Vector2.zero(),
+                            entityAncestor?.inputAimVectors ?? Vector2.zero(),
                             .45)
                         .normalized())
                     .clone() *
@@ -345,15 +363,24 @@ mixin ProjectileFunctionality on Weapon {
     return ParticleSystemComponent(particle: particle);
   }
 
-  Vector2 get weaponTipPosition =>
-      (parents[WeaponSpritePosition.hand]!.weaponTip!.absolutePosition +
+  Vector2? get weaponTipPosition {
+    final weaponTip =
+        weaponAttachmentPoints[WeaponSpritePosition.hand]?.weaponTip;
+    if (weaponTip != null) {
+      return weaponTip.absolutePosition + entityAncestor!.center;
+    } else {
+      return ((entityAncestor!.handJoint.absolutePosition.normalized() *
+              length /
+              2) +
           entityAncestor!.center);
+    }
+  }
 
   List<BodyComponent> generateProjectileFunction([double chargeAmount = 1]) {
     List<BodyComponent> returnList = [];
 
     List<Vector2> temp = splitVector2DeltaIntoArea(
-        entityAncestor?.handAimDelta ?? Vector2.zero(),
+        entityAncestor?.inputAimVectors ?? Vector2.zero(),
         attackCount,
         maxSpreadDegrees);
 
@@ -362,9 +389,21 @@ mixin ProjectileFunctionality on Weapon {
       final delta =
           (randomizeVector2Delta(deltaDirection, weaponRandomnessPercent));
 
+      final Vector2 originPosition;
+
+      if (weaponType.attackType == AttackType.melee) {
+        originPosition =
+            (delta.normalized() * (distanceFromPlayer + (length / 2))) +
+                entityAncestor!.center;
+      } else if (weaponType.attackType == AttackType.projectile) {
+        originPosition = weaponTipPosition ?? Vector2.zero();
+      } else {
+        originPosition = Vector2.zero();
+      }
+
       returnList.add(projectileType!.generateProjectile(
           delta: delta,
-          originPositionVar: weaponTipPosition,
+          originPositionVar: originPosition,
           ancestorVar: this,
           chargeAmount: chargeAmount));
     }
@@ -550,14 +589,31 @@ mixin MeleeTrailEffect on MeleeFunctionality {
 
 mixin AttributeWeaponFunctionsFunctionality on Weapon {
   //Event functions that are modified from attributes
-  List<Function(Weapon, Entity owner)> onKillProjectile = [];
-  List<Function(Weapon, Entity other)> onHitProjectile = [];
-  List<Function(Weapon, Entity owner)> onKillMelee = [];
-  List<Function(Weapon, Entity other)> onHitMelee = [];
-  List<Function(Weapon)> onFireProjectile = [];
-  List<Function(Weapon)> onFireMelee = [];
-  List<Function(Weapon)> onReload = [];
+  List<Function(HealthFunctionality other)> onKill = [];
+  List<Function(HealthFunctionality other)> onHitProjectile = [];
+  List<Function(HealthFunctionality other)> onHitMelee = [];
+  List<Function()> onAttackProjectile = [];
+  List<Function()> onAttackMelee = [];
+  List<Function()> onAttack = [];
+  List<Function()> onReload = [];
   List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
+
+  @override
+  void attack([double holdDurationPercent = 1]) {
+    if (this is ProjectileFunctionality) {
+      for (var element in onAttackProjectile) {
+        element();
+      }
+    } else if (this is MeleeFunctionality) {
+      for (var element in onAttackMelee) {
+        element();
+      }
+    }
+    for (var element in onAttack) {
+      element();
+    }
+    super.attack();
+  }
 }
 
 String buildWeaponDescription(
@@ -594,6 +650,13 @@ String buildWeaponDescription(
         returnString = "";
       }
       break;
+    case WeaponDescription.velocity:
+      if (builtWeapon is ProjectileFunctionality) {
+        returnString = "${builtWeapon.projectileVelocity.round()}m/s";
+      } else {
+        returnString = "";
+      }
+      break;
     case WeaponDescription.semiOrAuto:
       if (builtWeapon is SemiAutomatic) {
         switch (builtWeapon.semiAutoType) {
@@ -612,16 +675,10 @@ String buildWeaponDescription(
       }
 
       break;
-    // case WeaponDescription.attackType:
-    //   returnString = weapon.attackType.name.titleCase;
-    //   break;
+
     case WeaponDescription.attackCount:
       returnString = "${builtWeapon.attackCount} attack(s)";
 
-      break;
-
-    default:
-      // Handle other cases (if any)
       break;
   }
 

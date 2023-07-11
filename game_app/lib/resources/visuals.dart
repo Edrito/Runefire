@@ -1,12 +1,15 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:window_manager/window_manager.dart';
+import 'functions/functions.dart';
 import '../main.dart';
+import '../attributes/attributes_enum.dart';
 
 const uiWidthMax = 1300.0;
 
@@ -28,18 +31,48 @@ const Color unlockedColor = ui.Color.fromARGB(255, 24, 24, 24);
 const Color secondaryEquippedColor = ui.Color.fromARGB(255, 255, 113, 113);
 const Color levelUnlockedUnequipped = ui.Color.fromARGB(255, 119, 31, 57);
 
+double defaultFrameDuration = .15;
+
+Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
+  SpriteAnimation spriteAnimation;
+
+  switch (statusEffect) {
+    case StatusEffects.stun:
+      spriteAnimation = await buildSpriteSheet(
+          4, 'status_effects/fire_effect.png', defaultFrameDuration, true);
+
+      break;
+
+    // case StatusEffects.slow:
+    //   break;
+
+    // case StatusEffects.burn:
+    //   break;
+
+    // case StatusEffects.freeze:
+    //   break;
+
+    // case StatusEffects.bleed:
+    //   break;
+
+    // case StatusEffects.electric:
+    //   break;
+
+    // case StatusEffects.misc:
+    //   break;
+    default:
+      spriteAnimation = await buildSpriteSheet(
+          4, 'status_effects/fire_effect.png', defaultFrameDuration, true);
+  }
+  return spriteAnimation;
+}
+
 final defaultStyle = TextStyle(
   fontSize: Platform.isAndroid || Platform.isIOS ? 21 : 35,
   fontFamily: "HeroSpeak",
   fontWeight: FontWeight.bold,
   color: buttonUpColor,
-  shadows: const [
-    // BoxShadow(
-    //     color: Colors.black45,
-    //     offset: Offset(2, 2),
-    //     spreadRadius: 2,
-    //     blurRadius: 0)
-  ],
+  shadows: const [],
 );
 
 class BackgroundWidget extends StatefulWidget {

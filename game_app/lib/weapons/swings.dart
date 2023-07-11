@@ -7,7 +7,7 @@ import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 
-import '../functions/vector_functions.dart';
+import '../resources/functions/vector_functions.dart';
 import '../entities/enemy.dart';
 import '../main.dart';
 import '../resources/enums.dart';
@@ -22,9 +22,20 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
   void beginContact(Object other, Contact contact) {
     if (other is HealthFunctionality) {
       other.hitCheck(parentAttack.meleeId, parentAttack.parentWeapon.damage);
+      onHitFunctions(other);
     }
 
     super.beginContact(other, contact);
+  }
+
+  void onHitFunctions(HealthFunctionality other) {
+    if (parentAttack.parentWeapon is AttributeWeaponFunctionsFunctionality) {
+      final weapon =
+          parentAttack.parentWeapon as AttributeWeaponFunctionsFunctionality;
+      for (var element in weapon.onHitMelee) {
+        element(other);
+      }
+    }
   }
 
   @override

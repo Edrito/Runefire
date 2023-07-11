@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ScaleEffect;
 import 'package:game_app/entities/player.dart';
 
-import '../functions/custom_mixins.dart';
+import '../resources/functions/custom_mixins.dart';
 import '../resources/visuals.dart';
 import 'enviroment.dart';
 

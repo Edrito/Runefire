@@ -6,14 +6,14 @@ import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../functions/custom_follow_behavior.dart';
+import '../resources/functions/custom_follow_behavior.dart';
 import '../game/hud.dart';
 
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import '../functions/custom_joystick.dart';
+import '../resources/functions/custom_joystick.dart';
 import '../main.dart';
 import '../resources/enums.dart';
 import '../overlays/overlays.dart';

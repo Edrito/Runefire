@@ -1,67 +1,24 @@
-import 'package:flame/components.dart';
-import 'package:game_app/entities/attributes_mixin.dart';
+import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/attributes/temporary_attributes.dart';
 
 import '../entities/entity.dart';
 import '../main.dart';
 import '../overlays/cards.dart';
-import 'area_effects.dart';
+import '../weapons/weapon_mixin.dart';
+import '../resources/area_effects.dart';
 import 'attributes_enum.dart';
-import 'enums.dart';
-import '../functions/custom_mixins.dart';
+import '../resources/enums.dart';
+import '../resources/functions/custom_mixins.dart';
 
-abstract class TemporaryAttribute extends Attribute {
-  TemporaryAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
-
-  abstract double duration;
-  TimerComponent? currentTimer;
-  abstract int uniqueId;
-
-  @override
-  void reMapUpgrade() {
-    currentTimer?.timer.reset();
-    super.reMapUpgrade();
-  }
-
-  @override
-  void applyUpgrade() {
-    if (currentTimer != null) {
-      currentTimer?.timer.reset();
-    } else {
-      currentTimer = TimerComponent(
-          period: duration,
-          onTick: () {
-            removeUpgrade();
-            victimEntity.removeAttribute(attributeEnum);
-          },
-          removeOnFinish: true)
-        ..addToParent(victimEntity);
-    }
-    if (!isApplied) {
-      mapUpgrade();
-      isApplied = true;
-    }
-  }
-
-  @override
-  void removeUpgrade() {
-    if (isApplied) {
-      currentTimer?.removeFromParent();
-      currentTimer = null;
-      unMapUpgrade();
-      isApplied = false;
-    }
-  }
-}
-
+///Status effect, increase in levels, abilities etc
+///Different classes that are applied to an Entity that may be sourced
+///from a level up, a enemy attack, a weapon, a potion etc
+///The attribute is applied to the victimEntity
+///The perpetratorEntity may be a source of a negitive attribute
 abstract class Attribute with UpgradeFunctions {
   Attribute(
-      {int level = 0,
-      required this.victimEntity,
-      required this.perpetratorEntity}) {
+      {int level = 0, required this.victimEntity, this.perpetratorEntity}) {
     upgradeLevel = level.clamp(0, maxLevel);
     // if (applyNow) {
     //   applyAttribute();
@@ -80,7 +37,7 @@ abstract class Attribute with UpgradeFunctions {
   double? factor;
 
   AttributeFunctionality victimEntity;
-  Entity perpetratorEntity;
+  Entity? perpetratorEntity;
   bool isApplied = false;
 
   int get remainingLevels => maxLevel - upgradeLevel;
@@ -202,14 +159,14 @@ class AttackRateAttribute extends Attribute {
   }
 }
 
-class ExplosiveDashAttribute extends Attribute {
-  ExplosiveDashAttribute(
+class ExplosionEnemyDeathAttribute extends Attribute {
+  ExplosionEnemyDeathAttribute(
       {required super.level,
       required super.victimEntity,
       required super.perpetratorEntity});
 
   @override
-  AttributeEnum attributeEnum = AttributeEnum.explosiveDash;
+  AttributeEnum attributeEnum = AttributeEnum.enemyExplosion;
 
   @override
   double get factor => .25;
@@ -219,10 +176,10 @@ class ExplosiveDashAttribute extends Attribute {
 
   double baseSize = .5;
 
-  void onDash() {
+  void onKill(HealthFunctionality other) {
     final explosion = AreaEffect(
       sourceEntity: victimEntity,
-      position: victimEntity.center,
+      position: other.center,
       radius: baseSize + increase(baseSize),
       isInstant: false,
       duration: victimEntity.damageDuration,
@@ -242,28 +199,36 @@ class ExplosiveDashAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final attributeFunctions = victimEntity as AttributeFunctionsFunctionality;
-    attributeFunctions.dashBeginFunctions.add(onDash);
+    if (victimEntity is! AttackFunctionality) return;
+    final attributeFunctions = victimEntity as AttackFunctionality;
+    for (var element in attributeFunctions.carriedWeapons.values) {
+      if (element is AttributeWeaponFunctionsFunctionality) {
+        element.onKill.add(onKill);
+      }
+    }
   }
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final attributeFunctions = victimEntity as AttributeFunctionsFunctionality;
-    attributeFunctions.dashBeginFunctions.remove(onDash);
+    if (victimEntity is! AttackFunctionality) return;
+    final attributeFunctions = victimEntity as AttackFunctionality;
+    for (var element in attributeFunctions.carriedWeapons.values) {
+      if (element is AttributeWeaponFunctionsFunctionality) {
+        element.onKill.remove(onKill);
+      }
+    }
   }
 
   @override
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Explosive Dash!";
+  String title = "Enemies Explode";
 
   @override
   String description() {
     if (remainingLevels != 1) {
-      return "Never skip leg day.";
+      return "Something in that ammunition...";
     } else {
       return "Max Level";
     }
