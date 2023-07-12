@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-
+import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
@@ -63,7 +63,7 @@ mixin AttributeFunctionality on Entity {
   void remapAttributes() {
     List<Attribute> tempList = [];
     for (var element in currentAttributes.values) {
-      if (element.isApplied) {
+      if (element.upgradeApplied) {
         element.unMapUpgrade();
         tempList.add(element);
       }
@@ -128,15 +128,19 @@ mixin AttributeFunctionsFunctionality on Entity {
 }
 
 class StatusEffect extends PositionComponent {
-  StatusEffect(this.duration, this.effect, this.timer, this.level);
+  StatusEffect(this.effect, this.level);
 
-  final double duration;
   final StatusEffects effect;
-  final TimerComponent timer;
   final int level;
   final double spriteSize = .2;
 
   late SpriteAnimationComponent spriteAnimationComponent;
+
+  @override
+  void onRemove() {
+    print('removed');
+    super.onRemove();
+  }
 
   @override
   FutureOr<void> onLoad() async {
@@ -154,6 +158,50 @@ class StatusEffect extends PositionComponent {
   }
 }
 
+class HoldDuration extends PositionComponent {
+  HoldDuration(this.duration);
+
+  final double duration;
+  final double spriteSize = .25;
+
+  double get percentComplete => (durationProgressed / duration).clamp(0, 1);
+
+  double durationProgressed = 0;
+
+  @override
+  FutureOr<void> onLoad() async {
+    // size = Vector2.all(spriteSize);
+    // anchor = Anchor.center;
+
+    return super.onLoad();
+  }
+
+  @override
+  void update(double dt) {
+    durationProgressed += dt;
+    super.update(dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    // canvas.drawCircle(Offset.zero, spriteSize, BasicPalette.white.paint());
+    canvas.drawCircle(
+        Offset.zero,
+        spriteSize,
+        Paint()
+          ..shader = ui.Gradient.sweep(
+              Offset.zero,
+              [primaryColor, Colors.transparent],
+              [percentComplete, percentComplete],
+
+              // null,
+              TileMode.clamp,
+              0,
+              pi * 2 * percentComplete));
+    super.render(canvas);
+  }
+}
+
 class EntityStatusEffectsWrapper extends PositionComponent {
   EntityStatusEffectsWrapper({super.position, super.size}) {
     anchor = Anchor.center;
@@ -162,16 +210,51 @@ class EntityStatusEffectsWrapper extends PositionComponent {
   ///ID, Effect
   Map<StatusEffects, StatusEffect> activeStatusEffects = {};
 
+  ///ID, Animation
+  Map<String, ReloadAnimation> reloadAnimations = {};
+  HoldDuration? holdDuration;
+
+  bool removedAnimations = false;
+
+  void removeAllAnimations() {
+    removedAnimations = true;
+    for (var element in activeStatusEffects.values) {
+      element.removeFromParent();
+    }
+    activeStatusEffects.clear();
+
+    for (var element in reloadAnimations.values) {
+      element.removeFromParent();
+    }
+    reloadAnimations.clear();
+
+    holdDuration?.removeFromParent();
+    holdDuration = null;
+  }
+
   double getXPosition(StatusEffects effect) {
     return ((effect.index + 1) / StatusEffects.values.length) * (width);
   }
 
-  void addStatusEffect(
-      double duration, StatusEffects effect, TimerComponent timer, int level) {
+  void addHoldDuration(double duration) {
+    if (removedAnimations) return;
+    holdDuration?.removeFromParent();
+    holdDuration = HoldDuration(duration);
+    holdDuration!.position.y = -.5;
+    holdDuration!.position.x = width / 2;
+    add(holdDuration!);
+  }
+
+  void removeHoldDuration() {
+    holdDuration?.removeFromParent();
+    holdDuration = null;
+  }
+
+  void addStatusEffect(StatusEffects effect, int level) {
+    if (removedAnimations) return;
     activeStatusEffects[effect]?.removeFromParent();
 
-    activeStatusEffects[effect] =
-        (StatusEffect(duration, effect, timer, level));
+    activeStatusEffects[effect] = (StatusEffect(effect, level));
     final posX = getXPosition(effect);
     activeStatusEffects[effect]!.position.x = posX;
     activeStatusEffects[effect]!.position.y = -.2;
@@ -183,12 +266,10 @@ class EntityStatusEffectsWrapper extends PositionComponent {
     activeStatusEffects.remove(statusEffects);
   }
 
-  ///ID, Animation
-  Map<String, ReloadAnimation> reloadAnimations = {};
-
   void addReloadAnimation(
       String sourceId, double duration, TimerComponent timer,
       [bool isSecondary = false]) {
+    if (removedAnimations) return;
     String key = generateKey(sourceId, isSecondary);
 
     final entry = reloadAnimations[key];
@@ -218,6 +299,7 @@ class EntityStatusEffectsWrapper extends PositionComponent {
   }
 
   void showReloadAnimations(String sourceId) {
+    if (removedAnimations) return;
     for (bool isSecondary in [true, false]) {
       final key = generateKey(sourceId, isSecondary);
       reloadAnimations[key]?.toggleOpacity(false);

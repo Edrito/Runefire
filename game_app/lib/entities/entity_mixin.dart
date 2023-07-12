@@ -406,7 +406,7 @@ mixin HealthFunctionality on Entity {
     isDead = true;
 
     permanentlyDisableEntity();
-
+    entityStatusWrapper.removeAllAnimations();
     tempAnimationPlaying = true;
     assert(!deathAnimation!.loop, "Temp animations must not loop");
     spriteAnimationComponent.animation = deathAnimation?.clone();
@@ -512,13 +512,14 @@ mixin HealthFunctionality on Entity {
 
   void addDamageEffects(Color color) {
     final reversedController = EffectController(
-      duration: .2,
+      duration: .15,
       reverseDuration: .1,
     );
 
     baseSize ??= spriteAnimationComponent.size;
+
     (SizeEffect.to(
-            baseSize! * (1 + (.2 * rng.nextDouble())), reversedController))
+            baseSize! * (1 + (.15 * rng.nextDouble())), reversedController))
         .addToParent(spriteAnimationComponent);
 
     (ColorEffect(

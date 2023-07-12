@@ -2,6 +2,7 @@ import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/attributes/attributes_enum.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/overlays/buttons.dart';
@@ -18,6 +19,8 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
   FocusNode node = FocusNode();
   node.requestFocus();
 
+  final env = currentEnviroment as GameEnviroment;
+
   return Material(
     color: Colors.transparent,
     child: KeyboardListener(
@@ -31,58 +34,111 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
       },
       child: Center(
         child: StatefulBuilder(builder: (context, setState) {
-          return ConstrainedBox(
-            constraints: const BoxConstraints(
-                maxWidth: 400, minHeight: 200, maxHeight: 500, minWidth: 250),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Taking a break little bro?",
-                    style: defaultStyle,
-                  ),
-                ).animate().fadeIn(),
-                const SizedBox(
-                  height: 50,
-                ),
-                Container(
-                  width: size.width / 3,
-                  height: size.height / 4,
-                  decoration: BoxDecoration(
-                      color: backgroundColor1.darken(.1),
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(20))),
-                  child: DisplayButtons(
-                    buttons: List<CustomButton>.from([
-                      CustomButton(
-                        "Resume",
-                        gameRef: gameRouter,
-                        onTap: () {
-                          resumeGame();
+          var entries = env.player?.currentAttributes.entries.toList();
+          entries?.sort(
+              (a, b) => a.key.rarity.index.compareTo(b.key.rarity.index));
+          entries?.sort(
+              (b, a) => a.value.upgradeLevel.compareTo(b.value.upgradeLevel));
+          return Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 100,
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: entries?.length ?? 0,
+                        itemBuilder: (context, index) {
+                          final currentAttrib = entries?.elementAt(index);
+
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 55,
+                                  child: Text(
+                                    "${currentAttrib?.value.upgradeLevel} : ",
+                                    style: defaultStyle.copyWith(
+                                        color: currentAttrib?.key.rarity.color),
+                                  ),
+                                ),
+                                Text(
+                                  "${currentAttrib?.value.title}",
+                                  style: defaultStyle.copyWith(
+                                      color: currentAttrib?.key.rarity.color),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
-                      CustomButton(
-                        "Give up",
-                        gameRef: gameRouter,
-                        onTap: () {
-                          final gameEnviroment = currentEnviroment;
-                          if (gameEnviroment is PlayerFunctionality) {
-                            resumeGame();
-                            (currentEnviroment as PlayerFunctionality)
-                                .player
-                                ?.killPlayer(false);
-                          } else {
-                            endGame(false);
-                          }
-                        },
-                      )
-                    ]),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                      maxWidth: 400,
+                      minHeight: 200,
+                      maxHeight: 500,
+                      minWidth: 250),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "Taking a break little bro?",
+                          style: defaultStyle,
+                        ),
+                      ).animate().fadeIn(),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                      Container(
+                        width: size.width / 3,
+                        height: size.height / 4,
+                        decoration: BoxDecoration(
+                          color: backgroundColor1.darken(.1),
+                        ),
+                        child: DisplayButtons(
+                          buttons: List<CustomButton>.from([
+                            CustomButton(
+                              "Resume",
+                              gameRef: gameRouter,
+                              onTap: () {
+                                resumeGame();
+                              },
+                            ),
+                            CustomButton(
+                              "Give up",
+                              gameRef: gameRouter,
+                              onTap: () {
+                                final gameEnviroment = currentEnviroment;
+                                if (gameEnviroment is PlayerFunctionality) {
+                                  resumeGame();
+                                  (currentEnviroment as PlayerFunctionality)
+                                      .player
+                                      ?.killPlayer(false);
+                                } else {
+                                  endGame(false);
+                                }
+                              },
+                            )
+                          ]),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              const Spacer()
+            ],
           );
         }),
       ),
@@ -180,6 +236,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
   currentSelection ??= player?.buildAttributeSelection();
 
   List<CustomCard> selection = [];
+  const exitAnimationDuration = .2;
 
   for (var element in currentSelection ?? List<Attribute>.from([])) {
     CustomCard card = element.buildWidget(onTap: () {
@@ -189,8 +246,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
     }, onTapComplete: () {
       gameRouter.resumeEngine();
       player?.addAttributeEnum(element.attributeEnum);
-      final upperBound = widgetController?.upperBound ?? 1;
-      Future.delayed(upperBound.seconds)
+      Future.delayed(exitAnimationDuration.seconds)
           .then((value) => {resumeGame(), currentSelection = null});
       widgetController?.forward(from: 0);
     });
@@ -200,7 +256,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
   return Animate(
     effects: [
       FadeEffect(
-          duration: .2.seconds, begin: 1, end: 0, curve: Curves.easeInOut),
+          duration: exitAnimationDuration.seconds,
+          begin: 1,
+          end: 0,
+          curve: Curves.easeInOut),
     ],
     autoPlay: false,
     onInit: (con) => widgetController = con,

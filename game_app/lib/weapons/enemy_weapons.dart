@@ -107,7 +107,7 @@ class BlankMelee extends Weapon
   double weaponRandomnessPercent = .05;
 
   @override
-  WeaponType weaponType = WeaponType.shiv;
+  WeaponType weaponType = WeaponType.dagger;
 
   @override
   bool countIncreaseWithTime = false;

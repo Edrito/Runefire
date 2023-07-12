@@ -388,8 +388,10 @@ class Player extends Entity
   // };
 
   @override
-  double baseStamina = 100;
+  double get baseStamina => isDisplay ? 10000000 : 100;
 
+  @override
+  double get baseStaminaRegen => 5;
   @override
   double baseDashDistance = 5;
 

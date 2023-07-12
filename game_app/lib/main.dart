@@ -166,13 +166,23 @@ void main() async {
     Material(
       child: Directionality(
         textDirection: TextDirection.ltr,
-        child: Listener(
-          onPointerMove: (event) {
+        child: MouseRegion(
+          // onPointerPanZoomStart: (event) {
+          //   print('drag');
+          // },
+          // cursor: SystemMouseCursor,
+          onHover: (event) {
             if (event.buttons == 2 && event.kind == PointerDeviceKind.mouse) {
               gameRouter.onMouseMove(PointerHoverInfo.fromDetails(
                   gameRouter, PointerHoverEvent(position: event.position)));
             }
           },
+          // onPointerHover: (event) {
+          //   // if (event.kind == PointerDeviceKind.mouse) {
+          //   gameRouter.onMouseMove(PointerHoverInfo.fromDetails(
+          //       gameRouter, PointerHoverEvent(position: event.position)));
+          //   // }
+          // },
           child: RawKeyboardListener(
             focusNode: node,
             onKey: gameRouter.onKeyEvent,

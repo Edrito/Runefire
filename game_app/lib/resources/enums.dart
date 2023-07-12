@@ -3,8 +3,9 @@ import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/enemy_weapons.dart';
+import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
-import 'package:game_app/weapons/weapons.dart';
+import 'package:game_app/weapons/player_projectile_weapons.dart';
 
 import '../entities/entity.dart';
 import '../game/background.dart';
@@ -23,7 +24,9 @@ enum WeaponDescription {
   damage,
   reloadTime,
   velocity,
+  staminaCost,
   semiOrAuto,
+  maxAmmo,
   attackCount,
 }
 
@@ -58,11 +61,11 @@ enum JoystickDirection {
   idle,
 }
 
-extension CharacterTypeFilename on CharacterType {}
+// extension CharacterTypeFilename on CharacterType {}
 
 enum GameLevel { forest, space, garden, menu }
 
-enum CharacterType { wizard, rogue }
+// enum CharacterType { wizard, rogue }
 
 enum ExperienceAmount { small, medium, large }
 
@@ -188,9 +191,13 @@ extension GameLevelExtension on GameLevel {
 
 enum WeaponSpritePosition { hand, mouse, back }
 
-enum AttackType { projectile, melee, special }
+enum AttackType {
+  projectile,
+  melee,
+// special
+}
 
-enum WeaponState { shooting, reloading, idle }
+// enum WeaponState { shooting, reloading, idle }
 
 extension SecondaryWeaponTypeExtension on SecondaryType {
   dynamic build(Weapon? primaryWeaponAncestor, [int upgradeLevel = 0]) {
@@ -198,8 +205,7 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
       case SecondaryType.reloadAndRapidFire:
         return RapidFire(primaryWeaponAncestor, 5, upgradeLevel);
       case SecondaryType.pistol:
-        return Portal.create(
-            upgradeLevel, primaryWeaponAncestor?.entityAncestor);
+        return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
       case SecondaryType.explodeProjectiles:
         return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
     }
@@ -207,16 +213,22 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 }
 
 enum WeaponType {
-  pistol(Pistol.create, 'assets/images/weapons/pistol.png', 5,
+  pistol(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
       AttackType.projectile, 0),
   shotgun(Shotgun.create, 'assets/images/weapons/shotgun.png', 5,
       AttackType.projectile, 500),
-  portal(Portal.create, 'assets/images/weapons/portal.png', 5,
-      AttackType.projectile, 1000),
-  shiv(Sword.create, 'assets/images/weapons/sword.png', 5, AttackType.melee, 0),
-  bow(Bow.create, 'assets/images/weapons/bow.png', 10, AttackType.projectile,
-      5000),
-  blankMelee(BlankMelee.create, 'assets/images/weapons/bow.png', 5,
+  energySword(EnergySword.create, 'assets/images/weapons/energy_sword.png', 5,
+      AttackType.melee, 500),
+  flameSword(FlameSword.create, 'assets/images/weapons/flame_sword.png', 5,
+      AttackType.melee, 500),
+  dagger(Dagger.create, 'assets/images/weapons/dagger.png', 5, AttackType.melee,
+      0),
+
+  largeSword(LargeSword.create, 'assets/images/weapons/large_sword.png', 5,
+      AttackType.melee, 600),
+  spear(
+      Dagger.create, 'assets/images/weapons/spear.png', 5, AttackType.melee, 0),
+  blankMelee(BlankMelee.create, 'assets/images/weapons/shotgun.png', 5,
       AttackType.melee, 0);
 
   const WeaponType(this.createFunction, this.icon, this.maxLevel,
@@ -226,6 +238,11 @@ enum WeaponType {
   final AttackType attackType;
   final Function createFunction;
   final int baseCost;
+
+  String get flameImage {
+    final split = icon.split('/');
+    return "${split[2]}/${split[3]}";
+  }
 }
 
 extension WeaponTypeFilename on WeaponType {
@@ -241,16 +258,23 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = Shotgun.create(upgradeLevel, ancestor);
         break;
 
-      case WeaponType.bow:
-        returnWeapon = Bow.create(upgradeLevel, ancestor);
-        break;
+      case WeaponType.dagger:
+        returnWeapon = Dagger.create(upgradeLevel, ancestor);
 
-      case WeaponType.shiv:
-        returnWeapon = Sword.create(upgradeLevel, ancestor);
+      case WeaponType.largeSword:
+        returnWeapon = LargeSword.create(upgradeLevel, ancestor);
 
         break;
-      case WeaponType.portal:
-        returnWeapon = Portal.create(upgradeLevel, ancestor);
+      case WeaponType.spear:
+        returnWeapon = Spear.create(upgradeLevel, ancestor);
+        break;
+      case WeaponType.energySword:
+        returnWeapon = EnergySword.create(upgradeLevel, ancestor);
+
+        break;
+      case WeaponType.flameSword:
+        returnWeapon = FlameSword.create(upgradeLevel, ancestor);
+
         break;
       case WeaponType.blankMelee:
         returnWeapon = BlankMelee.create(upgradeLevel, ancestor);
@@ -266,7 +290,7 @@ extension WeaponTypeFilename on WeaponType {
 
 enum SemiAutoType { regular, release, charge }
 
-enum DamageType { regular, magic, energy, psychic, fire }
+enum DamageType { regular, fire, psychic, electric, frost, bleed }
 
 typedef WeaponCreateFunction = Weapon Function(Entity);
 
@@ -282,14 +306,16 @@ class DamageInstance {
     switch (damageType) {
       case DamageType.regular:
         return Colors.white;
-      case DamageType.magic:
-        return Colors.blue;
+      case DamageType.electric:
+        return const Color.fromARGB(255, 247, 255, 199);
       case DamageType.psychic:
         return Colors.purple;
-      case DamageType.fire:
+      case DamageType.bleed:
         return Colors.red;
-      case DamageType.energy:
-        return Colors.yellow;
+      case DamageType.fire:
+        return Colors.orange;
+      case DamageType.frost:
+        return const Color.fromARGB(255, 170, 233, 248);
     }
   }
 
@@ -304,10 +330,9 @@ class DamageInstance {
 }
 
 enum SecondaryType {
-  reloadAndRapidFire(
-      'assets/images/weapons/portal.png', 5, weaponIsReloadFunctionality, 500),
-  pistol('assets/images/weapons/portal.png', 5, alwaysCompatible, 500),
-  explodeProjectiles('assets/images/weapons/portal.png', 5,
+  reloadAndRapidFire('weapons/dagger.png', 5, weaponIsReloadFunctionality, 500),
+  pistol('assets/images/weapons/dagger.png', 5, alwaysCompatible, 500),
+  explodeProjectiles('assets/images/weapons/dagger.png', 5,
       weaponIsProjectileFunctionality, 500);
 
   const SecondaryType(

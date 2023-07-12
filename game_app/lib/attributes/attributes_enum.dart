@@ -25,7 +25,6 @@ extension AttributeRarityExtension on AttributeRarity {
 enum AttributeCategory {
   mobility,
   projectile,
-  magic,
   melee,
   defence,
   offense,
@@ -90,4 +89,4 @@ extension AllAttributesExtension on AttributeEnum {
   }
 }
 
-enum StatusEffects { stun, slow, burn, freeze, bleed, electric, misc }
+enum StatusEffects { burn, bleed, chill, electrified, stun, psychic }

@@ -1,0 +1,51 @@
+*(if one type out of all status effects are grabbed, no more available)
+
+Positive Attributes (unlocked in character screen)
+		Max lives
+		Area increase
+		melee damage increase
+		projectile damage increase
+		dot damage increase
+		area damage increase
+		status effect increase
+		speed
+		stamina regen
+		health regen
+		max health
+		max stamina
+		xp gain
+Positive Attributes (level ups in game)
+	When run out
+		Health
+		XP
+		Remove one random attribute
+	Any
+		Attack count
+		increase max ammo
+		
+		Dash teleport
+		Trail of status effect *
+			slow effect
+			fire
+		explosive dash area effect *
+			fire
+			energy
+			push back
+		jump land effect *
+			regular ground pound
+			fire
+			other status effects
+		regular pulse effect around body *
+			push enemies back
+			magic dmg
+			stun enemies
+		stand still = damage reduction + enemies slow down around you at higher levels
+	Melee
+		Add projectile to swings
+		add physics to swing, pushing enemies back
+	Projectile
+		Add melee to attack
+		
+	
+	
+	

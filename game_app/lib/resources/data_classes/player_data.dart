@@ -37,8 +37,8 @@ class PlayerData extends DataClass {
   List<GameLevel> completedLevels = [];
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.pistol,
-    1: WeaponType.shiv,
+    0: WeaponType.largeSword,
+    1: WeaponType.pistol,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.explodeProjectiles,
@@ -54,7 +54,7 @@ class PlayerData extends DataClass {
 
   Map<WeaponType, int> unlockedWeapons = {
     WeaponType.pistol: 0,
-    WeaponType.shiv: 0,
+    WeaponType.dagger: 0,
   };
   Map<SecondaryType, int> unlockedSecondarys = {
     SecondaryType.pistol: 0,

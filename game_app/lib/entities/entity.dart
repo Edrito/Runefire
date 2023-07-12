@@ -1,6 +1,5 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/entities/player.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
 import 'package:uuid/uuid.dart';
@@ -26,7 +25,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   abstract EntityType entityType;
   dynamic gameEnviroment;
 
-  bool get isPlayer => this is Player;
+  bool get isPlayer => EntityType.player == entityType;
 
   void permanentlyDisableEntity() {}
 
@@ -259,6 +258,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     // shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
     backJoint.flipHorizontallyAroundCenter();
     spriteWrapper.flipHorizontallyAroundCenter();
+
     flipped = !flipped;
   }
 }

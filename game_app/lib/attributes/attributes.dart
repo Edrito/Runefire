@@ -38,7 +38,6 @@ abstract class Attribute with UpgradeFunctions {
 
   AttributeFunctionality victimEntity;
   Entity? perpetratorEntity;
-  bool isApplied = false;
 
   int get remainingLevels => maxLevel - upgradeLevel;
 

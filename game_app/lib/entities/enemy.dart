@@ -18,11 +18,10 @@ import '../attributes/attributes_mixin.dart';
 class DummyTwo extends Enemy
     with
         HealthFunctionality,
-        // MovementFunctionality,
-        DropExperienceFunctionality
-// DumbFollowAI,
-// TouchDamageFunctionality
-{
+        MovementFunctionality,
+        DropExperienceFunctionality,
+        DumbFollowAI,
+        TouchDamageFunctionality {
   DummyTwo({
     required super.initPosition,
     required super.gameEnviroment,
@@ -30,7 +29,7 @@ class DummyTwo extends Enemy
 
   @override
   void update(double dt) {
-    // moveCharacter();
+    moveCharacter();
     super.update(dt);
   }
 
@@ -44,7 +43,7 @@ class DummyTwo extends Enemy
   double baseInvincibilityDuration = 0.0;
 
   @override
-  double baseHealth = 50000000;
+  double baseHealth = 20;
 
   @override
   double baseSpeed = .0175;
@@ -88,7 +87,7 @@ class DummyTwo extends Enemy
 
   @override
   Map<DamageType, (double, double)> baseTouchDamage = {
-    DamageType.energy: (2, 10)
+    DamageType.electric: (2, 10)
   };
 }
 
@@ -157,17 +156,15 @@ class EnemyManagement extends Component {
   FutureOr<void> onLoad() {
     priority = enemyPriority;
 
-    // add(TimerComponent(
-    //   period: 2,
-    //   repeat: true,
-    //   onTick: () {
-    //     generateEnemies();
+    add(TimerComponent(
+      period: 2,
+      repeat: true,
+      onTick: () {
+        generateEnemies();
+      },
+    )..onTick());
 
-    //   },
-    // )..onTick());
-
-    gameEnviroment.physicsComponent.add(
-        DummyTwo(initPosition: Vector2.zero(), gameEnviroment: gameEnviroment));
+    generateEnemies();
     return super.onLoad();
   }
 }
@@ -244,6 +241,6 @@ class MeleeTest extends Enemy
 
   @override
   Map<DamageType, (double, double)> baseTouchDamage = {
-    DamageType.energy: (1, 4)
+    DamageType.electric: (1, 4)
   };
 }

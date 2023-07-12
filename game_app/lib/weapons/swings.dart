@@ -110,11 +110,17 @@ class MeleeAttack extends PositionComponent {
       spriteAnimation =
           parentWeapon.attackHitboxSpriteAnimations[(index / 2).round()];
       spriteAnimation!.stepTime = duration;
-      add(spriteAnimationComponent = SpriteAnimationComponent(
+      spriteAnimationComponent = SpriteAnimationComponent(
           anchor: Anchor.topCenter,
           size: size,
           animation: spriteAnimation!,
-          removeOnFinish: true));
+          removeOnFinish: true);
+
+      if (parentWeapon.entityAncestor!.flipped) {
+        spriteAnimationComponent!.flipHorizontallyAroundCenter();
+      }
+
+      add(spriteAnimationComponent!);
     }
 
     bodyComponent = MeleeDetection(size, this);
@@ -137,26 +143,33 @@ class MeleeAttack extends PositionComponent {
       onTick: () {
         if (spriteAnimationComponent != null) {
           spriteAnimationComponent?.add(OpacityEffect.fadeOut(EffectController(
-            duration: .15,
+            duration: .25,
+            curve: Curves.easeOut,
             onMax: () {
               removeSwing();
             },
           )));
         } else {
-          removeSwing();
+          add(OpacityEffect.fadeOut(EffectController(
+            duration: .25,
+            curve: Curves.easeOut,
+            onMax: () {
+              removeSwing();
+            },
+          )));
         }
       },
     ));
 
     final effectController = EffectController(
       duration: duration * 2,
-      curve: Curves.easeInOutCubicEmphasized,
+      curve: Curves.easeInOutQuint,
     );
     final effectControllerTwo = EffectController(
         duration: duration / 2,
         reverseDuration: duration / 2,
-        curve: Curves.decelerate,
-        reverseCurve: Curves.decelerate);
+        curve: Curves.easeOut,
+        reverseCurve: Curves.easeOut);
     addAll([
       ScaleEffect.to(Vector2.all(1.02), effectControllerTwo),
       RotateEffect.by(

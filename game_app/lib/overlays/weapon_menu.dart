@@ -225,7 +225,7 @@ class WeaponSecondarySelector extends StatefulWidget {
       required this.onBack,
       required this.isPrimary,
       required this.isSecondaryAbility,
-      this.weaponTab = AttackType.special,
+      this.weaponTab = AttackType.projectile,
       required this.gameRef,
       super.key});
 

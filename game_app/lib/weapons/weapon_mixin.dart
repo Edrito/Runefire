@@ -124,6 +124,23 @@ mixin ReloadFunctionality on Weapon {
   }
 }
 
+mixin StaminaCostFunctionality on Weapon {
+  abstract double baseWeaponStaminaCost;
+  double get weaponStaminaCost =>
+      baseWeaponStaminaCost - weaponStaminaCostIncrease;
+  double weaponStaminaCostIncrease = 0;
+
+  @override
+  void attackAttempt([double holdDurationPercent = 1]) {
+    if (entityAncestor is StaminaFunctionality) {
+      final stamina = entityAncestor as StaminaFunctionality;
+      if (stamina.remainingStamina < weaponStaminaCost) return;
+      stamina.modifyStamina(-weaponStaminaCost);
+    }
+    super.attackAttempt(holdDurationPercent);
+  }
+}
+
 mixin MeleeFunctionality on Weapon {
   ///Pairs of attack patterns
   ///
@@ -147,11 +164,6 @@ mixin MeleeFunctionality on Weapon {
   int meleeAttacksCompletedIndex = 0;
   Vector2? currentSwingPosition;
   List<double> currentSwingAngles = [];
-
-  abstract double baseMeleeStaminaCost;
-  double get meleeStaminaCost =>
-      baseMeleeStaminaCost - meleeStaminaCostIncrease;
-  double meleeStaminaCostIncrease = 0;
 
   @override
   bool get attacksAreActive => activeSwings.isNotEmpty;
@@ -191,7 +203,7 @@ mixin MeleeFunctionality on Weapon {
 
   @override
   void endAttacking() {
-    if (this is! ReloadFunctionality) {
+    if (this is! ReloadFunctionality && this is! SemiAutomatic) {
       resetToFirstSwings();
     }
     super.endAttacking();
@@ -203,12 +215,6 @@ mixin MeleeFunctionality on Weapon {
       resetToFirstSwings();
     }
     currentSwingPosition = Vector2.zero();
-
-    if (entityAncestor is StaminaFunctionality) {
-      final stamina = entityAncestor as StaminaFunctionality;
-      if (stamina.remainingStamina < meleeStaminaCost) return;
-      stamina.modifyStamina(-meleeStaminaCost);
-    }
 
     if (this is SemiAutomatic) {
       holdDurationPercent =
@@ -230,7 +236,7 @@ mixin MeleeFunctionality on Weapon {
             attackEntitySpriteAnimations.isNotEmpty
                 ? attackEntitySpriteAnimations[meleeAttacksCompletedIndex]
                 : null);
-    super.attackAttempt();
+    super.attackAttempt(holdDurationPercent);
   }
 
   void resetToFirstSwings() {
@@ -416,6 +422,9 @@ mixin SemiAutomatic on Weapon {
   bool isAttacking = false;
 
   abstract SemiAutoType semiAutoType;
+  abstract bool waitForAttackRate;
+
+  double get chargeLength => attackTickRate;
 
   @override
   double durationHeld = 0;
@@ -424,7 +433,7 @@ mixin SemiAutomatic on Weapon {
 
   double get holdDurationPercentOfAttackRate =>
       semiAutoType == SemiAutoType.charge
-          ? ui.clampDouble(durationHeld / attackTickRate, 0, 1)
+          ? ui.clampDouble(durationHeld / chargeLength, 0, 1)
           : 1;
 
   @override
@@ -438,9 +447,10 @@ mixin SemiAutomatic on Weapon {
   @override
   void endAttacking() {
     isAttacking = false;
+    entityAncestor?.entityStatusWrapper.removeHoldDuration();
     switch (semiAutoType) {
       case SemiAutoType.release:
-        if (durationHeld > attackTickRate) {
+        if (durationHeld > chargeLength) {
           attackAttempt();
         }
         break;
@@ -458,9 +468,35 @@ mixin SemiAutomatic on Weapon {
   void startAttacking() {
     isAttacking = true;
 
-    if (semiAutoType == SemiAutoType.regular) {
-      attackAttempt();
+    switch (semiAutoType) {
+      case SemiAutoType.regular:
+        attackAttempt();
+        break;
+      case SemiAutoType.release:
+        entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
+        break;
+      default:
     }
+
+    if (semiAutoType == SemiAutoType.regular) {}
+  }
+
+  @override
+  void attackAttempt([double holdDurationPercent = 1]) {
+    if (waitForAttackRate) {
+      if (attackTimer == null) {
+        attackTimer = TimerComponent(
+            period: attackTickRate,
+            removeOnFinish: true,
+            onTick: () {
+              attackTimer = null;
+            });
+        add(attackTimer!);
+      } else {
+        return;
+      }
+    }
+    super.attackAttempt(holdDurationPercent);
   }
 }
 
@@ -646,6 +682,20 @@ String buildWeaponDescription(
     case WeaponDescription.reloadTime:
       if (builtWeapon is ReloadFunctionality) {
         returnString = "${builtWeapon.reloadTime.toStringAsFixed(0)} s";
+      } else {
+        returnString = "";
+      }
+      break;
+    case WeaponDescription.staminaCost:
+      if (builtWeapon is StaminaCostFunctionality) {
+        returnString = "${builtWeapon.weaponStaminaCost}/attack";
+      } else {
+        returnString = "";
+      }
+      break;
+    case WeaponDescription.maxAmmo:
+      if (builtWeapon is ReloadFunctionality) {
+        returnString = "${builtWeapon.maxAttacks}";
       } else {
         returnString = "";
       }

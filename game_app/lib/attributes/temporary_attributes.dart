@@ -38,19 +38,19 @@ abstract class TemporaryAttribute extends Attribute {
         },
         removeOnFinish: true)
       ..addToParent(victimEntity);
-    if (!isApplied) {
+    if (!upgradeApplied) {
       mapUpgrade();
-      isApplied = true;
+      upgradeApplied = true;
     }
   }
 
   @override
   void removeUpgrade() {
-    if (isApplied) {
+    if (upgradeApplied) {
       currentTimer?.removeFromParent();
       currentTimer = null;
       unMapUpgrade();
-      isApplied = false;
+      upgradeApplied = false;
     }
   }
 }
@@ -157,8 +157,8 @@ class FireDamageAttribute extends TemporaryAttribute {
 
   @override
   void mapUpgrade() {
-    victimEntity.entityStatusWrapper.addStatusEffect(
-        duration, StatusEffects.burn, currentTimer!, upgradeLevel);
+    victimEntity.entityStatusWrapper
+        .addStatusEffect(StatusEffects.burn, upgradeLevel);
 
     if (victimEntity is AttributeFunctionsFunctionality) {
       final attr = victimEntity as AttributeFunctionsFunctionality;
