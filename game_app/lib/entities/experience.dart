@@ -4,7 +4,6 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
-import 'package:game_app/overlays/weapon_menu.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
 import 'player.dart';
@@ -31,10 +30,6 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void render(Canvas canvas) {
-    // final points =
-    //     triangleZoomEffect(size, 2, previousPoint.clone(), center, 1);
-    // previousPoint = center.clone();
-
     for (var i = trails.length - 1; i > 1; i--) {
       canvas.drawCircle(((trails[i] - center)).toOffset(),
           radius * .65 / trailCount * (trailCount - i), Paint()..color = color);
@@ -47,10 +42,6 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
             (previousValue, element) =>
                 [...previousValue, (element - center).toOffset()]),
         paint);
-    // for (var element in trails) {
-    //   element = element - center;
-    //   canvas.drawCircle(element.toOffset(), .05, paint);
-    // }
 
     super.render(canvas);
   }
@@ -61,19 +52,6 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
   Future<void> onLoad() async {
     shapeComponent = experienceAmount.getShapeComponent(radius);
     color = experienceAmount.color;
-
-    // final controller = EffectController(duration: 1);
-    // final controller2 = InfiniteEffectController(EffectController(
-    //     duration: .7,
-    //     reverseDuration: .7,
-    //     curve: Curves.easeInOutCubic,
-    //     reverseCurve: Curves.easeInOutCubic));
-
-    // final opac = OpacityEffect.fadeIn(controller);
-    // final move = MoveEffect.by(Vector2(0, .2), controller2);
-    // shapeComponent.add(opac);
-    // shapeComponent.add(move);
-    // effects.addAll([opac, move]);
     shapeComponent.paint = Paint()..color = color;
     add(shapeComponent);
     return super.onLoad();
@@ -94,13 +72,6 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
         element.reset();
         element.removeFromParent();
       }
-      // particleTimer = TimerComponent(
-      //   period: .05,
-      //   repeat: true,
-      //   onTick: () {
-      // shapeComponent.add(generateParticle());
-      //   },
-      // )..addToParent(this);
     } else if (otherType == FixtureType.body && otherObject is Player) {
       otherObject.gainExperience(experienceAmount.experienceAmount);
       removeFromParent();

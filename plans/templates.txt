@@ -1,0 +1,26 @@
+skills 
+
+  abstract final double dodgeChanceBase;
+  double _dodgeChanceFlatIncrease = 0;
+  double get dodgeChance => ((dodgeChanceBase + _dodgeChanceFlatIncrease) *
+          _dodgeChancePercentIncrease)
+      .clamp(0, 1);
+  double _dodgeChancePercentIncrease = 1;
+  double get dodgeChanceFlatIncrease => _dodgeChanceFlatIncrease;
+  double get dodgeChancePercentIncrease => _dodgeChancePercentIncrease;
+
+  set dodgeChanceFlatIncrease(double value) {
+    _dodgeChanceFlatIncrease = value;
+  }
+
+  set dodgeChancePercentIncrease(double value) {
+    _dodgeChancePercentIncrease = value;
+  }
+  void increaseDodgeChanceFlat(double value) {
+    _dodgeChanceFlatIncrease += value;
+  }
+  void increaseDodgeChancePercent(double value) {
+    _dodgeChancePercentIncrease += value;
+  }
+
+

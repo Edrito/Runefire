@@ -8,6 +8,7 @@ import 'package:flame/particles.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/data_classes/base.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/swings.dart';
@@ -27,34 +28,32 @@ mixin MultiWeaponCheck on Weapon {
 }
 
 mixin ReloadFunctionality on Weapon {
-  int get maxAttacks => baseMaxAttacks + maxAttacksIncrease;
-  abstract final int baseMaxAttacks;
-  int maxAttacksIncrease = 0;
-
-  double get percentReloaded =>
-      (reloadTimer?.timer.current ?? reloadTime) / reloadTime;
+  final IntParameterManager maxAttacks = IntParameterManager(baseParameter: 10);
 
   ///How long in seconds to reload
-  abstract final double baseReloadTime;
-  double reloadTimeIncrease = 0;
-  double get reloadTime =>
-      (baseReloadTime - reloadTimeIncrease).clamp(0, double.infinity);
+  final DoubleParameterManager reloadTime =
+      DoubleParameterManager(baseParameter: 1, minParameter: 0);
+
+  double get percentReloaded =>
+      (reloadTimer?.timer.current ?? reloadTime.parameter) /
+      reloadTime.parameter;
 
   //Status of reloading
   int spentAttacks = 0;
 
   int? get remainingAttacks =>
-      maxAttacks == 0 ? null : maxAttacks - spentAttacks;
+      maxAttacks.parameter == 0 ? null : maxAttacks.parameter - spentAttacks;
 
   ///Timer that when completes finishes reload
   TimerComponent? reloadTimer;
 
   @override
   FutureOr<void> onLoad() {
-    if (this is MeleeFunctionality) {
-      assert(maxAttacks == (this as MeleeFunctionality).attacksLength ||
-          maxAttacks == 0);
-    }
+    // if (this is MeleeFunctionality) {
+    //   assert(
+    //       maxAttacks.parameter == (this as MeleeFunctionality).attacksLength ||
+    //           maxAttacks.parameter == 0);
+    // }
     return super.onLoad();
   }
 
@@ -94,11 +93,13 @@ mixin ReloadFunctionality on Weapon {
   void createReloadBar() {
     if (entityAncestor == null) return;
     entityAncestor!.entityStatusWrapper.addReloadAnimation(
-        weaponId, reloadTime, reloadTimer!, isSecondaryWeapon);
+        weaponId, reloadTime.parameter, reloadTimer!, isSecondaryWeapon);
   }
 
   void reloadCheck() {
-    if (remainingAttacks != 0 || isReloading || reloadTime == 0) return;
+    if (remainingAttacks != 0 || isReloading || reloadTime.parameter == 0) {
+      return;
+    }
     reload();
   }
 
@@ -114,7 +115,7 @@ mixin ReloadFunctionality on Weapon {
       }
     }
     reloadTimer = TimerComponent(
-      period: reloadTime,
+      period: reloadTime.parameter,
       removeOnFinish: true,
       onTick: () {
         stopReloading();
@@ -125,23 +126,24 @@ mixin ReloadFunctionality on Weapon {
 }
 
 mixin StaminaCostFunctionality on Weapon {
-  abstract double baseWeaponStaminaCost;
-  double get weaponStaminaCost =>
-      baseWeaponStaminaCost - weaponStaminaCostIncrease;
-  double weaponStaminaCostIncrease = 0;
+  final DoubleParameterManager weaponStaminaCost = DoubleParameterManager(
+      baseParameter: 10, minParameter: 0, maxParameter: 200);
 
   @override
   void attackAttempt([double holdDurationPercent = 1]) {
     if (entityAncestor is StaminaFunctionality) {
       final stamina = entityAncestor as StaminaFunctionality;
-      if (stamina.remainingStamina < weaponStaminaCost) return;
-      stamina.modifyStamina(-weaponStaminaCost);
+      if (stamina.remainingStamina < weaponStaminaCost.parameter) return;
+      stamina.modifyStamina(-weaponStaminaCost.parameter);
     }
     super.attackAttempt(holdDurationPercent);
   }
 }
 
 mixin MeleeFunctionality on Weapon {
+  ///How many attacks are in the melee combo
+  int get numberOfAttacks => attackHitboxPatterns.length ~/ 2;
+
   ///Pairs of attack patterns
   ///
   ///Start position - Start angle
@@ -178,12 +180,20 @@ mixin MeleeFunctionality on Weapon {
       2;
 
   @override
+  FutureOr<void> onLoad() {
+    if (this is ReloadFunctionality) {
+      (this as ReloadFunctionality).maxAttacks.baseParameter = numberOfAttacks;
+    }
+    return super.onLoad();
+  }
+
+  @override
   void attack([double chargeAmount = 1]) async {
     List<Component> returnList = [];
     final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
 
-    List<double> temp =
-        splitRadInCone(currentSwingAngle, attackCount, maxSpreadDegrees);
+    List<double> temp = splitRadInCone(
+        currentSwingAngle, attackCount, maxSpreadDegrees.parameter);
 
     for (var deltaDirection in temp) {
       currentSwingAngles.add(deltaDirection);
@@ -295,19 +305,20 @@ mixin SecondaryFunctionality on Weapon {
 mixin ProjectileFunctionality on Weapon {
   //META
   abstract ProjectileType? projectileType;
-  abstract bool allowProjectileRotation;
+  bool allowProjectileRotation = false;
 
-  abstract int basePierce;
-  int get pierce => basePierce + pierceIncrease;
-  int pierceIncrease = 0;
+  final IntParameterManager pierce = IntParameterManager(baseParameter: 0);
 
-  abstract double projectileVelocity;
+  final DoubleParameterManager projectileVelocity =
+      DoubleParameterManager(baseParameter: 20);
 
   List<Projectile> activeProjectiles = [];
 
   @override
   FutureOr<void> onLoad() {
-    basePierce = basePierce.clamp(maxChainingTargets, double.infinity).toInt();
+    pierce.baseParameter = pierce.baseParameter
+        .clamp(maxChainingTargets.parameter, double.infinity)
+        .toInt();
     return super.onLoad();
   }
 
@@ -388,12 +399,12 @@ mixin ProjectileFunctionality on Weapon {
     List<Vector2> temp = splitVector2DeltaIntoArea(
         entityAncestor?.inputAimVectors ?? Vector2.zero(),
         attackCount,
-        maxSpreadDegrees);
+        maxSpreadDegrees.parameter);
 
     for (var deltaDirection in temp) {
       if (projectileType == null) continue;
-      final delta =
-          (randomizeVector2Delta(deltaDirection, weaponRandomnessPercent));
+      final delta = (randomizeVector2Delta(
+          deltaDirection, weaponRandomnessPercent.parameter));
 
       final Vector2 originPosition;
 
@@ -422,9 +433,9 @@ mixin SemiAutomatic on Weapon {
   bool isAttacking = false;
 
   abstract SemiAutoType semiAutoType;
-  abstract bool waitForAttackRate;
+  bool waitForAttackRate = true;
 
-  double get chargeLength => attackTickRate;
+  double get chargeLength => attackTickRate.parameter;
 
   @override
   double durationHeld = 0;
@@ -475,10 +486,11 @@ mixin SemiAutomatic on Weapon {
       case SemiAutoType.release:
         entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
         break;
+      case SemiAutoType.charge:
+        entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
+        break;
       default:
     }
-
-    if (semiAutoType == SemiAutoType.regular) {}
   }
 
   @override
@@ -486,7 +498,7 @@ mixin SemiAutomatic on Weapon {
     if (waitForAttackRate) {
       if (attackTimer == null) {
         attackTimer = TimerComponent(
-            period: attackTickRate,
+            period: attackTickRate.parameter,
             removeOnFinish: true,
             onTick: () {
               attackTimer = null;
@@ -502,7 +514,7 @@ mixin SemiAutomatic on Weapon {
 
 mixin FullAutomatic on Weapon {
   @override
-  double get durationHeld => attackTicks * attackTickRate;
+  double get durationHeld => attackTicks * attackTickRate.parameter;
 
   bool stopAttacking = false;
   bool allowRapidClicking = false;
@@ -543,7 +555,7 @@ mixin FullAutomatic on Weapon {
     }
 
     attackTimer ??= TimerComponent(
-      period: attackTickRate,
+      period: attackTickRate.parameter,
       repeat: true,
       onTick: () {
         if (stopAttacking) {
@@ -663,11 +675,11 @@ String buildWeaponDescription(
   switch (weaponDescription) {
     case WeaponDescription.attackRate:
       returnString =
-          "${builtWeapon.attackRateSecondComparison.toStringAsFixed(0)}/s";
+          "${builtWeapon.attackRateSecondComparison.toStringAsFixed(1)}/s";
       break;
     case WeaponDescription.damage:
       bool firstLoop = true;
-      for (var element in builtWeapon.baseDamageLevels.entries) {
+      for (var element in builtWeapon.baseDamage.damageBase.entries) {
         if (firstLoop) {
           firstLoop = false;
         } else {
@@ -681,7 +693,8 @@ String buildWeaponDescription(
 
     case WeaponDescription.reloadTime:
       if (builtWeapon is ReloadFunctionality) {
-        returnString = "${builtWeapon.reloadTime.toStringAsFixed(0)} s";
+        returnString =
+            "${builtWeapon.reloadTime.parameter.toStringAsFixed(0)} s";
       } else {
         returnString = "";
       }
@@ -702,7 +715,7 @@ String buildWeaponDescription(
       break;
     case WeaponDescription.velocity:
       if (builtWeapon is ProjectileFunctionality) {
-        returnString = "${builtWeapon.projectileVelocity.round()}m/s";
+        returnString = "${builtWeapon.projectileVelocity.parameter.round()}m/s";
       } else {
         returnString = "";
       }

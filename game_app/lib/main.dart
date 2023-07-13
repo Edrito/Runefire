@@ -95,7 +95,7 @@ void changeMainMenuPage(MenuPages page, [bool setState = true]) {
   }
 }
 
-bool startInGame = true;
+bool startInGame = false;
 late String currentRoute;
 
 ///null route = go to main menu

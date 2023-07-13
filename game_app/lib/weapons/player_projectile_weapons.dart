@@ -17,7 +17,11 @@ class Pistol extends PlayerWeapon
   Pistol.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor);
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.physical] = (7, 10);
+    maxAttacks.baseParameter = 8;
+    attackTickRate.baseParameter = .3;
+  }
 
   @override
   WeaponType weaponType = WeaponType.pistol;
@@ -33,40 +37,6 @@ class Pistol extends PlayerWeapon
   void unMapUpgrade() {}
 
   late CircleComponent circle;
-
-  @override
-  bool allowProjectileRotation = true;
-
-  @override
-  Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (1, 2),
-    DamageType.psychic: (1, 2),
-    DamageType.fire: (1, 2),
-  };
-
-  @override
-  double baseAttackTickRate = .2;
-
-  @override
-  int get maxChainingTargets => 0;
-
-  @override
-  double length = .5;
-
-  @override
-  int basePierce = 5;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double tipPositionPercent = -.25;
-
-  @override
-  double weaponRandomnessPercent = .0;
 
   @override
   double distanceFromPlayer = .2;
@@ -97,36 +67,26 @@ class Pistol extends PlayerWeapon
   }
 
   @override
-  double baseReloadTime = 2;
+  double length = .7;
 
   @override
-  double baseWeaponRandomnessPercent = 0.05;
+  ProjectileType? projectileType = ProjectileType.bullet;
 
   @override
-  int get baseAttackCount => 1;
-
-  @override
-  bool get baseCountIncreaseWithTime => true;
-
-  @override
-  bool get baseIsHoming => false;
-
-  @override
-  int get baseMaxAttacks => 12;
-
-  @override
-  int get baseMaxChainingTargets => 0;
-
-  @override
-  double get baseMaxSpreadDegrees => 30;
+  double tipPositionPercent = -.2;
 }
 
 class Shotgun extends PlayerWeapon
-    with ProjectileFunctionality, FullAutomatic, ReloadFunctionality {
+    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
   Shotgun.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor);
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.physical] = (5, 8);
+    maxAttacks.baseParameter = 4;
+    attackTickRate.baseParameter = .8;
+    baseAttackCount.baseParameter = 4;
+  }
   @override
   WeaponType weaponType = WeaponType.shotgun;
 
@@ -157,7 +117,59 @@ class Shotgun extends PlayerWeapon
   double distanceFromPlayer = 0;
 
   @override
-  bool allowProjectileRotation = false;
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  double length = 1.2;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.bullet;
+
+  @override
+  double tipPositionPercent = -.2;
+}
+
+class LongRangeRifle extends PlayerWeapon
+    with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
+  LongRangeRifle.create(
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.physical] = (10, 30);
+    maxAttacks.baseParameter = 4;
+    attackTickRate.baseParameter = .8;
+    pierce.baseParameter = 5;
+  }
+  @override
+  WeaponType weaponType = WeaponType.longRangeRifle;
+
+  @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          parentJoint: parentJoint,
+          idleAnimation:
+              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 0;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -165,60 +177,240 @@ class Shotgun extends PlayerWeapon
   ];
 
   @override
-  Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (10, 20.0)
-  };
-  @override
-  double baseAttackTickRate = .5;
-
-  @override
-  double length = 1;
-
-  @override
-  double baseWeaponRandomnessPercent = .05;
-
-  @override
-  int get baseAttackCount => 4;
-
-  @override
-  bool get baseCountIncreaseWithTime => false;
-
-  @override
-  bool get baseIsHoming => false;
-
-  @override
-  int baseMaxAttacks = 5;
-
-  @override
-  int get baseMaxChainingTargets => 0;
-
-  @override
-  double get baseMaxSpreadDegrees => 180;
-
-  @override
-  double weaponRandomnessPercent = .0;
-
-  @override
-  bool countIncreaseWithTime = false;
-
-  @override
-  double maxSpreadDegrees = 50;
-
-  @override
-  int basePierce = 4;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  double baseReloadTime = 1.5;
-
-  @override
-  double tipPositionPercent = -.02;
+  double length = 1.2;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
 
   @override
+  double tipPositionPercent = -.2;
+
+  @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
+}
+
+class AssaultRifle extends PlayerWeapon
+    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
+  AssaultRifle.create(
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.physical] = (1, 3);
+    maxAttacks.baseParameter = 26;
+    attackTickRate.baseParameter = .1;
+  }
+  @override
+  WeaponType weaponType = WeaponType.assaultRifle;
+
+  @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          parentJoint: parentJoint,
+          idleAnimation:
+              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 0;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  double length = 1.4;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.bullet;
+
+  @override
+  double tipPositionPercent = -.2;
+}
+
+class LaserRifle extends PlayerWeapon
+    with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
+  LaserRifle.create(
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.energy] = (5, 12);
+    maxAttacks.baseParameter = 12;
+    attackTickRate.baseParameter = .4;
+    waitForAttackRate = false;
+  }
+  @override
+  WeaponType weaponType = WeaponType.laserRifle;
+
+  @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          parentJoint: parentJoint,
+          idleAnimation:
+              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 0;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  double length = 1.4;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.laser;
+
+  @override
+  double tipPositionPercent = -.2;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.charge;
+}
+
+class RocketLauncher extends PlayerWeapon
+    with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
+  RocketLauncher.create(
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.fire] = (40, 80);
+    maxAttacks.baseParameter = 1;
+    attackTickRate.baseParameter = 2;
+  }
+  @override
+  WeaponType weaponType = WeaponType.rocketLauncher;
+
+  @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          parentJoint: parentJoint,
+          idleAnimation:
+              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 0;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  double length = 1.7;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.fireball;
+
+  @override
+  double tipPositionPercent = -.2;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.regular;
+}
+
+class Railgun extends PlayerWeapon
+    with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
+  Railgun.create(
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.energy] = (30, 40);
+    maxAttacks.baseParameter = 2;
+    attackTickRate.baseParameter = 2;
+  }
+  @override
+  WeaponType weaponType = WeaponType.railgun;
+
+  @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          parentJoint: parentJoint,
+          idleAnimation:
+              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 0;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  double tipPositionPercent = -.02;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.laser;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.release;
+
+  @override
+  double length = 3;
 }

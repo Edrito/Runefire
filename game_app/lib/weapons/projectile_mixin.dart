@@ -2,6 +2,8 @@ import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/weapons/projectile_class.dart';
+// ignore: unused_import
+import 'package:flutter/material.dart';
 
 import '../entities/enemy.dart';
 import '../entities/entity_mixin.dart';
@@ -17,7 +19,7 @@ mixin StandardProjectile on Projectile {
 
   void incrementHits() {
     enemiesHit++;
-    projectileHasExpired = enemiesHit > weaponAncestor.pierce;
+    projectileHasExpired = enemiesHit > weaponAncestor.pierce.parameter;
 
     if (projectileHasExpired) {
       killBullet();
@@ -62,12 +64,12 @@ mixin StandardProjectile on Projectile {
       type: BodyType.dynamic,
       linearDamping: (5 - (5 * power)).clamp(0, 5),
       bullet: true,
-      linearVelocity: (delta * weaponAncestor.projectileVelocity),
+      linearVelocity: (delta * weaponAncestor.projectileVelocity.parameter),
       fixedRotation: !weaponAncestor.allowProjectileRotation,
     );
     var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
 
-    if (weaponAncestor.isHoming || weaponAncestor.weaponCanChain) {
+    if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
       bulletFilter.categoryBits = sensorCategory;
       sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
           userData: {"type": FixtureType.sensor, "object": this},
@@ -118,17 +120,17 @@ mixin StandardProjectile on Projectile {
 
   @override
   void bodyContact(HealthFunctionality other) {
-    super.bodyContact(other);
     setTarget(null);
 
     incrementHits();
     chain(other);
+    super.bodyContact(other);
   }
 
   void chain(HealthFunctionality other) {
     if (weaponAncestor.weaponCanChain &&
         !projectileHasExpired &&
-        chainedTargets < weaponAncestor.maxChainingTargets) {
+        chainedTargets < weaponAncestor.maxChainingTargets.parameter) {
       closeSensorBodies.sort((a, b) => rng.nextInt(2));
       int index = closeSensorBodies.indexWhere(
           (element) => !hitIds.contains(element.entityId) && !element.isDead);
@@ -155,7 +157,7 @@ mixin StandardProjectile on Projectile {
     closetPosition = other.center;
 
     final delta = (closetPosition - body.worldCenter).normalized();
-    final impulse = (delta * weaponAncestor.projectileVelocity) *
+    final impulse = (delta * weaponAncestor.projectileVelocity.parameter) *
         dt *
         .000005 *
         target!.center.distanceTo(center).clamp(.5, 3);
@@ -165,7 +167,7 @@ mixin StandardProjectile on Projectile {
   }
 
   void homingCheck(HealthFunctionality other) {
-    if (weaponAncestor.isHoming && !homingComplete) {
+    if (weaponAncestor.weaponCanHome && !homingComplete) {
       setTarget(other);
 
       homingComplete = true;
@@ -175,7 +177,6 @@ mixin StandardProjectile on Projectile {
 
 mixin LaserProjectile on Projectile {
   int enemiesHit = 0;
-  abstract bool isContinuous;
   List<Vector2> lineThroughEnemies = [];
   List<Vector2> boxThroughEnemies = [];
   late Shape laserShape;
@@ -228,77 +229,77 @@ mixin LaserProjectile on Projectile {
   abstract final double baseWidth;
   late double width;
 
-  // void homingAndChainCalculations() {
-  //   double distance = weaponAncestor.projectileVelocity;
+  void homingAndChainCalculations() {
+    double distance = weaponAncestor.projectileVelocity.parameter;
 
-  //   // List<Body> bodies = game.world.bodies
-  //   //     .where((element) => infrontWeaponCheck(element))
-  //   //     .toList();
+    List<Body> bodies = game.world.bodies
+        .where((element) => infrontWeaponCheck(element))
+        .toList();
 
-  //   homingComplete = !weaponAncestor.isHoming;
+    homingComplete = !weaponAncestor.weaponCanHome;
 
-  //   bodies.sort(
-  //     (a, b) => a.position
-  //         .distanceTo(originPosition)
-  //         .compareTo(b.position.distanceTo(originPosition)),
-  //   );
+    bodies.sort(
+      (a, b) => a.position
+          .distanceTo(originPosition)
+          .compareTo(b.position.distanceTo(originPosition)),
+    );
 
-  //   var amountOfPoints = precisionPerDistance * distance;
+    var amountOfPoints = precisionPerDistance * distance;
 
-  //   amountOfPoints = amountOfPoints.clamp(3, 200);
+    amountOfPoints = amountOfPoints.clamp(3, 200);
 
-  //   final pointStep = distance / amountOfPoints;
+    final pointStep = distance / amountOfPoints;
 
-  //   amountOfPoints = (amountOfPoints * .666 * power) + amountOfPoints * .333;
+    amountOfPoints = (amountOfPoints * .666) + amountOfPoints * .333;
 
-  //   startChaining = weaponAncestor.isHoming && weaponAncestor.weaponCanChain;
+    startChaining =
+        weaponAncestor.weaponCanHome && weaponAncestor.weaponCanChain;
 
-  //   for (var i = 0; i < amountOfPoints; i++) {
-  //     Body? bodyToJumpTo;
-  //     Vector2 newPointPosition;
-  //     bool shouldChain =
-  //         chainedTargets < weaponAncestor.maxChainingTargets && startChaining;
+    for (var i = 0; i < amountOfPoints; i++) {
+      Body? bodyToJumpTo;
+      Vector2 newPointPosition;
+      bool shouldChain =
+          chainedTargets < weaponAncestor.maxChainingTargets.parameter &&
+              startChaining;
 
-  //     //if should be bouncing, bounce
-  //     if (!homingComplete || shouldChain) {
-  //       for (var element in bodies) {
-  //         if ((element.position - originPosition).distanceTo(previousDelta) <
-  //             closeBodySensorRadius) {
-  //           bodyToJumpTo = element;
-  //           break;
-  //         }
-  //       }
-  //     }
+      //if should be bouncing, bounce
+      if (!homingComplete || shouldChain) {
+        for (var element in bodies) {
+          if ((element.position - originPosition).distanceTo(previousDelta) <
+              closeBodySensorRadius) {
+            bodyToJumpTo = element;
+            break;
+          }
+        }
+      }
 
-  //     //if close body detected, jump to it
-  //     if (bodyToJumpTo != null) {
-  //       newPointPosition = bodyToJumpTo.position - originPosition;
-  //       delta = (bodyToJumpTo.position - originPosition - previousDelta)
-  //           .normalized();
-  //       bodies.remove(bodyToJumpTo);
+      //if close body detected, jump to it
+      if (bodyToJumpTo != null) {
+        newPointPosition = bodyToJumpTo.position - originPosition;
+        delta = (bodyToJumpTo.position - originPosition - previousDelta)
+            .normalized();
+        bodies.remove(bodyToJumpTo);
 
-  //       chainedTargets++;
-  //       homingComplete = true;
-  //     } else {
-  //       newPointPosition = ((delta * pointStep) + previousDelta);
-  //     }
+        chainedTargets++;
+        homingComplete = true;
+      } else {
+        newPointPosition = ((delta * pointStep) + previousDelta);
+      }
 
-  //     //TODO: rework check if other body is hit from this line
-  //     //if hit, then start chaining
-  //     if (weaponAncestor.weaponCanChain && !startChaining) {
-  //       for (var element in bodies) {
-  //         if ((element.position - originPosition).distanceTo(newPointPosition) <
-  //             3) {
-  //           startChaining = true;
-  //           break;
-  //         }
-  //       }
-  //     }
+      if (weaponAncestor.weaponCanChain && !startChaining) {
+        for (var element in bodies) {
+          if ((element.position - originPosition).distanceTo(newPointPosition) <
+              3) {
+            startChaining = true;
+            break;
+          }
+        }
+      }
 
-  //     lineThroughEnemies.add(newPointPosition);
-  //     previousDelta = newPointPosition.clone();
-  //   }
-  // }
+      lineThroughEnemies.add(newPointPosition);
+      previousDelta = newPointPosition.clone();
+    }
+  }
 
   @override
   Future<void> onLoad() async {
@@ -306,15 +307,14 @@ mixin LaserProjectile on Projectile {
     //     radius: .3, anchor: Anchor.center, paint: BasicPalette.red.paint());
     // add(circleComponent);
 
-    width = (power * baseWidth) + baseWidth * .15;
-    width = (power * baseWidth) + baseWidth * .15;
+    width = (power * baseWidth * .4) + baseWidth * .15;
     lineThroughEnemies.add(previousDelta);
 
-    if (weaponAncestor.isHoming || weaponAncestor.weaponCanChain) {
-      // homingAndChainCalculations();
+    if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
+      homingAndChainCalculations();
     } else {
-      double distance = weaponAncestor.projectileVelocity;
-      distance = (distance * .666 * power) + distance * .333;
+      double distance = weaponAncestor.projectileVelocity.parameter;
+      distance = (distance * .1 * power) + distance * .333;
       lineThroughEnemies.add(((delta * distance * .333) + previousDelta));
       lineThroughEnemies.add(((delta * distance * .666) + previousDelta));
       lineThroughEnemies.add(((delta * distance) + previousDelta));
@@ -326,23 +326,36 @@ mixin LaserProjectile on Projectile {
     return super.onLoad();
   }
 
-  // @override
-  // void render(Canvas canvas) {
-  // var path = Path();
-  // var paint = BasicPalette.lightBlue.paint();
-  // paint.strokeWidth = width;
-  // paint.style = PaintingStyle.stroke;
-  // paint.strokeCap = StrokeCap.round;
+  double timePassed = 0;
 
-  // for (var element in lineThroughEnemies) {
-  //   path.lineTo(element.x, element.y);
-  // }
+  @override
+  double get opacity => (1 - ((timePassed - fadeOutDuration) / fadeOutDuration))
+      .clamp(0, 1)
+      .toDouble();
 
-  // canvas.drawPath(path, paint);
-  // canvas.drawPath(
-  //     path,
-  //     paint
-  //       ..strokeWidth = width * .6
-  //       ..color = Colors.black);
-  // }
+  @override
+  void update(double dt) {
+    timePassed += dt;
+    super.update(dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    var path = Path();
+    var paint = BasicPalette.lightBlue.paint();
+    paint.strokeWidth = width;
+    paint.style = PaintingStyle.stroke;
+    paint.strokeCap = StrokeCap.round;
+
+    for (var element in lineThroughEnemies) {
+      path.lineTo(element.x, element.y);
+    }
+
+    canvas.drawPath(path, paint..color = Colors.blue.withOpacity(opacity));
+    canvas.drawPath(
+        path,
+        paint
+          ..strokeWidth = width * .6
+          ..color = Colors.black.withOpacity(opacity));
+  }
 }

@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flame/effects.dart';
+import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flame/components.dart';
@@ -20,6 +22,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
     projectileId = const Uuid().v4();
   }
 
+  double fadeOutDuration = .2;
   late String projectileId;
   Random rng = Random();
 
@@ -73,7 +76,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   void bodyContact(HealthFunctionality other) {
     hitIds.add(other.entityId);
-    other.hitCheck(projectileId, weaponAncestor.damage);
+    other.hitCheck(projectileId, weaponAncestor.calculateDamage);
     onHitFunctions(other);
   }
 
@@ -124,7 +127,17 @@ abstract class Projectile extends BodyComponent<GameRouter>
     super.onRemove();
   }
 
-  void killBullet() async {
-    removeFromParent();
+  void killBullet([bool withEffect = false]) async {
+    if (withEffect) {
+      add(OpacityEffect.fadeOut(EffectController(
+        duration: fadeOutDuration,
+        curve: Curves.ease,
+        onMax: () {
+          removeFromParent();
+        },
+      )));
+    } else {
+      removeFromParent();
+    }
   }
 }

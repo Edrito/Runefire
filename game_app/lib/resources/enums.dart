@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/weapons/enemy_weapons.dart';
 import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/player_projectile_weapons.dart';
@@ -215,6 +214,16 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 enum WeaponType {
   pistol(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
       AttackType.projectile, 0),
+  longRangeRifle(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
+      AttackType.projectile, 0),
+  assaultRifle(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
+      AttackType.projectile, 0),
+  laserRifle(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
+      AttackType.projectile, 0),
+  railgun(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
+      AttackType.projectile, 0),
+  rocketLauncher(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
+      AttackType.projectile, 0),
   shotgun(Shotgun.create, 'assets/images/weapons/shotgun.png', 5,
       AttackType.projectile, 500),
   energySword(EnergySword.create, 'assets/images/weapons/energy_sword.png', 5,
@@ -228,8 +237,7 @@ enum WeaponType {
       AttackType.melee, 600),
   spear(
       Dagger.create, 'assets/images/weapons/spear.png', 5, AttackType.melee, 0),
-  blankMelee(BlankMelee.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.melee, 0);
+  ;
 
   const WeaponType(this.createFunction, this.icon, this.maxLevel,
       this.attackType, this.baseCost);
@@ -257,6 +265,21 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.shotgun:
         returnWeapon = Shotgun.create(upgradeLevel, ancestor);
         break;
+      case WeaponType.railgun:
+        returnWeapon = Railgun.create(upgradeLevel, ancestor);
+        break;
+      case WeaponType.assaultRifle:
+        returnWeapon = AssaultRifle.create(upgradeLevel, ancestor);
+        break;
+      case WeaponType.longRangeRifle:
+        returnWeapon = LongRangeRifle.create(upgradeLevel, ancestor);
+        break;
+      case WeaponType.rocketLauncher:
+        returnWeapon = RocketLauncher.create(upgradeLevel, ancestor);
+        break;
+      case WeaponType.laserRifle:
+        returnWeapon = LaserRifle.create(upgradeLevel, ancestor);
+        break;
 
       case WeaponType.dagger:
         returnWeapon = Dagger.create(upgradeLevel, ancestor);
@@ -276,21 +299,19 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = FlameSword.create(upgradeLevel, ancestor);
 
         break;
-      case WeaponType.blankMelee:
-        returnWeapon = BlankMelee.create(upgradeLevel, ancestor);
-        break;
     }
     if (returnWeapon is SecondaryFunctionality) {
       returnWeapon.setSecondaryFunctionality =
           secondaryWeaponType?.build(returnWeapon, upgradeLevel);
     }
+    ancestor?.add(returnWeapon);
     return returnWeapon;
   }
 }
 
 enum SemiAutoType { regular, release, charge }
 
-enum DamageType { regular, fire, psychic, electric, frost, bleed }
+enum DamageType { physical, fire, psychic, energy, frost, bleed }
 
 typedef WeaponCreateFunction = Weapon Function(Entity);
 
@@ -304,9 +325,9 @@ class DamageInstance {
 
   Color getColor() {
     switch (damageType) {
-      case DamageType.regular:
+      case DamageType.physical:
         return Colors.white;
-      case DamageType.electric:
+      case DamageType.energy:
         return const Color.fromARGB(255, 247, 255, 199);
       case DamageType.psychic:
         return Colors.purple;
@@ -330,7 +351,8 @@ class DamageInstance {
 }
 
 enum SecondaryType {
-  reloadAndRapidFire('weapons/dagger.png', 5, weaponIsReloadFunctionality, 500),
+  reloadAndRapidFire(
+      'assets/images/weapons/dagger.png', 5, weaponIsReloadFunctionality, 500),
   pistol('assets/images/weapons/dagger.png', 5, alwaysCompatible, 500),
   explodeProjectiles('assets/images/weapons/dagger.png', 5,
       weaponIsProjectileFunctionality, 500);

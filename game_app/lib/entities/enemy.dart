@@ -5,6 +5,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/enemy_mixin.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/data_classes/base.dart';
 
 import '../resources/functions/functions.dart';
 import '../resources/functions/vector_functions.dart';
@@ -25,7 +26,13 @@ class DummyTwo extends Enemy
   DummyTwo({
     required super.initPosition,
     required super.gameEnviroment,
-  });
+  }) {
+    height.baseParameter = 1.5;
+    invincibilityDuration.baseParameter = 0;
+    maxHealth.baseParameter = 50;
+    speed.baseParameter = .05;
+    touchDamage.damageBase[DamageType.physical] = (1, 3);
+  }
 
   @override
   void update(double dt) {
@@ -35,21 +42,6 @@ class DummyTwo extends Enemy
 
   @override
   (double, double) xpRate = (0.001, 0.01);
-
-  @override
-  double height = 1;
-
-  @override
-  double baseInvincibilityDuration = 0.0;
-
-  @override
-  double baseHealth = 20;
-
-  @override
-  double baseSpeed = .0175;
-
-  @override
-  double touchDamage = 4;
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -84,11 +76,6 @@ class DummyTwo extends Enemy
 
   @override
   SpriteAnimation? walkAnimation;
-
-  @override
-  Map<DamageType, (double, double)> baseTouchDamage = {
-    DamageType.electric: (2, 10)
-  };
 }
 
 abstract class Enemy extends Entity
@@ -114,7 +101,6 @@ abstract class Enemy extends Entity
   }
 
   @override
-  // TODO: implement priority
   int get priority => enemyPriority;
 
   @override
@@ -125,12 +111,9 @@ abstract class Enemy extends Entity
         enemyCategory +
         sensorCategory +
         swordCategory;
-  // ..maskBits = 0x0000;
 
   TimerComponent? shooter;
   double shotFreq = 1;
-
-  abstract double touchDamage;
 
   @override
   EntityType entityType = EntityType.enemy;
@@ -191,21 +174,6 @@ class MeleeTest extends Enemy
   (double, double) xpRate = (0.001, 0.01);
 
   @override
-  double height = 1;
-
-  @override
-  double baseInvincibilityDuration = 0.0;
-
-  @override
-  double baseHealth = 5;
-
-  @override
-  double baseSpeed = .02;
-
-  @override
-  double touchDamage = 4;
-
-  @override
   Future<void> loadAnimationSprites() async {
     idleAnimation =
         await buildSpriteSheet(10, 'enemy_sprites/idle.png', .1, true);
@@ -240,7 +208,19 @@ class MeleeTest extends Enemy
   SpriteAnimation? walkAnimation;
 
   @override
-  Map<DamageType, (double, double)> baseTouchDamage = {
-    DamageType.electric: (1, 4)
-  };
+  DoubleParameterManager maxHealth =
+      DoubleParameterManager(baseParameter: double.infinity);
+
+  @override
+  DoubleParameterManager height = DoubleParameterManager(baseParameter: 1);
+
+  @override
+  DoubleParameterManager speed = DoubleParameterManager(baseParameter: .0);
+
+  @override
+  DamageParameterManager touchDamage = DamageParameterManager(damageBase: {});
+
+  @override
+  DoubleParameterManager invincibilityDuration =
+      DoubleParameterManager(baseParameter: .1);
 }

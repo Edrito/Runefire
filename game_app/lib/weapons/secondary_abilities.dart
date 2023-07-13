@@ -93,7 +93,7 @@ class RapidFire extends SecondaryWeaponAbility {
 
     if (weapon is SemiAutomatic) {
       (weapon as SemiAutomatic).durationHeld =
-          (weapon?.attackTickRate ?? 1) / 2;
+          (weapon?.attackTickRate.parameter ?? 1) / 2;
       weapon?.attackAttempt();
       attacks++;
 
@@ -120,7 +120,7 @@ class RapidFire extends SecondaryWeaponAbility {
   void startAbility() async {
     if (isCurrentlyRunning) return;
 
-    double weaponAttackRate = weapon?.attackTickRate ?? 0;
+    double weaponAttackRate = weapon?.attackTickRate.parameter ?? 0;
     if (weapon is! ReloadFunctionality) {
       return;
     }

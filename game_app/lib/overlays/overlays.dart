@@ -35,6 +35,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
       child: Center(
         child: StatefulBuilder(builder: (context, setState) {
           var entries = env.player?.currentAttributes.entries.toList();
+          var tempEntries = entries?.where(
+              (element) => element.key.category == AttributeCategory.temporary);
+          var nonTempEntries = entries?.where(
+              (element) => element.key.category != AttributeCategory.temporary);
           entries?.sort(
               (a, b) => a.key.rarity.index.compareTo(b.key.rarity.index));
           entries?.sort(
@@ -43,15 +47,62 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
             children: [
               Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(
                       height: 100,
                     ),
-                    Expanded(
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Temporary Effects",
+                        style: defaultStyle,
+                      ),
+                    ),
+                    Flexible(
                       child: ListView.builder(
-                        itemCount: entries?.length ?? 0,
+                        itemCount: tempEntries?.length ?? 0,
                         itemBuilder: (context, index) {
-                          final currentAttrib = entries?.elementAt(index);
+                          final currentAttrib = tempEntries?.elementAt(index);
+
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 55,
+                                  child: Text(
+                                    "${currentAttrib?.value.upgradeLevel} : ",
+                                    style: defaultStyle.copyWith(
+                                        color: currentAttrib?.key.rarity.color),
+                                  ),
+                                ),
+                                Text(
+                                  "${currentAttrib?.value.title}",
+                                  style: defaultStyle.copyWith(
+                                      color: currentAttrib?.key.rarity.color),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Permanent Effects",
+                        style: defaultStyle,
+                      ),
+                    ),
+                    Flexible(
+                      flex: 2,
+                      child: ListView.builder(
+                        itemCount: nonTempEntries?.length ?? 0,
+                        itemBuilder: (context, index) {
+                          final currentAttrib =
+                              nonTempEntries?.elementAt(index);
 
                           return Padding(
                             padding: const EdgeInsets.all(8.0),

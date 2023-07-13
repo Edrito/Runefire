@@ -9,7 +9,7 @@ import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
-import '../resources/functions/functions.dart';
+import '../resources/data_classes/base.dart';
 import '../resources/functions/vector_functions.dart';
 import '../main.dart';
 import '../attributes/attributes_enum.dart';
@@ -32,33 +32,75 @@ import '../attributes/attributes_mixin.dart';
 mixin BaseAttributes on BodyComponent<GameRouter> {
   bool get isJumping => false;
   bool get isDashing => false;
+  bool get isInvincible => invincible.parameter;
   bool isDead = false;
 
-  final bool baseIsInvincible = false;
-  List<bool> isInvincibleIncrease = [];
-  bool get isInvincible =>
-      boolAbilityDecipher(baseIsInvincible, isInvincibleIncrease) || isDead;
+  final IntParameterManager attackCount = IntParameterManager(baseParameter: 0);
 
-  double get damageDuration => baseDamageDuration + damageDurationIncrease;
-  final double baseDamageDuration = 2;
-  double damageDurationIncrease = 0;
+  //Invincible
+  final BoolParameterManager invincible =
+      BoolParameterManager(baseParameter: false);
+  //Collision
+  final BoolParameterManager collision =
+      BoolParameterManager(baseParameter: true);
+  //Duration
+  final DoubleParameterManager durationPercentIncrease =
+      DoubleParameterManager(baseParameter: 1);
 
-  final bool baseEnableMovement = true;
-  List<bool> enableMovementIncrease = [];
-  bool get enableMovement =>
-      boolAbilityDecipher(baseEnableMovement, enableMovementIncrease);
+  final DoubleParameterManager durationDamageIncrease =
+      DoubleParameterManager(baseParameter: 1);
 
-  int additionalCountIncrease = 0;
+  //Movement
+  final BoolParameterManager enableMovement =
+      BoolParameterManager(baseParameter: true);
+
+  //Height
+  final DoubleParameterManager height =
+      DoubleParameterManager(baseParameter: 1);
+
+  ///Multiply this with area effect spells etc
+  final DoubleParameterManager areaSizeIncrease =
+      DoubleParameterManager(baseParameter: 1);
+
+  ///Multiply this with area effect spells etc
+  final DoubleParameterManager critChance =
+      DoubleParameterManager(baseParameter: 1);
+
+  final DoubleParameterManager critDamage =
+      DoubleParameterManager(baseParameter: 1.5);
+
+  final DamagePercentParameterManager damageTypePercentIncrease =
+      DamagePercentParameterManager(damagePercentBase: {});
+
+  final DoubleParameterManager areaDamagePercentIncrease =
+      DoubleParameterManager(baseParameter: 1);
+
+  final IntParameterManager maxLives = IntParameterManager(baseParameter: 1);
+  int deathCount = 0;
+  int get remainingLives => maxLives.parameter - deathCount;
+
+  final DoubleParameterManager lifeSteal =
+      DoubleParameterManager(baseParameter: 0, minParameter: 0);
+
+  final StatusEffectPercentParameterManager statusEffectsPercentIncrease =
+      StatusEffectPercentParameterManager(statusEffectPercentBase: {});
+
+  final DoubleParameterManager damagePercentIncrease =
+      DoubleParameterManager(baseParameter: 1);
+
+  final DoubleParameterManager meleeDamagePercentIncrease =
+      DoubleParameterManager(baseParameter: 1);
+
+  final DoubleParameterManager projectileDamagePercentIncrease =
+      DoubleParameterManager(baseParameter: 1);
 }
 
 mixin MovementFunctionality on Entity {
-  //MOVEMENT
-  abstract final double baseSpeed;
-  double speedIncrease = 0;
-  double get getMaxSpeed => baseSpeed + speedIncrease;
+  //Speed
+  final DoubleParameterManager speed =
+      DoubleParameterManager(baseParameter: .1);
 
   Map<InputType, Vector2?> moveVelocities = {};
-
   Vector2 get moveDelta => (moveVelocities[InputType.moveJoy] ??
           moveVelocities[InputType.keyboard] ??
           moveVelocities[InputType.ai] ??
@@ -77,13 +119,13 @@ mixin MovementFunctionality on Entity {
   void moveCharacter() {
     final previousPulse = moveDelta;
 
-    if (isDead || !enableMovement || previousPulse.isZero()) {
+    if (isDead || !enableMovement.parameter || previousPulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
       return;
     }
     spriteFlipCheck();
 
-    body.applyForce(previousPulse * getMaxSpeed);
+    body.applyForce(previousPulse * speed.parameter);
     moveFunctionsCall();
     setEntityStatus(EntityStatus.run);
   }
@@ -92,6 +134,7 @@ mixin MovementFunctionality on Entity {
 mixin AimFunctionality on Entity {
   Vector2 lastAimingPosition = Vector2.zero();
   double handPositionFromBody = .1;
+  bool weaponBehind = false;
 
   Vector2 get inputAimVectors {
     if (isDead) {
@@ -113,10 +156,6 @@ mixin AimFunctionality on Entity {
             handJoint.weaponBase!.absolutePosition)
         .normalized();
   }
-
-  // Vector2 get aimDelta {
-  //   return (inputAimVectors - center).normalized();
-  // }
 
   Map<InputType, Vector2> inputAimAngles = {};
   Map<InputType, Vector2> inputAimPositions = {};
@@ -161,8 +200,6 @@ mixin AimFunctionality on Entity {
     }
   }
 
-  bool weaponBehind = false;
-
   @override
   void flipSprite() {
     handJoint.flipHorizontallyAroundCenter();
@@ -170,7 +207,7 @@ mixin AimFunctionality on Entity {
   }
 
   void aimCharacter() {
-    if (!enableMovement) return;
+    if (!enableMovement.parameter) return;
 
     final delta = inputAimVectors;
 
@@ -322,27 +359,26 @@ mixin AttackFunctionality on AimFunctionality {
 }
 
 mixin StaminaFunctionality on Entity {
-  abstract final double baseStamina;
-  double staminaIncrease = 0;
-  double get maxStamina => baseStamina + staminaIncrease;
-  double get remainingStamina => maxStamina - staminaUsed;
+  final DoubleParameterManager stamina =
+      DoubleParameterManager(baseParameter: 100);
+  DoubleParameterManager staminaRegen =
+      DoubleParameterManager(baseParameter: 50);
+
+  double get remainingStamina => stamina.parameter - staminaUsed;
   double staminaUsed = 0;
 
   ///Requires a positive value to reduce the amount of stamina used
   ///5 = 5 more stamina, -5 = 5 less stamina
   void modifyStamina(double amount) =>
-      staminaUsed = (staminaUsed -= amount).clamp(0, maxStamina);
+      staminaUsed = (staminaUsed -= amount).clamp(0, stamina.parameter);
 
   /// Amount of stamina regenerated per second
-  final double baseStaminaRegen = 50;
-  double staminaRegenIncrease = 0;
-  double get staminaRegen => baseStaminaRegen + staminaRegenIncrease;
   double get increaseStaminaRegenSpeed =>
-      ((remainingStamina / maxStamina) + .5);
+      ((remainingStamina / stamina.parameter) + .5);
 
   @override
   void update(double dt) {
-    modifyStamina(staminaRegen * dt * increaseStaminaRegenSpeed);
+    modifyStamina(staminaRegen.parameter * dt * increaseStaminaRegenSpeed);
     super.update(dt);
   }
 }
@@ -351,17 +387,18 @@ mixin HealthRegenFunctionality on HealthFunctionality {
   ///Requires a positive value to increase the amount of health
   ///5 = 5 more health, -5 = 5 less health
   void modifyHealth(double amount) =>
-      damageTaken = (damageTaken -= amount).clamp(0, maxHealth);
+      damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
+
+  DoubleParameterManager healthRegen =
+      DoubleParameterManager(baseParameter: .35);
 
   /// Amount of health regenerated per second
-  final double baseHealthRegen = .35;
-  double healthRegenIncrease = 0;
-  double get healthRegen => baseHealthRegen + healthRegenIncrease;
-  double get increaseHealthRegenSpeed => ((remainingHealth / maxHealth) + .5);
+  double get increaseHealthRegenSpeed =>
+      ((remainingHealth / maxHealth.parameter) + .5);
 
   @override
   void update(double dt) {
-    modifyHealth(healthRegen * dt * increaseHealthRegenSpeed);
+    modifyHealth(healthRegen.parameter * dt * increaseHealthRegenSpeed);
 
     super.update(dt);
   }
@@ -369,20 +406,16 @@ mixin HealthRegenFunctionality on HealthFunctionality {
 
 mixin HealthFunctionality on Entity {
   //health
-  abstract final double baseInvincibilityDuration;
-  double invincibilityDurationIncrease = 0;
-  double get invincibilityDuration =>
-      baseInvincibilityDuration + invincibilityDurationIncrease;
+  final DoubleParameterManager invincibilityDuration =
+      DoubleParameterManager(baseParameter: .2);
+  final DoubleParameterManager maxHealth =
+      DoubleParameterManager(baseParameter: 50);
 
   TimerComponent? invincibleTimer;
-
   double sameDamageSourceDuration = .5;
 
-  abstract final double baseHealth;
-  double healthIncrease = 0;
-  double get maxHealth => baseHealth + healthIncrease;
-  double get remainingHealth => maxHealth - damageTaken;
-  double get healthPercentage => remainingHealth / maxHealth;
+  double get remainingHealth => maxHealth.parameter - damageTaken;
+  double get healthPercentage => remainingHealth / maxHealth.parameter;
 
   @override
   bool get isInvincible => super.isInvincible || invincibleTimer != null;
@@ -432,7 +465,7 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void buildDamageText(DamageInstance instance) {
+  void addDamageText(DamageInstance instance) {
     final color = instance.getColor();
     const fontSize = .55;
 
@@ -535,25 +568,38 @@ mixin HealthFunctionality on Entity {
 
     setEntityStatus(EntityStatus.damage);
 
-    if (invincibilityDuration > 0) {
+    if (invincibilityDuration.parameter > 0) {
       invincibleTimer = TimerComponent(
-        period: invincibilityDuration,
+        period: invincibilityDuration.parameter,
         removeOnFinish: true,
         onTick: () => invincibleTimer = null,
       );
       add(invincibleTimer!);
     }
 
-    DamageInstance largestEntry = damage.first;
+    applyDamage(damage);
+    deathChecker(damage);
+    if (applyStatusEffect) {
+      this.applyStatusEffect(damage);
+    }
+    onHitFunctionsCall(damage.first.source);
+    return true;
+  }
 
+  void applyDamage(List<DamageInstance> damage) {
+    DamageInstance largestEntry = damage.first;
     for (var element in damage) {
       damageTaken += element.damage;
       recentDamage += element.damage;
       if (element.damage > largestEntry.damage) largestEntry = element;
     }
-    damageTaken.clamp(0, maxHealth);
+    damageTaken.clamp(0, maxHealth.parameter);
+    addDamageText(largestEntry);
+    addDamageEffects(largestEntry.getColor());
+  }
 
-    if (remainingHealth <= 0) {
+  void deathChecker(List<DamageInstance> damage) {
+    if (remainingHealth <= 0 && !isDead) {
       if (this is Player) {
         (this as Player).killPlayer(true);
       } else {
@@ -561,13 +607,6 @@ mixin HealthFunctionality on Entity {
       }
       callOtherWeaponOnKillFunctions(damage);
     }
-    if (applyStatusEffect) {
-      this.applyStatusEffect(damage);
-    }
-    buildDamageText(largestEntry);
-    addDamageEffects(largestEntry.getColor());
-    onHitFunctionsCall(damage.first.source);
-    return true;
   }
 
   void applyStatusEffect(List<DamageInstance> damage) {
@@ -579,11 +618,11 @@ mixin HealthFunctionality on Entity {
       //TODO finish this
       switch (damageType) {
         case DamageType.fire:
-          attr.addAttributeEnum(AttributeEnum.fireDamage,
+          attr.addAttributeEnum(AttributeEnum.burn,
               perpetratorEntity: element.source);
           break;
         default:
-          attr.addAttributeEnum(AttributeEnum.fireDamage,
+          attr.addAttributeEnum(AttributeEnum.burn,
               perpetratorEntity: element.source);
       }
     }
@@ -608,6 +647,7 @@ mixin HealthFunctionality on Entity {
       [bool applyStatusEffect = true]) {
     if (hitSourceInvincibility.containsKey(id) ||
         isInvincible ||
+        isDead ||
         (damage.fold<double>(0,
                 (previousValue, element) => previousValue += element.damage)) ==
             0 ||
@@ -632,9 +672,8 @@ mixin DodgeFunctionality on HealthFunctionality {
   double totalDamageDodged = 0;
   int dodges = 0;
 
-  abstract final double baseDodgeChance;
-  double dodgeChanceIncrease = 0;
-  double get dodgeChance => (baseDodgeChance + dodgeChanceIncrease).clamp(0, 1);
+  DoubleParameterManager dodgeChance = DoubleParameterManager(
+      baseParameter: .0, maxParameter: 1, minParameter: 0);
 
   //HEALTH
   abstract SpriteAnimation? dodgeAnimation;
@@ -684,7 +723,7 @@ mixin DodgeFunctionality on HealthFunctionality {
 
   void dodge(List<DamageInstance> damage) {
     totalDamageDodged += damage
-        .firstWhere((element) => element.damageType == DamageType.regular)
+        .firstWhere((element) => element.damageType == DamageType.physical)
         .damage;
 
     dodges++;
@@ -695,8 +734,8 @@ mixin DodgeFunctionality on HealthFunctionality {
   bool dodgeCheck(List<DamageInstance> damage) {
     final random = rng.nextDouble();
 
-    if (damage.any((element) => element.damageType == DamageType.regular) &&
-        random < dodgeChance) {
+    if (damage.any((element) => element.damageType == DamageType.physical) &&
+        random < dodgeChance.parameter) {
       dodge(damage);
       return true;
     } else {
@@ -720,31 +759,28 @@ mixin DodgeFunctionality on HealthFunctionality {
 }
 
 mixin TouchDamageFunctionality on ContactCallbacks, Entity {
-  //Touch Damage
+  final DamageParameterManager touchDamage =
+      DamageParameterManager(damageBase: {});
 
-  ///Min damage is added to min damage calculation, same with max
-  Map<DamageType, (double, double)> touchDamageIncrease = {};
-
-  //DamageType, min, max
-  abstract Map<DamageType, (double, double)> baseTouchDamage;
-
-  List<DamageInstance> get damage => damageCalculations(
-      baseTouchDamage, touchDamageIncrease, damageDuration, this, null);
+  List<DamageInstance> get calculateTouchDamage => damageCalculations(
+        touchDamage,
+        this,
+        duration: durationPercentIncrease.parameter,
+      );
 
   Map<Body, TimerComponent> objectsHitting = {};
 
+  final DoubleParameterManager hitRate = DoubleParameterManager(
+      baseParameter: 1, maxParameter: double.infinity, minParameter: 0);
+
   ///Time interval between damage ticks
-  double get hitRate =>
-      (baseHitRate - hitRateIncrease).clamp(0, double.infinity);
-  final double baseHitRate = 1;
-  double hitRateIncrease = 0;
 
   void damageOther(Body other) {
     final otherReference = other.userData;
     if (otherReference is! HealthFunctionality) return;
     if ((isPlayer && otherReference is Enemy) ||
         (!isPlayer && otherReference is Player)) {
-      otherReference.hitCheck(entityId, damage);
+      otherReference.hitCheck(entityId, calculateTouchDamage);
       touchFunctions(otherReference);
     }
   }
@@ -760,11 +796,11 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (baseTouchDamage.isEmpty || isDead) return;
+    if (touchDamage.damageBase.isEmpty || isDead) return;
     if (other is! HealthFunctionality) return;
     if (isPlayer && other is Enemy) {
       objectsHitting[other.body] = TimerComponent(
-        period: hitRate,
+        period: hitRate.parameter,
         repeat: true,
         onTick: () {
           damageOther(other.body);
@@ -772,10 +808,10 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
       )
         ..addToParent(this)
         ..onTick();
-      other.hitCheck(entityId, damage);
+      other.hitCheck(entityId, calculateTouchDamage);
     } else if (!isPlayer && other is Player) {
       objectsHitting[other.body] = TimerComponent(
-        period: hitRate,
+        period: hitRate.parameter,
         repeat: true,
         onTick: () {
           damageOther(other.body);
@@ -807,53 +843,38 @@ mixin DashFunctionality on StaminaFunctionality {
 
   @override
   bool get isDashing => _isDashing;
-
   bool _isDashing = false;
   Vector2? dashDelta;
 
   @override
   bool get isInvincible =>
-      super.isInvincible || (invincibleWhileDashing && isDashing);
+      super.isInvincible || (invincibleWhileDashing.parameter && isDashing);
 
-  //DASH
-  double get dashCooldown =>
-      (baseDashCooldown - dashCooldownIncrease + dashDuration)
-          .clamp(0, double.infinity);
-  abstract double baseDashCooldown;
-  double dashCooldownIncrease = 0;
+  //DASH COOLDOWN
+  final DoubleParameterManager dashCooldown =
+      DoubleParameterManager(baseParameter: 2);
 
-  final bool baseInvincibleWhileDashing = false;
-  List<bool> invincibleWhileDashingIncrease = [];
-  bool get invincibleWhileDashing => boolAbilityDecipher(
-      baseInvincibleWhileDashing, invincibleWhileDashingIncrease);
+  final BoolParameterManager invincibleWhileDashing =
+      BoolParameterManager(baseParameter: false);
+  final BoolParameterManager collisionWhileDashing =
+      BoolParameterManager(baseParameter: false);
+  final BoolParameterManager teleportDash =
+      BoolParameterManager(baseParameter: false);
 
-  final bool baseCollisionWhileDashing = false;
-  List<bool> collisionWhileDashingIncrease = [];
-  bool get collisionWhileDashing => boolAbilityDecipher(
-      baseCollisionWhileDashing, collisionWhileDashingIncrease);
+  final DoubleParameterManager dashDistance =
+      DoubleParameterManager(baseParameter: 5);
+  final DoubleParameterManager dashDuration =
+      DoubleParameterManager(baseParameter: .2, minParameter: 0);
+  final DoubleParameterManager dashStaminaCost =
+      DoubleParameterManager(baseParameter: 28);
 
-  final bool baseTeleportDash = false;
-  List<bool> teleportDashIncrease = [];
-  bool get teleportDash =>
-      boolAbilityDecipher(baseTeleportDash, teleportDashIncrease);
-
-  abstract double baseDashDistance;
-  double get dashDistance => baseDashDistance + dashDistanceIncrease;
-  double dashDistanceIncrease = 0;
-
-  final double baseDashDuration = .2;
-  double get dashDuration =>
-      (baseDashDuration - dashDurationIncrease).clamp(0, double.infinity);
-  double dashDurationIncrease = 0;
-
-  double baseDashStaminaCost = 28;
-  double get dashStaminaCost => baseDashStaminaCost - dashStaminaCostIncrease;
-  double dashStaminaCostIncrease = 0;
+  double? dashDistanceGoal;
 
   @override
   void dashStatus() {
     if (!dashCheck()) return;
-    dashAnimation?.stepTime = dashDuration / dashAnimation!.frames.length * 2;
+    dashAnimation?.stepTime =
+        dashDuration.parameter / dashAnimation!.frames.length * 2;
     applyTempAnimation(dashAnimation);
 
     super.dashStatus();
@@ -863,8 +884,8 @@ mixin DashFunctionality on StaminaFunctionality {
     if (dashTimerCooldown != null ||
         isJumping ||
         isDead ||
-        !enableMovement ||
-        dashStaminaCost > remainingStamina) {
+        !enableMovement.parameter ||
+        dashStaminaCost.parameter > remainingStamina) {
       return false;
     }
 
@@ -874,15 +895,13 @@ mixin DashFunctionality on StaminaFunctionality {
   }
 
   void dashInit({double? power, bool weaponSource = false}) {
-    if (!weaponSource) modifyStamina(-dashStaminaCost);
-    if (power != null) {
-      power *= 2;
-    }
+    if (!weaponSource) modifyStamina(-dashStaminaCost.parameter);
+
     power ??= 1;
 
-    dashDistanceGoal = dashDistance * power;
+    dashDistanceGoal = dashDistance.parameter * power;
     _isDashing = true;
-    if (weaponSource || teleportDash) {
+    if (weaponSource || teleportDash.parameter) {
       if (this is AimFunctionality) {
         dashDelta = (this as AimFunctionality).inputAimVectors;
       }
@@ -901,7 +920,7 @@ mixin DashFunctionality on StaminaFunctionality {
     dashDelta = dashDelta!.normalized();
     if (!weaponSource) {
       dashTimerCooldown = TimerComponent(
-        period: dashCooldown,
+        period: dashCooldown.parameter,
         removeOnFinish: true,
         repeat: false,
         onTick: () {
@@ -944,8 +963,6 @@ mixin DashFunctionality on StaminaFunctionality {
     }
   }
 
-  double? dashDistanceGoal;
-
   @override
   void update(double dt) {
     dashMoveCheck(dt);
@@ -971,7 +988,8 @@ mixin DashFunctionality on StaminaFunctionality {
 
   void dashMove(double dt) {
     final double distance =
-        ((dashDistance / dashDuration) * dt).clamp(0, dashDistance);
+        ((dashDistance.parameter / dashDuration.parameter) * dt)
+            .clamp(0, dashDistance.parameter);
 
     body.setTransform(body.position + (dashDelta! * distance), 0);
     dashedDistance += distance;
@@ -988,22 +1006,13 @@ mixin JumpFunctionality on StaminaFunctionality {
 
   bool isJumpingInvincible = false;
 
-  final double baseJumpDuration = .6;
-  double get jumpDuration =>
-      (baseJumpDuration - jumpDurationIncrease).clamp(0, double.infinity);
-  double jumpDurationIncrease = 0;
-
-  double baseJumpStaminaCost = 10;
-  double get jumpStaminaCost => baseJumpStaminaCost - jumpStaminaCostIncrease;
-  double jumpStaminaCostIncrease = 0;
-
-  //how much of the jumpduration the character is jumping to avoid dmg
-
-  double baseJumpingInvinciblePercent = .5;
-  double get jumpingInvinciblePercent =>
-      (baseJumpingInvinciblePercent + jumpingInvinciblePercentIncrease)
-          .clamp(0, 1);
-  double jumpingInvinciblePercentIncrease = 0;
+  final DoubleParameterManager jumpDuration =
+      DoubleParameterManager(baseParameter: .6, minParameter: 0);
+  final DoubleParameterManager jumpStaminaCost =
+      DoubleParameterManager(baseParameter: 10, minParameter: 0);
+  final DoubleParameterManager jumpingInvinciblePercent =
+      DoubleParameterManager(
+          baseParameter: .5, minParameter: 0, maxParameter: 1);
 
   abstract SpriteAnimation? jumpAnimation;
 
@@ -1037,44 +1046,45 @@ mixin JumpFunctionality on StaminaFunctionality {
   @override
   void jumpStatus() {
     if (!jumpCheck()) return;
-    jumpAnimation?.stepTime = jumpDuration / jumpAnimation!.frames.length;
+    jumpAnimation?.stepTime =
+        jumpDuration.parameter / jumpAnimation!.frames.length;
     applyTempAnimation(jumpAnimation);
 
     super.jumpStatus();
   }
 
   void jump() {
-    modifyStamina(-jumpStaminaCost);
+    modifyStamina(-jumpStaminaCost.parameter);
     _isJumping = true;
     double elapsed = 0;
-    double min =
-        (jumpDuration / 2) - jumpDuration * (jumpingInvinciblePercent / 2);
-    double max =
-        (jumpDuration / 2) + jumpDuration * (jumpingInvinciblePercent / 2);
+    double min = (jumpDuration.parameter / 2) -
+        jumpDuration.parameter * (jumpingInvinciblePercent.parameter / 2);
+    double max = (jumpDuration.parameter / 2) +
+        jumpDuration.parameter * (jumpingInvinciblePercent.parameter / 2);
 
     final controller = EffectController(
-      duration: jumpDuration,
+      duration: jumpDuration.parameter,
       curve: Curves.ease,
-      reverseDuration: jumpDuration,
+      reverseDuration: jumpDuration.parameter,
       reverseCurve: Curves.ease,
     );
     final controllerD = EffectController(
-      duration: jumpDuration,
+      duration: jumpDuration.parameter,
       curve: Curves.ease,
       startDelay: .1,
-      reverseDuration: jumpDuration,
+      reverseDuration: jumpDuration.parameter,
       reverseCurve: Curves.ease,
     );
 
-    Future.doWhile(
-        () => Future.delayed(const Duration(milliseconds: 25)).then((value) {
-              elapsed += .025;
+    Future.doWhile(() =>
+        Future.delayed(const Duration(milliseconds: 25)).then((value) {
+          elapsed += .025;
 
-              isJumpingInvincible = elapsed > min && elapsed < max;
-              jumpOngoingFunctionsCall();
+          isJumpingInvincible = elapsed > min && elapsed < max;
+          jumpOngoingFunctionsCall();
 
-              return !(elapsed >= jumpDuration || controller.completed);
-            })).then((_) {
+          return !(elapsed >= jumpDuration.parameter || controller.completed);
+        })).then((_) {
       _isJumping = false;
       jumpEndFunctionsCall();
     });
@@ -1104,9 +1114,9 @@ mixin JumpFunctionality on StaminaFunctionality {
   bool jumpCheck() {
     if (isJumping ||
         isDashing ||
-        !enableMovement ||
+        !enableMovement.parameter ||
         isDead ||
-        jumpStaminaCost > remainingStamina) return false;
+        jumpStaminaCost.parameter > remainingStamina) return false;
 
     jump();
 

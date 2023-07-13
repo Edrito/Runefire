@@ -45,7 +45,7 @@ class Fireball extends Projectile with StandardProjectile {
   double ttl = 2.0;
 
   @override
-  void killBullet() {
+  void killBullet([bool withEffect = false]) {
     weaponAncestor.entityAncestor?.gameEnviroment.physicsComponent
         .add(AreaEffect(
       sourceEntity: weaponAncestor.entityAncestor!,
@@ -62,7 +62,7 @@ class Fireball extends Projectile with StandardProjectile {
         }
       },
     ));
-    super.killBullet();
+    super.killBullet(withEffect);
   }
 }
 
@@ -72,7 +72,7 @@ class Laser extends Projectile with LaserProjectile {
       required super.originPosition,
       required super.weaponAncestor,
       super.power}) {
-    ttl = weaponAncestor.attackTickRate;
+    ttl = weaponAncestor.attackTickRate.parameter * 2;
   }
 
   @override

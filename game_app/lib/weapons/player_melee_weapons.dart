@@ -14,47 +14,34 @@ import '../resources/enums.dart';
 class Dagger extends PlayerWeapon
     with
         MeleeFunctionality,
-        // ProjectileFunctionality,
         FullAutomatic,
         MeleeTrailEffect,
         StaminaCostFunctionality {
   Dagger.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor);
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.physical] = (2, 5);
+    attackTickRate.baseParameter = .35;
 
-  @override
-  void attack([double chargeAmount = 1]) {
-    // if (entityAncestor is DashFunctionality) {
-    //   (entityAncestor as DashFunctionality)
-    //       .dashInit(power: chargeAmount, PlayerWeapon: true);
-    // }
-    super.attack(chargeAmount);
+    attackHitboxPatterns = [
+      (Vector2(.2, 0), 0),
+      (Vector2(.2, 1), 0),
+      (Vector2(.25, 0), -35),
+      (Vector2(-.6, 0), 35),
+      (Vector2(-.2, 0), 0),
+      (Vector2(-.2, .95), 0),
+      (Vector2(-.25, 1), 35),
+      (Vector2(.6, 0), -35),
+    ];
+    spirteComponentPositions.add(WeaponSpritePosition.back);
+    assert(
+        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
   }
 
   @override
   FutureOr<void> onLoad() async {
-    attackHitboxPatterns = [
-      (Vector2(.25, 0), -35),
-      (Vector2(-.6, 0), 35),
-      (Vector2(.2, 0), 0),
-      (Vector2(.2, 1), 0),
-
-      (Vector2(-.2, 0), 0),
-      (Vector2(-.2, .95), 0),
-
-      (Vector2(-.25, 1), 35),
-      (Vector2(.6, 0), -35),
-      // (Vector2(.5, 1), -45),
-      // (Vector2(-.5, -.2), 60),
-    ];
-    spirteComponentPositions.add(WeaponSpritePosition.back);
-
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-    baseMaxAttacks = (attackHitboxPatterns.length / 2).round();
-
-    for (var i = 0; i < baseMaxAttacks; i++) {
+    for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
           .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
@@ -97,7 +84,7 @@ class Dagger extends PlayerWeapon
             parentJoint: parentJoint,
             idleAnimation:
                 await buildSpriteSheet(1, weaponType.flameImage, 1, true))
-          ..position = Vector2(3.7, -4.5)
+          ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
@@ -108,72 +95,19 @@ class Dagger extends PlayerWeapon
   }
 
   @override
-  bool get removeSpriteOnAttack => true;
-
-  @override
-  double distanceFromPlayer = .2;
-
-  @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.bleed: (7, 14)
-  };
-  @override
-  double baseAttackTickRate = .2;
+  double distanceFromPlayer = 1;
 
   @override
   double length = 1;
 
   @override
-  double tipPositionPercent = -.02;
+  List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponRandomnessPercent = .05;
+  double tipPositionPercent = 0;
 
   @override
   WeaponType weaponType = WeaponType.dagger;
-
-  @override
-  bool countIncreaseWithTime = false;
-
-  @override
-  double baseWeaponRandomnessPercent = .05;
-
-  @override
-  int get baseAttackCount => 1;
-
-  @override
-  bool get baseCountIncreaseWithTime => false;
-
-  @override
-  bool get baseIsHoming => false;
-
-  @override
-  late int baseMaxAttacks;
-
-  @override
-  int get baseMaxChainingTargets => 0;
-
-  @override
-  double get baseMaxSpreadDegrees =>
-      (attackCount * 25).clamp(0, 335).toDouble();
-
-  @override
-  bool allowProjectileRotation = false;
-
-  @override
-  int basePierce = 1;
-
-  // @override
-  // ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  double baseWeaponStaminaCost = 2;
 }
 
 class Spear extends PlayerWeapon
@@ -186,19 +120,9 @@ class Spear extends PlayerWeapon
   Spear.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor);
-
-  @override
-  void attack([double chargeAmount = 1]) {
-    // if (entityAncestor is DashFunctionality) {
-    //   (entityAncestor as DashFunctionality)
-    //       .dashInit(power: chargeAmount, PlayerWeapon: true);
-    // }
-    super.attack(chargeAmount);
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.physical] = (8, 16);
+    attackTickRate.baseParameter = .7;
     attackHitboxPatterns = [
       (Vector2(.2, -.5), 0),
       (Vector2(.2, 2.55), 0),
@@ -206,16 +130,16 @@ class Spear extends PlayerWeapon
       (Vector2(-.2, 2.45), 0),
       (Vector2(-0, 0), 0),
       (Vector2(-0, 0), 360),
-      // (Vector2(.5, 1), -45),
-      // (Vector2(-.5, -.2), 60),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
+  }
 
+  @override
+  FutureOr<void> onLoad() async {
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-    baseMaxAttacks = (attackHitboxPatterns.length / 2).round();
 
-    for (var i = 0; i < baseMaxAttacks; i++) {
+    for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
           .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
@@ -258,7 +182,7 @@ class Spear extends PlayerWeapon
             parentJoint: parentJoint,
             idleAnimation:
                 await buildSpriteSheet(1, weaponType.flameImage, 1, true))
-          ..position = Vector2(3.7, -4.5)
+          ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
@@ -278,63 +202,13 @@ class Spear extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.bleed: (7, 14)
-  };
-  @override
-  double baseAttackTickRate = .6;
-
-  @override
   double length = 3;
 
   @override
-  double tipPositionPercent = -.02;
-
-  @override
-  double weaponRandomnessPercent = .05;
+  double tipPositionPercent = 0;
 
   @override
   WeaponType weaponType = WeaponType.spear;
-
-  @override
-  bool countIncreaseWithTime = false;
-
-  @override
-  double baseWeaponRandomnessPercent = .05;
-
-  @override
-  int get baseAttackCount => 4;
-
-  @override
-  bool get baseCountIncreaseWithTime => false;
-
-  @override
-  bool get baseIsHoming => false;
-
-  @override
-  late int baseMaxAttacks;
-
-  @override
-  int get baseMaxChainingTargets => 0;
-
-  @override
-  double get baseMaxSpreadDegrees =>
-      (attackCount * 25).clamp(0, 335).toDouble();
-
-  @override
-  bool allowProjectileRotation = false;
-
-  @override
-  int basePierce = 1;
-
-  // @override
-  // ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  double baseWeaponStaminaCost = 10;
 }
 
 class EnergySword extends PlayerWeapon
@@ -347,7 +221,10 @@ class EnergySword extends PlayerWeapon
   EnergySword.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor);
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.energy] = (5, 12);
+    attackTickRate.baseParameter = .5;
+  }
 
   @override
   void attack([double chargeAmount = 1]) {
@@ -369,17 +246,13 @@ class EnergySword extends PlayerWeapon
       (Vector2(-1, .35), 30),
       (Vector2(.0, -.5), 0),
       (Vector2(0, 1), 0),
-
-      // (Vector2(.5, 1), -45),
-      // (Vector2(-.5, -.2), 60),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
 
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-    baseMaxAttacks = (attackHitboxPatterns.length / 2).round();
 
-    for (var i = 0; i < baseMaxAttacks; i++) {
+    for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
           .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
@@ -429,7 +302,7 @@ class EnergySword extends PlayerWeapon
             parentJoint: parentJoint,
             idleAnimation:
                 await buildSpriteSheet(1, weaponType.flameImage, 1, true))
-          ..position = Vector2(3.7, -4.5)
+          ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
@@ -452,66 +325,13 @@ class EnergySword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.electric: (7, 14)
-  };
-  @override
-  double baseAttackTickRate = .3;
-
-  @override
   double length = 2;
 
   @override
-  double tipPositionPercent = -.02;
-
-  @override
-  double weaponRandomnessPercent = .05;
+  double tipPositionPercent = 0;
 
   @override
   WeaponType weaponType = WeaponType.energySword;
-
-  @override
-  bool countIncreaseWithTime = false;
-
-  @override
-  double baseWeaponRandomnessPercent = .05;
-
-  @override
-  int get baseAttackCount => 1;
-
-  @override
-  bool get baseCountIncreaseWithTime => false;
-
-  @override
-  bool get baseIsHoming => false;
-
-  @override
-  late int baseMaxAttacks;
-
-  @override
-  int get baseMaxChainingTargets => 0;
-
-  @override
-  double get baseMaxSpreadDegrees =>
-      (attackCount * 25).clamp(0, 335).toDouble();
-
-  @override
-  bool allowProjectileRotation = false;
-
-  @override
-  int basePierce = 1;
-
-  // @override
-  // ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  double baseWeaponStaminaCost = 1;
-
-  @override
-  bool waitForAttackRate = true;
 }
 
 class FlameSword extends PlayerWeapon
@@ -525,19 +345,9 @@ class FlameSword extends PlayerWeapon
   FlameSword.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor);
-
-  @override
-  void attack([double chargeAmount = 1]) {
-    // if (entityAncestor is DashFunctionality) {
-    //   (entityAncestor as DashFunctionality)
-    //       .dashInit(power: chargeAmount, PlayerWeapon: true);
-    // }
-    super.attack(chargeAmount);
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
+  ) : super(newUpgradeLevel, ancestor) {
+    attackTickRate.baseParameter = .6;
+    baseDamage.damageBase[DamageType.fire] = (20, 25);
     attackHitboxPatterns = [
       (Vector2(.0, -1.5), 360),
       (Vector2(0, 1.5), -30),
@@ -545,19 +355,18 @@ class FlameSword extends PlayerWeapon
       (Vector2(0, 1.5), 390),
       (Vector2(0, -1), 0),
       (Vector2(0, 1.5), -0),
-      // (Vector2(.5, 1), -45),
-      // (Vector2(-.5, -.2), 60),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
-
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");
+  }
 
-    for (var i = 0; i < baseMaxAttacks; i++) {
+  @override
+  FutureOr<void> onLoad() async {
+    for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
           .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
-
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
         [],
         (previousValue, element) => [
@@ -596,7 +405,7 @@ class FlameSword extends PlayerWeapon
             parentJoint: parentJoint,
             idleAnimation:
                 await buildSpriteSheet(1, weaponType.flameImage, 1, true))
-          ..position = Vector2(3.7, -4.5)
+          ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
@@ -616,67 +425,13 @@ class FlameSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.fire: (7, 14)
-  };
-  @override
-  double baseAttackTickRate = .8;
-
-  @override
   double length = 2;
 
   @override
-  double tipPositionPercent = -.02;
-
-  @override
-  double weaponRandomnessPercent = .05;
+  double tipPositionPercent = 0;
 
   @override
   WeaponType weaponType = WeaponType.flameSword;
-
-  @override
-  bool countIncreaseWithTime = false;
-
-  @override
-  double baseWeaponRandomnessPercent = .05;
-
-  @override
-  int get baseAttackCount => 4;
-
-  @override
-  bool get baseCountIncreaseWithTime => false;
-
-  @override
-  bool get baseIsHoming => false;
-
-  @override
-  int get baseMaxAttacks => 3;
-
-  @override
-  int get baseMaxChainingTargets => 0;
-
-  @override
-  double get baseMaxSpreadDegrees =>
-      (attackCount * 25).clamp(0, 335).toDouble();
-
-  @override
-  bool allowProjectileRotation = false;
-
-  @override
-  int basePierce = 1;
-
-  // @override
-  // ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  double baseWeaponStaminaCost = 5;
-
-  @override
-  // TODO: implement baseReloadTime
-  double get baseReloadTime => 4;
 }
 
 class LargeSword extends PlayerWeapon
@@ -688,38 +443,26 @@ class LargeSword extends PlayerWeapon
   LargeSword.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor);
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.physical] = (20, 50);
+    attackHitboxPatterns = [
+      (Vector2(-.8, .25), 55),
+      (Vector2(1, .35), -5),
+      (Vector2(.0, -1.5), 0),
+      (Vector2(0, 1.5), 0),
+    ];
+    spirteComponentPositions.add(WeaponSpritePosition.back);
+    attackTickRate.baseParameter = 2;
 
-  @override
-  void attack([double chargeAmount = 1]) {
-    // if (entityAncestor is DashFunctionality) {
-    //   (entityAncestor as DashFunctionality)
-    //       .dashInit(power: chargeAmount, PlayerWeapon: true);
-    // }
-    super.attack(chargeAmount);
+    assert(
+        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
   }
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
   @override
   FutureOr<void> onLoad() async {
-    attackHitboxPatterns = [
-      (Vector2(-.8, .25), 55),
-      (Vector2(1, .35), -5),
-      // (Vector2(.2, .25), -45),
-      // (Vector2(-1, .35), 30),
-      (Vector2(.0, -1.5), 0),
-      (Vector2(0, 1.5), 0),
-
-      // (Vector2(.5, 1), -45),
-      // (Vector2(-.5, -.2), 60),
-    ];
-    spirteComponentPositions.add(WeaponSpritePosition.back);
-
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-
-    for (var i = 0; i < baseMaxAttacks; i++) {
+    for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
           .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
@@ -762,7 +505,7 @@ class LargeSword extends PlayerWeapon
             parentJoint: parentJoint,
             idleAnimation:
                 await buildSpriteSheet(1, weaponType.flameImage, 1, true))
-          ..position = Vector2(3.7, -4.5)
+          ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
@@ -779,70 +522,17 @@ class LargeSword extends PlayerWeapon
   double distanceFromPlayer = .2;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  double length = 3;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  Map<DamageType, (double, double)> baseDamageLevels = {
-    DamageType.regular: (40, 120)
-  };
-  @override
-  double baseAttackTickRate = 1.5;
+  double tipPositionPercent = 0;
 
   @override
-  double length = 3;
-
-  @override
-  double tipPositionPercent = -.02;
-
-  @override
-  double weaponRandomnessPercent = .05;
+  bool get waitForAttackRate => false;
 
   @override
   WeaponType weaponType = WeaponType.largeSword;
-
-  @override
-  bool countIncreaseWithTime = false;
-
-  @override
-  double baseWeaponRandomnessPercent = .05;
-
-  @override
-  int get baseAttackCount => 1;
-
-  @override
-  bool get baseCountIncreaseWithTime => false;
-
-  @override
-  bool get baseIsHoming => false;
-
-  @override
-  int get baseMaxAttacks => (attackHitboxPatterns.length / 2).round();
-
-  @override
-  int get baseMaxChainingTargets => 0;
-
-  @override
-  double get baseMaxSpreadDegrees =>
-      (attackCount * 25).clamp(0, 335).toDouble();
-
-  @override
-  bool allowProjectileRotation = false;
-
-  @override
-  int basePierce = 1;
-
-  // @override
-  // ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double projectileVelocity = 20;
-
-  @override
-  double baseWeaponStaminaCost = 20;
-
-  @override
-  bool waitForAttackRate = true;
 }

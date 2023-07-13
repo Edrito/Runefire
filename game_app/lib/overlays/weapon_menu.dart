@@ -370,10 +370,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                     child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ListView(
-                    children: entries
-                        .animate(interval: .1.seconds)
-                        .moveX(begin: -50, end: 0, curve: Curves.easeIn)
-                        .fadeIn(curve: Curves.easeIn),
+                    children: entries,
                   ),
                 )),
                 Row(

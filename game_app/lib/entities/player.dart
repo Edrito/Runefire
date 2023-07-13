@@ -36,7 +36,15 @@ class Player extends Entity
         DashFunctionality,
         HealthRegenFunctionality {
   Player(this.playerData, this.isDisplay,
-      {required super.gameEnviroment, required super.initPosition});
+      {required super.gameEnviroment, required super.initPosition}) {
+    dashCooldown.baseParameter = 2;
+    dashDistance.baseParameter = 7;
+    height.baseParameter = 1.5;
+    invincibilityDuration.baseParameter = .5;
+    maxHealth.baseParameter = 50;
+    speed.baseParameter = .2;
+    stamina.baseParameter = 200;
+  }
   final PlayerData playerData;
 
   Set<PhysicalKeyboardKey> physicalKeysPressed = {};
@@ -99,7 +107,7 @@ class Player extends Entity
     shape = CircleShape();
     xpGrabRadius = CircleShape();
     shape.radius = spriteAnimationComponent.size.x / 2;
-    xpGrabRadius.radius = xpSensorRadius;
+    xpGrabRadius.radius = xpSensorRadius.parameter;
     renderBody = false;
 
     final fixtureDef = FixtureDef(shape,
@@ -215,8 +223,6 @@ class Player extends Entity
 
   int debugCount = 0;
 
-  @override
-  double dashCooldown = 1;
   void gestureEventEnd(InputType inputType, PositionInfo? info) async {
     switch (inputType) {
       case InputType.mouseMove:
@@ -267,7 +273,6 @@ class Player extends Entity
             gameEnviroment.gameCamera.viewfinder.zoom);
         inputAimAngles[InputType.mouseMove] =
             inputAimPositions[InputType.mouseMove]!.normalized();
-        // print(inputAimPositions[InputType.mouseMove]);
         break;
 
       case InputType.aimJoy:
@@ -280,8 +285,7 @@ class Player extends Entity
 
       case InputType.moveJoy:
         final delta = gameEnviroment.moveJoystick?.relativeDelta;
-        moveVelocities[InputType.moveJoy] =
-            (delta ?? Vector2.zero()) * getMaxSpeed;
+        moveVelocities[InputType.moveJoy] = (delta ?? Vector2.zero()) * speed;
         break;
 
       case InputType.tapClick:
@@ -344,15 +348,6 @@ class Player extends Entity
     ..categoryBits = playerCategory;
 
   @override
-  double height = 1;
-
-  @override
-  double baseHealth = 50;
-
-  @override
-  double baseSpeed = .06;
-
-  @override
   EntityType entityType = EntityType.player;
 
   @override
@@ -378,23 +373,4 @@ class Player extends Entity
 
   @override
   SpriteAnimation? walkAnimation;
-
-  @override
-  double baseInvincibilityDuration = 1;
-
-  // @override
-  // Map<DamageType, (double, double)> touchDamageLevels = {
-  //   DamageType.regular: (4, 10)
-  // };
-
-  @override
-  double get baseStamina => isDisplay ? 10000000 : 100;
-
-  @override
-  double get baseStaminaRegen => 5;
-  @override
-  double baseDashDistance = 5;
-
-  @override
-  double baseDashCooldown = 2;
 }

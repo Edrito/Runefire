@@ -5,6 +5,10 @@ import 'attributes_mixin.dart';
 import '../entities/entity.dart';
 import 'attributes.dart';
 
+/// This file contains all the enums for the attributes.
+/// It also contains the extension methods for the enums.
+
+/// Gives the player a sense of how strong an attribute is.
 enum AttributeRarity { unique, rare, uncommon, standard }
 
 extension AttributeRarityExtension on AttributeRarity {
@@ -22,46 +26,84 @@ extension AttributeRarityExtension on AttributeRarity {
   }
 }
 
+///Used to filter and categorize attributes for level selection
 enum AttributeCategory {
   mobility,
+  attack,
   projectile,
   melee,
   defence,
   offense,
-  attack,
   temporary,
-  misc
+  utility
 }
 
-enum AttributeEnum {
-  fireDamage(category: AttributeCategory.temporary),
+enum AttributeTerritory { permanent, game }
 
-  topSpeed(
-      rarity: AttributeRarity.uncommon, category: AttributeCategory.mobility),
-  power(category: AttributeCategory.temporary),
-  attackRate(rarity: AttributeRarity.rare, category: AttributeCategory.attack),
+enum AttributeEnum {
+  //Debuffs
+  burn(category: AttributeCategory.temporary),
+  bleed(category: AttributeCategory.temporary),
+  chill(category: AttributeCategory.temporary),
+  electrified(category: AttributeCategory.temporary),
+  stun(category: AttributeCategory.temporary),
+  psychic(category: AttributeCategory.temporary),
+
+  //Permanent
+  speed(category: AttributeCategory.mobility),
+  attackRate(category: AttributeCategory.attack),
+  duration(),
+  durationDamage(category: AttributeCategory.offense),
+  areaSize(),
+  areaDamage(category: AttributeCategory.offense),
+  critChance(category: AttributeCategory.offense),
+  critDamage(category: AttributeCategory.offense),
+  fireDamageIncrease(category: AttributeCategory.offense),
+  physicalDamageIncrease(category: AttributeCategory.offense),
+  psychicDamageIncrease(category: AttributeCategory.offense),
+  energyDamageIncrease(category: AttributeCategory.offense),
+  frostDamageIncrease(category: AttributeCategory.offense),
+  bleedDamageIncrease(category: AttributeCategory.offense),
+  lifeSteal(category: AttributeCategory.offense),
+  damageIncrease(category: AttributeCategory.offense),
+  meleeDamageIncrease(category: AttributeCategory.melee),
+  projectileDamageIncrease(category: AttributeCategory.projectile),
+  dodgeChanceIncrease(category: AttributeCategory.defence),
+  maxHealth(category: AttributeCategory.defence),
+  maxStamina(category: AttributeCategory.mobility),
+  reloadTime(category: AttributeCategory.utility),
+  healthRegen(category: AttributeCategory.defence),
+  staminaRegen(category: AttributeCategory.mobility),
+  experienceGain(category: AttributeCategory.utility),
+  statusEffectPotency(category: AttributeCategory.offense),
+
+  ///Game Attributes
   enemyExplosion(
-      rarity: AttributeRarity.unique, category: AttributeCategory.mobility);
+      rarity: AttributeRarity.unique,
+      category: AttributeCategory.mobility,
+      territory: AttributeTerritory.game);
 
   const AttributeEnum(
       {this.rarity = AttributeRarity.standard,
-      this.category = AttributeCategory.misc});
+      this.category = AttributeCategory.utility,
+      this.territory = AttributeTerritory.permanent});
 
   final AttributeRarity rarity;
   final AttributeCategory category;
+  final AttributeTerritory territory;
 }
 
 extension AllAttributesExtension on AttributeEnum {
   Attribute buildAttribute(int level, AttributeFunctionality victimEntity,
       Entity perpetratorEntity) {
     switch (this) {
-      case AttributeEnum.topSpeed:
+      case AttributeEnum.speed:
         return TopSpeedAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
-      case AttributeEnum.fireDamage:
+      case AttributeEnum.burn:
         return FireDamageAttribute(
           level: level,
           victimEntity: victimEntity,
@@ -73,13 +115,14 @@ extension AllAttributesExtension on AttributeEnum {
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
-      case AttributeEnum.power:
-        return PowerAttribute(
+
+      case AttributeEnum.enemyExplosion:
+        return ExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
-      case AttributeEnum.enemyExplosion:
+      default:
         return ExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,

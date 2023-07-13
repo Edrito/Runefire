@@ -21,7 +21,8 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is HealthFunctionality) {
-      other.hitCheck(parentAttack.meleeId, parentAttack.parentWeapon.damage);
+      other.hitCheck(
+          parentAttack.meleeId, parentAttack.parentWeapon.calculateDamage);
       onHitFunctions(other);
     }
 
@@ -81,7 +82,7 @@ class MeleeAttack extends PositionComponent {
       required this.parentWeapon}) {
     start = parentWeapon.attackHitboxPatterns[index];
     end = parentWeapon.attackHitboxPatterns[index + 1];
-    duration = parentWeapon.attackTickRate;
+    duration = parentWeapon.attackTickRate.parameter;
     meleeId = const Uuid().v4();
   }
 

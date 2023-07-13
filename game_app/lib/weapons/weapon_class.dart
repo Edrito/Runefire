@@ -5,11 +5,11 @@ import 'package:flame/components.dart';
 import 'package:flutter/widgets.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/data_classes/base.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 import '../resources/functions/custom_mixins.dart';
 
-import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
 
@@ -65,18 +65,11 @@ class PlayerAttachmentJointComponent extends PositionComponent
               (weaponSpriteAnimation?.size.x ?? newWeapon.length) *
                   tipPositionPercent,
               (weaponSpriteAnimation?.size.y ?? newWeapon.length)));
-      // weaponTip!.add(CircleComponent(
-      //     radius: .1,
-      //     paint: BasicPalette.white.paint(),
-      //     anchor: Anchor.center));
+
       weaponTipCenter = PositionComponent(
           anchor: Anchor.center,
           position:
               Vector2(0, weaponSpriteAnimation?.size.y ?? newWeapon.length));
-      // weaponTipCenter!.add(CircleComponent(
-      //     radius: .1,
-      //     paint: BasicPalette.lightRed.paint(),
-      //     anchor: Anchor.center));
       weaponSpriteAnimation?.addToParent(weaponBase!);
       weaponTipCenter?.addToParent(weaponBase!);
       weaponTip?.addToParent(weaponBase!);
@@ -94,11 +87,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
         this is! ProjectileFunctionality ||
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
-    entityAncestor?.add(this);
 
     newUpgradeLevel ??= 0;
     changeLevel(newUpgradeLevel, weaponType.maxLevel);
-
     weaponId = const Uuid().v4();
   }
   //META INFORMATION
@@ -126,68 +117,47 @@ abstract class Weapon extends Component with UpgradeFunctions {
       : false;
 
   //WEAPON ATTRIBUTES
-  abstract final int baseAttackCount;
+  final IntParameterManager baseAttackCount =
+      IntParameterManager(baseParameter: 1);
+
+  final BoolParameterManager countIncreaseWithTime =
+      BoolParameterManager(baseParameter: false);
 
   int get attackCount =>
-      baseAttackCount +
-      (entityAncestor?.additionalCountIncrease ?? 0) +
-      additionalDurationCountIncrease;
-
-  bool get countIncreaseWithTime => boolAbilityDecipher(
-      baseCountIncreaseWithTime, countIncreaseWithTimeIncrease);
-  abstract final bool baseCountIncreaseWithTime;
-  List<bool> countIncreaseWithTimeIncrease = [];
+      baseAttackCount.parameter + additionalDurationCountIncrease;
 
   int additionalDurationCountIncrease = 0;
-
   void additionalCountCheck() {
-    if (countIncreaseWithTime) {
+    if (countIncreaseWithTime.parameter) {
       additionalDurationCountIncrease = durationHeld.round().clamp(0, 6);
     }
   }
 
-  double get maxSpreadDegrees =>
-      baseMaxSpreadDegrees + maxSpreadDegreesIncrease;
-  abstract final double baseMaxSpreadDegrees;
-  double maxSpreadDegreesIncrease = 0;
+  DoubleParameterManager maxSpreadDegrees =
+      DoubleParameterManager(baseParameter: 45);
 
-  bool get weaponCanChain => maxChainingTargets > 0;
+  IntParameterManager maxChainingTargets =
+      IntParameterManager(baseParameter: 0);
+  bool get weaponCanChain => maxChainingTargets.parameter > 0;
 
-  int get maxChainingTargets =>
-      baseMaxChainingTargets + maxChainingTargetsIncrease;
-  abstract final int baseMaxChainingTargets;
-  int maxChainingTargetsIncrease = 0;
+  final DoubleParameterManager attackTickRate =
+      DoubleParameterManager(baseParameter: 1, minParameter: 0.000000001);
 
-  abstract final double baseAttackTickRate;
-  double attackTickRateIncrease = 0;
-  double get attackTickRate =>
-      (baseAttackTickRate - attackTickRateIncrease).clamp(0, double.infinity);
+  final DoubleParameterManager weaponRandomnessPercent = DoubleParameterManager(
+      baseParameter: 1, minParameter: 0, maxParameter: 0);
 
-  double get weaponRandomnessPercent =>
-      baseWeaponRandomnessPercent * weaponRandomnessPercentIncrease;
-  abstract double baseWeaponRandomnessPercent;
-  double weaponRandomnessPercentIncrease = 0;
+  IntParameterManager maxHomingTargets = IntParameterManager(baseParameter: 0);
+  bool get weaponCanHome => maxHomingTargets.parameter > 0;
 
-  bool get isHoming => boolAbilityDecipher(baseIsHoming, isHomingIncrease);
-  abstract final bool baseIsHoming;
-  List<bool> isHomingIncrease = [];
+  final DamageParameterManager baseDamage =
+      DamageParameterManager(damageBase: {});
 
-  int get homingPower => baseHomingPower + homingPowerIncrease;
-  final int baseHomingPower = 1;
-  int homingPowerIncrease = 0;
-
-  //DAMAGE increase flat
-  //DamageType, min, max
-  ///Min damage is added to min damage calculation, same with max
-  Map<DamageType, (double, double)> damageIncrease = {};
-
-  //DamageType, min, max
-  abstract Map<DamageType, (double, double)> baseDamageLevels;
-
-  List<DamageInstance> get damage => damageCalculations(baseDamageLevels,
-      damageIncrease, entityAncestor?.damageDuration, entityAncestor!, this);
-
-  //ATTRIBUTES
+  List<DamageInstance> get calculateDamage => damageCalculations(
+        baseDamage,
+        entityAncestor!,
+        sourceWeapon: this,
+        duration: entityAncestor?.durationPercentIncrease.parameter,
+      );
 
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
@@ -207,7 +177,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   //Weapon state info
-  double get attackRateSecondComparison => 1 / attackTickRate;
+  double get attackRateSecondComparison => 1 / attackTickRate.parameter;
 
   bool spritesHidden = false;
 
@@ -230,6 +200,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   /// Returns true if an attack occured, otherwise false.
   void attackAttempt([double holdDurationPercent = 1]) {
+    if (entityAncestor?.isDead ?? false) return;
     attack(holdDurationPercent);
   }
 
@@ -356,7 +327,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
 
         assert(!reloadAnimation!.loop, "Temp animations must not loop");
         reloadAnimation?.stepTime =
-            (parentJoint.weapon as ReloadFunctionality).reloadTime /
+            (parentJoint.weapon as ReloadFunctionality).reloadTime.parameter /
                 reloadAnimation!.frames.length;
         applyAnimation(reloadAnimation);
 

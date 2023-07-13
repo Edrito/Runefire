@@ -54,10 +54,8 @@ mixin AttributeFunctionality on Entity {
   }
 
   void removeAttribute(AttributeEnum attributeEnum) {
-    if (currentAttributes.containsKey(attributeEnum)) {
-      currentAttributes[attributeEnum]?.removeUpgrade();
-      currentAttributes.remove(attributeEnum);
-    }
+    currentAttributes[attributeEnum]?.removeUpgrade();
+    currentAttributes.remove(attributeEnum);
   }
 
   void remapAttributes() {
@@ -191,7 +189,10 @@ class HoldDuration extends PositionComponent {
         Paint()
           ..shader = ui.Gradient.sweep(
               Offset.zero,
-              [primaryColor, Colors.transparent],
+              [
+                percentComplete == 1 ? secondaryColor : primaryColor,
+                Colors.transparent
+              ],
               [percentComplete, percentComplete],
 
               // null,
@@ -355,7 +356,7 @@ class ReloadAnimation extends PositionComponent {
     // final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
 
     size.y = height;
-    size.x = parent.width;
+    size.x = parent.width * .7;
     position.y = 0;
 
     if (isSecondaryWeapon) {

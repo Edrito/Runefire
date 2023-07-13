@@ -86,6 +86,7 @@ flutter:
     - assets/images/weapons/
     - assets/images/attributes/
     - assets/tiles/
+
     - assets/images/
     - assets/fonts/
     - assets/

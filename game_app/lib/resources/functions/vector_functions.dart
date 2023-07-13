@@ -73,6 +73,9 @@ List<Vector2> expandToBox(List<Vector2> coordinates, double distance) {
     rightCoor.add(topLeft);
     leftCoor.add(bottomLeft);
 
+    rightCoor.add(topRight);
+    leftCoor.add(bottomRight);
+
     // expandedCoordinates.add(topRight);
     // expandedCoordinates.add(bottomRight);
   }

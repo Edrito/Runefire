@@ -6,6 +6,7 @@ import 'package:flame/effects.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide MoveEffect;
 
+import '../resources/data_classes/base.dart';
 import '../resources/functions/custom_mixins.dart';
 import '../main.dart';
 import '../overlays/overlays.dart';
@@ -18,9 +19,12 @@ mixin ExperienceFunctionality on Entity {
   int currentLevel = 1;
   final double growthMultiplier = 1.2;
   final double baseExperiencePerLevel = 50;
-  double get xpSensorRadius => baseXpSensorRadius + xpSensorRadiusIncrease;
-  final double baseXpSensorRadius = 2;
-  double xpSensorRadiusIncrease = 0;
+
+  DoubleParameterManager xpSensorRadius =
+      DoubleParameterManager(baseParameter: 2);
+
+  DoubleParameterManager xpIncreasePercent =
+      DoubleParameterManager(baseParameter: 1);
 
   int levelUpQueue = 0;
   bool currentlyLevelingUp = false;
@@ -121,18 +125,20 @@ mixin ExperienceFunctionality on Entity {
     return returnInt;
   }
 
-  void gainExperience(double experience) {
+  void gainExperience(double newExperience) {
     final nextLevelExperienceRequired = this.nextLevelExperienceRequired;
+    final experience = xpIncreasePercent.parameter * newExperience;
+
     if (experiencePointsGained + experience >= nextLevelExperienceRequired) {
       final remainingExperience =
           (experience + experiencePointsGained) - nextLevelExperienceRequired;
       experiencePointsGained = nextLevelExperienceRequired.toDouble();
-      currentLevel += 1;
-      gameEnviroment.hud.setLevel(currentLevel);
+      if (!isDead) {
+        currentLevel += 1;
+        gameEnviroment.hud.setLevel(currentLevel);
+        preLevelUp();
+      }
 
-      if (isDead) return;
-
-      preLevelUp();
       gainExperience(remainingExperience);
     } else {
       experiencePointsGained += experience;

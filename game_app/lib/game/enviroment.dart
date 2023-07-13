@@ -74,7 +74,7 @@ abstract class Enviroment extends Component
     gameCamera.priority = backgroundPriority;
     gameCamera.viewfinder.zoom = 75;
     super.add(gameCamera);
-
+    // gameCamera.viewfinder.angle = radians(180);
     //Physics
     physicsComponent = Forge2DComponent();
     physicsComponent.priority = enemyPriority;

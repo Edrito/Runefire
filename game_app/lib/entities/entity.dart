@@ -29,7 +29,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void permanentlyDisableEntity() {}
 
-  double get entityStatusHeight => (height / 2) + (height / 4);
+  double get entityStatusHeight =>
+      (height.parameter / 2) + (height.parameter / 4);
 
   late EntityStatusEffectsWrapper entityStatusWrapper;
 
@@ -39,7 +40,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   EntityStatus? statusQueue;
   EntityStatus? previousStatus;
   EntityStatus entityStatus = EntityStatus.spawn;
-  abstract double height;
 
   //ANIMATION
   abstract SpriteAnimation idleAnimation;
@@ -109,7 +109,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
       spriteAnimationComponent = SpriteAnimationComponent(
         animation: animation,
         size: animation.frames.first.sprite.srcSize
-            .scaled(height / animation.frames.first.sprite.srcSize.y),
+            .scaled(height.parameter / animation.frames.first.sprite.srcSize.y),
       );
       entityStatus = newEntityStatus;
       return;

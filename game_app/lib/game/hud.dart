@@ -123,27 +123,27 @@ class GameHud extends PositionComponent {
 
       canvas.drawRect(
           (const Offset(padding, startSmallBar) &
-              Size(player!.maxHealth * 5, heightOfSmallBar)),
+              Size(player!.maxHealth.parameter * 5, heightOfSmallBar)),
           Paint()..color = Colors.grey.shade900);
 
       canvas.drawRect(
           (const Offset(padding, startSmallBar) &
-              Size(player!.maxHealth * 5 * player!.healthPercentage,
+              Size(player!.maxHealth.parameter * 5 * player!.healthPercentage,
                   heightOfSmallBar)),
           Paint()..color = primaryColor);
 
       canvas.drawRect(
           (const Offset(
                   padding, startSmallBar + heightPadding + heightOfSmallBar) &
-              Size(player!.maxStamina * 2, heightOfSmallBar)),
+              Size(player!.stamina.parameter * 2, heightOfSmallBar)),
           Paint()..color = Colors.grey.shade900);
       canvas.drawRect(
           (const Offset(
                   padding, startSmallBar + heightPadding + heightOfSmallBar) &
               Size(
-                  player!.maxStamina *
+                  player!.stamina.parameter *
                       2 *
-                      (player!.remainingStamina / player!.maxStamina),
+                      (player!.remainingStamina / player!.stamina.parameter),
                   heightOfSmallBar)),
           Paint()..color = secondaryColor);
     }

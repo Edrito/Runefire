@@ -1,6 +1,7 @@
 import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/attributes/temporary_attributes.dart';
+import 'package:uuid/uuid.dart';
 
 import '../entities/entity.dart';
 import '../main.dart';
@@ -23,6 +24,7 @@ abstract class Attribute with UpgradeFunctions {
     // if (applyNow) {
     //   applyAttribute();
     // }
+    attributeId = const Uuid().v4();
   }
 
   bool get isTemporary => this is TemporaryAttribute;
@@ -32,6 +34,7 @@ abstract class Attribute with UpgradeFunctions {
     return "An increase of ${((factor ?? 0) * 100)}% of your base attribute with an additional ${((factor ?? 0) * 100)}% at max level.";
   }
 
+  late String attributeId;
   abstract String icon;
   abstract String title;
   double? factor;
@@ -46,9 +49,12 @@ abstract class Attribute with UpgradeFunctions {
   ///Default increase is multiplying the baseParameter by [factor]%
   ///then multiplying it again by the level of the attribute
   ///with an additional level for max level
-  double increase(double base) =>
+  double increaseFlat(double base) =>
       ((factor ?? 0) * base) *
       (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
+
+  double increasePercent() =>
+      (factor ?? 0) * (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
 
   AttributeEnum get attributeEnum;
 
@@ -71,7 +77,7 @@ class TopSpeedAttribute extends Attribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeEnum attributeEnum = AttributeEnum.topSpeed;
+  AttributeEnum attributeEnum = AttributeEnum.speed;
 
   @override
   double get factor => .05;
@@ -83,14 +89,14 @@ class TopSpeedAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! MovementFunctionality) return;
     var move = victimEntity as MovementFunctionality;
-    move.speedIncrease += increase(move.baseSpeed);
+    move.speed.setParameterPercentValue(attributeId, increasePercent());
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is! MovementFunctionality) return;
     var move = victimEntity as MovementFunctionality;
-    move.speedIncrease -= increase(move.baseSpeed);
+    move.speed.removeKey(attributeId);
   }
 
   @override
@@ -129,7 +135,8 @@ class AttackRateAttribute extends Attribute {
     if (victimEntity is! AttackFunctionality) return;
     var attack = victimEntity as AttackFunctionality;
     for (var element in attack.carriedWeapons.values) {
-      element.attackTickRateIncrease += increase(element.baseAttackTickRate);
+      element.attackTickRate.setParameterFlatValue(
+          attributeId, -increaseFlat(element.attackTickRate.baseParameter));
     }
   }
 
@@ -138,7 +145,7 @@ class AttackRateAttribute extends Attribute {
     if (victimEntity is! AttackFunctionality) return;
     var attack = victimEntity as AttackFunctionality;
     for (var element in attack.carriedWeapons.values) {
-      element.attackTickRateIncrease -= increase(element.baseAttackTickRate);
+      element.attackTickRate.removeKey(attributeId);
     }
   }
 
@@ -179,14 +186,14 @@ class ExplosionEnemyDeathAttribute extends Attribute {
     final explosion = AreaEffect(
       sourceEntity: victimEntity,
       position: other.center,
-      radius: baseSize + increase(baseSize),
+      radius: baseSize + increaseFlat(baseSize),
       isInstant: false,
-      duration: victimEntity.damageDuration,
+      duration: victimEntity.durationPercentIncrease.parameter,
       onTick: (entity, areaId) {
         if (entity is HealthFunctionality) {
           entity.hitCheck(areaId, [
             DamageInstance(
-                damageBase: increase(1),
+                damageBase: increaseFlat(1),
                 damageType: DamageType.fire,
                 source: entity)
           ]);

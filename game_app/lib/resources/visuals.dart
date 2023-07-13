@@ -55,7 +55,7 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
     // case StatusEffects.bleed:
     //   break;
 
-    // case StatusEffects.electric:
+    // case StatusEffects.energy:
     //   break;
 
     // case StatusEffects.misc:

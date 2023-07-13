@@ -3,16 +3,15 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/experience.dart';
-import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
 
 enum AimPattern { player }
 
 mixin DropExperienceFunctionality on HealthFunctionality {
-  ///Large - Medium
+  ///If a rng.double() is smaller than $1 then large experience is dropped
+  ///If a rng.double() is smaller than $2 then medium experience is dropped
   abstract (double, double) xpRate;
-
   @override
   void deadStatus() {
     late ExperienceAmount experienceAmount;

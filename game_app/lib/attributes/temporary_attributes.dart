@@ -55,50 +55,6 @@ abstract class TemporaryAttribute extends Attribute {
   }
 }
 
-class PowerAttribute extends TemporaryAttribute {
-  @override
-  double duration = 1;
-
-  @override
-  int uniqueId = 0;
-
-  double healthIncrease = 20;
-  double damageIncrease = .5;
-
-  Effect? colorEffect;
-
-  @override
-  String title = "Strength and POWER";
-
-  PowerAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
-
-  @override
-  // TODO: implement attributeEnum
-  AttributeEnum get attributeEnum => AttributeEnum.power;
-
-  @override
-  String description() {
-    // TODO: implement description
-    return "aaa";
-  }
-
-  @override
-  void mapUpgrade() {
-    // TODO: implement mapAttribute
-  }
-
-  @override
-  void unMapUpgrade() {
-    // TODO: implement unmapAttribute
-  }
-
-  @override
-  String icon = "powerups/power.png";
-}
-
 class FireDamageAttribute extends TemporaryAttribute {
   @override
   double duration = 4;
@@ -115,12 +71,11 @@ class FireDamageAttribute extends TemporaryAttribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeEnum get attributeEnum => AttributeEnum.power;
+  AttributeEnum get attributeEnum => AttributeEnum.burn;
 
   @override
   String description() {
-    // TODO: implement description
-    return "aaa";
+    return "";
   }
 
   double tickRate = .5;
