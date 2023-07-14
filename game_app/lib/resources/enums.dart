@@ -228,7 +228,7 @@ enum WeaponType {
       AttackType.projectile, 500),
   energySword(EnergySword.create, 'assets/images/weapons/energy_sword.png', 5,
       AttackType.melee, 500),
-  flameSword(FlameSword.create, 'assets/images/weapons/flame_sword.png', 5,
+  flameSword(FlameSword.create, 'assets/images/weapons/fire_sword.png', 5,
       AttackType.melee, 500),
   dagger(Dagger.create, 'assets/images/weapons/dagger.png', 5, AttackType.melee,
       0),

@@ -28,6 +28,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
   });
 
   WeaponSpritePosition jointPosition;
+
   Weapon? weapon;
   PositionComponent? weaponTip;
   PositionComponent? weaponBase;
@@ -51,7 +52,6 @@ class PlayerAttachmentJointComponent extends PositionComponent
     removePreviousComponents();
     weapon = newWeapon;
     anchor = Anchor.center;
-    var tipPositionPercent = newWeapon.tipPositionPercent.clamp(-.5, .5);
     weaponBase = PositionComponent(
         anchor: Anchor.center,
         position: Vector2(0, newWeapon.distanceFromPlayer));
@@ -60,16 +60,11 @@ class PlayerAttachmentJointComponent extends PositionComponent
       weaponSpriteAnimation =
           await newWeapon.buildSpriteAnimationComponent(this);
       weaponTip = PositionComponent(
-          anchor: Anchor.center,
-          position: Vector2(
-              (weaponSpriteAnimation?.size.x ?? newWeapon.length) *
-                  tipPositionPercent,
-              (weaponSpriteAnimation?.size.y ?? newWeapon.length)));
+          anchor: Anchor.center, position: weaponSpriteAnimation!.tipOffset);
 
       weaponTipCenter = PositionComponent(
           anchor: Anchor.center,
-          position:
-              Vector2(0, weaponSpriteAnimation?.size.y ?? newWeapon.length));
+          position: Vector2(0, weaponSpriteAnimation!.tipOffset.y));
       weaponSpriteAnimation?.addToParent(weaponBase!);
       weaponTipCenter?.addToParent(weaponBase!);
       weaponTip?.addToParent(weaponBase!);
@@ -110,6 +105,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   double get durationHeld;
 
+  Vector2 baseOffset = Vector2.zero();
+  Vector2 tipOffset = Vector2.zero();
+
   Random rng = Random();
   bool isSecondaryWeapon = false;
   bool get isReloading => this is ReloadFunctionality
@@ -144,7 +142,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
       DoubleParameterManager(baseParameter: 1, minParameter: 0.000000001);
 
   final DoubleParameterManager weaponRandomnessPercent = DoubleParameterManager(
-      baseParameter: 1, minParameter: 0, maxParameter: 0);
+      baseParameter: 0, minParameter: 0, maxParameter: 1);
 
   IntParameterManager maxHomingTargets = IntParameterManager(baseParameter: 0);
   bool get weaponCanHome => maxHomingTargets.parameter > 0;
@@ -161,10 +159,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
-  FutureOr<WeaponSpriteAnimation?> buildSpriteAnimationComponent(
+  FutureOr<WeaponSpriteAnimation> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint);
   abstract double distanceFromPlayer;
-  abstract double tipPositionPercent;
   abstract double length;
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent>
       weaponAttachmentPoints = {};
@@ -253,11 +250,11 @@ abstract class PlayerWeapon extends Weapon
 ///Based on the current action of the weapon, this will display different kinds
 ///of animations.
 class WeaponSpriteAnimation extends SpriteAnimationComponent {
-  WeaponSpriteAnimation(
-      {required this.idleAnimation,
-      this.attackAnimation,
+  WeaponSpriteAnimation(this.spriteOffset, this.tipOffset, this.idleAnimation,
+      {this.attackAnimation,
       this.chargeAnimation,
       this.reloadAnimation,
+      this.muzzleFlash,
       this.spawnAnimation,
       this.idleOnly = false,
       required this.parentJoint}) {
@@ -266,7 +263,12 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     size = animation!.frames.first.sprite.srcSize.scaled(
         parentJoint.weapon!.length / animation!.frames.first.sprite.srcSize.y);
     priority = attackPriority;
+    position = spriteOffset;
   }
+
+  Vector2 spriteOffset;
+  Vector2 tipOffset;
+
   WeaponStatus currentStatus = WeaponStatus.idle;
   PlayerAttachmentJointComponent parentJoint;
   bool idleOnly;
@@ -278,11 +280,12 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
   SpriteAnimation? reloadAnimation;
   SpriteAnimation? attackAnimation;
   SpriteAnimation? chargeAnimation;
+  SpriteAnimation? muzzleFlash;
 
   bool tempAnimationPlaying = false;
 
   void applyAnimation(SpriteAnimation? animation) {
-    this.animation = animation;
+    this.animation = animation?.clone();
     initTicker();
   }
 
@@ -291,11 +294,37 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     animationTicker?.onComplete = tickerComplete;
   }
 
+  void addMuzzleFlash() {
+    if (muzzleFlash == null || muzzleFlash!.loop) return;
+    final muzzleFlashComponent = SpriteAnimationComponent(
+        animation: muzzleFlash,
+        size: muzzleFlash!.frames.first.sprite.srcSize.scaled(
+                parentJoint.weapon!.length /
+                    muzzleFlash!.frames.first.sprite.srcSize.y) /
+            2,
+        anchor: Anchor.topCenter,
+        priority: attackPriority);
+    parentJoint.weaponTip?.add(muzzleFlashComponent);
+    muzzleFlashComponent.animationTicker?.onComplete = () {
+      muzzleFlashComponent.removeFromParent();
+    };
+  }
+
   void tickerComplete() {
     tempAnimationPlaying = false;
     currentStatus = statusQueue ?? currentStatus;
-    animation = animationQueue;
+    animation = animationQueue ?? idleAnimation;
   }
+
+  @override
+  void update(double dt) {
+    if (!isAnimationPlaying) {
+      animation = idleAnimation;
+    }
+    super.update(dt);
+  }
+
+  bool get isAnimationPlaying => !(animationTicker?.done() ?? true);
 
   Future<void> setWeaponStatus(WeaponStatus newWeaponStatus,
       [SpriteAnimation? attackAnimation]) async {
@@ -308,6 +337,14 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     if (newWeaponStatus == currentStatus &&
         [WeaponStatus.idle].contains(newWeaponStatus)) return;
 
+    if (tempAnimationPlaying) {
+      statusQueue = newWeaponStatus;
+      animationQueue = animation;
+    } else {
+      animationQueue = null;
+      currentStatus = newWeaponStatus;
+    }
+
     switch (newWeaponStatus) {
       case WeaponStatus.spawn:
         if (spawnAnimation == null) break;
@@ -316,10 +353,10 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
 
         break;
       case WeaponStatus.attack:
+        addMuzzleFlash();
         if (attackAnimation == null) break;
         assert(!attackAnimation.loop, "Temp animations must not loop");
         applyAnimation(attackAnimation);
-
         break;
       case WeaponStatus.reload:
         if (parentJoint.weapon is! ReloadFunctionality ||
@@ -344,13 +381,6 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
         animation = idleAnimation;
     }
     animation ??= idleAnimation;
-
-    if (tempAnimationPlaying) {
-      statusQueue = newWeaponStatus;
-      animationQueue = animation;
-    } else {
-      currentStatus = newWeaponStatus;
-    }
 
     if (!(animation?.loop ?? false)) {
       await animationTicker?.completed;

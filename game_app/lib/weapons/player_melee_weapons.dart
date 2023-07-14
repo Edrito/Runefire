@@ -81,16 +81,18 @@ class Dagger extends PlayerWeapon
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
         return WeaponSpriteAnimation(
+            Vector2.zero(),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
+            Vector2.zero(),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
   }
 
@@ -179,16 +181,18 @@ class Spear extends PlayerWeapon
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
         return WeaponSpriteAnimation(
+            Vector2.zero(),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
+            Vector2.zero(),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
   }
 
@@ -299,16 +303,18 @@ class EnergySword extends PlayerWeapon
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
         return WeaponSpriteAnimation(
+            baseOffset,
+            tipOffset,
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
+            baseOffset,
+            tipOffset,
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
   }
 
@@ -339,7 +345,6 @@ class FlameSword extends PlayerWeapon
         MeleeFunctionality,
         // ProjectileFunctionality,
         FullAutomatic,
-        MeleeTrailEffect,
         ReloadFunctionality,
         StaminaCostFunctionality {
   FlameSword.create(
@@ -365,7 +370,7 @@ class FlameSword extends PlayerWeapon
   FutureOr<void> onLoad() async {
     for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
-          .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+          .add(await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true));
     }
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
         [],
@@ -373,6 +378,8 @@ class FlameSword extends PlayerWeapon
               ...previousValue,
               element.frames.first.sprite.srcSize
                   .scaledToDimension(true, length)
+                  .clone()
+                ..x = 1
             ]);
     return super.onLoad();
   }
@@ -397,21 +404,26 @@ class FlameSword extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
+  Vector2 get baseOffset => Vector2(0, .25);
+
+  @override
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
         return WeaponSpriteAnimation(
+            Vector2(5, 0),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true))
-          ..position = Vector2(length / 2, -length / 2)
-          ..angle = radians(45);
+            await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true))
+          ..position = Vector2(-.65, .67)
+          ..angle = radians(-145);
       default:
         return WeaponSpriteAnimation(
+            Vector2.zero(),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true));
     }
   }
 
@@ -425,7 +437,7 @@ class FlameSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double length = 2;
+  double length = 2.6;
 
   @override
   double tipPositionPercent = 0;
@@ -502,16 +514,18 @@ class LargeSword extends PlayerWeapon
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
         return WeaponSpriteAnimation(
+            Vector2.zero(),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
+            Vector2.zero(),
+            Vector2(0, length),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
   }
 

@@ -343,10 +343,11 @@ mixin ProjectileFunctionality on Weapon {
     entityAncestor?.gameEnviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
 
-    entityAncestor?.handJoint.add(MoveEffect.by(Vector2(0, -.05),
-        EffectController(duration: .05, reverseDuration: .05)));
-    entityAncestor?.handJoint.add(RotateEffect.by(
-        entityAncestor!.handJoint.isFlippedHorizontally ? -.05 : .05,
+    // entityAncestor?.handJoint.add(MoveEffect.tp(Vector2(0, -.05),
+    //     EffectController(duration: .05, reverseDuration: .05)));
+    entityAncestor?.handJoint.weaponSpriteAnimation?.add(RotateEffect.to(
+        (entityAncestor?.handJoint.weaponSpriteAnimation?.angle ?? 0) +
+            (entityAncestor!.handJoint.isFlippedHorizontally ? .01 : -.01),
         EffectController(duration: .1, reverseDuration: .1)));
 
     super.attack(chargeAmount);

@@ -69,7 +69,7 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
       userData: this,
       type: BodyType.dynamic,
     );
-    renderBody = false;
+    renderBody = true;
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 }
@@ -113,8 +113,11 @@ class MeleeAttack extends PositionComponent {
       spriteAnimation!.stepTime = duration;
       spriteAnimationComponent = SpriteAnimationComponent(
           anchor: Anchor.topCenter,
-          size: size,
+          // size: size,
+          size: spriteAnimation!.frames.first.sprite.srcSize
+              .scaledToDimension(true, parentWeapon.length),
           animation: spriteAnimation!,
+          position: parentWeapon.baseOffset,
           removeOnFinish: true);
 
       if (parentWeapon.entityAncestor!.flipped) {
@@ -164,7 +167,7 @@ class MeleeAttack extends PositionComponent {
 
     final effectController = EffectController(
       duration: duration * 2,
-      curve: Curves.easeInOutQuint,
+      curve: Curves.easeInOutCubicEmphasized,
     );
     final effectControllerTwo = EffectController(
         duration: duration / 2,
@@ -172,7 +175,7 @@ class MeleeAttack extends PositionComponent {
         curve: Curves.easeOut,
         reverseCurve: Curves.easeOut);
     addAll([
-      ScaleEffect.to(Vector2.all(1.02), effectControllerTwo),
+      // ScaleEffect.to(Vector2.all(1.02), effectControllerTwo),
       RotateEffect.by(
         radians(totalAngle),
         effectController,

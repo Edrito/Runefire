@@ -139,16 +139,19 @@ mixin AimFunctionality on Entity {
   Vector2 get inputAimVectors {
     if (isDead) {
       return lastAimingPosition;
+    } else {
+      final returnVal = inputAimAngles[InputType.aimJoy] ??
+          inputAimAngles[InputType.tapClick] ??
+          inputAimAngles[InputType.mouseDrag] ??
+          inputAimAngles[InputType.mouseMove] ??
+          inputAimAngles[InputType.ai] ??
+          ((this is MovementFunctionality)
+                  ? (this as MovementFunctionality).moveDelta
+                  : Vector2.zero())
+              .normalized();
+      lastAimingPosition = returnVal;
+      return returnVal;
     }
-    return inputAimAngles[InputType.aimJoy] ??
-        inputAimAngles[InputType.tapClick] ??
-        inputAimAngles[InputType.mouseDrag] ??
-        inputAimAngles[InputType.mouseMove] ??
-        inputAimAngles[InputType.ai] ??
-        ((this is MovementFunctionality)
-                ? (this as MovementFunctionality).moveDelta
-                : Vector2.zero())
-            .normalized();
   }
 
   Vector2 get handJointAimDelta {
@@ -206,20 +209,38 @@ mixin AimFunctionality on Entity {
     super.flipSprite();
   }
 
-  void aimCharacter() {
-    if (!enableMovement.parameter) return;
+  @override
+  void update(double dt) {
+    followTarget();
+    super.update(dt);
+  }
 
-    final delta = inputAimVectors;
+  Vector2 handAngleTarget = Vector2.zero();
+  double aimingInterpolationAmount = .915;
+
+  void followTarget() {
+    final angle = calculateInterpolatedVector(handAngleTarget,
+        handJoint.position.normalized(), aimingInterpolationAmount);
+    final double distanceFactor =
+        (Vector2.zero().distanceTo(mouseJoint.position) / 1)
+            .clamp(1, 5)
+            .toDouble();
+    handJoint.position =
+        angle.normalized() * handPositionFromBody * distanceFactor;
 
     handJoint.angle = -radiansBetweenPoints(
       Vector2(0, 1),
-      delta,
+      handJoint.position,
     );
+  }
+
+  void aimCharacter() {
+    if (!enableMovement.parameter) return;
+
+    handAngleTarget = inputAimVectors.clone();
+
     handJointBehindBodyCheck();
     spriteFlipCheck();
-
-    handJoint.position = delta.clone() * handPositionFromBody;
-    lastAimingPosition = delta.clone();
 
     if (inputAimPositions.containsKey(InputType.mouseMove)) {
       mouseJoint.position = inputAimPositions[InputType.mouseMove]!;
@@ -1102,12 +1123,12 @@ mixin JumpFunctionality on StaminaFunctionality {
       controllerD,
     ));
 
-    if (this is AimFunctionality) {
-      (this as AimFunctionality).handJoint.add(MoveEffect.by(
-            Vector2(0, -1),
-            controllerD,
-          ));
-    }
+    // if (this is AimFunctionality) {
+    //   (this as AimFunctionality).handJoint.add(MoveEffect.by(
+    //         Vector2(0, -1),
+    //         controllerD,
+    //       ));
+    // }
     jumpBeginFunctionsCall();
   }
 

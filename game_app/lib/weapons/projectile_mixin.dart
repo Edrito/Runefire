@@ -1,10 +1,11 @@
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 // ignore: unused_import
 import 'package:flutter/material.dart';
-
+import 'dart:ui' as ui;
 import '../entities/enemy.dart';
 import '../entities/entity_mixin.dart';
 import '../entities/player.dart';
@@ -13,7 +14,6 @@ import '../resources/enums.dart';
 import '../resources/constants/physics_filter.dart';
 
 mixin StandardProjectile on Projectile {
-  late final CircleComponent circleComponent;
   int enemiesHit = 0;
   abstract double embedIntoEnemyChance;
 
@@ -30,7 +30,7 @@ mixin StandardProjectile on Projectile {
 
   void createBodyShape() {
     shape = CircleShape();
-    shape.radius = circleComponent.radius;
+    shape.radius = size / 2;
   }
 
   @override
@@ -81,29 +81,41 @@ mixin StandardProjectile on Projectile {
     return returnBody;
   }
 
-  void createShapeComponent() {
-    circleComponent = CircleComponent(
-        radius: size / 2,
-        anchor: Anchor.center,
-        paint: BasicPalette.red.paint());
-    add(circleComponent);
-  }
-
   @override
-  Future<void> onLoad() {
-    createShapeComponent();
-    return super.onLoad();
+  void render(Canvas canvas) {
+    if (!targetSet) {
+      drawBullet(canvas);
+    }
+    super.render(canvas);
   }
 
-  // @override
-  // void render(Canvas canvas) {
-  //   canvas.drawLine(
-  //       Offset.zero, (body.linearVelocity.normalized() * -1).toOffset(), paint);
-  // }
+  void drawBullet(Canvas canvas) {
+    canvas.drawLine(
+        Offset.zero,
+        (body.linearVelocity.normalized() * -.5).toOffset(),
+        paint
+          ..strokeWidth = size
+          ..shader = ui.Gradient.linear(
+              (body.linearVelocity.normalized() * -.5).toOffset(),
+              Offset.zero,
+              [Colors.transparent, secondaryColor]));
+    canvas.drawRect(
+        Rect.fromCenter(center: Offset.zero, width: size, height: size),
+        Paint()
+          // ..strokeWidth = size
+          ..color = primaryColor);
+    // canvas.drawRect(
+    //     Rect.fromCenter(center: Offset.zero, width: size / 2, height: size * 2),
+    //     Paint()
+
+    //       // ..strokeWidth = size
+    //       ..color = primaryColor);
+  }
 
   HealthFunctionality? target;
-
+  bool targetSet = false;
   void setTarget(HealthFunctionality? target) {
+    targetSet = true;
     this.target = target;
     if (target != null) {
       body.linearVelocity = Vector2.zero();
@@ -205,7 +217,7 @@ mixin LaserProjectile on Projectile {
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      linearVelocity: delta * rng.nextDouble() * 2,
+      // linearVelocity: delta * rng.nextDouble() * 2,
       type: BodyType.dynamic,
       bullet: false,
     );
@@ -351,11 +363,12 @@ mixin LaserProjectile on Projectile {
       path.lineTo(element.x, element.y);
     }
 
-    canvas.drawPath(path, paint..color = Colors.blue.withOpacity(opacity));
+    canvas.drawPath(
+        path, paint..color = Colors.lightBlue.shade100.withOpacity(opacity));
     canvas.drawPath(
         path,
         paint
           ..strokeWidth = width * .6
-          ..color = Colors.black.withOpacity(opacity));
+          ..color = Colors.lightBlue.shade300.withOpacity(opacity));
   }
 }

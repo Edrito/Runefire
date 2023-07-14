@@ -354,10 +354,12 @@ class ReloadAnimation extends PositionComponent {
   FutureOr<void> onLoad() {
     final parent = this.parent as EntityStatusEffectsWrapper;
     // final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
-
+    final width = parent.width * .7;
+    final x = (parent.width - width) / 2;
     size.y = height;
     size.x = parent.width * .7;
     position.y = 0;
+    position.x = x;
 
     if (isSecondaryWeapon) {
       position.y += -height * 2;

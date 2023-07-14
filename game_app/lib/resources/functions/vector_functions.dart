@@ -95,6 +95,48 @@ Vector2 randomizeVector2Delta(Vector2 element, double percent) {
   return element.normalized();
 }
 
+Vector2 calculateInterpolatedVector(
+    Vector2 vector1, Vector2 vector2, double factor) {
+  double angle1 = atan2(vector1.y, vector1.x);
+  double angle2 = atan2(vector2.y, vector2.x);
+
+  double deltaAngle = angle2 - angle1;
+
+  // Normalize deltaAngle to be within -pi and pi
+  deltaAngle = normalizeAngle(deltaAngle);
+
+  // Calculate the interpolated angle
+  double interpolatedAngle = angle1 + (deltaAngle * factor);
+
+  // Normalize interpolatedAngle to be within -pi and pi
+  interpolatedAngle = normalizeAngle(interpolatedAngle);
+
+  // Calculate the length of the interpolated vector
+  double length = (vector2 - vector1).length * factor;
+
+  // Calculate the x and y components of the interpolated vector
+  double x = cos(interpolatedAngle) * length;
+  double y = sin(interpolatedAngle) * length;
+
+  // Create the interpolated vector
+  Vector2 interpolatedVector = Vector2(x, y);
+
+  return interpolatedVector;
+}
+
+// Function to normalize an angle to be within -pi and pi
+double normalizeAngle(double angle) {
+  while (angle < -pi) {
+    angle += 2 * pi;
+  }
+
+  while (angle > pi) {
+    angle -= 2 * pi;
+  }
+
+  return angle;
+}
+
 //
 //                               ---.....
 //                                       ***\

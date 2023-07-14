@@ -20,7 +20,9 @@ class Pistol extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (7, 10);
     maxAttacks.baseParameter = 8;
+    projectileVelocity.baseParameter = 30;
     attackTickRate.baseParameter = .3;
+    pierce.baseParameter = 2;
   }
 
   @override
@@ -39,7 +41,7 @@ class Pistol extends PlayerWeapon
   late CircleComponent circle;
 
   @override
-  double distanceFromPlayer = .2;
+  double distanceFromPlayer = .3;
 
   @override
   FutureOr<void> onLoad() async {
@@ -59,21 +61,21 @@ class Pistol extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(
+        return WeaponSpriteAnimation(Vector2.all(0), Vector2(-.1, 1.6),
+            await buildSpriteSheet(1, 'weapons/pistol.png', 1, true),
             parentJoint: parentJoint,
-            idleAnimation:
-                await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            attackAnimation:
+                await buildSpriteSheet(1, 'weapons/pistol.png', .1, false),
+            muzzleFlash: await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false));
     }
   }
 
   @override
-  double length = .7;
+  double length = 1.356;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double tipPositionPercent = -.2;
 }
 
 class Shotgun extends PlayerWeapon
@@ -83,7 +85,7 @@ class Shotgun extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (5, 8);
-    maxAttacks.baseParameter = 4;
+    maxAttacks.baseParameter = 5;
     attackTickRate.baseParameter = .8;
     baseAttackCount.baseParameter = 4;
   }
@@ -105,11 +107,13 @@ class Shotgun extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(
-          parentJoint: parentJoint,
-          idleAnimation:
-              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
-        );
+        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
+            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
+            parentJoint: parentJoint,
+            attackAnimation: await buildSpriteSheet(
+                4, 'weapons/pistol_attack.png', .1, false),
+            muzzleFlash: await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false));
     }
   }
 
@@ -122,7 +126,7 @@ class Shotgun extends PlayerWeapon
   ];
 
   @override
-  double length = 1.2;
+  double length = 2;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -160,16 +164,18 @@ class LongRangeRifle extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(
-          parentJoint: parentJoint,
-          idleAnimation:
-              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
-        );
+        return WeaponSpriteAnimation(Vector2.all(0), Vector2(-.175, 2.65),
+            await buildSpriteSheet(1, 'weapons/long_rifle.png', 1, true),
+            parentJoint: parentJoint,
+            attackAnimation:
+                await buildSpriteSheet(1, 'weapons/long_rifle.png', .1, false),
+            muzzleFlash: await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false));
     }
   }
 
   @override
-  double distanceFromPlayer = 0;
+  double distanceFromPlayer = .2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -177,13 +183,10 @@ class LongRangeRifle extends PlayerWeapon
   ];
 
   @override
-  double length = 1.2;
+  double length = 3.5;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double tipPositionPercent = -.2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
@@ -196,8 +199,11 @@ class AssaultRifle extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (1, 3);
-    maxAttacks.baseParameter = 26;
+    maxAttacks.baseParameter = 22;
     attackTickRate.baseParameter = .1;
+    // baseAttackCount.baseParameter = 10;
+    weaponRandomnessPercent.baseParameter = .025;
+    projectileVelocity.baseParameter = 40;
   }
   @override
   WeaponType weaponType = WeaponType.assaultRifle;
@@ -217,11 +223,13 @@ class AssaultRifle extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(
-          parentJoint: parentJoint,
-          idleAnimation:
-              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
-        );
+        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
+            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
+            parentJoint: parentJoint,
+            attackAnimation: await buildSpriteSheet(
+                4, 'weapons/pistol_attack.png', .1, false),
+            muzzleFlash: await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false));
     }
   }
 
@@ -240,7 +248,7 @@ class AssaultRifle extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.bullet;
 
   @override
-  double tipPositionPercent = -.2;
+  double tipPositionPercent = -.07;
 }
 
 class LaserRifle extends PlayerWeapon
@@ -253,6 +261,7 @@ class LaserRifle extends PlayerWeapon
     maxAttacks.baseParameter = 12;
     attackTickRate.baseParameter = .4;
     waitForAttackRate = false;
+    weaponRandomnessPercent.baseParameter = .04;
   }
   @override
   WeaponType weaponType = WeaponType.laserRifle;
@@ -272,11 +281,13 @@ class LaserRifle extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(
-          parentJoint: parentJoint,
-          idleAnimation:
-              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
-        );
+        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
+            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
+            parentJoint: parentJoint,
+            attackAnimation: await buildSpriteSheet(
+                4, 'weapons/pistol_attack.png', .1, false),
+            muzzleFlash: await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false));
     }
   }
 
@@ -295,7 +306,7 @@ class LaserRifle extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.laser;
 
   @override
-  double tipPositionPercent = -.2;
+  double tipPositionPercent = -.0;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -329,11 +340,13 @@ class RocketLauncher extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(
-          parentJoint: parentJoint,
-          idleAnimation:
-              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
-        );
+        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
+            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
+            parentJoint: parentJoint,
+            attackAnimation: await buildSpriteSheet(
+                4, 'weapons/pistol_attack.png', .1, false),
+            muzzleFlash: await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false));
     }
   }
 
@@ -386,11 +399,13 @@ class Railgun extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(
-          parentJoint: parentJoint,
-          idleAnimation:
-              await buildSpriteSheet(1, weaponType.flameImage, 1, true),
-        );
+        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
+            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
+            parentJoint: parentJoint,
+            attackAnimation: await buildSpriteSheet(
+                4, 'weapons/pistol_attack.png', .1, false),
+            muzzleFlash: await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false));
     }
   }
 
