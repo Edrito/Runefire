@@ -188,10 +188,10 @@ void main() async {
             onKey: gameRouter.onKeyEvent,
             child: GameWidget(
                 backgroundBuilder: (context) {
-                  if (currentRoute == routes.gameplay) {
-                    return const SizedBox();
-                  }
-                  return const BackgroundWidget();
+                  // if (currentRoute == routes.gameplay) {
+                  return const SizedBox();
+                  // }
+                  // return const BackgroundWidget();
                 },
                 loadingBuilder: (p0) {
                   return Padding(

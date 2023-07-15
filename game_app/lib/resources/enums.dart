@@ -311,7 +311,7 @@ extension WeaponTypeFilename on WeaponType {
 
 enum SemiAutoType { regular, release, charge }
 
-enum DamageType { physical, fire, psychic, energy, frost, bleed }
+enum DamageType { physical, magic, fire, psychic, energy, frost }
 
 typedef WeaponCreateFunction = Weapon Function(Entity);
 
@@ -331,8 +331,8 @@ class DamageInstance {
         return const Color.fromARGB(255, 247, 255, 199);
       case DamageType.psychic:
         return Colors.purple;
-      case DamageType.bleed:
-        return Colors.red;
+      case DamageType.magic:
+        return Colors.blue;
       case DamageType.fire:
         return Colors.orange;
       case DamageType.frost:

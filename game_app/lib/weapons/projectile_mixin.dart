@@ -20,7 +20,7 @@ mixin StandardProjectile on Projectile {
   void incrementHits() {
     enemiesHit++;
     projectileHasExpired = enemiesHit > weaponAncestor.pierce.parameter;
-
+    print(enemiesHit);
     if (projectileHasExpired) {
       killBullet();
     }
@@ -83,27 +83,26 @@ mixin StandardProjectile on Projectile {
 
   @override
   void render(Canvas canvas) {
-    if (!targetSet) {
-      drawBullet(canvas);
-    }
+    drawBullet(canvas);
     super.render(canvas);
   }
 
   void drawBullet(Canvas canvas) {
     canvas.drawLine(
         Offset.zero,
-        (body.linearVelocity.normalized() * -.5).toOffset(),
+        (body.linearVelocity.normalized() * -5).toOffset(),
         paint
           ..strokeWidth = size
           ..shader = ui.Gradient.linear(
-              (body.linearVelocity.normalized() * -.5).toOffset(),
+              (body.linearVelocity.normalized() * -4).toOffset(),
               Offset.zero,
-              [Colors.transparent, secondaryColor]));
-    canvas.drawRect(
-        Rect.fromCenter(center: Offset.zero, width: size, height: size),
-        Paint()
-          // ..strokeWidth = size
-          ..color = primaryColor);
+              [Colors.transparent, secondaryColor, secondaryColor.brighten(.6)],
+              [0, .95, 1]));
+    // canvas.drawRect(
+    //     Rect.fromCenter(center: Offset.zero, width: size, height: size),
+    //     Paint()
+    //       // ..strokeWidth = size
+    //       ..color = primaryColor);
     // canvas.drawRect(
     //     Rect.fromCenter(center: Offset.zero, width: size / 2, height: size * 2),
     //     Paint()
