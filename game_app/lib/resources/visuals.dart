@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
+import 'enums.dart';
 import 'functions/functions.dart';
 import '../attributes/attributes_enum.dart';
 

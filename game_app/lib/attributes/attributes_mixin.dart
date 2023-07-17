@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
+import '../resources/enums.dart';
 import 'attributes.dart';
 import 'attributes_enum.dart';
 import '../resources/visuals.dart';
@@ -133,12 +134,6 @@ class StatusEffect extends PositionComponent {
   final double spriteSize = .2;
 
   late SpriteAnimationComponent spriteAnimationComponent;
-
-  @override
-  void onRemove() {
-    print('removed');
-    super.onRemove();
-  }
 
   @override
   FutureOr<void> onLoad() async {

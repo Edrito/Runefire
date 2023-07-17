@@ -72,6 +72,14 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   final DamagePercentParameterManager damageTypePercentIncrease =
       DamagePercentParameterManager(damagePercentBase: {});
 
+  ///1 = 100% damage
+  ///0 = Take no damage
+  ///2 = Take double damage
+  final DamagePercentParameterManager damageTypeResistance =
+      DamagePercentParameterManager(
+    damagePercentBase: {},
+  );
+
   final DoubleParameterManager areaDamagePercentIncrease =
       DoubleParameterManager(baseParameter: 1);
 
@@ -566,7 +574,7 @@ mixin HealthFunctionality on Entity {
 
   void addDamageEffects(Color color) {
     final reversedController = EffectController(
-      duration: .15,
+      duration: .3,
       reverseDuration: .1,
     );
 

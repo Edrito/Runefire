@@ -52,9 +52,9 @@ enum AttributeEnum {
   //Permanent
   speed(category: AttributeCategory.mobility),
   attackRate(category: AttributeCategory.attack),
-  duration(),
+  duration,
   durationDamage(category: AttributeCategory.offense),
-  areaSize(),
+  areaSize,
   areaDamage(category: AttributeCategory.offense),
   critChance(category: AttributeCategory.offense),
   critDamage(category: AttributeCategory.offense),
@@ -131,5 +131,3 @@ extension AllAttributesExtension on AttributeEnum {
     }
   }
 }
-
-enum StatusEffects { burn, bleed, chill, electrified, stun, psychic }

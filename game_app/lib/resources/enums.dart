@@ -76,7 +76,7 @@ enum InputType {
   tapClick,
   secondaryClick,
   mouseDrag,
-  mouseDragStart,
+  // mouseDragStart,
   ai,
 }
 
@@ -312,6 +312,8 @@ extension WeaponTypeFilename on WeaponType {
 enum SemiAutoType { regular, release, charge }
 
 enum DamageType { physical, magic, fire, psychic, energy, frost }
+
+enum StatusEffects { burn, chill, electrified, stun, psychic }
 
 typedef WeaponCreateFunction = Weapon Function(Entity);
 

@@ -92,8 +92,8 @@ class CustomJoystickComponent extends HudMarginComponent {
     intensity = delta.length2 / knobRadius2;
   }
 
-  bool onDragUpdate(DragUpdateInfo info) {
-    _unscaledDelta.add(info.delta.viewport);
+  bool onDragUpdate(Vector2 delta) {
+    _unscaledDelta.add(delta);
     return true;
   }
 

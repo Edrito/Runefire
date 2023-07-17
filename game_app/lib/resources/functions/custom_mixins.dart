@@ -60,6 +60,33 @@ class SquareParticle extends Particle {
   }
 }
 
+class FadeOutCircleParticle extends CircleParticle {
+  FadeOutCircleParticle({
+    required Paint paint,
+    required double lifespan,
+    double radius = 10.0,
+  }) : super(paint: paint, radius: radius, lifespan: lifespan) {
+    lifespanForOpacity = lifespan;
+  }
+  late double lifespanForOpacity;
+  double duration = 0;
+  @override
+  void update(double dt) {
+    duration += dt;
+    super.update(dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    canvas.drawCircle(
+        Offset.zero,
+        radius,
+        Paint()
+          ..color = paint.color
+              .withOpacity((1 - duration / lifespanForOpacity).clamp(0, 1)));
+  }
+}
+
 mixin UpgradeFunctions {
   int upgradeLevel = 0;
 

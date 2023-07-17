@@ -15,6 +15,7 @@ import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:recase/recase.dart';
 
+import '../resources/functions/custom_mixins.dart';
 import '../resources/functions/vector_functions.dart';
 import '../resources/enums.dart';
 
@@ -143,6 +144,9 @@ mixin StaminaCostFunctionality on Weapon {
 mixin MeleeFunctionality on Weapon {
   ///How many attacks are in the melee combo
   int get numberOfAttacks => attackHitboxPatterns.length ~/ 2;
+
+  final BoolParameterManager meleeAttacksCollision =
+      BoolParameterManager(baseParameter: false);
 
   ///Pairs of attack patterns
   ///
@@ -342,6 +346,7 @@ mixin ProjectileFunctionality on Weapon {
   void attack([double chargeAmount = 1]) async {
     entityAncestor?.gameEnviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
+    entityAncestor?.gameEnviroment?.add(generateParticle());
 
     // entityAncestor?.handJoint.add(MoveEffect.tp(Vector2(0, -.05),
     //     EffectController(duration: .05, reverseDuration: .05)));
@@ -353,32 +358,36 @@ mixin ProjectileFunctionality on Weapon {
     super.attack(chargeAmount);
   }
 
-  double particleLifespan = .15;
+  double particleLifespan = .5;
 
   Component generateParticle() {
     Vector2 moveDelta = entityAncestor?.body.linearVelocity ?? Vector2.zero();
-    var particleColor = Colors.orange.withOpacity(.5);
+    var particleColor = Colors.blue.withOpacity(.5);
     final particle = Particle.generate(
-      lifespan: particleLifespan,
-      count: 10,
+      count: 20 + rng.nextInt(10),
+      lifespan: 2,
+      applyLifespanToChildren: false,
       generator: (i) => AcceleratedParticle(
-        position: weaponTipPosition,
-        speed: moveDelta +
-            (randomizeVector2Delta(
-                            entityAncestor?.inputAimVectors ?? Vector2.zero(),
-                            .45)
-                        .normalized())
-                    .clone() *
-                30 *
-                (.5 + rng.nextDouble()),
-        child: CircleParticle(
-          radius: .06 * (.06 + rng.nextDouble()),
-          paint: Paint()..color = particleColor,
-        ),
+        position: getWeaponTipDownBarrel(.9),
+        speed: (randomizeVector2Delta(
+                        entityAncestor?.inputAimVectors ?? Vector2.zero(), .3)
+                    .normalized())
+                .clone() *
+            3 *
+            (1 + rng.nextDouble()),
+        child: FadeOutCircleParticle(
+            radius: .05 * ((rng.nextDouble() * .9) + .1),
+            paint: Paint()..color = particleColor,
+            lifespan: (particleLifespan * rng.nextDouble()) + particleLifespan),
       ),
     );
 
     return ParticleSystemComponent(particle: particle);
+  }
+
+  Vector2 getWeaponTipDownBarrel(double percentBetweenBaseAndTip) {
+    return ((weaponTipPosition! - entityAncestor!.center) * .9) +
+        entityAncestor!.center;
   }
 
   Vector2? get weaponTipPosition {
@@ -398,7 +407,7 @@ mixin ProjectileFunctionality on Weapon {
     List<BodyComponent> returnList = [];
 
     List<Vector2> temp = splitVector2DeltaIntoArea(
-        entityAncestor?.inputAimVectors ?? Vector2.zero(),
+        entityAncestor?.handJoint.position.normalized() ?? Vector2.zero(),
         attackCount,
         maxSpreadDegrees.parameter);
 

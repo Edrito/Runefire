@@ -132,6 +132,7 @@ void endGame([bool restart = false]) {
 
 late Function setStateMainMenu;
 
+Map<int, bool> isSecondaryPointer = {};
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows) {
@@ -166,23 +167,66 @@ void main() async {
     Material(
       child: Directionality(
         textDirection: TextDirection.ltr,
-        child: MouseRegion(
-          // onPointerPanZoomStart: (event) {
-          //   print('drag');
-          // },
-          // cursor: SystemMouseCursor,
-          onHover: (event) {
-            if (event.buttons == 2 && event.kind == PointerDeviceKind.mouse) {
-              gameRouter.onMouseMove(PointerHoverInfo.fromDetails(
-                  gameRouter, PointerHoverEvent(position: event.position)));
+        child: Listener(
+          onPointerHover: (event) {
+            gameRouter.onMouseMove(event);
+          },
+          onPointerMove: (event) {
+            if (event.kind == PointerDeviceKind.mouse) {
+              if (event.buttons == 2) {
+                gameRouter.onSecondaryMove(event);
+              } else {
+                gameRouter.onTapMove(event);
+              }
+            }
+
+            gameRouter.onMouseMove(PointerHoverEvent(
+                buttons: event.buttons,
+                delta: event.delta,
+                pointer: event.pointer,
+                position: event.position,
+                timeStamp: event.timeStamp,
+                kind: event.kind,
+                obscured: event.obscured,
+                embedderId: event.embedderId,
+                device: event.device));
+          },
+          onPointerDown: (event) {
+            if (gameRouter.paused) return;
+            if (event.kind == PointerDeviceKind.mouse) {
+              if (event.buttons == 2) {
+                isSecondaryPointer[event.pointer] = true;
+                gameRouter.onSecondaryTapDown(event);
+              } else {
+                isSecondaryPointer[event.pointer] = false;
+
+                gameRouter.onTapDown(event);
+              }
             }
           },
-          // onPointerHover: (event) {
-          //   // if (event.kind == PointerDeviceKind.mouse) {
-          //   gameRouter.onMouseMove(PointerHoverInfo.fromDetails(
-          //       gameRouter, PointerHoverEvent(position: event.position)));
-          //   // }
-          // },
+          onPointerUp: (event) {
+            if (event.kind == PointerDeviceKind.mouse) {
+              if (isSecondaryPointer[event.pointer] == true) {
+                gameRouter.onSecondaryTapUp(event);
+              } else {
+                gameRouter.onTapUp(event);
+              }
+            }
+            isSecondaryPointer.remove(event.pointer);
+          },
+          onPointerCancel: (event) {
+            if (event.kind == PointerDeviceKind.mouse) {
+              if (isSecondaryPointer[event.pointer] == true) {
+                gameRouter.onSecondaryTapCancel();
+              } else {
+                gameRouter.onTapCancel();
+              }
+            }
+            isSecondaryPointer.remove(event.pointer);
+          },
+          onPointerSignal: (event) {
+            print(event.buttons);
+          },
           child: RawKeyboardListener(
             focusNode: node,
             onKey: gameRouter.onKeyEvent,
@@ -217,12 +261,7 @@ void main() async {
   );
 }
 
-class GameRouter extends Forge2DGame
-    with
-        ScrollDetector,
-        SecondaryTapDetector,
-        MouseMovementDetector,
-        TapDetector {
+class GameRouter extends Forge2DGame with ScrollDetector {
   late final RouterComponent router;
 
   GameRouter(this._systemData, this._playerData)
@@ -261,43 +300,36 @@ class GameRouter extends Forge2DGame
     }
   }
 
-  @override
-  void onSecondaryTapDown(TapDownInfo info) {
-    if (mouseCallback.isNotEmpty && info.raw.kind == PointerDeviceKind.mouse) {
+  void onSecondaryTapDown(PointerDownEvent info) {
+    if (mouseCallback.isNotEmpty) {
       for (var element in mouseCallback) {
         if (element.onSecondaryDown != null) {
           element.onSecondaryDown!(info);
         }
       }
     }
-    super.onSecondaryTapDown(info);
   }
 
-  @override
-  void onTapDown(TapDownInfo info) {
-    if (mouseCallback.isNotEmpty && info.raw.kind == PointerDeviceKind.mouse) {
+  void onTapDown(PointerDownEvent info) {
+    if (mouseCallback.isNotEmpty) {
       for (var element in mouseCallback) {
         if (element.onPrimaryDown != null) {
           element.onPrimaryDown!(info);
         }
       }
     }
-    super.onTapDown(info);
   }
 
-  @override
-  void onSecondaryTapUp(TapUpInfo info) {
-    if (mouseCallback.isNotEmpty && info.raw.kind == PointerDeviceKind.mouse) {
+  void onSecondaryTapUp(PointerUpEvent info) {
+    if (mouseCallback.isNotEmpty) {
       for (var element in mouseCallback) {
         if (element.onSecondaryUp != null) {
           element.onSecondaryUp!(info);
         }
       }
     }
-    super.onSecondaryTapUp(info);
   }
 
-  @override
   void onSecondaryTapCancel() {
     if (mouseCallback.isNotEmpty) {
       for (var element in mouseCallback) {
@@ -306,10 +338,8 @@ class GameRouter extends Forge2DGame
         }
       }
     }
-    super.onSecondaryTapCancel();
   }
 
-  @override
   void onTapCancel() {
     if (mouseCallback.isNotEmpty) {
       for (var element in mouseCallback) {
@@ -318,23 +348,39 @@ class GameRouter extends Forge2DGame
         }
       }
     }
-    super.onTapCancel();
   }
 
-  @override
-  void onTapUp(TapUpInfo info) {
-    if (mouseCallback.isNotEmpty && info.raw.kind == PointerDeviceKind.mouse) {
+  void onTapUp(PointerUpEvent info) {
+    if (mouseCallback.isNotEmpty) {
       for (var element in mouseCallback) {
         if (element.onPrimaryUp != null) {
           element.onPrimaryUp!(info);
         }
       }
     }
-    super.onTapUp(info);
   }
 
-  @override
-  void onMouseMove(PointerHoverInfo info) {
+  void onTapMove(PointerMoveEvent info) {
+    if (mouseCallback.isNotEmpty) {
+      for (var element in mouseCallback) {
+        if (element.onPrimaryMove != null) {
+          element.onPrimaryMove!(info);
+        }
+      }
+    }
+  }
+
+  void onSecondaryMove(PointerMoveEvent info) {
+    if (mouseCallback.isNotEmpty) {
+      for (var element in mouseCallback) {
+        if (element.onSecondaryMove != null) {
+          element.onSecondaryMove!(info);
+        }
+      }
+    }
+  }
+
+  void onMouseMove(PointerHoverEvent info) {
     if (mouseCallback.isNotEmpty) {
       for (var element in mouseCallback) {
         if (element.onMouseMove != null) {
@@ -378,16 +424,18 @@ class GameRouter extends Forge2DGame
 
 class MouseKeyboardCallbackWrapper {
   //LCLICK
-  Function(TapUpInfo)? onPrimaryUp;
+  Function(PointerUpEvent)? onPrimaryUp;
   Function()? onPrimaryCancel;
-  Function(TapDownInfo)? onPrimaryDown;
+  Function(PointerDownEvent)? onPrimaryDown;
+  Function(PointerMoveEvent)? onPrimaryMove;
 
   //RCLICK
-  Function(TapUpInfo)? onSecondaryUp;
+  Function(PointerUpEvent)? onSecondaryUp;
   Function()? onSecondaryCancel;
-  Function(TapDownInfo)? onSecondaryDown;
+  Function(PointerDownEvent)? onSecondaryDown;
   Function(RawKeyEvent)? keyEvent;
+  Function(PointerMoveEvent)? onSecondaryMove;
 
   //Move
-  Function(PointerHoverInfo)? onMouseMove;
+  Function(PointerHoverEvent)? onMouseMove;
 }

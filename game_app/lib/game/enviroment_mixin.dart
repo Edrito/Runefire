@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flame/events.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
+import 'package:flutter/services.dart';
 import 'package:game_app/entities/player.dart';
+import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -48,13 +51,11 @@ mixin JoystickFunctionality on PlayerFunctionality {
   }
 
   @override
-  bool discernJoystate(int id, PositionInfo globalPos) {
-    final moveEnabled = moveJoystick?.background
-            ?.containsPoint(globalPos.eventPosition.global) ??
-        false;
-    final aimEnabled = aimJoystick?.background
-            ?.containsPoint(globalPos.eventPosition.global) ??
-        false;
+  bool discernJoystate(int id, Vector2 eventPosition) {
+    final moveEnabled =
+        moveJoystick?.background?.containsPoint(eventPosition) ?? false;
+    final aimEnabled =
+        aimJoystick?.background?.containsPoint(eventPosition) ?? false;
 
     if (moveEnabled) {
       inputIdStates[id] = InputType.moveJoy;
@@ -78,19 +79,22 @@ mixin JoystickFunctionality on PlayerFunctionality {
   }
 
   @override
-  void transmitDragInfo(int pointerId, DragUpdateInfo info) {
+  void transmitDragInfo(int pointerId, PointerMoveEvent info) {
     switch (inputIdStates[pointerId]) {
       case InputType.aimJoy:
-        aimJoystick?.onDragUpdate(info);
-        player?.gestureEventStart(InputType.aimJoy, info);
+        aimJoystick?.onDragUpdate(info.localDelta.toVector2());
+        player?.gestureEventStart(
+            InputType.aimJoy, info.localPosition.toVector2());
 
         break;
       case InputType.moveJoy:
-        moveJoystick?.onDragUpdate(info);
-        player?.gestureEventStart(InputType.moveJoy, info);
+        moveJoystick?.onDragUpdate(info.localDelta.toVector2());
+        player?.gestureEventStart(
+            InputType.moveJoy, info.localPosition.toVector2());
         break;
       case InputType.mouseDrag:
-        player?.gestureEventStart(InputType.mouseDrag, info);
+        player?.gestureEventStart(
+            InputType.mouseDrag, info.localPosition.toVector2());
 
       default:
     }
@@ -102,15 +106,15 @@ mixin JoystickFunctionality on PlayerFunctionality {
       switch (inputIdStates[id]) {
         case InputType.aimJoy:
           aimJoystick?.onDragCancel();
-          player?.gestureEventEnd(InputType.aimJoy, null);
+          player?.gestureEventEnd(InputType.aimJoy);
 
           break;
         case InputType.moveJoy:
           moveJoystick?.onDragCancel();
-          player?.gestureEventEnd(InputType.moveJoy, null);
+          player?.gestureEventEnd(InputType.moveJoy);
           break;
         case InputType.mouseDrag:
-          player?.gestureEventEnd(InputType.mouseDrag, null);
+          player?.gestureEventEnd(InputType.mouseDrag);
 
           break;
         default:
@@ -210,25 +214,35 @@ mixin PlayerFunctionality on Enviroment {
   }
 
   @override
-  void onMouseMove(PointerHoverInfo info) {
+  void onMouseMove(PointerHoverEvent info) {
+    test.position = info.localPosition.toVector2();
     if (Platform.isWindows) {
-      player?.gestureEventStart(InputType.mouseMove, info);
+      player?.gestureEventStart(
+          InputType.mouseMove, info.localPosition.toVector2());
     }
   }
+
+  final test = PositionComponent();
 
   void addPlayer() {
     player = Player(gameRef.playerDataComponent.dataObject, false,
         gameEnviroment: this, initPosition: Vector2.zero());
     player?.priority = playerPriority;
-    player?.mounted.whenComplete(
-        () => add(CustomFollowBehavior(player!, gameCamera.viewfinder)));
+
+    // add(CustomFollowBehavior(player!, gameCamera.viewfinder));\
+    player?.mounted.then((value) => gameCamera.followCustom(player!.body));
+    // add(test);
+    // test.add(CircleComponent(radius: .1, paint: Paint()..color = Colors.red));
+    // gameCamera.follow(test);
+
     add(player!);
   }
 
-  void transmitDragInfo(int pointerId, DragUpdateInfo info) {
+  void transmitDragInfo(int pointerId, PointerMoveEvent info) {
     switch (inputIdStates[pointerId]) {
       case InputType.mouseDrag:
-        player?.gestureEventStart(InputType.mouseDrag, info);
+        player?.gestureEventStart(
+            InputType.mouseDrag, info.localPosition.toVector2());
 
       default:
     }
@@ -238,7 +252,7 @@ mixin PlayerFunctionality on Enviroment {
     if (inputIdStates.containsKey(id)) {
       switch (inputIdStates[id]) {
         case InputType.mouseDrag:
-          player?.gestureEventEnd(InputType.mouseDrag, null);
+          player?.gestureEventEnd(InputType.mouseDrag);
 
           break;
         default:
@@ -247,41 +261,42 @@ mixin PlayerFunctionality on Enviroment {
     }
   }
 
+  // @override
+  // void onDragCancel(DragCancelEvent event) {
+  //   endIdState(event.pointerId);
+  //   super.onDragCancel(event);
+  // }
+
+  // @override
+  // void onDragEnd(DragEndEvent event) {
+  //   endIdState(event.pointerId);
+  //   super.onDragEnd(event);
+  // }
+
+  // @override
+  // void onDragStart(DragStartEvent event) {
+  //   super.onDragStart(event);
+  // }
+
   @override
-  void onTapDown(TapDownInfo info) {
-    if (Platform.isWindows && !discernJoystate(-1, info)) {
-      player?.gestureEventStart(InputType.tapClick, info);
+  void onTapDown(PointerDownEvent info) {
+    if (Platform.isWindows &&
+        !discernJoystate(-1, info.localPosition.toVector2())) {
+      player?.gestureEventStart(
+          InputType.tapClick, info.localPosition.toVector2());
     }
   }
 
-  @override
-  void onDragCancel(DragCancelEvent event) {
-    endIdState(event.pointerId);
-    super.onDragCancel(event);
+  void onTapMove(PointerMoveEvent event) {
+    transmitDragInfo(event.pointer, event);
+    discernJoystate(event.pointer, event.localPosition.toVector2());
+    // player?.gestureEventStart(
+    //     InputType.mouseDragStart, event.localPosition.toVector2());
   }
 
   @override
-  void onDragEnd(DragEndEvent event) {
-    endIdState(event.pointerId);
-    super.onDragEnd(event);
-  }
-
-  @override
-  void onDragStart(DragStartEvent event) {
-    discernJoystate(event.pointerId, event.asInfo(game));
-    player?.gestureEventStart(InputType.mouseDragStart, event.asInfo(game));
-    super.onDragStart(event);
-  }
-
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    transmitDragInfo(event.pointerId, event.asInfo(game));
-    super.onDragUpdate(event);
-  }
-
-  @override
-  void onTapUp(TapUpInfo info) {
-    endIdState(-1);
-    player?.gestureEventEnd(InputType.tapClick, info);
+  void onTapUp(PointerUpEvent info) {
+    endIdState(info.pointer);
+    player?.gestureEventEnd(InputType.tapClick);
   }
 }

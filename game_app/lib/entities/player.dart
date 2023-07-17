@@ -150,7 +150,6 @@ class Player extends Entity
     if (!isDead) {
       moveCharacter();
     }
-
     // circleComponent.position =
     //     inputAimPositions[InputType.mouseMove] ?? Vector2.zero();
     super.update(dt);
@@ -173,6 +172,7 @@ class Player extends Entity
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyS)) {
         moveAngle.y += 1;
       }
+      print(moveAngle);
 
       if (gameIsPaused || event is! RawKeyDownEvent) return;
 
@@ -223,16 +223,16 @@ class Player extends Entity
 
   int debugCount = 0;
 
-  void gestureEventEnd(InputType inputType, PositionInfo? info) async {
+  void gestureEventEnd(InputType inputType) async {
     switch (inputType) {
-      case InputType.mouseMove:
-        if (info == null) return;
-        await loaded.whenComplete(() => null);
-        inputAimPositions[InputType.mouseMove] =
-            (info.eventPosition.game - center);
-        inputAimAngles[InputType.mouseMove] =
-            inputAimPositions[InputType.mouseMove]!.normalized();
-        break;
+      // case InputType.mouseMove:
+      //   if (info == null) return;
+      //   await loaded.whenComplete(() => null);
+      //   inputAimPositions[InputType.mouseMove] =
+      //       (info.eventPosition.game - center);
+      //   inputAimAngles[InputType.mouseMove] =
+      //       inputAimPositions[InputType.mouseMove]!.normalized();
+      //   break;
 
       case InputType.aimJoy:
         inputAimAngles.remove(InputType.aimJoy);
@@ -261,15 +261,14 @@ class Player extends Entity
     endAttacking();
   }
 
-  void gestureEventStart(InputType inputType, PositionInfo info) {
+  void gestureEventStart(InputType inputType, Vector2 eventPosition) {
     // if (isDisplay && inputType != InputType.mouseMove) return;
 
     switch (inputType) {
       case InputType.mouseMove:
         if (!isMounted) return;
         inputAimPositions[InputType.mouseMove] = (shiftCoordinatesToCenter(
-                info.eventPosition.viewport,
-                gameEnviroment.gameCamera.viewport.size) /
+                eventPosition, gameEnviroment.gameCamera.viewport.size) /
             gameEnviroment.gameCamera.viewfinder.zoom);
         inputAimAngles[InputType.mouseMove] =
             inputAimPositions[InputType.mouseMove]!.normalized();
@@ -290,8 +289,7 @@ class Player extends Entity
 
       case InputType.tapClick:
         inputAimPositions[InputType.tapClick] = shiftCoordinatesToCenter(
-                info.eventPosition.viewport,
-                gameEnviroment.gameCamera.viewport.size) /
+                eventPosition, gameEnviroment.gameCamera.viewport.size) /
             gameEnviroment.gameCamera.viewfinder.zoom;
         // inputAimAngles[InputType.mouseMove] =
         //     inputAimPositions[InputType.mouseMove]!.normalized();
@@ -303,8 +301,7 @@ class Player extends Entity
 
       case InputType.mouseDrag:
         inputAimPositions[InputType.mouseMove] = shiftCoordinatesToCenter(
-                info.eventPosition.viewport,
-                gameEnviroment.gameCamera.viewport.size) /
+                eventPosition, gameEnviroment.gameCamera.viewport.size) /
             gameEnviroment.gameCamera.viewfinder.zoom;
         inputAimPositions[InputType.mouseDrag] =
             inputAimPositions[InputType.mouseMove]!;
@@ -312,12 +309,13 @@ class Player extends Entity
             inputAimPositions[InputType.mouseDrag]!.normalized();
         inputAimAngles[InputType.mouseMove] =
             inputAimAngles[InputType.mouseDrag]!.clone();
+        startAttacking();
 
         break;
-      case InputType.mouseDragStart:
-        if (!inputAimAngles.containsKey(InputType.mouseMove)) return;
-        startAttacking();
-        break;
+      // case InputType.mouseDragStart:
+      //   if (!inputAimAngles.containsKey(InputType.mouseMove)) return;
+      //   startAttacking();
+      //   break;
       // case InputType.secondaryClick:
       //   startAltAttacking();
       //   break;

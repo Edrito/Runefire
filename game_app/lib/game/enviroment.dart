@@ -1,4 +1,6 @@
 import 'package:flame/events.dart';
+import 'package:flame_forge2d/forge2d_game.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 
@@ -14,9 +16,11 @@ import '../resources/constants/priorities.dart';
 import 'package:window_manager/window_manager.dart';
 
 abstract class Enviroment extends Component
-    with HasGameRef<GameRouter>, WindowListener, DragCallbacks {
+    with HasGameRef<GameRouter>, WindowListener {
   late final Forge2DComponent physicsComponent;
-
+  Enviroment() {
+    wrapper = MouseKeyboardCallbackWrapper();
+  }
   Map<int, InputType> inputIdStates = {};
   late final World gameWorld;
   late CameraComponent gameCamera;
@@ -35,7 +39,6 @@ abstract class Enviroment extends Component
 
   @override
   void onMount() {
-    wrapper = MouseKeyboardCallbackWrapper();
     wrapper.onMouseMove = onMouseMove;
     wrapper.onPrimaryDown = onTapDown;
     wrapper.onPrimaryUp = onTapUp;
@@ -54,7 +57,7 @@ abstract class Enviroment extends Component
     super.onRemove();
   }
 
-  bool discernJoystate(int id, PositionInfo globalPos) {
+  bool discernJoystate(int id, Vector2 eventPosition) {
     inputIdStates[id] = InputType.mouseDrag;
     return false;
   }
@@ -71,7 +74,7 @@ abstract class Enviroment extends Component
 
     //Camera
     gameCamera = CameraComponent(world: gameWorld);
-    gameCamera.priority = backgroundPriority;
+    gameCamera.priority = -50000;
     gameCamera.viewfinder.zoom = 75;
     super.add(gameCamera);
     // gameCamera.viewfinder.angle = radians(180);
@@ -83,11 +86,11 @@ abstract class Enviroment extends Component
     return super.onLoad();
   }
 
-  void onTapDown(TapDownInfo info) {}
+  void onTapDown(PointerDownEvent info) {}
 
-  void onMouseMove(PointerHoverInfo info) {}
+  void onMouseMove(PointerHoverEvent info) {}
 
-  void onTapUp(TapUpInfo info) {}
+  void onTapUp(PointerUpEvent info) {}
 
   void onKeyEvent(RawKeyEvent event) {}
 }

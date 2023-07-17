@@ -20,7 +20,6 @@ mixin StandardProjectile on Projectile {
   void incrementHits() {
     enemiesHit++;
     projectileHasExpired = enemiesHit > weaponAncestor.pierce.parameter;
-    print(enemiesHit);
     if (projectileHasExpired) {
       killBullet();
     }
