@@ -1,8 +1,10 @@
 import 'package:flame/events.dart';
-import 'package:flame_forge2d/forge2d_game.dart';
+import 'package:flame_forge2d/forge2d_camera.dart' as forge2dCamera;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
+import 'package:flame_forge2d/forge2d_camera.dart';
+import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 
 import '../game/background.dart';
 
