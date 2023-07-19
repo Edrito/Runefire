@@ -440,9 +440,6 @@ class FlameSword extends PlayerWeapon
   double length = 2.6;
 
   @override
-  double tipPositionPercent = 0;
-
-  @override
   WeaponType weaponType = WeaponType.flameSword;
 }
 

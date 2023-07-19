@@ -29,20 +29,15 @@ mixin AttributeFunctionality on Entity {
     initalized = true;
   }
 
-  void addRandomAttribute() {
-    addAttributeEnum(
-        AttributeEnum.values[rng.nextInt(AttributeEnum.values.length)]);
-  }
-
-  void addAttributeEnum(AttributeEnum attribute,
-      {int level = 1, Entity? perpetratorEntity}) {
-    if (currentAttributes.containsKey(attribute)) {
-      currentAttributes[attribute]
-          ?.incrementLevel(level, currentAttributes[attribute]!.maxLevel);
+  void addAttribute(Attribute attribute,
+      {int? level, bool applyUpgrade = true}) {
+    if (currentAttributes.containsKey(attribute.attributeEnum)) {
+      currentAttributes[attribute.attributeEnum]?.incrementLevel(level ?? 1);
     } else {
-      currentAttributes[attribute] = attribute.buildAttribute(
-          level, this, perpetratorEntity ?? this)
-        ..applyUpgrade();
+      currentAttributes[attribute.attributeEnum] = attribute..removeUpgrade();
+      if (applyUpgrade) {
+        currentAttributes[attribute.attributeEnum]?.applyUpgrade();
+      }
     }
   }
 
@@ -95,6 +90,18 @@ mixin AttributeFunctionality on Entity {
       }
     }
     return returnList;
+  }
+
+  Attribute buildXpAttribute() {
+    const attr = AttributeEnum.attackRate;
+    late Attribute returnAttrib;
+    if (currentAttributes.containsKey(attr)) {
+      returnAttrib = (currentAttributes[attr]!);
+    } else {
+      returnAttrib = (attr.buildAttribute(0, this, this));
+    }
+
+    return returnAttrib;
   }
 }
 

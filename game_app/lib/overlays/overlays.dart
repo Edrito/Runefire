@@ -283,10 +283,11 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
       (gameRouter.router.currentRoute.children.whereType<GameEnviroment>())
           .first
           .player;
-
+  const double loadInDuration = .2;
   currentSelection ??= player?.buildAttributeSelection();
 
   List<CustomCard> selection = [];
+  late CustomCard xpCard;
   const exitAnimationDuration = .2;
 
   for (var element in currentSelection ?? List<Attribute>.from([])) {
@@ -296,13 +297,29 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
       });
     }, onTapComplete: () {
       gameRouter.resumeEngine();
-      player?.addAttributeEnum(element.attributeEnum);
+      player?.addAttribute(element);
       Future.delayed(exitAnimationDuration.seconds)
           .then((value) => {resumeGame(), currentSelection = null});
       widgetController?.forward(from: 0);
     });
     selection.add(card);
   }
+  final xpAttribute = player!.buildXpAttribute();
+
+  xpCard = xpAttribute.buildWidget(
+      onTap: () {
+        setState(() {
+          ignoring = true;
+        });
+      },
+      onTapComplete: () {
+        gameRouter.resumeEngine();
+        player.addAttribute(xpAttribute);
+        Future.delayed(exitAnimationDuration.seconds)
+            .then((value) => {resumeGame(), currentSelection = null});
+        widgetController?.forward(from: 0);
+      },
+      small: true);
 
   return Animate(
     effects: [
@@ -326,9 +343,9 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
             setState = setstate;
             return ConstrainedBox(
               constraints: BoxConstraints(
-                  maxWidth: size.width * .9,
+                  maxWidth: size.width * .95,
                   minHeight: 200,
-                  maxHeight: size.height * .8,
+                  maxHeight: size.height * .9,
                   minWidth: 250),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -342,10 +359,28 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
                   ),
                   Expanded(
                       child: IgnorePointer(
-                          ignoring: ignoring,
-                          child: DisplayCards(
-                              cards: selection, ending: ignoring))),
-                ],
+                    ignoring: ignoring,
+                    child: DisplayCards(
+                      cards: selection,
+                      ending: ignoring,
+                      loadInDuration: loadInDuration,
+                    ),
+                  )),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  xpCard
+                ]
+                    .animate(interval: (loadInDuration / 3).seconds)
+                    .fadeIn(
+                      duration: loadInDuration.seconds,
+                      curve: Curves.decelerate,
+                    )
+                    .moveY(
+                        duration: loadInDuration.seconds,
+                        curve: Curves.decelerate,
+                        begin: 50,
+                        end: 0),
               ),
             );
           }),

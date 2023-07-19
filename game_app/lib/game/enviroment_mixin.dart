@@ -1,21 +1,18 @@
 import 'dart:io';
 
-import 'package:flame/events.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
 import 'package:game_app/entities/player.dart';
-import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../resources/functions/custom_follow_behavior.dart';
 import '../game/hud.dart';
 
 import 'dart:async';
 import 'package:flame/components.dart';
-import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
+import '../resources/functions/custom_follow_behavior.dart';
 import '../resources/functions/custom_joystick.dart';
 import '../main.dart';
 import '../resources/enums.dart';
@@ -215,7 +212,7 @@ mixin PlayerFunctionality on Enviroment {
 
   @override
   void onMouseMove(PointerHoverEvent info) {
-    test.position = info.localPosition.toVector2();
+    // test.position = info.localPosition.toVector2();
     if (Platform.isWindows) {
       player?.gestureEventStart(
           InputType.mouseMove, info.localPosition.toVector2());
@@ -227,10 +224,12 @@ mixin PlayerFunctionality on Enviroment {
   void addPlayer() {
     player = Player(gameRef.playerDataComponent.dataObject, false,
         gameEnviroment: this, initPosition: Vector2.zero());
-    player?.priority = playerPriority;
+    // player?.priority = playerPriority;
 
     // add(CustomFollowBehavior(player!, gameCamera.viewfinder));\
-    player?.mounted.then((value) => gameCamera.followCustom(player!.body));
+    player?.mounted.then(
+        (value) => add(CustomFollowBehavior(player!, gameCamera.viewfinder)));
+    // player?.priority = playerPriority;
     // add(test);
     // test.add(CircleComponent(radius: .1, paint: Paint()..color = Colors.red));
     // gameCamera.follow(test);

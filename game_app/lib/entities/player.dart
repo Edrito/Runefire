@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
-import 'package:flame/input.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -172,7 +171,6 @@ class Player extends Entity
       if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyS)) {
         moveAngle.y += 1;
       }
-      print(moveAngle);
 
       if (gameIsPaused || event is! RawKeyDownEvent) return;
 

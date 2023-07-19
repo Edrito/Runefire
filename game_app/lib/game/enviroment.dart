@@ -1,16 +1,11 @@
-import 'package:flame/events.dart';
-import 'package:flame_forge2d/forge2d_camera.dart' as forge2dCamera;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
-import 'package:flame_forge2d/forge2d_camera.dart';
-import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 
 import '../game/background.dart';
 
 import 'dart:async';
 import 'package:flame/components.dart';
-import 'package:flame/input.dart';
 import '../main.dart';
 import '../resources/enums.dart';
 import '../overlays/overlays.dart';
@@ -68,17 +63,17 @@ abstract class Enviroment extends Component
   FutureOr<void> onLoad() {
     windowManager.addListener(this);
     children.register<CameraComponent>();
-
+    priority = worldPriority;
     //World
     gameWorld = World();
     gameWorld.priority = worldPriority;
-    super.add(gameWorld);
 
     //Camera
     gameCamera = CameraComponent(world: gameWorld);
     gameCamera.priority = -50000;
     gameCamera.viewfinder.zoom = 75;
     super.add(gameCamera);
+    super.add(gameWorld);
     // gameCamera.viewfinder.angle = radians(180);
     //Physics
     physicsComponent = Forge2DComponent();

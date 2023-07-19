@@ -125,15 +125,18 @@ mixin MovementFunctionality on Entity {
   }
 
   void moveCharacter() {
-    final previousPulse = moveDelta;
+    final pulse = moveDelta;
 
-    if (isDead || !enableMovement.parameter || previousPulse.isZero()) {
+    if (isDead || !enableMovement.parameter || pulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
       return;
     }
     spriteFlipCheck();
 
-    body.applyForce(previousPulse * speed.parameter);
+    // body.setTransform(center + (pulse * speed.parameter), 0);
+    body.applyForce(pulse * speed.parameter);
+
+    gameEnviroment.test.position += pulse * speed.parameter;
     moveFunctionsCall();
     setEntityStatus(EntityStatus.run);
   }
@@ -647,12 +650,14 @@ mixin HealthFunctionality on Entity {
       //TODO finish this
       switch (damageType) {
         case DamageType.fire:
-          attr.addAttributeEnum(AttributeEnum.burn,
-              perpetratorEntity: element.source);
+          attr.addAttribute(
+            AttributeEnum.burn.buildAttribute(2, attr, element.source),
+          );
           break;
         default:
-          attr.addAttributeEnum(AttributeEnum.burn,
-              perpetratorEntity: element.source);
+          attr.addAttribute(
+            AttributeEnum.burn.buildAttribute(2, attr, element.source),
+          );
       }
     }
   }

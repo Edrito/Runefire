@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_app/attributes/temporary_attributes.dart';
 
+import '../resources/enums.dart';
 import 'attributes_mixin.dart';
 import '../entities/entity.dart';
 import 'attributes.dart';
@@ -94,8 +95,9 @@ enum AttributeEnum {
 }
 
 extension AllAttributesExtension on AttributeEnum {
-  Attribute buildAttribute(int level, AttributeFunctionality victimEntity,
-      Entity perpetratorEntity) {
+  Attribute buildAttribute(
+      int level, AttributeFunctionality victimEntity, Entity perpetratorEntity,
+      {DamageType? damageType, StatusEffects? statusEffect}) {
     switch (this) {
       case AttributeEnum.speed:
         return TopSpeedAttribute(

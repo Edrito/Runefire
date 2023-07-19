@@ -89,6 +89,7 @@ class FadeOutCircleParticle extends CircleParticle {
 
 mixin UpgradeFunctions {
   int upgradeLevel = 0;
+  abstract int maxLevel;
 
   void changeLevel(int newUpgradeLevel, int maxLevel) {
     removeUpgrade();
@@ -96,7 +97,7 @@ mixin UpgradeFunctions {
     applyUpgrade();
   }
 
-  void incrementLevel(int increment, int maxLevel) {
+  void incrementLevel(int increment) {
     changeLevel(upgradeLevel + increment, maxLevel);
   }
 

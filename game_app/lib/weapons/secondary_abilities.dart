@@ -15,6 +15,7 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
 
     newUpgradeLevel ??= 0;
     changeLevel(newUpgradeLevel, secondaryType.maxLevel);
+    maxLevel = secondaryType.maxLevel;
   }
   late final EntityStatusEffectsWrapper? entityStatusWrapper;
   Weapon? weapon;
@@ -23,6 +24,8 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   bool get isCoolingDown => cooldownTimer != null;
 
   abstract SecondaryType secondaryType;
+  @override
+  late int maxLevel;
 
   String get nextLevelStringDescription;
   String get abilityDescription;

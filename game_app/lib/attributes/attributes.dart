@@ -19,14 +19,19 @@ import '../resources/functions/custom_mixins.dart';
 ///The perpetratorEntity may be a source of a negitive attribute
 abstract class Attribute with UpgradeFunctions {
   Attribute(
-      {int level = 0, required this.victimEntity, this.perpetratorEntity}) {
+      {int level = 0,
+      required this.victimEntity,
+      this.perpetratorEntity,
+      this.damageType,
+      this.statusEffect}) {
     upgradeLevel = level.clamp(0, maxLevel);
-    // if (applyNow) {
-    //   applyAttribute();
-    // }
     attributeId = const Uuid().v4();
   }
 
+  bool hasRandomDamageType = false;
+  bool hasRandomStatusEffect = false;
+  DamageType? damageType;
+  StatusEffects? statusEffect;
   bool get isTemporary => this is TemporaryAttribute;
 
   String description();
@@ -60,12 +65,14 @@ abstract class Attribute with UpgradeFunctions {
 
   ///Increase or decrease the level based on the input value
 
-  CustomCard buildWidget({Function? onTap, Function? onTapComplete}) {
+  CustomCard buildWidget(
+      {Function? onTap, Function? onTapComplete, bool small = false}) {
     return CustomCard(
       this,
       gameRef: gameRouter,
       onTap: onTap,
       onTapComplete: onTapComplete,
+      smallCard: small,
     );
   }
 }

@@ -169,7 +169,7 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is! AttributeFunctionality) return;
-    other.addAttributeEnum(powerup.attributeEnum);
+    other.addAttribute(powerup.attributeEnum.buildAttribute(1, other, other));
     removeFromParent();
     super.beginContact(other, contact);
   }

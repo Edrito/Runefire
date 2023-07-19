@@ -139,15 +139,15 @@ class EnemyManagement extends Component {
   FutureOr<void> onLoad() {
     priority = enemyPriority;
 
-    add(TimerComponent(
-      period: 2,
-      repeat: true,
-      onTick: () {
-        generateEnemies();
-      },
-    )..onTick());
+    // add(TimerComponent(
+    //   period: 2,
+    //   repeat: true,
+    //   onTick: () {
+    //     generateEnemies();
+    //   },
+    // )..onTick());
 
-    generateEnemies();
+    // generateEnemies();
     return super.onLoad();
   }
 }

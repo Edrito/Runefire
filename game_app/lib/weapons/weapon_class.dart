@@ -241,7 +241,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
 abstract class PlayerWeapon extends Weapon
     with AttributeWeaponFunctionsFunctionality, SecondaryFunctionality {
-  PlayerWeapon(super.newUpgradeLevel, super.entityAncestor);
+  PlayerWeapon(super.newUpgradeLevel, super.entityAncestor) {
+    maxLevel = weaponType.maxLevel;
+  }
+  @override
+  late int maxLevel;
 }
 
 ///Custom SpriteAnimation that attaches to each joint on an entity that is defined

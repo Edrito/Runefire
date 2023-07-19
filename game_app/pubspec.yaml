@@ -79,6 +79,7 @@ flutter:
     - assets/images/sprites/
     - assets/images/enemy_sprites/
     - assets/images/status_effects/
+    - assets/images/ui/
     - assets/images/buttons/
     - assets/images/background/
     - assets/images/decorations/
