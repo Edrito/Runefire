@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/main.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 // ignore: unused_import
@@ -16,6 +19,8 @@ import '../resources/constants/physics_filter.dart';
 mixin StandardProjectile on Projectile {
   int enemiesHit = 0;
   abstract double embedIntoEnemyChance;
+  final int trailCount = 10;
+  List<Vector2> trails = [];
 
   void incrementHits() {
     enemiesHit++;
@@ -81,33 +86,34 @@ mixin StandardProjectile on Projectile {
   }
 
   @override
+  Future<void> onLoad() {
+    playAudio('sfx/projectiles/laser_sound_1.mp3');
+
+    return super.onLoad();
+  }
+
+  @override
   void render(Canvas canvas) {
     drawBullet(canvas);
     super.render(canvas);
   }
 
   void drawBullet(Canvas canvas) {
-    canvas.drawLine(
-        Offset.zero,
-        (body.linearVelocity.normalized() * -5).toOffset(),
+    canvas.drawPoints(
+        PointMode.points,
+        trails.fold(
+            [],
+            (previousValue, element) =>
+                [...previousValue, (element - center).toOffset()]),
         paint
           ..strokeWidth = size
+          ..blendMode = BlendMode.plus
+          ..strokeCap = StrokeCap.round
           ..shader = ui.Gradient.linear(
               (body.linearVelocity.normalized() * -4).toOffset(),
               Offset.zero,
               [Colors.transparent, secondaryColor, secondaryColor.brighten(.6)],
               [0, .95, 1]));
-    // canvas.drawRect(
-    //     Rect.fromCenter(center: Offset.zero, width: size, height: size),
-    //     Paint()
-    //       // ..strokeWidth = size
-    //       ..color = primaryColor);
-    // canvas.drawRect(
-    //     Rect.fromCenter(center: Offset.zero, width: size / 2, height: size * 2),
-    //     Paint()
-
-    //       // ..strokeWidth = size
-    //       ..color = primaryColor);
   }
 
   HealthFunctionality? target;
@@ -125,16 +131,23 @@ mixin StandardProjectile on Projectile {
     if (target != null) {
       home(target!, dt);
     }
+    manageTrail();
     super.update(dt);
+  }
+
+  void manageTrail() {
+    trails.insert(0, center.clone());
+    if (trails.length > trailCount) {
+      trails.removeLast();
+    }
   }
 
   @override
   void bodyContact(HealthFunctionality other) {
     setTarget(null);
-
     incrementHits();
-    chain(other);
     super.bodyContact(other);
+    chain(other);
   }
 
   void chain(HealthFunctionality other) {

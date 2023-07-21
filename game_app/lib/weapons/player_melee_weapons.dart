@@ -23,7 +23,8 @@ class Dagger extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (2, 5);
     attackTickRate.baseParameter = .35;
-
+    pierce.baseParameter = 5;
+    maxChainingTargets.baseParameter = 6;
     attackHitboxPatterns = [
       (Vector2(.2, 0), 0),
       (Vector2(.2, 1), 0),
@@ -133,6 +134,8 @@ class Spear extends PlayerWeapon
       (Vector2(-0, 0), 0),
       (Vector2(-0, 0), 360),
     ];
+    pierce.baseParameter = 5;
+    maxChainingTargets.baseParameter = 6;
     spirteComponentPositions.add(WeaponSpritePosition.back);
   }
 
@@ -343,7 +346,7 @@ class EnergySword extends PlayerWeapon
 class FlameSword extends PlayerWeapon
     with
         MeleeFunctionality,
-        // ProjectileFunctionality,
+        ProjectileFunctionality,
         FullAutomatic,
         ReloadFunctionality,
         StaminaCostFunctionality {
@@ -352,7 +355,9 @@ class FlameSword extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     attackTickRate.baseParameter = .6;
-    baseDamage.damageBase[DamageType.fire] = (20, 25);
+    baseDamage.damageBase[DamageType.physical] = (20, 25);
+    pierce.baseParameter = 2;
+    maxChainingTargets.baseParameter = 6;
     attackHitboxPatterns = [
       (Vector2(.0, -1.5), 360),
       (Vector2(0, 1.5), -30),
@@ -441,6 +446,9 @@ class FlameSword extends PlayerWeapon
 
   @override
   WeaponType weaponType = WeaponType.flameSword;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.bullet;
 }
 
 class LargeSword extends PlayerWeapon
@@ -462,6 +470,7 @@ class LargeSword extends PlayerWeapon
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
     attackTickRate.baseParameter = 2;
+    maxChainingTargets.baseParameter = 5;
 
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");

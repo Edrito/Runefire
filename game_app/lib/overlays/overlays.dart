@@ -2,12 +2,11 @@ import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:game_app/attributes/attributes_enum.dart';
 import 'package:game_app/game/enviroment.dart';
-import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/overlays/buttons.dart';
 import 'package:game_app/overlays/menus.dart';
 import 'package:game_app/attributes/attributes.dart';
+import 'package:game_app/overlays/pause_menu.dart';
 import 'package:game_app/resources/visuals.dart';
 
 import '../main.dart';
@@ -15,192 +14,14 @@ import 'cards.dart';
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
     MapEntry('PauseMenu', (context, gameRouter) {
-  final size = MediaQuery.of(context).size;
-  FocusNode node = FocusNode();
-  node.requestFocus();
-
-  final env = currentEnviroment as GameEnviroment;
-
-  return Material(
-    color: Colors.transparent,
-    child: KeyboardListener(
-      focusNode: node,
-      onKeyEvent: (value) {
-        if (value is! KeyDownEvent) return;
-        if (value.logicalKey == LogicalKeyboardKey.escape ||
-            value.logicalKey == LogicalKeyboardKey.keyP) {
-          resumeGame();
-        }
-      },
-      child: Center(
-        child: StatefulBuilder(builder: (context, setState) {
-          var entries = env.player?.currentAttributes.entries.toList();
-          var tempEntries = entries?.where(
-              (element) => element.key.category == AttributeCategory.temporary);
-          var nonTempEntries = entries?.where(
-              (element) => element.key.category != AttributeCategory.temporary);
-          entries?.sort(
-              (a, b) => a.key.rarity.index.compareTo(b.key.rarity.index));
-          entries?.sort(
-              (b, a) => a.value.upgradeLevel.compareTo(b.value.upgradeLevel));
-          return Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 100,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Temporary Effects",
-                        style: defaultStyle,
-                      ),
-                    ),
-                    Flexible(
-                      child: ListView.builder(
-                        itemCount: tempEntries?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          final currentAttrib = tempEntries?.elementAt(index);
-
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 55,
-                                  child: Text(
-                                    "${currentAttrib?.value.upgradeLevel} : ",
-                                    style: defaultStyle.copyWith(
-                                        color: currentAttrib?.key.rarity.color),
-                                  ),
-                                ),
-                                Text(
-                                  "${currentAttrib?.value.title}",
-                                  style: defaultStyle.copyWith(
-                                      color: currentAttrib?.key.rarity.color),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Permanent Effects",
-                        style: defaultStyle,
-                      ),
-                    ),
-                    Flexible(
-                      flex: 2,
-                      child: ListView.builder(
-                        itemCount: nonTempEntries?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          final currentAttrib =
-                              nonTempEntries?.elementAt(index);
-
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 55,
-                                  child: Text(
-                                    "${currentAttrib?.value.upgradeLevel} : ",
-                                    style: defaultStyle.copyWith(
-                                        color: currentAttrib?.key.rarity.color),
-                                  ),
-                                ),
-                                Text(
-                                  "${currentAttrib?.value.title}",
-                                  style: defaultStyle.copyWith(
-                                      color: currentAttrib?.key.rarity.color),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                      maxWidth: 400,
-                      minHeight: 200,
-                      maxHeight: 500,
-                      minWidth: 250),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          "Taking a break little bro?",
-                          style: defaultStyle,
-                        ),
-                      ).animate().fadeIn(),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      Container(
-                        width: size.width / 3,
-                        height: size.height / 4,
-                        decoration: BoxDecoration(
-                          color: backgroundColor1.darken(.1),
-                        ),
-                        child: DisplayButtons(
-                          buttons: List<CustomButton>.from([
-                            CustomButton(
-                              "Resume",
-                              gameRef: gameRouter,
-                              onTap: () {
-                                resumeGame();
-                              },
-                            ),
-                            CustomButton(
-                              "Give up",
-                              gameRef: gameRouter,
-                              onTap: () {
-                                final gameEnviroment = currentEnviroment;
-                                if (gameEnviroment is PlayerFunctionality) {
-                                  resumeGame();
-                                  (currentEnviroment as PlayerFunctionality)
-                                      .player
-                                      ?.killPlayer(false);
-                                } else {
-                                  endGame(false);
-                                }
-                              },
-                            )
-                          ]),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Spacer()
-            ],
-          );
-        }),
-      ),
-    ),
-  );
+  return PauseMenu(gameRouter);
 });
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
     MapEntry('DeathScreen', (context, gameRouter) {
   final size = MediaQuery.of(context).size;
   FocusNode node = FocusNode();
+
   node.requestFocus();
 
   return Material(

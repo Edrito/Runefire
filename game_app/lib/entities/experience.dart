@@ -25,8 +25,13 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
   late Color color;
   final int trailCount = 10;
 
+  late PolygonShape shape;
+
+  List<Vector2> trails = [];
+
   set setTarget(Player player) => target = player;
   Vector2 previousPoint = Vector2.zero();
+  List<Effect> effects = [];
 
   @override
   void render(Canvas canvas) {
@@ -46,8 +51,6 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
     super.render(canvas);
   }
 
-  List<Effect> effects = [];
-
   @override
   Future<void> onLoad() async {
     shapeComponent = experienceAmount.getShapeComponent(radius);
@@ -56,10 +59,6 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
     add(shapeComponent);
     return super.onLoad();
   }
-
-  late PolygonShape shape;
-
-  List<Vector2> trails = [];
 
   @override
   void beginContact(Object other, Contact contact) {

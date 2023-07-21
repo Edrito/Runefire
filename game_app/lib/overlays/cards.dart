@@ -176,6 +176,8 @@ class CustomCard extends StatelessWidget {
             top: 10,
 
             // right: topPadding,
+            left: 0,
+            right: 0,
             bottom: null,
             child: Column(
               children: [
@@ -191,10 +193,14 @@ class CustomCard extends StatelessWidget {
                       const SizedBox(
                         width: 10,
                       ),
-                      Text(
-                        attribute.title,
-                        style: style,
-                        textAlign: TextAlign.center,
+                      Expanded(
+                        child: Text(
+                          attribute.title,
+                          style: style,
+                          textAlign: TextAlign.left,
+                          maxLines: 2,
+                          overflow: TextOverflow.clip,
+                        ),
                       ),
                     ],
                   ),

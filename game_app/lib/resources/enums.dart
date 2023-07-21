@@ -14,6 +14,15 @@ import '../weapons/projectiles.dart';
 import '../weapons/secondary_abilities.dart';
 import '../weapons/weapon_class.dart';
 
+enum AudioType {
+  sfx,
+  music,
+  voice,
+  ui,
+}
+
+enum AudioScopeType { bgm, long, short }
+
 enum EntityType { player, enemy, npc }
 
 enum FixtureType { sensor, body }

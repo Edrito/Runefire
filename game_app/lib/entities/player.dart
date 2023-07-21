@@ -195,6 +195,12 @@ class Player extends Entity
         swapWeapon();
       }
 
+      // if (event.physicalKey == (PhysicalKeyboardKey.keyM)) {
+      //   (carriedWeapons[1] as PlayerWeapon).setSecondaryFunctionality =
+      //       carriedWeapons[0];
+      //   carriedWeapons.remove(0);
+      // }
+
       if (isDisplay) {
         return;
       }

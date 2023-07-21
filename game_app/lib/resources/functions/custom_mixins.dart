@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/main.dart';
 
 mixin HasOpacityProvider on Component {
   final Paint _paint = BasicPalette.transparent.paint();
@@ -10,6 +11,12 @@ mixin HasOpacityProvider on Component {
   void renderTree(Canvas canvas) {
     super.renderTree(canvas);
     canvas.drawPaint(_paint..blendMode = BlendMode.color);
+  }
+}
+
+mixin RandomGrabber on List {
+  T getRandomElement<T>() {
+    return this[rng.nextInt(length)] as T;
   }
 }
 

@@ -18,9 +18,10 @@ class CustomButton extends StatelessWidget {
     this.onSecondaryTapDown,
     this.onSecondaryTapUp,
     this.onSecondaryTapCancel,
+    this.upDownColor,
     Key? key,
   }) : super(key: key);
-
+  final (Color, Color)? upDownColor;
   final GameRouter gameRef;
   final Function? onTap;
   final Function(TapDownDetails)? onTapDown;
@@ -39,6 +40,7 @@ class CustomButton extends StatelessWidget {
     Function(TapDownDetails)? onTapDown,
     Function(TapUpDetails)? onTapUp,
     Function? onTapCancel,
+    (Color, Color)? upDownColor,
     Function? onSecondaryTap,
     Function(TapDownDetails)? onSecondaryTapDown,
     Function(TapUpDetails)? onSecondaryTapUp,
@@ -52,6 +54,7 @@ class CustomButton extends StatelessWidget {
       gameRef: gameRef ?? this.gameRef,
       isHighlightedInitial: isHighlightedInitial ?? this.isHighlightedInitial,
       onTap: onTap ?? this.onTap,
+      upDownColor: upDownColor ?? this.upDownColor,
       onTapDown: onTapDown ?? this.onTapDown,
       onTapUp: onTapUp ?? this.onTapUp,
       onTapCancel: onTapCancel ?? this.onTapCancel,
@@ -69,9 +72,13 @@ class CustomButton extends StatelessWidget {
 
     return StatefulBuilder(builder: (context, setstate) {
       TextStyle style = defaultStyle.copyWith(
-        color: isHighlighted ?? isHighlightedInitial
-            ? buttonDownColor
-            : buttonUpColor,
+        color: upDownColor != null
+            ? isHighlighted ?? isHighlightedInitial
+                ? upDownColor!.$2
+                : upDownColor!.$1
+            : isHighlighted ?? isHighlightedInitial
+                ? buttonDownColor
+                : buttonUpColor,
       );
       return InkWell(
         splashFactory: NoSplash.splashFactory,

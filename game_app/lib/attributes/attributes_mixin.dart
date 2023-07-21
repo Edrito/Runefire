@@ -12,7 +12,7 @@ import 'attributes_enum.dart';
 import '../resources/visuals.dart';
 
 mixin AttributeFunctionality on Entity {
-  Map<AttributeEnum, Attribute> currentAttributes = {};
+  Map<AttributeType, Attribute> currentAttributes = {};
   Random rng = Random();
 
   void loadPlayerConfig(Map<String, dynamic> config) {}
@@ -20,7 +20,7 @@ mixin AttributeFunctionality on Entity {
 
   ///Initial Attribtes and their initial level
   ///i.e. Max Speed : Level 3
-  void initAttributes(Map<AttributeEnum, int> attributesToAdd) {
+  void initAttributes(Map<AttributeType, int> attributesToAdd) {
     if (initalized) return;
     for (var element in attributesToAdd.entries) {
       currentAttributes[element.key] =
@@ -49,7 +49,7 @@ mixin AttributeFunctionality on Entity {
     initalized = false;
   }
 
-  void removeAttribute(AttributeEnum attributeEnum) {
+  void removeAttribute(AttributeType attributeEnum) {
     currentAttributes[attributeEnum]?.removeUpgrade();
     currentAttributes.remove(attributeEnum);
   }
@@ -67,7 +67,7 @@ mixin AttributeFunctionality on Entity {
     }
   }
 
-  void modifyLevel(AttributeEnum attributeEnum, [int amount = 0]) {
+  void modifyLevel(AttributeType attributeEnum, [int amount = 0]) {
     if (currentAttributes.containsKey(attributeEnum)) {
       var attr = currentAttributes[attributeEnum]!;
       attr.changeLevel(amount, attr.maxLevel);
@@ -76,7 +76,7 @@ mixin AttributeFunctionality on Entity {
 
   List<Attribute> buildAttributeSelection() {
     List<Attribute> returnList = [];
-    final potentialCandidates = AttributeEnum.values
+    final potentialCandidates = AttributeType.values
         .where((element) => element.category != AttributeCategory.temporary)
         .toList();
     for (var i = 0; i < 3; i++) {
@@ -93,7 +93,7 @@ mixin AttributeFunctionality on Entity {
   }
 
   Attribute buildXpAttribute() {
-    const attr = AttributeEnum.attackRate;
+    const attr = AttributeType.attackRate;
     late Attribute returnAttrib;
     if (currentAttributes.containsKey(attr)) {
       returnAttrib = (currentAttributes[attr]!);

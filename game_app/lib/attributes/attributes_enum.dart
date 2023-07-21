@@ -41,7 +41,7 @@ enum AttributeCategory {
 
 enum AttributeTerritory { permanent, game }
 
-enum AttributeEnum {
+enum AttributeType {
   //Debuffs
   burn(category: AttributeCategory.temporary),
   bleed(category: AttributeCategory.temporary),
@@ -84,7 +84,7 @@ enum AttributeEnum {
       category: AttributeCategory.mobility,
       territory: AttributeTerritory.game);
 
-  const AttributeEnum(
+  const AttributeType(
       {this.rarity = AttributeRarity.standard,
       this.category = AttributeCategory.utility,
       this.territory = AttributeTerritory.permanent});
@@ -94,31 +94,31 @@ enum AttributeEnum {
   final AttributeTerritory territory;
 }
 
-extension AllAttributesExtension on AttributeEnum {
+extension AllAttributesExtension on AttributeType {
   Attribute buildAttribute(
       int level, AttributeFunctionality victimEntity, Entity perpetratorEntity,
       {DamageType? damageType, StatusEffects? statusEffect}) {
     switch (this) {
-      case AttributeEnum.speed:
+      case AttributeType.speed:
         return TopSpeedAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
-      case AttributeEnum.burn:
+      case AttributeType.burn:
         return FireDamageAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
-      case AttributeEnum.attackRate:
+      case AttributeType.attackRate:
         return AttackRateAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
         );
 
-      case AttributeEnum.enemyExplosion:
+      case AttributeType.enemyExplosion:
         return ExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,

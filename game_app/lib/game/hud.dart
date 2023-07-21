@@ -38,8 +38,7 @@ class GameHud extends PositionComponent {
     fpsCounter = FpsTextComponent(
       // anchor: Anchor.ce,
       textRenderer: TextPaint(style: defaultStyle),
-      position: Vector2(gameRef.gameCamera.viewport.size.x - 300,
-          gameRef.gameCamera.viewport.size.y - 40),
+      position: Vector2(0, gameRef.gameCamera.viewport.size.y - 40),
     );
 
     levelParent = HudMarginComponent(

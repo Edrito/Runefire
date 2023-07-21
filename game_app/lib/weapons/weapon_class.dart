@@ -110,6 +110,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   Random rng = Random();
   bool isSecondaryWeapon = false;
+
   bool get isReloading => this is ReloadFunctionality
       ? (this as ReloadFunctionality).reloadTimer != null
       : false;
@@ -117,6 +118,8 @@ abstract class Weapon extends Component with UpgradeFunctions {
   //WEAPON ATTRIBUTES
   final IntParameterManager baseAttackCount =
       IntParameterManager(baseParameter: 1);
+
+  final IntParameterManager pierce = IntParameterManager(baseParameter: 0);
 
   final BoolParameterManager countIncreaseWithTime =
       BoolParameterManager(baseParameter: false);
@@ -169,6 +172,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   @override
   FutureOr<void> onLoad() async {
+    while (maxChainingTargets.parameter > pierce.parameter) {
+      pierce.baseParameter++;
+    }
     await super.onLoad();
     setWeaponStatus(weaponStatus);
   }

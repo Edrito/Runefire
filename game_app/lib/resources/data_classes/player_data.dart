@@ -1,3 +1,5 @@
+import 'package:game_app/attributes/attributes_enum.dart';
+
 import '../../entities/player.dart';
 import '../enums.dart';
 import 'package:hive/hive.dart';
@@ -60,4 +62,5 @@ class PlayerData extends DataClass {
     SecondaryType.pistol: 0,
     SecondaryType.reloadAndRapidFire: 0
   };
+  Map<AttributeType, int> unlockedPermanentAttributes = {};
 }

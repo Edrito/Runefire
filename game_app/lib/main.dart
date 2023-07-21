@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
@@ -14,6 +15,7 @@ import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/overlays/menus.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
 import 'package:game_app/resources/data_classes/system_data.dart';
+import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'entities/player.dart';
 import 'game/enviroment.dart';
@@ -28,9 +30,62 @@ late GameRouter gameRouter;
 late MenuPages menuPage;
 String? currentOverlay;
 bool get gameIsPaused => gameRouter.paused;
+bool startInGame = false;
+late String currentRoute;
+
+void playAudio(String audioLocation,
+    {AudioType audioType = AudioType.sfx,
+    AudioScopeType audioScopeType = AudioScopeType.short,
+    bool isLooping = false}) {
+  double volume;
+
+  switch (audioType) {
+    case AudioType.sfx:
+      volume =
+          volume = gameRouter.systemDataComponent.dataObject.sfxVolume / 100;
+      break;
+    case AudioType.music:
+      volume =
+          volume = gameRouter.systemDataComponent.dataObject.musicVolume / 100;
+      break;
+    default:
+      volume =
+          volume = gameRouter.systemDataComponent.dataObject.sfxVolume / 100;
+  }
+
+  switch (audioScopeType) {
+    case AudioScopeType.bgm:
+      FlameAudio.bgm.play(audioLocation, volume: volume);
+      break;
+    case AudioScopeType.short:
+      if (isLooping) {
+        FlameAudio.loop(audioLocation, volume: volume);
+      } else {
+        FlameAudio.play(audioLocation, volume: volume);
+      }
+      break;
+
+    case AudioScopeType.long:
+      if (isLooping) {
+        FlameAudio.loopLongAudio(audioLocation, volume: volume);
+      } else {
+        FlameAudio.playLongAudio(audioLocation, volume: volume);
+      }
+  }
+}
 
 Enviroment? get currentEnviroment {
   var result = gameRouter.router.currentRoute.children.whereType<Enviroment>();
+
+  if (result.isNotEmpty) {
+    return result.first;
+  } else {
+    return null;
+  }
+}
+
+Enviroment? getEnviromentFromRouter(GameRouter router) {
+  var result = router.router.currentRoute.children.whereType<Enviroment>();
 
   if (result.isNotEmpty) {
     return result.first;
@@ -94,9 +149,6 @@ void changeMainMenuPage(MenuPages page, [bool setState = true]) {
     setStateMainMenu(() {});
   }
 }
-
-bool startInGame = true;
-late String currentRoute;
 
 ///null route = go to main menu
 ///string route = leave main menu to route

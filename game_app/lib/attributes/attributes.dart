@@ -61,7 +61,7 @@ abstract class Attribute with UpgradeFunctions {
   double increasePercent() =>
       (factor ?? 0) * (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
 
-  AttributeEnum get attributeEnum;
+  AttributeType get attributeEnum;
 
   ///Increase or decrease the level based on the input value
 
@@ -84,7 +84,7 @@ class TopSpeedAttribute extends Attribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeEnum attributeEnum = AttributeEnum.speed;
+  AttributeType attributeEnum = AttributeType.speed;
 
   @override
   double get factor => .05;
@@ -129,7 +129,7 @@ class AttackRateAttribute extends Attribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeEnum attributeEnum = AttributeEnum.attackRate;
+  AttributeType attributeEnum = AttributeType.attackRate;
 
   @override
   double get factor => .05;
@@ -179,7 +179,7 @@ class ExplosionEnemyDeathAttribute extends Attribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeEnum attributeEnum = AttributeEnum.enemyExplosion;
+  AttributeType attributeEnum = AttributeType.enemyExplosion;
 
   @override
   double get factor => .25;

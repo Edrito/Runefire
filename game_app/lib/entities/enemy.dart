@@ -19,9 +19,9 @@ import '../attributes/attributes_mixin.dart';
 class DummyTwo extends Enemy
     with
         HealthFunctionality,
-        MovementFunctionality,
+        // MovementFunctionality,
         DropExperienceFunctionality,
-        DumbFollowAI,
+        // DumbFollowAI,
         TouchDamageFunctionality {
   DummyTwo({
     required super.initPosition,
@@ -29,14 +29,14 @@ class DummyTwo extends Enemy
   }) {
     height.baseParameter = 1.5;
     invincibilityDuration.baseParameter = 0;
-    maxHealth.baseParameter = 50;
-    speed.baseParameter = .05;
+    maxHealth.baseParameter = double.infinity;
+    // speed.baseParameter = .05;
     touchDamage.damageBase[DamageType.physical] = (1, 3);
   }
 
   @override
   void update(double dt) {
-    moveCharacter();
+    // moveCharacter();
     super.update(dt);
   }
 
@@ -129,7 +129,7 @@ class EnemyManagement extends Component {
       for (var j = 1; j < rng.nextInt(4) + 1; j++) {
         gameEnviroment.physicsComponent.add(DummyTwo(
             initPosition:
-                generateRandomGamePositionInViewport(false, gameEnviroment),
+                generateRandomGamePositionInViewport(true, gameEnviroment),
             gameEnviroment: gameEnviroment));
       }
     }
@@ -155,9 +155,9 @@ class EnemyManagement extends Component {
 class MeleeTest extends Enemy
     with
         HealthFunctionality,
-        MovementFunctionality,
+        // MovementFunctionality,
         DropExperienceFunctionality,
-        DumbFollowAI,
+        // DumbFollowAI,
         TouchDamageFunctionality {
   MeleeTest({
     required super.initPosition,
@@ -166,7 +166,7 @@ class MeleeTest extends Enemy
 
   @override
   void update(double dt) {
-    moveCharacter();
+    // moveCharacter();
     super.update(dt);
   }
 

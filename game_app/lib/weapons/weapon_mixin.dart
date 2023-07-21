@@ -173,7 +173,7 @@ mixin MeleeFunctionality on Weapon {
 
   @override
   bool get attacksAreActive => activeSwings.isNotEmpty;
-  List<MeleeAttack> activeSwings = [];
+  List<MeleeAttackHandler> activeSwings = [];
 
   int get attacksLength => (attackHitboxPatterns.length / 2).ceil();
 
@@ -202,7 +202,7 @@ mixin MeleeFunctionality on Weapon {
     for (var deltaDirection in temp) {
       currentSwingAngles.add(deltaDirection);
 
-      returnList.add(MeleeAttack(
+      returnList.add(MeleeAttackHandler(
         initPosition: (Vector2.zero()) * distanceFromPlayer,
         initAngle: deltaDirection,
         index: currentAttackPatternIndex,
@@ -210,7 +210,7 @@ mixin MeleeFunctionality on Weapon {
       ));
     }
 
-    entityAncestor?.addAll(returnList);
+    entityAncestor?.gameEnviroment.physicsComponent?.addAll(returnList);
     meleeAttacksCompletedIndex++;
     super.attack(chargeAmount);
   }
@@ -262,12 +262,14 @@ mixin MeleeFunctionality on Weapon {
 
 mixin SecondaryFunctionality on Weapon {
   set setSecondaryFunctionality(dynamic item) {
+    _secondaryWeapon = null;
+    _secondaryWeaponAbility = null;
     if (item is Weapon) {
       _secondaryWeapon = item;
       _secondaryWeapon?.weaponAttachmentPoints = weaponAttachmentPoints;
       _secondaryWeapon?.isSecondaryWeapon = true;
       _secondaryWeapon?.weaponId = weaponId;
-      assert(_secondaryWeapon is! FullAutomatic);
+      // assert(_secondaryWeapon is! FullAutomatic);
     } else if (item is SecondaryWeaponAbility) {
       _secondaryWeaponAbility = item;
       add(item);
@@ -310,8 +312,6 @@ mixin ProjectileFunctionality on Weapon {
   //META
   abstract ProjectileType? projectileType;
   bool allowProjectileRotation = false;
-
-  final IntParameterManager pierce = IntParameterManager(baseParameter: 0);
 
   final DoubleParameterManager projectileVelocity =
       DoubleParameterManager(baseParameter: 20);
@@ -579,7 +579,7 @@ mixin FullAutomatic on Weapon {
 }
 
 mixin MeleeTrailEffect on MeleeFunctionality {
-  Map<MeleeAttack, (List<Vector2>, List<Vector2>)> behindEffects = {};
+  Map<MeleeAttackHandler, (List<Vector2>, List<Vector2>)> behindEffects = {};
 
   final double baseBeginPercent = .4;
 
@@ -590,12 +590,15 @@ mixin MeleeTrailEffect on MeleeFunctionality {
         if (!behindEffects.containsKey(element)) {
           behindEffects[element] = (
             [
-              newPosition(element.position, -degrees(element.angle),
+              newPosition(
+                      element.currentSwing.absolutePosition,
+                      -degrees(element.currentSwing.angle),
                       length * baseBeginPercent)
                   .clone()
             ],
             [
-              newPosition(element.position, -degrees(element.angle), length)
+              newPosition(element.currentSwing.absolutePosition,
+                      -degrees(element.currentSwing.angle), length)
                   .clone()
             ]
           );
@@ -604,13 +607,16 @@ mixin MeleeTrailEffect on MeleeFunctionality {
             behindEffects[element] = (
               [
                 ...behindEffects[element]!.$1,
-                newPosition(element.position, -degrees(element.angle),
+                newPosition(
+                        element.currentSwing.absolutePosition,
+                        -degrees(element.currentSwing.angle),
                         length * baseBeginPercent)
                     .clone(),
               ],
               [
                 ...behindEffects[element]!.$2,
-                newPosition(element.position, -degrees(element.angle), length)
+                newPosition(element.currentSwing.absolutePosition,
+                        -degrees(element.currentSwing.angle), length)
                     .clone(),
               ]
             );

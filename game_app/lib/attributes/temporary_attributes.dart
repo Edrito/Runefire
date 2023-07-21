@@ -71,7 +71,7 @@ class FireDamageAttribute extends TemporaryAttribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeEnum get attributeEnum => AttributeEnum.burn;
+  AttributeType get attributeEnum => AttributeType.burn;
 
   @override
   String description() {

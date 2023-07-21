@@ -12,7 +12,6 @@ import 'package:game_app/weapons/weapon_mixin.dart';
 import '../resources/data_classes/base.dart';
 import '../resources/functions/vector_functions.dart';
 import '../main.dart';
-import '../attributes/attributes_enum.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
 import '../weapons/weapon_class.dart';
@@ -648,17 +647,17 @@ mixin HealthFunctionality on Entity {
       DamageType damageType = element.damageType;
 
       //TODO finish this
-      switch (damageType) {
-        case DamageType.fire:
-          attr.addAttribute(
-            AttributeEnum.burn.buildAttribute(2, attr, element.source),
-          );
-          break;
-        default:
-          attr.addAttribute(
-            AttributeEnum.burn.buildAttribute(2, attr, element.source),
-          );
-      }
+      // switch (damageType) {
+      //   case DamageType.fire:
+      //     attr.addAttribute(
+      //       AttributeEnum.burn.buildAttribute(2, attr, element.source),
+      //     );
+      //     break;
+      //   default:
+      //     attr.addAttribute(
+      //       AttributeEnum.burn.buildAttribute(2, attr, element.source),
+      //     );
+      // }
     }
   }
 
