@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:game_app/attributes/attributes_enum.dart';
 
 import 'package:hive/hive.dart';
 

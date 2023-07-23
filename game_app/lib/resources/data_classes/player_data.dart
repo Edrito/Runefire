@@ -16,7 +16,7 @@ class PlayerDataComponent extends DataComponent {
 @HiveType(typeId: 1)
 class PlayerData extends DataClass {
   //XP
-  int experiencePoints = 0;
+  int experiencePoints = 6000;
   int spentExperiencePoints = 0;
 
   //STATS
@@ -47,13 +47,6 @@ class PlayerData extends DataClass {
     1: SecondaryType.reloadAndRapidFire,
   };
 
-  // WeaponType selectedWeapon1 = WeaponType.pistol;
-  // SecondaryWeaponType selectedSecondary1 =
-  //     SecondaryWeaponType.reloadAndRapidFire;
-
-  // WeaponType selectedWeapon2 = WeaponType.shiv;
-  // SecondaryWeaponType selectedSecondary2 = SecondaryWeaponType.pistol;
-
   Map<WeaponType, int> unlockedWeapons = {
     WeaponType.pistol: 0,
     WeaponType.dagger: 0,
@@ -63,4 +56,37 @@ class PlayerData extends DataClass {
     SecondaryType.reloadAndRapidFire: 0
   };
   Map<AttributeType, int> unlockedPermanentAttributes = {};
+
+  bool enoughMoney(int cost) {
+    return experiencePoints >= cost;
+  }
+
+  bool unlockAttribute(AttributeType? attributeType) {
+    if (attributeType == null) return false;
+    final currentLevel = unlockedPermanentAttributes[attributeType] ?? 0;
+    final currentAttribute = attributeType.buildAttribute(
+      currentLevel,
+      null,
+      null,
+    );
+    if (currentAttribute.upgradeLevel == currentAttribute.maxLevel) {
+      return false;
+    }
+
+    final cost = currentAttribute.cost();
+    final canAfford = enoughMoney(cost);
+
+    if (canAfford) {
+      if (unlockedPermanentAttributes.containsKey(attributeType)) {
+        unlockedPermanentAttributes[attributeType] =
+            unlockedPermanentAttributes[attributeType]! + 1;
+      } else {
+        unlockedPermanentAttributes[attributeType] = 1;
+      }
+      experiencePoints -= cost;
+      spentExperiencePoints += cost;
+    }
+    parentComponent?.notifyListeners();
+    return canAfford;
+  }
 }

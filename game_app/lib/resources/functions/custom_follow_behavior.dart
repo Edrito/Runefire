@@ -1,13 +1,10 @@
-import 'dart:async';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/src/camera/viewfinder.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/player.dart';
-import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
 
 class CustomFollowBehavior extends Component {
@@ -33,7 +30,6 @@ class CustomFollowBehavior extends Component {
     if (position != null) {
       playerTarget += (position * amount);
     }
-    // print(amount);
     owner.position = owner.position +
         ((playerTarget - owner.position) * aimingInterpolationAmount);
   }

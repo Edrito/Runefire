@@ -27,7 +27,6 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    print('contact');
     if (parentAttack.isDead) {
       return;
     }

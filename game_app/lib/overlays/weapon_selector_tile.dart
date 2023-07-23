@@ -14,21 +14,22 @@ import '../weapons/weapon_class.dart';
 import '../weapons/weapon_mixin.dart';
 
 class WeaponSelectorTab extends StatefulWidget {
-  const WeaponSelectorTab(
-      {required this.gameRef,
-      this.weaponType,
-      this.secondaryType,
-      required this.isPrimary,
-      super.key,
-      required this.weaponTab,
-      required this.onSelect});
+  const WeaponSelectorTab({
+    required this.gameRef,
+    this.weaponType,
+    this.secondaryType,
+    required this.isPrimary,
+    super.key,
+    required this.weaponTab,
+    // required this.onSelect
+  });
 
   final GameRouter gameRef;
   final AttackType weaponTab;
   final bool isPrimary;
   final WeaponType? weaponType;
   final SecondaryType? secondaryType;
-  final Function(dynamic) onSelect;
+  // final Function(dynamic) onSelect;
 
   @override
   State<WeaponSelectorTab> createState() => _WeaponSelectorTabState();
@@ -120,7 +121,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     int maxLevel = 0;
     bool isWeapon = weaponType != null;
     Function onLevelTap;
-    Function onSelect;
+    // Function onSelect;
     String icon;
     int currentCost;
     bool isMaxLevel = false;
@@ -141,7 +142,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
         }
         playerDataComponent.notifyListeners();
       };
-      onSelect = () => widget.onSelect(weaponType);
+      // onSelect = () => widget.onSelect(weaponType);
       currentCost = weaponType.baseCost;
     } else {
       isEquipped = playerData.selectedSecondaries[widget.isPrimary ? 0 : 1] ==
@@ -162,7 +163,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
 
         playerDataComponent.notifyListeners();
       };
-      onSelect = () => widget.onSelect(secondaryType);
+      // onSelect = () => widget.onSelect(secondaryType);
       currentCost = secondaryType.baseCost;
     }
     isMaxLevel = unlockedLevel == maxLevel;
@@ -280,7 +281,28 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                   isMainHover = value;
                 });
               },
-              onTap: isUnlocked ? () => onSelect() : null,
+              // onTap: isUnlocked ? () => onSelect() : null,
+              onTap: isUnlocked
+                  ? () {
+                      if (isSecondaryAbility) {
+                        setState(() {
+                          playerDataComponent.dataObject.selectedSecondaries[
+                              widget.isPrimary ? 0 : 1] = secondaryType!;
+                          playerDataComponent.notifyListeners();
+                        });
+                      } else {
+                        if (playerDataComponent
+                            .dataObject.selectedWeapons.values
+                            .contains(weaponType)) return;
+                        setState(() {
+                          playerDataComponent.dataObject
+                                  .selectedWeapons[widget.isPrimary ? 0 : 1] =
+                              weaponType!;
+                          playerDataComponent.notifyListeners();
+                        });
+                      }
+                    }
+                  : null,
               child: Stack(
                 children: [
                   Table(columnWidths: const {

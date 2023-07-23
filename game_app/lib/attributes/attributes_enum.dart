@@ -95,8 +95,8 @@ enum AttributeType {
 }
 
 extension AllAttributesExtension on AttributeType {
-  Attribute buildAttribute(
-      int level, AttributeFunctionality victimEntity, Entity perpetratorEntity,
+  Attribute buildAttribute(int level, AttributeFunctionality? victimEntity,
+      Entity? perpetratorEntity,
       {DamageType? damageType, StatusEffects? statusEffect}) {
     switch (this) {
       case AttributeType.speed:

@@ -20,7 +20,7 @@ import '../resources/functions/custom_mixins.dart';
 abstract class Attribute with UpgradeFunctions {
   Attribute(
       {int level = 0,
-      required this.victimEntity,
+      this.victimEntity,
       this.perpetratorEntity,
       this.damageType,
       this.statusEffect}) {
@@ -34,6 +34,10 @@ abstract class Attribute with UpgradeFunctions {
   StatusEffects? statusEffect;
   bool get isTemporary => this is TemporaryAttribute;
 
+  int cost([int? level]) {
+    return 5 * (level ?? upgradeLevel + 1);
+  }
+
   String description();
   String help() {
     return "An increase of ${((factor ?? 0) * 100)}% of your base attribute with an additional ${((factor ?? 0) * 100)}% at max level.";
@@ -44,11 +48,12 @@ abstract class Attribute with UpgradeFunctions {
   abstract String title;
   double? factor;
 
-  AttributeFunctionality victimEntity;
+  AttributeFunctionality? victimEntity;
   Entity? perpetratorEntity;
 
   int get remainingLevels => maxLevel - upgradeLevel;
 
+  @override
   int maxLevel = 5;
 
   ///Default increase is multiplying the baseParameter by [factor]%
@@ -61,7 +66,7 @@ abstract class Attribute with UpgradeFunctions {
   double increasePercent() =>
       (factor ?? 0) * (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
 
-  AttributeType get attributeEnum;
+  AttributeType get attributeType;
 
   ///Increase or decrease the level based on the input value
 
@@ -84,7 +89,7 @@ class TopSpeedAttribute extends Attribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeType attributeEnum = AttributeType.speed;
+  AttributeType attributeType = AttributeType.speed;
 
   @override
   double get factor => .05;
@@ -129,7 +134,7 @@ class AttackRateAttribute extends Attribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeType attributeEnum = AttributeType.attackRate;
+  AttributeType attributeType = AttributeType.attackRate;
 
   @override
   double get factor => .05;
@@ -179,7 +184,7 @@ class ExplosionEnemyDeathAttribute extends Attribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeType attributeEnum = AttributeType.enemyExplosion;
+  AttributeType attributeType = AttributeType.enemyExplosion;
 
   @override
   double get factor => .25;
@@ -190,12 +195,14 @@ class ExplosionEnemyDeathAttribute extends Attribute {
   double baseSize = .5;
 
   void onKill(HealthFunctionality other) {
+    if (victimEntity == null || perpetratorEntity == null) return;
+
     final explosion = AreaEffect(
-      sourceEntity: victimEntity,
+      sourceEntity: victimEntity!,
       position: other.center,
       radius: baseSize + increaseFlat(baseSize),
       isInstant: false,
-      duration: victimEntity.durationPercentIncrease.parameter,
+      duration: victimEntity!.durationPercentIncrease.parameter,
       onTick: (entity, areaId) {
         if (entity is HealthFunctionality) {
           entity.hitCheck(areaId, [
@@ -207,7 +214,7 @@ class ExplosionEnemyDeathAttribute extends Attribute {
         }
       },
     );
-    victimEntity.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
   }
 
   @override

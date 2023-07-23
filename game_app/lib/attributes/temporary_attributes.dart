@@ -29,15 +29,16 @@ abstract class TemporaryAttribute extends Attribute {
 
   @override
   void applyUpgrade() {
+    if (victimEntity == null || perpetratorEntity == null) return;
     currentTimer?.timer.reset();
     currentTimer ??= TimerComponent(
         period: duration,
         onTick: () {
           removeUpgrade();
-          victimEntity.removeAttribute(attributeEnum);
+          victimEntity!.removeAttribute(attributeType);
         },
         removeOnFinish: true)
-      ..addToParent(victimEntity);
+      ..addToParent(victimEntity!);
     if (!upgradeApplied) {
       mapUpgrade();
       upgradeApplied = true;
@@ -71,7 +72,7 @@ class FireDamageAttribute extends TemporaryAttribute {
       required super.perpetratorEntity});
 
   @override
-  AttributeType get attributeEnum => AttributeType.burn;
+  AttributeType get attributeType => AttributeType.burn;
 
   @override
   String description() {
@@ -112,7 +113,7 @@ class FireDamageAttribute extends TemporaryAttribute {
 
   @override
   void mapUpgrade() {
-    victimEntity.entityStatusWrapper
+    victimEntity?.entityStatusWrapper
         .addStatusEffect(StatusEffects.burn, upgradeLevel);
 
     if (victimEntity is AttributeFunctionsFunctionality) {
@@ -123,7 +124,7 @@ class FireDamageAttribute extends TemporaryAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity.entityStatusWrapper.removeStatusEffect(StatusEffects.burn);
+    victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.burn);
 
     if (victimEntity is AttributeFunctionsFunctionality) {
       final attr = victimEntity as AttributeFunctionsFunctionality;
@@ -169,7 +170,7 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is! AttributeFunctionality) return;
-    other.addAttribute(powerup.attributeEnum.buildAttribute(1, other, other));
+    other.addAttribute(powerup.attributeType.buildAttribute(1, other, other));
     removeFromParent();
     super.beginContact(other, contact);
   }

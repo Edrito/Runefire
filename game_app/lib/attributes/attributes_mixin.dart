@@ -31,12 +31,12 @@ mixin AttributeFunctionality on Entity {
 
   void addAttribute(Attribute attribute,
       {int? level, bool applyUpgrade = true}) {
-    if (currentAttributes.containsKey(attribute.attributeEnum)) {
-      currentAttributes[attribute.attributeEnum]?.incrementLevel(level ?? 1);
+    if (currentAttributes.containsKey(attribute.attributeType)) {
+      currentAttributes[attribute.attributeType]?.incrementLevel(level ?? 1);
     } else {
-      currentAttributes[attribute.attributeEnum] = attribute..removeUpgrade();
+      currentAttributes[attribute.attributeType] = attribute..removeUpgrade();
       if (applyUpgrade) {
-        currentAttributes[attribute.attributeEnum]?.applyUpgrade();
+        currentAttributes[attribute.attributeType]?.applyUpgrade();
       }
     }
   }

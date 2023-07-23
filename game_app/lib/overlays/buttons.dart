@@ -141,7 +141,7 @@ class CustomButton extends StatelessWidget {
           child: Text(
             text,
             style: style,
-            textAlign: TextAlign.center,
+            // textAlign: TextAlign.center,
           ),
         ),
       );
@@ -150,8 +150,10 @@ class CustomButton extends StatelessWidget {
 }
 
 class DisplayButtons extends StatefulWidget {
-  const DisplayButtons({required this.buttons, super.key});
+  const DisplayButtons(
+      {required this.buttons, this.alignment = Alignment.center, super.key});
   final List<CustomButton> buttons;
+  final Alignment alignment;
 
   @override
   State<DisplayButtons> createState() => _DisplayButtonsState();
@@ -180,11 +182,15 @@ class _DisplayButtonsState extends State<DisplayButtons> {
       } else {
         newButton = button;
       }
-      displayedButtons.add(Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: newButton,
+      displayedButtons.add(Align(
+        alignment: widget.alignment,
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: newButton,
+        ),
       ));
     }
+
     return Listener(
       onPointerDown: (event) {
         selectedIndex = -1;
@@ -218,20 +224,14 @@ class _DisplayButtonsState extends State<DisplayButtons> {
             });
           }
         },
-        child: Center(
-          child: SizedBox(
-            width: 300,
-            child: ListView(
-              shrinkWrap: true,
-              children: displayedButtons
-                  .animate(onComplete: (_) => loaded = true)
-                  // .slideX(
-                  //     curve: Curves.easeInOut,
-                  //     begin: -1,
-                  //     end: 0,
-                  //     duration: .4.seconds)
-                  .fadeIn(curve: Curves.easeInOut, duration: .4.seconds),
-            ),
+        child: SizedBox(
+          // alignment: widget.alignment,
+          width: 300,
+          child: ListView(
+            shrinkWrap: true,
+            children: displayedButtons
+                .animate(onComplete: (_) => loaded = true)
+                .fadeIn(curve: Curves.easeInOut, duration: .4.seconds),
           ),
         ),
       ),

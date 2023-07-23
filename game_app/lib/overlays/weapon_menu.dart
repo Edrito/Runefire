@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/overlays/attribute_menu.dart';
 import 'package:game_app/overlays/weapon_selector_tile.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/main.dart';
@@ -13,21 +14,26 @@ import '../resources/data_classes/player_data.dart';
 import 'buttons.dart';
 import 'menus.dart';
 
-class WeaponTile extends StatelessWidget {
-  const WeaponTile(
+class WeaponSecondaryTile extends StatelessWidget {
+  const WeaponSecondaryTile(
       {required this.onTap,
-      required this.weaponType,
+      this.weaponType,
+      this.secondaryType,
       required this.level,
       required this.isPrimary,
       super.key});
   final Function onTap;
-  final WeaponType weaponType;
+  final WeaponType? weaponType;
+  final SecondaryType? secondaryType;
   final int level;
   final radius = 20.0;
   final bool isPrimary;
 
   @override
   Widget build(BuildContext context) {
+    assert(weaponType != null || secondaryType != null);
+    bool isWeapon = weaponType != null;
+
     bool isHover = false;
 
     return StatefulBuilder(builder: (context, setState) {
@@ -44,16 +50,16 @@ class WeaponTile extends StatelessWidget {
         },
         child: Stack(children: [
           SizedBox.square(
-            dimension: 180,
+            dimension: isWeapon ? 180 : 100,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Image.asset(
-                    weaponType.icon,
+                    isWeapon ? weaponType!.icon : secondaryType!.icon,
                     filterQuality: FilterQuality.none,
-                    height: 100,
+                    height: isWeapon ? 100 : 50,
                   ),
                 ),
               ],
@@ -95,8 +101,8 @@ class WeaponTile extends StatelessWidget {
                   ).custom(
                     builder: (context, value, child) {
                       return Container(
-                        height: 25,
-                        width: 100,
+                        height: isWeapon ? 25 : 15,
+                        width: isWeapon ? 100 : 50,
                         decoration: BoxDecoration(
                             color: Colors.white
                                 .withOpacity(.5)
@@ -106,100 +112,6 @@ class WeaponTile extends StatelessWidget {
                                     width: 4, color: secondaryColor))),
                         transform: Matrix4.skewX(isPrimary ? -.75 : .75),
                       );
-                    },
-                  )),
-            ),
-          ).animate().fadeIn()
-        ]),
-      );
-    });
-  }
-}
-
-class SecondaryTile extends StatelessWidget {
-  const SecondaryTile(
-      {required this.onTap,
-      required this.secondaryType,
-      required this.isPrimary,
-      required this.level,
-      super.key});
-  final Function onTap;
-  final SecondaryType secondaryType;
-  final int level;
-  final radius = 20.0;
-  final bool isPrimary;
-
-  @override
-  Widget build(BuildContext context) {
-    bool isHover = false;
-
-    return StatefulBuilder(builder: (context, setState) {
-      final size = MediaQuery.of(context).size;
-      return InkWell(
-        radius: radius,
-        onTap: () {
-          onTap();
-        },
-        onHover: (value) {
-          setState(() {
-            isHover = value;
-          });
-        },
-        child: Stack(children: [
-          SizedBox.square(
-            dimension: 100,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image.asset(
-                    secondaryType.icon,
-                    height: 50,
-                  ),
-                ),
-              ],
-            ),
-          )
-              .animate()
-              .moveY(
-                  duration: 1.5.seconds,
-                  curve: Curves.fastEaseInToSlowEaseOut,
-                  begin: -size.height / 2)
-              .fadeIn(
-                duration: 1.5.seconds,
-                curve: Curves.fastEaseInToSlowEaseOut,
-              )
-              .animate(
-                onPlay: randomBegin,
-                onComplete: onComplete,
-              )
-              .moveY(
-                  begin: 5,
-                  end: -5,
-                  duration: 1.seconds,
-                  curve: Curves.easeInOut),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Animate(
-                    target: isHover ? 1 : 0,
-                  ).custom(
-                    builder: (context, value, child) {
-                      return Container(
-                          height: 15,
-                          width: 50,
-                          decoration: BoxDecoration(
-                              color: Colors.white
-                                  .withOpacity(.5)
-                                  .mergeWith(Colors.pink, value),
-                              border: const Border(
-                                  top: BorderSide(
-                                      width: 4,
-                                      color: secondaryEquippedColor))),
-                          transform: Matrix4.skewX(isPrimary ? -.75 : .75));
                     },
                   )),
             ),
@@ -221,7 +133,8 @@ void onComplete(AnimationController controller) =>
 
 class WeaponSecondarySelector extends StatefulWidget {
   const WeaponSecondarySelector(
-      {required this.onSelect,
+      {
+      // required this.onSelect,
       required this.onBack,
       required this.isPrimary,
       required this.isSecondaryAbility,
@@ -229,7 +142,7 @@ class WeaponSecondarySelector extends StatefulWidget {
       required this.gameRef,
       super.key});
 
-  final Function(dynamic) onSelect;
+  // final Function(dynamic) onSelect;
   final Function onBack;
 
   final GameRouter gameRef;
@@ -243,14 +156,7 @@ class WeaponSecondarySelector extends StatefulWidget {
 }
 
 class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
-  // late ComponentsNotifier<PlayerDataComponent> playerDataNotifier;
   late PlayerDataComponent playerDataComponent;
-
-  // @override
-  // void dispose() {
-  //   playerDataNotifier.removeListener(onPlayerDataNotification);
-  //   super.dispose();
-  // }
 
   @override
   void initState() {
@@ -290,7 +196,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
             gameRef: widget.gameRef,
             isPrimary: widget.isPrimary,
             weaponTab: weaponTab,
-            onSelect: widget.onSelect,
+            // onSelect: widget.onSelect,
             weaponType: weaponType));
       }
     } else {
@@ -306,7 +212,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
             gameRef: widget.gameRef,
             isPrimary: widget.isPrimary,
             weaponTab: weaponTab,
-            onSelect: widget.onSelect,
+            // onSelect: widget.onSelect,
             secondaryType: secondaryType));
       }
     }
@@ -410,6 +316,8 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
   }
 }
 
+Widget? _attributeUpgrader;
+
 class WeaponMenu extends StatefulWidget {
   const WeaponMenu({
     super.key,
@@ -448,9 +356,22 @@ class _WeaponMenuState extends State<WeaponMenu> {
 
   Widget? _weaponSelector;
 
+  void clearOverlays() {
+    _weaponSelector = null;
+    _attributeUpgrader = null;
+  }
+
   set weaponSelector(Widget? value) {
     setState(() {
+      clearOverlays();
       _weaponSelector = value;
+    });
+  }
+
+  set attributeUpgrader(Widget? value) {
+    setState(() {
+      clearOverlays();
+      _attributeUpgrader = value;
     });
   }
 
@@ -502,7 +423,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
     final secondaryEntries =
         playerDataComponent.dataObject.selectedSecondaries.entries;
 
-    Widget primaryWeaponTile = WeaponTile(
+    Widget primaryWeaponTile = WeaponSecondaryTile(
       level:
           playerDataComponent.dataObject.unlockedWeapons[entries.first.value] ??
               0,
@@ -513,14 +434,14 @@ class _WeaponMenuState extends State<WeaponMenu> {
           key: UniqueKey(),
           isSecondaryAbility: false,
           weaponTab: entries.first.value.attackType,
-          onSelect: (weaponType) {
-            if (playerDataComponent.dataObject.selectedWeapons.values
-                .contains(weaponType)) return;
-            setState(() {
-              playerDataComponent.dataObject.selectedWeapons[0] = weaponType;
-              playerDataComponent.notifyListeners();
-            });
-          },
+          // onSelect: (weaponType) {
+          //   if (playerDataComponent.dataObject.selectedWeapons.values
+          //       .contains(weaponType)) return;
+          //   setState(() {
+          //     playerDataComponent.dataObject.selectedWeapons[0] = weaponType;
+          //     playerDataComponent.notifyListeners();
+          //   });
+          // },
           isPrimary: true,
           gameRef: widget.gameRef,
           onBack: () {
@@ -531,7 +452,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
         );
       },
     );
-    Widget primarySecondaryTile = SecondaryTile(
+    Widget primarySecondaryTile = WeaponSecondaryTile(
       isPrimary: true,
       level: playerDataComponent
               .dataObject.unlockedSecondarys[secondaryEntries.first.value] ??
@@ -541,13 +462,13 @@ class _WeaponMenuState extends State<WeaponMenu> {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
           isSecondaryAbility: true,
-          onSelect: (secondaryType) {
-            setState(() {
-              playerDataComponent.dataObject.selectedSecondaries[0] =
-                  secondaryType;
-              playerDataComponent.notifyListeners();
-            });
-          },
+          // onSelect: (secondaryType) {
+          //   setState(() {
+          //     playerDataComponent.dataObject.selectedSecondaries[0] =
+          //         secondaryType;
+          //     playerDataComponent.notifyListeners();
+          //   });
+          // },
           isPrimary: true,
           gameRef: widget.gameRef,
           onBack: () {
@@ -558,7 +479,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
         );
       },
     );
-    Widget secondaryWeaponTile = WeaponTile(
+    Widget secondaryWeaponTile = WeaponSecondaryTile(
       level:
           playerDataComponent.dataObject.unlockedWeapons[entries.last.value] ??
               0,
@@ -569,14 +490,14 @@ class _WeaponMenuState extends State<WeaponMenu> {
           key: UniqueKey(),
           weaponTab: entries.last.value.attackType,
           isSecondaryAbility: false,
-          onSelect: (weaponType) {
-            if (playerDataComponent.dataObject.selectedWeapons.values
-                .contains(weaponType)) return;
-            setState(() {
-              playerDataComponent.dataObject.selectedWeapons[1] = weaponType;
-              playerDataComponent.notifyListeners();
-            });
-          },
+          // onSelect: (weaponType) {
+          //   if (playerDataComponent.dataObject.selectedWeapons.values
+          //       .contains(weaponType)) return;
+          //   setState(() {
+          //     playerDataComponent.dataObject.selectedWeapons[1] = weaponType;
+          //     playerDataComponent.notifyListeners();
+          //   });
+          // },
           isPrimary: false,
           gameRef: widget.gameRef,
           onBack: () {
@@ -588,7 +509,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
       },
     );
 
-    Widget secondarySecondaryTile = SecondaryTile(
+    Widget secondarySecondaryTile = WeaponSecondaryTile(
       isPrimary: false,
       level: playerDataComponent
               .dataObject.unlockedSecondarys[secondaryEntries.last.value] ??
@@ -598,13 +519,13 @@ class _WeaponMenuState extends State<WeaponMenu> {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
           isSecondaryAbility: true,
-          onSelect: (secondaryType) {
-            setState(() {
-              playerDataComponent.dataObject.selectedSecondaries[1] =
-                  secondaryType;
-              playerDataComponent.notifyListeners();
-            });
-          },
+          // onSelect: (secondaryType) {
+          //   setState(() {
+          //     playerDataComponent.dataObject.selectedSecondaries[1] =
+          //         secondaryType;
+          //     playerDataComponent.notifyListeners();
+          //   });
+          // },
           isPrimary: false,
           gameRef: widget.gameRef,
           onBack: () {
@@ -648,34 +569,57 @@ class _WeaponMenuState extends State<WeaponMenu> {
             ),
             const Spacer(),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: CustomButton(
-                    "Back",
-                    gameRef: widget.gameRef,
-                    onTap: () {
-                      setState(() {
-                        exitFunction = () {
-                          changeMainMenuPage(MenuPages.startMenuPage);
-                        };
-                      });
-                    },
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: CustomButton(
+                      "Back",
+                      gameRef: widget.gameRef,
+                      onTap: () {
+                        setState(() {
+                          exitFunction = () {
+                            changeMainMenuPage(MenuPages.startMenuPage);
+                          };
+                        });
+                      },
+                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: CustomButton(
-                    "Choose Level",
-                    gameRef: widget.gameRef,
-                    onTap: () {
-                      setState(() {
-                        exitFunction = () {
-                          changeMainMenuPage(MenuPages.levelMenu);
-                        };
-                      });
-                    },
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Center(
+                      child: CustomButton(
+                        "Return to your studies",
+                        gameRef: widget.gameRef,
+                        onTap: () {
+                          attributeUpgrader = AttributeUpgrader(
+                              onBack: () {
+                                attributeUpgrader = null;
+                              },
+                              gameRef: widget.gameRef);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: CustomButton(
+                      "Choose Level",
+                      gameRef: widget.gameRef,
+                      onTap: () {
+                        setState(() {
+                          exitFunction = () {
+                            changeMainMenuPage(MenuPages.levelMenu);
+                          };
+                        });
+                      },
+                    ),
                   ),
                 ),
               ],
@@ -690,6 +634,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
             )
             .fadeOut(),
         if (_weaponSelector != null) _weaponSelector!,
+        if (_attributeUpgrader != null) _attributeUpgrader!,
       ],
     );
   }

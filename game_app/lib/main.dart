@@ -37,6 +37,8 @@ void playAudio(String audioLocation,
     {AudioType audioType = AudioType.sfx,
     AudioScopeType audioScopeType = AudioScopeType.short,
     bool isLooping = false}) {
+  return;
+
   double volume;
 
   switch (audioType) {
@@ -275,9 +277,6 @@ void main() async {
               }
             }
             isSecondaryPointer.remove(event.pointer);
-          },
-          onPointerSignal: (event) {
-            print(event.buttons);
           },
           child: RawKeyboardListener(
             focusNode: node,

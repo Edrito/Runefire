@@ -65,8 +65,8 @@ class CustomCard extends StatelessWidget {
       isEnding ??= isEndingInitial;
       isHighlighted ??= isHighlightedInitial;
       final highlightColor = isHighlighted!
-          ? attribute.attributeEnum.rarity.color.darken(.2)
-          : attribute.attributeEnum.rarity.color.brighten(.1);
+          ? attribute.attributeType.rarity.color.darken(.2)
+          : attribute.attributeType.rarity.color.brighten(.1);
       final regularColor = Colors.grey.shade100;
 
       isHighlighted = isHighlighted! || isEnding!;

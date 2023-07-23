@@ -1,14 +1,7 @@
 import 'dart:io';
-import 'dart:math';
-import 'dart:async' as async;
-import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:game_app/main.dart';
-import 'package:game_app/overlays/weapon_menu.dart';
-import '../resources/data_classes/system_data.dart';
 import 'buttons.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import 'menus.dart';
 
@@ -50,12 +43,19 @@ class _StartMenuState extends State<StartMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return DisplayButtons(
-      buttons: [
-        startButtonComponent,
-        optionsButtonComponent,
-        exitButtonComponent
-      ],
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: DisplayButtons(
+          alignment: Alignment.centerLeft,
+          buttons: [
+            startButtonComponent,
+            optionsButtonComponent,
+            exitButtonComponent
+          ],
+        ),
+      ),
     );
   }
 }
