@@ -358,6 +358,7 @@ class FlameSword extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (20, 25);
     pierce.baseParameter = 2;
     maxChainingTargets.baseParameter = 6;
+    baseAttackCount.baseParameter = 5;
     attackHitboxPatterns = [
       (Vector2(.0, -1.5), 360),
       (Vector2(0, 1.5), -30),

@@ -22,6 +22,19 @@ abstract class Enviroment extends Component
   late final World gameWorld;
   late CameraComponent gameCamera;
 
+  void printChildren(var children) {
+    for (var element in children) {
+      print(element);
+      printChildren(element.children);
+    }
+  }
+
+  @override
+  // ignore: unnecessary_overrides
+  void update(double dt) {
+    super.update(dt);
+  }
+
   @override
   bool containsLocalPoint(Vector2 point) {
     return true;

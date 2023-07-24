@@ -4,18 +4,18 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:game_app/attributes/attributes.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/visuals.dart';
 
 import 'package:recase/recase.dart';
-import '../attributes/attributes_enum.dart';
+import '../attributes/attributes_permanent.dart';
+import '../attributes/attributes_structure.dart';
 import '../resources/data_classes/player_data.dart';
 import 'buttons.dart';
 
 class AttributeTile extends StatelessWidget {
   const AttributeTile(this.attribute, this.isSelected, {super.key});
-  final Attribute attribute;
+  final PermanentAttribute attribute;
   final bool isSelected;
 
   Widget buildLevelIndicator(bool isUnlocked, double fraction) {
@@ -89,7 +89,7 @@ class AttributeTile extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                attribute.cost().toString(),
+                attribute.isMaxLevel ? "MAX" : attribute.cost().toString(),
                 style: style,
               ),
             )
@@ -158,8 +158,8 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
       final attribute = element.buildAttribute(
         level,
         null,
-        null,
       );
+      if (attribute is! PermanentAttribute) continue;
       entries.add(InkWell(
           onTap: () {
             setState(() {
@@ -223,8 +223,8 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                             "Unlock",
                             gameRef: widget.gameRef,
                             onTap: () {
-                              final result =
-                                  playerData.unlockAttribute(selectedAttribute);
+                              final result = playerData
+                                  .unlockPermanentAttribute(selectedAttribute);
                             },
                           ),
                         ),

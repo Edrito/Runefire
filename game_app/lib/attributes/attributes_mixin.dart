@@ -7,8 +7,8 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../resources/enums.dart';
-import 'attributes.dart';
-import 'attributes_enum.dart';
+import 'attributes_regular.dart';
+import 'attributes_structure.dart';
 import '../resources/visuals.dart';
 
 mixin AttributeFunctionality on Entity {
@@ -23,8 +23,9 @@ mixin AttributeFunctionality on Entity {
   void initAttributes(Map<AttributeType, int> attributesToAdd) {
     if (initalized) return;
     for (var element in attributesToAdd.entries) {
-      currentAttributes[element.key] =
-          element.key.buildAttribute(element.value, this, this)..applyUpgrade();
+      currentAttributes[element.key] = element.key
+          .buildAttribute(element.value, this, perpetratorEntity: this)
+        ..applyUpgrade();
     }
     initalized = true;
   }
@@ -77,7 +78,7 @@ mixin AttributeFunctionality on Entity {
   List<Attribute> buildAttributeSelection() {
     List<Attribute> returnList = [];
     final potentialCandidates = AttributeType.values
-        .where((element) => element.category != AttributeCategory.temporary)
+        .where((element) => element.territory == AttributeTerritory.game)
         .toList();
     for (var i = 0; i < 3; i++) {
       final attr = potentialCandidates
@@ -86,7 +87,7 @@ mixin AttributeFunctionality on Entity {
       if (currentAttributes.containsKey(attr)) {
         returnList.add(currentAttributes[attr]!);
       } else {
-        returnList.add(attr.buildAttribute(0, this, this));
+        returnList.add(attr.buildAttribute(0, this));
       }
     }
     return returnList;
@@ -98,7 +99,7 @@ mixin AttributeFunctionality on Entity {
     if (currentAttributes.containsKey(attr)) {
       returnAttrib = (currentAttributes[attr]!);
     } else {
-      returnAttrib = (attr.buildAttribute(0, this, this));
+      returnAttrib = (attr.buildAttribute(0, this));
     }
 
     return returnAttrib;

@@ -273,6 +273,13 @@ class StatusEffectPercentParameterManager {
     _statusEffectPercentIncrease[sourceId] = {statusEffect: increase};
   }
 
+  void increaseAllPercent(String sourceId, double increase) {
+    _statusEffectPercentIncrease[sourceId] = {};
+    for (var element in StatusEffects.values) {
+      _statusEffectPercentIncrease[sourceId]?[element] = increase;
+    }
+  }
+
   Map<StatusEffects, double> get statusEffectPercentIncrease {
     final Map<StatusEffects, double> returnMap = {};
 
@@ -343,10 +350,20 @@ List<DamageInstance> damageCalculations(
             1;
     double weaponTypeIncrease = 1;
     if (sourceWeapon != null) {
-      if (sourceWeapon.weaponType.attackType == AttackType.melee) {
-        weaponTypeIncrease = source.meleeDamagePercentIncrease.parameter;
-      } else if (sourceWeapon.weaponType.attackType == AttackType.projectile) {
-        weaponTypeIncrease = source.projectileDamagePercentIncrease.parameter;
+      switch (sourceWeapon.weaponType.attackType) {
+        case AttackType.melee:
+          weaponTypeIncrease = source.meleeDamagePercentIncrease.parameter;
+
+          break;
+        case AttackType.projectile:
+          weaponTypeIncrease = source.projectileDamagePercentIncrease.parameter;
+
+          break;
+        case AttackType.spell:
+          weaponTypeIncrease = source.spellDamagePercentIncrease.parameter;
+
+          break;
+        default:
       }
     }
 

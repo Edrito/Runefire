@@ -46,7 +46,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   final DoubleParameterManager durationPercentIncrease =
       DoubleParameterManager(baseParameter: 1);
 
-  final DoubleParameterManager durationDamageIncrease =
+  final DoubleParameterManager tickDamageIncrease =
       DoubleParameterManager(baseParameter: 1);
 
   //Movement
@@ -58,7 +58,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
       DoubleParameterManager(baseParameter: 1);
 
   ///Multiply this with area effect spells etc
-  final DoubleParameterManager areaSizeIncrease =
+  final DoubleParameterManager areaSizePercentIncrease =
       DoubleParameterManager(baseParameter: 1);
 
   ///Multiply this with area effect spells etc
@@ -99,6 +99,9 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
       DoubleParameterManager(baseParameter: 1);
 
   final DoubleParameterManager projectileDamagePercentIncrease =
+      DoubleParameterManager(baseParameter: 1);
+
+  final DoubleParameterManager spellDamagePercentIncrease =
       DoubleParameterManager(baseParameter: 1);
 }
 

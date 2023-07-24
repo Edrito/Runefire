@@ -199,11 +199,7 @@ extension GameLevelExtension on GameLevel {
 
 enum WeaponSpritePosition { hand, mouse, back }
 
-enum AttackType {
-  projectile,
-  melee,
-// special
-}
+enum AttackType { projectile, melee, spell }
 
 // enum WeaponState { shooting, reloading, idle }
 

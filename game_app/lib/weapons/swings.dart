@@ -26,6 +26,14 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
   int hitEnemies = 0;
 
   @override
+  void update(double dt) {
+    if (isMounted) {
+      print(body.isAwake);
+    }
+    super.update(dt);
+  }
+
+  @override
   void beginContact(Object other, Contact contact) {
     if (parentAttack.isDead) {
       return;
@@ -88,11 +96,12 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
 //  activeSwings.last.swingPosition, activeSwings.last.swingAngle
     final bodyDef = BodyDef(
       userData: this,
+      allowSleep: false,
       position: parentAttack.activeSwings.last.swingPosition,
       angle: parentAttack.activeSwings.last.swingAngle,
       type: BodyType.kinematic,
     );
-    renderBody = true;
+    renderBody = false;
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 }
@@ -292,6 +301,7 @@ class MeleeAttackHandler extends Component {
       parentWeapon.activeSwings.remove(this);
       parentWeapon.spriteVisibilityCheck();
       hitbox?.removeFromParent();
+      removeFromParent();
     }
   }
 

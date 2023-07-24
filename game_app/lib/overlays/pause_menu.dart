@@ -2,7 +2,7 @@ import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:game_app/attributes/attributes_enum.dart';
+import 'package:game_app/attributes/attributes_structure.dart';
 
 import '../game/enviroment.dart';
 import '../game/enviroment_mixin.dart';
@@ -20,6 +20,18 @@ class PauseMenu extends StatefulWidget {
 class _PauseMenuState extends State<PauseMenu> {
   FocusNode node = FocusNode();
   late final GameEnviroment env;
+
+  bool fetchAttributeLogicChecker(
+      MapEntry<AttributeType, Attribute> element, bool isTemp) {
+    final tempChecker =
+        ((element.key.territory == AttributeTerritory.temporary && isTemp) ||
+            (element.key.territory != AttributeTerritory.temporary && !isTemp));
+
+    final permanentChecker =
+        element.key.territory != AttributeTerritory.permanent;
+    return tempChecker && permanentChecker;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -64,14 +76,17 @@ class _PauseMenuState extends State<PauseMenu> {
       child: Center(
         child: StatefulBuilder(builder: (context, setState) {
           var entries = env.player?.currentAttributes.entries.toList();
-          var tempEntries = entries?.where(
-              (element) => element.key.category == AttributeCategory.temporary);
-          var nonTempEntries = entries?.where(
-              (element) => element.key.category != AttributeCategory.temporary);
+          var tempEntries = entries
+              ?.where((element) => fetchAttributeLogicChecker(element, true));
+          var nonTempEntries = entries
+              ?.where((element) => fetchAttributeLogicChecker(element, false));
+
           entries?.sort(
               (a, b) => a.key.rarity.index.compareTo(b.key.rarity.index));
+
           entries?.sort(
               (b, a) => a.value.upgradeLevel.compareTo(b.value.upgradeLevel));
+
           return Row(
             children: [
               Expanded(

@@ -1,5 +1,6 @@
-import 'package:game_app/attributes/attributes_enum.dart';
+import 'package:game_app/attributes/attributes_structure.dart';
 
+import '../../attributes/attributes_permanent.dart';
 import '../../entities/player.dart';
 import '../enums.dart';
 import 'package:hive/hive.dart';
@@ -61,15 +62,15 @@ class PlayerData extends DataClass {
     return experiencePoints >= cost;
   }
 
-  bool unlockAttribute(AttributeType? attributeType) {
+  bool unlockPermanentAttribute(AttributeType? attributeType) {
     if (attributeType == null) return false;
     final currentLevel = unlockedPermanentAttributes[attributeType] ?? 0;
     final currentAttribute = attributeType.buildAttribute(
       currentLevel,
       null,
-      null,
     );
-    if (currentAttribute.upgradeLevel == currentAttribute.maxLevel) {
+    if ((currentAttribute.upgradeLevel == currentAttribute.maxLevel) ||
+        currentAttribute is! PermanentAttribute) {
       return false;
     }
 

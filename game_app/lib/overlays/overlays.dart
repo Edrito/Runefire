@@ -5,10 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/overlays/buttons.dart';
 import 'package:game_app/overlays/menus.dart';
-import 'package:game_app/attributes/attributes.dart';
 import 'package:game_app/overlays/pause_menu.dart';
 import 'package:game_app/resources/visuals.dart';
 
+import '../attributes/attributes_structure.dart';
 import '../main.dart';
 import 'cards.dart';
 

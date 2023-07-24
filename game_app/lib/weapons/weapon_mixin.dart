@@ -262,24 +262,24 @@ mixin MeleeFunctionality on Weapon {
 
 mixin SecondaryFunctionality on Weapon {
   set setSecondaryFunctionality(dynamic item) {
-    _secondaryWeapon = null;
-    _secondaryWeaponAbility = null;
+    secondaryWeapon = null;
+    secondaryWeaponAbility = null;
     if (item is Weapon) {
-      _secondaryWeapon = item;
-      _secondaryWeapon?.weaponAttachmentPoints = weaponAttachmentPoints;
-      _secondaryWeapon?.isSecondaryWeapon = true;
-      _secondaryWeapon?.weaponId = weaponId;
+      secondaryWeapon = item;
+      secondaryWeapon?.weaponAttachmentPoints = weaponAttachmentPoints;
+      secondaryWeapon?.isSecondaryWeapon = true;
+      secondaryWeapon?.weaponId = weaponId;
       // assert(_secondaryWeapon is! FullAutomatic);
     } else if (item is SecondaryWeaponAbility) {
-      _secondaryWeaponAbility = item;
+      secondaryWeaponAbility = item;
       add(item);
     }
   }
 
-  bool get secondaryIsWeapon => _secondaryWeapon != null;
+  bool get secondaryIsWeapon => secondaryWeapon != null;
 
-  Weapon? _secondaryWeapon;
-  SecondaryWeaponAbility? _secondaryWeaponAbility;
+  Weapon? secondaryWeapon;
+  SecondaryWeaponAbility? secondaryWeaponAbility;
 
   @override
   void weaponSwappedTo() {
@@ -297,14 +297,14 @@ mixin SecondaryFunctionality on Weapon {
 
   @override
   void startAltAttacking() {
-    _secondaryWeapon?.startAttacking();
-    _secondaryWeaponAbility?.startAbilityCheck();
+    secondaryWeapon?.startAttacking();
+    secondaryWeaponAbility?.startAbilityCheck();
   }
 
   @override
   void endAltAttacking() {
-    _secondaryWeapon?.endAttacking();
-    _secondaryWeaponAbility?.endAbility();
+    secondaryWeapon?.endAttacking();
+    secondaryWeaponAbility?.endAbility();
   }
 }
 

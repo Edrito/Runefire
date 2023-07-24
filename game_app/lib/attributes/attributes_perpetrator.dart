@@ -1,22 +1,45 @@
+import '../entities/entity.dart';
+import 'attributes_regular.dart';
+
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/attributes/attributes_mixin.dart';
-import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/attributes/attributes.dart';
-import 'package:game_app/attributes/attributes_enum.dart';
+import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
 import '../main.dart';
+import 'attributes_status_effect.dart';
 
-abstract class TemporaryAttribute extends Attribute {
-  TemporaryAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+PerpetratorAttribute? perpetratorAttributeBuilder(AttributeType type, int level,
+    AttributeFunctionality victimEntity, Entity perpetratorEntity) {
+  switch (type) {
+    case AttributeType.burn:
+      return FireDamageAttribute(
+        level: level,
+        victimEntity: victimEntity,
+        perpetratorEntity: perpetratorEntity,
+      );
 
+    default:
+      return null;
+  }
+}
+
+///Attribute sourced from another entitiy, for the purpose of damaging, status effects and such.
+abstract class PerpetratorAttribute extends Attribute {
+  PerpetratorAttribute(
+      {super.level,
+      super.victimEntity,
+      this.perpetratorEntity,
+      super.damageType});
+
+  Entity? perpetratorEntity;
+}
+
+mixin TemporaryAttribute on Attribute {
   abstract double duration;
   TimerComponent? currentTimer;
   abstract int uniqueId;
@@ -29,7 +52,7 @@ abstract class TemporaryAttribute extends Attribute {
 
   @override
   void applyUpgrade() {
-    if (victimEntity == null || perpetratorEntity == null) return;
+    if (victimEntity == null) return;
     currentTimer?.timer.reset();
     currentTimer ??= TimerComponent(
         period: duration,
@@ -39,101 +62,15 @@ abstract class TemporaryAttribute extends Attribute {
         },
         removeOnFinish: true)
       ..addToParent(victimEntity!);
-    if (!upgradeApplied) {
-      mapUpgrade();
-      upgradeApplied = true;
-    }
+    super.applyUpgrade();
   }
 
   @override
   void removeUpgrade() {
-    if (upgradeApplied) {
-      currentTimer?.removeFromParent();
-      currentTimer = null;
-      unMapUpgrade();
-      upgradeApplied = false;
-    }
+    currentTimer?.removeFromParent();
+    currentTimer = null;
+    super.removeUpgrade();
   }
-}
-
-class FireDamageAttribute extends TemporaryAttribute {
-  @override
-  double duration = 4;
-
-  @override
-  int uniqueId = 0;
-
-  @override
-  String title = "Fire Damage";
-
-  FireDamageAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
-
-  @override
-  AttributeType get attributeType => AttributeType.burn;
-
-  @override
-  String description() {
-    return "";
-  }
-
-  double tickRate = .5;
-
-  double durationPassed = 0;
-
-  double minDamage = 1;
-  double maxDamage = 1;
-
-  void fireDamage() {
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity as HealthFunctionality;
-      health.hitCheck(
-          uniqueId.toString(),
-          [
-            DamageInstance(
-                // damageBase:
-                //     ((maxDamage + minDamage) - (minDamage * rng.nextDouble())),
-                damageBase: 1 * upgradeLevel.toDouble(),
-                source: perpetratorEntity!,
-                damageType: DamageType.fire)
-          ],
-          false);
-    }
-  }
-
-  void tickCheck(double dt) {
-    if (durationPassed >= tickRate) {
-      durationPassed = 0;
-      fireDamage();
-    }
-    durationPassed += dt;
-  }
-
-  @override
-  void mapUpgrade() {
-    victimEntity?.entityStatusWrapper
-        .addStatusEffect(StatusEffects.burn, upgradeLevel);
-
-    if (victimEntity is AttributeFunctionsFunctionality) {
-      final attr = victimEntity as AttributeFunctionsFunctionality;
-      attr.onUpdate.add(tickCheck);
-    }
-  }
-
-  @override
-  void unMapUpgrade() {
-    victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.burn);
-
-    if (victimEntity is AttributeFunctionsFunctionality) {
-      final attr = victimEntity as AttributeFunctionsFunctionality;
-      attr.onUpdate.remove(tickCheck);
-    }
-  }
-
-  @override
-  String icon = "powerups/power.png";
 }
 
 class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
@@ -170,7 +107,7 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is! AttributeFunctionality) return;
-    other.addAttribute(powerup.attributeType.buildAttribute(1, other, other));
+    other.addAttribute(powerup.attributeType.buildAttribute(1, other));
     removeFromParent();
     super.beginContact(other, contact);
   }

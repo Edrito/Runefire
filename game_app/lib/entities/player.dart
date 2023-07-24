@@ -43,6 +43,11 @@ class Player extends Entity
     maxHealth.baseParameter = 50;
     speed.baseParameter = .2;
     stamina.baseParameter = 200;
+
+    if (!isDisplay) {
+      initAttributes(playerData.unlockedPermanentAttributes);
+    }
+    print('test');
   }
   final PlayerData playerData;
 

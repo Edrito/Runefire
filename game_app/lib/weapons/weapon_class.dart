@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/data_classes/base.dart';
+import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 import '../resources/functions/custom_mixins.dart';
@@ -90,6 +91,20 @@ abstract class Weapon extends Component with UpgradeFunctions {
   //META INFORMATION
   bool attackOnAnimationFinish = false;
 
+  Weapon? get getSecondaryWeapon {
+    if (this is SecondaryFunctionality) {
+      return (this as SecondaryFunctionality).secondaryWeapon;
+    }
+    return null;
+  }
+
+  SecondaryWeaponAbility? get getSecondaryAbility {
+    if (this is SecondaryFunctionality) {
+      return (this as SecondaryFunctionality).secondaryWeaponAbility;
+    }
+    return null;
+  }
+
   late String weaponId;
 
   AttributeWeaponFunctionsFunctionality? get attributeFunctionsFunctionality =>
@@ -142,7 +157,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   bool get weaponCanChain => maxChainingTargets.parameter > 0;
 
   final DoubleParameterManager attackTickRate =
-      DoubleParameterManager(baseParameter: 1, minParameter: 0.000000001);
+      DoubleParameterManager(baseParameter: 1, minParameter: 0.01);
 
   final DoubleParameterManager weaponRandomnessPercent = DoubleParameterManager(
       baseParameter: 0, minParameter: 0, maxParameter: 1);

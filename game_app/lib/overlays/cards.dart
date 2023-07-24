@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
-import 'package:game_app/attributes/attributes_enum.dart';
-import '../attributes/attributes.dart';
+import 'package:game_app/attributes/attributes_structure.dart';
 import '../resources/visuals.dart';
 
 class CustomCard extends StatelessWidget {
