@@ -549,9 +549,6 @@ class LargeSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double tipPositionPercent = 0;
-
-  @override
   bool get waitForAttackRate => false;
 
   @override

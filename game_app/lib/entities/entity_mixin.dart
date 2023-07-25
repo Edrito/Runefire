@@ -86,7 +86,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   int deathCount = 0;
   int get remainingLives => maxLives.parameter - deathCount;
 
-  final DoubleParameterManager lifeSteal =
+  final DoubleParameterManager essenceSteal =
       DoubleParameterManager(baseParameter: 0, minParameter: 0);
 
   final StatusEffectPercentParameterManager statusEffectsPercentIncrease =
@@ -500,7 +500,7 @@ mixin HealthFunctionality on Entity {
   }
 
   void addDamageText(DamageInstance instance) {
-    final color = instance.getColor();
+    final color = instance.damageType.color;
     const fontSize = .55;
 
     final test = TextPaint(
@@ -629,7 +629,7 @@ mixin HealthFunctionality on Entity {
     }
     damageTaken.clamp(0, maxHealth.parameter);
     addDamageText(largestEntry);
-    addDamageEffects(largestEntry.getColor());
+    addDamageEffects(largestEntry.damageType.color);
   }
 
   void deathChecker(List<DamageInstance> damage) {

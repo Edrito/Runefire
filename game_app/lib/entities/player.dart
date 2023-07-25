@@ -47,7 +47,6 @@ class Player extends Entity
     if (!isDisplay) {
       initAttributes(playerData.unlockedPermanentAttributes);
     }
-    print('test');
   }
   final PlayerData playerData;
 

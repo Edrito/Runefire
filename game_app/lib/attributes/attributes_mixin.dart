@@ -7,7 +7,6 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../resources/enums.dart';
-import 'attributes_regular.dart';
 import 'attributes_structure.dart';
 import '../resources/visuals.dart';
 
@@ -71,7 +70,7 @@ mixin AttributeFunctionality on Entity {
   void modifyLevel(AttributeType attributeEnum, [int amount = 0]) {
     if (currentAttributes.containsKey(attributeEnum)) {
       var attr = currentAttributes[attributeEnum]!;
-      attr.changeLevel(amount, attr.maxLevel);
+      attr.changeLevel(amount);
     }
   }
 
@@ -94,7 +93,7 @@ mixin AttributeFunctionality on Entity {
   }
 
   Attribute buildXpAttribute() {
-    const attr = AttributeType.attackRate;
+    const attr = AttributeType.experienceGainPermanent;
     late Attribute returnAttrib;
     if (currentAttributes.containsKey(attr)) {
       returnAttrib = (currentAttributes[attr]!);

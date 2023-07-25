@@ -43,7 +43,10 @@ enum AttributeCategory {
   melee,
   defence,
   offense,
-  utility
+  resistance,
+  damage,
+  utility,
+  health
 }
 
 enum AttributeTerritory { permanent, game, temporary }
@@ -58,47 +61,40 @@ enum AttributeType {
   psychic(territory: AttributeTerritory.temporary),
 
   //Permanent
-  areaSize,
-  areaDamageIncrease(category: AttributeCategory.offense),
-
-  meleeDamageIncrease(category: AttributeCategory.melee),
-  projectileDamageIncrease(category: AttributeCategory.projectile),
-  spellDamageIncrease(category: AttributeCategory.projectile),
-  tickDamageIncrease(category: AttributeCategory.offense),
-
-  statusEffectPotency(category: AttributeCategory.offense),
-
-  speed(category: AttributeCategory.mobility),
-  maxStamina(category: AttributeCategory.mobility),
-  maxHealth(category: AttributeCategory.defence),
-  staminaRegen(category: AttributeCategory.mobility),
-  healthRegen(category: AttributeCategory.defence),
-  experienceGain(category: AttributeCategory.utility),
-  dodgeChanceIncrease(category: AttributeCategory.defence),
-  critChance(category: AttributeCategory.offense),
-  critDamage(category: AttributeCategory.offense),
-  duration,
-  essenceSteal(category: AttributeCategory.offense),
-
-  attackRate(category: AttributeCategory.attack),
-  damageIncrease(category: AttributeCategory.offense),
-
-// enum DamageType { physical, magic, fire, psychic, energy, frost }
-  physicalDamageIncrease(category: AttributeCategory.offense),
-  magicDamageIncrease(category: AttributeCategory.offense),
-  fireDamageIncrease(category: AttributeCategory.offense),
-  psychicDamageIncrease(category: AttributeCategory.offense),
-  energyDamageIncrease(category: AttributeCategory.offense),
-  frostDamageIncrease(category: AttributeCategory.offense),
-
-  physicalResistanceIncrease(category: AttributeCategory.offense),
-  magicResistanceIncrease(category: AttributeCategory.offense),
-  fireResistanceIncrease(category: AttributeCategory.offense),
-  psychicResistanceIncrease(category: AttributeCategory.offense),
-  energyResistanceIncrease(category: AttributeCategory.offense),
-  frostResistanceIncrease(category: AttributeCategory.offense),
-
-  reloadTime(category: AttributeCategory.utility),
+  areaSizePermanent,
+  areaDamageIncreasePermanent(category: AttributeCategory.offense),
+  meleeDamageIncreasePermanent(category: AttributeCategory.offense),
+  projectileDamageIncreasePermanent(category: AttributeCategory.offense),
+  spellDamageIncreasePermanent(category: AttributeCategory.offense),
+  tickDamageIncreasePermanent(category: AttributeCategory.offense),
+  critChancePermanent(category: AttributeCategory.offense),
+  critDamagePermanent(category: AttributeCategory.offense),
+  attackRatePermanent(category: AttributeCategory.offense),
+  damageIncreasePermanent(category: AttributeCategory.offense),
+  healthRegenPermanent(category: AttributeCategory.defence),
+  dodgeChanceIncreasePermanent(category: AttributeCategory.defence),
+  maxHealthPermanent(category: AttributeCategory.defence),
+  essenceStealPermanent(category: AttributeCategory.defence),
+  maxLivesPermanent(category: AttributeCategory.defence),
+  speedPermanent(category: AttributeCategory.mobility),
+  maxStaminaPermanent(category: AttributeCategory.mobility),
+  staminaRegenPermanent(category: AttributeCategory.mobility),
+  experienceGainPermanent(category: AttributeCategory.utility),
+  durationPermanent,
+  reloadTimePermanent(),
+  statusEffectPotencyPermanent(category: AttributeCategory.utility),
+  physicalDamageIncreasePermanent(category: AttributeCategory.damage),
+  magicDamageIncreasePermanent(category: AttributeCategory.damage),
+  fireDamageIncreasePermanent(category: AttributeCategory.damage),
+  psychicDamageIncreasePermanent(category: AttributeCategory.damage),
+  energyDamageIncreasePermanent(category: AttributeCategory.damage),
+  frostDamageIncreasePermanent(category: AttributeCategory.damage),
+  physicalResistanceIncreasePermanent(category: AttributeCategory.resistance),
+  magicResistanceIncreasePermanent(category: AttributeCategory.resistance),
+  fireResistanceIncreasePermanent(category: AttributeCategory.resistance),
+  psychicResistanceIncreasePermanent(category: AttributeCategory.resistance),
+  energyResistanceIncreasePermanent(category: AttributeCategory.resistance),
+  frostResistanceIncreasePermanent(category: AttributeCategory.resistance),
 
   ///Game Attributes
   enemyExplosion(
@@ -160,7 +156,10 @@ extension AllAttributesExtension on AttributeType {
 ///The perpetratorEntity may be a source of a negitive attribute
 abstract class Attribute with UpgradeFunctions {
   Attribute({int level = 0, this.victimEntity, this.damageType}) {
-    upgradeLevel = level.clamp(0, maxLevel);
+    upgradeLevel = level;
+    if (maxLevel != null) {
+      upgradeLevel = upgradeLevel.clamp(0, maxLevel!);
+    }
     attributeId = const Uuid().v4();
   }
 
@@ -182,10 +181,10 @@ abstract class Attribute with UpgradeFunctions {
   abstract bool increaseFromBaseParameter;
   AttributeFunctionality? victimEntity;
 
-  int get remainingLevels => maxLevel - upgradeLevel;
+  int get remainingLevels => (maxLevel ?? upgradeLevel) - upgradeLevel;
 
   @override
-  int maxLevel = 5;
+  int? maxLevel = 5;
 
   double increase(bool increaseFromBaseParameter, [double? base]) =>
       increaseFromBaseParameter
@@ -218,7 +217,8 @@ abstract class Attribute with UpgradeFunctions {
   }
 
   void genericAttributeIncrease(dynamic parameterManager,
-      bool increaseFromBaseParameter, bool increaseParameterPercentage) {
+      bool increaseFromBaseParameter, bool increaseParameterPercentage,
+      [DamageType? damageType]) {
     switch (parameterManager.runtimeType) {
       case DoubleParameterManager:
         if (increaseParameterPercentage) {
@@ -257,6 +257,14 @@ abstract class Attribute with UpgradeFunctions {
             .increaseAllPercent(attributeId, increase(false));
 
         break;
+
+      case DamagePercentParameterManager:
+        (parameterManager as DamagePercentParameterManager)
+            .setDamagePercentIncrease(
+                attributeId, damageType!, increase(false));
+
+        break;
+
       default:
     }
   }

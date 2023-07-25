@@ -66,7 +66,7 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
 
 final defaultStyle = TextStyle(
   fontSize: Platform.isAndroid || Platform.isIOS ? 21 : 35,
-  fontFamily: "HeroSpeak",
+  fontFamily: "YuseiMagic",
   fontWeight: FontWeight.bold,
   color: buttonUpColor,
   shadows: const [],

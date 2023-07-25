@@ -9,7 +9,6 @@ import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/visuals.dart';
 
-import 'package:recase/recase.dart';
 import '../resources/data_classes/player_data.dart';
 import 'buttons.dart';
 import 'menus.dart';
@@ -138,7 +137,6 @@ class WeaponSecondarySelector extends StatefulWidget {
       required this.onBack,
       required this.isPrimary,
       required this.isSecondaryAbility,
-      this.weaponTab = AttackType.projectile,
       required this.gameRef,
       super.key});
 
@@ -148,7 +146,6 @@ class WeaponSecondarySelector extends StatefulWidget {
   final GameRouter gameRef;
   final bool isPrimary;
   final bool isSecondaryAbility;
-  final AttackType weaponTab;
 
   @override
   State<WeaponSecondarySelector> createState() =>
@@ -161,25 +158,72 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
   @override
   void initState() {
     super.initState();
-    weaponTab = widget.weaponTab;
     playerDataComponent = widget.gameRef.playerDataComponent;
     // playerDataNotifier =
     //     widget.gameRef.componentsNotifier<PlayerDataComponent>();
 
     // playerDataNotifier.addListener(onPlayerDataNotification);
     playerData = playerDataComponent.dataObject;
-  }
 
-  late AttackType weaponTab;
+    WeaponType? selectedWeapon =
+        playerData.selectedWeapons[widget.isPrimary ? 0 : 1];
+    for (var element in AttackType.values) {
+      if (selectedWeapon?.attackType == element) {
+        selectedWeapons[element] = (selectedWeapon!);
+      } else {
+        selectedWeapons[element] = (WeaponType.values
+            .firstWhere((elementD) => elementD.attackType == element));
+      }
+    }
 
-  void changeTab(AttackType newWeaponTab) {
-    setState(() {
-      weaponTab = newWeaponTab;
-    });
+    selectedSecondary =
+        playerData.selectedSecondaries[widget.isPrimary ? 0 : 1];
   }
 
   final borderWidth = 5.0;
   final borderColor = backgroundColor2.brighten(.1);
+
+  Map<AttackType, WeaponType> selectedWeapons = {};
+  SecondaryType? selectedSecondary;
+  bool? previousPressLeft;
+
+  void changeWeapon(bool isLeftPress, AttackType? attackType) {
+    bool isSecondary = attackType == null;
+    int currentIndex = -1;
+    final attackTypeWeapons = WeaponType.values
+        .where((element) => element.attackType == attackType)
+        .toList();
+    if (isSecondary) {
+      currentIndex = SecondaryType.values.indexOf(selectedSecondary!);
+    } else {
+      currentIndex = attackTypeWeapons.indexOf(selectedWeapons[attackType]!);
+    }
+    if (isLeftPress) {
+      currentIndex--;
+    } else {
+      currentIndex++;
+    }
+    if (currentIndex < 0) {
+      currentIndex = (isSecondary
+              ? SecondaryType.values.length
+              : attackTypeWeapons.length) -
+          1;
+    } else if (currentIndex >=
+        (isSecondary
+            ? SecondaryType.values.length
+            : attackTypeWeapons.length)) {
+      currentIndex = 0;
+    }
+
+    setState(() {
+      previousPressLeft = isLeftPress;
+      if (isSecondary) {
+        selectedSecondary = SecondaryType.values[currentIndex];
+      } else {
+        selectedWeapons[attackType] = attackTypeWeapons[currentIndex];
+      }
+    });
+  }
 
   late PlayerData playerData;
   @override
@@ -187,136 +231,105 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
     final size = MediaQuery.of(context).size;
     List<Widget> entries = [];
     if (!widget.isSecondaryAbility) {
-      List<WeaponType> shownWeapons = WeaponType.values
-          .where((element) => element.attackType == weaponTab)
-          .toList();
-      shownWeapons.sort((a, b) => a.baseCost.compareTo(b.baseCost));
-      for (var weaponType in shownWeapons) {
+      for (var entry in selectedWeapons.entries) {
         entries.add(WeaponSelectorTab(
             gameRef: widget.gameRef,
+            weaponChange: changeWeapon,
             isPrimary: widget.isPrimary,
-            weaponTab: weaponTab,
-            // onSelect: widget.onSelect,
-            weaponType: weaponType));
+            key: Key(entry.value.name),
+            animateLeft: previousPressLeft,
+            weaponType: entry.value));
       }
     } else {
-      List<SecondaryType> shownSecondaries = SecondaryType.values
-          .where((element) => element.compatibilityCheck(playerData
-              .selectedWeapons[widget.isPrimary ? 0 : 1]!
-              .createFunction(null, null)))
-          .toList();
-      shownSecondaries.sort((a, b) => a.baseCost.compareTo(b.baseCost));
+      // List<SecondaryType> shownSecondaries = SecondaryType.values
+      //     .where((element) => element.compatibilityCheck(playerData
+      //         .selectedWeapons[widget.isPrimary ? 0 : 1]!
+      //         .createFunction(null, null)))
+      //     .toList();
+      // shownSecondaries.sort((a, b) => a.baseCost.compareTo(b.baseCost));
 
-      for (var secondaryType in shownSecondaries) {
-        entries.add(WeaponSelectorTab(
-            gameRef: widget.gameRef,
-            isPrimary: widget.isPrimary,
-            weaponTab: weaponTab,
-            // onSelect: widget.onSelect,
-            secondaryType: secondaryType));
-      }
+      // for (var secondaryType in shownSecondaries) {
+      entries.add(WeaponSelectorTab(
+          gameRef: widget.gameRef,
+          weaponChange: changeWeapon,
+          key: Key(selectedSecondary?.name ?? ""),
+          animateLeft: previousPressLeft,
+          isPrimary: widget.isPrimary,
+          // onSelect: widget.onSelect,
+          secondaryType: selectedSecondary));
+      // }
     }
 
-    return Animate(
-      effects: [
-        CustomEffect(builder: (context, value, child) {
-          return Container(
-            color: backgroundColor1.brighten(.1).withOpacity(.6 * value),
-            child: child,
-          );
-        })
-      ],
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: uiWidthMax),
-          child: Container(
-            width: size.width * .8,
-            height: size.height * .8,
-            decoration: BoxDecoration(
-              border: Border.all(color: borderColor, width: borderWidth),
-              color: backgroundColor2.brighten(.1).withOpacity(.35),
-            ),
-            child: Column(
+    return Center(
+      child: Container(
+        // width: size.width * .8,
+        // height: size.height * .8,
+        decoration: BoxDecoration(
+          // border: Border.all(color: borderColor, width: borderWidth),
+          color: Colors.black.brighten(.1).withOpacity(.95),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+                child: Row(
               children: [
-                if (!widget.isSecondaryAbility) ...[
-                  Row(
-                    children: [
-                      for (var i = 0; i < AttackType.values.length; i++)
-                        Expanded(
-                          child: InkWell(
-                            onTap: () {
-                              changeTab(AttackType.values[i]);
-                            },
-                            child: Container(
-                              color: AttackType.values[i] == weaponTab
-                                  ? unlockedColor
-                                  : backgroundColor1.brighten(.15),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  AttackType.values[i].name.titleCase,
-                                  style: defaultStyle,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      const SizedBox(
-                        height: 10,
-                      )
-                    ],
-                  ),
-                  Container(
-                    height: borderWidth,
-                    color: borderColor,
-                  )
-                ],
                 Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListView(
-                    children: entries,
+                  child: RotatedBox(
+                          quarterTurns: 1,
+                          child: Image.asset('assets/images/ui/bag.png'))
+                      .animate()
+                      .rotate()
+                      .fadeIn(),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: entries,
+                      ),
+                    ),
                   ),
-                )),
-                Row(
-                  children: [
-                    const Spacer(),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Center(
-                          child: CustomButton(
-                            "Back",
-                            gameRef: widget.gameRef,
-                            onTap: () => widget.onBack(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Center(
-                          child: Text(
-                            "${playerData.experiencePoints} 🟦",
-                            style: defaultStyle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
+                ),
               ],
-            ),
-          ),
+            )),
+            Row(
+              children: [
+                const Spacer(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: CustomButton(
+                        "Back",
+                        gameRef: widget.gameRef,
+                        onTap: () => widget.onBack(),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Text(
+                        "${playerData.experiencePoints} 🟦",
+                        style: defaultStyle,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ],
         ),
       ),
     );
   }
 }
-
-Widget? _attributeUpgrader;
 
 class WeaponMenu extends StatefulWidget {
   const WeaponMenu({
@@ -360,6 +373,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
     _weaponSelector = null;
     _attributeUpgrader = null;
   }
+
+  Widget? _attributeUpgrader;
 
   set weaponSelector(Widget? value) {
     setState(() {
@@ -433,15 +448,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
           isSecondaryAbility: false,
-          weaponTab: entries.first.value.attackType,
-          // onSelect: (weaponType) {
-          //   if (playerDataComponent.dataObject.selectedWeapons.values
-          //       .contains(weaponType)) return;
-          //   setState(() {
-          //     playerDataComponent.dataObject.selectedWeapons[0] = weaponType;
-          //     playerDataComponent.notifyListeners();
-          //   });
-          // },
           isPrimary: true,
           gameRef: widget.gameRef,
           onBack: () {
@@ -488,7 +494,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
-          weaponTab: entries.last.value.attackType,
           isSecondaryAbility: false,
           // onSelect: (weaponType) {
           //   if (playerDataComponent.dataObject.selectedWeapons.values

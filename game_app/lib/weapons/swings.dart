@@ -25,13 +25,13 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
   late PolygonShape shape;
   int hitEnemies = 0;
 
-  @override
-  void update(double dt) {
-    if (isMounted) {
-      print(body.isAwake);
-    }
-    super.update(dt);
-  }
+  // @override
+  // void update(double dt) {
+  //   if (isMounted) {
+  //     print(body.isAwake);
+  //   }
+  //   super.update(dt);
+  // }
 
   @override
   void beginContact(Object other, Contact contact) {

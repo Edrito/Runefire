@@ -84,8 +84,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
             (this as ProjectileFunctionality).projectileType != null,
         "Projectile weapon types need a projectile type");
 
+    maxLevel = weaponType.maxLevel;
     newUpgradeLevel ??= 0;
-    changeLevel(newUpgradeLevel, weaponType.maxLevel);
+    changeLevel(newUpgradeLevel);
     weaponId = const Uuid().v4();
   }
   //META INFORMATION
@@ -262,11 +263,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
 abstract class PlayerWeapon extends Weapon
     with AttributeWeaponFunctionsFunctionality, SecondaryFunctionality {
-  PlayerWeapon(super.newUpgradeLevel, super.entityAncestor) {
-    maxLevel = weaponType.maxLevel;
-  }
+  PlayerWeapon(super.newUpgradeLevel, super.entityAncestor);
   @override
-  late int maxLevel;
+  late int? maxLevel;
 }
 
 ///Custom SpriteAnimation that attaches to each joint on an entity that is defined

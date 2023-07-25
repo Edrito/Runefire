@@ -74,30 +74,32 @@ class CustomCard extends StatelessWidget {
           defaultStyle.copyWith(color: regularColor, fontSize: 30, shadows: []);
 
       List<Widget> levelIndicators = [];
-
-      for (int i = 0; i < attribute.upgradeLevel; i++) {
-        levelIndicators.add(Padding(
-          padding: const EdgeInsets.all(2),
-          child: Icon(
-            Icons.star,
-            size: 25,
-            color: regularColor,
-          ),
-        ));
-      }
-
-      for (var i = 0; i < attribute.maxLevel - attribute.upgradeLevel; i++) {
-        levelIndicators.add(
-          Padding(
+      if (attribute.maxLevel != null) {
+        for (int i = 0; i < attribute.upgradeLevel; i++) {
+          levelIndicators.add(Padding(
             padding: const EdgeInsets.all(2),
             child: Icon(
-              Icons.star_border,
+              Icons.star,
               size: 25,
-              color: highlightColor,
+              color: regularColor,
             ),
-          ),
-        );
+          ));
+        }
+
+        for (var i = 0; i < attribute.maxLevel! - attribute.upgradeLevel; i++) {
+          levelIndicators.add(
+            Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                Icons.star_border,
+                size: 25,
+                color: highlightColor,
+              ),
+            ),
+          );
+        }
       }
+
       final size = MediaQuery.of(context).size;
 
       Widget card = ConstrainedBox(

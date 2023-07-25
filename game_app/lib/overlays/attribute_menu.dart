@@ -5,9 +5,10 @@ import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/visuals.dart';
-
 import 'package:recase/recase.dart';
+
 import '../attributes/attributes_permanent.dart';
 import '../attributes/attributes_structure.dart';
 import '../resources/data_classes/player_data.dart';
@@ -22,7 +23,7 @@ class AttributeTile extends StatelessWidget {
     const fractionIncrease = 2;
     fraction = fractionIncrease * fraction;
     final balancedFrac = ((fraction) - (fractionIncrease / 2));
-    print(balancedFrac);
+    // print(balancedFrac);
     var xTransform = -pow(balancedFrac * 2.5, 2).toDouble();
     if (balancedFrac < 0) {
       xTransform = -xTransform;
@@ -30,6 +31,7 @@ class AttributeTile extends StatelessWidget {
     final yTransform = -(pow((balancedFrac * 5).abs(), 2).toDouble());
     const zTransform = 0.0;
     final zRotation = -balancedFrac * 1.8;
+    Color? customColor = attribute.damageType?.color;
 
     Widget returnWidget = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1),
@@ -42,7 +44,9 @@ class AttributeTile extends StatelessWidget {
           transform: Matrix4.rotationZ(zRotation),
           child: Image.asset(
             'assets/images/powerups/start.png',
-            color: isUnlocked ? Colors.red : Colors.blue,
+            color: isUnlocked
+                ? customColor ?? Colors.red
+                : customColor?.darken(.5) ?? Colors.blue,
           ),
         ),
       ),
@@ -53,47 +57,85 @@ class AttributeTile extends StatelessWidget {
           Animate(effects: const [FadeEffect()], child: returnWidget);
     }
     return Expanded(child: returnWidget);
+    return returnWidget;
   }
 
   @override
   Widget build(BuildContext context) {
-    final style = defaultStyle.copyWith(
-        fontSize: 18, color: isSelected ? Colors.red : Colors.blue);
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
+    Color? customColor = isSelected
+        ? attribute.damageType?.color.brighten(1)
+        : attribute.damageType?.color;
+    final selectedColor = isSelected ? Colors.white : Colors.blue;
+    final style = defaultStyle.copyWith(fontSize: 20, color: Colors.white);
+    final count = attribute.maxLevel;
+
+    return SizedBox.square(
+      dimension: 200,
       child: Container(
-        color: Colors.green.withOpacity(.5),
-        width: 180,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                attribute.attributeType.name.titleCase,
-                style: style,
+        decoration: BoxDecoration(
+          // borderRadius: BorderRadius.circular(5),
+          color: selectedColor.darken(.8),
+          // border: Border.all(color: Colors.grey.shade500, width: 5)
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  attribute.title,
+                  style: style,
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-            Container(
-              child: Image.asset(
-                'assets/images/${attribute.icon}',
-                fit: BoxFit.fitWidth,
-                filterQuality: FilterQuality.none,
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Image.asset(
+                        'assets/images/${attribute.icon}',
+                        fit: BoxFit.scaleDown,
+                        filterQuality: FilterQuality.none,
+                        color: customColor ?? selectedColor,
+                      ),
+                    ),
+                    Positioned.fill(
+                      top: null,
+                      bottom: 0,
+                      child: Row(children: [
+                        for (var i = 0; i < attribute.maxLevel!; i++)
+                          buildLevelIndicator(i < attribute.upgradeLevel,
+                              (i / (attribute.maxLevel! - 1))),
+                      ]),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Row(children: [
-              for (var i = 0; i < attribute.maxLevel; i++)
-                buildLevelIndicator(
-                    i < attribute.upgradeLevel, (i / (attribute.maxLevel - 1))),
-            ]),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                attribute.isMaxLevel ? "MAX" : attribute.cost().toString(),
-                style: style,
-              ),
-            )
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      attribute.description(),
+                      style: style,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      attribute.isMaxLevel
+                          ? "MAX"
+                          : attribute.cost().toString(),
+                      style: style,
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -148,56 +190,105 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    List<Widget> entries = [];
+    Map<AttributeCategory, List<Widget>> entries = {};
+    final list = AttributeType.values
+        .where((element) => element.territory == AttributeTerritory.permanent)
+        .toList();
+    // list.sort((a, b) => a.name.compareTo(b.name));
+    final listOfCat = AttributeCategory.values.toList();
+    // listOfCat.sort((a, b) => a.name.compareTo(b.name));
+    for (var element in listOfCat) {
+      final tempList = list.where((elementD) => elementD.category == element);
+      if (tempList.isEmpty) continue;
 
-    for (var element in AttributeType.values.where(
-        (element) => element.territory == AttributeTerritory.permanent)) {
-      int level =
-          playerDataComponent.dataObject.unlockedPermanentAttributes[element] ??
-              0;
-      final attribute = element.buildAttribute(
-        level,
-        null,
-      );
-      if (attribute is! PermanentAttribute) continue;
-      entries.add(InkWell(
+      entries[element] = tempList.map((e) {
+        int level =
+            playerDataComponent.dataObject.unlockedPermanentAttributes[e] ?? 0;
+        return InkWell(
           onTap: () {
             setState(() {
-              selectedAttribute = element;
+              selectedAttribute = e;
             });
           },
-          child: AttributeTile(attribute, selectedAttribute == element)));
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: AttributeTile(
+                e.buildAttribute(level, null) as PermanentAttribute,
+                selectedAttribute == e),
+          ),
+        );
+      }).toList();
+
+      // final attribute = element.buildAttribute(
+      //   level,
+      //   null,
+      // );
+      // if (attribute is! PermanentAttribute) continue;
+      // entries.add(InkWell(
+      //     onTap: () {
+      //       setState(() {
+      //         selectedAttribute = element;
+      //       });
+      //     },
+      //     child: Padding(
+      //       padding: const EdgeInsets.all(8.0),
+      //       child: AttributeTile(attribute, selectedAttribute == element),
+      //     )));
     }
 
     return Animate(
       effects: [
         CustomEffect(builder: (context, value, child) {
           return Container(
-            color: backgroundColor1.brighten(.1).withOpacity(.6 * value),
+            color: backgroundColor1.brighten(.1).withOpacity(.9 * value),
             child: child,
           );
         })
       ],
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: uiWidthMax),
+          constraints: const BoxConstraints(maxWidth: uiWidthMax * 1.25),
           child: Container(
-            width: size.width * .9,
-            height: size.height * .9,
-            decoration: BoxDecoration(
-              border: Border.all(color: borderColor, width: borderWidth),
-              color: backgroundColor2.brighten(.1).withOpacity(.75),
-            ),
+            // width: size.width * .9,
+            // height: size.height * .9,
+            // decoration: BoxDecoration(
+            //   border: Border.all(color: borderColor, width: borderWidth),
+            //   color: backgroundColor2.brighten(.1).withOpacity(.75),
+            // ),
             child: Column(
               children: [
                 Expanded(
                     child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: SingleChildScrollView(
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.center,
-                      children: entries,
+                    child: Column(
+                      children: [
+                        for (var element in entries.keys)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  element.name.titleCase,
+                                  style: defaultStyle.copyWith(fontSize: 40),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      alignment: WrapAlignment.center,
+                                      children: entries[element]!,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
                   ),
                 )),

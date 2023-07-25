@@ -235,7 +235,7 @@ enum WeaponType {
       AttackType.melee, 500),
   flameSword(FlameSword.create, 'assets/images/weapons/fire_sword.png', 5,
       AttackType.melee, 500),
-  dagger(Dagger.create, 'assets/images/weapons/dagger.png', 5, AttackType.melee,
+  dagger(Dagger.create, 'assets/images/weapons/dagger.png', 5, AttackType.spell,
       0),
 
   largeSword(LargeSword.create, 'assets/images/weapons/large_sword.png', 5,
@@ -318,20 +318,9 @@ enum SemiAutoType { regular, release, charge }
 
 enum DamageType { physical, magic, fire, psychic, energy, frost }
 
-enum StatusEffects { burn, chill, electrified, stun, psychic }
-
-typedef WeaponCreateFunction = Weapon Function(Entity);
-
-class DamageInstance {
-  DamageInstance(
-      {required this.damageBase,
-      required this.source,
-      required this.damageType,
-      this.duration = 1,
-      this.sourceWeapon});
-
-  Color getColor() {
-    switch (damageType) {
+extension DamageTypeExtension on DamageType {
+  Color get color {
+    switch (this) {
       case DamageType.physical:
         return Colors.white;
       case DamageType.energy:
@@ -346,6 +335,19 @@ class DamageInstance {
         return const Color.fromARGB(255, 170, 233, 248);
     }
   }
+}
+
+enum StatusEffects { burn, chill, electrified, stun, psychic }
+
+typedef WeaponCreateFunction = Weapon Function(Entity);
+
+class DamageInstance {
+  DamageInstance(
+      {required this.damageBase,
+      required this.source,
+      required this.damageType,
+      this.duration = 1,
+      this.sourceWeapon});
 
   Entity source;
   Weapon? sourceWeapon;

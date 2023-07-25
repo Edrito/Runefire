@@ -70,3 +70,6 @@ flutter:
     - family: HeroSpeak
       fonts:
         - asset: assets/fonts/hero-speak.ttf
+    - family: YuseiMagic
+      fonts:
+        - asset: assets/fonts/yusei-magic.ttf

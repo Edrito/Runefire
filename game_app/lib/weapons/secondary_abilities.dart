@@ -14,8 +14,8 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
     entityStatusWrapper = weapon?.entityAncestor?.entityStatusWrapper;
 
     newUpgradeLevel ??= 0;
-    changeLevel(newUpgradeLevel, secondaryType.maxLevel);
     maxLevel = secondaryType.maxLevel;
+    changeLevel(newUpgradeLevel);
   }
   late final EntityStatusEffectsWrapper? entityStatusWrapper;
   Weapon? weapon;
@@ -25,7 +25,7 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
 
   abstract SecondaryType secondaryType;
   @override
-  late int maxLevel;
+  late int? maxLevel;
 
   String get nextLevelStringDescription;
   String get abilityDescription;
