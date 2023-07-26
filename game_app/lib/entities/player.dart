@@ -14,7 +14,6 @@ import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/functions/vector_functions.dart';
-import '../game/forest_game.dart';
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
@@ -207,14 +206,6 @@ class Player extends Entity
 
       if (isDisplay) {
         return;
-      }
-      if (event.physicalKey == (PhysicalKeyboardKey.keyH)) {
-        (gameEnviroment as ForestGame).enemyManagement.generateEnemies();
-
-        // for (var element2 in StatusEffects.values) {
-        //   entityStatusWrapper.addStatusEffect(
-        //       5, element2, TimerComponent(period: 5)..addToParent(this), 1);
-        // }
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {

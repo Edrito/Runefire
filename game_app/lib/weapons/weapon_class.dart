@@ -215,12 +215,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
   void weaponSwappedTo() {}
 
   @mustCallSuper
-  void attack([double holdDurationPercent = 1]) {}
+  void standardAttack([double holdDurationPercent = 1]) {}
 
   /// Returns true if an attack occured, otherwise false.
   void attackAttempt([double holdDurationPercent = 1]) {
     if (entityAncestor?.isDead ?? false) return;
-    attack(holdDurationPercent);
+    standardAttack(holdDurationPercent);
   }
 
   void spriteVisibilityCheck() {

@@ -771,7 +771,7 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
 
   @override
   String description() {
-    return "Max Level";
+    return "Increase experience gained by 5%";
   }
 }
 

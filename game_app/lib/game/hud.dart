@@ -15,10 +15,13 @@ class GameHud extends PositionComponent {
   int fps = 0;
   late final FpsTextComponent fpsCounter;
   late final TextComponent levelCounter;
-  late final TextComponent levelCounter2;
+  late final TextComponent levelCounterBg;
   @override
   final double width = 100;
   Enviroment gameRef;
+
+  late HudMarginComponent timerParent;
+  late final CaTextComponent timerText;
 
   late HudMarginComponent levelParent;
   late CircleComponent levelBackground;
@@ -32,26 +35,29 @@ class GameHud extends PositionComponent {
       player = (gameRef as GameEnviroment).player;
     }
 
-    // add(RectangleComponent(
-    //     position: Vector2.zero(), size: game.gameCamera.viewport.size / 11));
-
     fpsCounter = FpsTextComponent(
-      // anchor: Anchor.ce,
       textRenderer: TextPaint(style: defaultStyle),
       position: Vector2(0, gameRef.gameCamera.viewport.size.y - 40),
     );
 
+    timerParent = HudMarginComponent(
+        margin: const EdgeInsets.fromLTRB(5, 0, 0, 40), anchor: Anchor.center);
+    timerText = CaTextComponent(
+      textRenderer: TextPaint(style: defaultStyle),
+    );
+
     levelParent = HudMarginComponent(
         margin: const EdgeInsets.fromLTRB(0, 40, 40, 0), anchor: Anchor.center);
+
     levelCounter = CaTextComponent(
         anchor: Anchor.center,
         textRenderer: TextPaint(style: defaultStyle),
         text: player?.currentLevel.toString());
-    levelCounter2 = CaTextComponent(
+    levelCounterBg = CaTextComponent(
         anchor: Anchor.center,
         position: Vector2.all(3),
         textRenderer: TextPaint(
-            style: defaultStyle.copyWith(color: Colors.pink.withOpacity(.5))),
+            style: defaultStyle.copyWith(color: Colors.blue.withOpacity(.5))),
         text: player?.currentLevel.toString());
     levelBackground = CircleComponent(
       radius: 32,
@@ -61,18 +67,23 @@ class GameHud extends PositionComponent {
         ..color = Colors.black.withOpacity(.8),
     );
 
+    timerParent.add(timerText);
     levelParent.add(levelBackground);
-    levelParent.add(levelCounter2);
+    levelParent.add(levelCounterBg);
     levelParent.add(levelCounter);
-    Future.delayed(loadInTime.seconds, () => add(levelParent));
+
+    add(timerParent);
+
+    Future.delayed(loadInTime.seconds, () => addAll([levelParent]));
 
     add(fpsCounter);
+
     return super.onLoad();
   }
 
   void setLevel(int level) {
     levelCounter.text = level.toString();
-    levelCounter2.text = level.toString();
+    levelCounterBg.text = level.toString();
   }
 
   @override

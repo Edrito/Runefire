@@ -5,12 +5,8 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/enemy_mixin.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/resources/data_classes/base.dart';
 
 import '../resources/functions/functions.dart';
-import '../resources/functions/vector_functions.dart';
-import '../game/enviroment.dart';
-import '../main.dart';
 import '../resources/constants/physics_filter.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
@@ -19,9 +15,9 @@ import '../attributes/attributes_mixin.dart';
 class DummyTwo extends Enemy
     with
         HealthFunctionality,
-        // MovementFunctionality,
+        MovementFunctionality,
         DropExperienceFunctionality,
-        // DumbFollowAI,
+        DumbFollowAI,
         TouchDamageFunctionality {
   DummyTwo({
     required super.initPosition,
@@ -29,14 +25,14 @@ class DummyTwo extends Enemy
   }) {
     height.baseParameter = 1.5;
     invincibilityDuration.baseParameter = 0;
-    maxHealth.baseParameter = double.infinity;
-    // speed.baseParameter = .05;
+    maxHealth.baseParameter = 100;
+    speed.baseParameter = .05;
     touchDamage.damageBase[DamageType.physical] = (1, 3);
   }
 
   @override
   void update(double dt) {
-    // moveCharacter();
+    moveCharacter();
     super.update(dt);
   }
 
@@ -76,6 +72,9 @@ class DummyTwo extends Enemy
 
   @override
   SpriteAnimation? walkAnimation;
+
+  @override
+  EnemyType enemyType = EnemyType.mushroomBrawler;
 }
 
 abstract class Enemy extends Entity
@@ -100,6 +99,8 @@ abstract class Enemy extends Entity
     super.preSolve(other, contact, oldManifold);
   }
 
+  abstract EnemyType enemyType;
+
   @override
   int get priority => enemyPriority;
 
@@ -117,39 +118,6 @@ abstract class Enemy extends Entity
 
   @override
   EntityType entityType = EntityType.enemy;
-}
-
-class EnemyManagement extends Component {
-  int enemiesSpawned = 0;
-  EnemyManagement(this.gameEnviroment);
-  GameEnviroment gameEnviroment;
-
-  void generateEnemies() {
-    for (var i = 1; i < rng.nextInt(4) + 1; i++) {
-      for (var j = 1; j < rng.nextInt(4) + 1; j++) {
-        gameEnviroment.physicsComponent.add(DummyTwo(
-            initPosition:
-                generateRandomGamePositionInViewport(true, gameEnviroment),
-            gameEnviroment: gameEnviroment));
-      }
-    }
-  }
-
-  @override
-  FutureOr<void> onLoad() {
-    priority = enemyPriority;
-
-    // add(TimerComponent(
-    //   period: 2,
-    //   repeat: true,
-    //   onTick: () {
-    //     generateEnemies();
-    //   },
-    // )..onTick());
-
-    // generateEnemies();
-    return super.onLoad();
-  }
 }
 
 class MeleeTest extends Enemy
@@ -208,19 +176,5 @@ class MeleeTest extends Enemy
   SpriteAnimation? walkAnimation;
 
   @override
-  DoubleParameterManager maxHealth =
-      DoubleParameterManager(baseParameter: double.infinity);
-
-  @override
-  DoubleParameterManager height = DoubleParameterManager(baseParameter: 1);
-
-  @override
-  DoubleParameterManager speed = DoubleParameterManager(baseParameter: .0);
-
-  @override
-  DamageParameterManager touchDamage = DamageParameterManager(damageBase: {});
-
-  @override
-  DoubleParameterManager invincibilityDuration =
-      DoubleParameterManager(baseParameter: .1);
+  EnemyType enemyType = EnemyType.mushroomBrawler;
 }

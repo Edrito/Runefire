@@ -105,21 +105,19 @@ mixin AttributeFunctionality on Entity {
   }
 }
 
-typedef EntityOwnerFunction = Function();
-
 mixin AttributeFunctionsFunctionality on Entity {
-  List<EntityOwnerFunction> dashBeginFunctions = [];
-  List<EntityOwnerFunction> dashOngoingFunctions = [];
-  List<EntityOwnerFunction> dashEndFunctions = [];
+  List<Function> dashBeginFunctions = [];
+  List<Function> dashOngoingFunctions = [];
+  List<Function> dashEndFunctions = [];
 
-  List<EntityOwnerFunction> jumpBeginFunctions = [];
-  List<EntityOwnerFunction> jumpOngoingFunctions = [];
-  List<EntityOwnerFunction> jumpEndFunctions = [];
+  List<Function> jumpBeginFunctions = [];
+  List<Function> jumpOngoingFunctions = [];
+  List<Function> jumpEndFunctions = [];
 
   List<Function(Entity source)> onHit = [];
-  List<EntityOwnerFunction> onMove = [];
-  List<EntityOwnerFunction> onDeath = [];
-  List<EntityOwnerFunction> onLevelUp = [];
+  List<Function> onMove = [];
+  List<Function> onDeath = [];
+  List<Function> onLevelUp = [];
 
   List<Function(HealthFunctionality other)> onTouch = [];
   List<Function(double dt)> onUpdate = [];

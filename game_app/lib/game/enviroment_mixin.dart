@@ -19,6 +19,7 @@ import '../resources/enums.dart';
 import '../overlays/overlays.dart';
 import '../resources/constants/priorities.dart';
 
+import '../resources/functions/functions.dart';
 import 'enviroment.dart';
 
 mixin JoystickFunctionality on PlayerFunctionality {
@@ -297,5 +298,36 @@ mixin PlayerFunctionality on Enviroment {
   void onTapUp(PointerUpEvent info) {
     endIdState(info.pointer);
     player?.gestureEventEnd(InputType.tapClick);
+  }
+}
+
+mixin GameTimerFunctionality on Enviroment {
+  double timePassed = 0;
+  bool isPaused = false;
+
+  void pauseGame() {
+    if (isPaused) {
+      return;
+    }
+    isPaused = true;
+  }
+
+  void unPauseGame() {
+    if (!isPaused) {
+      return;
+    }
+    isPaused = false;
+  }
+
+  @override
+  void update(double dt) {
+    if (!isPaused) {
+      timePassed += dt;
+      if (this is HudFunctionality) {
+        (this as HudFunctionality).hud.timerText.text =
+            convertSecondsToMinutesSeconds(timePassed.round());
+      }
+    }
+    super.update(dt);
   }
 }

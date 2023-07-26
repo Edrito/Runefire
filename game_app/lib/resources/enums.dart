@@ -6,6 +6,7 @@ import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/player_projectile_weapons.dart';
 
+import '../entities/enemy.dart';
 import '../entities/entity.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
@@ -19,6 +20,22 @@ enum AudioType {
   music,
   voice,
   ui,
+}
+
+enum EnemyType {
+  mushroomBrawler,
+}
+
+extension EnemyTypeExtension on EnemyType {
+  Enemy build(Vector2 position, GameEnviroment gameEnviroment) {
+    switch (this) {
+      case EnemyType.mushroomBrawler:
+        return DummyTwo(initPosition: position, gameEnviroment: gameEnviroment);
+
+      default:
+    }
+    return DummyTwo(initPosition: position, gameEnviroment: gameEnviroment);
+  }
 }
 
 enum AudioScopeType { bgm, long, short }

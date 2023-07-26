@@ -69,13 +69,21 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
 
   Widget buildDescriptionText(bool isNext, String string) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: Text(
-        string,
-        style: defaultStyle.copyWith(
-            shadows: [],
-            fontSize: 20,
-            color: isNext ? secondaryColor : primaryColor),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            string,
+            style: defaultStyle.copyWith(
+                shadows: [],
+                fontSize: 18,
+                color: isNext ? secondaryColor : primaryColor),
+          ),
+          const SizedBox(
+            width: 15,
+          )
+        ],
       ),
     );
   }
@@ -100,7 +108,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                   Border(right: BorderSide(color: color.darken(.4), width: 6)),
               gradient: LinearGradient(colors: [color, color.brighten(.2)]),
             ),
-            height: 25,
             // width: 10,
           ),
         ),
@@ -112,7 +119,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
 
   @override
   Widget build(BuildContext context) {
-    Widget unlockWidget;
     final weaponType = widget.weaponType;
     final secondaryType = widget.secondaryType;
     bool isEquipped = false;
@@ -210,15 +216,16 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     } else if (secondaryWeapon is SecondaryWeaponAbility) {
       weaponDescriptions.add((
         "",
-        isUnlocked ? " - " : secondaryWeapon.abilityDescription,
+        secondaryWeapon.abilityDescription,
         isMaxLevel ? " - " : secondaryWeapon.nextLevelStringDescription
       ));
     }
 
     Color equippedColor = isEquipped ? Colors.red : primaryColor;
-
+    const levelAndUnlockHeight = 50.0;
+    const unlockButtonWidth = 100.0;
     final levelIndicator = SizedBox(
-      height: 50,
+      height: levelAndUnlockHeight,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -324,23 +331,58 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
       ),
     );
 
+    Widget unlockWidget = InkWell(
+      onHover: (value) {
+        setState(() {
+          isLevelHover = value;
+        });
+      },
+      onTap: isMaxLevel
+          ? null
+          : () {
+              onLevelTap();
+            },
+      child: Container(
+        height: levelAndUnlockHeight,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          // borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color: !isLevelHover ? secondaryColor : unlockedColor,
+              width: borderWidth),
+          color: isLevelHover ? secondaryColor : unlockedColor,
+        ),
+        child: SizedBox(
+          width: unlockButtonWidth,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (!isMaxLevel) ...[
+                Icon(
+                  isUnlocked ? Icons.add : Icons.lock_open,
+                  size: 24,
+                  color: Colors.white,
+                ),
+                Text(
+                  "$currentCost",
+                  style: defaultStyle.copyWith(fontSize: 20),
+                ),
+              ] else
+                Text(
+                  "MAX",
+                  style: defaultStyle.copyWith(fontSize: 20),
+                ).animate().fadeIn()
+            ],
+          ),
+        ),
+      ),
+    );
+
     final informationDisplay = Row(children: [
       SizedBox(
         width: 300,
         child: Column(
           children: [
-            SizedBox(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  isWeapon
-                      ? weaponType.name.titleCase
-                      : secondaryType!.name.titleCase,
-                  style: defaultStyle.copyWith(color: equippedColor),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
             Expanded(
               child: Row(
                 children: [
@@ -374,127 +416,72 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                 ],
               ),
             ),
-            levelIndicator
+            const SizedBox(
+              height: 25,
+            ),
+            Row(
+              children: [
+                unlockWidget,
+                Expanded(child: levelIndicator),
+              ],
+            )
           ],
         ),
       ),
       Expanded(
         flex: 3,
         child: Container(
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.center,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: Wrap(children: [
-                      if (weaponDescriptions.isNotEmpty)
-                        for (var i = 0; i < weaponDescriptions.length; i++)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              buildDescriptionText(
-                                  false, weaponDescriptions[i].$1),
-                              buildDescriptionText(
-                                  false, weaponDescriptions[i].$2),
-                              buildDescriptionText(
-                                  true, weaponDescriptions[i].$3),
-                            ],
-                          )
-                    ]),
+                  Text(
+                    isWeapon
+                        ? weaponType.name.titleCase
+                        : secondaryType!.name.titleCase,
+                    style: defaultStyle.copyWith(color: equippedColor),
+                    textAlign: TextAlign.left,
                   ),
-                  const SizedBox(
-                    width: 50,
-                  )
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Expanded(
+                        child: Wrap(children: [
+                          if (weaponDescriptions.isNotEmpty)
+                            for (var i = 0; i < weaponDescriptions.length; i++)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  buildDescriptionText(
+                                      false, weaponDescriptions[i].$1),
+                                  buildDescriptionText(
+                                      false, weaponDescriptions[i].$2),
+                                  buildDescriptionText(
+                                      true, weaponDescriptions[i].$3),
+                                ],
+                              )
+                        ]),
+                      ),
+                      const SizedBox(
+                        width: 50,
+                      )
+                    ],
+                  ),
                 ],
               ),
             )),
       )
     ]);
 
-    const endButtonWidth = 125.0;
-    unlockWidget = Stack(
-      children: [
-        Positioned.fill(
-          left: endButtonWidth / 2,
-          child: Container(
-            alignment: Alignment.centerRight,
-            color: isLevelHover ? secondaryColor : unlockedColor,
-            // width: endButtonWidth/2,
-          ),
-        ),
-        Container(
-          color: isLevelHover ? secondaryColor : unlockedColor,
-          transform: Matrix4.skewX(-.25)..translate(35.0),
-          child: Padding(
-            padding: const EdgeInsets.only(right: 0),
-            child: InkWell(
-                onHover: (value) {
-                  setState(() {
-                    isLevelHover = value;
-                  });
-                },
-                onTap: () {
-                  onLevelTap();
-                },
-                child: SizedBox(
-                  width: endButtonWidth,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      if (!isMaxLevel) ...[
-                        Icon(
-                          isUnlocked ? Icons.add : Icons.lock_open,
-                          size: 30,
-                          color: Colors.white,
-                        ),
-                        Text(
-                          "$currentCost",
-                          style: defaultStyle,
-                        ),
-                      ] else
-                        Text(
-                          "MAX",
-                          style: defaultStyle,
-                        ).animate().fadeIn()
-                    ],
-                  ),
-                )),
-          ),
-        ),
-      ],
-    );
-
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-        child: Container(
-          height: 250,
-          decoration: const BoxDecoration(
-              // color: backgroundColor.mergeWith(
-              //     secondaryColor, isEquipped ? .4 : 0),
-              ),
-          child: ClipRect(
-            child: Stack(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Align(child: informationDisplay),
-                    ),
-                    const SizedBox(
-                      width: 50,
-                    )
-                  ],
-                ),
-                Positioned(top: 0, right: 0, bottom: 0, child: unlockWidget)
-              ],
-            ),
-          ),
-        ),
+        child: SizedBox(height: 250, child: informationDisplay),
       ),
     );
   }

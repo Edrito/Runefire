@@ -30,7 +30,7 @@ late GameRouter gameRouter;
 late MenuPages menuPage;
 String? currentOverlay;
 bool get gameIsPaused => gameRouter.paused;
-bool startInGame = false;
+bool startInGame = true;
 late String currentRoute;
 
 void playAudio(String audioLocation,

@@ -17,3 +17,11 @@ Future<SpriteAnimation> buildSpriteSheet(
       loop: loop,
       to: loop ? null : numberOfSprites);
 }
+
+String convertSecondsToMinutesSeconds(int seconds) {
+  int minutes = seconds ~/ 60;
+  int remainingSeconds = seconds % 60;
+  String minutesString = minutes.toString().padLeft(2, '0');
+  String secondsString = remainingSeconds.toString().padLeft(2, '0');
+  return "$minutesString:$secondsString";
+}

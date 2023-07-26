@@ -579,16 +579,19 @@ class _WeaponMenuState extends State<WeaponMenu> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: CustomButton(
-                      "Back",
-                      gameRef: widget.gameRef,
-                      onTap: () {
-                        setState(() {
-                          exitFunction = () {
-                            changeMainMenuPage(MenuPages.startMenuPage);
-                          };
-                        });
-                      },
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: CustomButton(
+                        "Back",
+                        gameRef: widget.gameRef,
+                        onTap: () {
+                          setState(() {
+                            exitFunction = () {
+                              changeMainMenuPage(MenuPages.startMenuPage);
+                            };
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -614,16 +617,19 @@ class _WeaponMenuState extends State<WeaponMenu> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: CustomButton(
-                      "Choose Level",
-                      gameRef: widget.gameRef,
-                      onTap: () {
-                        setState(() {
-                          exitFunction = () {
-                            changeMainMenuPage(MenuPages.levelMenu);
-                          };
-                        });
-                      },
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: CustomButton(
+                        "Choose Level",
+                        gameRef: widget.gameRef,
+                        onTap: () {
+                          setState(() {
+                            exitFunction = () {
+                              changeMainMenuPage(MenuPages.levelMenu);
+                            };
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ),

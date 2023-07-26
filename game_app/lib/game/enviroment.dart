@@ -111,6 +111,7 @@ abstract class GameEnviroment extends Enviroment
         // JoystickFunctionality,
         PauseOnFocusLost,
         BoundsFunctionality,
+        GameTimerFunctionality,
         HudFunctionality {
   abstract GameLevel level;
 

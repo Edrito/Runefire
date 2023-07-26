@@ -16,22 +16,15 @@ import '../entities/enemy.dart';
 import '../main.dart';
 import '../resources/enums.dart';
 
-class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
-  MeleeDetection(this.size, this.parentAttack, this.onHit);
+class MeleeAttackHitbox extends BodyComponent<GameRouter>
+    with ContactCallbacks {
+  MeleeAttackHitbox(this.size, this.parentAttack, this.onHit);
   MeleeAttackHandler parentAttack;
   Function(HealthFunctionality) onHit;
   List<String> hitEnemiesId = [];
   final Vector2 size;
   late PolygonShape shape;
   int hitEnemies = 0;
-
-  // @override
-  // void update(double dt) {
-  //   if (isMounted) {
-  //     print(body.isAwake);
-  //   }
-  //   super.update(dt);
-  // }
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -40,11 +33,12 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
     }
 
     if (other is HealthFunctionality) {
-      if (hitEnemiesId.contains(other.entityId)) {
+      if (hitEnemiesId.contains(other.entityId) || other.isDead) {
         return;
       }
       if (hitEnemies > parentAttack.parentWeapon.pierce.parameter) {
         parentAttack.kill();
+        return;
       }
       hitEnemiesId.add(other.entityId);
       other.hitCheck(
@@ -106,9 +100,9 @@ class MeleeDetection extends BodyComponent<GameRouter> with ContactCallbacks {
   }
 }
 
-class MeleeAttack extends PositionComponent {
-  MeleeAttack(SpriteAnimation? swingAnimation, Vector2 position, this.target,
-      this.handler) {
+class MeleeAttackSprite extends PositionComponent {
+  MeleeAttackSprite(SpriteAnimation? swingAnimation, Vector2 position,
+      this.target, this.handler) {
     this.position = position;
     animationComponent = SpriteAnimationComponent(
         animation: swingAnimation,
@@ -170,6 +164,7 @@ class MeleeAttackHandler extends Component {
       {required this.initPosition,
       required this.initAngle,
       required this.index,
+      required this.chargeAmount,
       required this.parentWeapon}) {
     start = parentWeapon.attackHitboxPatterns[index];
     end = parentWeapon.attackHitboxPatterns[index + 1];
@@ -179,9 +174,9 @@ class MeleeAttackHandler extends Component {
 
   bool isDead = false;
 
-  List<MeleeAttack> activeSwings = [];
+  List<MeleeAttackSprite> activeSwings = [];
   Entity? target;
-
+  double chargeAmount;
   late (Vector2, double) start;
   late (Vector2, double) end;
 
@@ -190,7 +185,7 @@ class MeleeAttackHandler extends Component {
 
   int index;
   MeleeFunctionality parentWeapon;
-  MeleeDetection? hitbox;
+  MeleeAttackHitbox? hitbox;
   Vector2 initPosition;
   double initAngle;
 
@@ -248,7 +243,7 @@ class MeleeAttackHandler extends Component {
     final rotatedEndPosition = rotateVector2(end.$1, swingAngle);
 
     final newSwing =
-        MeleeAttack(spriteAnimation!, swingPosition, target!, this);
+        MeleeAttackSprite(spriteAnimation!, swingPosition, target!, this);
     final startAngle = radians(start.$2) + swingAngle;
     newSwing.animationComponent?.angle = startAngle;
     newSwing.animationComponent?.position += rotatedStartPosition;
@@ -282,7 +277,7 @@ class MeleeAttackHandler extends Component {
     final hitboxSize = parentWeapon.attackHitboxSizes[(index / 2).round()];
     target = parentWeapon.entityAncestor;
     initSwing(initAngle, initPosition);
-    hitbox = MeleeDetection(hitboxSize, this, onHitFunction);
+    hitbox = MeleeAttackHitbox(hitboxSize, this, onHitFunction);
     parentWeapon.entityAncestor?.gameEnviroment.physicsComponent.add(hitbox);
 
     return super.onLoad();
@@ -295,7 +290,7 @@ class MeleeAttackHandler extends Component {
     isDead = true;
   }
 
-  void removeSwing([MeleeAttack? attack]) {
+  void removeSwing([MeleeAttackSprite? attack]) {
     activeSwings.remove(attack);
     if (activeSwings.isEmpty) {
       parentWeapon.activeSwings.remove(this);
@@ -305,7 +300,7 @@ class MeleeAttackHandler extends Component {
     }
   }
 
-  MeleeAttack get currentSwing => activeSwings.last;
+  MeleeAttackSprite get currentSwing => activeSwings.last;
 
   void updatePosition() {
     if (activeSwings.isEmpty) return;

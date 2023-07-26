@@ -191,8 +191,9 @@ mixin MeleeFunctionality on Weapon {
     return super.onLoad();
   }
 
-  @override
-  void attack([double chargeAmount = 1]) async {
+  void meleeAttack(int index, [double chargeAmount = 1]) {
+    final attackIndex = index.clamp(0, attackHitboxPatterns.length);
+    print(attackIndex);
     List<Component> returnList = [];
     final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
 
@@ -203,16 +204,22 @@ mixin MeleeFunctionality on Weapon {
       currentSwingAngles.add(deltaDirection);
 
       returnList.add(MeleeAttackHandler(
-        initPosition: (Vector2.zero()) * distanceFromPlayer,
+        initPosition: Vector2.zero(),
         initAngle: deltaDirection,
-        index: currentAttackPatternIndex,
+        chargeAmount: chargeAmount,
+        index: attackIndex,
         parentWeapon: this,
       ));
     }
 
     entityAncestor?.gameEnviroment.physicsComponent?.addAll(returnList);
     meleeAttacksCompletedIndex++;
-    super.attack(chargeAmount);
+  }
+
+  @override
+  void standardAttack([double chargeAmount = 1]) async {
+    meleeAttack(currentAttackPatternIndex, chargeAmount);
+    super.standardAttack(chargeAmount);
   }
 
   @override
@@ -342,20 +349,21 @@ mixin ProjectileFunctionality on Weapon {
 
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
 
-  @override
-  void attack([double chargeAmount = 1]) async {
+  void shootProjectile([double chargeAmount = 1]) {
     entityAncestor?.gameEnviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
     entityAncestor?.gameEnviroment?.add(generateParticle());
 
-    // entityAncestor?.handJoint.add(MoveEffect.tp(Vector2(0, -.05),
-    //     EffectController(duration: .05, reverseDuration: .05)));
     entityAncestor?.handJoint.weaponSpriteAnimation?.add(RotateEffect.to(
         (entityAncestor?.handJoint.weaponSpriteAnimation?.angle ?? 0) +
             (entityAncestor!.handJoint.isFlippedHorizontally ? .01 : -.01),
         EffectController(duration: .1, reverseDuration: .1)));
+  }
 
-    super.attack(chargeAmount);
+  @override
+  void standardAttack([double chargeAmount = 1]) async {
+    shootProjectile(chargeAmount);
+    super.standardAttack(chargeAmount);
   }
 
   double particleLifespan = .5;
@@ -663,7 +671,7 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
 
   @override
-  void attack([double holdDurationPercent = 1]) {
+  void standardAttack([double holdDurationPercent = 1]) {
     if (this is ProjectileFunctionality) {
       for (var element in onAttackProjectile) {
         element();
@@ -676,7 +684,7 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
     for (var element in onAttack) {
       element();
     }
-    super.attack();
+    super.standardAttack();
   }
 }
 
