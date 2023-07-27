@@ -9,12 +9,12 @@ import '../resources/functions/vector_functions.dart';
 import '../game/enviroment.dart';
 import '../main.dart';
 import '../resources/constants/priorities.dart';
-import 'enemy.dart';
 
 enum SpawnLocation {
   inside,
   outside,
   both,
+  entireMap,
   onPlayer,
 }
 
@@ -37,6 +37,12 @@ extension SpawnLocationExtension on SpawnLocation {
         position = generateRandomGamePositionInViewport(false, gameEnviroment);
 
         break;
+      case SpawnLocation.entireMap:
+        position =
+            (Vector2.random() * gameEnviroment.boundsDistanceFromCenter * 2) -
+                Vector2.all(gameEnviroment.boundsDistanceFromCenter);
+
+        break;
       default:
         position = Vector2.zero();
     }
@@ -50,31 +56,147 @@ enum OnSpawnEnd {
   noKill,
 }
 
-class EnemyConfig {
-  EnemyConfig({
+abstract class GameEvent {
+  GameEvent(
+    this.gameEnviroment,
+    this.eventManagement, {
     required this.spawnInterval,
     required this.spawnIntervalSeconds,
+  }) {
+    eventId = const Uuid().v4();
+  }
+  bool hasCompleted = false;
+  final GameTimerFunctionality gameEnviroment;
+  final EventManagement eventManagement;
+  late final String eventId;
+  final (double, double?) spawnInterval;
+  final double spawnIntervalSeconds;
+  void startEvent();
+  void onGoingEvent();
+  void endEvent();
+}
+
+abstract class PositionEvent extends GameEvent {
+  PositionEvent(
+    super.gameEnviroment,
+    super.eventManagement, {
+    required super.spawnInterval,
+    this.spawnLocation,
+    this.spawnPosition,
+    required super.spawnIntervalSeconds,
+  });
+
+  final SpawnLocation? spawnLocation;
+  final Vector2? spawnPosition;
+}
+
+class EnemyEvent extends PositionEvent {
+  EnemyEvent(
+    super.gameEnviroment,
+    super.eventManagement, {
     required this.maxEnemies,
     required this.enemyClusters,
     required this.clusterSpread,
     required this.numberOfClusters,
-    required this.spawnLocation,
-    required this.onWaveComplete,
     required this.isBigBoss,
-  }) {
-    configId = const Uuid().v4();
-  }
-  late final String configId;
-  final (double, double?) spawnInterval;
-  final double spawnIntervalSeconds;
+    super.spawnLocation,
+    super.spawnPosition,
+    required super.spawnInterval,
+    required super.spawnIntervalSeconds,
+  });
+
   final int maxEnemies;
   double clusterSpread;
   final int numberOfClusters;
-  final SpawnLocation spawnLocation;
-  final Function onWaveComplete;
   final bool isBigBoss;
   final List<EnemyCluster> enemyClusters;
-  bool hasCompleted = false;
+
+  bool enemyLimitReached() {
+    return enemyCount >= maxEnemies;
+  }
+
+  int enemyCount = 0;
+
+  void spawnEnemies() {
+    final position =
+        spawnLocation?.grabNewPosition(gameEnviroment as GameEnviroment) ??
+            spawnPosition;
+
+    for (var _ = 0; _ < numberOfClusters; _++) {
+      for (var cluster in enemyClusters) {
+        for (var i = 0; i < cluster.clusterSize; i++) {
+          if (enemyLimitReached()) {
+            return;
+          }
+
+          final spreadPos = (position ?? Vector2.zero()) +
+              (Vector2.random() * clusterSpread) -
+              Vector2.all(clusterSpread / 2);
+
+          final enemy = cluster.enemyType.build(spreadPos, gameEnviroment);
+          enemy.onDeath.add(() {
+            incrementEnemyCount(-1);
+          });
+          incrementEnemyCount(1);
+
+          gameEnviroment.physicsComponent.add(enemy);
+        }
+      }
+    }
+  }
+
+  void incrementEnemyCount(int amount) {
+    enemyCount += amount;
+    if (enemyCount == 0 && hasCompleted) {
+      endEvent();
+    }
+  }
+
+  void onBigBoss(bool isDead) {
+    if (isDead) {
+      eventManagement.eventTimer?.timer.resume();
+      (gameEnviroment as GameEnviroment).customFollow.enable();
+      gameEnviroment.unPauseGame();
+      for (var element in eventManagement.activeEventConfigTimers.entries) {
+        element.value.timer.resume();
+      }
+      if (gameEnviroment is BoundsFunctionality) {
+        (gameEnviroment as BoundsFunctionality).removeBossBounds();
+      }
+    } else {
+      eventManagement.eventTimer?.timer.pause();
+      gameEnviroment.pauseGame();
+      (gameEnviroment as GameEnviroment).customFollow.disable();
+      for (var element in eventManagement.activeEventConfigTimers.entries) {
+        element.value.timer.pause();
+      }
+      spawnEnemies();
+      if (gameEnviroment is BoundsFunctionality) {
+        (gameEnviroment as BoundsFunctionality).createBossBounds();
+      }
+    }
+  }
+
+  @override
+  void endEvent() {
+    if (isBigBoss) {
+      onBigBoss(true);
+    }
+  }
+
+  @override
+  void onGoingEvent() {
+    if (!isBigBoss) {
+      spawnEnemies();
+    }
+  }
+
+  @override
+  void startEvent() {
+    if (isBigBoss) {
+      onBigBoss(false);
+    }
+  }
 }
 
 class EnemyCluster {
@@ -83,25 +205,23 @@ class EnemyCluster {
   final int clusterSize;
 }
 
-abstract class EnemyManagement extends Component {
-  EnemyManagement(this.gameEnviroment);
-  abstract List<EnemyConfig> enemyEventsToDo;
-  List<double> spawnTimes = [];
-
+abstract class EventManagement extends Component {
+  EventManagement(this.gameEnviroment);
   GameTimerFunctionality gameEnviroment;
 
+  List<double> spawnTimes = [];
+  abstract List<GameEvent> eventsToDo;
+  List<GameEvent> eventsCurrentlyActive = [];
+  List<GameEvent> eventsFinished = [];
+
+  Map<String, TimerComponent> activeEventConfigTimers = {};
+
   TimerComponent? eventTimer;
-
-  List<EnemyConfig> enemyEventsCurrentlyActive = [];
-  List<EnemyConfig> enemyEventsFinished = [];
-  Map<String, TimerComponent> activeEnemyConfigTimers = {};
-
-  int enemiesSpawned = 0;
 
   ///Grab each interval the enemy management should create/remove timers
   void initEventTimes() {
     spawnTimes = [
-      ...enemyEventsToDo.fold<List<double>>(
+      ...eventsToDo.fold<List<double>>(
           [],
           (previousValue, element) => [
                 ...previousValue,
@@ -118,37 +238,30 @@ abstract class EnemyManagement extends Component {
   //Check if any events should be started
   void checkToDoEvents(double currentTime) {
     final eventsToParse = [
-      ...enemyEventsToDo
-          .where((element) => element.spawnInterval.$1 <= currentTime)
+      ...eventsToDo.where((element) => element.spawnInterval.$1 <= currentTime)
     ];
-    final listOfIds = eventsToParse.map((e) => e.configId);
-    enemyEventsToDo
-        .removeWhere((element) => listOfIds.contains(element.configId));
+    final listOfIds = eventsToParse.map((e) => e.eventId);
+    eventsToDo.removeWhere((element) => listOfIds.contains(element.eventId));
 
     for (var element in eventsToParse) {
       if (element.spawnInterval.$2 != null) {
-        activeEnemyConfigTimers[element.configId] = (TimerComponent(
+        activeEventConfigTimers[element.eventId] = (TimerComponent(
             period: element.spawnIntervalSeconds,
             repeat: true,
-            onTick: () => preformEnemyEvent(element),
+            onTick: () => element.onGoingEvent(),
             removeOnFinish: true))
           ..addToParent(this);
       }
+      element.startEvent();
     }
 
-    enemyEventsCurrentlyActive.addAll(eventsToParse);
-
-    final boss = eventsToParse.where((element) => element.isBigBoss);
-    if (boss.isNotEmpty) {
-      onBoss(false);
-      preformEnemyEvent(boss.first);
-    }
+    eventsCurrentlyActive.addAll(eventsToParse);
   }
 
   ///Check if any events should be ended
   void endActiveEvents(double currentTime) {
     final eventsToParse = [
-      ...enemyEventsCurrentlyActive.where((element) {
+      ...eventsCurrentlyActive.where((element) {
         final endInterval = element.spawnInterval.$2;
         if (endInterval == null) return true;
         if (endInterval <= currentTime) {
@@ -158,79 +271,27 @@ abstract class EnemyManagement extends Component {
       })
     ];
 
-    final listOfIds = eventsToParse.map((e) => e.configId);
-    final activeTimers = activeEnemyConfigTimers.entries
+    final listOfIds = eventsToParse.map((e) => e.eventId);
+    final activeTimers = activeEventConfigTimers.entries
         .where((element) => listOfIds.contains(element.key))
         .map((e) => e.value);
     for (var element in activeTimers) {
       element.removeFromParent();
     }
-    activeEnemyConfigTimers
+    activeEventConfigTimers
         .removeWhere((key, value) => listOfIds.contains(key));
-    enemyEventsCurrentlyActive
+    eventsCurrentlyActive
         .removeWhere((element) => eventsToParse.contains(element));
     for (var element in eventsToParse) {
       element.hasCompleted = true;
     }
-    enemyEventsFinished.addAll(eventsToParse);
+    eventsFinished.addAll(eventsToParse);
   }
 
   void conductEvents() {
     final currentTime = gameEnviroment.timePassed;
     checkToDoEvents(currentTime);
     endActiveEvents(currentTime);
-  }
-
-  Map<String, int> enemyCount = {};
-
-  void preformEnemyEvent(EnemyConfig enemyConfigObject) {
-    spawnEnemy(enemyConfigObject);
-  }
-
-  bool enemyLimitReached(String configId, int maxEnemies) {
-    enemyCount[configId] ??= 0;
-    return enemyCount[configId]! >= maxEnemies;
-  }
-
-  void incrementEnemyCount(EnemyConfig enemyConfig, int amount) {
-    enemyCount[enemyConfig.configId] =
-        enemyCount[enemyConfig.configId]! + amount;
-    final currentNumberEnemy = enemyCount[enemyConfig.configId]!;
-    if (currentNumberEnemy == 0 && enemyConfig.hasCompleted) {
-      enemyConfig.onWaveComplete();
-    }
-  }
-
-  void spawnEnemy(EnemyConfig enemyConfig) {
-    final position = enemyConfig.spawnLocation
-        .grabNewPosition(gameEnviroment as GameEnviroment);
-
-    for (var _ = 0; _ < enemyConfig.numberOfClusters; _++) {
-      for (var cluster in enemyConfig.enemyClusters) {
-        for (var i = 0; i < cluster.clusterSize; i++) {
-          if (enemyLimitReached(enemyConfig.configId, enemyConfig.maxEnemies)) {
-            return;
-          }
-
-          final spreadPos = position +
-              (Vector2.random() * enemyConfig.clusterSpread) -
-              Vector2.all(enemyConfig.clusterSpread / 2);
-
-          final enemy =
-              DummyTwo(initPosition: spreadPos, gameEnviroment: gameEnviroment);
-
-          enemy.onDeath.add(() {
-            if (enemyConfig.isBigBoss) {
-              onBoss(true);
-            }
-            incrementEnemyCount(enemyConfig, -1);
-          });
-          incrementEnemyCount(enemyConfig, 1);
-
-          gameEnviroment.physicsComponent.add(enemy);
-        }
-      }
-    }
   }
 
   @override
@@ -240,22 +301,6 @@ abstract class EnemyManagement extends Component {
     conductEvents();
     initTimer();
     return super.onLoad();
-  }
-
-  void onBoss(bool isDead) {
-    if (isDead) {
-      eventTimer?.timer.resume();
-      gameEnviroment.unPauseGame();
-      for (var element in activeEnemyConfigTimers.entries) {
-        element.value.timer.resume();
-      }
-    } else {
-      eventTimer?.timer.pause();
-      gameEnviroment.pauseGame();
-      for (var element in activeEnemyConfigTimers.entries) {
-        element.value.timer.pause();
-      }
-    }
   }
 
   void initTimer() {

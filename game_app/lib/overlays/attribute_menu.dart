@@ -23,7 +23,6 @@ class AttributeTile extends StatelessWidget {
     const fractionIncrease = 2;
     fraction = fractionIncrease * fraction;
     final balancedFrac = ((fraction) - (fractionIncrease / 2));
-    // print(balancedFrac);
     var xTransform = -pow(balancedFrac * 2.5, 2).toDouble();
     if (balancedFrac < 0) {
       xTransform = -xTransform;

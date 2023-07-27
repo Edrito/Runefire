@@ -193,7 +193,6 @@ mixin MeleeFunctionality on Weapon {
 
   void meleeAttack(int index, [double chargeAmount = 1]) {
     final attackIndex = index.clamp(0, attackHitboxPatterns.length);
-    print(attackIndex);
     List<Component> returnList = [];
     final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
 

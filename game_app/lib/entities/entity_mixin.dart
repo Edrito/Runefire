@@ -128,7 +128,6 @@ mixin MovementFunctionality on Entity {
 
   void moveCharacter() {
     final pulse = moveDelta;
-
     if (isDead || !enableMovement.parameter || pulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
       return;
@@ -358,7 +357,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   void startAttacking() async {
-    if (isAttacking) return;
+    if (isAttacking || isDead) return;
     isAttacking = true;
     currentWeapon?.startAttacking();
   }
@@ -912,7 +911,6 @@ mixin DashFunctionality on StaminaFunctionality {
     dashAnimation?.stepTime =
         dashDuration.parameter / dashAnimation!.frames.length * 2;
     applyTempAnimation(dashAnimation);
-
     super.dashStatus();
   }
 

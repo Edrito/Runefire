@@ -9,9 +9,10 @@ import '../resources/enums.dart';
 enum AimPattern { player }
 
 mixin DropExperienceFunctionality on HealthFunctionality {
-  ///If a rng.double() is smaller than $1 then large experience is dropped
-  ///If a rng.double() is smaller than $2 then medium experience is dropped
+  ///If a [rng.double] is smaller than $1 then large experience is dropped
+  ///If a [rng.double] is smaller than $2 then medium experience is dropped
   abstract (double, double) xpRate;
+
   @override
   void deadStatus() {
     late ExperienceAmount experienceAmount;
@@ -54,6 +55,7 @@ mixin AimControlFunctionality on AimFunctionality {
   @override
   void update(double dt) {
     updateFunction();
+    aimCharacter();
     super.update(dt);
   }
 }
@@ -99,7 +101,7 @@ mixin DumbShoot on AttackFunctionality {
 mixin DumbFollowRangeAI on MovementFunctionality {
   TimerComponent? targetUpdater;
   double targetUpdateFrequency = .1;
-  double zoningDistance = 10;
+  double zoningDistance = 6;
 
   void _dumbFollowRangeTargetTick() {
     final newPosition = (gameEnviroment.player.center - body.position) -

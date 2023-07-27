@@ -24,7 +24,6 @@ abstract class Enviroment extends Component
 
   void printChildren(var children) {
     for (var element in children) {
-      print(element);
       printChildren(element.children);
     }
   }

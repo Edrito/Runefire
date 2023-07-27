@@ -10,6 +10,7 @@ import '../entities/enemy.dart';
 import '../entities/entity.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
+import '../game/enviroment_mixin.dart';
 import '../game/forest_game.dart';
 import '../weapons/projectiles.dart';
 import '../weapons/secondary_abilities.dart';
@@ -24,17 +25,20 @@ enum AudioType {
 
 enum EnemyType {
   mushroomBrawler,
+  mushroomBoss,
 }
 
 extension EnemyTypeExtension on EnemyType {
-  Enemy build(Vector2 position, GameEnviroment gameEnviroment) {
+  Enemy build(Vector2 position, GameTimerFunctionality gameEnviroment) {
     switch (this) {
       case EnemyType.mushroomBrawler:
         return DummyTwo(initPosition: position, gameEnviroment: gameEnviroment);
+      case EnemyType.mushroomBoss:
+        return BossOne(initPosition: position, gameEnviroment: gameEnviroment);
 
       default:
+        return DummyTwo(initPosition: position, gameEnviroment: gameEnviroment);
     }
-    return DummyTwo(initPosition: position, gameEnviroment: gameEnviroment);
   }
 }
 
@@ -61,6 +65,7 @@ enum WeaponDescription {
 
 enum EntityStatus {
   dodge,
+  custom,
   spawn,
   idle,
   run,

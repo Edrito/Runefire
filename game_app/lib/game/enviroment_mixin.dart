@@ -143,29 +143,59 @@ mixin HudFunctionality on Enviroment {
 
 mixin BoundsFunctionality on Enviroment {
   late final Bounds bounds;
+  Bounds? bossBounds;
+  final double boundsDistanceFromCenter = 70;
+
+  void createBossBounds() {
+    final x = gameCamera.viewport.size.x / 2 / gameCamera.viewfinder.zoom;
+    final y = gameCamera.viewport.size.y / 2 / gameCamera.viewfinder.zoom;
+    bossBounds = Bounds(
+      boundsSize: Vector2(x, y),
+      position: Vector2.zero(),
+    );
+    physicsComponent.add(bossBounds!);
+  }
+
+  void removeBossBounds() {
+    bossBounds?.removeFromParent();
+    bossBounds = null;
+  }
+
+  @override
+  void update(double dt) {
+    if (bossBounds != null) {
+      bossBounds?.body.setTransform(gameCamera.viewfinder.position, 0);
+    }
+    super.update(dt);
+  }
 
   @override
   FutureOr<void> onLoad() {
     super.onLoad();
 
-    bounds = Bounds();
-    add(bounds);
+    bounds = Bounds(
+        boundsSize: Vector2.all(boundsDistanceFromCenter),
+        position: Vector2.zero());
+    physicsComponent.add(bounds);
   }
 }
 
 class Bounds extends BodyComponent<GameRouter> {
+  Bounds({required this.boundsSize, required this.position});
   late ChainShape bounds;
-  final double maxArea = 70;
+  final Vector2 boundsSize;
+  final Vector2 position;
   @override
   Body createBody() {
     bounds = ChainShape();
     bounds.createLoop([
-      Vector2(-maxArea, maxArea),
-      Vector2(-maxArea, -maxArea),
-      Vector2(maxArea, -maxArea),
-      Vector2(maxArea, maxArea),
+      Vector2(-boundsSize.x, boundsSize.y),
+      Vector2(-boundsSize.x, -boundsSize.y),
+      Vector2(boundsSize.x, -boundsSize.y),
+      Vector2(boundsSize.x, boundsSize.y),
     ]);
-    renderBody = false;
+
+    renderBody = true;
 
     final fixtureDef = FixtureDef(bounds,
         userData: {"type": FixtureType.body, "object": this},
@@ -176,7 +206,7 @@ class Bounds extends BodyComponent<GameRouter> {
 
     final bodyDef = BodyDef(
       userData: this,
-      position: Vector2.zero(),
+      position: position,
       type: BodyType.static,
       linearDamping: 12,
       fixedRotation: true,
@@ -204,7 +234,7 @@ mixin PlayerFunctionality on Enviroment {
   bool get playerAdded => player != null;
 
   Player? player;
-
+  late CustomFollowBehavior customFollow;
   @override
   FutureOr<void> onLoad() {
     super.onLoad();
@@ -213,7 +243,6 @@ mixin PlayerFunctionality on Enviroment {
 
   @override
   void onMouseMove(PointerHoverEvent info) {
-    // test.position = info.localPosition.toVector2();
     if (Platform.isWindows) {
       player?.gestureEventStart(
           InputType.mouseMove, info.localPosition.toVector2());
@@ -225,16 +254,10 @@ mixin PlayerFunctionality on Enviroment {
   void addPlayer() {
     player = Player(gameRef.playerDataComponent.dataObject, false,
         gameEnviroment: this, initPosition: Vector2.zero());
-    // player?.priority = playerPriority;
 
-    // add(CustomFollowBehavior(player!, gameCamera.viewfinder));\
-    player?.mounted.then(
-        (value) => add(CustomFollowBehavior(player!, gameCamera.viewfinder)));
-    // player?.priority = playerPriority;
-    // add(test);
-    // test.add(CircleComponent(radius: .1, paint: Paint()..color = Colors.red));
-    // gameCamera.follow(test);
-
+    customFollow =
+        CustomFollowBehavior(player!, gameCamera, this as GameEnviroment);
+    player?.mounted.then((value) => add(customFollow));
     add(player!);
   }
 

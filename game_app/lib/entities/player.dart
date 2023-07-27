@@ -266,11 +266,15 @@ class Player extends Entity
     switch (inputType) {
       case InputType.mouseMove:
         if (!isMounted) return;
-        inputAimPositions[InputType.mouseMove] = (shiftCoordinatesToCenter(
+        final position = (shiftCoordinatesToCenter(
                 eventPosition, gameEnviroment.gameCamera.viewport.size) /
             gameEnviroment.gameCamera.viewfinder.zoom);
-        inputAimAngles[InputType.mouseMove] =
-            inputAimPositions[InputType.mouseMove]!.normalized();
+
+        inputAimPositions[InputType.mouseMove] = position;
+        inputAimAngles[InputType.mouseMove] = (position -
+                (gameEnviroment.player!.center -
+                    gameEnviroment.gameCamera.viewfinder.position))
+            .normalized();
         break;
 
       case InputType.aimJoy:

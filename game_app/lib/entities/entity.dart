@@ -100,8 +100,13 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     applyTempAnimation(attackAnimation);
   }
 
+  void customStatus(SpriteAnimation? attackAnimation) {
+    applyTempAnimation(attackAnimation);
+  }
+
   void applyTempAnimation(SpriteAnimation? tempAnimation) {
     if (tempAnimation == null) return;
+    spriteAnimationComponent.animationTicker?.onComplete = null;
     previousAnimation = spriteAnimationComponent.animation;
     previousStatus = entityStatus;
     assert(!tempAnimation.loop, "Temp animations must not loop");
@@ -117,7 +122,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   void dodgeStatus() {}
 
   Future<void> setEntityStatus(EntityStatus newEntityStatus,
-      [SpriteAnimation? attackAnimation]) async {
+      [SpriteAnimation? customAnimation]) async {
     if (entityStatus == EntityStatus.dead) return;
 
     SpriteAnimation? animation;
@@ -141,7 +146,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         spawnStatus();
         break;
       case EntityStatus.attack:
-        attackStatus(attackAnimation);
+        attackStatus(customAnimation);
 
         break;
 
@@ -154,6 +159,9 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
       case EntityStatus.dead:
         deadStatus();
+        break;
+      case EntityStatus.custom:
+        customStatus(customAnimation);
         break;
       case EntityStatus.damage:
         damageStatus();
@@ -174,11 +182,10 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         animation = walkAnimation;
 
         break;
-      default:
-        animation = idleAnimation;
     }
-
-    if (tempAnimationPlaying) {
+    if (animation == null) return;
+    if (!(spriteAnimationComponent.animation?.loop ?? true) &&
+        tempAnimationPlaying) {
       statusQueue = newEntityStatus;
       animationQueue = animation;
     } else {
@@ -186,7 +193,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
       spriteAnimationComponent.animation = animation;
     }
 
-    spriteAnimationComponent.animation ??= animationQueue ?? idleAnimation;
+    // spriteAnimationComponent.animation ??= animationQueue ?? idleAnimation;
 
     if (!(spriteAnimationComponent.animation?.loop ?? false)) {
       await spriteAnimationComponent.animationTicker?.completed;

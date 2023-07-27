@@ -1650,7 +1650,6 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
   void mapUpgrade() async {
     for (var element in await victimEntity!.getAllWeaponItems(true)) {
       if (element is ReloadFunctionality) {
-        print('yea');
         genericAttributeIncrease(
             element.reloadTime, increaseFromBaseParameter, false);
       }

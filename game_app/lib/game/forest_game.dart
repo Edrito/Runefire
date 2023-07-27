@@ -14,7 +14,7 @@ extension PositionProvider on Player {
 }
 
 class ForestGame extends GameEnviroment {
-  late EnemyManagement enemyManagement;
+  late EventManagement enemyManagement;
   late BackgroundComponent forestBackground;
 
   @override
@@ -62,47 +62,48 @@ class ForestBackground extends BackgroundComponent {
   GameLevel get gameLevel => GameLevel.forest;
 }
 
-class ForestEnemyManagement extends EnemyManagement {
+class ForestEnemyManagement extends EventManagement {
   @override
-  List<EnemyConfig> enemyEventsToDo = [];
+  List<GameEvent> eventsToDo = [];
 
   ForestEnemyManagement(super.gameEnviroment) {
-    enemyEventsToDo.addAll([
-      EnemyConfig(
-        isBigBoss: false,
-        clusterSpread: 4,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomBrawler, 5)],
-        numberOfClusters: 1,
-        onWaveComplete: () {},
-        maxEnemies: 100,
-        spawnIntervalSeconds: 3,
-        spawnInterval: (1, 120),
+    eventsToDo.addAll([
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 4,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomBrawler, 5)],
+      //   numberOfClusters: 1,
+      //   maxEnemies: 100,
+      //   spawnIntervalSeconds: 3,
+      //   spawnInterval: (1, 180),
+      //   spawnLocation: SpawnLocation.outside,
+      // ),
+      EnemyEvent(
+        gameEnviroment,
+        this,
+        isBigBoss: true,
+        clusterSpread: 2,
+        enemyClusters: [EnemyCluster(EnemyType.mushroomBoss, 4)],
+        numberOfClusters: 5,
+        maxEnemies: 5,
+        spawnIntervalSeconds: 1,
+        spawnInterval: (1, null),
         spawnLocation: SpawnLocation.outside,
       ),
-      EnemyConfig(
+      EnemyEvent(
+        gameEnviroment,
+        this,
         isBigBoss: true,
         clusterSpread: 1,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomBrawler, 1)],
+        enemyClusters: [EnemyCluster(EnemyType.mushroomBoss, 1)],
         numberOfClusters: 1,
-        onWaveComplete: () {},
         maxEnemies: 1,
         spawnIntervalSeconds: 1,
-        spawnInterval: (15, null),
-        spawnLocation: SpawnLocation.outside,
+        spawnInterval: (5, null),
+        spawnLocation: SpawnLocation.inside,
       ),
-      // (
-      //   EnemyType.mushroomBrawler,
-      //   EnemyConfig(
-      //     clusterSize: 5,
-      //     isBoss: false,
-      //     numberOfClusters: 1,
-      //     onWaveComplete: () {},
-      //     maxEnemies: 5,
-      //     spawnIntervalSeconds: 1,
-      //     spawnInterval: (10, 15),
-      //     spawnLocation: SpawnLocation.outside,
-      //   )
-      // )
     ]);
   }
 }
