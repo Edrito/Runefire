@@ -67,75 +67,121 @@ class AttributeTile extends StatelessWidget {
     final selectedColor = isSelected ? Colors.white : Colors.blue;
     final style = defaultStyle.copyWith(fontSize: 20, color: Colors.white);
     final count = attribute.maxLevel;
-
-    return SizedBox.square(
-      dimension: 200,
-      child: Container(
-        decoration: BoxDecoration(
-          // borderRadius: BorderRadius.circular(5),
-          color: selectedColor.darken(.8),
-          // border: Border.all(color: Colors.grey.shade500, width: 5)
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  attribute.title,
-                  style: style,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Image.asset(
-                        'assets/images/${attribute.icon}',
-                        fit: BoxFit.scaleDown,
-                        filterQuality: FilterQuality.none,
-                        color: customColor ?? selectedColor,
-                      ),
-                    ),
-                    Positioned.fill(
-                      top: null,
-                      bottom: 0,
-                      child: Row(children: [
-                        for (var i = 0; i < attribute.maxLevel!; i++)
-                          buildLevelIndicator(i < attribute.upgradeLevel,
-                              (i / (attribute.maxLevel! - 1))),
-                      ]),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final levelCountWidget = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Row(children: [
+        for (var i = 0; i < attribute.maxLevel!; i++)
+          buildLevelIndicator(
+              i < attribute.upgradeLevel, (i / (attribute.maxLevel! - 1))),
+      ]),
+    );
+    return SizedBox(
+      height: 250,
+      width: 200,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/ui/book.png',
+              fit: BoxFit.fitHeight,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
+          ShaderMask(
+            shaderCallback: (bounds) {
+              return const LinearGradient(colors: [
+                Colors.black,
+                Colors.white,
+                Colors.white,
+                Colors.black
+              ], stops: [
+                0,
+                0.4,
+                .6,
+                1
+              ]).createShader(bounds);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(
+                  top: 20, bottom: 40, left: 20, right: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      attribute.description(),
+                      attribute.title,
                       style: style,
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      attribute.isMaxLevel
-                          ? "MAX"
-                          : attribute.cost().toString(),
-                      style: style,
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          left: -2,
+                          top: 2,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Image.asset(
+                              'assets/images/${attribute.icon}',
+                              fit: BoxFit.scaleDown,
+                              filterQuality: FilterQuality.none,
+                              color: (customColor ?? selectedColor).darken(.5),
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Image.asset(
+                              'assets/images/${attribute.icon}',
+                              fit: BoxFit.scaleDown,
+                              filterQuality: FilterQuality.none,
+                              color: customColor ?? selectedColor,
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                            top: null,
+                            bottom: -2,
+                            left: -2,
+                            child: ColorFiltered(
+                                colorFilter: ColorFilter.mode(
+                                    Colors.black.withOpacity(.5),
+                                    BlendMode.modulate),
+                                child: levelCountWidget)),
+                        Positioned.fill(
+                            top: null, bottom: 0, child: levelCountWidget),
+                      ],
                     ),
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          attribute.description(),
+                          style: style,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          attribute.isMaxLevel
+                              ? "MAX"
+                              : attribute.cost().toString(),
+                          style: style,
+                        ),
+                      ),
+                    ],
+                  )
                 ],
-              )
-            ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -179,6 +179,7 @@ void endGame([bool restart = false]) {
   }
 
   if (!restart) {
+    toggleGameStart(null);
     changeMainMenuPage(MenuPages.startMenuPage, false);
   } else {
     toggleGameStart(routes.gameplay);

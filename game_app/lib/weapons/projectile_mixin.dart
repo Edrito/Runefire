@@ -88,7 +88,7 @@ mixin StandardProjectile on Projectile {
   @override
   Future<void> onLoad() {
     playAudio('sfx/projectiles/laser_sound_1.mp3');
-    trailCount = 10;
+    trailCount = 20;
 
     skip = 2;
 
@@ -115,13 +115,9 @@ mixin StandardProjectile on Projectile {
     final points = (trails.fold<List<Vector2>>([],
         (previousValue, element) => [...previousValue, (element - center)]));
 
-    final lengthShader = .5 +
-        ((projectileLength * .5) *
-            (((durationPassed) *
-                    weaponAncestor.projectileVelocity.baseParameter /
-                    10)
-                .clamp(0, 1)));
-
+    final lengthShader =
+        .5 + ((projectileLength * .5) * ((durationPassed * 2).clamp(0, 1)));
+    print(lengthShader);
     final gradientShader =
         ui.Gradient.linear(Offset.zero, -(delta).toOffset() * lengthShader, [
       Colors.blue.darken(.5),
@@ -440,18 +436,21 @@ mixin LaserProjectile on Projectile {
     var paint = BasicPalette.lightBlue.paint();
     paint.strokeWidth = width;
     paint.style = PaintingStyle.stroke;
-    paint.strokeCap = StrokeCap.round;
+    paint.strokeCap = StrokeCap.butt;
 
     for (var element in lineThroughEnemies) {
       path.lineTo(element.x, element.y);
     }
 
     canvas.drawPath(
-        path, paint..color = Colors.lightBlue.shade100.withOpacity(opacity));
+        path,
+        paint
+          ..strokeWidth = width * opacity
+          ..color = Colors.lightBlue.shade100.withOpacity(opacity));
     canvas.drawPath(
         path,
         paint
-          ..strokeWidth = width * .6
+          ..strokeWidth = width * .6 * opacity
           ..color = Colors.lightBlue.shade300.withOpacity(opacity));
   }
 }
