@@ -34,14 +34,16 @@ class PlayerData extends DataClass {
   ///Update information from player, saving to file
   void updateInformation(Player player) {
     //Parse player data
+    experiencePoints += player.experiencePointsGained.round();
+
     // save();
   }
 
   List<GameLevel> completedLevels = [];
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.flameSword,
-    1: WeaponType.pistol,
+    1: WeaponType.flameSword,
+    0: WeaponType.longRangeRifle,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,

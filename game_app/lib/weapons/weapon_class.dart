@@ -37,6 +37,12 @@ class PlayerAttachmentJointComponent extends PositionComponent
   WeaponSpriteAnimation? weaponSpriteAnimation;
   bool isFrontVisible = false;
 
+  @override
+  void update(double dt) {
+    this;
+    super.update(dt);
+  }
+
   void removePreviousComponents() {
     weaponTip?.removeFromParent();
     weaponSpriteAnimation?.removeFromParent();

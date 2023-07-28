@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 
+import '../entities/player.dart';
 import '../game/background.dart';
 
 import 'dart:async';
@@ -10,10 +11,8 @@ import '../main.dart';
 import '../resources/enums.dart';
 import '../overlays/overlays.dart';
 import '../resources/constants/priorities.dart';
-import 'package:window_manager/window_manager.dart';
 
-abstract class Enviroment extends Component
-    with HasGameRef<GameRouter>, WindowListener {
+abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   late final Forge2DComponent physicsComponent;
   Enviroment() {
     wrapper = MouseKeyboardCallbackWrapper();
@@ -21,10 +20,26 @@ abstract class Enviroment extends Component
   Map<int, InputType> inputIdStates = {};
   late final World gameWorld;
   late CameraComponent gameCamera;
+  Player? get getPlayer => (this as GameEnviroment).player;
 
   void printChildren(var children) {
     for (var element in children) {
       printChildren(element.children);
+    }
+  }
+
+  void addWindowEventFunctionToWrapper(Function(String) func) {
+    final previousFunc = wrapper.onWindowEvent;
+    if (previousFunc != null) {
+      wrapper.onWindowEvent = (windowEvent) {
+        func(windowEvent);
+
+        previousFunc(windowEvent);
+      };
+    } else {
+      wrapper.onWindowEvent = (windowEvent) {
+        func(windowEvent);
+      };
     }
   }
 
@@ -73,7 +88,6 @@ abstract class Enviroment extends Component
 
   @override
   FutureOr<void> onLoad() {
-    windowManager.addListener(this);
     children.register<CameraComponent>();
     priority = worldPriority;
     //World

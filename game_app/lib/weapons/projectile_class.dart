@@ -25,6 +25,12 @@ abstract class Projectile extends BodyComponent<GameRouter>
   double fadeOutDuration = .2;
   late String projectileId;
   Random rng = Random();
+  double durationPassed = 0;
+  @override
+  void update(double dt) {
+    durationPassed += dt;
+    super.update(dt);
+  }
 
   //Structure
   ProjectileFunctionality weaponAncestor;
@@ -35,7 +41,14 @@ abstract class Projectile extends BodyComponent<GameRouter>
   abstract ProjectileType projectileType;
 
   //Status
-  Vector2 delta;
+  final Vector2 delta;
+  Vector2 previousDelta = Vector2.zero();
+
+  void setDelta(Vector2 newDelta) {
+    previousDelta = delta.clone();
+    delta.setFrom(newDelta);
+  }
+
   List<HealthFunctionality> closeSensorBodies = [];
   TimerComponent? projectileDeathTimer;
   bool projectileHasExpired = false;

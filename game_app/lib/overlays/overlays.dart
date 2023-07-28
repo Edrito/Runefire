@@ -90,6 +90,20 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> mainMenu =
   );
 });
 
+MapEntry<String, Widget Function(BuildContext, GameRouter)> caveFront =
+    MapEntry('CaveFront', (context, gameRouter) {
+  final size = MediaQuery.of(context).size;
+
+  return Center(
+      child: Image.asset(
+    'assets/images/background/caveFront.png',
+    filterQuality: FilterQuality.none,
+    fit: BoxFit.cover,
+    height: size.height,
+    width: size.width,
+  ));
+});
+
 List<Attribute>? currentSelection;
 AnimationController? widgetController;
 

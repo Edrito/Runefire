@@ -15,7 +15,6 @@ class CustomFollowBehavior extends Component {
   TimerComponent? disableTimer;
   TimerComponent? enableTimer;
   GameEnviroment gameEnviroment;
-
   void disable() {
     isDisabled = true;
     disableTimer = TimerComponent(
@@ -56,9 +55,9 @@ class CustomFollowBehavior extends Component {
   bool isDisabled = false;
   Player player;
   CameraComponent camera;
-  void followTarget() {
-    Vector2 playerTarget = player.center.clone();
-    playerTarget += shiftCameraPositionBecauseOfMouse();
+  void followTarget() async {
+    Vector2 target = player.center.clone();
+    target += shiftCameraPositionBecauseOfMouse();
 
     var interpolationAmount = 1.0;
     if (disableTimer != null) {
@@ -69,9 +68,10 @@ class CustomFollowBehavior extends Component {
 
     String formattedNumber = interpolationAmount.toStringAsFixed(2);
     interpolationAmount = double.parse(formattedNumber);
-    if (interpolationAmount == 0) return;
+    if (interpolationAmount == 0 ||
+        (disableTimer != null && !disableTimer!.timer.isRunning())) return;
     final newPos = (camera.viewfinder.position +
-        ((playerTarget - camera.viewfinder.position) * interpolationAmount));
+        ((target - camera.viewfinder.position) * interpolationAmount));
     newPos.clamp(-Vector2(maxX, maxY), Vector2(maxX, maxY));
 
     camera.viewfinder.position = newPos;

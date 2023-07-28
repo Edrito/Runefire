@@ -141,10 +141,10 @@ class LongRangeRifle extends PlayerWeapon
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.magic] = (10, 30);
-    maxAttacks.baseParameter = 4;
-    attackTickRate.baseParameter = .8;
-    projectileVelocity.baseParameter = 40;
+    baseDamage.damageBase[DamageType.magic] = (50, 100);
+    maxAttacks.baseParameter = 10;
+    attackTickRate.baseParameter = .1;
+    projectileVelocity.baseParameter = 70;
     baseAttackCount.baseParameter = 1;
     pierce.baseParameter = 5;
   }
@@ -167,15 +167,20 @@ class LongRangeRifle extends PlayerWeapon
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
-          Vector2.all(0), Vector2(-.175, 2.65),
+          Vector2.all(0),
+          Vector2(-.175, 2.65),
           await buildSpriteSheet(19, 'weapons/long_rifle_idle.png', .2, true),
           parentJoint: parentJoint,
           attackAnimation: await buildSpriteSheet(
               7, 'weapons/long_rifle_attack.png', .02, false),
-          // muzzleFlash: await buildSpriteSheet(
-          //     1, 'weapons/muzzle_flash.png', .2, false)
         );
     }
+  }
+
+  @override
+  update(double dt) {
+    this;
+    super.update(dt);
   }
 
   @override

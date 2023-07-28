@@ -395,3 +395,31 @@ List<Vector2> triangleZoomEffect(
   // Return the triangle vertices as a list
   return [vertexA, vertexB, vertexC];
 }
+
+// List<Vector2> bezierInterpolation(List<Vector2> points, {int smoothness = 2}) {
+//   final List<Vector2> result = [];
+//   final int n = points.length;
+//   final List<double> t = List.generate(smoothness, (i) => i / (smoothness - 1));
+
+//   for (int i = 0; i < n - 1; i++) {
+//     final Vector2 p0 = points[i];
+//     final Vector2 p1 = points[i + 1];
+//     final List<Vector2> controlPoints = [p0, p0, p1, p1];
+
+//     for (int j = 1; j <= smoothness; j++) {
+//       final double tVal = t[j - 1];
+//       double xVal = 0;
+//       double yVal = 0;
+
+//       for (int k = 0; k < 4; k++) {
+//         final double coeff = pow(1 - tVal, 3 - k).toDouble() * pow(tVal, k);
+//         xVal += coeff * controlPoints[k].x;
+//         yVal += coeff * controlPoints[k].y;
+//       }
+
+//       result.add(Vector2(xVal, yVal));
+//     }
+//   }
+
+//   return result;
+// }

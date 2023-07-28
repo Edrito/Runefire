@@ -72,4 +72,7 @@ flutter:
         - asset: assets/fonts/hero-speak.ttf
     - family: YuseiMagic
       fonts:
-        - asset: assets/fonts/yusei-magic.ttf
+        - asset: assets/fonts/yusei-magic.ttf  
+    - family: Alagard
+      fonts:
+        - asset: assets/fonts/alagard.ttf

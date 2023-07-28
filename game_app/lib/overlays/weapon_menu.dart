@@ -546,13 +546,13 @@ class _WeaponMenuState extends State<WeaponMenu> {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                "Select your weapons",
-                style: defaultStyle,
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.all(16),
+            //   child: Text(
+            //     "Select your weapons",
+            //     style: defaultStyle,
+            //   ),
+            // ),
             const Spacer(),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: uiWidthMax),

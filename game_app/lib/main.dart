@@ -10,6 +10,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/game/background.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/game/forest_game.dart';
 import 'package:game_app/overlays/menus.dart';
@@ -30,7 +31,7 @@ late GameRouter gameRouter;
 late MenuPages menuPage;
 String? currentOverlay;
 bool get gameIsPaused => gameRouter.paused;
-bool startInGame = true;
+bool startInGame = false;
 late String currentRoute;
 
 void playAudio(String audioLocation,
@@ -143,7 +144,7 @@ void handlePlayerPreview(MenuPages page) {
 }
 
 void changeMainMenuPage(MenuPages page, [bool setState = true]) {
-  toggleGameStart(null);
+  // toggleGameStart(null);
   handlePlayerPreview(page);
 
   menuPage = page;
@@ -162,6 +163,7 @@ void toggleGameStart(String? route) {
       gameRouter.router.pushReplacementNamed(route!);
     });
   } else {
+    gameRouter.overlays.add(overlays.caveFront.key);
     route = routes.blank;
     Future.delayed(const Duration(milliseconds: 50)).then((_) {
       gameRouter.overlays.add(overlays.mainMenu.key);
@@ -283,10 +285,11 @@ void main() async {
             onKey: gameRouter.onKeyEvent,
             child: GameWidget(
                 backgroundBuilder: (context) {
-                  // if (currentRoute == routes.gameplay) {
-                  return const SizedBox();
-                  // }
-                  // return const BackgroundWidget();
+                  if (currentRoute == routes.gameplay) {
+                    print('here');
+                    return const SizedBox();
+                  }
+                  return const CaveBackground();
                 },
                 loadingBuilder: (p0) {
                   return Padding(
@@ -302,6 +305,7 @@ void main() async {
                     Widget Function(BuildContext, GameRouter)>.fromEntries([
                   overlays.pauseMenu,
                   overlays.mainMenu,
+                  overlays.caveFront,
                   overlays.deathScreen,
                   overlays.attributeSelection,
                 ])),
@@ -312,7 +316,7 @@ void main() async {
   );
 }
 
-class GameRouter extends Forge2DGame with ScrollDetector {
+class GameRouter extends Forge2DGame with ScrollDetector, WindowListener {
   late final RouterComponent router;
 
   GameRouter(this._systemData, this._playerData)
@@ -326,10 +330,16 @@ class GameRouter extends Forge2DGame with ScrollDetector {
   late PlayerDataComponent playerDataComponent;
   late SystemDataComponent systemDataComponent;
 
+  @override
+  onRemove() {
+    windowManager.removeListener(this);
+  }
+
   List<MouseKeyboardCallbackWrapper> mouseCallback = [];
 
   @override
   void onLoad() async {
+    windowManager.addListener(this);
     router = RouterComponent(
       routes: {
         routes.blank: Route(MenuGame.new, maintainState: false),
@@ -347,98 +357,82 @@ class GameRouter extends Forge2DGame with ScrollDetector {
   void onMount() {
     super.onMount();
     if (!startInGame) {
+      gameRouter.overlays.add(overlays.caveFront.key);
       gameRouter.overlays.add(overlays.mainMenu.key);
     }
   }
 
   void onSecondaryTapDown(PointerDownEvent info) {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onSecondaryDown != null) {
-          element.onSecondaryDown!(info);
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onSecondaryDown != null)) {
+      element.onSecondaryDown!(info);
     }
   }
 
   void onTapDown(PointerDownEvent info) {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onPrimaryDown != null) {
-          element.onPrimaryDown!(info);
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onPrimaryDown != null)) {
+      element.onPrimaryDown!(info);
     }
   }
 
   void onSecondaryTapUp(PointerUpEvent info) {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onSecondaryUp != null) {
-          element.onSecondaryUp!(info);
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onSecondaryUp != null)) {
+      element.onSecondaryUp!(info);
     }
   }
 
   void onSecondaryTapCancel() {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onSecondaryCancel != null) {
-          element.onSecondaryCancel!();
-        }
-      }
+    for (var element in mouseCallback
+        .where((element) => element.onSecondaryCancel != null)) {
+      element.onSecondaryCancel!();
     }
   }
 
   void onTapCancel() {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onPrimaryCancel != null) {
-          element.onPrimaryCancel!();
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onPrimaryCancel != null)) {
+      element.onPrimaryCancel!();
     }
   }
 
   void onTapUp(PointerUpEvent info) {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onPrimaryUp != null) {
-          element.onPrimaryUp!(info);
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onPrimaryUp != null)) {
+      element.onPrimaryUp!(info);
     }
   }
 
   void onTapMove(PointerMoveEvent info) {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onPrimaryMove != null) {
-          element.onPrimaryMove!(info);
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onPrimaryMove != null)) {
+      element.onPrimaryMove!(info);
     }
   }
 
   void onSecondaryMove(PointerMoveEvent info) {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onSecondaryMove != null) {
-          element.onSecondaryMove!(info);
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onSecondaryMove != null)) {
+      element.onSecondaryMove!(info);
     }
   }
 
   void onMouseMove(PointerHoverEvent info) {
-    if (mouseCallback.isNotEmpty) {
-      for (var element in mouseCallback) {
-        if (element.onMouseMove != null) {
-          element.onMouseMove!(info);
-        }
-      }
+    for (var element
+        in mouseCallback.where((element) => element.onMouseMove != null)) {
+      element.onMouseMove!(info);
     }
+  }
+
+  @override
+  void onWindowEvent(String eventName) {
+    for (var element
+        in mouseCallback.where((element) => element.onWindowEvent != null)) {
+      element.onWindowEvent!(eventName);
+    }
+
+    super.onWindowEvent(eventName);
   }
 
   void onKeyEvent(RawKeyEvent event) {
@@ -489,4 +483,7 @@ class MouseKeyboardCallbackWrapper {
 
   //Move
   Function(PointerHoverEvent)? onMouseMove;
+
+  //Window
+  Function(String windowEvent)? onWindowEvent;
 }

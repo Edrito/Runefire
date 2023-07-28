@@ -9,6 +9,7 @@ import '../resources/functions/vector_functions.dart';
 import '../game/enviroment.dart';
 import '../main.dart';
 import '../resources/constants/priorities.dart';
+import 'enemy.dart';
 
 enum SpawnLocation {
   inside,
@@ -60,8 +61,8 @@ abstract class GameEvent {
   GameEvent(
     this.gameEnviroment,
     this.eventManagement, {
-    required this.spawnInterval,
-    required this.spawnIntervalSeconds,
+    required this.eventBeginEnd,
+    required this.eventTriggerInterval,
   }) {
     eventId = const Uuid().v4();
   }
@@ -69,10 +70,10 @@ abstract class GameEvent {
   final GameTimerFunctionality gameEnviroment;
   final EventManagement eventManagement;
   late final String eventId;
-  final (double, double?) spawnInterval;
-  final double spawnIntervalSeconds;
+  final (double, double?) eventBeginEnd;
+  final (double, double) eventTriggerInterval;
   void startEvent();
-  void onGoingEvent();
+  Future<void> onGoingEvent();
   void endEvent();
 }
 
@@ -80,10 +81,10 @@ abstract class PositionEvent extends GameEvent {
   PositionEvent(
     super.gameEnviroment,
     super.eventManagement, {
-    required super.spawnInterval,
+    required super.eventBeginEnd,
     this.spawnLocation,
     this.spawnPosition,
-    required super.spawnIntervalSeconds,
+    required super.eventTriggerInterval,
   });
 
   final SpawnLocation? spawnLocation;
@@ -99,12 +100,19 @@ class EnemyEvent extends PositionEvent {
     required this.clusterSpread,
     required this.numberOfClusters,
     required this.isBigBoss,
+    this.boundsScope = BossBoundsScope.viewportSize,
+    this.bossBoundsIsCircular = false,
+    this.bossBoundsSize,
     super.spawnLocation,
     super.spawnPosition,
-    required super.spawnInterval,
-    required super.spawnIntervalSeconds,
-  });
-
+    required super.eventBeginEnd,
+    required super.eventTriggerInterval,
+  }) {
+    bossBoundsSize ??= Vector2.all(6);
+  }
+  bool bossBoundsIsCircular;
+  BossBoundsScope boundsScope;
+  Vector2? bossBoundsSize;
   final int maxEnemies;
   double clusterSpread;
   final int numberOfClusters;
@@ -115,7 +123,8 @@ class EnemyEvent extends PositionEvent {
     return enemyCount >= maxEnemies;
   }
 
-  int enemyCount = 0;
+  int get enemyCount => enemies.length;
+  List<Enemy> enemies = [];
 
   void spawnEnemies() {
     final position =
@@ -135,9 +144,9 @@ class EnemyEvent extends PositionEvent {
 
           final enemy = cluster.enemyType.build(spreadPos, gameEnviroment);
           enemy.onDeath.add(() {
-            incrementEnemyCount(-1);
+            incrementEnemyCount([enemy], true);
           });
-          incrementEnemyCount(1);
+          incrementEnemyCount([enemy], false);
 
           gameEnviroment.physicsComponent.add(enemy);
         }
@@ -145,8 +154,15 @@ class EnemyEvent extends PositionEvent {
     }
   }
 
-  void incrementEnemyCount(int amount) {
-    enemyCount += amount;
+  void incrementEnemyCount(List<Enemy> amount, bool remove) {
+    if (remove) {
+      for (var element in amount) {
+        enemies.remove(element);
+      }
+    } else {
+      enemies.addAll(amount);
+    }
+
     if (enemyCount == 0 && hasCompleted) {
       endEvent();
     }
@@ -164,15 +180,20 @@ class EnemyEvent extends PositionEvent {
         (gameEnviroment as BoundsFunctionality).removeBossBounds();
       }
     } else {
+      spawnEnemies();
       eventManagement.eventTimer?.timer.pause();
       gameEnviroment.pauseGame();
-      (gameEnviroment as GameEnviroment).customFollow.disable();
+
+      if (boundsScope == BossBoundsScope.viewportSize) {
+        (gameEnviroment as GameEnviroment).customFollow.disable();
+      }
+
       for (var element in eventManagement.activeEventConfigTimers.entries) {
         element.value.timer.pause();
       }
-      spawnEnemies();
       if (gameEnviroment is BoundsFunctionality) {
-        (gameEnviroment as BoundsFunctionality).createBossBounds();
+        (gameEnviroment as BoundsFunctionality)
+            .createBossBounds(bossBoundsIsCircular, this);
       }
     }
   }
@@ -185,7 +206,7 @@ class EnemyEvent extends PositionEvent {
   }
 
   @override
-  void onGoingEvent() {
+  Future<void> onGoingEvent() async {
     if (!isBigBoss) {
       spawnEnemies();
     }
@@ -226,31 +247,31 @@ abstract class EventManagement extends Component {
           (previousValue, element) => [
                 ...previousValue,
                 ...[
-                  element.spawnInterval.$1,
-                  if (element.spawnInterval.$2 != null)
-                    element.spawnInterval.$2!
+                  element.eventBeginEnd.$1,
+                  if (element.eventBeginEnd.$2 != null)
+                    element.eventBeginEnd.$2!
                 ]
               ])
     ];
     spawnTimes.sort();
   }
 
+  ///Get a random value between [(double,double)]
+  double getRandomValue((double, double) values) {
+    return values.$1 + rng.nextDouble() * (values.$2 - values.$1);
+  }
+
   //Check if any events should be started
   void checkToDoEvents(double currentTime) {
     final eventsToParse = [
-      ...eventsToDo.where((element) => element.spawnInterval.$1 <= currentTime)
+      ...eventsToDo.where((element) => element.eventBeginEnd.$1 <= currentTime)
     ];
     final listOfIds = eventsToParse.map((e) => e.eventId);
     eventsToDo.removeWhere((element) => listOfIds.contains(element.eventId));
 
     for (var element in eventsToParse) {
-      if (element.spawnInterval.$2 != null) {
-        activeEventConfigTimers[element.eventId] = (TimerComponent(
-            period: element.spawnIntervalSeconds,
-            repeat: true,
-            onTick: () => element.onGoingEvent(),
-            removeOnFinish: true))
-          ..addToParent(this);
+      if (element.eventBeginEnd.$2 != null) {
+        buildOngoingEventTimer(element);
       }
       element.startEvent();
     }
@@ -258,11 +279,23 @@ abstract class EventManagement extends Component {
     eventsCurrentlyActive.addAll(eventsToParse);
   }
 
+  void buildOngoingEventTimer(GameEvent event) {
+    activeEventConfigTimers[event.eventId] = (TimerComponent(
+        period: getRandomValue(event.eventTriggerInterval),
+        repeat: true,
+        onTick: () async {
+          await event.onGoingEvent();
+          activeEventConfigTimers[event.eventId]?.timer.limit =
+              getRandomValue(event.eventTriggerInterval);
+        }))
+      ..addToParent(this);
+  }
+
   ///Check if any events should be ended
   void endActiveEvents(double currentTime) {
     final eventsToParse = [
       ...eventsCurrentlyActive.where((element) {
-        final endInterval = element.spawnInterval.$2;
+        final endInterval = element.eventBeginEnd.$2;
         if (endInterval == null) return true;
         if (endInterval <= currentTime) {
           return true;

@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
-import 'package:window_manager/window_manager.dart';
 
+import '../entities/enemy_management.dart';
 import '../game/hud.dart';
 
 import 'dart:async';
@@ -141,18 +142,65 @@ mixin HudFunctionality on Enviroment {
   }
 }
 
+enum BossBoundsType {
+  onViewport,
+  onBoss,
+}
+
+enum BossBoundsScope { viewportSize, customSize }
+
 mixin BoundsFunctionality on Enviroment {
-  late final Bounds bounds;
+  late final Bounds mainGameBorder;
   Bounds? bossBounds;
   final double boundsDistanceFromCenter = 70;
 
-  void createBossBounds() {
+  void resizeBossBounds(String windowEvent) async {
+    if (bossBounds == null) return;
+    if (!bossBounds!.isMounted ||
+        bossBounds!.isCircle ||
+        bossBounds!.scope != BossBoundsScope.viewportSize) return;
+
+    if (windowEvent.contains("maximize")) await Future.delayed(.2.seconds);
+
+    bossBounds?.boundsSize = getViewportSize();
+    bossBounds?.createBounds();
+    final playerPos =
+        getPlayer!.center - gameCamera.viewfinder.position.clone();
+
+    //If player is outside of bounds, bring them inside
+    if (playerPos.x.abs() > bossBounds!.boundsSize.x ||
+        playerPos.y.abs() > bossBounds!.boundsSize.y) {
+      getPlayer?.body.setTransform(gameCamera.viewfinder.position.clone(), 0);
+    }
+  }
+
+  @override
+  void onMount() {
+    addWindowEventFunctionToWrapper(resizeBossBounds);
+    super.onMount();
+  }
+
+  Vector2 getViewportSize() {
     final x = gameCamera.viewport.size.x / 2 / gameCamera.viewfinder.zoom;
     final y = gameCamera.viewport.size.y / 2 / gameCamera.viewfinder.zoom;
+    return Vector2(x, y);
+  }
+
+  EnemyEvent? boss;
+  void createBossBounds(bool isCircle, EnemyEvent boss) async {
+    assert(boss.boundsScope != BossBoundsScope.customSize ||
+        boss.bossBoundsSize != null);
+    await boss.enemies.first.loaded;
+
     bossBounds = Bounds(
-      boundsSize: Vector2(x, y),
-      position: Vector2.zero(),
-    );
+        boundsSize: boss.boundsScope == BossBoundsScope.viewportSize
+            ? getViewportSize()
+            : (boss.bossBoundsSize!
+              ..x += boss.enemies.first.center.distanceTo(getPlayer!.center)),
+        position: Vector2.zero(),
+        isCircle: isCircle,
+        scope: boss.boundsScope);
+    this.boss = boss;
     physicsComponent.add(bossBounds!);
   }
 
@@ -164,7 +212,15 @@ mixin BoundsFunctionality on Enviroment {
   @override
   void update(double dt) {
     if (bossBounds != null) {
-      bossBounds?.body.setTransform(gameCamera.viewfinder.position, 0);
+      if (bossBounds?.scope == BossBoundsScope.viewportSize) {
+        bossBounds?.body.setTransform(gameCamera.viewfinder.position, 0);
+      } else {
+        bossBounds?.body.setTransform(
+            boss?.enemies.first.isLoaded == true
+                ? boss!.enemies.first.center
+                : boss!.enemies.first.initPosition,
+            0);
+      }
     }
     super.update(dt);
   }
@@ -173,31 +229,65 @@ mixin BoundsFunctionality on Enviroment {
   FutureOr<void> onLoad() {
     super.onLoad();
 
-    bounds = Bounds(
+    mainGameBorder = Bounds(
         boundsSize: Vector2.all(boundsDistanceFromCenter),
-        position: Vector2.zero());
-    physicsComponent.add(bounds);
+        position: Vector2.zero(),
+        isCircle: false,
+        scope: BossBoundsScope.customSize);
+    physicsComponent.add(mainGameBorder);
   }
 }
 
 class Bounds extends BodyComponent<GameRouter> {
-  Bounds({required this.boundsSize, required this.position});
-  late ChainShape bounds;
-  final Vector2 boundsSize;
+  Bounds(
+      {required this.boundsSize,
+      required this.position,
+      required this.isCircle,
+      required this.scope});
+  BossBoundsScope scope;
+  Vector2 boundsSize;
   final Vector2 position;
+  final bool isCircle;
+  bool hasLoaded = false;
+  late final Shape currentBounds;
+
+  Shape createBounds() {
+    ChainShape shape;
+    if (hasLoaded) {
+      shape = body.fixtures.first.shape as ChainShape;
+      if (shape.vertices.isNotEmpty) {
+        shape.clear();
+      }
+    } else {
+      shape = ChainShape();
+    }
+    if (isCircle) {
+      shape.createLoop(getCirclePoints(boundsSize.x, 40));
+    } else {
+      shape.createLoop([
+        Vector2(-boundsSize.x, boundsSize.y),
+        Vector2(-boundsSize.x, -boundsSize.y),
+        Vector2(boundsSize.x, -boundsSize.y),
+        Vector2(boundsSize.x, boundsSize.y),
+      ]);
+    }
+
+    return shape;
+  }
+
+  @override
+  void onMount() {
+    hasLoaded = true;
+    super.onMount();
+  }
+
   @override
   Body createBody() {
-    bounds = ChainShape();
-    bounds.createLoop([
-      Vector2(-boundsSize.x, boundsSize.y),
-      Vector2(-boundsSize.x, -boundsSize.y),
-      Vector2(boundsSize.x, -boundsSize.y),
-      Vector2(boundsSize.x, boundsSize.y),
-    ]);
+    currentBounds = createBounds();
 
     renderBody = true;
 
-    final fixtureDef = FixtureDef(bounds,
+    final fixtureDef = FixtureDef(currentBounds,
         userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
@@ -217,16 +307,17 @@ class Bounds extends BodyComponent<GameRouter> {
 
 mixin PauseOnFocusLost on Enviroment {
   @override
-  void onRemove() {
-    windowManager.removeListener(this);
-
-    super.onRemove();
+  void onMount() {
+    addWindowEventFunctionToWrapper((windowEvent) {
+      if (windowEvent == "blur") {
+        onWindowBlur();
+      }
+    });
+    super.onMount();
   }
 
-  @override
   void onWindowBlur() {
     pauseGame(pauseMenu.key, wipeMovement: true);
-    super.onWindowBlur();
   }
 }
 
@@ -254,10 +345,12 @@ mixin PlayerFunctionality on Enviroment {
   void addPlayer() {
     player = Player(gameRef.playerDataComponent.dataObject, false,
         gameEnviroment: this, initPosition: Vector2.zero());
+    if (this is GameEnviroment) {
+      customFollow =
+          CustomFollowBehavior(player!, gameCamera, this as GameEnviroment);
+      player?.mounted.then((value) => add(customFollow));
+    }
 
-    customFollow =
-        CustomFollowBehavior(player!, gameCamera, this as GameEnviroment);
-    player?.mounted.then((value) => add(customFollow));
     add(player!);
   }
 

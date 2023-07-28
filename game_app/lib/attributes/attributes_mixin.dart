@@ -115,6 +115,7 @@ mixin AttributeFunctionsFunctionality on Entity {
   List<Function> jumpEndFunctions = [];
 
   List<Function(Entity source)> onHit = [];
+  List<Function(HealthFunctionality victim)> onKillOtherEntity = [];
   List<Function> onMove = [];
   List<Function> onDeath = [];
   List<Function> onLevelUp = [];

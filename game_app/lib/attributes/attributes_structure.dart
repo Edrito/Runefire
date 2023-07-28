@@ -7,7 +7,6 @@ import 'attributes_mixin.dart';
 import '../entities/entity.dart';
 import 'attributes_regular.dart';
 import 'attributes_permanent.dart';
-import 'attributes_status_effect.dart';
 import 'package:uuid/uuid.dart';
 
 import '../main.dart';
@@ -119,31 +118,26 @@ extension AllAttributesExtension on AttributeType {
       StatusEffects? statusEffect}) {
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);
     if (permanentAttr != null) return permanentAttr;
-    if (victimEntity != null && perpetratorEntity != null) {
-      final perpetratorAttr = perpetratorAttributeBuilder(
-          this, level, victimEntity, perpetratorEntity);
-      if (perpetratorAttr != null) return perpetratorAttr;
+    if (victimEntity != null) {
+      final regularAttr = regularAttributeBuilder(this, level, victimEntity);
+      if (regularAttr != null) return regularAttr;
+
+      if (perpetratorEntity != null) {
+        final perpetratorAttr = perpetratorAttributeBuilder(
+            this, level, victimEntity, perpetratorEntity);
+        if (perpetratorAttr != null) return perpetratorAttr;
+      }
     }
-
     switch (this) {
-      case AttributeType.burn:
-        return FireDamageAttribute(
-          level: level,
-          victimEntity: victimEntity,
-          perpetratorEntity: perpetratorEntity,
-        );
-
       case AttributeType.enemyExplosion:
         return ExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,
-          perpetratorEntity: perpetratorEntity,
         );
       default:
         return ExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,
-          perpetratorEntity: perpetratorEntity,
         );
     }
   }

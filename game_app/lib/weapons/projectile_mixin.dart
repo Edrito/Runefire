@@ -1,26 +1,26 @@
-import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/main.dart';
-import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 // ignore: unused_import
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import '../entities/enemy.dart';
 import '../entities/entity_mixin.dart';
 import '../entities/player.dart';
 import '../resources/functions/vector_functions.dart';
 import '../resources/enums.dart';
 import '../resources/constants/physics_filter.dart';
+// ignore: unused_import
+import 'dart:ui' as ui;
 
 mixin StandardProjectile on Projectile {
   int enemiesHit = 0;
   abstract double embedIntoEnemyChance;
-  final int trailCount = 10;
+  late int trailCount;
+  late int skip;
   List<Vector2> trails = [];
+  double projectileLength = 5;
 
   void incrementHits() {
     enemiesHit++;
@@ -88,6 +88,14 @@ mixin StandardProjectile on Projectile {
   @override
   Future<void> onLoad() {
     playAudio('sfx/projectiles/laser_sound_1.mp3');
+    trailCount = 10;
+
+    skip = 2;
+
+    add(CircleComponent(
+        radius: size / 2,
+        anchor: Anchor.center,
+        paint: Paint()..color = Colors.blue.shade900.withOpacity(.4)));
 
     return super.onLoad();
   }
@@ -99,21 +107,72 @@ mixin StandardProjectile on Projectile {
   }
 
   void drawBullet(Canvas canvas) {
-    canvas.drawPoints(
-        PointMode.points,
-        trails.fold(
-            [],
-            (previousValue, element) =>
-                [...previousValue, (element - center).toOffset()]),
-        paint
-          ..strokeWidth = size
-          ..blendMode = BlendMode.plus
-          ..strokeCap = StrokeCap.round
-          ..shader = ui.Gradient.linear(
-              (body.linearVelocity.normalized() * -4).toOffset(),
-              Offset.zero,
-              [Colors.transparent, secondaryColor, secondaryColor.brighten(.6)],
-              [0, .95, 1]));
+    // print(body.worldCenter -
+    //     weaponAncestor.entityAncestor!.handJoint.weaponTip!.absolutePosition);
+    // final firstPoint = -(delta).toOffset() * projectileLength;
+    // final secondPoint = -(delta - previousDelta).toOffset() * projectileLength;
+
+    final points = (trails.fold<List<Vector2>>([],
+        (previousValue, element) => [...previousValue, (element - center)]));
+
+    final lengthShader = .5 +
+        ((projectileLength * .5) *
+            (((durationPassed) *
+                    weaponAncestor.projectileVelocity.baseParameter /
+                    10)
+                .clamp(0, 1)));
+
+    final gradientShader =
+        ui.Gradient.linear(Offset.zero, -(delta).toOffset() * lengthShader, [
+      Colors.blue.darken(.5),
+      Colors.blue,
+      Colors.transparent,
+    ], [
+      0,
+      .1,
+      1
+    ]);
+    final linePaint = Paint()
+      ..strokeWidth = size
+      ..blendMode = BlendMode.plus
+      ..style = PaintingStyle.stroke
+      ..filterQuality = FilterQuality.none
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.bevel
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, .04)
+      ..shader = gradientShader;
+    final path = Path();
+    path.moveTo(0, 0);
+
+    if (points.length % 2 != 0) {
+      points.add(points.last);
+    }
+
+    for (var i = 0; i < points.length; i += 2) {
+      var firstPoint = points[i];
+      var secondPoint = points[i + 1];
+      path.quadraticBezierTo(
+        firstPoint.x,
+        firstPoint.y,
+        secondPoint.x,
+        secondPoint.y,
+      );
+    }
+    // path.quadraticBezierTo(
+    //     firstPoint.dx, firstPoint.dy, secondPoint.dx, secondPoint.dy);
+
+    canvas.drawPath(path, linePaint);
+
+    // canvas.drawLine(Offset.zero, firstPoint, linePaint);
+
+    // canvas.drawLine(firstPoint, secondPoint, linePaint);
+    // canvas.drawPoints(
+    //     PointMode.points,
+    //     trails.fold(
+    //         [],
+    //         (previousValue, element) =>
+    //             [...previousValue, (element - center).toOffset()]),
+    //     linePaint);
   }
 
   HealthFunctionality? target;
@@ -135,11 +194,25 @@ mixin StandardProjectile on Projectile {
     super.update(dt);
   }
 
+  int amountSkipped = 999;
+  Vector2? previousTrailPoint;
   void manageTrail() {
+    if (amountSkipped < skip) {
+      amountSkipped++;
+      return;
+    }
+    amountSkipped = 0;
+    if (previousTrailPoint == null) {
+      previousTrailPoint = center.clone();
+      return;
+    }
+    trails.insert(0, previousTrailPoint!);
     trails.insert(0, center.clone());
     if (trails.length > trailCount) {
       trails.removeLast();
+      trails.removeLast();
     }
+    previousTrailPoint = null;
   }
 
   @override
@@ -179,7 +252,7 @@ mixin StandardProjectile on Projectile {
 
     closetPosition = other.center;
 
-    final delta = (closetPosition - body.worldCenter).normalized();
+    setDelta((closetPosition - body.worldCenter).normalized());
     final impulse = (delta * weaponAncestor.projectileVelocity.parameter) *
         dt *
         .000005 *
@@ -246,7 +319,6 @@ mixin LaserProjectile on Projectile {
 
   double precisionPerDistance = .5;
 
-  Vector2 previousDelta = Vector2.zero();
   bool startChaining = false;
 
   abstract final double baseWidth;
@@ -299,8 +371,8 @@ mixin LaserProjectile on Projectile {
       //if close body detected, jump to it
       if (bodyToJumpTo != null) {
         newPointPosition = bodyToJumpTo.position - originPosition;
-        delta = (bodyToJumpTo.position - originPosition - previousDelta)
-            .normalized();
+        setDelta((bodyToJumpTo.position - originPosition - previousDelta)
+            .normalized());
         bodies.remove(bodyToJumpTo);
 
         chainedTargets++;
@@ -320,7 +392,7 @@ mixin LaserProjectile on Projectile {
       }
 
       lineThroughEnemies.add(newPointPosition);
-      previousDelta = newPointPosition.clone();
+      // previousDelta = newPointPosition.clone();
     }
   }
 

@@ -306,7 +306,7 @@ mixin AttackFunctionality on AimFunctionality {
       }
     }
 
-    setWeapon(currentWeapon!);
+    await setWeapon(currentWeapon!);
   }
 
   @override
@@ -346,7 +346,6 @@ mixin AttackFunctionality on AimFunctionality {
     await super.onLoad();
 
     await initializeWeapons();
-    await setWeapon(carriedWeapons.entries.first.value);
   }
 
   Future<void> setWeapon(Weapon weapon) async {
@@ -502,17 +501,17 @@ mixin HealthFunctionality on Entity {
     final color = instance.damageType.color;
     const fontSize = .55;
 
-    final test = TextPaint(
+    final textRenderer = TextPaint(
         style: defaultStyle.copyWith(
       fontSize: fontSize,
-      shadows: const [
+      shadows: [
         BoxShadow(
-            color: Colors.black,
-            offset: Offset(.07, .07),
-            spreadRadius: .5,
-            blurRadius: .5)
+            color: Colors.black.withOpacity(.25),
+            offset: const Offset(.05, .05),
+            spreadRadius: .4,
+            blurRadius: .75)
       ],
-      color: color,
+      color: color.brighten(.2),
     ));
     String damageString = "";
     if (recentDamage < 1) {
@@ -524,8 +523,8 @@ mixin HealthFunctionality on Entity {
       damageText = TextComponent(
         text: damageString,
         anchor: Anchor.bottomLeft,
-        textRenderer: test,
-        priority: playerOverlayPriority,
+        textRenderer: textRenderer,
+        priority: foregroundPriority,
         position: (Vector2.random() * .25) + Vector2(.35, .35),
       )
         ..add(TimerComponent(
@@ -537,6 +536,15 @@ mixin HealthFunctionality on Entity {
           },
         ))
         ..addToParent(this);
+      damageText!.add(
+        MoveEffect.by(
+          (Vector2.random() * .5) - Vector2.all(.25),
+          EffectController(
+            duration: 2,
+            curve: Curves.decelerate,
+          ),
+        ),
+      );
     } else {
       damageText!.text = damageString;
       damageText!.children.whereType<TimerComponent>().first.timer.reset();
@@ -673,6 +681,12 @@ mixin HealthFunctionality on Entity {
           as AttributeWeaponFunctionsFunctionality;
 
       for (var element in weapon.onKill) {
+        element(this);
+      }
+    }
+    final other = damage.first.source;
+    if (other is AttributeFunctionsFunctionality) {
+      for (var element in (other).onKillOtherEntity) {
         element(this);
       }
     }

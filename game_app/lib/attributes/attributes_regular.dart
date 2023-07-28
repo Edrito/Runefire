@@ -1,21 +1,27 @@
 import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:uuid/uuid.dart';
 
-import '../main.dart';
-import '../overlays/cards.dart';
-import '../weapons/weapon_mixin.dart';
 import '../resources/area_effects.dart';
-import 'attributes_perpetrator.dart';
 import 'attributes_structure.dart';
 import '../resources/enums.dart';
-import '../resources/functions/custom_mixins.dart';
 
-class ExplosionEnemyDeathAttribute extends PerpetratorAttribute {
+Attribute? regularAttributeBuilder(
+    AttributeType type, int level, AttributeFunctionality victimEntity) {
+  switch (type) {
+    case AttributeType.burn:
+      return ExplosionEnemyDeathAttribute(
+        level: level,
+        victimEntity: victimEntity,
+      );
+
+    default:
+      return null;
+  }
+}
+
+class ExplosionEnemyDeathAttribute extends Attribute {
   ExplosionEnemyDeathAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+      {required super.level, required super.victimEntity});
 
   @override
   AttributeType attributeType = AttributeType.enemyExplosion;
@@ -35,7 +41,7 @@ class ExplosionEnemyDeathAttribute extends PerpetratorAttribute {
   double baseSize = .5;
 
   void onKill(HealthFunctionality other) {
-    if (victimEntity == null || perpetratorEntity == null) return;
+    if (victimEntity == null) return;
     final explosion = AreaEffect(
       sourceEntity: victimEntity!,
       position: other.center,
@@ -58,24 +64,16 @@ class ExplosionEnemyDeathAttribute extends PerpetratorAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttackFunctionality) return;
-    final attributeFunctions = victimEntity as AttackFunctionality;
-    for (var element in attributeFunctions.carriedWeapons.values) {
-      if (element is AttributeWeaponFunctionsFunctionality) {
-        element.onKill.add(onKill);
-      }
-    }
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attributeFunctions = victimEntity as AttributeFunctionsFunctionality;
+    attributeFunctions.onKillOtherEntity.add(onKill);
   }
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttackFunctionality) return;
-    final attributeFunctions = victimEntity as AttackFunctionality;
-    for (var element in attributeFunctions.carriedWeapons.values) {
-      if (element is AttributeWeaponFunctionsFunctionality) {
-        element.onKill.remove(onKill);
-      }
-    }
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attributeFunctions = victimEntity as AttributeFunctionsFunctionality;
+    attributeFunctions.onKillOtherEntity.remove(onKill);
   }
 
   @override
