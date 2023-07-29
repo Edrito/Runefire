@@ -2,6 +2,7 @@ import 'package:game_app/attributes/attributes_structure.dart';
 
 import '../../attributes/attributes_permanent.dart';
 import '../../entities/player.dart';
+import '../../game/enviroment.dart';
 import '../enums.dart';
 import 'package:hive/hive.dart';
 
@@ -38,6 +39,10 @@ class PlayerData extends DataClass {
 
     // save();
   }
+
+  GameDifficulty selectedDifficulty = GameDifficulty.normal;
+
+  GameLevel selectedLevel = GameLevel.mushroomForest;
 
   List<GameLevel> completedLevels = [];
 

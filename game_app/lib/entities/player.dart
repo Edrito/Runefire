@@ -8,9 +8,10 @@ import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_mixin.dart';
 import 'package:game_app/resources/functions/functions.dart';
-import 'package:game_app/overlays/overlays.dart';
+import 'package:game_app/menus/overlays.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/constants/priorities.dart';
+import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/functions/vector_functions.dart';
@@ -175,7 +176,8 @@ class Player extends Entity
         moveAngle.y += 1;
       }
 
-      if (gameIsPaused || event is! RawKeyDownEvent) return;
+      if (gameRef.gameStateComponent.gameState.gameIsPaused ||
+          event is! RawKeyDownEvent) return;
 
       if (event.physicalKey == (PhysicalKeyboardKey.space)) {
         setEntityStatus(EntityStatus.jump);
@@ -214,7 +216,7 @@ class Player extends Entity
     } finally {
       if (moveAngle.isZero()) {
         moveVelocities.remove(InputType.keyboard);
-      } else if (!gameIsPaused) {
+      } else if (!gameRef.gameStateComponent.gameState.gameIsPaused) {
         moveVelocities[InputType.keyboard] = moveAngle;
       }
     }
@@ -326,21 +328,6 @@ class Player extends Entity
       // Code to handle unknown or unexpected input type
     }
     aimCharacter();
-  }
-
-  void killPlayer(bool showDeathScreen) {
-    setEntityStatus(EntityStatus.dead);
-    transitionOccuring = true;
-    Future.delayed(2.seconds).then(
-      (value) {
-        transitionOccuring = false;
-        if (showDeathScreen) {
-          pauseGame(deathScreen.key, wipeMovement: true);
-        } else {
-          endGame(false);
-        }
-      },
-    );
   }
 
   @override

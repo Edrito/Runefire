@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:uuid/uuid.dart';
 
-import '../game/enviroment_mixin.dart';
+import 'enviroment_mixin.dart';
 import '../resources/enums.dart';
 import '../resources/functions/vector_functions.dart';
-import '../game/enviroment.dart';
+import 'enviroment.dart';
 import '../main.dart';
 import '../resources/constants/priorities.dart';
-import 'enemy.dart';
+import '../entities/enemy.dart';
 
 enum SpawnLocation {
   inside,
@@ -229,7 +229,6 @@ class EnemyCluster {
 abstract class EventManagement extends Component {
   EventManagement(this.gameEnviroment);
   GameTimerFunctionality gameEnviroment;
-
   List<double> spawnTimes = [];
   abstract List<GameEvent> eventsToDo;
   List<GameEvent> eventsCurrentlyActive = [];

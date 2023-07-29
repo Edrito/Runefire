@@ -2,6 +2,7 @@ import 'dart:async' as async;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/game_state_class.dart';
 import '../resources/data_classes/system_data.dart';
 import 'buttons.dart';
 
@@ -79,7 +80,6 @@ class _OptionsMenuState extends State<OptionsMenu> {
     }, onSecondaryTapCancel: () {
       incrementingSFX = null;
     }, onSecondaryTapDown: (_) {
-      // incrementSFX = -1;
       incrementingSFX = false;
     }, onSecondaryTapUp: (_) {
       incrementingSFX = null;
@@ -141,7 +141,8 @@ class _OptionsMenuState extends State<OptionsMenu> {
       "Back",
       gameRef: widget.gameRef,
       onTap: () {
-        changeMainMenuPage(MenuPages.startMenuPage);
+        widget.gameRef.gameStateComponent.gameState
+            .changeMainMenuPage(MenuPageType.startMenuPage);
       },
     );
   }

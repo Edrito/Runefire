@@ -87,7 +87,7 @@ mixin StandardProjectile on Projectile {
 
   @override
   Future<void> onLoad() {
-    playAudio('sfx/projectiles/laser_sound_1.mp3');
+    gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
     trailCount = 20;
 
     skip = 2;
@@ -117,7 +117,6 @@ mixin StandardProjectile on Projectile {
 
     final lengthShader =
         .5 + ((projectileLength * .5) * ((durationPassed * 2).clamp(0, 1)));
-    print(lengthShader);
     final gradientShader =
         ui.Gradient.linear(Offset.zero, -(delta).toOffset() * lengthShader, [
       Colors.blue.darken(.5),

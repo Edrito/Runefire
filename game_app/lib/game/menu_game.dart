@@ -4,6 +4,7 @@ import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/enums.dart';
 import '../resources/data_classes/player_data.dart';
 import 'enviroment_mixin.dart';
 import '../resources/visuals.dart';
@@ -11,6 +12,7 @@ import '../resources/visuals.dart';
 class MenuGame extends Enviroment with PlayerFunctionality {
   bool initAddAttempt = false;
   List<RectangleComponent> platforms = [];
+
   @override
   void onLoad() async {
     game.componentsNotifier<PlayerDataComponent>().addListener(reAddPlayer);
@@ -100,4 +102,8 @@ class MenuGame extends Enviroment with PlayerFunctionality {
       platforms.clear();
     }
   }
+
+  @override
+  // TODO: implement level
+  GameLevel get level => GameLevel.menu;
 }

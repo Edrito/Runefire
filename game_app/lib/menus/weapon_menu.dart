@@ -2,11 +2,12 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:game_app/overlays/attribute_menu.dart';
-import 'package:game_app/overlays/weapon_selector_tile.dart';
+import 'package:game_app/menus/attribute_menu.dart';
+import 'package:game_app/menus/weapon_selector_tile.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
+import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
 
 import '../resources/data_classes/player_data.dart';
@@ -587,7 +588,9 @@ class _WeaponMenuState extends State<WeaponMenu> {
                         onTap: () {
                           setState(() {
                             exitFunction = () {
-                              changeMainMenuPage(MenuPages.startMenuPage);
+                              widget.gameRef.gameStateComponent.gameState
+                                  .changeMainMenuPage(
+                                      MenuPageType.startMenuPage);
                             };
                           });
                         },
@@ -625,7 +628,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
                         onTap: () {
                           setState(() {
                             exitFunction = () {
-                              changeMainMenuPage(MenuPages.levelMenu);
+                              widget.gameRef.gameStateComponent.gameState
+                                  .changeMainMenuPage(MenuPageType.levelMenu);
                             };
                           });
                         },

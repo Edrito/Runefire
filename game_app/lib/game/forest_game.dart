@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:game_app/entities/player.dart';
-import '../entities/enemy_management.dart';
+import 'event_management.dart';
+import '../entities/entity.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
 import 'background.dart';
 import 'enviroment.dart';
 
-extension PositionProvider on Player {
+extension PositionProvider on Entity {
   Vector2 get position => body.worldCenter;
 }
 
@@ -28,7 +28,7 @@ class ForestGame extends GameEnviroment {
   }
 
   @override
-  GameLevel level = GameLevel.forest;
+  GameLevel level = GameLevel.mushroomForest;
 }
 
 class ForestBackground extends BackgroundComponent {
@@ -57,9 +57,6 @@ class ForestBackground extends BackgroundComponent {
     size = size / 50;
     return super.onLoad();
   }
-
-  @override
-  GameLevel get gameLevel => GameLevel.forest;
 }
 
 class ForestEnemyManagement extends EventManagement {

@@ -26,6 +26,7 @@ dependencies:
   uuid: ^3.0.7
   recase: ^4.1.0
   flame_audio: ^1.4.1
+  infinite_carousel: ^1.0.3
 
   
 

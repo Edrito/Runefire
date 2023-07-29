@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/game_state_class.dart';
 import 'buttons.dart';
 
 import 'menus.dart';
@@ -28,12 +29,14 @@ class _StartMenuState extends State<StartMenu> {
       "Start Game",
       gameRef: widget.gameRef,
       onTap: () {
-        changeMainMenuPage(MenuPages.weaponMenu);
+        widget.gameRef.gameStateComponent.gameState
+            .changeMainMenuPage(MenuPageType.weaponMenu);
       },
     );
     optionsButtonComponent =
         CustomButton("Options", gameRef: widget.gameRef, onTap: () {
-      changeMainMenuPage(MenuPages.options);
+      widget.gameRef.gameStateComponent.gameState
+          .changeMainMenuPage(MenuPageType.options);
     });
     exitButtonComponent =
         CustomButton("Exit", gameRef: widget.gameRef, onTap: () {

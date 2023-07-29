@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
+import 'package:game_app/resources/data_classes/player_data.dart';
+import 'package:game_app/resources/game_state_class.dart';
 
 import '../entities/player.dart';
 import '../game/background.dart';
@@ -8,19 +10,29 @@ import '../game/background.dart';
 import 'dart:async';
 import 'package:flame/components.dart';
 import '../main.dart';
+import '../resources/data_classes/system_data.dart';
 import '../resources/enums.dart';
-import '../overlays/overlays.dart';
+import '../menus/overlays.dart';
 import '../resources/constants/priorities.dart';
 
 abstract class Enviroment extends Component with HasGameRef<GameRouter> {
+  abstract final GameLevel level;
   late final Forge2DComponent physicsComponent;
+
+  PlayerData get playerData => gameRef.playerDataComponent.dataObject;
+  SystemData get systemData => gameRef.systemDataComponent.dataObject;
+  GameState get gameState => gameRef.gameStateComponent.gameState;
+  Player? get getPlayer => (this as GameEnviroment).player;
+
+  GameEnviroment? get gameEnviroment =>
+      this is GameEnviroment ? this as GameEnviroment : null;
+
   Enviroment() {
     wrapper = MouseKeyboardCallbackWrapper();
   }
   Map<int, InputType> inputIdStates = {};
   late final World gameWorld;
   late CameraComponent gameCamera;
-  Player? get getPlayer => (this as GameEnviroment).player;
 
   void printChildren(var children) {
     for (var element in children) {
@@ -66,9 +78,6 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     wrapper.onMouseMove = onMouseMove;
     wrapper.onPrimaryDown = onTapDown;
     wrapper.onPrimaryUp = onTapUp;
-    // wrapper.onSecondaryDown = (_) => onSecondaryDown;
-    // wrapper.onSecondaryUp = (_) => onSecondaryUp;
-    // wrapper.onSecondaryCancel = () => onSecondaryUp;
     wrapper.keyEvent = (event) => onKeyEvent(event);
     gameRef.mouseCallback.add(wrapper);
     super.onMount();
@@ -121,19 +130,24 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
 abstract class GameEnviroment extends Enviroment
     with
         PlayerFunctionality,
-        // JoystickFunctionality,
         PauseOnFocusLost,
         BoundsFunctionality,
         GameTimerFunctionality,
         HudFunctionality {
-  abstract GameLevel level;
+  late final GameDifficulty difficulty;
+
+  @override
+  Future<void> onLoad() async {
+    difficulty = playerData.selectedDifficulty;
+    super.onLoad();
+  }
 
   @override
   void onKeyEvent(RawKeyEvent event) {
     if (event is! RawKeyDownEvent) return;
     if (event.logicalKey == LogicalKeyboardKey.keyP ||
         event.logicalKey == LogicalKeyboardKey.escape) {
-      pauseGame(pauseMenu.key);
+      gameState.pauseGame(pauseMenu.key);
     }
     super.onKeyEvent(event);
   }

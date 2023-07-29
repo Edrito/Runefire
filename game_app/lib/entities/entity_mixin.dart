@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
+import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
@@ -642,7 +643,7 @@ mixin HealthFunctionality on Entity {
   void deathChecker(List<DamageInstance> damage) {
     if (remainingHealth <= 0 && !isDead) {
       if (this is Player) {
-        (this as Player).killPlayer(true);
+        gameRef.gameStateComponent.gameState.killPlayer(true, this as Player);
       } else {
         setEntityStatus(EntityStatus.dead);
       }

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
+import 'package:flutter/material.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 
 Future<SpriteAnimation> buildSpriteSheet(
@@ -18,6 +19,16 @@ Future<SpriteAnimation> buildSpriteSheet(
       stepTime: stepTime,
       loop: loop,
       to: loop ? null : numberOfSprites);
+}
+
+Widget buildImageAsset(String asset,
+    {BoxFit fit = BoxFit.cover, Color? color}) {
+  return Image.asset(
+    asset,
+    color: color,
+    filterQuality: FilterQuality.none,
+    fit: fit,
+  );
 }
 
 String convertSecondsToMinutesSeconds(int seconds) {

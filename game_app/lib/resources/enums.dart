@@ -12,6 +12,7 @@ import '../game/background.dart';
 import '../game/enviroment.dart';
 import '../game/enviroment_mixin.dart';
 import '../game/forest_game.dart';
+import '../game/menu_game.dart';
 import '../weapons/projectiles.dart';
 import '../weapons/secondary_abilities.dart';
 import '../weapons/weapon_class.dart';
@@ -93,8 +94,82 @@ enum JoystickDirection {
 
 // extension CharacterTypeFilename on CharacterType {}
 
-enum GameLevel { forest, space, garden, menu }
+enum GameLevel { mushroomForest, dungeon, graveyard, menu }
 
+enum GameDifficulty { easy, normal, hard, chaos }
+
+extension GameDifficultyExtension on GameDifficulty {
+  Color get color {
+    switch (this) {
+      case GameDifficulty.easy:
+        return const Color.fromARGB(255, 154, 248, 255);
+      case GameDifficulty.normal:
+        return Colors.transparent;
+      case GameDifficulty.hard:
+        return const Color.fromARGB(255, 153, 0, 0);
+      case GameDifficulty.chaos:
+        return const Color.fromARGB(255, 108, 0, 122);
+    }
+  }
+}
+
+extension GameLevelExtension on GameLevel {
+  Color get levelColor {
+    switch (this) {
+      case GameLevel.mushroomForest:
+        return const Color.fromARGB(255, 117, 219, 156);
+      case GameLevel.dungeon:
+        return const Color.fromARGB(255, 102, 98, 98);
+      case GameLevel.graveyard:
+        return const Color.fromARGB(255, 188, 192, 207);
+      default:
+        return Colors.green;
+    }
+  }
+
+  String get levelImage {
+    switch (this) {
+      case GameLevel.mushroomForest:
+        return 'assets/images/background/forest.png';
+      case GameLevel.dungeon:
+        return 'assets/images/background/dungeon.png';
+      case GameLevel.graveyard:
+        return 'assets/images/background/graveyard.jpg';
+      default:
+        return 'assets/images/background/forest.png';
+    }
+  }
+
+  Enviroment buildEnvrioment() {
+    switch (this) {
+      case GameLevel.mushroomForest:
+        return ForestGame();
+      // case GameLevel.dungeon:
+      // return DungeonGame(gameDifficulty);
+      // case GameLevel.graveyard:
+      // return DungeonGame(gameDifficulty);
+
+      case GameLevel.menu:
+        return MenuGame();
+
+      default:
+        return ForestGame();
+    }
+  }
+
+  BackgroundComponent buildBackground(Enviroment gameRef) {
+    switch (this) {
+      // case GameLevel.space:
+      //   return ForestBackground(gameRef);
+      case GameLevel.mushroomForest:
+        return ForestBackground(gameRef);
+      case GameLevel.menu:
+        return BlankBackground(gameRef);
+      default:
+        return ForestBackground(gameRef);
+    }
+  }
+}
 // enum CharacterType { wizard, rogue }
 
 enum ExperienceAmount { small, medium, large }
@@ -187,34 +262,6 @@ extension ProjectileTypeExtension on ProjectileType {
             delta: delta,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
-    }
-  }
-}
-
-extension GameLevelExtension on GameLevel {
-  // String getTileFilename() {
-  //   switch (this) {
-  //     case GameLevel.space:
-  //       return 'isometric-sandbox-map.tmx';
-  //     case GameLevel.forest:
-  //       return 'isometric-sandbox-map.tmx';
-  //     case GameLevel.home:
-  //       return 'home-room.tmx';
-  //     default:
-  //       return '';
-  //   }
-  // }
-
-  BackgroundComponent buildBackground(Enviroment gameRef) {
-    switch (this) {
-      // case GameLevel.space:
-      //   return ForestBackground(gameRef);
-      case GameLevel.forest:
-        return ForestBackground(gameRef);
-      case GameLevel.menu:
-        return BlankBackground(gameRef);
-      default:
-        return ForestBackground(gameRef);
     }
   }
 }

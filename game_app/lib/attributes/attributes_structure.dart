@@ -10,7 +10,7 @@ import 'attributes_permanent.dart';
 import 'package:uuid/uuid.dart';
 
 import '../main.dart';
-import '../overlays/cards.dart';
+import '../menus/cards.dart';
 import '../resources/functions/custom_mixins.dart';
 
 /// This file contains all the enums for the attributes.
@@ -203,7 +203,7 @@ abstract class Attribute with UpgradeFunctions {
       {Function? onTap, Function? onTapComplete, bool small = false}) {
     return CustomCard(
       this,
-      gameRef: gameRouter,
+      gameRef: gameState.gameRouter,
       onTap: onTap,
       onTapComplete: onTapComplete,
       smallCard: small,

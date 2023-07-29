@@ -89,12 +89,12 @@ class AttributeTile extends StatelessWidget {
           ),
           ShaderMask(
             shaderCallback: (bounds) {
-              return const LinearGradient(colors: [
-                Colors.black,
+              return LinearGradient(colors: [
+                Colors.black.withOpacity(.5),
                 Colors.white,
                 Colors.white,
-                Colors.black
-              ], stops: [
+                Colors.black.withOpacity(.5)
+              ], stops: const [
                 0,
                 0.4,
                 .6,

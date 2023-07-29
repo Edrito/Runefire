@@ -1,3 +1,5 @@
+import '../../game/enviroment.dart';
+import '../enums.dart';
 import 'base.dart';
 import 'package:hive/hive.dart';
 
@@ -17,6 +19,9 @@ class SystemData extends DataClass {
   @HiveField(0)
   double musicVolume;
 
+  @HiveField(1)
+  double sfxVolume;
+
   set setMusicVolume(double value) {
     musicVolume = value;
     parentComponent?.notifyListeners();
@@ -28,7 +33,4 @@ class SystemData extends DataClass {
     parentComponent?.notifyListeners();
     save();
   }
-
-  @HiveField(1)
-  double sfxVolume;
 }

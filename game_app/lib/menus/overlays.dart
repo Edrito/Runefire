@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/game/enviroment.dart';
-import 'package:game_app/overlays/buttons.dart';
-import 'package:game_app/overlays/menus.dart';
-import 'package:game_app/overlays/pause_menu.dart';
+import 'package:game_app/menus/buttons.dart';
+import 'package:game_app/menus/menus.dart';
+import 'package:game_app/menus/pause_menu.dart';
+import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
 
 import '../attributes/attributes_structure.dart';
 import '../main.dart';
+import '../resources/functions/functions.dart';
 import 'cards.dart';
+import 'components_notifier_builder.dart';
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
     MapEntry('PauseMenu', (context, gameRouter) {
@@ -58,14 +61,14 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                         "Try again",
                         gameRef: gameRouter,
                         onTap: () {
-                          endGame(true);
+                          gameRouter.gameStateComponent.gameState.endGame(true);
                         },
                       ),
                       CustomButton(
                         "Give up",
                         gameRef: gameRouter,
                         onTap: () {
-                          endGame();
+                          gameRouter.gameStateComponent.gameState.endGame();
                         },
                       )
                     ]),
@@ -82,26 +85,48 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> mainMenu =
     MapEntry('MainMenu', (context, gameRouter) {
-  return Center(
-    child: StatefulBuilder(builder: (context, setState) {
-      setStateMainMenu = setState;
-      return menuPage.buildPage(gameRouter);
-    }),
-  );
+  return ComponentsNotifierBuilder<GameStateComponent>(
+      notifier: gameRouter.componentsNotifier<GameStateComponent>(),
+      builder: (context, notifier) =>
+          notifier.single?.gameState.currentMenuPage.buildPage(gameRouter) ??
+          const SizedBox());
 });
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> caveFront =
     MapEntry('CaveFront', (context, gameRouter) {
-  final size = MediaQuery.of(context).size;
-
-  return Center(
-      child: Image.asset(
-    'assets/images/background/caveFront.png',
-    filterQuality: FilterQuality.none,
-    fit: BoxFit.cover,
-    height: size.height,
-    width: size.width,
-  ));
+  final gameState = gameRouter.gameStateComponent.gameState;
+  return Stack(
+    children: [
+      Positioned.fill(
+        child: buildImageAsset(
+          'assets/images/background/caveFront.png',
+        ),
+      ),
+      Positioned.fill(
+        child: ShaderMask(
+          blendMode: BlendMode.srcIn,
+          shaderCallback: (bounds) {
+            return RadialGradient(
+              radius: 1.2,
+              colors: [
+                gameState.portalColor(true).withOpacity(.2),
+                Colors.transparent,
+              ],
+              stops: const [.3, 1],
+            ).createShader(bounds);
+          },
+          child: buildImageAsset(
+            'assets/images/background/caveFrontEffectMask.png',
+          ),
+        ),
+      ),
+      // Positioned.fill(
+      //   child: buildImageAsset(
+      //     'assets/images/background/caveFrontEffectMask.png',
+      //   ),
+      // ),
+    ],
+  );
 });
 
 List<Attribute>? currentSelection;
@@ -133,8 +158,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
     }, onTapComplete: () {
       gameRouter.resumeEngine();
       player?.addAttribute(element);
-      Future.delayed(exitAnimationDuration.seconds)
-          .then((value) => {resumeGame(), currentSelection = null});
+      Future.delayed(exitAnimationDuration.seconds).then((value) => {
+            gameRouter.gameStateComponent.gameState.resumeGame(),
+            currentSelection = null
+          });
       widgetController?.forward(from: 0);
     });
     selection.add(card);
@@ -150,8 +177,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
       onTapComplete: () {
         gameRouter.resumeEngine();
         player.addAttribute(xpAttribute);
-        Future.delayed(exitAnimationDuration.seconds)
-            .then((value) => {resumeGame(), currentSelection = null});
+        Future.delayed(exitAnimationDuration.seconds).then((value) => {
+              gameRouter.gameStateComponent.gameState.resumeGame(),
+              currentSelection = null
+            });
         widgetController?.forward(from: 0);
       },
       small: true);

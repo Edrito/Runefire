@@ -5,11 +5,12 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide MoveEffect;
+import 'package:game_app/resources/game_state_class.dart';
 
 import '../resources/data_classes/base.dart';
 import '../resources/functions/custom_mixins.dart';
 import '../main.dart';
-import '../overlays/overlays.dart';
+import '../menus/overlays.dart';
 import '../resources/constants/priorities.dart';
 import '../resources/visuals.dart';
 import 'entity.dart';
@@ -31,7 +32,7 @@ mixin ExperienceFunctionality on Entity {
   TimerComponent? levelUpQueueTimer;
 
   void levelUp() {
-    pauseGame(attributeSelection.key);
+    gameRef.gameStateComponent.gameState.pauseGame(attributeSelection.key);
     currentlyLevelingUp = false;
 
     if (levelUpQueue == 0) {

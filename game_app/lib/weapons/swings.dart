@@ -198,18 +198,19 @@ class MeleeAttackHandler extends Component {
         hitbox!.hitEnemies < parentWeapon.maxChainingTargets.parameter &&
         !isDead) {
       List<Body> bodies = [
-        ...gameRouter.world.bodies.where((element) {
-          if (parentWeapon.entityAncestor is Player) {
-            return element.userData is Enemy &&
-                element.userData != other &&
-                !hitbox!.hitEnemiesId
-                    .contains((element.userData as Entity).entityId);
-          } else {
-            return element.userData is Player &&
-                element.userData != other &&
-                !hitbox!.hitEnemiesId.contains(other.entityId);
-          }
-        })
+        ...parentWeapon.entityAncestor?.gameRef.world.bodies.where((element) {
+              if (parentWeapon.entityAncestor is Player) {
+                return element.userData is Enemy &&
+                    element.userData != other &&
+                    !hitbox!.hitEnemiesId
+                        .contains((element.userData as Entity).entityId);
+              } else {
+                return element.userData is Player &&
+                    element.userData != other &&
+                    !hitbox!.hitEnemiesId.contains(other.entityId);
+              }
+            }) ??
+            []
       ];
       if (bodies.isEmpty) {
         return;
@@ -226,8 +227,11 @@ class MeleeAttackHandler extends Component {
       );
       target = other;
 
-      initSwing(otherAngle,
-          other.center - currentEnviroment!.gameCamera.viewfinder.position);
+      initSwing(
+          otherAngle,
+          other.center -
+              parentWeapon.entityAncestor!.gameEnviroment!.gameCamera.viewfinder
+                  .position);
     }
   }
 

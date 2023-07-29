@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
+import 'package:game_app/resources/game_state_class.dart';
 
 import '../game/enviroment.dart';
-import '../game/enviroment_mixin.dart';
 import '../main.dart';
 import '../resources/visuals.dart';
 import 'buttons.dart';
 
 class PauseMenu extends StatefulWidget {
-  const PauseMenu(this.gameReference, {super.key});
-  final GameRouter gameReference;
+  const PauseMenu(this.gameRef, {super.key});
+  final GameRouter gameRef;
   @override
   State<PauseMenu> createState() => _PauseMenuState();
 }
@@ -20,6 +20,8 @@ class PauseMenu extends StatefulWidget {
 class _PauseMenuState extends State<PauseMenu> {
   FocusNode node = FocusNode();
   late final GameEnviroment env;
+  late final GameState gameState;
+  late final GameRouter gameRouter;
 
   bool fetchAttributeLogicChecker(
       MapEntry<AttributeType, Attribute> element, bool isTemp) {
@@ -36,7 +38,9 @@ class _PauseMenuState extends State<PauseMenu> {
   void initState() {
     super.initState();
     node.requestFocus();
-    env = getEnviromentFromRouter(widget.gameReference) as GameEnviroment;
+    gameRouter = widget.gameRef;
+    gameState = gameRouter.gameStateComponent.gameState;
+    env = gameState.currentEnviroment as GameEnviroment;
   }
 
   final Size cardSize = const Size(128, 96);
@@ -70,7 +74,7 @@ class _PauseMenuState extends State<PauseMenu> {
         if (value is! KeyDownEvent) return;
         if (value.logicalKey == LogicalKeyboardKey.escape ||
             value.logicalKey == LogicalKeyboardKey.keyP) {
-          resumeGame();
+          gameState.resumeGame();
         }
       },
       child: Center(
@@ -226,7 +230,7 @@ class _PauseMenuState extends State<PauseMenu> {
                                             ),
                                             gameRef: gameRouter,
                                             onTap: () {
-                                              resumeGame();
+                                              gameState.resumeGame();
                                             },
                                           ),
                                           CustomButton(
@@ -237,18 +241,9 @@ class _PauseMenuState extends State<PauseMenu> {
                                               highlightColor
                                             ),
                                             onTap: () {
-                                              final gameEnviroment =
-                                                  currentEnviroment;
-                                              if (gameEnviroment
-                                                  is PlayerFunctionality) {
-                                                resumeGame();
-                                                (currentEnviroment
-                                                        as PlayerFunctionality)
-                                                    .player
-                                                    ?.killPlayer(false);
-                                              } else {
-                                                endGame(false);
-                                              }
+                                              gameState.resumeGame();
+                                              gameState.killPlayer(
+                                                  false, env.player!);
                                             },
                                           )
                                         ]),

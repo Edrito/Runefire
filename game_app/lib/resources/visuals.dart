@@ -16,14 +16,14 @@ extension CustomColors on BasicPalette {
   static const PaletteEntry primaryColorPalette = PaletteEntry(primaryColor);
 }
 
-const Color primaryColor = ui.Color.fromARGB(255, 67, 164, 255);
-const Color secondaryColor = ui.Color.fromARGB(255, 133, 210, 255);
+const Color primaryColor = ui.Color.fromARGB(255, 187, 217, 255);
+const Color secondaryColor = ui.Color.fromARGB(255, 124, 154, 177);
 const Color buttonDownColor = secondaryColor;
 const Color buttonUpColor = primaryColor;
 const Color backgroundColor1 = ui.Color.fromARGB(255, 22, 0, 5);
 const Color backgroundColor2 = ui.Color.fromARGB(255, 48, 99, 158);
 const Color lockedColor = ui.Color.fromARGB(255, 49, 49, 49);
-const Color hoverColor = ui.Color.fromARGB(255, 0, 59, 107);
+const Color hoverColor = ui.Color.fromARGB(255, 85, 74, 75);
 const Color unlockedColor = ui.Color.fromARGB(255, 24, 24, 24);
 const Color secondaryEquippedColor = ui.Color.fromARGB(255, 163, 113, 255);
 const Color levelUnlockedUnequipped = ui.Color.fromARGB(255, 62, 31, 119);

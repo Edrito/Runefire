@@ -6,8 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
+import 'package:game_app/resources/game_state_class.dart';
 
-import '../entities/enemy_management.dart';
+import 'event_management.dart';
 import '../game/hud.dart';
 
 import 'dart:async';
@@ -17,7 +18,7 @@ import '../resources/functions/custom_follow_behavior.dart';
 import '../resources/functions/custom_joystick.dart';
 import '../main.dart';
 import '../resources/enums.dart';
-import '../overlays/overlays.dart';
+import '../menus/overlays.dart';
 import '../resources/constants/priorities.dart';
 
 import '../resources/functions/functions.dart';
@@ -317,7 +318,7 @@ mixin PauseOnFocusLost on Enviroment {
   }
 
   void onWindowBlur() {
-    pauseGame(pauseMenu.key, wipeMovement: true);
+    gameState.pauseGame(pauseMenu.key, wipeMovement: true);
   }
 }
 
@@ -343,8 +344,9 @@ mixin PlayerFunctionality on Enviroment {
   final test = PositionComponent();
 
   void addPlayer() {
-    player = Player(gameRef.playerDataComponent.dataObject, false,
+    player = Player(playerData, false,
         gameEnviroment: this, initPosition: Vector2.zero());
+
     if (this is GameEnviroment) {
       customFollow =
           CustomFollowBehavior(player!, gameCamera, this as GameEnviroment);
