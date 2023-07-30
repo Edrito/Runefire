@@ -213,7 +213,8 @@ class _LevelMenuState extends State<LevelMenu> {
     //   width = box.size.width;
     // } else {
     // }
-
+    final difficultyDescription =
+        playerData.selectedDifficulty.difficultyDescription;
     return Stack(
       children: [
         Positioned.fill(
@@ -222,7 +223,26 @@ class _LevelMenuState extends State<LevelMenu> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(child: buildPicker(true)),
-              const Spacer(),
+              Expanded(
+                  child: Column(
+                key: Key(playerData.selectedDifficulty.name),
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < difficultyDescription.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        difficultyDescription[i],
+                        style: defaultStyle.copyWith(fontSize: 30),
+                        textAlign: TextAlign.center,
+                      ),
+                    ).animate().fadeIn().moveY(begin: 5),
+                  const SizedBox(
+                    height: 25,
+                  )
+                ],
+              )),
               Expanded(child: buildPicker(false)),
             ],
           ),

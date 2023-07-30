@@ -67,7 +67,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   SpriteAnimation? animationQueue;
   SpriteAnimation? previousAnimation;
 
-  bool tempAnimationPlaying = false;
+  bool temporaryAnimationPlaying = false;
 
   late SpriteAnimationComponent spriteAnimationComponent;
   late PositionComponent spriteWrapper;
@@ -83,7 +83,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   Future<void> loadAnimationSprites();
 
   void tickerComplete() {
-    tempAnimationPlaying = false;
+    temporaryAnimationPlaying = false;
     entityStatus = statusQueue ?? previousStatus ?? entityStatus;
     spriteAnimationComponent.animation = animationQueue ??
         previousAnimation ??
@@ -110,7 +110,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     previousAnimation = spriteAnimationComponent.animation;
     previousStatus = entityStatus;
     assert(!tempAnimation.loop, "Temp animations must not loop");
-    tempAnimationPlaying = true;
+    temporaryAnimationPlaying = true;
     spriteAnimationComponent.animation = tempAnimation.clone();
     spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
   }
@@ -183,17 +183,18 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
         break;
     }
+
     if (animation == null) return;
+
+    ///If a temporary animation is playing, queue the animation
     if (!(spriteAnimationComponent.animation?.loop ?? true) &&
-        tempAnimationPlaying) {
+        temporaryAnimationPlaying) {
       statusQueue = newEntityStatus;
       animationQueue = animation;
     } else {
       entityStatus = newEntityStatus;
       spriteAnimationComponent.animation = animation;
     }
-
-    // spriteAnimationComponent.animation ??= animationQueue ?? idleAnimation;
 
     if (!(spriteAnimationComponent.animation?.loop ?? false)) {
       await spriteAnimationComponent.animationTicker?.completed;
@@ -238,29 +239,10 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         size: Vector2.zero(),
         priority: playerBackPriority);
 
-    // shadow3DDecorator = Shadow3DDecorator(
-    //     base: spriteAnimationComponent.size,
-    //     angle: 1.4,
-    //     xShift: 250,
-    //     yScale: 2,
-    //     opacity: 1,
-    //     blur: .2)
-    //   ..base.y += -.8
-    //   ..base.x -= 1;
-
-    // spriteAnimationComponent.decorator = shadow3DDecorator;
     spriteWrapper = PositionComponent(
         size: spriteAnimationComponent.size, anchor: Anchor.center);
     spriteWrapper.flipHorizontallyAroundCenter();
-    // if (isPlayer) {
     add(spriteWrapper..add(spriteAnimationComponent));
-    // } else {
-    //   add(spriteWrapper
-    //     ..add(CircleComponent(
-    //       radius: height / 2,
-    //       paint: BasicPalette.blue.paint(),
-    //     )));
-    // }
     entityStatusWrapper = EntityStatusEffectsWrapper(
         position: Vector2(0, -entityStatusHeight),
         size: Vector2(spriteAnimationComponent.width * 1.5, 0))
@@ -279,7 +261,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   }
 
   void flipSprite() {
-    // shadow3DDecorator.xShift = 250 * (flipped ? 1 : -1);
     backJoint.flipHorizontallyAroundCenter();
     spriteWrapper.flipHorizontallyAroundCenter();
 

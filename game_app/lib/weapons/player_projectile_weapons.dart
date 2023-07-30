@@ -64,6 +64,7 @@ class Pistol extends PlayerWeapon
         return WeaponSpriteAnimation(Vector2.all(0), Vector2(-.1, 1.6),
             await buildSpriteSheet(1, 'weapons/pistol.png', 1, true),
             parentJoint: parentJoint,
+            weapon: this,
             attackAnimation:
                 await buildSpriteSheet(1, 'weapons/pistol.png', .1, false),
             muzzleFlash: await buildSpriteSheet(
@@ -110,6 +111,7 @@ class Shotgun extends PlayerWeapon
         return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
             await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
             parentJoint: parentJoint,
+            weapon: this,
             attackAnimation: await buildSpriteSheet(
                 4, 'weapons/pistol_attack.png', .1, false),
             muzzleFlash: await buildSpriteSheet(
@@ -171,6 +173,7 @@ class LongRangeRifle extends PlayerWeapon
           Vector2(-.175, 2.65),
           await buildSpriteSheet(19, 'weapons/long_rifle_idle.png', .2, true),
           parentJoint: parentJoint,
+          weapon: this,
           attackAnimation: await buildSpriteSheet(
               7, 'weapons/long_rifle_attack.png', .02, false),
         );
@@ -235,6 +238,7 @@ class AssaultRifle extends PlayerWeapon
         return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
             await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
             parentJoint: parentJoint,
+            weapon: this,
             attackAnimation: await buildSpriteSheet(
                 4, 'weapons/pistol_attack.png', .1, false),
             muzzleFlash: await buildSpriteSheet(
@@ -293,6 +297,7 @@ class LaserRifle extends PlayerWeapon
         return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
             await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
             parentJoint: parentJoint,
+            weapon: this,
             attackAnimation: await buildSpriteSheet(
                 4, 'weapons/pistol_attack.png', .1, false),
             muzzleFlash: await buildSpriteSheet(
@@ -352,6 +357,7 @@ class RocketLauncher extends PlayerWeapon
         return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
             await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
             parentJoint: parentJoint,
+            weapon: this,
             attackAnimation: await buildSpriteSheet(
                 4, 'weapons/pistol_attack.png', .1, false),
             muzzleFlash: await buildSpriteSheet(
@@ -411,6 +417,7 @@ class Railgun extends PlayerWeapon
         return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
             await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
             parentJoint: parentJoint,
+            weapon: this,
             attackAnimation: await buildSpriteSheet(
                 4, 'weapons/pistol_attack.png', .1, false),
             muzzleFlash: await buildSpriteSheet(

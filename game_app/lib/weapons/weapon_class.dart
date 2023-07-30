@@ -175,12 +175,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
   final DamageParameterManager baseDamage =
       DamageParameterManager(damageBase: {});
 
-  List<DamageInstance> get calculateDamage => damageCalculations(
-        baseDamage,
-        entityAncestor!,
-        sourceWeapon: this,
-        duration: entityAncestor?.durationPercentIncrease.parameter,
-      );
+  DamageInstance get calculateDamage =>
+      damageCalculations(entityAncestor!, baseDamage.damageBase,
+          sourceWeapon: this, damageSource: baseDamage);
 
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
@@ -285,6 +282,8 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
       this.chargeAnimation,
       this.reloadAnimation,
       this.muzzleFlash,
+      required this.weapon,
+      this.chargeIdleAnimation,
       this.spawnAnimation,
       this.idleOnly = false,
       required this.parentJoint}) {
@@ -298,6 +297,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
 
   Vector2 spriteOffset;
   Vector2 tipOffset;
+  Weapon weapon;
 
   WeaponStatus currentStatus = WeaponStatus.idle;
   PlayerAttachmentJointComponent parentJoint;
@@ -310,6 +310,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
   SpriteAnimation? reloadAnimation;
   SpriteAnimation? attackAnimation;
   SpriteAnimation? chargeAnimation;
+  SpriteAnimation? chargeIdleAnimation;
   SpriteAnimation? muzzleFlash;
 
   bool tempAnimationPlaying = false;
@@ -322,6 +323,12 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
   void initTicker() {
     tempAnimationPlaying = true;
     animationTicker?.onComplete = tickerComplete;
+  }
+
+  void tickerComplete() {
+    tempAnimationPlaying = false;
+    currentStatus = statusQueue ?? currentStatus;
+    animation = animationQueue ?? idleAnimation;
   }
 
   void addMuzzleFlash() {
@@ -340,12 +347,6 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     };
   }
 
-  void tickerComplete() {
-    tempAnimationPlaying = false;
-    currentStatus = statusQueue ?? currentStatus;
-    animation = animationQueue ?? idleAnimation;
-  }
-
   @override
   void update(double dt) {
     if (!isAnimationPlaying) {
@@ -355,6 +356,14 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
   }
 
   bool get isAnimationPlaying => !(animationTicker?.done() ?? true);
+
+  Future<void> weaponCharging() async {
+    if (chargeAnimation == null) return;
+    double chargeDuration = weapon.attackTickRate.parameter;
+    applyAnimation(chargeAnimation!
+      ..stepTime = (chargeDuration / chargeAnimation!.frames.length));
+    animationQueue = chargeIdleAnimation;
+  }
 
   Future<void> setWeaponStatus(WeaponStatus newWeaponStatus,
       [SpriteAnimation? attackAnimation]) async {

@@ -495,7 +495,10 @@ mixin SemiAutomatic on Weapon {
   @override
   void startAttacking() {
     isAttacking = true;
-
+    if (semiAutoType != SemiAutoType.charge) {
+      setWeaponStatus(WeaponStatus.charge);
+      // entityAncestor?.setEntityStatus(EntityStatus.attack);
+    }
     switch (semiAutoType) {
       case SemiAutoType.regular:
         attackAttempt();

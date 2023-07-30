@@ -196,12 +196,12 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
         duration: 5,
         onTick: (entity, areaId) {
           if (entity is HealthFunctionality) {
-            entity.hitCheck(areaId, [
-              DamageInstance(
-                  damageBase: .1,
-                  damageType: DamageType.fire,
-                  source: weapon!.entityAncestor!)
-            ]);
+            // entity.hitCheck(areaId, [
+            //   DamageInstance(
+            //       damageBase: .1,
+            //       damageType: DamageType.fire,
+            //       source: weapon!.entityAncestor!)
+            // ]);
           }
         },
       ));

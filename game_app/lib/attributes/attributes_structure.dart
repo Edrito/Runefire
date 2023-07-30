@@ -163,7 +163,15 @@ abstract class Attribute with UpgradeFunctions {
   bool get isTemporary => this is TemporaryAttribute;
   AttributeTerritory get attributeTerritory => attributeType.territory;
 
-  String description();
+  String description() {
+    int increase = 1;
+    final newLevel = upgradeLevel + 1;
+    if (newLevel == maxLevel) increase++;
+    return upgradeLevel == maxLevel
+        ? ""
+        : "${((upgradeLevel + increase) * (factor ?? 0) * 100).abs().round()}% increase";
+  }
+
   String help() {
     return "An increase of ${((factor ?? 0) * 100)}% of your base attribute with an additional ${((factor ?? 0) * 100)}% at max level.";
   }

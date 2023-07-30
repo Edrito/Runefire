@@ -137,7 +137,6 @@ mixin MovementFunctionality on Entity {
 
     // body.setTransform(center + (pulse * speed.parameter), 0);
     body.applyForce(pulse * speed.parameter);
-
     gameEnviroment.test.position += pulse * speed.parameter;
     moveFunctionsCall();
     setEntityStatus(EntityStatus.run);
@@ -149,22 +148,33 @@ mixin AimFunctionality on Entity {
   double handPositionFromBody = .1;
   bool weaponBehind = false;
 
+  void buildDeltaFromMousePosition() {
+    inputAimAngles[InputType.mouseMove] =
+        (inputAimPositions[InputType.mouseMove]! -
+                (gameEnviroment.player!.center -
+                    gameEnviroment.gameCamera.viewfinder.position))
+            .normalized();
+  }
+
   Vector2 get inputAimVectors {
     if (isDead) {
       return lastAimingPosition;
-    } else {
-      final returnVal = inputAimAngles[InputType.aimJoy] ??
-          inputAimAngles[InputType.tapClick] ??
-          inputAimAngles[InputType.mouseDrag] ??
-          inputAimAngles[InputType.mouseMove] ??
-          inputAimAngles[InputType.ai] ??
-          ((this is MovementFunctionality)
-                  ? (this as MovementFunctionality).moveDelta
-                  : Vector2.zero())
-              .normalized();
-      lastAimingPosition = returnVal;
-      return returnVal;
     }
+    if (inputAimPositions.containsKey(InputType.mouseMove)) {
+      buildDeltaFromMousePosition();
+    }
+
+    final returnVal = inputAimAngles[InputType.aimJoy] ??
+        inputAimAngles[InputType.tapClick] ??
+        inputAimAngles[InputType.mouseDrag] ??
+        inputAimAngles[InputType.mouseMove] ??
+        inputAimAngles[InputType.ai] ??
+        ((this is MovementFunctionality)
+                ? (this as MovementFunctionality).moveDelta
+                : Vector2.zero())
+            .normalized();
+    lastAimingPosition = returnVal;
+    return returnVal;
   }
 
   Vector2 get handJointAimDelta {
@@ -444,14 +454,28 @@ mixin HealthFunctionality on Entity {
   final DoubleParameterManager maxHealth =
       DoubleParameterManager(baseParameter: 50);
 
-  TimerComponent? invincibleTimer;
+  TimerComponent? iFrameTimer;
   double sameDamageSourceDuration = .5;
 
   double get remainingHealth => maxHealth.parameter - damageTaken;
   double get healthPercentage => remainingHealth / maxHealth.parameter;
 
   @override
-  bool get isInvincible => super.isInvincible || invincibleTimer != null;
+  bool get isInvincible => super.isInvincible || iFrameTimer != null;
+
+  void applyEssenceSteal(DamageInstance instance) {
+    final amount = essenceSteal.parameter * instance.damage;
+    if (amount == 0) return;
+    damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
+    addDamageText(DamageType.healing, amount);
+    addDamageEffects(DamageType.healing.color);
+  }
+
+  void heal(double amount) {
+    damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
+    addDamageText(DamageType.healing, amount);
+    addDamageEffects(DamageType.healing.color);
+  }
 
   double damageTaken = 0;
   double recentDamage = 0;
@@ -473,7 +497,7 @@ mixin HealthFunctionality on Entity {
 
     permanentlyDisableEntity();
     entityStatusWrapper.removeAllAnimations();
-    tempAnimationPlaying = true;
+    temporaryAnimationPlaying = true;
     assert(!deathAnimation!.loop, "Temp animations must not loop");
     spriteAnimationComponent.animation = deathAnimation?.clone();
 
@@ -498,8 +522,8 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void addDamageText(DamageInstance instance) {
-    final color = instance.damageType.color;
+  void addDamageText(DamageType damageType, double amount) {
+    final color = damageType.color;
     const fontSize = .55;
 
     final textRenderer = TextPaint(
@@ -515,11 +539,15 @@ mixin HealthFunctionality on Entity {
       color: color.brighten(.2),
     ));
     String damageString = "";
-    if (recentDamage < 1) {
-      damageString = recentDamage.toStringAsFixed(1);
+    if (amount < 1) {
+      damageString = amount.toStringAsFixed(1);
     } else {
-      damageString = recentDamage.toStringAsFixed(0);
+      damageString = amount.toStringAsFixed(0);
     }
+    if (damageType == DamageType.healing) {
+      damageString = "+ $damageString";
+    }
+    //TODO
     if (damageText == null) {
       damageText = TextComponent(
         text: damageString,
@@ -604,19 +632,17 @@ mixin HealthFunctionality on Entity {
     )).addToParent(spriteAnimationComponent);
   }
 
-  bool takeDamage(String id, List<DamageInstance> damage,
+  bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
-    if (damage.isEmpty) return false;
-
     setEntityStatus(EntityStatus.damage);
 
     if (invincibilityDuration.parameter > 0) {
-      invincibleTimer = TimerComponent(
+      iFrameTimer = TimerComponent(
         period: invincibilityDuration.parameter,
         removeOnFinish: true,
-        onTick: () => invincibleTimer = null,
+        onTick: () => iFrameTimer = null,
       );
-      add(invincibleTimer!);
+      add(iFrameTimer!);
     }
 
     applyDamage(damage);
@@ -624,23 +650,36 @@ mixin HealthFunctionality on Entity {
     if (applyStatusEffect) {
       this.applyStatusEffect(damage);
     }
-    onHitFunctionsCall(damage.first.source);
+    onHitFunctionsCall(damage.source);
     return true;
   }
 
-  void applyDamage(List<DamageInstance> damage) {
-    DamageInstance largestEntry = damage.first;
-    for (var element in damage) {
-      damageTaken += element.damage;
-      recentDamage += element.damage;
-      if (element.damage > largestEntry.damage) largestEntry = element;
+  void applyDamage(DamageInstance damage) {
+    MapEntry<DamageType, double> largestEntry = damage.damageMap.entries.first;
+
+    for (var element in damage.damageMap.entries) {
+      if (element.value > largestEntry.value) largestEntry = element;
+
+      ///Reduce damage based on the damage type resistance
+      double damageInc = element.value;
+      damageInc *=
+          damageTypeResistance.damagePercentIncrease[element.key] ??= 1;
+      print(damageTypeResistance.damagePercentIncrease[element.key] ??= 1);
+      damageTaken += damageInc;
+      recentDamage += damageInc;
     }
     damageTaken.clamp(0, maxHealth.parameter);
-    addDamageText(largestEntry);
-    addDamageEffects(largestEntry.damageType.color);
+
+    ///Heal the attacker if they have the essence steal attribute
+    bool isHealth = damage.source is HealthFunctionality;
+    if (isHealth) {
+      (damage.source as HealthFunctionality).applyEssenceSteal(damage);
+    }
+    addDamageText(largestEntry.key, largestEntry.value);
+    addDamageEffects(largestEntry.key.color);
   }
 
-  void deathChecker(List<DamageInstance> damage) {
+  void deathChecker(DamageInstance damage) {
     if (remainingHealth <= 0 && !isDead) {
       if (this is Player) {
         gameRef.gameStateComponent.gameState.killPlayer(true, this as Player);
@@ -651,11 +690,11 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void applyStatusEffect(List<DamageInstance> damage) {
+  void applyStatusEffect(DamageInstance damage) {
     if (this is! AttributeFunctionality) return;
     final attr = this as AttributeFunctionality;
-    for (var element in damage) {
-      DamageType damageType = element.damageType;
+    for (var element in damage.damageMap.entries) {
+      DamageType damageType = element.key;
 
       //TODO finish this
       // switch (damageType) {
@@ -672,20 +711,18 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void callOtherWeaponOnKillFunctions(List<DamageInstance> damage) {
-    final weaponFunctions = damage
-        .where((element) =>
-            element.sourceWeapon is AttributeWeaponFunctionsFunctionality)
-        .toList();
-    if (weaponFunctions.isNotEmpty) {
-      final weapon = weaponFunctions.first.sourceWeapon
-          as AttributeWeaponFunctionsFunctionality;
+  void callOtherWeaponOnKillFunctions(DamageInstance damage) {
+    bool weaponFunctions =
+        damage.sourceWeapon is AttributeWeaponFunctionsFunctionality;
+    if (weaponFunctions) {
+      final weapon =
+          damage.sourceWeapon as AttributeWeaponFunctionsFunctionality;
 
       for (var element in weapon.onKill) {
         element(this);
       }
     }
-    final other = damage.first.source;
+    final other = damage.source;
     if (other is AttributeFunctionsFunctionality) {
       for (var element in (other).onKillOtherEntity) {
         element(this);
@@ -693,15 +730,12 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  bool hitCheck(String id, List<DamageInstance> damage,
+  bool hitCheck(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
     if (hitSourceInvincibility.containsKey(id) ||
         isInvincible ||
         isDead ||
-        (damage.fold<double>(0,
-                (previousValue, element) => previousValue += element.damage)) ==
-            0 ||
-        damage.isEmpty) {
+        damage.damage == 0) {
       return false;
     }
 
@@ -771,20 +805,21 @@ mixin DodgeFunctionality on HealthFunctionality {
     add(dodgeText);
   }
 
-  void dodge(List<DamageInstance> damage) {
-    totalDamageDodged += damage
-        .firstWhere((element) => element.damageType == DamageType.physical)
-        .damage;
+  void dodge(DamageInstance damage) {
+    totalDamageDodged += damage.damageMap.entries
+        .firstWhere((element) => element.key == DamageType.physical)
+        .value;
 
     dodges++;
 
     addDodgeText();
   }
 
-  bool dodgeCheck(List<DamageInstance> damage) {
+  bool dodgeCheck(DamageInstance damage) {
     final random = rng.nextDouble();
 
-    if (damage.any((element) => element.damageType == DamageType.physical) &&
+    if (damage.damageMap.entries
+            .any((element) => element.key == DamageType.physical) &&
         random < dodgeChance.parameter) {
       dodge(damage);
       return true;
@@ -794,17 +829,12 @@ mixin DodgeFunctionality on HealthFunctionality {
   }
 
   @override
-  bool takeDamage(String id, List<DamageInstance> damage,
+  bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
-    List<DamageInstance> filtedDamage = [];
-    for (var element in damage) {
-      if (dodgeCheck([element])) {
-        continue;
-      } else {
-        filtedDamage.add(element);
-      }
+    if (dodgeCheck(damage)) {
+      damage.damageMap.remove(DamageType.physical);
     }
-    return super.takeDamage(id, filtedDamage, applyStatusEffect);
+    return super.takeDamage(id, damage, applyStatusEffect);
   }
 }
 
@@ -812,11 +842,9 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   final DamageParameterManager touchDamage =
       DamageParameterManager(damageBase: {});
 
-  List<DamageInstance> get calculateTouchDamage => damageCalculations(
-        touchDamage,
-        this,
-        duration: durationPercentIncrease.parameter,
-      );
+  DamageInstance get calculateTouchDamage =>
+      damageCalculations(this, touchDamage.damageBase,
+          damageSource: touchDamage);
 
   Map<Body, TimerComponent> objectsHitting = {};
 
@@ -1055,6 +1083,8 @@ mixin JumpFunctionality on StaminaFunctionality {
 
   bool isJumpingInvincible = false;
 
+  double jumpHeight = .5;
+
   final DoubleParameterManager jumpDuration =
       DoubleParameterManager(baseParameter: .6, minParameter: 0);
   final DoubleParameterManager jumpStaminaCost =
@@ -1143,11 +1173,11 @@ mixin JumpFunctionality on StaminaFunctionality {
       controller,
     ));
     spriteWrapper.add(MoveEffect.by(
-      Vector2(0, -1),
+      Vector2(0, -jumpHeight),
       controller,
     ));
     backJoint.add(MoveEffect.by(
-      Vector2(0, -1),
+      Vector2(0, -jumpHeight),
       controllerD,
     ));
 

@@ -87,7 +87,7 @@ extension GameStateGetters on GameState {
   Color get basePortalColor => const Color.fromARGB(255, 62, 184, 255);
   Color portalColor([bool returnBlueIfNotLevelMenu = false]) {
     if (returnBlueIfNotLevelMenu && !menuPageIsLevel) return basePortalColor;
-    if (playerData.selectedDifficulty != GameDifficulty.normal) {
+    if (playerData.selectedDifficulty != GameDifficulty.regular) {
       return playerData.selectedDifficulty.color;
     }
     return playerData.selectedLevel.levelColor;

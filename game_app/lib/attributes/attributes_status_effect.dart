@@ -2,6 +2,7 @@ import 'package:game_app/attributes/attributes_perpetrator.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 
 import '../entities/entity_mixin.dart';
+import '../resources/data_classes/base.dart';
 import '../resources/enums.dart';
 import 'attributes_mixin.dart';
 
@@ -10,9 +11,16 @@ abstract class StatusEffectAttribute extends PerpetratorAttribute {
       {super.level,
       super.victimEntity,
       super.perpetratorEntity,
-      super.damageType});
+      super.damageType}) {
+    duration *= victimEntity!.durationPercentIncrease.parameter;
+    statusEffectPotency = victimEntity?.statusEffectsPercentIncrease
+            .statusEffectPercentIncrease[statusEffect] ??
+        1;
+  }
 
+  abstract double duration;
   abstract StatusEffects statusEffect;
+  late double statusEffectPotency;
 }
 
 class FireDamageAttribute extends StatusEffectAttribute
@@ -58,12 +66,9 @@ class FireDamageAttribute extends StatusEffectAttribute
       final health = victimEntity as HealthFunctionality;
       health.hitCheck(
           uniqueId.toString(),
-          [
-            DamageInstance(
-                damageBase: 1 * upgradeLevel.toDouble(),
-                source: perpetratorEntity!,
-                damageType: DamageType.fire)
-          ],
+          damageCalculations(perpetratorEntity!,
+              {DamageType.fire: (1.0, (1 * upgradeLevel.toDouble()))},
+              damageKind: DamageKind.dot),
           false);
     }
   }

@@ -45,16 +45,7 @@ class BossOne extends Enemy
               radius: 5,
               isInstant: true,
               duration: 0,
-              onTick: (entity, areaId) {
-                if (entity is HealthFunctionality) {
-                  entity.hitCheck(areaId, [
-                    DamageInstance(
-                        damageBase: 4,
-                        damageType: DamageType.psychic,
-                        source: this)
-                  ]);
-                }
-              },
+              damage: {DamageType.psychic: (4, 6)},
             ));
           }
         ],
@@ -74,14 +65,14 @@ class BossOne extends Enemy
                 isInstant: true,
                 duration: 0,
                 onTick: (entity, areaId) {
-                  if (entity is HealthFunctionality) {
-                    entity.hitCheck(areaId, [
-                      DamageInstance(
-                          damageBase: 4,
-                          damageType: DamageType.fire,
-                          source: this)
-                    ]);
-                  }
+                  // if (entity is HealthFunctionality) {
+                  //   entity.hitCheck(areaId, [
+                  //     DamageInstance(
+                  //         damageBase: 4,
+                  //         damageType: DamageType.fire,
+                  //         source: this)
+                  //   ]);
+                  // }
                 },
               ));
             }
@@ -101,14 +92,14 @@ class BossOne extends Enemy
                 isInstant: true,
                 duration: 0,
                 onTick: (entity, areaId) {
-                  if (entity is HealthFunctionality) {
-                    entity.hitCheck(areaId, [
-                      DamageInstance(
-                          damageBase: 4,
-                          damageType: DamageType.fire,
-                          source: this)
-                    ]);
-                  }
+                  // if (entity is HealthFunctionality) {
+                  //   entity.hitCheck(areaId, [
+                  //     DamageInstance(
+                  //         damageBase: 4,
+                  //         damageType: DamageType.fire,
+                  //         source: this)
+                  //   ]);
+                  // }
                 },
               ));
             }
@@ -175,7 +166,12 @@ class BossOne extends Enemy
 }
 
 class DummyTwo extends Enemy
-    with MovementFunctionality, DumbFollowAI, TouchDamageFunctionality {
+    with
+        StaminaFunctionality,
+        JumpFunctionality,
+        MovementFunctionality,
+        HopFollowAI,
+        TouchDamageFunctionality {
   DummyTwo({
     required super.initPosition,
     required super.gameEnviroment,
@@ -202,7 +198,8 @@ class DummyTwo extends Enemy
         await buildSpriteSheet(10, 'enemy_sprites/idle.png', .1, true);
     deathAnimation =
         await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
-    runAnimation = await buildSpriteSheet(8, 'enemy_sprites/run.png', .1, true);
+    // runAnimation = await buildSpriteSheet(8, 'enemy_sprites/run.png', .1, true);
+    jumpAnimation = await buildSpriteSheet(3, 'sprites/jump.png', .1, false);
   }
 
   @override
@@ -232,6 +229,9 @@ class DummyTwo extends Enemy
 
   @override
   EnemyType enemyType = EnemyType.mushroomBrawler;
+
+  @override
+  SpriteAnimation? jumpAnimation;
 }
 
 abstract class Enemy extends Entity

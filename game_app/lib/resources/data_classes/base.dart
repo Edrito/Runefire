@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 import 'package:hive/hive.dart';
 
 import '../../entities/entity.dart';
+import '../../main.dart';
 import '../../weapons/weapon_class.dart';
 import '../enums.dart';
 
@@ -327,58 +328,81 @@ class DamagePercentParameterManager {
   }
 }
 
-List<DamageInstance> damageCalculations(
-    DamageParameterManager damageSource, Entity source,
-    {double? duration, Weapon? sourceWeapon}) {
-  List<DamageInstance> returnList = [];
+DamageInstance damageCalculations(
+    Entity source, Map<DamageType, (double, double)> damageBase,
+    {DamageParameterManager? damageSource,
+    Weapon? sourceWeapon,
+    DamageKind damageKind = DamageKind.regular}) {
+  Map<DamageType, double> returnMap = {};
 
-  for (var element in damageSource.damageBase.entries) {
+  for (MapEntry<DamageType, (double, double)> element in damageBase.entries) {
     var min = element.value.$1;
     var max = element.value.$2;
-    final damageFlatIncrease = damageSource.damageFlatIncrease;
-    if (damageFlatIncrease.containsKey(element.key)) {
-      min += damageFlatIncrease[element.key]?.$1 ?? 0;
+
+    final damageFlatIncrease = damageSource?.damageFlatIncrease;
+    if (damageFlatIncrease?.containsKey(element.key) ?? false) {
+      min += damageFlatIncrease![element.key]?.$1 ?? 0;
       max += damageFlatIncrease[element.key]?.$2 ?? 0;
     }
-    final damagePercentIncrease = damageSource.damagePercentIncrease;
-    if (damagePercentIncrease.containsKey(element.key)) {
-      min *= damagePercentIncrease[element.key]?.$1 ?? 1;
+    final damagePercentIncrease = damageSource?.damagePercentIncrease;
+    if (damagePercentIncrease?.containsKey(element.key) ?? false) {
+      min *= damagePercentIncrease![element.key]?.$1 ?? 1;
       max *= damagePercentIncrease[element.key]?.$2 ?? 1;
     }
+
     final percentIncreaseValue =
         source.damageTypePercentIncrease.damagePercentIncrease[element.key] ??
             1;
-    double weaponTypeIncrease = 1;
-    if (sourceWeapon != null) {
-      switch (sourceWeapon.weaponType.attackType) {
-        case AttackType.melee:
-          weaponTypeIncrease = source.meleeDamagePercentIncrease.parameter;
 
-          break;
-        case AttackType.projectile:
-          weaponTypeIncrease = source.projectileDamagePercentIncrease.parameter;
-
-          break;
-        case AttackType.spell:
-          weaponTypeIncrease = source.spellDamagePercentIncrease.parameter;
-
-          break;
-        default:
-      }
-    }
-
-    double totalDamageIncrease = source.damagePercentIncrease.parameter;
-
-    returnList.add(DamageInstance(
-        source: source,
-        damageBase: ((damageSource.rng.nextDouble() * max - min) + min) *
-            weaponTypeIncrease *
-            totalDamageIncrease *
-            percentIncreaseValue,
-        damageType: element.key,
-        duration: duration ?? 0,
-        sourceWeapon: sourceWeapon));
+    returnMap[element.key] =
+        ((rng.nextDouble() * (max - min)) + min) * percentIncreaseValue;
   }
 
-  return returnList;
+  final returnInstance = DamageInstance(
+      source: source, damageMap: returnMap, sourceWeapon: sourceWeapon);
+
+  double weaponTypeIncrease = 1;
+
+  if (sourceWeapon != null) {
+    switch (sourceWeapon.weaponType.attackType) {
+      case AttackType.melee:
+        weaponTypeIncrease = source.meleeDamagePercentIncrease.parameter;
+
+        break;
+      case AttackType.projectile:
+        weaponTypeIncrease = source.projectileDamagePercentIncrease.parameter;
+
+        break;
+      case AttackType.spell:
+        weaponTypeIncrease = source.spellDamagePercentIncrease.parameter;
+
+        break;
+    }
+  }
+
+  double damageKindIncrease = 1;
+  switch (damageKind) {
+    case DamageKind.area:
+      damageKindIncrease = source.areaDamagePercentIncrease.parameter;
+      break;
+    case DamageKind.dot:
+      damageKindIncrease = source.tickDamageIncrease.parameter;
+    default:
+  }
+
+  double totalDamageIncrease = source.damagePercentIncrease.parameter;
+
+  double rngCrit = rng.nextDouble();
+  double critDamageIncrease = 1;
+  bool isCrit = false;
+  if (rngCrit <= source.critChance.parameter) {
+    isCrit = true;
+    critDamageIncrease = source.critDamage.parameter;
+  }
+  returnInstance.increaseByPercent(totalDamageIncrease *
+      critDamageIncrease *
+      weaponTypeIncrease *
+      damageKindIncrease);
+  returnInstance.isCrit = isCrit;
+  return returnInstance;
 }

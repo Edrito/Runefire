@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/parallax.dart';
@@ -191,7 +190,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
             onComplete: (controller) {
               controller.forward(from: 0);
             },
-          ).rotate(begin: 0, end: -pi, duration: 180.seconds))
+          ).rotate(begin: 0, end: -1, duration: 180.seconds))
               .animate(
                 target: menuPageIsLevel ? 1 : 0,
               )
@@ -200,7 +199,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
                 curve: Curves.easeInCirc,
                 duration: 1.seconds,
               )
-              .rotate(curve: Curves.easeInCirc, duration: 1.seconds, end: pi),
+              .rotate(curve: Curves.easeInCirc, duration: 1.seconds, end: 1),
           Animate(
             // key: UniqueKey(),
             effects: const [
@@ -221,7 +220,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
               onComplete: (controller) {
                 controller.forward(from: 0);
               },
-            ).rotate(begin: 0, end: -pi, duration: 1800.seconds),
+            ).rotate(begin: 0, end: 1, duration: 180.seconds),
           ),
           Positioned.fill(
             child: buildImageAsset(
@@ -232,7 +231,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
               onComplete: (controller) {
                 controller.forward(from: 0);
               },
-            ).rotate(begin: 0, end: pi * 2, duration: 360.seconds),
+            ).rotate(begin: 0, end: -1, duration: 360.seconds),
           ),
         ],
       )

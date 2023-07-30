@@ -130,33 +130,33 @@ const frostDamageIncreaseMaxLevel = 6;
 const frostDamageIncreaseBaseCost = 100;
 const frostDamageIncreaseIncreaseFromBaseParameter = false;
 //
-const physicalResistanceIncreaseFactor = .02;
+const physicalResistanceIncreaseFactor = -.02;
 const physicalResistanceIncreaseMaxLevel = 6;
 const physicalResistanceIncreaseBaseCost = 100;
 const physicalResistanceIncreaseIncreaseFromBaseParameter = false;
 //
-const magicResistanceIncreaseFactor = .02;
+const magicResistanceIncreaseFactor = -.02;
 const magicResistanceIncreaseMaxLevel = 6;
 const magicResistanceIncreaseBaseCost = 100;
 const magicResistanceIncreaseIncreaseFromBaseParameter = false;
 //
-const fireResistanceIncreaseFactor = .02;
+const fireResistanceIncreaseFactor = -.02;
 
 const fireResistanceIncreaseMaxLevel = 6;
 const fireResistanceIncreaseBaseCost = 100;
 const fireResistanceIncreaseIncreaseFromBaseParameter = false;
 //
-const psychicResistanceIncreaseFactor = .02;
+const psychicResistanceIncreaseFactor = -.02;
 const psychicResistanceIncreaseMaxLevel = 6;
 const psychicResistanceIncreaseBaseCost = 100;
 const psychicResistanceIncreaseIncreaseFromBaseParameter = false;
 //
-const energyResistanceIncreaseFactor = .02;
+const energyResistanceIncreaseFactor = -.02;
 const energyResistanceIncreaseMaxLevel = 6;
 const energyResistanceIncreaseBaseCost = 100;
 const energyResistanceIncreaseIncreaseFromBaseParameter = false;
 //
-const frostResistanceIncreaseFactor = .02;
+const frostResistanceIncreaseFactor = -.02;
 const frostResistanceIncreaseMaxLevel = 6;
 const frostResistanceIncreaseBaseCost = 100;
 const frostResistanceIncreaseIncreaseFromBaseParameter = false;

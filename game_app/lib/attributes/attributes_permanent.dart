@@ -231,11 +231,6 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Area Size";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
@@ -273,11 +268,6 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Melee Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
@@ -315,11 +305,6 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Projectile Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
@@ -357,11 +342,6 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Spell Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
@@ -399,11 +379,6 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Tick Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
@@ -441,11 +416,6 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Area Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
@@ -483,11 +453,6 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Status Effect Potency";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class BaseSpeedPermanentAttribute extends PermanentAttribute {
@@ -527,11 +492,6 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Movement Speed";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class MaxStaminaPermanentAttribute extends PermanentAttribute {
@@ -572,12 +532,7 @@ class MaxStaminaPermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Maximum Stamina";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
+  String title = "Max Stamina";
 }
 
 class MaxHealthPermanentAttribute extends PermanentAttribute {
@@ -617,12 +572,7 @@ class MaxHealthPermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Maximum Health";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
+  String title = "Max Health";
 }
 
 class StaminaRegenPermanentAttribute extends PermanentAttribute {
@@ -668,11 +618,6 @@ class StaminaRegenPermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Stamina Regen";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class HealthRegenPermanentAttribute extends PermanentAttribute {
@@ -718,11 +663,6 @@ class HealthRegenPermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Health Regen";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class ExperienceGainPermanentAttribute extends PermanentAttribute {
@@ -768,11 +708,6 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Experience Gain";
-
-  @override
-  String description() {
-    return "Increase experience gained by 5%";
-  }
 }
 
 class DodgeChancePermanentAttribute extends PermanentAttribute {
@@ -814,11 +749,6 @@ class DodgeChancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Dodge Chance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class CritChancePermanentAttribute extends PermanentAttribute {
@@ -856,11 +786,6 @@ class CritChancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Crit Chance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class CritDamagePermanentAttribute extends PermanentAttribute {
@@ -898,11 +823,6 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Crit Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class DurationPermanentAttribute extends PermanentAttribute {
@@ -939,11 +859,6 @@ class DurationPermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Effect Duration";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class EssenceStealPermanentAttribute extends PermanentAttribute {
@@ -981,11 +896,6 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Essence Steal";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class AttackRatePermanentAttribute extends PermanentAttribute {
@@ -1027,11 +937,6 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Attack Speed";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class DamagePermanentAttribute extends PermanentAttribute {
@@ -1068,11 +973,6 @@ class DamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Damage Increase";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class PhysicalDamagePermanentAttribute extends PermanentAttribute {
@@ -1114,11 +1014,6 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Physical Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class MagicDamagePermanentAttribute extends PermanentAttribute {
@@ -1160,11 +1055,6 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Magic Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class FireDamagePermanentAttribute extends PermanentAttribute {
@@ -1206,11 +1096,6 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Fire Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class PsychicDamagePermanentAttribute extends PermanentAttribute {
@@ -1251,11 +1136,6 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Psychic Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class EnergyDamagePermanentAttribute extends PermanentAttribute {
@@ -1296,11 +1176,6 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Energy Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class FrostDamagePermanentAttribute extends PermanentAttribute {
@@ -1342,11 +1217,6 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Frost Damage";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class PhysicalResistancePermanentAttribute extends PermanentAttribute {
@@ -1389,11 +1259,6 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Physical Resistance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class MagicResistancePermanentAttribute extends PermanentAttribute {
@@ -1435,11 +1300,6 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Magic Resistance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class FireResistancePermanentAttribute extends PermanentAttribute {
@@ -1481,11 +1341,6 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Fire Resistance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class PsychicResistancePermanentAttribute extends PermanentAttribute {
@@ -1528,11 +1383,6 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Psychic Resistance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class EnergyResistancePermanentAttribute extends PermanentAttribute {
@@ -1574,11 +1424,6 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Energy Resistance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class FrostResistancePermanentAttribute extends PermanentAttribute {
@@ -1620,11 +1465,6 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Frost Resistance";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class ReloadTimePermanentAttribute extends PermanentAttribute {
@@ -1670,11 +1510,6 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
 
   @override
   String title = "Attack Speed";
-
-  @override
-  String description() {
-    return "Max Level";
-  }
 }
 
 class MaxLivesPermanentAttribute extends PermanentAttribute {
@@ -1714,6 +1549,6 @@ class MaxLivesPermanentAttribute extends PermanentAttribute {
 
   @override
   String description() {
-    return "Max Level";
+    return upgradeLevel == maxLevel ? "" : (upgradeLevel + 1).toString();
   }
 }

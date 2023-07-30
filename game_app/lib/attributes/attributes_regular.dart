@@ -49,14 +49,15 @@ class ExplosionEnemyDeathAttribute extends Attribute {
       isInstant: false,
       duration: victimEntity!.durationPercentIncrease.parameter,
       onTick: (entity, areaId) {
-        if (entity is HealthFunctionality) {
-          entity.hitCheck(areaId, [
-            DamageInstance(
-                damageBase: increasePercentOfBase(1),
-                damageType: DamageType.fire,
-                source: entity)
-          ]);
-        }
+        // if (entity is HealthFunctionality) {
+        //   entity.hitCheck(areaId,
+        //     DamageInstance(
+        //         damageMap: {
+        //            DamageType.fire : increase(true,5)
+        //            },
+        //         source: entity)
+        //   );
+        // }
       },
     );
     victimEntity?.gameEnviroment.physicsComponent.add(explosion);

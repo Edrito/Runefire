@@ -54,12 +54,12 @@ class Fireball extends Projectile with StandardProjectile {
       isInstant: true,
       duration: 5,
       onTick: (entity, areaId) {
-        if (entity is HealthFunctionality) {
-          entity.hitCheck(areaId, [
-            DamageInstance(
-                damageBase: .1, damageType: DamageType.fire, source: entity)
-          ]);
-        }
+        // if (entity is HealthFunctionality) {
+        //   entity.hitCheck(areaId, [
+        //     DamageInstance(
+        //         damageBase: .1, damageType: DamageType.fire, source: entity)
+        //   ]);
+        // }
       },
     ));
     super.killBullet(withEffect);

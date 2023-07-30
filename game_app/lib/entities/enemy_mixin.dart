@@ -147,7 +147,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   TimerComponent? inverseTimer;
 
   @override
-  bool takeDamage(String id, List<DamageInstance> damage,
+  bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
     inverse = true;
     targetUpdater?.onTick();
@@ -177,6 +177,34 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
       onTick: _dumbFollowTargetTick,
     );
 
+    add(targetUpdater!);
+  }
+}
+
+mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
+  TimerComponent? targetUpdater;
+  double targetUpdateFrequency = 1.5;
+
+  void _dumbFollowTargetTick() {
+    final newPosition = (gameEnviroment.player.center - body.position);
+    moveVelocities[InputType.ai] = newPosition.normalized();
+    setEntityStatus(EntityStatus.jump);
+  }
+
+  @override
+  void moveCharacter() {
+    if (!isJumping) return;
+    super.moveCharacter();
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    targetUpdater = TimerComponent(
+      period: targetUpdateFrequency,
+      repeat: true,
+      onTick: _dumbFollowTargetTick,
+    );
     add(targetUpdater!);
   }
 }

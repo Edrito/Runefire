@@ -40,7 +40,7 @@ class PlayerData extends DataClass {
     // save();
   }
 
-  GameDifficulty selectedDifficulty = GameDifficulty.normal;
+  GameDifficulty selectedDifficulty = GameDifficulty.regular;
 
   GameLevel selectedLevel = GameLevel.mushroomForest;
 

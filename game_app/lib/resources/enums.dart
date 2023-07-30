@@ -60,15 +60,22 @@ enum WeaponDescription {
   attackCount,
 }
 
-// enum SecondaryAbilityDescription{
+enum SemiAutoType { regular, release, charge }
 
-// }
+enum StatusEffects { burn, chill, electrified, stun, psychic }
+
+enum AttackType { projectile, melee, spell }
+
+enum DamageType { physical, magic, fire, psychic, energy, frost, healing }
+
+enum DamageKind { dot, area, regular }
 
 enum EntityStatus {
   dodge,
   custom,
   spawn,
   idle,
+  // charge,
   run,
   walk,
   jump,
@@ -92,18 +99,35 @@ enum JoystickDirection {
   idle,
 }
 
-// extension CharacterTypeFilename on CharacterType {}
-
 enum GameLevel { mushroomForest, dungeon, graveyard, menu }
 
-enum GameDifficulty { easy, normal, hard, chaos }
+enum GameDifficulty { quick, regular, hard, chaos }
 
 extension GameDifficultyExtension on GameDifficulty {
+  List<String> get difficultyDescription {
+    switch (this) {
+      case GameDifficulty.quick:
+        return ['Quick and easy.', 'No Achievements.'];
+      case GameDifficulty.regular:
+        return [];
+      case GameDifficulty.hard:
+        return [
+          'Enemies have more health, hit harder, and are faster.',
+          'Gain increased experience.'
+        ];
+      case GameDifficulty.chaos:
+        return [
+          'Enemies will also gain your abilities.',
+          'Unique and powerful weapons can be discovered.'
+        ];
+    }
+  }
+
   Color get color {
     switch (this) {
-      case GameDifficulty.easy:
+      case GameDifficulty.quick:
         return const Color.fromARGB(255, 154, 248, 255);
-      case GameDifficulty.normal:
+      case GameDifficulty.regular:
         return Colors.transparent;
       case GameDifficulty.hard:
         return const Color.fromARGB(255, 153, 0, 0);
@@ -268,8 +292,6 @@ extension ProjectileTypeExtension on ProjectileType {
 
 enum WeaponSpritePosition { hand, mouse, back }
 
-enum AttackType { projectile, melee, spell }
-
 // enum WeaponState { shooting, reloading, idle }
 
 extension SecondaryWeaponTypeExtension on SecondaryType {
@@ -383,10 +405,6 @@ extension WeaponTypeFilename on WeaponType {
   }
 }
 
-enum SemiAutoType { regular, release, charge }
-
-enum DamageType { physical, magic, fire, psychic, energy, frost }
-
 extension DamageTypeExtension on DamageType {
   Color get color {
     switch (this) {
@@ -402,30 +420,55 @@ extension DamageTypeExtension on DamageType {
         return Colors.orange;
       case DamageType.frost:
         return const Color.fromARGB(255, 170, 233, 248);
+      case DamageType.healing:
+        return const Color.fromARGB(255, 0, 197, 16);
     }
   }
 }
 
-enum StatusEffects { burn, chill, electrified, stun, psychic }
-
 typedef WeaponCreateFunction = Weapon Function(Entity);
 
 class DamageInstance {
-  DamageInstance(
-      {required this.damageBase,
-      required this.source,
-      required this.damageType,
-      this.duration = 1,
-      this.sourceWeapon});
+  DamageInstance({
+    required this.damageMap,
+    required this.source,
+    this.isCrit = false,
+    this.damageKind = DamageKind.regular,
+    this.sourceWeapon,
+  });
 
   Entity source;
   Weapon? sourceWeapon;
+  DamageKind damageKind;
+  AttackType get attackType =>
+      sourceWeapon?.weaponType.attackType ?? AttackType.projectile;
+  Map<DamageType, double> damageMap;
 
-  double damageBase;
-  double get damage => damageBase;
+  double get damage => damageMap.values.reduce((a, b) => a + b);
+  bool isCrit;
 
-  DamageType damageType;
-  double duration;
+  void increaseByPercent(double percent) {
+    for (var element in damageMap.entries) {
+      damageMap[element.key] = element.value * percent;
+    }
+  }
+
+  // The copyWith function to create a new DamageInstance with updated properties
+  DamageInstance copyWith({
+    Map<DamageType, double>? damageMap,
+    Entity? source,
+    Weapon? sourceWeapon,
+    DamageKind? damageKind,
+    bool? isCrit,
+  }) {
+    return DamageInstance(
+      damageMap: damageMap ?? this.damageMap,
+      source: source ?? this.source,
+      sourceWeapon: sourceWeapon ?? this.sourceWeapon,
+      damageKind: damageKind ?? this.damageKind,
+      isCrit: isCrit ?? this.isCrit,
+    );
+  }
 }
 
 enum SecondaryType {

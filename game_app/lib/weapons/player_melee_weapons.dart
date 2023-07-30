@@ -84,6 +84,7 @@ class Dagger extends PlayerWeapon
         return WeaponSpriteAnimation(
             Vector2.zero(),
             Vector2(0, length),
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
@@ -92,6 +93,7 @@ class Dagger extends PlayerWeapon
         return WeaponSpriteAnimation(
             Vector2.zero(),
             Vector2(0, length),
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
@@ -186,6 +188,7 @@ class Spear extends PlayerWeapon
         return WeaponSpriteAnimation(
             Vector2.zero(),
             Vector2(0, length),
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
@@ -194,6 +197,7 @@ class Spear extends PlayerWeapon
         return WeaponSpriteAnimation(
             Vector2.zero(),
             Vector2(0, length),
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }
@@ -308,6 +312,7 @@ class EnergySword extends PlayerWeapon
         return WeaponSpriteAnimation(
             baseOffset,
             tipOffset,
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
@@ -315,6 +320,7 @@ class EnergySword extends PlayerWeapon
       default:
         return WeaponSpriteAnimation(
             baseOffset,
+            weapon: this,
             tipOffset,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true));
@@ -421,6 +427,7 @@ class FlameSword extends PlayerWeapon
         return WeaponSpriteAnimation(
             Vector2(5, 0),
             Vector2(0, length),
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true))
           ..position = Vector2(-.65, .67)
@@ -429,6 +436,7 @@ class FlameSword extends PlayerWeapon
         return WeaponSpriteAnimation(
             Vector2.zero(),
             Vector2(0, length),
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true));
     }
@@ -525,6 +533,7 @@ class LargeSword extends PlayerWeapon
             Vector2.zero(),
             Vector2(0, length),
             parentJoint: parentJoint,
+            weapon: this,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true))
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
@@ -532,6 +541,7 @@ class LargeSword extends PlayerWeapon
         return WeaponSpriteAnimation(
             Vector2.zero(),
             Vector2(0, length),
+            weapon: this,
             parentJoint: parentJoint,
             await buildSpriteSheet(1, weaponType.flameImage, 1, true));
     }

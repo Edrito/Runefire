@@ -3,12 +3,10 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_mixin.dart';
 import 'package:game_app/resources/functions/functions.dart';
-import 'package:game_app/menus/overlays.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/resources/game_state_class.dart';
@@ -150,9 +148,10 @@ class Player extends Entity
 
   @override
   void update(double dt) {
-    if (!isDead) {
+    if (!isDisplay) {
       moveCharacter();
     }
+    aimCharacter();
     // circleComponent.position =
     //     inputAimPositions[InputType.mouseMove] ?? Vector2.zero();
     super.update(dt);
@@ -183,7 +182,7 @@ class Player extends Entity
         setEntityStatus(EntityStatus.jump);
       }
 
-      if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
+      if (!isDisplay && event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
         setEntityStatus(EntityStatus.dash);
       }
       if (event.physicalKey == (PhysicalKeyboardKey.keyR)) {
@@ -273,10 +272,8 @@ class Player extends Entity
             gameEnviroment.gameCamera.viewfinder.zoom);
 
         inputAimPositions[InputType.mouseMove] = position;
-        inputAimAngles[InputType.mouseMove] = (position -
-                (gameEnviroment.player!.center -
-                    gameEnviroment.gameCamera.viewfinder.position))
-            .normalized();
+        buildDeltaFromMousePosition();
+
         break;
 
       case InputType.aimJoy:
@@ -327,7 +324,6 @@ class Player extends Entity
       default:
       // Code to handle unknown or unexpected input type
     }
-    aimCharacter();
   }
 
   @override

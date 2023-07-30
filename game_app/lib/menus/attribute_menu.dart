@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
@@ -96,8 +97,8 @@ class AttributeTile extends StatelessWidget {
                 Colors.black.withOpacity(.5)
               ], stops: const [
                 0,
-                0.4,
-                .6,
+                0.3,
+                .7,
                 1
               ]).createShader(bounds);
             },
@@ -156,27 +157,37 @@ class AttributeTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          attribute.description(),
-                          style: style,
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Builder(builder: (context) {
+                    final desc = attribute.description();
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (desc.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: Text(
+                              attribute.description(),
+                              style: style,
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: Text(
+                            attribute.isMaxLevel
+                                ? "MAX"
+                                : attribute.cost().toString(),
+                            style: style.copyWith(
+                                // fontStyle: FontStyle.italic,
+                                fontSize: style.fontSize! * .9,
+                                color: Colors.blueGrey.shade200),
+                          ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          attribute.isMaxLevel
-                              ? "MAX"
-                              : attribute.cost().toString(),
-                          style: style,
-                        ),
-                      ),
-                    ],
-                  )
+                      ],
+                    );
+                  })
                 ],
               ),
             ),
@@ -305,35 +316,57 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                 Expanded(
                     child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        for (var element in entries.keys)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  element.name.titleCase,
-                                  style: defaultStyle.copyWith(fontSize: 40),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Wrap(
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      alignment: WrapAlignment.center,
-                                      children: entries[element]!,
-                                    ),
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
+                      scrollbars: false,
+                      dragDevices: {
+                        // Allows to swipe in web browsers
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.mouse
+                      },
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          for (var element in entries.keys)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    element.name.titleCase,
+                                    style: defaultStyle.copyWith(fontSize: 40),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                      ],
+                                ),
+                                Builder(builder: (context) {
+                                  final children = entries[element]!;
+                                  return Row(
+                                    children: [
+                                      Expanded(
+                                        child: Wrap(
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          alignment: WrapAlignment.center,
+                                          children: children
+                                              .animate(
+                                                  interval:
+                                                      (.75 / children.length)
+                                                          .seconds)
+                                              // .moveY(begin: -50)
+                                              // .moveX(
+                                              //     curve: Curves.easeIn,
+                                              //     begin: -250)
+                                              .fadeIn(),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                              ],
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 )),
