@@ -1,0 +1,56 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "ground_tiles.tsx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/tiles/isometric-sandbox-32x32/isometric-sandbox-map.tmx": {
+            "scale": 0.3360625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1597.9170541193973,
+                "y": 797.4707085735538
+            }
+        },
+        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/tiles/isometric-sandbox-32x32/isometric-sandbox-sheet.tsx": {
+            "scaleInDock": 1
+        },
+        "ground_tiles.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 0.25,
+            "scaleInEditor": 1
+        },
+        "mushroom_garden.tmx": {
+            "scale": 0.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": -4916,
+                "y": -10720
+            }
+        }
+    },
+    "last.imagePath": "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/assets/tiled",
+    "map.fixedSize": false,
+    "map.height": 300,
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 128,
+    "map.tileWidth": 128,
+    "map.width": 300,
+    "openFiles": [
+        "mushroom_garden.tmx",
+        "ground_tiles.tsx"
+    ],
+    "project": "mushroomGarden.tiled-project",
+    "recentFiles": [
+        "mushroom_garden.tmx",
+        "ground_tiles.tsx",
+        "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/tiles/isometric-sandbox-32x32/isometric-sandbox-map.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.type": 1
+}

@@ -30,19 +30,13 @@ class Player extends Entity
         MovementFunctionality,
         JumpFunctionality,
         ExperienceFunctionality,
+        DodgeFunctionality,
         DashFunctionality,
         HealthRegenFunctionality {
   Player(this.playerData, this.isDisplay,
       {required super.gameEnviroment, required super.initPosition}) {
-    dashCooldown.baseParameter = 2;
-    dashDistance.baseParameter = 7;
-    height.baseParameter = 1.5;
-    invincibilityDuration.baseParameter = .5;
-    maxHealth.baseParameter = 50;
-    speed.baseParameter = .2;
-    stamina.baseParameter = 200;
-
     if (!isDisplay) {
+      playerData.selectedPlayer.applyBaseCharacterStats(this);
       initAttributes(playerData.unlockedPermanentAttributes);
     }
   }
@@ -357,4 +351,7 @@ class Player extends Entity
 
   @override
   SpriteAnimation? walkAnimation;
+
+  @override
+  SpriteAnimation? dodgeAnimation;
 }

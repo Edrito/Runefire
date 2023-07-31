@@ -2,8 +2,8 @@ import 'package:game_app/resources/area_effects.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/projectile_mixin.dart';
 
-import '../entities/entity_mixin.dart';
 import '../resources/enums.dart';
+import '../resources/functions/functions.dart';
 
 class Bullet extends Projectile with StandardProjectile {
   Bullet(
@@ -45,22 +45,17 @@ class Fireball extends Projectile with StandardProjectile {
   double ttl = 2.0;
 
   @override
-  void killBullet([bool withEffect = false]) {
+  void killBullet([bool withEffect = false]) async {
     weaponAncestor.entityAncestor?.gameEnviroment.physicsComponent
         .add(AreaEffect(
       sourceEntity: weaponAncestor.entityAncestor!,
       position: center,
-      radius: 5,
+      playAnimation: await buildSpriteSheet(
+          61, 'weapons/projectiles/fire_area.png', .05, true),
+      radius: 2,
       isInstant: true,
       duration: 5,
-      onTick: (entity, areaId) {
-        // if (entity is HealthFunctionality) {
-        //   entity.hitCheck(areaId, [
-        //     DamageInstance(
-        //         damageBase: .1, damageType: DamageType.fire, source: entity)
-        //   ]);
-        // }
-      },
+      damage: {DamageType.fire: (50, 120)},
     ));
     super.killBullet(withEffect);
   }

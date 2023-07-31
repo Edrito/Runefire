@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
+import 'package:flutter/animation.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
 import 'player.dart';
@@ -25,7 +26,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
   late Color color;
   final int trailCount = 10;
 
-  late PolygonShape shape;
+  late CircleShape shape;
 
   List<Vector2> trails = [];
 
@@ -56,7 +57,13 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
     shapeComponent = experienceAmount.getShapeComponent(radius);
     color = experienceAmount.color;
     shapeComponent.paint = Paint()..color = color;
+    shapeComponent.size = Vector2.all(0);
+    shapeComponent.position -= Vector2(0, .5);
+    final controller = EffectController(curve: Curves.easeOutCirc, duration: 1);
+    shapeComponent.add(SizeEffect.to(Vector2.all(radius * 2), controller));
+    shapeComponent.add(MoveEffect.by(Vector2(0, .5), controller));
     add(shapeComponent);
+
     return super.onLoad();
   }
 
@@ -125,13 +132,8 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   Body createBody() {
-    shape = PolygonShape();
-    shape.set([
-      Vector2(-shapeComponent.size.x / 2, -shapeComponent.size.y / 2),
-      Vector2(shapeComponent.size.x / 2, -shapeComponent.size.y / 2),
-      Vector2(shapeComponent.size.x / 2, shapeComponent.size.y / 2),
-      Vector2(-shapeComponent.size.x / 2, shapeComponent.size.y / 2),
-    ]);
+    shape = CircleShape();
+    shape.radius = radius;
 
     renderBody = false;
     final experienceFilter = Filter()

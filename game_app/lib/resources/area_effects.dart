@@ -35,10 +35,12 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     radius *= sourceEntity.areaSizePercentIncrease.parameter;
     duration *= sourceEntity.durationPercentIncrease.parameter;
     spriteAnimationComponent = SpriteAnimationComponent(
-      animation: spawnAnimation,
-      size: Vector2.all(radius * 2),
+      animation: spawnAnimation ?? playAnimation,
+      anchor: Anchor.center,
+      size: Vector2.all(radius * 4),
     );
-    areaId = areaId ?? const Uuid().v4();
+
+    this.areaId = areaId ?? const Uuid().v4();
   }
   Map<DamageType, (double, double)>? damage;
   SpriteAnimation? spawnAnimation;
@@ -68,6 +70,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       spriteAnimationComponent.animationTicker?.onComplete = () {
         spriteAnimationComponent.animation = playAnimation;
       };
+
       aliveTimer = TimerComponent(
         period: duration,
         removeOnFinish: true,
@@ -77,11 +80,14 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
         },
       )..addToParent(this);
     }
-    circleComponent = CircleComponent(
-        radius: radius,
-        anchor: Anchor.center,
-        paint: BasicPalette.red.withAlpha(100).paint());
-    add(circleComponent);
+    if (spriteAnimationComponent.animation == null) {
+      circleComponent = CircleComponent(
+          radius: radius,
+          anchor: Anchor.center,
+          paint: BasicPalette.red.withAlpha(100).paint());
+      add(circleComponent);
+    }
+
     return super.onLoad();
   }
 
@@ -141,9 +147,9 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
         removeFromParent();
       };
     } else {
-      circleComponent.add(OpacityEffect.fadeOut(EffectController(
+      spriteAnimationComponent.add(OpacityEffect.fadeOut(EffectController(
         curve: Curves.easeInCubic,
-        duration: 1,
+        duration: .5,
         onMax: () {
           removeFromParent();
         },

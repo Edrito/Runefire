@@ -29,14 +29,27 @@ mixin AttributeFunctionality on Entity {
     initalized = true;
   }
 
-  void addAttribute(Attribute attribute,
-      {int? level, bool applyUpgrade = true}) {
-    if (currentAttributes.containsKey(attribute.attributeType)) {
-      currentAttributes[attribute.attributeType]?.incrementLevel(level ?? 1);
+  void addAttribute(
+    AttributeType attribute, {
+    int? level,
+    bool applyUpgrade = true,
+    Entity? perpetratorEntity,
+    DamageType? damageType,
+    StatusEffects? statusEffect,
+    bool isTemporary = false,
+    double? duration,
+  }) {
+    if (currentAttributes.containsKey(attribute)) {
+      currentAttributes[attribute]?.incrementLevel(level ?? 1);
     } else {
-      currentAttributes[attribute.attributeType] = attribute..removeUpgrade();
+      currentAttributes[attribute] = attribute.buildAttribute(level ?? 1, this,
+          perpetratorEntity: perpetratorEntity,
+          damageType: damageType,
+          duration: duration,
+          isTemporary: isTemporary,
+          statusEffect: statusEffect);
       if (applyUpgrade) {
-        currentAttributes[attribute.attributeType]?.applyUpgrade();
+        currentAttributes[attribute]?.applyUpgrade();
       }
     }
   }
@@ -49,9 +62,9 @@ mixin AttributeFunctionality on Entity {
     initalized = false;
   }
 
-  void removeAttribute(AttributeType attributeEnum) {
-    currentAttributes[attributeEnum]?.removeUpgrade();
-    currentAttributes.remove(attributeEnum);
+  void removeAttribute(AttributeType attributeType) {
+    currentAttributes[attributeType]?.removeUpgrade();
+    currentAttributes.remove(attributeType);
   }
 
   void remapAttributes() {
@@ -324,7 +337,7 @@ class ReloadAnimation extends PositionComponent {
   @override
   final height = .06;
   final barWidth = .05;
-  final sidePadding = .025;
+  final sidePadding = .0;
   bool isOpaque = false;
   void toggleOpacity([bool? value]) =>
       value != null ? isOpaque = value : isOpaque = !isOpaque;

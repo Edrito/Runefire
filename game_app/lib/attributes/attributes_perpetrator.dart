@@ -1,5 +1,4 @@
 import '../entities/entity.dart';
-import 'attributes_regular.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -33,16 +32,16 @@ abstract class PerpetratorAttribute extends Attribute {
   PerpetratorAttribute(
       {super.level,
       super.victimEntity,
-      this.perpetratorEntity,
+      required this.perpetratorEntity,
       super.damageType});
 
-  Entity? perpetratorEntity;
+  Entity perpetratorEntity;
 }
 
+///Removes itself after [duration] seconds.
 mixin TemporaryAttribute on Attribute {
   abstract double duration;
   TimerComponent? currentTimer;
-  abstract int uniqueId;
 
   @override
   void reMapUpgrade() {
@@ -107,7 +106,10 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is! AttributeFunctionality) return;
-    other.addAttribute(powerup.attributeType.buildAttribute(1, other));
+    other.addAttribute(
+      powerup.attributeType,
+      level: 1,
+    );
     removeFromParent();
     super.beginContact(other, contact);
   }

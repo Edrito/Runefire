@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
+import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:recase/recase.dart';
 
@@ -274,147 +275,145 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
           ),
         );
       }).toList();
-
-      // final attribute = element.buildAttribute(
-      //   level,
-      //   null,
-      // );
-      // if (attribute is! PermanentAttribute) continue;
-      // entries.add(InkWell(
-      //     onTap: () {
-      //       setState(() {
-      //         selectedAttribute = element;
-      //       });
-      //     },
-      //     child: Padding(
-      //       padding: const EdgeInsets.all(8.0),
-      //       child: AttributeTile(attribute, selectedAttribute == element),
-      //     )));
     }
 
     return Animate(
       effects: [
         CustomEffect(builder: (context, value, child) {
           return Container(
-            color: backgroundColor1.brighten(.1).withOpacity(.9 * value),
+            color: backgroundColor1.withOpacity(.95 * value),
             child: child,
           );
         })
       ],
       child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: uiWidthMax * 1.25),
-          child: Container(
-            // width: size.width * .9,
-            // height: size.height * .9,
-            // decoration: BoxDecoration(
-            //   border: Border.all(color: borderColor, width: borderWidth),
-            //   color: backgroundColor2.brighten(.1).withOpacity(.75),
-            // ),
-            child: Column(
-              children: [
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ScrollConfiguration(
-                    behavior: ScrollConfiguration.of(context).copyWith(
-                      scrollbars: false,
-                      dragDevices: {
-                        // Allows to swipe in web browsers
-                        PointerDeviceKind.touch,
-                        PointerDeviceKind.mouse
-                      },
+        child: Column(
+          children: [
+            Expanded(
+                child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                scrollbars: false,
+                dragDevices: {
+                  // Allows to swipe in web browsers
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse
+                },
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 20,
                     ),
-                    child: SingleChildScrollView(
-                      child: Column(
+                    for (var element in entries.keys)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          for (var element in entries.keys)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                          SizedBox(
+                            height: 90,
+                            child: Stack(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    element.name.titleCase,
-                                    style: defaultStyle.copyWith(fontSize: 40),
+                                Positioned.fill(
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 400,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 15, bottom: 5),
+                                        child: buildImageAsset(
+                                            'assets/images/ui/banner.png'),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                Builder(builder: (context) {
-                                  final children = entries[element]!;
-                                  return Row(
-                                    children: [
-                                      Expanded(
-                                        child: Wrap(
-                                          crossAxisAlignment:
-                                              WrapCrossAlignment.center,
-                                          alignment: WrapAlignment.center,
-                                          children: children
-                                              .animate(
-                                                  interval:
-                                                      (.75 / children.length)
-                                                          .seconds)
-                                              // .moveY(begin: -50)
-                                              // .moveX(
-                                              //     curve: Curves.easeIn,
-                                              //     begin: -250)
-                                              .fadeIn(),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }),
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    element.name.titleCase,
+                                    style: defaultStyle.copyWith(
+                                        fontSize: 36,
+                                        color: const Color.fromARGB(
+                                            255, 202, 199, 164)),
+                                  ),
+                                ),
                               ],
                             ),
+                          ).animate().fadeIn().moveY(),
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                  maxWidth: uiWidthMax * 1.25),
+                              child: Builder(builder: (context) {
+                                final children = entries[element]!;
+                                return Row(
+                                  children: [
+                                    Expanded(
+                                      child: Wrap(
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        alignment: WrapAlignment.center,
+                                        children: children
+                                            .animate(
+                                                interval:
+                                                    (.75 / children.length)
+                                                        .seconds)
+                                            .fadeIn(),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }),
+                            ),
+                          ),
                         ],
+                      ),
+                  ],
+                ),
+              ),
+            )),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: CustomButton(
+                        "Back",
+                        gameRef: widget.gameRef,
+                        onTap: () => widget.onBack(),
                       ),
                     ),
                   ),
-                )),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Center(
-                          child: CustomButton(
-                            "Back",
-                            gameRef: widget.gameRef,
-                            onTap: () => widget.onBack(),
-                          ),
-                        ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: CustomButton(
+                        "Unlock",
+                        gameRef: widget.gameRef,
+                        onTap: () {
+                          final result = playerData
+                              .unlockPermanentAttribute(selectedAttribute);
+                        },
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Center(
-                          child: CustomButton(
-                            "Unlock",
-                            gameRef: widget.gameRef,
-                            onTap: () {
-                              final result = playerData
-                                  .unlockPermanentAttribute(selectedAttribute);
-                            },
-                          ),
-                        ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Text(
+                        "${playerData.experiencePoints} *icon*",
+                        style: defaultStyle,
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Center(
-                          child: Text(
-                            "${playerData.experiencePoints} 🟦",
-                            style: defaultStyle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
+                  ),
+                ),
               ],
-            ),
-          ),
+            )
+          ],
         ),
       ),
     );

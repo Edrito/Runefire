@@ -55,6 +55,7 @@ flutter:
     - assets/images/decorations/
     - assets/images/experience/
     - assets/images/weapons/
+    - assets/images/weapons/projectiles/
     - assets/images/attributes/
     - assets/tiles/
     - assets/audio/sfx/

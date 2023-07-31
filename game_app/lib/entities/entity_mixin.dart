@@ -3,9 +3,11 @@ import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
+import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/entities/enemy.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
+import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -634,7 +636,32 @@ mixin HealthFunctionality on Entity {
 
   bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
+    if (damage.damageMap.isEmpty) return false;
+    MapEntry<DamageType, double> largestEntry = fetchLargestDamageType(damage);
+    addDamageText(largestEntry.key, largestEntry.value);
+    addDamageEffects(largestEntry.key.color);
+
+    damage.applyResistances(this);
+
     setEntityStatus(EntityStatus.damage);
+    applyIFrameTimer(id);
+    applyDamage(damage);
+
+    deathChecker(damage);
+    applyStatusEffectChecker(damage, applyStatusEffect);
+    essenceStealChecker(damage);
+    onHitFunctionsCall(damage.source);
+    return true;
+  }
+
+  void applyIFrameTimer(String id) {
+    hitSourceInvincibility[id] = TimerComponent(
+        period: sameDamageSourceDuration,
+        removeOnFinish: true,
+        onTick: () {
+          hitSourceInvincibility.remove(id);
+        })
+      ..addToParent(this);
 
     if (invincibilityDuration.parameter > 0) {
       iFrameTimer = TimerComponent(
@@ -644,39 +671,34 @@ mixin HealthFunctionality on Entity {
       );
       add(iFrameTimer!);
     }
+  }
 
-    applyDamage(damage);
-    deathChecker(damage);
-    if (applyStatusEffect) {
-      this.applyStatusEffect(damage);
+  List<DamageInstance> damageInstancesRecieved = [];
+
+  MapEntry<DamageType, double> fetchLargestDamageType(DamageInstance instance) {
+    MapEntry<DamageType, double> largestEntry =
+        instance.damageMap.entries.first;
+
+    for (var element in instance.damageMap.entries) {
+      if (element.value > largestEntry.value) largestEntry = element;
     }
-    onHitFunctionsCall(damage.source);
-    return true;
+    return largestEntry;
   }
 
   void applyDamage(DamageInstance damage) {
-    MapEntry<DamageType, double> largestEntry = damage.damageMap.entries.first;
-
-    for (var element in damage.damageMap.entries) {
-      if (element.value > largestEntry.value) largestEntry = element;
-
-      ///Reduce damage based on the damage type resistance
-      double damageInc = element.value;
-      damageInc *=
-          damageTypeResistance.damagePercentIncrease[element.key] ??= 1;
-      print(damageTypeResistance.damagePercentIncrease[element.key] ??= 1);
-      damageTaken += damageInc;
-      recentDamage += damageInc;
-    }
+    damageTaken += damage.damage;
+    recentDamage += damage.damage;
     damageTaken.clamp(0, maxHealth.parameter);
 
-    ///Heal the attacker if they have the essence steal attribute
+    damageInstancesRecieved.add(damage);
+  }
+
+  ///Heal the attacker if they have the essence steal attribute
+  void essenceStealChecker(DamageInstance damage) {
     bool isHealth = damage.source is HealthFunctionality;
     if (isHealth) {
       (damage.source as HealthFunctionality).applyEssenceSteal(damage);
     }
-    addDamageText(largestEntry.key, largestEntry.value);
-    addDamageEffects(largestEntry.key.color);
   }
 
   void deathChecker(DamageInstance damage) {
@@ -690,24 +712,22 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void applyStatusEffect(DamageInstance damage) {
+  void applyStatusEffectChecker(DamageInstance damage, bool applyStatusEffect) {
+    if (!applyStatusEffect) return;
     if (this is! AttributeFunctionality) return;
     final attr = this as AttributeFunctionality;
     for (var element in damage.damageMap.entries) {
       DamageType damageType = element.key;
 
-      //TODO finish this
-      // switch (damageType) {
-      //   case DamageType.fire:
-      //     attr.addAttribute(
-      //       AttributeEnum.burn.buildAttribute(2, attr, element.source),
-      //     );
-      //     break;
-      //   default:
-      //     attr.addAttribute(
-      //       AttributeEnum.burn.buildAttribute(2, attr, element.source),
-      //     );
-      // }
+      // TODO finish this
+      switch (damageType) {
+        case DamageType.fire:
+          attr.addAttribute(
+            AttributeType.burn,
+          );
+          break;
+        default:
+      }
     }
   }
 
@@ -730,22 +750,15 @@ mixin HealthFunctionality on Entity {
     }
   }
 
+  bool get canBeHit => !isInvincible && !isDead;
+
   bool hitCheck(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
-    if (hitSourceInvincibility.containsKey(id) ||
-        isInvincible ||
-        isDead ||
-        damage.damage == 0) {
+    if (hitSourceInvincibility.containsKey(id) || damage.damage == 0) {
       return false;
     }
 
-    hitSourceInvincibility[id] = TimerComponent(
-        period: sameDamageSourceDuration,
-        removeOnFinish: true,
-        onTick: () {
-          hitSourceInvincibility.remove(id);
-        })
-      ..addToParent(this);
+    if (!canBeHit) return false;
 
     return takeDamage(id, damage, applyStatusEffect);
   }
@@ -771,9 +784,8 @@ mixin DodgeFunctionality on HealthFunctionality {
 
   void addDodgeText() {
     final test = TextPaint(
-        style: TextStyle(
+        style: defaultStyle.copyWith(
       fontSize: 3,
-      fontFamily: "HeroSpeak",
       fontWeight: FontWeight.bold,
       fontStyle: FontStyle.italic,
       shadows: const [
@@ -786,7 +798,7 @@ mixin DodgeFunctionality on HealthFunctionality {
       color: Colors.grey.shade100,
     ));
     final dodgeText = TextComponent(
-      text: "~",
+      text: ["~", "foo", "dodge", "swish"].getRandomElement(),
       anchor: Anchor.bottomLeft,
       textRenderer: test,
       position: Vector2.random() + Vector2(1, -1),
@@ -1080,7 +1092,7 @@ mixin JumpFunctionality on StaminaFunctionality {
   @override
   bool get isJumping => _isJumping;
   bool _isJumping = false;
-
+  bool allowJumpingInvincible = true;
   bool isJumpingInvincible = false;
 
   double jumpHeight = .5;
@@ -1155,18 +1167,20 @@ mixin JumpFunctionality on StaminaFunctionality {
       reverseCurve: Curves.ease,
     );
 
-    Future.doWhile(() =>
-        Future.delayed(const Duration(milliseconds: 25)).then((value) {
-          elapsed += .025;
+    if (allowJumpingInvincible) {
+      Future.doWhile(() =>
+          Future.delayed(const Duration(milliseconds: 25)).then((value) {
+            elapsed += .025;
 
-          isJumpingInvincible = elapsed > min && elapsed < max;
-          jumpOngoingFunctionsCall();
+            isJumpingInvincible = elapsed > min && elapsed < max;
+            jumpOngoingFunctionsCall();
 
-          return !(elapsed >= jumpDuration.parameter || controller.completed);
-        })).then((_) {
-      _isJumping = false;
-      jumpEndFunctionsCall();
-    });
+            return !(elapsed >= jumpDuration.parameter || controller.completed);
+          })).then((_) {
+        _isJumping = false;
+        jumpEndFunctionsCall();
+      });
+    }
 
     spriteWrapper.add(ScaleEffect.by(
       Vector2(1.025, 1.025),
@@ -1190,12 +1204,14 @@ mixin JumpFunctionality on StaminaFunctionality {
     jumpBeginFunctionsCall();
   }
 
+  bool get cantJump =>
+      isJumping ||
+      isDashing ||
+      !enableMovement.parameter ||
+      isDead ||
+      jumpStaminaCost.parameter > remainingStamina;
   bool jumpCheck() {
-    if (isJumping ||
-        isDashing ||
-        !enableMovement.parameter ||
-        isDead ||
-        jumpStaminaCost.parameter > remainingStamina) return false;
+    if (cantJump) return false;
 
     jump();
 

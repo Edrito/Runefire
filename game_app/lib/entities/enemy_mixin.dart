@@ -1,33 +1,47 @@
-import 'dart:math';
-
 import 'package:flame/components.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/experience.dart';
+import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
 
 enum AimPattern { player }
 
 mixin DropExperienceFunctionality on HealthFunctionality {
-  ///If a [rng.double] is smaller than $1 then large experience is dropped
-  ///If a [rng.double] is smaller than $2 then medium experience is dropped
+  ///If an [rng.double] is smaller than $1 then large experience is dropped
+  ///If an [rng.double] is smaller than $2 then medium experience is dropped
   abstract (double, double) xpRate;
+
+  //Random value between the two ints is chosen
+  final (int, int) amountPerDrop = (1, 1);
 
   @override
   void deadStatus() {
     late ExperienceAmount experienceAmount;
 
-    double chance = Random().nextDouble();
+    final amountCalculated = amountPerDrop.$1 == amountPerDrop.$2
+        ? amountPerDrop.$1
+        : rng.nextInt(amountPerDrop.$2 - amountPerDrop.$1) + amountPerDrop.$1;
+    final spread = amountCalculated / 5;
+    for (var i = 0; i < amountCalculated; i++) {
+      double chance = rng.nextDouble();
 
-    if (chance < xpRate.$1) {
-      experienceAmount = ExperienceAmount.large;
-    } else if (chance < xpRate.$2) {
-      experienceAmount = ExperienceAmount.medium;
-    } else {
-      experienceAmount = ExperienceAmount.small;
+      if (chance < xpRate.$1) {
+        experienceAmount = ExperienceAmount.large;
+      } else if (chance < xpRate.$2) {
+        experienceAmount = ExperienceAmount.medium;
+      } else {
+        experienceAmount = ExperienceAmount.small;
+      }
+
+      Future.delayed(rng.nextDouble().seconds).then((value) =>
+          gameEnviroment.add(ExperienceItem(
+              experienceAmount,
+              body.position +
+                  ((Vector2.random() * spread) - Vector2.all(spread / 2)))));
     }
 
-    gameEnviroment.add(ExperienceItem(experienceAmount, body.position));
     super.deadStatus();
   }
 }

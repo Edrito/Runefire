@@ -12,6 +12,7 @@ import 'package:uuid/uuid.dart';
 import '../main.dart';
 import '../menus/cards.dart';
 import '../resources/functions/custom_mixins.dart';
+import 'attributes_status_effect.dart';
 
 /// This file contains all the enums for the attributes.
 /// It also contains the extension methods for the enums.
@@ -112,10 +113,15 @@ enum AttributeType {
 }
 
 extension AllAttributesExtension on AttributeType {
-  Attribute buildAttribute(int level, AttributeFunctionality? victimEntity,
-      {Entity? perpetratorEntity,
-      DamageType? damageType,
-      StatusEffects? statusEffect}) {
+  Attribute buildAttribute(
+    int level,
+    AttributeFunctionality? victimEntity, {
+    Entity? perpetratorEntity,
+    DamageType? damageType,
+    StatusEffects? statusEffect,
+    bool isTemporary = false,
+    double? duration,
+  }) {
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);
     if (permanentAttr != null) return permanentAttr;
     if (victimEntity != null) {
@@ -126,8 +132,21 @@ extension AllAttributesExtension on AttributeType {
         final perpetratorAttr = perpetratorAttributeBuilder(
             this, level, victimEntity, perpetratorEntity);
         if (perpetratorAttr != null) return perpetratorAttr;
+
+        if (statusEffect != null) {
+          final statusEffectAttr = statusEffectBuilder(
+            statusEffect,
+            level,
+            victimEntity,
+            perpetratorEntity: perpetratorEntity,
+            isTemporary: isTemporary,
+            duration: duration,
+          );
+          if (statusEffectAttr != null) return statusEffectAttr;
+        }
       }
     }
+
     switch (this) {
       case AttributeType.enemyExplosion:
         return ExplosionEnemyDeathAttribute(

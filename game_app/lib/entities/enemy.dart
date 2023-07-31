@@ -116,6 +116,9 @@ class BossOne extends Enemy
   }
 
   @override
+  (int, int) get amountPerDrop => (5, 25);
+
+  @override
   (double, double) xpRate = (0.001, 0.01);
 
   @override

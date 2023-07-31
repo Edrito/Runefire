@@ -230,7 +230,7 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Area Size";
+  String title = "Area Effect Size";
 }
 
 class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {

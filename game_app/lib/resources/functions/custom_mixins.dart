@@ -14,7 +14,7 @@ mixin HasOpacityProvider on Component {
   }
 }
 
-mixin RandomGrabber on List {
+extension RandomGrabber on List {
   T getRandomElement<T>() {
     return this[rng.nextInt(length)] as T;
   }

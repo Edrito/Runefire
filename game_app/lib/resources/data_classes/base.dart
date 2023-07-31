@@ -329,10 +329,13 @@ class DamagePercentParameterManager {
 }
 
 DamageInstance damageCalculations(
-    Entity source, Map<DamageType, (double, double)> damageBase,
-    {DamageParameterManager? damageSource,
-    Weapon? sourceWeapon,
-    DamageKind damageKind = DamageKind.regular}) {
+  Entity source,
+  Map<DamageType, (double, double)> damageBase, {
+  DamageParameterManager? damageSource,
+  Weapon? sourceWeapon,
+  DamageKind damageKind = DamageKind.regular,
+  StatusEffects? statusEffect,
+}) {
   Map<DamageType, double> returnMap = {};
 
   for (MapEntry<DamageType, (double, double)> element in damageBase.entries) {
@@ -380,6 +383,12 @@ DamageInstance damageCalculations(
     }
   }
 
+  double statusEffectIncrease = 1;
+  if (statusEffect != null) {
+    statusEffectIncrease = source.statusEffectsPercentIncrease
+        .statusEffectPercentIncrease[statusEffect] ??= 1;
+  }
+
   double damageKindIncrease = 1;
   switch (damageKind) {
     case DamageKind.area:
@@ -402,6 +411,7 @@ DamageInstance damageCalculations(
   returnInstance.increaseByPercent(totalDamageIncrease *
       critDamageIncrease *
       weaponTypeIncrease *
+      statusEffectIncrease *
       damageKindIncrease);
   returnInstance.isCrit = isCrit;
   return returnInstance;

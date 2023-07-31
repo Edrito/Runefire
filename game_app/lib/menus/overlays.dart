@@ -157,7 +157,9 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
       });
     }, onTapComplete: () {
       gameRouter.resumeEngine();
-      player?.addAttribute(element);
+      player?.addAttribute(
+        element.attributeType,
+      );
       Future.delayed(exitAnimationDuration.seconds).then((value) => {
             gameRouter.gameStateComponent.gameState.resumeGame(),
             currentSelection = null
@@ -176,7 +178,9 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
       },
       onTapComplete: () {
         gameRouter.resumeEngine();
-        player.addAttribute(xpAttribute);
+        player.addAttribute(
+          xpAttribute.attributeType,
+        );
         Future.delayed(exitAnimationDuration.seconds).then((value) => {
               gameRouter.gameStateComponent.gameState.resumeGame(),
               currentSelection = null

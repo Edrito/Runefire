@@ -2,12 +2,14 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/entities/player_constants.dart' as player_constants;
 import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/player_projectile_weapons.dart';
 
 import '../entities/enemy.dart';
 import '../entities/entity.dart';
+import '../entities/player.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
 import '../game/enviroment_mixin.dart';
@@ -99,6 +101,9 @@ enum JoystickDirection {
   idle,
 }
 
+///All have a mage theme
+enum CharacterType { regular, sorcerer, warlock, wizard, witch, druid, shaman }
+
 enum GameLevel { mushroomForest, dungeon, graveyard, menu }
 
 enum GameDifficulty { quick, regular, hard, chaos }
@@ -133,6 +138,37 @@ extension GameDifficultyExtension on GameDifficulty {
         return const Color.fromARGB(255, 153, 0, 0);
       case GameDifficulty.chaos:
         return const Color.fromARGB(255, 108, 0, 122);
+    }
+  }
+}
+
+extension CharacterTypeExtension on CharacterType {
+  void applyBaseCharacterStats(Player player) {
+    switch (this) {
+      case CharacterType.regular:
+        player.dashCooldown.baseParameter =
+            player_constants.regularDashCooldown;
+        player.dashDistance.baseParameter =
+            player_constants.regularDashDistance;
+        player.height.baseParameter = player_constants.regularHeight;
+        player.invincibilityDuration.baseParameter =
+            player_constants.regularInvincibilityDuration;
+        player.maxHealth.baseParameter = player_constants.regularMaxHealth;
+        player.speed.baseParameter = player_constants.regularSpeed;
+        player.stamina.baseParameter = player_constants.regularStamina;
+        player.dodgeChance.baseParameter = player_constants.regularDodgeChance;
+      default:
+        player.dashCooldown.baseParameter =
+            player_constants.regularDashCooldown;
+        player.dashDistance.baseParameter =
+            player_constants.regularDashDistance;
+        player.height.baseParameter = player_constants.regularHeight;
+        player.invincibilityDuration.baseParameter =
+            player_constants.regularInvincibilityDuration;
+        player.maxHealth.baseParameter = player_constants.regularMaxHealth;
+        player.speed.baseParameter = player_constants.regularSpeed;
+        player.stamina.baseParameter = player_constants.regularStamina;
+        player.dodgeChance.baseParameter = player_constants.regularDodgeChance;
     }
   }
 }
@@ -194,7 +230,6 @@ extension GameLevelExtension on GameLevel {
     }
   }
 }
-// enum CharacterType { wizard, rogue }
 
 enum ExperienceAmount { small, medium, large }
 
@@ -216,10 +251,12 @@ extension ExperienceAmountExtension on ExperienceAmount {
       case ExperienceAmount.small:
         return CircleComponent(radius: radius, anchor: Anchor.center);
       case ExperienceAmount.medium:
+        radius *= 1.5;
         return RectangleComponent(
             size: Vector2.all(radius), anchor: Anchor.center);
 
       case ExperienceAmount.large:
+        radius *= 1.5;
         return PolygonComponent([
           Vector2(0, -radius),
           Vector2(radius, 0),
@@ -243,11 +280,11 @@ extension ExperienceAmountExtension on ExperienceAmount {
   Color get color {
     switch (this) {
       case ExperienceAmount.small:
-        return Colors.lightBlue.shade200;
+        return const Color.fromARGB(255, 143, 219, 255);
       case ExperienceAmount.medium:
-        return Colors.green.shade200;
+        return const Color.fromARGB(255, 151, 255, 155);
       case ExperienceAmount.large:
-        return Colors.purple.shade200;
+        return const Color.fromARGB(255, 242, 170, 255);
     }
   }
 }
@@ -436,6 +473,19 @@ class DamageInstance {
     this.damageKind = DamageKind.regular,
     this.sourceWeapon,
   });
+
+  ///Modifies [damageMap] based on entity resistances
+  void applyResistances(Entity other) {
+    for (var element in damageMap.entries) {
+      DamageType damageType = element.key;
+      double damageInc = element.value;
+
+      damageInc *=
+          other.damageTypeResistance.damagePercentIncrease[element.key] ??= 1;
+
+      damageMap[damageType] = damageInc;
+    }
+  }
 
   Entity source;
   Weapon? sourceWeapon;
