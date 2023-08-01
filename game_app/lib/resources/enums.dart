@@ -64,7 +64,7 @@ enum WeaponDescription {
 
 enum SemiAutoType { regular, release, charge }
 
-enum StatusEffects { burn, chill, electrified, stun, psychic }
+enum StatusEffects { burn, chill, electrified, stun, psychic, fear }
 
 enum AttackType { projectile, melee, spell }
 

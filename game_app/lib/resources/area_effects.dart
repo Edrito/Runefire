@@ -173,7 +173,6 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     late CircleShape shape;
 
     shape = CircleShape();
-    // shape.position.setFrom(h-Vector2.all(radius / 2));
     shape.radius = radius;
     renderBody = false;
     final filter = Filter();
