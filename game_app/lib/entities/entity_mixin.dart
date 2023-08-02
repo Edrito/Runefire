@@ -4,7 +4,7 @@ import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
-import 'package:game_app/entities/enemy.dart';
+import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
@@ -36,6 +36,8 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   bool get isDashing => false;
   bool get isInvincible => invincible.parameter;
   bool isDead = false;
+
+  bool affectsAllEntities = false;
 
   final IntParameterManager attackCount = IntParameterManager(baseParameter: 0);
 
@@ -153,8 +155,8 @@ mixin AimFunctionality on Entity {
   void buildDeltaFromMousePosition() {
     inputAimAngles[InputType.mouseMove] =
         (inputAimPositions[InputType.mouseMove]! -
-                (gameEnviroment.player!.center -
-                    gameEnviroment.gameCamera.viewfinder.position))
+                (playerFunctionality.player!.center -
+                    enviroment.gameCamera.viewfinder.position))
             .normalized();
   }
 
@@ -290,9 +292,9 @@ mixin AttackFunctionality on AimFunctionality {
   bool isAltAttacking = false;
 
   @override
-  void deadStatus() {
+  bool deadStatus() {
     endAttacking();
-    super.deadStatus();
+    return super.deadStatus();
   }
 
   Future<void> initializeWeapons() async {
@@ -488,20 +490,21 @@ mixin HealthFunctionality on Entity {
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
 
-  abstract SpriteAnimation? deathAnimation;
-  abstract SpriteAnimation? damageAnimation;
   Vector2? baseSize;
   Vector2? baseTextSize;
 
   @override
-  void deadStatus() {
+  bool deadStatus() {
     isDead = true;
 
     permanentlyDisableEntity();
     entityStatusWrapper.removeAllAnimations();
     temporaryAnimationPlaying = true;
-    assert(!deathAnimation!.loop, "Temp animations must not loop");
-    spriteAnimationComponent.animation = deathAnimation?.clone();
+    final deadAnimation = entityAnimations[EntityStatus.dead];
+    if (deadAnimation != null) {
+      assert(!deadAnimation.loop, "Temp animations must not loop");
+      spriteAnimationComponent.animation = deadAnimation.clone();
+    }
 
     spriteAnimationComponent.add(OpacityEffect.fadeOut(
       EffectController(
@@ -512,14 +515,14 @@ mixin HealthFunctionality on Entity {
     ));
 
     deadFunctionsCall();
-    super.deadStatus();
+    return super.deadStatus();
   }
 
   void deadFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
     if (attr != null && attr.onDeath.isNotEmpty) {
       for (var element in attr.onDeath) {
-        element();
+        element.call();
       }
     }
   }
@@ -609,10 +612,10 @@ mixin HealthFunctionality on Entity {
   }
 
   @override
-  void damageStatus() {
-    applyTempAnimation(damageAnimation);
+  bool damageStatus() {
+    applyTempAnimation(entityAnimations[EntityStatus.damage]);
 
-    super.damageStatus();
+    return super.damageStatus();
   }
 
   void addDamageEffects(Color color) {
@@ -719,11 +722,16 @@ mixin HealthFunctionality on Entity {
     for (var element in damage.damageMap.entries) {
       DamageType damageType = element.key;
 
-      // TODO finish this
       switch (damageType) {
         case DamageType.fire:
           attr.addAttribute(
             AttributeType.burn,
+            level: 1,
+            duration: 3,
+            perpetratorEntity: damage.source,
+            damageType: DamageType.fire,
+            statusEffect: StatusEffects.burn,
+            isTemporary: true,
           );
           break;
         default:
@@ -758,7 +766,9 @@ mixin HealthFunctionality on Entity {
       return false;
     }
 
-    if (!canBeHit) return false;
+    if (!canBeHit) {
+      return false;
+    }
 
     return takeDamage(id, damage, applyStatusEffect);
   }
@@ -772,26 +782,22 @@ mixin DodgeFunctionality on HealthFunctionality {
   DoubleParameterManager dodgeChance = DoubleParameterManager(
       baseParameter: .0, maxParameter: 1, minParameter: 0);
 
-  //HEALTH
-  abstract SpriteAnimation? dodgeAnimation;
-
   @override
-  void dodgeStatus() {
-    applyTempAnimation(dodgeAnimation);
-
-    super.dodgeStatus();
+  bool dodgeStatus() {
+    applyTempAnimation(entityAnimations[EntityStatus.dodge]);
+    return super.dodgeStatus();
   }
 
   void addDodgeText() {
     final test = TextPaint(
         style: defaultStyle.copyWith(
-      fontSize: 3,
+      fontSize: .3,
       fontWeight: FontWeight.bold,
       fontStyle: FontStyle.italic,
       shadows: const [
         BoxShadow(
             color: Colors.black26,
-            offset: Offset(.3, .3),
+            offset: Offset(.05, .05),
             spreadRadius: 3,
             blurRadius: 3)
       ],
@@ -801,10 +807,12 @@ mixin DodgeFunctionality on HealthFunctionality {
       text: ["~", "foo", "dodge", "swish"].getRandomElement(),
       anchor: Anchor.bottomLeft,
       textRenderer: test,
-      position: Vector2.random() + Vector2(1, -1),
+      position: Vector2(
+          (rng.nextDouble() * .25) + .25, (-rng.nextDouble() * .25) - .5),
     );
     dodgeText.addAll([
-      MoveEffect.by(body.linearVelocity.normalized() * -3,
+      MoveEffect.by(
+          Vector2(rng.nextDouble() * .25, -rng.nextDouble() * .25) * 2,
           EffectController(duration: 1, curve: Curves.easeIn)),
       TimerComponent(
         period: 1,
@@ -823,6 +831,7 @@ mixin DodgeFunctionality on HealthFunctionality {
         .value;
 
     dodges++;
+    applyIFrameTimer(damage.source.entityId);
 
     addDodgeText();
   }
@@ -928,7 +937,6 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
 mixin DashFunctionality on StaminaFunctionality {
   //STATUS
   TimerComponent? dashTimerCooldown;
-  abstract SpriteAnimation? dashAnimation;
   double dashedDistance = 0;
 
   @override
@@ -961,12 +969,13 @@ mixin DashFunctionality on StaminaFunctionality {
   double? dashDistanceGoal;
 
   @override
-  void dashStatus() {
-    if (!dashCheck()) return;
+  bool dashStatus() {
+    if (!dashCheck()) return false;
+    final dashAnimation = entityAnimations[EntityStatus.dash];
     dashAnimation?.stepTime =
-        dashDuration.parameter / dashAnimation!.frames.length * 2;
+        dashDuration.parameter / dashAnimation.frames.length * 2;
     applyTempAnimation(dashAnimation);
-    super.dashStatus();
+    return super.dashStatus();
   }
 
   bool dashCheck() {
@@ -1086,7 +1095,7 @@ mixin DashFunctionality on StaminaFunctionality {
   }
 }
 
-mixin JumpFunctionality on StaminaFunctionality {
+mixin JumpFunctionality on Entity {
   //JUMP
 
   @override
@@ -1104,8 +1113,6 @@ mixin JumpFunctionality on StaminaFunctionality {
   final DoubleParameterManager jumpingInvinciblePercent =
       DoubleParameterManager(
           baseParameter: .5, minParameter: 0, maxParameter: 1);
-
-  abstract SpriteAnimation? jumpAnimation;
 
   void jumpBeginFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
@@ -1135,17 +1142,21 @@ mixin JumpFunctionality on StaminaFunctionality {
   }
 
   @override
-  void jumpStatus() {
-    if (!jumpCheck()) return;
+  bool jumpStatus() {
+    if (!jumpCheck()) return false;
+    final jumpAnimation = entityAnimations[EntityStatus.jump];
+
     jumpAnimation?.stepTime =
-        jumpDuration.parameter / jumpAnimation!.frames.length;
+        jumpDuration.parameter / jumpAnimation.frames.length;
     applyTempAnimation(jumpAnimation);
 
-    super.jumpStatus();
+    return super.jumpStatus();
   }
 
   void jump() {
-    modifyStamina(-jumpStaminaCost.parameter);
+    if (this is StaminaFunctionality) {
+      (this as StaminaFunctionality).modifyStamina(-jumpStaminaCost.parameter);
+    }
     _isJumping = true;
     double elapsed = 0;
     double min = (jumpDuration.parameter / 2) -
@@ -1182,11 +1193,11 @@ mixin JumpFunctionality on StaminaFunctionality {
       });
     }
 
-    spriteWrapper.add(ScaleEffect.by(
+    spriteAnimationComponent.add(ScaleEffect.by(
       Vector2(1.025, 1.025),
       controller,
     ));
-    spriteWrapper.add(MoveEffect.by(
+    spriteAnimationComponent.add(MoveEffect.by(
       Vector2(0, -jumpHeight),
       controller,
     ));
@@ -1209,7 +1220,11 @@ mixin JumpFunctionality on StaminaFunctionality {
       isDashing ||
       !enableMovement.parameter ||
       isDead ||
-      jumpStaminaCost.parameter > remainingStamina;
+      (this is StaminaFunctionality
+          ? (jumpStaminaCost.parameter >
+              (this as StaminaFunctionality).remainingStamina)
+          : false);
+
   bool jumpCheck() {
     if (cantJump) return false;
 

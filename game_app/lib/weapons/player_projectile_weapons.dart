@@ -61,14 +61,18 @@ class Pistol extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(Vector2.all(0), Vector2(-.1, 1.6),
-            await buildSpriteSheet(1, 'weapons/pistol.png', 1, true),
-            parentJoint: parentJoint,
-            weapon: this,
-            attackAnimation:
-                await buildSpriteSheet(1, 'weapons/pistol.png', .1, false),
-            muzzleFlash: await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false));
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          Vector2(-.1, 1.6),
+          weaponAnimations: {
+            'muzzle_flash': await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle:
+                await buildSpriteSheet(1, 'weapons/pistol.png', 1, true)
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
     }
   }
 
@@ -108,14 +112,20 @@ class Shotgun extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
-            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
-            parentJoint: parentJoint,
-            weapon: this,
-            attackAnimation: await buildSpriteSheet(
+        return WeaponSpriteAnimation(
+          Vector2.all(1),
+          Vector2.all(1),
+          weaponAnimations: {
+            WeaponStatus.attack: await buildSpriteSheet(
                 4, 'weapons/pistol_attack.png', .1, false),
-            muzzleFlash: await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false));
+            'muzzle_flash': await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle:
+                await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true)
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
     }
   }
 
@@ -171,11 +181,16 @@ class LongRangeRifle extends PlayerWeapon
         return WeaponSpriteAnimation(
           Vector2.all(0),
           Vector2(-.175, 2.65),
-          await buildSpriteSheet(19, 'weapons/long_rifle_idle.png', .2, true),
+          weaponAnimations: {
+            WeaponStatus.attack: await buildSpriteSheet(
+                7, 'weapons/long_rifle_attack.png', .02, false),
+            'muzzle_flash': await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle: await buildSpriteSheet(
+                19, 'weapons/long_rifle_idle.png', .2, true)
+          },
           parentJoint: parentJoint,
           weapon: this,
-          attackAnimation: await buildSpriteSheet(
-              7, 'weapons/long_rifle_attack.png', .02, false),
         );
     }
   }
@@ -235,14 +250,20 @@ class AssaultRifle extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
-            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
-            parentJoint: parentJoint,
-            weapon: this,
-            attackAnimation: await buildSpriteSheet(
-                4, 'weapons/pistol_attack.png', .1, false),
-            muzzleFlash: await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false));
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          Vector2(-.175, 2.65),
+          weaponAnimations: {
+            WeaponStatus.attack: await buildSpriteSheet(
+                7, 'weapons/long_rifle_attack.png', .02, false),
+            'muzzle_flash': await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle: await buildSpriteSheet(
+                19, 'weapons/long_rifle_idle.png', .2, true)
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
     }
   }
 
@@ -294,14 +315,20 @@ class LaserRifle extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
-            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
-            parentJoint: parentJoint,
-            weapon: this,
-            attackAnimation: await buildSpriteSheet(
-                4, 'weapons/pistol_attack.png', .1, false),
-            muzzleFlash: await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false));
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          Vector2(-.175, 2.65),
+          weaponAnimations: {
+            WeaponStatus.attack: await buildSpriteSheet(
+                7, 'weapons/long_rifle_attack.png', .02, false),
+            'muzzle_flash': await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle: await buildSpriteSheet(
+                19, 'weapons/long_rifle_idle.png', .2, true)
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
     }
   }
 
@@ -354,14 +381,20 @@ class RocketLauncher extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
-            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
-            parentJoint: parentJoint,
-            weapon: this,
-            attackAnimation: await buildSpriteSheet(
-                4, 'weapons/pistol_attack.png', .1, false),
-            muzzleFlash: await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false));
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          Vector2(-.175, 2.65),
+          weaponAnimations: {
+            WeaponStatus.attack: await buildSpriteSheet(
+                7, 'weapons/long_rifle_attack.png', .02, false),
+            'muzzle_flash': await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle: await buildSpriteSheet(
+                19, 'weapons/long_rifle_idle.png', .2, true)
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
     }
   }
 
@@ -414,14 +447,20 @@ class Railgun extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
-        return WeaponSpriteAnimation(Vector2.all(1), Vector2.all(1),
-            await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true),
-            parentJoint: parentJoint,
-            weapon: this,
-            attackAnimation: await buildSpriteSheet(
-                4, 'weapons/pistol_attack.png', .1, false),
-            muzzleFlash: await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false));
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          Vector2(-.175, 2.65),
+          weaponAnimations: {
+            WeaponStatus.attack: await buildSpriteSheet(
+                7, 'weapons/long_rifle_attack.png', .02, false),
+            'muzzle_flash': await buildSpriteSheet(
+                1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle: await buildSpriteSheet(
+                19, 'weapons/long_rifle_idle.png', .2, true)
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
     }
   }
 

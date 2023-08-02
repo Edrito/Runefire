@@ -5,7 +5,7 @@ import 'package:game_app/main.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 // ignore: unused_import
 import 'package:flutter/material.dart';
-import '../entities/enemy.dart';
+import '../enemies/enemy.dart';
 import '../entities/entity_mixin.dart';
 import '../entities/player.dart';
 import '../resources/functions/vector_functions.dart';
@@ -107,11 +107,6 @@ mixin StandardProjectile on Projectile {
   }
 
   void drawBullet(Canvas canvas) {
-    // print(body.worldCenter -
-    //     weaponAncestor.entityAncestor!.handJoint.weaponTip!.absolutePosition);
-    // final firstPoint = -(delta).toOffset() * projectileLength;
-    // final secondPoint = -(delta - previousDelta).toOffset() * projectileLength;
-
     final points = (trails.fold<List<Vector2>>([],
         (previousValue, element) => [...previousValue, (element - center)]));
 

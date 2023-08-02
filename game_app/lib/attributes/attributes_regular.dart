@@ -9,7 +9,7 @@ import '../resources/enums.dart';
 Attribute? regularAttributeBuilder(
     AttributeType type, int level, AttributeFunctionality victimEntity) {
   switch (type) {
-    case AttributeType.burn:
+    case AttributeType.enemyExplosion:
       return ExplosionEnemyDeathAttribute(
         level: level,
         victimEntity: victimEntity,

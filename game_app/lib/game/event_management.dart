@@ -9,7 +9,7 @@ import '../resources/functions/vector_functions.dart';
 import 'enviroment.dart';
 import '../main.dart';
 import '../resources/constants/priorities.dart';
-import '../entities/enemy.dart';
+import '../enemies/enemy.dart';
 
 enum SpawnLocation {
   inside,
@@ -97,6 +97,7 @@ class EnemyEvent extends PositionEvent {
     super.eventManagement, {
     required this.maxEnemies,
     required this.enemyClusters,
+    required this.levels,
     required this.clusterSpread,
     required this.numberOfClusters,
     required this.isBigBoss,
@@ -118,6 +119,10 @@ class EnemyEvent extends PositionEvent {
   final int numberOfClusters;
   final bool isBigBoss;
   final List<EnemyCluster> enemyClusters;
+  final (int, int) levels;
+
+  ///Getter that gets a random value between level tuple
+  int get randomLevel => rng.nextInt((levels.$2 - levels.$1) + 1) + levels.$1;
 
   bool enemyLimitReached() {
     return enemyCount >= maxEnemies;
@@ -142,7 +147,8 @@ class EnemyEvent extends PositionEvent {
               (Vector2.random() * clusterSpread) -
               Vector2.all(clusterSpread / 2);
 
-          final enemy = cluster.enemyType.build(spreadPos, gameEnviroment);
+          final enemy = cluster.enemyType
+              .build(spreadPos, gameEnviroment as GameEnviroment, randomLevel);
           enemy.onDeath.add(() {
             incrementEnemyCount([enemy], true);
           });

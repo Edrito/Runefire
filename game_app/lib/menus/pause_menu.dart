@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,7 +92,40 @@ class _PauseMenuState extends State<PauseMenu> {
 
           entries?.sort(
               (b, a) => a.value.upgradeLevel.compareTo(b.value.upgradeLevel));
-
+          // nonTempEntries = [
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          //   ...nonTempEntries ?? [],
+          // ];
           return Row(
             children: [
               Expanded(
@@ -154,34 +189,63 @@ class _PauseMenuState extends State<PauseMenu> {
                     ),
                     Flexible(
                       flex: 2,
-                      child: ListView.builder(
-                        itemCount: nonTempEntries?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          final currentAttrib =
-                              nonTempEntries?.elementAt(index);
-
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
+                      child: ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context).copyWith(
+                          scrollbars: false,
+                          dragDevices: {
+                            // Allows to swipe in web browsers
+                            PointerDeviceKind.touch,
+                            PointerDeviceKind.mouse
+                          },
+                        ),
+                        child: SingleChildScrollView(
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: Wrap(
                               children: [
-                                SizedBox(
-                                  width: 55,
-                                  child: Text(
-                                    "${currentAttrib?.value.upgradeLevel} : ",
-                                    style: defaultStyle.copyWith(
-                                        color: currentAttrib?.key.rarity.color),
-                                  ),
-                                ),
-                                Text(
-                                  "${currentAttrib?.value.title}",
-                                  style: defaultStyle.copyWith(
-                                      color: currentAttrib?.key.rarity.color),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                for (int i = 0;
+                                    i < (nonTempEntries?.length ?? 0);
+                                    i++)
+                                  Builder(
+                                    builder: (context) {
+                                      final currentAttrib =
+                                          nonTempEntries?.elementAt(i);
+
+                                      return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: SizedBox(
+                                          // color: Colors.blue,
+                                          height: 100,
+                                          width: 60,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Image.asset(
+                                                  'assets/images/${currentAttrib?.value.icon}',
+                                                  color: currentAttrib
+                                                      ?.key.rarity.color),
+                                              SizedBox(
+                                                width: 55,
+                                                child: Text(
+                                                  "${currentAttrib?.value.upgradeLevel}",
+                                                  style: defaultStyle.copyWith(
+                                                      color: currentAttrib
+                                                          ?.key.rarity.color,
+                                                      fontSize: 20),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
                               ],
                             ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ),
                   ],

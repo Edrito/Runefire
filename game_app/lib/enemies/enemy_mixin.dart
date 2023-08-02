@@ -17,7 +17,7 @@ mixin DropExperienceFunctionality on HealthFunctionality {
   final (int, int) amountPerDrop = (1, 1);
 
   @override
-  void deadStatus() {
+  bool deadStatus() {
     late ExperienceAmount experienceAmount;
 
     final amountCalculated = amountPerDrop.$1 == amountPerDrop.$2
@@ -42,7 +42,7 @@ mixin DropExperienceFunctionality on HealthFunctionality {
                   ((Vector2.random() * spread) - Vector2.all(spread / 2)))));
     }
 
-    super.deadStatus();
+    return super.deadStatus();
   }
 }
 
@@ -58,7 +58,7 @@ mixin AimControlFunctionality on AimFunctionality {
       case AimPattern.player:
         updateFunction = () {
           inputAimAngles[InputType.ai] =
-              (gameEnviroment.player.center - body.position).normalized();
+              (gameEnviroment.player!.center - body.position).normalized();
         };
 
         break;
@@ -79,7 +79,7 @@ mixin DumbFollowAI on MovementFunctionality {
   double targetUpdateFrequency = .3;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnviroment.player.center - body.position);
+    final newPosition = (gameEnviroment.player!.center - body.position);
     moveVelocities[InputType.ai] = newPosition.normalized();
   }
 
@@ -118,11 +118,11 @@ mixin DumbFollowRangeAI on MovementFunctionality {
   double zoningDistance = 6;
 
   void _dumbFollowRangeTargetTick() {
-    final newPosition = (gameEnviroment.player.center - body.position) -
-        ((gameEnviroment.player.center - body.position).normalized() *
+    final newPosition = (gameEnviroment.player!.center - body.position) -
+        ((gameEnviroment.player!.center - body.position).normalized() *
             zoningDistance);
 
-    final dis = center.distanceTo(gameEnviroment.player.center);
+    final dis = center.distanceTo(gameEnviroment.player!.center);
 
     if (dis < zoningDistance * 1.1 && dis > zoningDistance * .9) {
       moveVelocities[InputType.ai] = Vector2.zero();
@@ -152,7 +152,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   bool inverse = false;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnviroment.player.center - body.position);
+    final newPosition = (gameEnviroment.player!.center - body.position);
 
     moveVelocities[InputType.ai] =
         newPosition.normalized() * (inverse ? -1 : 1);
@@ -200,15 +200,46 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
   double targetUpdateFrequency = 1.5;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnviroment.player.center - body.position);
+    final newPosition = (gameEnviroment.player!.center - body.position);
     moveVelocities[InputType.ai] = newPosition.normalized();
     setEntityStatus(EntityStatus.jump);
   }
 
   @override
   void moveCharacter() {
-    if (!isJumping) return;
+    if (!isJumping) {
+      moveVelocities.clear();
+    }
     super.moveCharacter();
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    targetUpdater = TimerComponent(
+      period: targetUpdateFrequency,
+      repeat: true,
+      onTick: _dumbFollowTargetTick,
+    );
+    add(targetUpdater!);
+  }
+}
+
+mixin FollowThenSuicideAI on MovementFunctionality {
+  TimerComponent? targetUpdater;
+  double targetUpdateFrequency = .3;
+  double distanceThreshold = 2;
+
+  void _dumbFollowTargetTick() async {
+    if (isDead) {
+      targetUpdater?.removeFromParent();
+      return;
+    }
+    final newPosition = (gameEnviroment.player!.center - body.position);
+    moveVelocities[InputType.ai] = newPosition.normalized();
+    if (center.distanceTo(gameEnviroment.player!.center) < distanceThreshold) {
+      await setEntityStatus(EntityStatus.dead);
+    }
   }
 
   @override

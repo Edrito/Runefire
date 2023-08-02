@@ -19,7 +19,7 @@ class Bullet extends Projectile with StandardProjectile {
   ProjectileType projectileType = ProjectileType.bullet;
 
   @override
-  double size = .15;
+  double size = .5;
 
   @override
   double ttl = 2.0;

@@ -345,7 +345,7 @@ mixin PlayerFunctionality on Enviroment {
 
   void addPlayer() {
     player = Player(playerData, false,
-        gameEnviroment: this, initPosition: Vector2.zero());
+        enviroment: this, initPosition: Vector2.zero());
 
     if (this is GameEnviroment) {
       customFollow =

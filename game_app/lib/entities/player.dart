@@ -6,6 +6,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_mixin.dart';
+import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/constants/priorities.dart';
@@ -34,7 +35,7 @@ class Player extends Entity
         DashFunctionality,
         HealthRegenFunctionality {
   Player(this.playerData, this.isDisplay,
-      {required super.gameEnviroment, required super.initPosition}) {
+      {required super.enviroment, required super.initPosition}) {
     if (!isDisplay) {
       playerData.selectedPlayer.applyBaseCharacterStats(this);
       initAttributes(playerData.unlockedPermanentAttributes);
@@ -46,12 +47,17 @@ class Player extends Entity
 
   @override
   Future<void> loadAnimationSprites() async {
-    idleAnimation = await buildSpriteSheet(10, 'sprites/idle.png', .1, true);
-    jumpAnimation = await buildSpriteSheet(3, 'sprites/jump.png', .1, false);
-    dashAnimation = await buildSpriteSheet(7, 'sprites/roll.png', .06, false);
-    walkAnimation = await buildSpriteSheet(8, 'sprites/walk.png', .1, true);
-    runAnimation = await buildSpriteSheet(8, 'sprites/run.png', .1, true);
-    deathAnimation =
+    entityAnimations[EntityStatus.idle] =
+        await buildSpriteSheet(10, 'sprites/idle.png', .1, true);
+    entityAnimations[EntityStatus.jump] =
+        await buildSpriteSheet(3, 'sprites/jump.png', .1, false);
+    entityAnimations[EntityStatus.dash] =
+        await buildSpriteSheet(7, 'sprites/roll.png', .06, false);
+    entityAnimations[EntityStatus.walk] =
+        await buildSpriteSheet(8, 'sprites/walk.png', .1, true);
+    entityAnimations[EntityStatus.run] =
+        await buildSpriteSheet(8, 'sprites/run.png', .1, true);
+    entityAnimations[EntityStatus.dead] =
         await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
   }
 
@@ -124,6 +130,7 @@ class Player extends Entity
       position: initPosition,
       type: BodyType.dynamic,
       linearDamping: 12,
+      allowSleep: false,
       fixedRotation: true,
     );
     return world.createBody(bodyDef)
@@ -262,8 +269,8 @@ class Player extends Entity
       case InputType.mouseMove:
         if (!isMounted) return;
         final position = (shiftCoordinatesToCenter(
-                eventPosition, gameEnviroment.gameCamera.viewport.size) /
-            gameEnviroment.gameCamera.viewfinder.zoom);
+                eventPosition, enviroment.gameCamera.viewport.size) /
+            enviroment.gameCamera.viewfinder.zoom);
 
         inputAimPositions[InputType.mouseMove] = position;
         buildDeltaFromMousePosition();
@@ -271,7 +278,10 @@ class Player extends Entity
         break;
 
       case InputType.aimJoy:
-        final delta = gameEnviroment.aimJoystick?.relativeDelta;
+        if (gameEnviroment is! JoystickFunctionality) return;
+
+        final delta =
+            (enviroment as JoystickFunctionality).aimJoystick?.relativeDelta;
         if (delta == null || delta.isZero()) return;
         inputAimAngles[InputType.aimJoy] = delta.normalized();
         startAttacking();
@@ -279,14 +289,17 @@ class Player extends Entity
         break;
 
       case InputType.moveJoy:
-        final delta = gameEnviroment.moveJoystick?.relativeDelta;
-        moveVelocities[InputType.moveJoy] = (delta ?? Vector2.zero()) * speed;
+        if (enviroment is! JoystickFunctionality) return;
+        final delta =
+            (enviroment as JoystickFunctionality).moveJoystick?.relativeDelta;
+        moveVelocities[InputType.moveJoy] =
+            (delta ?? Vector2.zero()) * speed.parameter;
         break;
 
       case InputType.tapClick:
         inputAimPositions[InputType.tapClick] = shiftCoordinatesToCenter(
-                eventPosition, gameEnviroment.gameCamera.viewport.size) /
-            gameEnviroment.gameCamera.viewfinder.zoom;
+                eventPosition, enviroment.gameCamera.viewport.size) /
+            enviroment.gameCamera.viewfinder.zoom;
         // inputAimAngles[InputType.mouseMove] =
         //     inputAimPositions[InputType.mouseMove]!.normalized();
         // inputAimAngles[InputType.tapClick] =
@@ -297,8 +310,8 @@ class Player extends Entity
 
       case InputType.mouseDrag:
         inputAimPositions[InputType.mouseMove] = shiftCoordinatesToCenter(
-                eventPosition, gameEnviroment.gameCamera.viewport.size) /
-            gameEnviroment.gameCamera.viewfinder.zoom;
+                eventPosition, enviroment.gameCamera.viewport.size) /
+            enviroment.gameCamera.viewfinder.zoom;
         inputAimPositions[InputType.mouseDrag] =
             inputAimPositions[InputType.mouseMove]!;
         inputAimAngles[InputType.mouseDrag] =
@@ -327,31 +340,4 @@ class Player extends Entity
 
   @override
   EntityType entityType = EntityType.player;
-
-  @override
-  SpriteAnimation? damageAnimation;
-
-  @override
-  SpriteAnimation? dashAnimation;
-
-  @override
-  SpriteAnimation? deathAnimation;
-
-  @override
-  late SpriteAnimation idleAnimation;
-
-  @override
-  SpriteAnimation? jumpAnimation;
-
-  @override
-  SpriteAnimation? runAnimation;
-
-  @override
-  SpriteAnimation? spawnAnimation;
-
-  @override
-  SpriteAnimation? walkAnimation;
-
-  @override
-  SpriteAnimation? dodgeAnimation;
 }

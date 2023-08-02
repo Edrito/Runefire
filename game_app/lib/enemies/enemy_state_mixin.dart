@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:game_app/main.dart';
 
 import 'enemy.dart';
-import 'entity_mixin.dart';
+import '../entities/entity_mixin.dart';
 
 typedef TriggerFunction = bool Function();
 typedef FutureFunction = Future Function();

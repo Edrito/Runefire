@@ -211,7 +211,7 @@ mixin MeleeFunctionality on Weapon {
       ));
     }
 
-    entityAncestor?.gameEnviroment.physicsComponent?.addAll(returnList);
+    entityAncestor?.gameEnviroment.physicsComponent.addAll(returnList);
     meleeAttacksCompletedIndex++;
   }
 
@@ -246,14 +246,12 @@ mixin MeleeFunctionality on Weapon {
         : setWeaponStatus(WeaponStatus.attack);
 
     attackOnAnimationFinish
-        ? await entityAncestor?.setEntityStatus(
-            EntityStatus.attack,
-            attackEntitySpriteAnimations.isNotEmpty
+        ? await entityAncestor?.setEntityStatus(EntityStatus.attack,
+            customAnimation: attackEntitySpriteAnimations.isNotEmpty
                 ? attackEntitySpriteAnimations[meleeAttacksCompletedIndex]
                 : null)
-        : entityAncestor?.setEntityStatus(
-            EntityStatus.attack,
-            attackEntitySpriteAnimations.isNotEmpty
+        : entityAncestor?.setEntityStatus(EntityStatus.attack,
+            customAnimation: attackEntitySpriteAnimations.isNotEmpty
                 ? attackEntitySpriteAnimations[meleeAttacksCompletedIndex]
                 : null);
     super.attackAttempt(holdDurationPercent);
@@ -324,6 +322,8 @@ mixin ProjectileFunctionality on Weapon {
 
   List<Projectile> activeProjectiles = [];
 
+  final bool originateFromCenter = false;
+
   @override
   FutureOr<void> onLoad() {
     pierce.baseParameter = pierce.baseParameter
@@ -349,9 +349,9 @@ mixin ProjectileFunctionality on Weapon {
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
 
   void shootProjectile([double chargeAmount = 1]) {
-    entityAncestor?.gameEnviroment.physicsComponent
+    entityAncestor?.enviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
-    entityAncestor?.gameEnviroment?.add(generateParticle());
+    entityAncestor?.enviroment.add(generateParticle());
 
     entityAncestor?.handJoint.weaponSpriteAnimation?.add(RotateEffect.to(
         (entityAncestor?.handJoint.weaponSpriteAnimation?.angle ?? 0) +
@@ -425,14 +425,15 @@ mixin ProjectileFunctionality on Weapon {
 
       final Vector2 originPosition;
 
-      if (weaponType.attackType == AttackType.melee) {
+      if (weaponType.attackType == AttackType.melee && !originateFromCenter) {
         originPosition =
             (delta.normalized() * (distanceFromPlayer + (length / 2))) +
                 entityAncestor!.center;
-      } else if (weaponType.attackType == AttackType.projectile) {
+      } else if (weaponType.attackType == AttackType.projectile &&
+          !originateFromCenter) {
         originPosition = weaponTipPosition ?? Vector2.zero();
       } else {
-        originPosition = Vector2.zero();
+        originPosition = entityAncestor!.center;
       }
 
       returnList.add(projectileType!.generateProjectile(

@@ -81,21 +81,23 @@ class Dagger extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(
-            Vector2.zero(),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(
-            Vector2.zero(),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            });
     }
   }
 
@@ -185,21 +187,23 @@ class Spear extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(
-            Vector2.zero(),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(
-            Vector2.zero(),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            });
     }
   }
 
@@ -309,12 +313,13 @@ class EnergySword extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(
-            baseOffset,
-            tipOffset,
+        return WeaponSpriteAnimation(baseOffset, tipOffset,
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
@@ -323,7 +328,10 @@ class EnergySword extends PlayerWeapon
             weapon: this,
             tipOffset,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            });
     }
   }
 
@@ -424,21 +432,23 @@ class FlameSword extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(
-            Vector2(5, 0),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2(5, 0), Vector2(0, length),
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true))
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true),
+            })
           ..position = Vector2(-.65, .67)
           ..angle = radians(-145);
       default:
-        return WeaponSpriteAnimation(
-            Vector2.zero(),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true));
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true),
+            });
     }
   }
 
@@ -529,21 +539,23 @@ class LargeSword extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(
-            Vector2.zero(),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
             parentJoint: parentJoint,
             weapon: this,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true))
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(
-            Vector2.zero(),
-            Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
             weapon: this,
             parentJoint: parentJoint,
-            await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+            weaponAnimations: {
+              WeaponStatus.idle:
+                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+            });
     }
   }
 

@@ -230,7 +230,7 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Area Effect Size";
+  String title = "Area Size";
 }
 
 class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
@@ -304,7 +304,7 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Projectile Damage";
+  String title = "Gun Damage";
 }
 
 class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
@@ -491,7 +491,7 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Movement Speed";
+  String title = "Move Speed";
 }
 
 class MaxStaminaPermanentAttribute extends PermanentAttribute {
@@ -1258,7 +1258,7 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Physical Resistance";
+  String title = "Physical Res";
 }
 
 class MagicResistancePermanentAttribute extends PermanentAttribute {
@@ -1299,7 +1299,7 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Magic Resistance";
+  String title = "Magic Res";
 }
 
 class FireResistancePermanentAttribute extends PermanentAttribute {
@@ -1340,7 +1340,7 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Fire Resistance";
+  String title = "Fire Res";
 }
 
 class PsychicResistancePermanentAttribute extends PermanentAttribute {
@@ -1382,7 +1382,7 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Psychic Resistance";
+  String title = "Psychic Res";
 }
 
 class EnergyResistancePermanentAttribute extends PermanentAttribute {
@@ -1423,7 +1423,7 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Energy Resistance";
+  String title = "Energy Res";
 }
 
 class FrostResistancePermanentAttribute extends PermanentAttribute {
@@ -1464,7 +1464,7 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Frost Resistance";
+  String title = "Frost Res";
 }
 
 class ReloadTimePermanentAttribute extends PermanentAttribute {

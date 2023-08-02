@@ -46,8 +46,8 @@ class AttributeTile extends StatelessWidget {
           child: Image.asset(
             'assets/images/powerups/start.png',
             color: isUnlocked
-                ? customColor ?? Colors.red
-                : customColor?.darken(.5) ?? Colors.blue,
+                ? (customColor ?? Colors.white).brighten(.2)
+                : (customColor ?? Colors.blue).darken(.5),
           ),
         ),
       ),
@@ -92,10 +92,10 @@ class AttributeTile extends StatelessWidget {
           ShaderMask(
             shaderCallback: (bounds) {
               return LinearGradient(colors: [
-                Colors.black.withOpacity(.5),
+                Colors.black.withOpacity(.3),
                 Colors.white,
                 Colors.white,
-                Colors.black.withOpacity(.5)
+                Colors.black.withOpacity(.3)
               ], stops: const [
                 0,
                 0.3,
@@ -105,18 +105,38 @@ class AttributeTile extends StatelessWidget {
             },
             child: Padding(
               padding: const EdgeInsets.only(
-                  top: 20, bottom: 40, left: 20, right: 20),
+                  top: 30, bottom: 40, left: 20, right: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     child: Text(
                       attribute.title,
-                      style: style,
+                      style: style.copyWith(
+                          color: (customColor ?? selectedColor).brighten(.2),
+                          fontSize: 20),
                       textAlign: TextAlign.center,
                     ),
                   ),
+                  Builder(builder: (context) {
+                    final desc = attribute.description();
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (desc.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 4),
+                            child: Text(
+                              attribute.description(),
+                              style: style.copyWith(fontSize: 16),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
                   Expanded(
                     child: Stack(
                       children: [
@@ -158,37 +178,18 @@ class AttributeTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 5,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 3),
+                    child: Text(
+                      attribute.isMaxLevel
+                          ? "MAX"
+                          : attribute.cost().toString(),
+                      style: style.copyWith(
+                          // fontStyle: FontStyle.italic,
+                          fontSize: style.fontSize! * .9,
+                          color: Colors.blueGrey.shade200),
+                    ),
                   ),
-                  Builder(builder: (context) {
-                    final desc = attribute.description();
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (desc.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(2),
-                            child: Text(
-                              attribute.description(),
-                              style: style,
-                            ),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.all(2),
-                          child: Text(
-                            attribute.isMaxLevel
-                                ? "MAX"
-                                : attribute.cost().toString(),
-                            style: style.copyWith(
-                                // fontStyle: FontStyle.italic,
-                                fontSize: style.fontSize! * .9,
-                                color: Colors.blueGrey.shade200),
-                          ),
-                        ),
-                      ],
-                    );
-                  })
                 ],
               ),
             ),

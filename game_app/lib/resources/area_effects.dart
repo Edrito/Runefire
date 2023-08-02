@@ -43,9 +43,11 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.areaId = areaId ?? const Uuid().v4();
   }
   Map<DamageType, (double, double)>? damage;
+
   SpriteAnimation? spawnAnimation;
   SpriteAnimation? playAnimation;
   SpriteAnimation? endAnimation;
+
   bool isInstant;
   double duration;
   late String areaId;
@@ -169,7 +171,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   Body createBody() {
-    priority = -100;
+    // priority = 0;
     late CircleShape shape;
 
     shape = CircleShape();
@@ -180,7 +182,11 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     if (sourceEntity.isPlayer) {
       filter.maskBits = enemyCategory;
     } else {
-      filter.maskBits = playerCategory;
+      if (sourceEntity.affectsAllEntities) {
+        filter.maskBits = 0xFFFF;
+      } else {
+        filter.maskBits = playerCategory;
+      }
     }
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
@@ -188,6 +194,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
         filter: filter);
     final bodyDef = BodyDef(
       position: position,
+      allowSleep: false,
       userData: this,
       type: BodyType.static,
       fixedRotation: true,

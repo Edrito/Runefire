@@ -7,14 +7,15 @@ import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/player_projectile_weapons.dart';
 
-import '../entities/enemy.dart';
+import '../enemies/enemy.dart';
+import '../enemies/enemy_mushroom.dart';
 import '../entities/entity.dart';
 import '../entities/player.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
-import '../game/enviroment_mixin.dart';
 import '../game/forest_game.dart';
 import '../game/menu_game.dart';
+import '../weapons/enemy_weapons.dart';
 import '../weapons/projectiles.dart';
 import '../weapons/secondary_abilities.dart';
 import '../weapons/weapon_class.dart';
@@ -28,19 +29,36 @@ enum AudioType {
 
 enum EnemyType {
   mushroomBrawler,
+  mushroomHopper,
   mushroomBoss,
+  mushroomShooter,
+  mushroomBoomer,
 }
 
 extension EnemyTypeExtension on EnemyType {
-  Enemy build(Vector2 position, GameTimerFunctionality gameEnviroment) {
+  Enemy build(Vector2 position, GameEnviroment gameEnviroment, int level) {
     switch (this) {
-      case EnemyType.mushroomBrawler:
-        return DummyTwo(initPosition: position, gameEnviroment: gameEnviroment);
-      case EnemyType.mushroomBoss:
-        return BossOne(initPosition: position, gameEnviroment: gameEnviroment);
+      case EnemyType.mushroomHopper:
+        return MushroomHopper(
+            initPosition: position,
+            enviroment: gameEnviroment,
+            upgradeLevel: level);
+      case EnemyType.mushroomBoomer:
+        return MushroomBoomer(
+            initPosition: position,
+            enviroment: gameEnviroment,
+            upgradeLevel: level);
+      case EnemyType.mushroomShooter:
+        return MushroomShooter(
+            initPosition: position,
+            enviroment: gameEnviroment,
+            upgradeLevel: level);
 
       default:
-        return DummyTwo(initPosition: position, gameEnviroment: gameEnviroment);
+        return MushroomHopper(
+            initPosition: position,
+            enviroment: gameEnviroment,
+            upgradeLevel: level);
     }
   }
 }
@@ -87,7 +105,7 @@ enum EntityStatus {
   attack
 }
 
-enum WeaponStatus { attack, reload, charge, spawn, idle }
+enum WeaponStatus { attack, reload, charge, spawn, idle, chargeIdle }
 
 enum JoystickDirection {
   up,
@@ -365,7 +383,8 @@ enum WeaponType {
       AttackType.melee, 500),
   dagger(Dagger.create, 'assets/images/weapons/dagger.png', 5, AttackType.spell,
       0),
-
+  blankProjectileWeapon(BlankProjectileWeapon.create,
+      'assets/images/weapons/dagger.png', 5, AttackType.projectile, 0),
   largeSword(LargeSword.create, 'assets/images/weapons/large_sword.png', 5,
       AttackType.melee, 600),
   spear(
@@ -400,6 +419,9 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.railgun:
         returnWeapon = Railgun.create(upgradeLevel, ancestor);
+        break;
+      case WeaponType.blankProjectileWeapon:
+        returnWeapon = BlankProjectileWeapon.create(upgradeLevel, ancestor);
         break;
       case WeaponType.assaultRifle:
         returnWeapon = AssaultRifle.create(upgradeLevel, ancestor);

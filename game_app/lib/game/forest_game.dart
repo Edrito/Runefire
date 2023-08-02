@@ -21,10 +21,10 @@ class ForestGame extends GameEnviroment {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    forestBackground = level.buildBackground(this);
+    // forestBackground = level.buildBackground(this);
     enemyManagement = ForestEnemyManagement(this);
     add(enemyManagement);
-    add(forestBackground);
+    // add(forestBackground);
   }
 
   @override
@@ -65,30 +65,57 @@ class ForestEnemyManagement extends EventManagement {
 
   ForestEnemyManagement(super.gameEnviroment) {
     eventsToDo.addAll([
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 4,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomBrawler, 3)],
+      //   numberOfClusters: 2,
+      //   maxEnemies: 40,
+      //   eventTriggerInterval: (4, 7),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, 500),
+      //   spawnLocation: SpawnLocation.outside,
+      // ),
       EnemyEvent(
         gameEnviroment,
         this,
         isBigBoss: false,
         clusterSpread: 4,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomBrawler, 3)],
-        numberOfClusters: 2,
+        enemyClusters: [EnemyCluster(EnemyType.mushroomBoomer, 1)],
+        numberOfClusters: 1,
         maxEnemies: 40,
-        eventTriggerInterval: (4, 7),
+        eventTriggerInterval: (1, 2),
+        levels: (0, 1),
         eventBeginEnd: (1, 500),
         spawnLocation: SpawnLocation.outside,
       ),
       EnemyEvent(
         gameEnviroment,
         this,
-        isBigBoss: true,
-        clusterSpread: 3,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomBoss, 4)],
-        numberOfClusters: 5,
-        maxEnemies: 5,
-        eventTriggerInterval: (0, 0),
-        eventBeginEnd: (20, null),
+        isBigBoss: false,
+        clusterSpread: 4,
+        enemyClusters: [EnemyCluster(EnemyType.mushroomShooter, 2)],
+        numberOfClusters: 2,
+        maxEnemies: 40,
+        eventTriggerInterval: (2, 5),
+        levels: (0, 1),
+        eventBeginEnd: (1, 500),
         spawnLocation: SpawnLocation.outside,
       ),
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: true,
+      //   clusterSpread: 3,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomBoss, 4)],
+      //   numberOfClusters: 5,
+      //   maxEnemies: 5,
+      //   eventTriggerInterval: (0, 0),
+      //   eventBeginEnd: (20, null),
+      //   spawnLocation: SpawnLocation.outside,
+      // ),
     ]);
   }
 }

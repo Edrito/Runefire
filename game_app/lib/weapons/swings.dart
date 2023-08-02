@@ -12,7 +12,7 @@ import 'package:uuid/uuid.dart';
 import '../entities/entity.dart';
 import '../entities/player.dart';
 import '../resources/functions/vector_functions.dart';
-import '../entities/enemy.dart';
+import '../enemies/enemy.dart';
 import '../main.dart';
 import '../resources/enums.dart';
 
@@ -230,7 +230,7 @@ class MeleeAttackHandler extends Component {
       initSwing(
           otherAngle,
           other.center -
-              parentWeapon.entityAncestor!.gameEnviroment!.gameCamera.viewfinder
+              parentWeapon.entityAncestor!.gameEnviroment.gameCamera.viewfinder
                   .position);
     }
   }
@@ -282,7 +282,7 @@ class MeleeAttackHandler extends Component {
     target = parentWeapon.entityAncestor;
     initSwing(initAngle, initPosition);
     hitbox = MeleeAttackHitbox(hitboxSize, this, onHitFunction);
-    parentWeapon.entityAncestor?.gameEnviroment.physicsComponent.add(hitbox);
+    parentWeapon.entityAncestor?.gameEnviroment.physicsComponent.add(hitbox!);
 
     return super.onLoad();
   }

@@ -96,8 +96,8 @@ class FireDamageAttribute extends StatusEffectAttribute {
 
   double durationPassed = 0;
 
-  double minDamage = 1;
-  double maxDamage = 3;
+  double minDamage = .1;
+  double maxDamage = 1;
 
   void fireDamage() {
     if (victimEntity is HealthFunctionality) {

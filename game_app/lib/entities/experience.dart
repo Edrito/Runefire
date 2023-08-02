@@ -150,7 +150,6 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
       position: originPosition,
       type: BodyType.static,
     );
-
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 }
