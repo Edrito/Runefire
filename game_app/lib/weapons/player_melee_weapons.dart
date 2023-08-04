@@ -370,7 +370,7 @@ class FlameSword extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     attackTickRate.baseParameter = .6;
-    baseDamage.damageBase[DamageType.physical] = (20, 25);
+    baseDamage.damageBase[DamageType.fire] = (20, 25);
     pierce.baseParameter = 2;
     maxChainingTargets.baseParameter = 6;
     baseAttackCount.baseParameter = 5;
@@ -469,7 +469,7 @@ class FlameSword extends PlayerWeapon
   WeaponType weaponType = WeaponType.flameSword;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.blast;
 }
 
 class LargeSword extends PlayerWeapon
@@ -482,7 +482,7 @@ class LargeSword extends PlayerWeapon
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.physical] = (20, 50);
+    baseDamage.damageBase[DamageType.fire] = (20, 50);
     attackHitboxPatterns = [
       (Vector2(-.8, .25), 55),
       (Vector2(1, .35), -5),

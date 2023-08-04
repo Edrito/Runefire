@@ -1,6 +1,6 @@
 //Regular Stats
 const regularDashCooldown = 2.0;
-const regularDashDistance = 6.0;
+const regularDashDistance = 3.0;
 const regularHeight = 1.5;
 const regularInvincibilityDuration = .25;
 const regularMaxHealth = 50.0;

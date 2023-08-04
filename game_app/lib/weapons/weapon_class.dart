@@ -290,6 +290,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
   WeaponSpriteAnimation(this.spriteOffset, this.tipOffset,
       {required this.weaponAnimations,
       required this.weapon,
+      this.flashSize = 2.0,
       this.idleOnly = false,
       required this.parentJoint}) {
     animation = weaponAnimations[WeaponStatus.idle];
@@ -303,7 +304,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
   Vector2 spriteOffset;
   Vector2 tipOffset;
   Weapon weapon;
-
+  double flashSize;
   WeaponStatus currentStatus = WeaponStatus.idle;
 
   Map<dynamic, SpriteAnimation> weaponAnimations;
@@ -337,9 +338,9 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     SpriteAnimation muzzleFlash = weaponAnimations['muzzle_flash']!;
     muzzleFlashComponent = SpriteAnimationComponent(
         animation: muzzleFlash,
-        size: muzzleFlash.frames.first.sprite.srcSize.scaled(
-            parentJoint.weapon!.length /
-                muzzleFlash.frames.first.sprite.srcSize.y),
+        // position: Vector2(0, 0),
+        size: muzzleFlash.frames.first.sprite.srcSize
+            .scaled(flashSize / muzzleFlash.frames.first.sprite.srcSize.y),
         // size: Vector2.all(),
         anchor: Anchor.topCenter,
         priority: attackPriority);

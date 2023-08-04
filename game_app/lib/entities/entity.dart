@@ -74,7 +74,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   // late PositionComponent spriteWrapper;
   // late Shadow3DDecorator shadow3DDecorator;
 
-  bool flipped = false;
+  bool isFlipped = false;
 
   //POSITIONING
 
@@ -267,7 +267,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void spriteFlipCheck() {
     final movement = body.linearVelocity.x;
-    if ((movement > 0 && !flipped) || (movement <= 0 && flipped)) {
+    if ((movement > 0 && !isFlipped) || (movement <= 0 && isFlipped)) {
       flipSprite();
     }
   }
@@ -276,6 +276,6 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     backJoint.flipHorizontallyAroundCenter();
     spriteAnimationComponent.flipHorizontallyAroundCenter();
 
-    flipped = !flipped;
+    isFlipped = !isFlipped;
   }
 }

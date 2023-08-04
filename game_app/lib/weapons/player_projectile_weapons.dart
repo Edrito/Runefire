@@ -42,7 +42,7 @@ class Pistol extends PlayerWeapon
   late CircleComponent circle;
 
   @override
-  double distanceFromPlayer = .3;
+  double distanceFromPlayer = .0;
 
   @override
   FutureOr<void> onLoad() async {
@@ -172,6 +172,9 @@ class LongRangeRifle extends PlayerWeapon
   }
 
   @override
+  Vector2 get tipOffset => Vector2(-0.1, 2.225);
+
+  @override
   void unMapUpgrade() {}
 
   @override
@@ -181,15 +184,16 @@ class LongRangeRifle extends PlayerWeapon
       default:
         return WeaponSpriteAnimation(
           Vector2.all(0),
-          Vector2(-.175, 2.65),
+          tipOffset,
           weaponAnimations: {
             WeaponStatus.attack: await buildSpriteSheet(
-                7, 'weapons/long_rifle_attack.png', .02, false),
+                6, 'weapons/long_rifle_attack.png', .02, false),
             'muzzle_flash': await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false),
+                5, 'weapons/projectiles/magic_muzzle_flash.png', .07, false),
             WeaponStatus.idle: await buildSpriteSheet(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },
+          flashSize: 2.0,
           parentJoint: parentJoint,
           weapon: this,
         );
@@ -203,7 +207,7 @@ class LongRangeRifle extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = .2;
+  double distanceFromPlayer = -.5;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -211,7 +215,7 @@ class LongRangeRifle extends PlayerWeapon
   ];
 
   @override
-  double length = 3.5;
+  double length = 3.0;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -256,7 +260,7 @@ class AssaultRifle extends PlayerWeapon
           Vector2(-.175, 2.65),
           weaponAnimations: {
             WeaponStatus.attack: await buildSpriteSheet(
-                7, 'weapons/long_rifle_attack.png', .02, false),
+                6, 'weapons/long_rifle_attack.png', .02, false),
             'muzzle_flash': await buildSpriteSheet(
                 5, 'weapons/projectiles/fire_muzzle_flash.png', .03, false),
             WeaponStatus.idle: await buildSpriteSheet(
@@ -281,9 +285,6 @@ class AssaultRifle extends PlayerWeapon
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double tipPositionPercent = -.07;
 }
 
 class LaserRifle extends PlayerWeapon
@@ -326,9 +327,9 @@ class LaserRifle extends PlayerWeapon
           Vector2(-.175, 2.65),
           weaponAnimations: {
             WeaponStatus.attack: await buildSpriteSheet(
-                7, 'weapons/long_rifle_attack.png', .02, false),
-            'muzzle_flash': await buildSpriteSheet(
-                5, 'weapons/projectiles/fire_muzzle_flash.png', .1, false),
+                6, 'weapons/long_rifle_attack.png', .02, false),
+            // 'muzzle_flash': await buildSpriteSheet(
+            //     5, 'weapons/projectiles/fire_muzzle_flash.png', .1, false),
             WeaponStatus.idle: await buildSpriteSheet(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },

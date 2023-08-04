@@ -13,6 +13,7 @@ import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/data_classes/base.dart';
+import '../resources/functions/functions.dart';
 import '../resources/functions/vector_functions.dart';
 import '../main.dart';
 import '../resources/enums.dart';
@@ -215,7 +216,7 @@ mixin AimFunctionality on Entity {
   @override
   void spriteFlipCheck() {
     final degree = -degrees(handJoint.angle);
-    if ((degree < 180 && !flipped) || (degree >= 180 && flipped)) {
+    if ((degree < 180 && !isFlipped) || (degree >= 180 && isFlipped)) {
       flipSprite();
     }
   }
@@ -251,10 +252,16 @@ mixin AimFunctionality on Entity {
   void followTarget() {
     final angle = calculateInterpolatedVector(handAngleTarget,
         handJoint.position.normalized(), aimingInterpolationAmount);
-    final double distanceFactor =
-        (Vector2.zero().distanceTo(mouseJoint.position) / 1)
-            .clamp(1, 5)
-            .toDouble();
+    double distanceFactor = 1;
+    if (isPlayer) {
+      const distance = 7.5;
+      distanceFactor = (Curves.easeInOutCubic.transform(
+                  (mouseJoint.position.normalize() / distance).clamp(0, 1)) *
+              distance)
+          .clamp(0, distance)
+          .toDouble();
+    }
+
     handJoint.position =
         angle.normalized() * handPositionFromBody * distanceFactor;
 
@@ -962,7 +969,7 @@ mixin DashFunctionality on StaminaFunctionality {
       BoolParameterManager(baseParameter: false);
 
   final DoubleParameterManager dashDistance =
-      DoubleParameterManager(baseParameter: 5);
+      DoubleParameterManager(baseParameter: 1);
   final DoubleParameterManager dashDuration =
       DoubleParameterManager(baseParameter: .2, minParameter: 0);
   final DoubleParameterManager dashStaminaCost =
@@ -994,10 +1001,25 @@ mixin DashFunctionality on StaminaFunctionality {
     return true;
   }
 
-  void dashInit({double? power, bool weaponSource = false}) {
+  void dashInit({double? power, bool weaponSource = false}) async {
     if (!weaponSource) modifyStamina(-dashStaminaCost.parameter);
 
     power ??= 1;
+
+    buildSpriteSheet(6, 'entity_effects/dash_effect.png', .1, false)
+        .then((value) {
+      final sprite = SpriteAnimationComponent(
+          anchor: Anchor.center,
+          position: Vector2(center.x, center.y + -.3),
+          size: Vector2.all(2),
+          animation: value);
+      if (!isFlipped) {
+        sprite.flipHorizontallyAroundCenter();
+      }
+      sprite.animationTicker?.completed
+          .then((value) => sprite.removeFromParent());
+      gameEnviroment.add(sprite);
+    });
 
     dashDistanceGoal = dashDistance.parameter * power;
     _isDashing = true;

@@ -137,7 +137,169 @@ class Bullet extends Projectile
 
   @override
   void killBullet([bool withEffect = false]) {
-    body.setType(BodyType.static);
+    if (!world.isLocked) {
+      body.setType(BodyType.static);
+    }
+    if (withEffect) {
+      killSprite();
+    } else {
+      removeFromParent();
+    }
+  }
+
+  @override
+  SpriteAnimation? hitAnimation;
+}
+
+class Blast extends Projectile
+    with StandardProjectile, BasicSpriteLifecycle, ProjectileSpriteLifecycle {
+  Blast(
+      {required super.delta,
+      required super.originPosition,
+      required super.weaponAncestor,
+      required this.size,
+      super.power});
+
+  @override
+  double embedIntoEnemyChance = .8;
+
+  @override
+  ProjectileType projectileType = ProjectileType.bullet;
+
+  @override
+  double size;
+
+  @override
+  double ttl = 1.5;
+
+  @override
+  void bodyContact(HealthFunctionality other) {
+    applyHitAnimation(other, center);
+
+    super.bodyContact(other);
+  }
+
+  @override
+  bool isInstant = false;
+
+  @override
+  SpriteAnimation? spawnAnimation;
+
+  @override
+  SpriteAnimation? playAnimation;
+
+  @override
+  SpriteAnimation? endAnimation;
+
+  @override
+  Future<void> onLoad() async {
+    // switch (damageType) {
+    //   case DamageType.physical:
+    //     spawnAnimation = await buildSpriteSheet(
+    //         4,
+    //         'weapons/projectiles/bullets/physical_bullet_spawn.png',
+    //         .02,
+    //         false);
+    //     playAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/physical_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(3,
+    //         'weapons/projectiles/bullets/physical_bullet_end.png', .1, false);
+    //     hitAnimation = await buildSpriteSheet(6,
+    //         'weapons/projectiles/bullets/physical_bullet_hit.png', .02, false);
+    //     break;
+
+    //   case DamageType.energy:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/energy_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/energy_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/energy_bullet_end.png', .1, false);
+    //     hitAnimation = await buildSpriteSheet(
+    //         6, 'weapons/projectiles/bullets/energy_bullet_hit.png', .02, false);
+    //     break;
+
+    //   case DamageType.fire:
+    //     spawnAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/fire_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/fire_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/fire_bullet_end.png', .1, false);
+    //     hitAnimation = await buildSpriteSheet(
+    //         6, 'weapons/projectiles/bullets/fire_bullet_hit.png', .02, false);
+    //     break;
+
+    //   case DamageType.frost:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/frost_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/frost_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/frost_bullet_end.png', .1, false);
+    //     hitAnimation = await buildSpriteSheet(
+    //         6, 'weapons/projectiles/bullets/frost_bullet_hit.png', .02, false);
+    //     break;
+
+    //   case DamageType.magic:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/magic_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/magic_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/magic_bullet_end.png', .1, false);
+    //     hitAnimation = await buildSpriteSheet(
+    //         6, 'weapons/projectiles/bullets/magic_bullet_hit.png', .02, false);
+    //     break;
+
+    //   case DamageType.psychic:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/psychic_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/psychic_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/psychic_bullet_end.png', .1, false);
+    //     hitAnimation = await buildSpriteSheet(6,
+    //         'weapons/projectiles/bullets/psychic_bullet_hit.png', .02, false);
+    //     break;
+    //   case DamageType.healing:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/healing_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/healing_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/healing_bullet_end.png', .1, false);
+    //     hitAnimation = await buildSpriteSheet(6,
+    //         'weapons/projectiles/bullets/healing_bullet_hit.png', .02, false);
+    //     break;
+    // }
+
+    // spawnAnimation = await buildSpriteSheet(
+    //       4,
+    //       'weapons/projectiles/bullets/physical_bullet_spawn.png',
+    //       .02,
+    //       false);
+    playAnimation = await buildSpriteSheet(
+        4,
+        [
+          'weapons/projectiles/blasts/fire_blast_play.png',
+          // 'weapons/projectiles/blasts/fire_blast_play_alt.png'
+        ].getRandomElement(),
+        .1,
+        true);
+    endAnimation = await buildSpriteSheet(
+        4, 'weapons/projectiles/blasts/fire_blast_end.png', .1, false);
+    // hitAnimation = await buildSpriteSheet(6,
+    // 'weapons/projectiles/bullets/physical_bullet_hit.png', .02, false);
+
+    super.onLoad();
+  }
+
+  @override
+  void killBullet([bool withEffect = false]) {
+    if (!world.isLocked) {
+      body.setType(BodyType.static);
+    }
     if (withEffect) {
       killSprite();
     } else {

@@ -180,7 +180,7 @@ class StatusEffect extends PositionComponent {
         size: size,
         anchor: Anchor.center);
 
-    spriteAnimationComponent.size = size * ((level.toDouble() / 10) + 1);
+    spriteAnimationComponent.size = size * ((level.toDouble() / 30) + 1);
     add(spriteAnimationComponent);
     return super.onLoad();
   }

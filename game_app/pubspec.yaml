@@ -55,6 +55,10 @@ flutter:
     - assets/images/weapons/charge/
     - assets/images/weapons/projectiles/
     - assets/images/weapons/projectiles/bullets/
+    - assets/images/weapons/projectiles/blasts/
+
+    - assets/images/entity_effects/
+
 
 
     - assets/images/powerups/

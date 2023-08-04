@@ -111,7 +111,7 @@ class MeleeAttackSprite extends PositionComponent {
             .scaledToDimension(true, handler.parentWeapon.length));
 
     animationComponent?.animation = swingAnimation;
-    if (handler.parentWeapon.entityAncestor!.flipped) {
+    if (handler.parentWeapon.entityAncestor!.isFlipped) {
       animationComponent?.flipHorizontallyAroundCenter();
     }
   }

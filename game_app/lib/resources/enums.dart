@@ -319,7 +319,7 @@ extension ExperienceAmountExtension on ExperienceAmount {
   }
 }
 
-enum ProjectileType { bullet, arrow, laser, fireball }
+enum ProjectileType { bullet, arrow, laser, fireball, blast }
 
 extension ProjectileTypeExtension on ProjectileType {
   BodyComponent generateProjectile(
@@ -347,6 +347,13 @@ extension ProjectileTypeExtension on ProjectileType {
             weaponAncestor: ancestorVar,
             originPosition: originPositionVar,
             delta: delta,
+            power: chargeAmount);
+      case ProjectileType.blast:
+        return Blast(
+            weaponAncestor: ancestorVar,
+            originPosition: originPositionVar,
+            delta: delta,
+            size: 1,
             power: chargeAmount);
 
       default:
