@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
+import 'package:flame_forge2d/contact_callbacks.dart';
 import 'package:flutter/material.dart';
+import 'package:forge2d/src/dynamics/contacts/contact.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
@@ -118,7 +120,7 @@ mixin AttributeFunctionality on Entity {
   }
 }
 
-mixin AttributeFunctionsFunctionality on Entity {
+mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   List<Function> dashBeginFunctions = [];
   List<Function> dashOngoingFunctions = [];
   List<Function> dashEndFunctions = [];
@@ -137,6 +139,20 @@ mixin AttributeFunctionsFunctionality on Entity {
   List<Function(double dt)> onUpdate = [];
 
   @override
+  void beginContact(Object other, Contact contact) {
+    if (other is HealthFunctionality) {
+      touchFunctions(other);
+    }
+    super.beginContact(other, contact);
+  }
+
+  void touchFunctions(HealthFunctionality other) {
+    for (var element in onTouch) {
+      element(other);
+    }
+  }
+
+  @override
   void update(double dt) {
     for (var element in onUpdate) {
       element(dt);
@@ -150,7 +166,7 @@ class StatusEffect extends PositionComponent {
 
   final StatusEffects effect;
   final int level;
-  final double spriteSize = .2;
+  final double spriteSize = .7;
 
   late SpriteAnimationComponent spriteAnimationComponent;
 

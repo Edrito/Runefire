@@ -5,6 +5,8 @@ import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 
+import '../../main.dart';
+
 Future<SpriteAnimation> buildSpriteSheet(
     int numberOfSprites, String source, double stepTime, bool loop,
     [double? scaledToDimension]) async {
@@ -19,6 +21,12 @@ Future<SpriteAnimation> buildSpriteSheet(
       stepTime: stepTime,
       loop: loop,
       to: loop ? null : numberOfSprites);
+}
+
+///Takes a double tuple and returns a random value between the two
+
+double randomBetween((double, double) val) {
+  return (rng.nextDouble() * (val.$2 - val.$1)) + val.$1;
 }
 
 Widget buildImageAsset(String asset,

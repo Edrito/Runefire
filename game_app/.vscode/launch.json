@@ -7,7 +7,13 @@
         {
             "name": "game_app",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+        },
+        {
+            "name": "game_app_verbose",
+            "request": "launch",
+            "type": "dart",
+            "args": ["--verbose"]
         },
         {
             "name": "game_app (profile mode)",

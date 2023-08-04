@@ -185,7 +185,7 @@ class BoolParameterManager {
     return [baseParameter, ..._parameterIncrease.values].fold<int>(
             0,
             (previousValue, element) =>
-                previousValue + ((element) ? 0 : (element ? 1 : -1))) >=
+                previousValue + ((element) ? 0 : (element ? 1 : -1))) >
         0;
   }
 

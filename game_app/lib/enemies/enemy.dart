@@ -37,6 +37,9 @@ abstract class Enemy extends Entity
     if (isDead) {
       contact.setEnabled(collisionOnDeath);
     }
+    if (!collision.parameter) {
+      contact.setEnabled(false);
+    }
     super.preSolve(other, contact, oldManifold);
   }
 

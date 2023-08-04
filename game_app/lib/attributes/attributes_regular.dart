@@ -39,7 +39,7 @@ class ExplosionEnemyDeathAttribute extends Attribute {
   @override
   int get maxLevel => 5;
 
-  double baseSize = .5;
+  double baseSize = 3;
 
   void onKill(HealthFunctionality other) async {
     if (victimEntity == null) return;
@@ -48,7 +48,7 @@ class ExplosionEnemyDeathAttribute extends Attribute {
         position: other.center,
         playAnimation: await buildSpriteSheet(
             61, 'weapons/projectiles/fire_area.png', .05, true),
-        radius: baseSize + increasePercentOfBase(baseSize),
+        size: baseSize + increasePercentOfBase(baseSize),
         isInstant: false,
         duration: victimEntity!.durationPercentIncrease.parameter,
 

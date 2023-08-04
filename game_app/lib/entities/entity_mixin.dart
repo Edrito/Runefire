@@ -100,6 +100,9 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   final DoubleParameterManager damagePercentIncrease =
       DoubleParameterManager(baseParameter: 1);
 
+  final DoubleParameterManager knockBackParameter =
+      DoubleParameterManager(baseParameter: .005);
+
   final DoubleParameterManager meleeDamagePercentIncrease =
       DoubleParameterManager(baseParameter: 1);
 
@@ -637,6 +640,14 @@ mixin HealthFunctionality on Entity {
     )).addToParent(spriteAnimationComponent);
   }
 
+  void applyKnockback(DamageInstance damage) {
+    final amount = (damage.damage / 30).clamp(0, 1);
+    final impulse = knockBackParameter.baseParameter * amount;
+
+    body.applyLinearImpulse(
+        (center - damage.source.center).normalized() * impulse);
+  }
+
   bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
     if (damage.damageMap.isEmpty) return false;
@@ -649,7 +660,7 @@ mixin HealthFunctionality on Entity {
     setEntityStatus(EntityStatus.damage);
     applyIFrameTimer(id);
     applyDamage(damage);
-
+    applyKnockback(damage);
     deathChecker(damage);
     applyStatusEffectChecker(damage, applyStatusEffect);
     essenceStealChecker(damage);
@@ -875,21 +886,12 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
   ///Time interval between damage ticks
 
   void damageOther(Body other) {
+    if (touchDamage.damageBase.isEmpty) return;
     final otherReference = other.userData;
     if (otherReference is! HealthFunctionality) return;
     if ((isPlayer && otherReference is Enemy) ||
         (!isPlayer && otherReference is Player)) {
       otherReference.hitCheck(entityId, calculateTouchDamage);
-      touchFunctions(otherReference);
-    }
-  }
-
-  void touchFunctions(HealthFunctionality other) {
-    if (this is AttributeFunctionsFunctionality) {
-      final attributeFunctions = this as AttributeFunctionsFunctionality;
-      for (var element in attributeFunctions.onTouch) {
-        element(other);
-      }
     }
   }
 

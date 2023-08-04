@@ -1,97 +1,28 @@
-import 'package:flame/components.dart';
-import 'package:flame/palette.dart';
-import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/main.dart';
-import 'package:game_app/weapons/projectile_class.dart';
-// ignore: unused_import
-import 'package:flutter/material.dart';
-import '../enemies/enemy.dart';
-import '../entities/entity_mixin.dart';
-import '../entities/player.dart';
-import '../resources/functions/vector_functions.dart';
-import '../resources/enums.dart';
-import '../resources/constants/physics_filter.dart';
-// ignore: unused_import
 import 'dart:ui' as ui;
 
-mixin StandardProjectile on Projectile {
-  int enemiesHit = 0;
-  abstract double embedIntoEnemyChance;
+import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/material.dart';
+import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/weapons/projectile_class.dart';
+
+import '../enemies/enemy.dart';
+import '../entities/player.dart';
+import '../main.dart';
+import '../resources/constants/physics_filter.dart';
+import '../resources/enums.dart';
+import '../resources/functions/vector_functions.dart';
+
+mixin CanvasTrail on StandardProjectile {
   late int trailCount;
   late int skip;
   List<Vector2> trails = [];
-  double projectileLength = 5;
-
-  void incrementHits() {
-    enemiesHit++;
-    projectileHasExpired = enemiesHit > weaponAncestor.pierce.parameter;
-    if (projectileHasExpired) {
-      killBullet();
-    }
-  }
-
-  late Shape shape;
-
-  void createBodyShape() {
-    shape = CircleShape();
-    shape.radius = size / 2;
-  }
-
-  @override
-  Body createBody() {
-    createBodyShape();
-
-    renderBody = false;
-
-    final bulletFilter = Filter();
-    if (weaponAncestor.entityAncestor is Enemy) {
-      bulletFilter
-        ..maskBits = playerCategory
-        ..categoryBits = attackCategory;
-    } else if (weaponAncestor.entityAncestor is Player) {
-      bulletFilter
-        ..maskBits = enemyCategory
-        ..categoryBits = attackCategory;
-    }
-
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        restitution: 0,
-        friction: 0,
-        density: 0.0000001,
-        isSensor: true,
-        filter: bulletFilter);
-
-    final bodyDef = BodyDef(
-      userData: this,
-      position: originPosition,
-      type: BodyType.dynamic,
-      linearDamping: (5 - (5 * power)).clamp(0, 5),
-      bullet: true,
-      linearVelocity: (delta * weaponAncestor.projectileVelocity.parameter),
-      fixedRotation: !weaponAncestor.allowProjectileRotation,
-    );
-    var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
-
-    if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
-      bulletFilter.categoryBits = sensorCategory;
-      sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
-          userData: {"type": FixtureType.sensor, "object": this},
-          isSensor: true,
-          filter: bulletFilter);
-      returnBody.createFixture(sensorDef!);
-    }
-
-    return returnBody;
-  }
 
   @override
   Future<void> onLoad() {
-    gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
     trailCount = 20;
-
     skip = 2;
-
     add(CircleComponent(
         radius: size / 2,
         anchor: Anchor.center,
@@ -101,9 +32,36 @@ mixin StandardProjectile on Projectile {
   }
 
   @override
+  void update(double dt) {
+    manageTrail();
+    super.update(dt);
+  }
+
+  @override
   void render(Canvas canvas) {
     drawBullet(canvas);
     super.render(canvas);
+  }
+
+  int amountSkipped = 999;
+  Vector2? previousTrailPoint;
+  void manageTrail() {
+    if (amountSkipped < skip) {
+      amountSkipped++;
+      return;
+    }
+    amountSkipped = 0;
+    if (previousTrailPoint == null) {
+      previousTrailPoint = center.clone();
+      return;
+    }
+    trails.insert(0, previousTrailPoint!);
+    trails.insert(0, center.clone());
+    if (trails.length > trailCount) {
+      trails.removeLast();
+      trails.removeLast();
+    }
+    previousTrailPoint = null;
   }
 
   void drawBullet(Canvas canvas) {
@@ -148,21 +106,84 @@ mixin StandardProjectile on Projectile {
         secondPoint.y,
       );
     }
-    // path.quadraticBezierTo(
-    //     firstPoint.dx, firstPoint.dy, secondPoint.dx, secondPoint.dy);
 
     canvas.drawPath(path, linePaint);
+  }
+}
 
-    // canvas.drawLine(Offset.zero, firstPoint, linePaint);
+mixin StandardProjectile on Projectile {
+  int enemiesHit = 0;
+  abstract double embedIntoEnemyChance;
 
-    // canvas.drawLine(firstPoint, secondPoint, linePaint);
-    // canvas.drawPoints(
-    //     PointMode.points,
-    //     trails.fold(
-    //         [],
-    //         (previousValue, element) =>
-    //             [...previousValue, (element - center).toOffset()]),
-    //     linePaint);
+  double projectileLength = 5;
+
+  void incrementHits() {
+    enemiesHit++;
+    projectileHasExpired = enemiesHit > weaponAncestor.pierce.parameter;
+    if (projectileHasExpired) {
+      killBullet();
+    }
+  }
+
+  late Shape shape;
+
+  void createBodyShape() {
+    shape = CircleShape();
+    shape.radius = size * .45;
+  }
+
+  @override
+  Body createBody() {
+    createBodyShape();
+
+    renderBody = false;
+
+    final bulletFilter = Filter();
+    if (weaponAncestor.entityAncestor is Enemy) {
+      bulletFilter
+        ..maskBits = playerCategory
+        ..categoryBits = attackCategory;
+    } else if (weaponAncestor.entityAncestor is Player) {
+      bulletFilter
+        ..maskBits = enemyCategory
+        ..categoryBits = attackCategory;
+    }
+
+    final fixtureDef = FixtureDef(shape,
+        userData: {"type": FixtureType.body, "object": this},
+        restitution: 0,
+        friction: 0,
+        density: 0,
+        isSensor: true,
+        filter: bulletFilter);
+    final bodyDef = BodyDef(
+      userData: this,
+      position: originPosition,
+      type: BodyType.dynamic,
+      linearDamping: (5 - (5 * power)).clamp(0, 5),
+      bullet: true,
+      linearVelocity: (delta * weaponAncestor.projectileVelocity.parameter),
+      fixedRotation: true,
+    );
+    var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
+
+    if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
+      bulletFilter.categoryBits = sensorCategory;
+      sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
+          userData: {"type": FixtureType.sensor, "object": this},
+          isSensor: true,
+          filter: bulletFilter);
+      returnBody.createFixture(sensorDef!);
+    }
+
+    return returnBody;
+  }
+
+  @override
+  Future<void> onLoad() {
+    gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
+
+    return super.onLoad();
   }
 
   HealthFunctionality? target;
@@ -179,30 +200,13 @@ mixin StandardProjectile on Projectile {
   void update(double dt) {
     if (target != null) {
       home(target!, dt);
+    } else if (body.linearVelocity.isZero()) {
+      body.applyLinearImpulse(
+        (Vector2.random() * 2) -
+            Vector2.all(1) * weaponAncestor.projectileVelocity.parameter,
+      );
     }
-    manageTrail();
     super.update(dt);
-  }
-
-  int amountSkipped = 999;
-  Vector2? previousTrailPoint;
-  void manageTrail() {
-    if (amountSkipped < skip) {
-      amountSkipped++;
-      return;
-    }
-    amountSkipped = 0;
-    if (previousTrailPoint == null) {
-      previousTrailPoint = center.clone();
-      return;
-    }
-    trails.insert(0, previousTrailPoint!);
-    trails.insert(0, center.clone());
-    if (trails.length > trailCount) {
-      trails.removeLast();
-      trails.removeLast();
-    }
-    previousTrailPoint = null;
   }
 
   @override
@@ -243,20 +247,22 @@ mixin StandardProjectile on Projectile {
     closetPosition = other.center;
 
     setDelta((closetPosition - body.worldCenter).normalized());
-    final impulse = (delta * weaponAncestor.projectileVelocity.parameter) *
-        dt *
-        .000005 *
-        target!.center.distanceTo(center).clamp(.5, 3);
-    body.applyForce(impulse);
+    final impulse = (delta * weaponAncestor.projectileVelocity.parameter);
+
+    body.applyLinearImpulse(impulse);
 
     if (other.isDead) setTarget(null);
   }
 
   void homingCheck(HealthFunctionality other) {
-    if (weaponAncestor.weaponCanHome && !homingComplete) {
+    if (weaponAncestor.weaponCanHome &&
+        !homingComplete &&
+        !hitIds.contains(other.entityId)) {
       setTarget(other);
-
-      homingComplete = true;
+      homedTargets++;
+      if (homedTargets > weaponAncestor.maxHomingTargets.parameter) {
+        homingComplete = true;
+      }
     }
   }
 }
@@ -266,6 +272,15 @@ mixin LaserProjectile on Projectile {
   List<Vector2> lineThroughEnemies = [];
   List<Vector2> boxThroughEnemies = [];
   late Shape laserShape;
+  double precisionPerDistance = .5;
+
+  bool startChaining = false;
+  double timePassed = 0;
+  abstract final double baseWidth;
+  late double width;
+
+  Color get backColor => damageType.color.brighten(.6);
+  Color get frontColor => damageType.color;
 
   @override
   Body createBody() {
@@ -291,7 +306,6 @@ mixin LaserProjectile on Projectile {
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      // linearVelocity: delta * rng.nextDouble() * 2,
       type: BodyType.dynamic,
       bullet: false,
     );
@@ -302,17 +316,16 @@ mixin LaserProjectile on Projectile {
   }
 
   bool infrontWeaponCheck(Body element) {
-    return element.userData is Enemy &&
-        !(element.userData as Enemy).isDead &&
-        isEntityInfrontOfHandAngle(element.position, originPosition, delta);
+    if (weaponAncestor.entityAncestor!.isPlayer) {
+      return element.userData is Enemy &&
+          !(element.userData as Enemy).isDead &&
+          isEntityInfrontOfHandAngle(element.position, originPosition, delta);
+    } else {
+      return element.userData is Player &&
+          !(element.userData as Player).isDead &&
+          isEntityInfrontOfHandAngle(element.position, originPosition, delta);
+    }
   }
-
-  double precisionPerDistance = .5;
-
-  bool startChaining = false;
-
-  abstract final double baseWidth;
-  late double width;
 
   void homingAndChainCalculations() {
     double distance = weaponAncestor.projectileVelocity.parameter;
@@ -335,14 +348,30 @@ mixin LaserProjectile on Projectile {
 
     final pointStep = distance / amountOfPoints;
 
-    amountOfPoints = (amountOfPoints * .666) + amountOfPoints * .333;
+    amountOfPoints = (amountOfPoints * .666) + (amountOfPoints * .333);
 
     startChaining =
         weaponAncestor.weaponCanHome && weaponAncestor.weaponCanChain;
 
+    Vector2 previousStep = Vector2.zero();
+
     for (var i = 0; i < amountOfPoints; i++) {
       Body? bodyToJumpTo;
-      Vector2 newPointPosition;
+
+      Vector2 newPointPosition = ((delta * pointStep) + previousStep);
+
+      if (weaponAncestor.weaponCanChain && !startChaining) {
+        for (var element in bodies) {
+          if ((element.position).distanceTo(newPointPosition + originPosition) <
+              closeBodySensorRadius) {
+            startChaining = true;
+            break;
+          }
+        }
+      }
+
+      previousStep = newPointPosition.clone();
+
       bool shouldChain =
           chainedTargets < weaponAncestor.maxChainingTargets.parameter &&
               startChaining;
@@ -350,7 +379,7 @@ mixin LaserProjectile on Projectile {
       //if should be bouncing, bounce
       if (!homingComplete || shouldChain) {
         for (var element in bodies) {
-          if ((element.position - originPosition).distanceTo(previousDelta) <
+          if ((element.position).distanceTo(newPointPosition + originPosition) <
               closeBodySensorRadius) {
             bodyToJumpTo = element;
             break;
@@ -366,19 +395,8 @@ mixin LaserProjectile on Projectile {
         bodies.remove(bodyToJumpTo);
 
         chainedTargets++;
+        homedTargets++;
         homingComplete = true;
-      } else {
-        newPointPosition = ((delta * pointStep) + previousDelta);
-      }
-
-      if (weaponAncestor.weaponCanChain && !startChaining) {
-        for (var element in bodies) {
-          if ((element.position - originPosition).distanceTo(newPointPosition) <
-              3) {
-            startChaining = true;
-            break;
-          }
-        }
       }
 
       lineThroughEnemies.add(newPointPosition);
@@ -388,16 +406,18 @@ mixin LaserProjectile on Projectile {
 
   @override
   Future<void> onLoad() async {
-    // circleComponent = CircleComponent(
-    //     radius: .3, anchor: Anchor.center, paint: BasicPalette.red.paint());
-    // add(circleComponent);
-
     width = (power * baseWidth * .4) + baseWidth * .15;
     lineThroughEnemies.add(previousDelta);
 
     if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
       homingAndChainCalculations();
-    } else {
+    }
+
+    lineThroughEnemies = [...lineThroughEnemies.toSet().toList()];
+    if (lineThroughEnemies.length < 3) {
+      if (lineThroughEnemies.length == 2) {
+        lineThroughEnemies.removeLast();
+      }
       double distance = weaponAncestor.projectileVelocity.parameter;
       distance = (distance * .1 * power) + distance * .333;
       lineThroughEnemies.add(((delta * distance * .333) + previousDelta));
@@ -407,16 +427,17 @@ mixin LaserProjectile on Projectile {
 
     boxThroughEnemies =
         expandToBox(lineThroughEnemies, width / 2).toSet().toList();
+
     boxThroughEnemies = validateChainDistances(boxThroughEnemies);
+
     return super.onLoad();
   }
 
-  double timePassed = 0;
-
   @override
-  double get opacity => (1 - ((timePassed - fadeOutDuration) / fadeOutDuration))
-      .clamp(0, 1)
-      .toDouble();
+  double get opacity => Curves.easeInCirc.transform(
+      (1 - ((timePassed - fadeOutDuration) / fadeOutDuration))
+          .clamp(0, 1)
+          .toDouble());
 
   @override
   void update(double dt) {
@@ -427,7 +448,6 @@ mixin LaserProjectile on Projectile {
   @override
   void render(Canvas canvas) {
     var path = Path();
-    var paint = BasicPalette.lightBlue.paint();
     paint.strokeWidth = width;
     paint.style = PaintingStyle.stroke;
     paint.strokeCap = StrokeCap.butt;
@@ -440,11 +460,11 @@ mixin LaserProjectile on Projectile {
         path,
         paint
           ..strokeWidth = width * opacity
-          ..color = Colors.lightBlue.shade100.withOpacity(opacity));
+          ..color = backColor.withOpacity(opacity));
     canvas.drawPath(
         path,
         paint
           ..strokeWidth = width * .6 * opacity
-          ..color = Colors.lightBlue.shade300.withOpacity(opacity));
+          ..color = frontColor.withOpacity(opacity));
   }
 }

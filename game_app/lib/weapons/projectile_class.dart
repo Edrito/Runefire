@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:flame/effects.dart';
-import 'package:flutter/widgets.dart';
+import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flame/components.dart';
@@ -20,9 +19,13 @@ abstract class Projectile extends BodyComponent<GameRouter>
       required this.weaponAncestor,
       this.power = 1}) {
     projectileId = const Uuid().v4();
+    damageType =
+        weaponAncestor.baseDamage.damageBase.keys.toList().getRandomElement();
   }
 
-  double fadeOutDuration = .2;
+  late DamageType damageType;
+
+  double fadeOutDuration = .4;
   late String projectileId;
   Random rng = Random();
   double durationPassed = 0;
@@ -57,6 +60,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   //Attributes
   double power;
   int chainedTargets = 0;
+  int homedTargets = 0;
 
   FixtureDef? sensorDef;
 
@@ -126,7 +130,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
     projectileDeathTimer = TimerComponent(
       period: ttl,
       onTick: () {
-        killBullet();
+        killBullet(true);
       },
     );
     add(projectileDeathTimer!);
@@ -141,16 +145,8 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void killBullet([bool withEffect = false]) async {
-    if (withEffect) {
-      add(OpacityEffect.fadeOut(EffectController(
-        duration: fadeOutDuration,
-        curve: Curves.ease,
-        onMax: () {
-          removeFromParent();
-        },
-      )));
-    } else {
-      removeFromParent();
-    }
+    body.setType(BodyType.static);
+
+    removeFromParent();
   }
 }

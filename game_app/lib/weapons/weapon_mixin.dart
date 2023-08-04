@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
-import 'package:flame/palette.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +15,7 @@ import 'package:game_app/weapons/weapon_class.dart';
 import 'package:recase/recase.dart';
 
 import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/functions.dart';
 import '../resources/functions/vector_functions.dart';
 import '../resources/enums.dart';
 
@@ -211,7 +211,7 @@ mixin MeleeFunctionality on Weapon {
       ));
     }
 
-    entityAncestor?.gameEnviroment.physicsComponent.addAll(returnList);
+    entityAncestor?.enviroment.physicsComponent.addAll(returnList);
     meleeAttacksCompletedIndex++;
   }
 
@@ -237,8 +237,7 @@ mixin MeleeFunctionality on Weapon {
     currentSwingPosition = Vector2.zero();
 
     if (this is SemiAutomatic) {
-      holdDurationPercent =
-          (this as SemiAutomatic).holdDurationPercentOfAttackRate;
+      holdDurationPercent = (this as SemiAutomatic).holdDurationPercent;
     }
 
     attackOnAnimationFinish
@@ -335,8 +334,7 @@ mixin ProjectileFunctionality on Weapon {
   @override
   void attackAttempt([double holdDurationPercent = 1]) async {
     if (this is SemiAutomatic) {
-      holdDurationPercent =
-          (this as SemiAutomatic).holdDurationPercentOfAttackRate;
+      holdDurationPercent = (this as SemiAutomatic).holdDurationPercent;
     }
     attackOnAnimationFinish
         ? await setWeaponStatus(WeaponStatus.attack)
@@ -351,7 +349,7 @@ mixin ProjectileFunctionality on Weapon {
   void shootProjectile([double chargeAmount = 1]) {
     entityAncestor?.enviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
-    entityAncestor?.enviroment.add(generateParticle());
+    // entityAncestor?.enviroment.add(generateParticle());
 
     entityAncestor?.handJoint.weaponSpriteAnimation?.add(RotateEffect.to(
         (entityAncestor?.handJoint.weaponSpriteAnimation?.angle ?? 0) +
@@ -447,6 +445,207 @@ mixin ProjectileFunctionality on Weapon {
   }
 }
 
+// enum ChargeEffectType { circ, level }
+
+mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
+  SpriteAnimation? spawnAnimation;
+  SpriteAnimation? chargedAnimation;
+  SpriteAnimation? playAnimation;
+  SpriteAnimation? endAnimation;
+
+  SpriteAnimationComponent? chargeAnimation;
+
+  late DamageType damageType;
+
+  double chargeSize = .5;
+
+  @override
+  double get particleLifespan => .2;
+
+  Curve get holdDurationCurve => Curves.easeIn;
+  double get holdDurationPercentWithCurve =>
+      holdDurationCurve.transform(holdDurationPercent);
+
+  Future<void> buildAnimations() async {
+    // switch (damageType) {
+    //   case DamageType.physical:
+    //     spawnAnimation = await buildSpriteSheet(
+    //         4,
+    //         'weapons/projectiles/bullets/physical_bullet_spawn.png',
+    //         .02,
+    //         false);
+    //     playAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/physical_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(3,
+    //         'weapons/projectiles/bullets/physical_bullet_end.png', .1, false);
+
+    //     break;
+
+    //   case DamageType.energy:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/energy_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/energy_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/energy_bullet_end.png', .1, false);
+
+    //     break;
+
+    //   case DamageType.fire:
+    //     spawnAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/fire_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/fire_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/fire_bullet_end.png', .1, false);
+
+    //     break;
+
+    //   case DamageType.frost:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/frost_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/frost_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/frost_bullet_end.png', .1, false);
+
+    //     break;
+
+    //   case DamageType.magic:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/magic_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(
+    //         4, 'weapons/projectiles/bullets/magic_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/magic_bullet_end.png', .1, false);
+
+    //     break;
+
+    //   case DamageType.psychic:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/psychic_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/psychic_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/psychic_bullet_end.png', .1, false);
+
+    //     break;
+    //   case DamageType.healing:
+    //     spawnAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/healing_bullet_spawn.png', .02, false);
+    //     playAnimation = await buildSpriteSheet(4,
+    //         'weapons/projectiles/bullets/healing_bullet_play.png', .02, true);
+    //     endAnimation = await buildSpriteSheet(
+    //         3, 'weapons/projectiles/bullets/healing_bullet_end.png', .1, false);
+
+    //     break;
+    // }
+
+    // spawnAnimation = await buildSpriteSheet(
+    //           4,
+    //           'weapons/projectiles/bullets/physical_bullet_spawn.png',
+    //           .02,
+    //           false);
+    playAnimation = await buildSpriteSheet(
+        3, 'weapons/charge/fire_charge_play.png', .1, true);
+    endAnimation = await buildSpriteSheet(
+        4, 'weapons/charge/fire_charge_end.png', .07, false);
+    spawnAnimation = await buildSpriteSheet(
+        5, 'weapons/charge/fire_charge_spawn.png', .01, false);
+    chargedAnimation = await buildSpriteSheet(
+        6, 'weapons/charge/fire_charge_charged.png', .05, false);
+    // endAnimation = await buildSpriteSheet(3,
+    //     'weapons/projectiles/bullets/physical_bullet_end.png', .1, false);
+  }
+
+  @override
+  void startAttacking() async {
+    damageType = baseDamage.damageBase.keys.toList().getRandomElement();
+    await buildAnimations();
+    spawnAnimation?.stepTime =
+        attackTickRate.parameter / (spawnAnimation?.frames.length ?? 1);
+
+    if (semiAutoType != SemiAutoType.regular) {
+      chargeAnimation = SpriteAnimationComponent(
+          size: Vector2.all(chargeSize),
+          anchor: Anchor.center,
+          animation: spawnAnimation ?? playAnimation)
+        ..addToParent(
+            weaponAttachmentPoints[WeaponSpritePosition.hand]!.weaponTip!);
+
+      if (spawnAnimation == null) {
+        chargeAnimation?.size = Vector2.zero();
+        chargeAnimation?.add(SizeEffect.to(
+            Vector2.all(chargeSize),
+            EffectController(
+                duration: attackTickRate.parameter, curve: Curves.bounceIn)));
+      } else {
+        chargeAnimation?.animationTicker?.completed
+            .then((value) => chargeCompleted());
+      }
+    }
+
+    super.startAttacking();
+  }
+
+  void chargeCompleted() {
+    chargeAnimation?.animation = playAnimation;
+    if (chargedAnimation != null) {
+      chargeAnimation?.add(SpriteAnimationComponent(
+        anchor: Anchor.center,
+        position: Vector2.all(chargeSize / 2),
+        size: Vector2.all(chargeSize * 2.5),
+        animation: chargedAnimation,
+      ));
+    }
+  }
+
+  @override
+  void update(double dt) {
+    if (isAttacking) {
+      addParticles(.5);
+    }
+    super.update(dt);
+  }
+
+  @override
+  void endAttacking() {
+    final spriteComponent = chargeAnimation;
+    if (endAnimation != null) {
+      spriteComponent?.animation = endAnimation;
+      spriteComponent?.animationTicker?.completed
+          .then((value) => spriteComponent.removeFromParent());
+    } else {
+      spriteComponent?.removeFromParent();
+    }
+    super.endAttacking();
+  }
+
+  Component generateChargeParticle(double percent) {
+    // Vector2 moveDelta = entityAncestor?.body.linearVelocity ?? Vector2.zero();
+    var particleColor = damageType.color;
+    final particle = Particle.generate(
+      count: (1 + rng.nextInt(3) * percent).round(),
+      lifespan: 2,
+      applyLifespanToChildren: false,
+      generator: (i) => AcceleratedParticle(
+        position: weaponTipPosition! + Vector2.zero(),
+        speed: ((Vector2.random() * 4) - Vector2.all(2)) * percent,
+        child: FadeOutCircleParticle(
+            radius: .04 * ((rng.nextDouble() * .9) + .1),
+            paint: Paint()..color = particleColor,
+            lifespan: (particleLifespan * rng.nextDouble()) + particleLifespan),
+      ),
+    );
+
+    return ParticleSystemComponent(particle: particle);
+  }
+
+  void addParticles(double percent) {
+    entityAncestor?.enviroment.add(generateChargeParticle(percent));
+  }
+}
+
 mixin SemiAutomatic on Weapon {
   bool isAttacking = false;
 
@@ -460,10 +659,9 @@ mixin SemiAutomatic on Weapon {
 
   TimerComponent? attackTimer;
 
-  double get holdDurationPercentOfAttackRate =>
-      semiAutoType == SemiAutoType.charge
-          ? ui.clampDouble(durationHeld / chargeLength, 0, 1)
-          : 1;
+  double get holdDurationPercent => semiAutoType == SemiAutoType.regular
+      ? 1
+      : ui.clampDouble(durationHeld / chargeLength, 0, 1);
 
   @override
   void update(double dt) {
@@ -586,79 +784,6 @@ mixin FullAutomatic on Weapon {
         }
       },
     )..addToParent(this);
-  }
-}
-
-mixin MeleeTrailEffect on MeleeFunctionality {
-  Map<MeleeAttackHandler, (List<Vector2>, List<Vector2>)> behindEffects = {};
-
-  final double baseBeginPercent = .4;
-
-  @override
-  void render(Canvas canvas) {
-    if (attacksAreActive) {
-      for (var element in activeSwings) {
-        if (!behindEffects.containsKey(element)) {
-          behindEffects[element] = (
-            [
-              newPosition(
-                      element.currentSwing.absolutePosition,
-                      -degrees(element.currentSwing.angle),
-                      length * baseBeginPercent)
-                  .clone()
-            ],
-            [
-              newPosition(element.currentSwing.absolutePosition,
-                      -degrees(element.currentSwing.angle), length)
-                  .clone()
-            ]
-          );
-        } else {
-          {
-            behindEffects[element] = (
-              [
-                ...behindEffects[element]!.$1,
-                newPosition(
-                        element.currentSwing.absolutePosition,
-                        -degrees(element.currentSwing.angle),
-                        length * baseBeginPercent)
-                    .clone(),
-              ],
-              [
-                ...behindEffects[element]!.$2,
-                newPosition(element.currentSwing.absolutePosition,
-                        -degrees(element.currentSwing.angle), length)
-                    .clone(),
-              ]
-            );
-          }
-        }
-      }
-      behindEffects.removeWhere((key, value) => !activeSwings.contains(key));
-    } else {
-      behindEffects.clear();
-    }
-
-    for (var element in behindEffects.entries) {
-      List<Offset> offsets = [];
-
-      for (var i = 0; i < element.value.$1.length - 1; i++) {
-        offsets.add(element.value.$1.elementAt(i).toOffset());
-        offsets.add(element.value.$2.elementAt(i).toOffset());
-      }
-      if (offsets.isEmpty) return;
-
-      canvas.drawVertices(
-          ui.Vertices(VertexMode.triangleStrip, offsets),
-          BlendMode.color,
-          BasicPalette.red.paint()
-            ..style = PaintingStyle.fill
-            ..shader = ui.Gradient.linear(offsets.first, offsets.last,
-                [Colors.transparent, Colors.yellow])
-            ..strokeWidth = 0);
-    }
-
-    super.render(canvas);
   }
 }
 

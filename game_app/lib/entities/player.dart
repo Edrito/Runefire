@@ -74,6 +74,14 @@ class Player extends Entity
     super.onRemove();
   }
 
+  @override
+  void preSolve(Object other, Contact contact, Manifold oldManifold) {
+    if (!collision.parameter) {
+      contact.setEnabled(false);
+    }
+    super.preSolve(other, contact, oldManifold);
+  }
+
   late MouseKeyboardCallbackWrapper mouseCallbackWrapper;
 
   late final CircleComponent circleComponent;

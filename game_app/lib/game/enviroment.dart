@@ -34,8 +34,11 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   late final World gameWorld;
   late CameraComponent gameCamera;
 
+  int children2 = 0;
   void printChildren(var children) {
-    for (var element in children) {
+    for (Component element in children) {
+      // print(element);
+      children2++;
       printChildren(element.children);
     }
   }
@@ -55,9 +58,19 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     }
   }
 
+  double seconds = 5;
+  double time = 0;
+
   @override
   // ignore: unnecessary_overrides
   void update(double dt) {
+    // time += dt;
+    // if (time > seconds) {
+    //   time = 0;
+    //   printChildren(children);
+    //   // print(children2);
+    //   children2 = 0;
+    // }
     super.update(dt);
   }
 

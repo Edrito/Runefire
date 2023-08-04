@@ -191,7 +191,7 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
       weapon?.entityAncestor?.gameEnviroment.physicsComponent.add(AreaEffect(
         sourceEntity: weapon!.entityAncestor!,
         position: element.center,
-        radius: 5,
+        size: 5,
         isInstant: true,
         duration: 5,
         onTick: (entity, areaId) {

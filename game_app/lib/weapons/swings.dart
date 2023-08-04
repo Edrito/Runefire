@@ -282,7 +282,7 @@ class MeleeAttackHandler extends Component {
     target = parentWeapon.entityAncestor;
     initSwing(initAngle, initPosition);
     hitbox = MeleeAttackHitbox(hitboxSize, this, onHitFunction);
-    parentWeapon.entityAncestor?.gameEnviroment.physicsComponent.add(hitbox!);
+    parentWeapon.entityAncestor?.enviroment.physicsComponent.add(hitbox!);
 
     return super.onLoad();
   }

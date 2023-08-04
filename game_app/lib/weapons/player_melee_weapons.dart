@@ -6,6 +6,7 @@ import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
+import 'package:game_app/weapons/weapon_visual_mixin.dart';
 
 import '../entities/entity_mixin.dart';
 import '../resources/functions/functions.dart';

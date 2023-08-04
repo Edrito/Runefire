@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
-import 'package:game_app/resources/game_state_class.dart';
 
 import 'event_management.dart';
 import '../game/hud.dart';
@@ -18,7 +17,6 @@ import '../resources/functions/custom_follow_behavior.dart';
 import '../resources/functions/custom_joystick.dart';
 import '../main.dart';
 import '../resources/enums.dart';
-import '../menus/overlays.dart';
 import '../resources/constants/priorities.dart';
 
 import '../resources/functions/functions.dart';
@@ -318,7 +316,7 @@ mixin PauseOnFocusLost on Enviroment {
   }
 
   void onWindowBlur() {
-    gameState.pauseGame(pauseMenu.key, wipeMovement: true);
+    // gameState.pauseGame(pauseMenu.key, wipeMovement: true);
   }
 }
 

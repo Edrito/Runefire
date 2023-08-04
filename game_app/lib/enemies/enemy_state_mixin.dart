@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:game_app/main.dart';
 
+import '../resources/functions/functions.dart';
 import 'enemy.dart';
 import '../entities/entity_mixin.dart';
 
@@ -9,17 +10,20 @@ typedef FutureFunction = Future Function();
 
 class EnemyState {
   // Constructor
-  EnemyState(this.stateManagedAI,
-      {required this.priority,
-      required this.randomFunctions,
-      required this.stateDuration,
-      required this.triggerFunctions,
-      this.onStateStart,
-      this.onStateEnd,
-      this.preventDoubleRandomFunction = false,
-      this.minimumTimePassedBeforeStateChange = 3,
-      this.randomEventTimeFrame = (5, 8),
-      this.finalState = false});
+  EnemyState(
+    this.stateManagedAI, {
+    required this.priority,
+    required this.randomFunctions,
+    required this.stateDuration,
+    required this.triggerFunctions,
+    this.onStateStart,
+    this.onStateEnd,
+    this.preventDoubleRandomFunction = true,
+    this.minimumTimePassedBeforeStateChange = 3,
+    this.randomEventTimeFrame = (5, 8),
+    this.finalState = false,
+    this.isBaseState = false,
+  });
 
   // Properties
   final int priority;
@@ -27,12 +31,13 @@ class EnemyState {
   final List<TriggerFunction> triggerFunctions;
   final List<FutureFunction> randomFunctions;
   final (double, double) randomEventTimeFrame;
-  final double stateDuration;
+  final (double, double) stateDuration;
   final bool preventDoubleRandomFunction;
   final double minimumTimePassedBeforeStateChange;
   final Function? onStateStart;
   final Function? onStateEnd;
   final bool finalState;
+  final bool isBaseState;
 
   TimerComponent? stateEventTimer;
   late TimerComponent stateDurationTimer;
@@ -43,9 +48,9 @@ class EnemyState {
 
   /// Check if the state can be started based on trigger functions and duration check.
   bool canStart() =>
-      triggerFunctions.fold<bool>(true,
-          (previousValue, elementD) => previousValue && elementD.call()) &&
-      durationPassedCheck();
+      durationPassedCheck() &&
+      triggerFunctions.fold<bool>(
+          true, (previousValue, elementD) => previousValue && elementD.call());
 
   /// Initialize the event timer to call random functions periodically.
   void initEventTimer() {
@@ -64,7 +69,7 @@ class EnemyState {
 
   void initDurationTimer() {
     stateDurationTimer = TimerComponent(
-      period: stateDuration,
+      period: randomBetween(stateDuration),
       onTick: () {
         onStateEndCall();
       },
@@ -74,14 +79,14 @@ class EnemyState {
 
   /// Call the onStateStart function and start the event timer.
   Future<void> onStateStartCall() async {
-    if (stateDuration != 0) {
+    if (stateDuration.$2 != 0) {
       initDurationTimer();
       initEventTimer();
     }
 
     onStateStart?.call();
 
-    if (stateDuration == 0) {
+    if (stateDuration.$2 == 0 && !isBaseState) {
       await callRandomFunction(preventDoubleRandomFunction);
       onStateEndCall();
     }
@@ -146,22 +151,25 @@ mixin StateManagedAI
   double durationSincePreviousStateChange = 0;
   final double period = .1;
   late TimerComponent stateCheckerTimer;
-  final double minimumTimeBeforeStateChange = 1;
+  final double minimumTimeBeforeStateChange = 3;
   bool firstStateChangeCompleted = false;
 
   ///Every [period] seconds, this function will be called. It will check if the state should be changed
   ///If the state should be changed, it will change the state
   void stateChecker() {
+    final activeState = enemyStates[currentState ?? -1];
     if (durationSincePreviousStateChange < minimumTimeBeforeStateChange &&
             firstStateChangeCompleted ||
-        (enemyStates[currentState ?? -1]?.finalState ?? false)) return;
+        (activeState?.finalState ?? false) ||
+        (activeState?.stateDurationTimer.timer.isRunning() ?? false) ||
+        isDead) return;
 
     var enemyStatesList = enemyStates.entries
         .where((element) => element.key != currentState)
         .map((e) => e.value)
         .toList();
 
-    enemyStatesList.sort((a, b) => a.priority.compareTo(b.priority));
+    enemyStatesList.sort((b, a) => a.priority.compareTo(b.priority));
 
     //For the first state, it will always be the lowest priority, as higher priority states
     //will normally be final stages of boss fights (priority) is there to prevent
@@ -171,7 +179,7 @@ mixin StateManagedAI
     }
 
     for (var element in enemyStatesList) {
-      if (element.canStart() || !firstStateChangeCompleted) {
+      if ((element.canStart() || !firstStateChangeCompleted)) {
         enemyStates[currentState ?? -1]?.onStateEndCall();
         currentState =
             enemyStates.keys.firstWhere((key) => enemyStates[key] == element);

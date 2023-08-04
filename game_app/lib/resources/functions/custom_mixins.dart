@@ -1,8 +1,17 @@
+import 'dart:async';
+
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/palette.dart';
 import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/functions/vector_functions.dart';
+
+import '../../entities/entity.dart';
+import '../../weapons/projectile_mixin.dart';
 
 mixin HasOpacityProvider on Component {
   final Paint _paint = BasicPalette.transparent.paint();
@@ -139,4 +148,84 @@ mixin UpgradeFunctions {
   void unMapUpgrade() {}
 
   bool upgradeApplied = false;
+}
+
+mixin ProjectileSpriteLifecycle on StandardProjectile, BasicSpriteLifecycle {
+  abstract SpriteAnimation? hitAnimation;
+
+  void changeSpriteAngle() {
+    final rad = -radiansBetweenPoints(Vector2(0, 1), delta);
+
+    spriteAnimationComponent?.angle = rad;
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    changeSpriteAngle();
+  }
+
+  @override
+  void home(HealthFunctionality other, double dt) {
+    changeSpriteAngle();
+    super.home(other, dt);
+  }
+
+  void applyHitAnimation(Entity other, Vector2 position) {
+    if (hitAnimation == null) return;
+    other.add(ParticleSystemComponent(
+        particle: SpriteAnimationParticle(
+            size: Vector2.all(.7),
+            animation: hitAnimation!,
+            lifespan: .35,
+            position: position - other.center)));
+  }
+}
+
+mixin BasicSpriteLifecycle on Component {
+  abstract SpriteAnimation? spawnAnimation;
+  abstract SpriteAnimation? playAnimation;
+  abstract SpriteAnimation? endAnimation;
+  abstract double size;
+
+  abstract bool isInstant;
+  SpriteAnimationComponent? spriteAnimationComponent;
+
+  @override
+  Future<void> onLoad() async {
+    spawnAnimation ??= playAnimation;
+    spriteAnimationComponent = SpriteAnimationComponent(
+      animation: spawnAnimation ?? playAnimation,
+      anchor: Anchor.center,
+      size: Vector2.all(size),
+    );
+
+    add(spriteAnimationComponent!);
+    if (!isInstant) {
+      spriteAnimationComponent!.animationTicker?.onComplete = () {
+        spriteAnimationComponent!.animation = playAnimation;
+      };
+    }
+    return super.onLoad();
+  }
+
+  Future<void> killSprite() async {
+    if (endAnimation != null) {
+      spriteAnimationComponent?.animation = endAnimation;
+      spriteAnimationComponent?.animationTicker?.onComplete = () {
+        removeFromParent();
+      };
+      await spriteAnimationComponent?.animationTicker?.completed;
+    } else {
+      final controller = EffectController(
+        curve: Curves.easeInCubic,
+        duration: .5,
+        onMax: () {
+          removeFromParent();
+        },
+      );
+      spriteAnimationComponent?.add(OpacityEffect.fadeOut(controller));
+      await Future.delayed(controller.duration!.seconds);
+    }
+  }
 }

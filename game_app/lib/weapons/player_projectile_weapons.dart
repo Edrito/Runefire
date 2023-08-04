@@ -18,10 +18,11 @@ class Pistol extends PlayerWeapon
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.physical] = (7, 10);
+    baseDamage.damageBase[DamageType.magic] = (7, 10);
     maxAttacks.baseParameter = 8;
     projectileVelocity.baseParameter = 30;
     attackTickRate.baseParameter = .3;
+    maxHomingTargets.baseParameter = 1;
     pierce.baseParameter = 2;
   }
 
@@ -257,7 +258,7 @@ class AssaultRifle extends PlayerWeapon
             WeaponStatus.attack: await buildSpriteSheet(
                 7, 'weapons/long_rifle_attack.png', .02, false),
             'muzzle_flash': await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false),
+                5, 'weapons/projectiles/fire_muzzle_flash.png', .03, false),
             WeaponStatus.idle: await buildSpriteSheet(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },
@@ -286,7 +287,11 @@ class AssaultRifle extends PlayerWeapon
 }
 
 class LaserRifle extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        SemiAutomatic,
+        ChargeEffect {
   LaserRifle.create(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -296,6 +301,7 @@ class LaserRifle extends PlayerWeapon
     attackTickRate.baseParameter = .4;
     waitForAttackRate = false;
     weaponRandomnessPercent.baseParameter = .04;
+    maxChainingTargets.baseParameter = 4;
   }
   @override
   WeaponType weaponType = WeaponType.laserRifle;
@@ -322,7 +328,7 @@ class LaserRifle extends PlayerWeapon
             WeaponStatus.attack: await buildSpriteSheet(
                 7, 'weapons/long_rifle_attack.png', .02, false),
             'muzzle_flash': await buildSpriteSheet(
-                1, 'weapons/muzzle_flash.png', .2, false),
+                5, 'weapons/projectiles/fire_muzzle_flash.png', .1, false),
             WeaponStatus.idle: await buildSpriteSheet(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },

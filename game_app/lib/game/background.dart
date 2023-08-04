@@ -163,12 +163,14 @@ class _CaveBackgroundState extends State<CaveBackground> {
   MenuPageType? selectedMenuPage;
   bool get menuPageIsLevel => gameState.menuPageIsLevel;
 
+  final bigPortalSize = 1.0;
+  final smallPortalSize = .7;
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final smallestDimension =
         size.width < size.height ? size.width : size.height;
-    final portalSize = smallestDimension * .7;
 
     selectedMenuPage = gameState.currentMenuPage;
     selectedLevel = gameState.playerData.selectedLevel;
@@ -177,6 +179,9 @@ class _CaveBackgroundState extends State<CaveBackground> {
     Widget buildWidget(BuildContext context, double value, Widget child) {
       final portalColor =
           gameState.basePortalColor.mergeWith(gameState.portalColor(), value);
+
+      final portalSize = (smallestDimension * smallPortalSize) +
+          (smallestDimension * (bigPortalSize - smallPortalSize) * value);
 
       Widget ring = Stack(
         alignment: Alignment.center,
@@ -220,7 +225,10 @@ class _CaveBackgroundState extends State<CaveBackground> {
               onComplete: (controller) {
                 controller.forward(from: 0);
               },
-            ).rotate(begin: 0, end: 1, duration: 180.seconds),
+            ).rotate(
+                begin: 0,
+                end: 1,
+                duration: menuPageIsLevel ? 4.seconds : 180.seconds),
           ),
           Positioned.fill(
             child: buildImageAsset(
@@ -231,7 +239,10 @@ class _CaveBackgroundState extends State<CaveBackground> {
               onComplete: (controller) {
                 controller.forward(from: 0);
               },
-            ).rotate(begin: 0, end: -1, duration: 360.seconds),
+            ).rotate(
+                begin: 0,
+                end: -1,
+                duration: menuPageIsLevel ? 18.seconds : 360.seconds),
           ),
         ],
       )
@@ -242,52 +253,70 @@ class _CaveBackgroundState extends State<CaveBackground> {
           .moveY(
               begin: -6, end: 6, duration: 4.seconds, curve: Curves.easeInOut);
 
-      return Stack(children: [
+      return Stack(alignment: Alignment.center, children: [
         Positioned.fill(
           child: buildImageAsset(
             'assets/images/background/cave.png',
           ),
         ),
-        Positioned.fill(
-          left: -5,
-          top: 5,
-          child: ColorFiltered(
-            colorFilter: ColorFilter.mode(
-                portalColor.darken(.6).withOpacity(.5), BlendMode.modulate),
-            child: Center(
-                child: SizedBox.square(dimension: portalSize, child: ring)),
+        Positioned(
+          bottom: (size.height / 2 - portalSize / 2) - 5,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                  portalColor.darken(.6).withOpacity(.5), BlendMode.modulate),
+              child: Center(
+                  child: SizedBox.square(dimension: portalSize, child: ring)),
+            ),
           ),
         ),
-        Positioned.fill(
+        // Align(
+        //   alignment: Alignment.center,
+        //   child: ColorFiltered(
+        //     colorFilter: ColorFilter.mode(
+        //         portalColor.darken(.6).withOpacity(.5), BlendMode.modulate),
+        //     child: Center(
+        //         child: SizedBox.square(dimension: portalSize, child: ring)),
+        //   ),
+        // ),
+        Positioned(
+            bottom: size.height / 2 - portalSize / 2,
             child: ShaderMask(
-          blendMode: BlendMode.modulate,
-          shaderCallback: (bounds) {
-            return LinearGradient(
-                    colors: [portalColor.darken(.6), Colors.white],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter)
-                .createShader(bounds);
-          },
-          child: Center(
-              key: gameState.centerBackgroundKey,
-              child: SizedBox.square(dimension: portalSize, child: ring)),
-        )),
-        Positioned.fill(
+              blendMode: BlendMode.modulate,
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                        colors: [portalColor.darken(.6), Colors.white],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter)
+                    .createShader(bounds);
+              },
+              child: Center(
+                  key: gameState.centerBackgroundKey,
+                  child: SizedBox.square(dimension: portalSize, child: ring)),
+            )),
+        Positioned(
+            bottom: size.height / 2 - portalSize / 2,
             child: Opacity(
-          opacity: .2,
-          child: Center(
-              child: SizedBox.square(dimension: portalSize, child: ring)
-                  .animate()
-                  .blur(begin: const Offset(0, 0), end: const Offset(80, .1))),
-        )),
-        Positioned.fill(
+              opacity: .2,
+              child: Center(
+                  child: SizedBox.square(dimension: portalSize, child: ring)
+                      .animate()
+                      .blur(
+                          begin: const Offset(0, 0),
+                          end: const Offset(80, .1))),
+            )),
+        Positioned(
+            bottom: size.height / 2 - portalSize / 2,
             child: Opacity(
-          opacity: .1,
-          child: Center(
-              child: SizedBox.square(dimension: portalSize, child: ring)
-                  .animate()
-                  .blur(begin: const Offset(0, 0), end: const Offset(40, 40))),
-        )),
+              opacity: .1,
+              child: Center(
+                  child: SizedBox.square(dimension: portalSize, child: ring)
+                      .animate()
+                      .blur(
+                          begin: const Offset(0, 0),
+                          end: const Offset(40, 40))),
+            )),
       ]);
     }
 
@@ -295,8 +324,8 @@ class _CaveBackgroundState extends State<CaveBackground> {
       target: menuPageIsLevel ? 1 : 0,
       effects: [
         CustomEffect(
-          duration: menuPageIsLevel ? 1.5.seconds : 1.seconds,
-          curve: Curves.ease,
+          duration: menuPageIsLevel ? 1.5.seconds : .75.seconds,
+          curve: Curves.easeInOutCirc,
           builder: (context, value, child) {
             return buildWidget(context, value, child);
           },

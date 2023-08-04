@@ -132,11 +132,10 @@ class EnemyEvent extends PositionEvent {
   List<Enemy> enemies = [];
 
   void spawnEnemies() {
-    final position =
-        spawnLocation?.grabNewPosition(gameEnviroment as GameEnviroment) ??
-            spawnPosition;
-
     for (var _ = 0; _ < numberOfClusters; _++) {
+      final position =
+          spawnLocation?.grabNewPosition(gameEnviroment as GameEnviroment) ??
+              spawnPosition;
       for (var cluster in enemyClusters) {
         for (var i = 0; i < cluster.clusterSize; i++) {
           if (enemyLimitReached()) {
@@ -222,6 +221,8 @@ class EnemyEvent extends PositionEvent {
   void startEvent() {
     if (isBigBoss) {
       onBigBoss(false);
+    } else {
+      spawnEnemies();
     }
   }
 }
@@ -263,7 +264,8 @@ abstract class EventManagement extends Component {
 
   ///Get a random value between [(double,double)]
   double getRandomValue((double, double) values) {
-    return values.$1 + rng.nextDouble() * (values.$2 - values.$1);
+    final returnVal = values.$1 + rng.nextDouble() * (values.$2 - values.$1);
+    return returnVal;
   }
 
   //Check if any events should be started

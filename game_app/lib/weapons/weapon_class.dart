@@ -66,12 +66,13 @@ class PlayerAttachmentJointComponent extends PositionComponent
     if (newWeapon.spirteComponentPositions.contains(jointPosition)) {
       weaponSpriteAnimation =
           await newWeapon.buildSpriteAnimationComponent(this);
+
       weaponTip = PositionComponent(
           anchor: Anchor.center, position: weaponSpriteAnimation!.tipOffset);
-
       weaponTipCenter = PositionComponent(
           anchor: Anchor.center,
           position: Vector2(0, weaponSpriteAnimation!.tipOffset.y));
+
       weaponSpriteAnimation?.addToParent(weaponBase!);
       weaponTipCenter?.addToParent(weaponBase!);
       weaponTip?.addToParent(weaponBase!);
@@ -330,20 +331,23 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     animation = animationQueue ?? weaponAnimations[WeaponStatus.idle];
   }
 
+  SpriteAnimationComponent? muzzleFlashComponent;
   void addMuzzleFlash() {
     if (!weaponAnimations.containsKey('muzzle_flash')) return;
     SpriteAnimation muzzleFlash = weaponAnimations['muzzle_flash']!;
-    final muzzleFlashComponent = SpriteAnimationComponent(
+    muzzleFlashComponent = SpriteAnimationComponent(
         animation: muzzleFlash,
         size: muzzleFlash.frames.first.sprite.srcSize.scaled(
-                parentJoint.weapon!.length /
-                    muzzleFlash.frames.first.sprite.srcSize.y) /
-            2,
+            parentJoint.weapon!.length /
+                muzzleFlash.frames.first.sprite.srcSize.y),
+        // size: Vector2.all(),
         anchor: Anchor.topCenter,
         priority: attackPriority);
-    parentJoint.weaponTip?.add(muzzleFlashComponent);
-    muzzleFlashComponent.animationTicker?.onComplete = () {
-      muzzleFlashComponent.removeFromParent();
+    parentJoint.weaponTip?.add(muzzleFlashComponent!);
+    final previousComponent = muzzleFlashComponent;
+
+    previousComponent?.animationTicker?.onComplete = () {
+      previousComponent.removeFromParent();
     };
   }
 

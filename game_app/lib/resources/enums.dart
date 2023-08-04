@@ -31,8 +31,11 @@ enum EnemyType {
   mushroomBrawler,
   mushroomHopper,
   mushroomBoss,
+  mushroomBurrower,
   mushroomShooter,
   mushroomBoomer,
+  mushroomDummy,
+  mushroomSpinner,
 }
 
 extension EnemyTypeExtension on EnemyType {
@@ -53,9 +56,18 @@ extension EnemyTypeExtension on EnemyType {
             initPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
-
+      case EnemyType.mushroomBurrower:
+        return MushroomBurrower(
+            initPosition: position,
+            enviroment: gameEnviroment,
+            upgradeLevel: level);
+      case EnemyType.mushroomSpinner:
+        return MushroomSpinner(
+            initPosition: position,
+            enviroment: gameEnviroment,
+            upgradeLevel: level);
       default:
-        return MushroomHopper(
+        return MushroomDummy(
             initPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
@@ -314,6 +326,7 @@ extension ProjectileTypeExtension on ProjectileType {
       {required Vector2 delta,
       required Vector2 originPositionVar,
       required ProjectileFunctionality ancestorVar,
+      double size = .3,
       double chargeAmount = 1}) {
     switch (this) {
       case ProjectileType.laser:
@@ -326,10 +339,11 @@ extension ProjectileTypeExtension on ProjectileType {
         return Bullet(
             originPosition: originPositionVar,
             delta: delta,
+            size: size,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
       case ProjectileType.fireball:
-        return Fireball(
+        return ExplosiveProjectile(
             weaponAncestor: ancestorVar,
             originPosition: originPositionVar,
             delta: delta,
@@ -339,6 +353,7 @@ extension ProjectileTypeExtension on ProjectileType {
         return Bullet(
             originPosition: originPositionVar,
             delta: delta,
+            size: size,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
     }
