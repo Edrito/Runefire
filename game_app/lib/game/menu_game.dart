@@ -12,11 +12,19 @@ import '../resources/visuals.dart';
 class MenuGame extends Enviroment with PlayerFunctionality {
   bool initAddAttempt = false;
   List<RectangleComponent> platforms = [];
+  late CharacterType currentPlayer;
+  late String weaponHash;
+
+  String reduceWeapons() {
+    return game.playerDataComponent.dataObject.selectedWeapons.entries.fold(
+        "", (previousValue, element) => previousValue + element.value.name);
+  }
 
   @override
   void onLoad() async {
     game.componentsNotifier<PlayerDataComponent>().addListener(reAddPlayer);
-
+    currentPlayer = game.playerDataComponent.dataObject.selectedPlayer;
+    weaponHash = reduceWeapons();
     super.onLoad();
   }
 
@@ -83,12 +91,16 @@ class MenuGame extends Enviroment with PlayerFunctionality {
   }
 
   void reAddPlayer() async {
-    // removePlayer(false);
-    // addPlayer();
+    if (currentPlayer != game.playerDataComponent.dataObject.selectedPlayer) {
+      currentPlayer = game.playerDataComponent.dataObject.selectedPlayer;
+      removePlayer(false);
+      addPlayer();
+    }
 
-    // player?.initialWeapons =
-    //     gameRef.playerDataComponent.dataObject.selectedWeapons.values.toList();
-    player?.initializeWeapons();
+    if (weaponHash != reduceWeapons()) {
+      weaponHash = reduceWeapons();
+      player?.initializeWeapons();
+    }
   }
 
   void removePlayer([bool removePlatforms = true]) {

@@ -132,7 +132,28 @@ enum JoystickDirection {
 }
 
 ///All have a mage theme
-enum CharacterType { regular, sorcerer, warlock, wizard, witch, druid, shaman }
+enum CharacterType { regular, sorcerer, warlock, wizard, witch, unknown }
+
+//Unlock cost
+extension CharacterTypeUnlockCost on CharacterType {
+  int get unlockCost {
+    switch (this) {
+      case CharacterType.regular:
+        return 0;
+      case CharacterType.sorcerer:
+        return 10000;
+
+      case CharacterType.warlock:
+        return 10000;
+      case CharacterType.wizard:
+        return 10000;
+      case CharacterType.witch:
+        return 10000;
+      case CharacterType.unknown:
+        return 20000;
+    }
+  }
+}
 
 enum GameLevel { mushroomForest, dungeon, graveyard, menu }
 

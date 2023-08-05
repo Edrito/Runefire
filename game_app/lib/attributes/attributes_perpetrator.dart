@@ -10,17 +10,16 @@ import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
 import '../main.dart';
-import 'attributes_status_effect.dart';
 
 PerpetratorAttribute? perpetratorAttributeBuilder(AttributeType type, int level,
     AttributeFunctionality victimEntity, Entity perpetratorEntity) {
   switch (type) {
-    case AttributeType.burn:
-      return FireDamageAttribute(
-        level: level,
-        victimEntity: victimEntity,
-        perpetratorEntity: perpetratorEntity,
-      );
+    // case AttributeType.burn:
+    //   return FireDamageAttribute(
+    //     level: level,
+    //     victimEntity: victimEntity,
+    //     perpetratorEntity: perpetratorEntity,
+    //   );
 
     default:
       return null;

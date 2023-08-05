@@ -45,10 +45,29 @@ class PlayerData extends DataClass {
   CharacterType selectedPlayer = CharacterType.regular;
 
   List<GameLevel> completedLevels = [];
+  List<CharacterType> unlockedCharacters = [CharacterType.regular];
+
+  bool characterUnlocked() {
+    return unlockedCharacters.contains(selectedPlayer);
+  }
+
+  bool unlockCharacter() {
+    if (characterUnlocked()) {
+      return true;
+    }
+
+    if (enoughMoney(selectedPlayer.unlockCost)) {
+      experiencePoints -= selectedPlayer.unlockCost;
+      unlockedCharacters.add(selectedPlayer);
+      parentComponent?.notifyListeners();
+      return true;
+    }
+    return false;
+  }
 
   Map<int, WeaponType> selectedWeapons = {
-    1: WeaponType.flameSword,
     0: WeaponType.longRangeRifle,
+    1: WeaponType.flameSword,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,

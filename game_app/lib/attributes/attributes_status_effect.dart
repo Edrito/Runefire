@@ -60,6 +60,7 @@ class TemporaryFireDamage extends FireDamageAttribute with TemporaryAttribute {
       double? duration}) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
+    print('hereeee');
   }
 
   @override

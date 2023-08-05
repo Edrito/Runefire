@@ -91,25 +91,19 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
   Widget buildLevelIndicator(bool isPointUnlocked, bool isEquipped) {
     final color = isPointUnlocked
         ? isEquipped
-            ? isSecondaryAbility
-                ? secondaryEquippedColor
-                : secondaryColor
-            : levelUnlockedUnequipped
+            ? Colors.red
+            : primaryColor
         : lockedColor;
-    return Flexible(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 25, minWidth: 15),
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Container(
-            // transform: Matrix4.skewX(-.25),
-            decoration: BoxDecoration(
-              border:
-                  Border(right: BorderSide(color: color.darken(.4), width: 6)),
-              gradient: LinearGradient(colors: [color, color.brighten(.2)]),
-            ),
-            // width: 10,
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: SizedBox(
+        width: 12,
+        child: Container(
+          decoration: BoxDecoration(
+            color: color.brighten(.2),
+            border: Border.all(color: color.darken(.4), width: 3),
           ),
+          // width: 10,
         ),
       ),
     );
@@ -228,21 +222,19 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
       height: levelAndUnlockHeight,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (isUnlocked) ...[
+          if (isUnlocked)
             ...[
-              for (var i = 0; i < unlockedLevel; i++)
-                buildLevelIndicator(true, isEquipped)
-            ].animate(interval: .1.seconds).fadeIn(begin: .5),
-            ...[
-              for (var i = 0; i < (maxLevel - unlockedLevel); i++)
-                buildLevelIndicator(false, isEquipped)
-            ],
-            // const SizedBox(
-            //   width: 65,
-            // )
-          ] else
-            const Spacer(),
+              ...[
+                for (var i = 0; i < unlockedLevel; i++)
+                  buildLevelIndicator(true, isEquipped)
+              ].animate(interval: .1.seconds).fadeIn(begin: .5),
+              ...[
+                for (var i = 0; i < (maxLevel - unlockedLevel); i++)
+                  buildLevelIndicator(false, isEquipped)
+              ],
+            ].animate().fadeIn()
         ],
       ),
     );
@@ -287,8 +279,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                     icon,
                     color: isUnlocked ? null : Colors.black,
                     fit: BoxFit.fitHeight,
-                    filterQuality: FilterQuality.high,
-                    isAntiAlias: true,
+                    filterQuality: FilterQuality.none,
                   )),
             )
                 .animate(
@@ -326,35 +317,46 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
               child: Icon(
             Icons.lock,
             size: 80,
-          )).animate(target: isUnlocked ? 0 : 1).fade()
+          )).animate(target: isUnlocked ? 0 : 1).fade(),
+          if (isMainHover && !isEquipped)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  "Equip?",
+                  style: defaultStyle,
+                ),
+              ).animate().fade(),
+            )
         ],
       ),
     );
 
-    Widget unlockWidget = InkWell(
-      onHover: (value) {
-        setState(() {
-          isLevelHover = value;
-        });
-      },
-      onTap: isMaxLevel
-          ? null
-          : () {
-              onLevelTap();
-            },
-      child: Container(
-        height: levelAndUnlockHeight,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          // borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-              color: !isLevelHover ? secondaryColor : unlockedColor,
-              width: borderWidth),
-          color: isLevelHover ? secondaryColor : unlockedColor,
-        ),
-        child: SizedBox(
+    Widget unlockWidget = Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: InkWell(
+        onHover: (value) {
+          setState(() {
+            isLevelHover = value;
+          });
+        },
+        onTap: isMaxLevel
+            ? null
+            : () {
+                onLevelTap();
+              },
+        child: Container(
+          height: unlockButtonWidth,
           width: unlockButtonWidth,
-          child: Row(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            // borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+                color: !isLevelHover ? secondaryColor : unlockedColor,
+                width: borderWidth),
+            color: isLevelHover ? secondaryColor : unlockedColor,
+          ),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               if (!isMaxLevel) ...[
@@ -380,7 +382,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
 
     final informationDisplay = Row(children: [
       SizedBox(
-        width: 300,
+        width: 350,
         child: Column(
           children: [
             Expanded(
@@ -416,18 +418,10 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                 ],
               ),
             ),
-            const SizedBox(
-              height: 25,
-            ),
-            Row(
-              children: [
-                unlockWidget,
-                Expanded(child: levelIndicator),
-              ],
-            )
           ],
         ),
       ),
+      unlockWidget,
       Expanded(
         flex: 3,
         child: Container(
@@ -438,18 +432,26 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    isWeapon
-                        ? weaponType.name.titleCase
-                        : secondaryType!.name.titleCase,
-                    style: defaultStyle.copyWith(color: equippedColor),
-                    textAlign: TextAlign.left,
-                  ),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
+                      Text(
+                        isWeapon
+                            ? weaponType.name.titleCase
+                            : secondaryType!.name.titleCase,
+                        style: defaultStyle.copyWith(color: equippedColor),
+                        textAlign: TextAlign.left,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      levelIndicator,
+                    ],
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Align(
+                        alignment: Alignment.topLeft,
                         child: Wrap(children: [
                           if (weaponDescriptions.isNotEmpty)
                             for (var i = 0; i < weaponDescriptions.length; i++)
@@ -466,10 +468,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                               )
                         ]),
                       ),
-                      const SizedBox(
-                        width: 50,
-                      )
-                    ],
+                    ),
                   ),
                 ],
               ),

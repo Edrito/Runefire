@@ -4,14 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/menus/attribute_menu.dart';
 import 'package:game_app/menus/weapon_selector_tile.dart';
-import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
+import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
 
 import '../resources/data_classes/player_data.dart';
+import '../resources/functions/functions.dart';
 import 'buttons.dart';
+import 'character_switcher.dart';
 import 'menus.dart';
 
 class WeaponSecondaryTile extends StatelessWidget {
@@ -38,85 +40,113 @@ class WeaponSecondaryTile extends StatelessWidget {
 
     return StatefulBuilder(builder: (context, setState) {
       final size = MediaQuery.of(context).size;
-      return InkWell(
-        radius: radius,
-        onTap: () {
-          onTap();
-        },
-        onHover: (value) {
-          setState(() {
-            isHover = value;
-          });
-        },
-        child: Stack(children: [
-          SizedBox.square(
-            dimension: isWeapon ? 180 : 100,
-            child: Column(
+      final increase = (size.width / 1500).clamp(.5, 1);
+
+      return SizedBox(
+        width: (isWeapon ? 225 : 160) * increase.toDouble(),
+        child: InkWell(
+          radius: radius,
+          onTap: () {
+            onTap();
+          },
+          onHover: (value) {
+            setState(() {
+              isHover = value;
+            });
+          },
+          child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image.asset(
-                    isWeapon ? weaponType!.icon : secondaryType!.icon,
-                    filterQuality: FilterQuality.none,
-                    height: isWeapon ? 100 : 50,
-                  ),
-                ),
-              ],
-            )
-                .animate()
-                .moveY(
-                    duration: 1.5.seconds,
-                    curve: Curves.fastEaseInToSlowEaseOut,
-                    begin: -size.height / 2)
-                .fadeIn(
-                  duration: 1.5.seconds,
-                  curve: Curves.fastEaseInToSlowEaseOut,
+                SizedBox(
+                    height: isWeapon ? 200 : 150,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: buildImageAsset(
+                        isWeapon ? weaponType!.icon : secondaryType!.icon,
+                        fit: BoxFit.contain,
+                      ),
+                    )
+                        .animate(
+                          target: isHover ? 1 : 0,
+                        )
+                        .rotate(
+                            end: !isPrimary ? .5 : -.5,
+                            curve: Curves.fastLinearToSlowEaseIn,
+                            duration: 1.seconds)
+                        .animate()
+                        .moveY(
+                            duration: 1.5.seconds,
+                            curve: Curves.fastEaseInToSlowEaseOut,
+                            begin: -size.height / 2)
+                        .fadeIn(
+                          duration: 1.5.seconds,
+                          curve: Curves.fastEaseInToSlowEaseOut,
+                        )
+                        .animate(
+                          onPlay: randomBegin,
+                          onComplete: onComplete,
+                        )
+                        .moveY(
+                            begin: 5,
+                            end: -5,
+                            duration: 1.seconds,
+                            curve: Curves.easeInOut)),
+                Flexible(
+                  child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Animate(
+                            target: isHover ? 1 : 0,
+                          ).custom(
+                            curve: Curves.fastEaseInToSlowEaseOut,
+                            builder: (context, value, child) {
+                              return ShaderMask(
+                                blendMode: BlendMode.modulate,
+                                shaderCallback: (bounds) {
+                                  return LinearGradient(
+                                          colors: [
+                                        Colors.blue.shade600
+                                            .mergeWith(Colors.white, value),
+                                        Colors.white,
+                                      ],
+                                          stops: const [
+                                        0,
+                                        .6
+                                      ],
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter)
+                                      .createShader(bounds);
+                                },
+                                child: buildImageAsset(
+                                  'assets/images/ui/magic_hand_${isPrimary ? 'L' : 'R'}.png',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              );
+                            },
+                          ))
+                      .animate()
+                      .moveY(
+                          duration: 1.5.seconds,
+                          curve: Curves.fastEaseInToSlowEaseOut,
+                          begin: -size.height / 2)
+                      .fade(
+                        begin: 0,
+                        end: .9,
+                        duration: 1.5.seconds,
+                        curve: Curves.fastEaseInToSlowEaseOut,
+                      )
+                      .animate(
+                        onPlay: randomBegin,
+                        onComplete: onComplete,
+                      )
+                      .moveY(
+                          begin: 10,
+                          end: -10,
+                          duration: 1.4.seconds,
+                          curve: Curves.easeInOut),
                 )
-                .animate(
-                  onPlay: randomBegin,
-                  onComplete: onComplete,
-                )
-                .moveY(
-                    begin: 5,
-                    end: -5,
-                    duration: isHover ? 20.seconds : 1.seconds,
-                    curve: Curves.easeInOut)
-                .animate(
-                  target: isHover ? 1 : 0,
-                )
-                .moveY(
-                    end: -20,
-                    begin: 0,
-                    duration: .5.seconds,
-                    curve: Curves.easeInCubic),
-          ),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Animate(
-                    target: isHover ? 1 : 0,
-                  ).custom(
-                    builder: (context, value, child) {
-                      return Container(
-                        height: isWeapon ? 25 : 15,
-                        width: isWeapon ? 100 : 50,
-                        decoration: BoxDecoration(
-                            color: Colors.white
-                                .withOpacity(.5)
-                                .mergeWith(Colors.pink, value),
-                            border: const Border(
-                                top: BorderSide(
-                                    width: 4, color: secondaryColor))),
-                        transform: Matrix4.skewX(isPrimary ? -.75 : .75),
-                      );
-                    },
-                  )),
-            ),
-          ).animate().fadeIn()
-        ]),
+              ]),
+        ),
       );
     });
   }
@@ -263,10 +293,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
 
     return Center(
       child: Container(
-        // width: size.width * .8,
-        // height: size.height * .8,
         decoration: BoxDecoration(
-          // border: Border.all(color: borderColor, width: borderWidth),
           color: Colors.black.brighten(.1).withOpacity(.95),
         ),
         child: Column(
@@ -274,7 +301,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
             Expanded(
                 child: Row(
               children: [
-                Expanded(
+                Flexible(
                   child: RotatedBox(
                           quarterTurns: 1,
                           child: Image.asset('assets/images/ui/bag.png'))
@@ -283,7 +310,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                       .fadeIn(),
                 ),
                 Expanded(
-                  flex: 3,
+                  flex: 4,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Align(
@@ -397,30 +424,24 @@ class _WeaponMenuState extends State<WeaponMenu> {
       child: weapon,
     );
 
-    return Column(
-      crossAxisAlignment:
-          isPrimary ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (isPrimary)
-              const SizedBox(
-                width: 20,
-              ),
-            if (!isPrimary) weaponWidget,
-            Padding(
-              padding: const EdgeInsets.all(0),
-              child: ability,
-            ),
-            if (!isPrimary)
-              const SizedBox(
-                width: 20,
-              ),
-            if (isPrimary) weaponWidget
-          ],
+        if (isPrimary)
+          const SizedBox(
+            width: 20,
+          ),
+        if (!isPrimary) weaponWidget,
+        Padding(
+          padding: const EdgeInsets.all(0),
+          child: ability,
         ),
+        if (!isPrimary)
+          const SizedBox(
+            width: 20,
+          ),
+        if (isPrimary) weaponWidget
       ],
     );
   }
@@ -525,13 +546,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
           isSecondaryAbility: true,
-          // onSelect: (secondaryType) {
-          //   setState(() {
-          //     playerDataComponent.dataObject.selectedSecondaries[1] =
-          //         secondaryType;
-          //     playerDataComponent.notifyListeners();
-          //   });
-          // },
           isPrimary: false,
           gameRef: widget.gameRef,
           onBack: () {
@@ -547,33 +561,27 @@ class _WeaponMenuState extends State<WeaponMenu> {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Padding(
-            //   padding: const EdgeInsets.all(16),
-            //   child: Text(
-            //     "Select your weapons",
-            //     style: defaultStyle,
-            //   ),
-            // ),
-            const Spacer(),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: uiWidthMax),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const Spacer(),
-                  buildWeaponTile(
-                      primaryWeaponTile, primarySecondaryTile, true),
-                  const Spacer(
-                    flex: 6,
-                  ),
-                  buildWeaponTile(
-                      secondaryWeaponTile, secondarySecondaryTile, false),
-                  const Spacer(),
-                ],
+            Expanded(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: uiWidthMax),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    const Spacer(),
+                    buildWeaponTile(
+                        primaryWeaponTile, primarySecondaryTile, true),
+                    const Spacer(
+                      flex: 8,
+                    ),
+                    buildWeaponTile(
+                        secondaryWeaponTile, secondarySecondaryTile, false),
+                    const Spacer(),
+                  ],
+                ),
               ),
             ),
-            const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -626,6 +634,10 @@ class _WeaponMenuState extends State<WeaponMenu> {
                         "Choose Level",
                         gameRef: widget.gameRef,
                         onTap: () {
+                          if (!playerDataComponent.dataObject
+                              .characterUnlocked()) {
+                            return;
+                          }
                           setState(() {
                             exitFunction = () {
                               widget.gameRef.gameStateComponent.gameState
@@ -648,6 +660,9 @@ class _WeaponMenuState extends State<WeaponMenu> {
               },
             )
             .fadeOut(),
+        CharacterSwitcher(
+          gameRef: widget.gameRef,
+        ),
         if (_weaponSelector != null) _weaponSelector!,
         if (_attributeUpgrader != null) _attributeUpgrader!,
       ],

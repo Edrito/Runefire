@@ -142,11 +142,6 @@ class _CaveBackgroundState extends State<CaveBackground> {
         .animate(
           target: menuPageIsLevel ? 1 : 0,
         )
-        // .blur(
-        //     begin: menuPageIsLevel ? const Offset(150, 1) : const Offset(50, 1),
-        //     end: Offset.zero,
-        //     curve: Curves.ease,
-        //     duration: menuPageIsLevel ? 1.seconds : .5.seconds)
         .rotate(
             delay: .5.seconds,
             begin: -.1,
@@ -214,22 +209,23 @@ class _CaveBackgroundState extends State<CaveBackground> {
             child: Positioned.fill(
                 child: Center(
                     child: SizedBox.square(
-                        dimension: portalSize * .7, child: portalImage))),
+                        dimension: portalSize * .675, child: portalImage))),
           ),
           Positioned.fill(
-            child: buildImageAsset(
-              'assets/images/background/outerRing.png',
-              fit: BoxFit.fill,
-              color: portalColor,
-            ).animate(
-              onComplete: (controller) {
-                controller.forward(from: 0);
-              },
-            ).rotate(
-                begin: 0,
-                end: 1,
-                duration: menuPageIsLevel ? 4.seconds : 180.seconds),
-          ),
+              child: buildImageAsset(
+            'assets/images/background/outerRing.png',
+            fit: BoxFit.fill,
+            color: portalColor,
+          )
+              // .animate(
+              //   onComplete: (controller) {
+              //     controller.forward(from: 0);
+              //   },
+              // ).rotate(
+              //     begin: 0,
+              //     end: 1,
+              //     duration: menuPageIsLevel ? 4.seconds : 180.seconds),
+              ),
           Positioned.fill(
             child: buildImageAsset(
               'assets/images/background/outerRingPatterns.png',

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'enums.dart';
 import 'functions/functions.dart';
 
-const uiWidthMax = 1300.0;
+const uiWidthMax = 1700.0;
 
 extension CustomColors on BasicPalette {
   static const PaletteEntry secondaryColorPalette =
@@ -25,8 +25,6 @@ const Color backgroundColor2 = ui.Color.fromARGB(255, 48, 99, 158);
 const Color lockedColor = ui.Color.fromARGB(255, 49, 49, 49);
 const Color hoverColor = ui.Color.fromARGB(255, 85, 74, 75);
 const Color unlockedColor = ui.Color.fromARGB(255, 24, 24, 24);
-const Color secondaryEquippedColor = ui.Color.fromARGB(255, 163, 113, 255);
-const Color levelUnlockedUnequipped = ui.Color.fromARGB(255, 62, 31, 119);
 
 double defaultFrameDuration = .15;
 

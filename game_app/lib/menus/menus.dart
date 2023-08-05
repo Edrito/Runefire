@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/menus/start_menu.dart';
-import 'package:game_app/menus/weapon_menu.dart';
+import 'package:game_app/menus/customization_menu.dart';
 
 import 'level_menu.dart';
 import 'options.dart';
