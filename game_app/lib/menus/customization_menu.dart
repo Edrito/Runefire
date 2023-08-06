@@ -118,7 +118,7 @@ class WeaponSecondaryTile extends StatelessWidget {
                                       .createShader(bounds);
                                 },
                                 child: buildImageAsset(
-                                  'assets/images/ui/magic_hand_${isPrimary ? 'L' : 'R'}.png',
+                                  'assets/images/ui/magic_hand_${isWeapon ? '' : 'small_'}${isPrimary ? 'L' : 'R'}.png',
                                   fit: BoxFit.fitWidth,
                                 ),
                               );
@@ -212,7 +212,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
   }
 
   final borderWidth = 5.0;
-  final borderColor = backgroundColor2.brighten(.1);
+  final borderColor = ApolloColorPalette.deepBlue.color.brighten(.1);
 
   Map<AttackType, WeaponType> selectedWeapons = {};
   SecondaryType? selectedSecondary;

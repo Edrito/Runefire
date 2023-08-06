@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
+import 'package:game_app/main.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -13,7 +14,7 @@ import '../resources/enums.dart';
 
 class Dagger extends PlayerWeapon
     with MeleeFunctionality, FullAutomatic, StaminaCostFunctionality {
-  Dagger.create(
+  Dagger(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -119,7 +120,7 @@ class Spear extends PlayerWeapon
         // ProjectileFunctionality,
         FullAutomatic,
         StaminaCostFunctionality {
-  Spear.create(
+  Spear(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -227,7 +228,7 @@ class EnergySword extends PlayerWeapon
         ProjectileFunctionality,
         SemiAutomatic,
         StaminaCostFunctionality {
-  EnergySword.create(
+  EnergySword(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -354,11 +355,10 @@ class EnergySword extends PlayerWeapon
 class FlameSword extends PlayerWeapon
     with
         MeleeFunctionality,
-        ProjectileFunctionality,
         FullAutomatic,
         ReloadFunctionality,
         StaminaCostFunctionality {
-  FlameSword.create(
+  FlameSword(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -367,7 +367,6 @@ class FlameSword extends PlayerWeapon
     pierce.baseParameter = 2;
     maxChainingTargets.baseParameter = 6;
     baseAttackCount.baseParameter = 5;
-    projectileVelocity.baseParameter = 5;
     attackHitboxPatterns = [
       (Vector2(.0, -1.5), 360),
       (Vector2(0, 1.5), -30),
@@ -379,6 +378,10 @@ class FlameSword extends PlayerWeapon
     spirteComponentPositions.add(WeaponSpritePosition.back);
     assert(
         attackHitboxPatterns.length.isEven, "Must be an even number of coords");
+
+    if (ancestor == null) return;
+    additionalWeapons['initWeapon1'] =
+        WeaponType.spear.build(ancestor, null, gameState.gameRouter);
   }
 
   @override
@@ -467,7 +470,7 @@ class FlameSword extends PlayerWeapon
 
 class LargeSword extends PlayerWeapon
     with MeleeFunctionality, SemiAutomatic, StaminaCostFunctionality {
-  LargeSword.create(
+  LargeSword(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {

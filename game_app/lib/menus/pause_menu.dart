@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/resources/game_state_class.dart';
-
+import 'package:numerus/numerus.dart';
 import '../game/enviroment.dart';
 import '../main.dart';
 import '../resources/visuals.dart';
@@ -154,23 +154,31 @@ class _PauseMenuState extends State<PauseMenu> {
 
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 55,
-                                  child: Text(
-                                    "${currentAttrib?.value.upgradeLevel} : ",
-                                    style: defaultStyle.copyWith(
-                                        color: currentAttrib?.key.rarity.color),
-                                  ),
-                                ),
-                                Text(
-                                  "${currentAttrib?.value.title}",
-                                  style: defaultStyle.copyWith(
+                            child: SizedBox(
+                              // color: Colors.blue,
+                              height: 100,
+                              width: 60,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                      'assets/images/${currentAttrib?.value.icon}',
                                       color: currentAttrib?.key.rarity.color),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                                  SizedBox(
+                                    width: 55,
+                                    child: Text(
+                                      currentAttrib?.value.upgradeLevel
+                                              .toRomanNumeralString() ??
+                                          "",
+                                      style: defaultStyle.copyWith(
+                                          color:
+                                              currentAttrib?.key.rarity.color,
+                                          fontSize: 20),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -228,7 +236,10 @@ class _PauseMenuState extends State<PauseMenu> {
                                               SizedBox(
                                                 width: 55,
                                                 child: Text(
-                                                  "${currentAttrib?.value.upgradeLevel}",
+                                                  currentAttrib
+                                                          ?.value.upgradeLevel
+                                                          .toRomanNumeralString() ??
+                                                      "",
                                                   style: defaultStyle.copyWith(
                                                       color: currentAttrib
                                                           ?.key.rarity.color,

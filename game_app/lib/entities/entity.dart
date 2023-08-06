@@ -24,21 +24,65 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   late String entityId;
 
-  Future<Iterable<Weapon>> getAllWeaponItems(bool includeSecondaries) async {
+  Future<Iterable<Weapon>> getAllWeaponItems(
+      bool includeSecondaries, bool includeAdditionalPrimaries) async {
     Iterable<Weapon> returnList = [];
     await loaded;
     if (this is! AttackFunctionality) return returnList;
     final attackFunctionality = this as AttackFunctionality;
     for (var element in attackFunctionality.carriedWeapons.values) {
       returnList = [...returnList, element];
-      if (!includeSecondaries) continue;
-
-      final secondary = element.getSecondaryWeapon;
-      if (secondary != null) {
-        returnList = [...returnList, secondary];
+      if (includeSecondaries) continue;
+      {
+        final secondary = element.getSecondaryWeapon;
+        if (secondary != null) {
+          returnList = [...returnList, secondary];
+        }
+      }
+      if (includeAdditionalPrimaries) {
+        for (var element in element.additionalWeapons.entries) {
+          returnList = [...returnList, element.value];
+        }
       }
     }
     return returnList;
+  }
+
+  Future<void> applyGroundAnimation(
+      SpriteAnimation animation, bool followEntity, double yOffset) async {
+    final size = animation.frames.first.sprite.srcSize;
+    size.scaleTo(height.parameter * 1.35);
+    final sprite = SpriteAnimationComponent(
+        anchor: Anchor.center, size: size, animation: animation);
+    if (!isFlipped) {
+      sprite.flipHorizontallyAroundCenter();
+    }
+    if (followEntity) {
+      sprite.position = Vector2(0, yOffset);
+    } else {
+      enviroment.add(sprite);
+
+      sprite.position = Vector2(center.x, center.y + yOffset);
+    }
+    sprite.animationTicker?.completed
+        .then((value) => sprite.removeFromParent());
+  }
+
+  Future<void> applyHitAnimation(
+      SpriteAnimation animation, Vector2 sourcePosition, double size) async {
+    if (animation.loop) return;
+    final spriteSize = animation.frames.first.sprite.srcSize;
+    spriteSize.scaleTo(size);
+    final thisHeight = height.parameter;
+    final sprite = SpriteAnimationComponent(
+        anchor: Anchor.center, size: spriteSize, animation: animation);
+    sprite.position = Vector2(
+        (rng.nextDouble() * thisHeight / 3) - thisHeight / 6,
+        (sourcePosition - center).y);
+
+    add(sprite);
+    sprite.animationTicker?.completed
+        .then((value) => sprite.removeFromParent());
   }
 
   abstract EntityType entityType;

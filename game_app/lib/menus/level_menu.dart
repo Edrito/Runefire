@@ -88,8 +88,8 @@ class _LevelMenuState extends State<LevelMenu> {
       Color hoverColor = isSelected
           ? Colors.white
           : isHovering
-              ? buttonDownColor
-              : buttonUpColor;
+              ? ApolloColorPalette().secondaryColor
+              : ApolloColorPalette().primaryColor;
       return SizedBox(
         height: 200,
         width: 250,

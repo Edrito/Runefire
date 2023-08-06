@@ -69,7 +69,6 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool? isHighlighted;
-
     return StatefulBuilder(builder: (context, setstate) {
       TextStyle style = defaultStyle.copyWith(
         color: upDownColor != null
@@ -77,8 +76,8 @@ class CustomButton extends StatelessWidget {
                 ? upDownColor!.$2
                 : upDownColor!.$1
             : isHighlighted ?? isHighlightedInitial
-                ? buttonDownColor
-                : buttonUpColor,
+                ? ApolloColorPalette().primaryColor
+                : ApolloColorPalette().secondaryColor,
       );
       return InkWell(
         splashFactory: NoSplash.splashFactory,

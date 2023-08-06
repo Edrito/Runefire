@@ -97,7 +97,7 @@ enum AttributeType {
   frostResistanceIncreasePermanent(category: AttributeCategory.resistance),
 
   ///Game Attributes
-  enemyExplosion(
+  fireExplosionOnKill(
       rarity: AttributeRarity.unique,
       category: AttributeCategory.mobility,
       territory: AttributeTerritory.game);
@@ -125,7 +125,8 @@ extension AllAttributesExtension on AttributeType {
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);
     if (permanentAttr != null) return permanentAttr;
     if (victimEntity != null) {
-      final regularAttr = regularAttributeBuilder(this, level, victimEntity);
+      final regularAttr =
+          regularAttributeBuilder(this, level, victimEntity, damageType);
       if (regularAttr != null) return regularAttr;
 
       if (perpetratorEntity != null) {
@@ -148,13 +149,13 @@ extension AllAttributesExtension on AttributeType {
     }
 
     switch (this) {
-      case AttributeType.enemyExplosion:
-        return ExplosionEnemyDeathAttribute(
+      case AttributeType.fireExplosionOnKill:
+        return FireExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,
         );
       default:
-        return ExplosionEnemyDeathAttribute(
+        return FireExplosionEnemyDeathAttribute(
           level: level,
           victimEntity: victimEntity,
         );
@@ -183,12 +184,12 @@ abstract class Attribute with UpgradeFunctions {
   AttributeTerritory get attributeTerritory => attributeType.territory;
 
   String description() {
-    int increase = 1;
-    final newLevel = upgradeLevel + 1;
-    if (newLevel == maxLevel) increase++;
-    return upgradeLevel == maxLevel
-        ? ""
-        : "${((upgradeLevel + increase) * (factor ?? 0) * 100).abs().round()}% increase";
+    final percent = ((factor ?? 0) * 100).abs().round();
+
+    String current = "${upgradeLevel * percent}%";
+    String next = "${(upgradeLevel + 1) * percent}%";
+
+    return "$current${upgradeLevel == maxLevel ? "" : " ⇒ $next"}";
   }
 
   String help() {

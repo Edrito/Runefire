@@ -440,8 +440,11 @@ mixin GameTimerFunctionality on Enviroment {
     if (!isPaused) {
       timePassed += dt;
       if (this is HudFunctionality) {
-        (this as HudFunctionality).hud.timerText.text =
-            convertSecondsToMinutesSeconds(timePassed.round());
+        final hud = (this as HudFunctionality);
+        if (hud.hud.isLoaded) {
+          hud.hud.timerText.text =
+              convertSecondsToMinutesSeconds(timePassed.round());
+        }
       }
     }
     super.update(dt);

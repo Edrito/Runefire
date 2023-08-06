@@ -9,7 +9,7 @@ import '../resources/enums.dart';
 
 class BlankProjectileWeapon extends EnemyWeapon
     with ProjectileFunctionality, SemiAutomatic {
-  BlankProjectileWeapon.create(
+  BlankProjectileWeapon(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {

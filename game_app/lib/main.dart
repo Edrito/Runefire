@@ -27,7 +27,7 @@ import '../menus/overlays.dart' as overlay;
 final rng = Random();
 late final GameState gameState;
 
-bool startInGame = false;
+bool startInGame = true;
 
 Map<int, bool> isSecondaryPointer = {};
 
@@ -55,6 +55,11 @@ void main() async {
   }
   FocusNode node = FocusNode();
   node.requestFocus();
+
+  // final image = Images();
+  // image.load('background/forest.png');
+  // image.load('background/dungeon.png');
+  // image.load('background/graveyard.jpg');
 
   final gameRouter = GameRouter(systemData, playerData);
   gameState = GameState(gameRouter, playerData, systemData,
@@ -198,6 +203,7 @@ class GameRouter extends Forge2DGame with ScrollDetector, WindowListener {
     add(playerDataComponent);
     add(gameStateComponent);
     add(router);
+    await super.onLoad();
   }
 
   @override

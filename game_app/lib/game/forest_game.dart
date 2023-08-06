@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/cupertino.dart';
+import '../test.dart';
 import 'event_management.dart';
 import '../entities/entity.dart';
 import '../resources/enums.dart';
@@ -25,6 +26,7 @@ class ForestGame extends GameEnviroment {
     enemyManagement = ForestEnemyManagement(this);
     add(enemyManagement);
     // add(forestBackground);
+    conductTests(this);
   }
 
   @override
@@ -104,32 +106,32 @@ class ForestEnemyManagement extends EventManagement {
       //   eventBeginEnd: (1, 500),
       //   spawnLocation: SpawnLocation.outside,
       // ),
-      // EnemyEvent(
-      //   gameEnviroment,
-      //   this,
-      //   isBigBoss: false,
-      //   clusterSpread: 4,
-      //   enemyClusters: [EnemyCluster(EnemyType.mushroomSpinner, 1)],
-      //   numberOfClusters: 1,
-      //   maxEnemies: 2,
-      //   eventTriggerInterval: (1, 1),
-      //   levels: (0, 1),
-      //   eventBeginEnd: (1, 500),
-      //   spawnLocation: SpawnLocation.outside,
-      // ),
       EnemyEvent(
         gameEnviroment,
         this,
         isBigBoss: false,
-        clusterSpread: 1,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomDummy, 1)],
-        numberOfClusters: 20,
-        maxEnemies: 20,
-        eventTriggerInterval: (0, 0),
+        clusterSpread: 5,
+        enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 2)],
+        numberOfClusters: 1,
+        maxEnemies: 10,
+        eventTriggerInterval: (1, 1),
         levels: (0, 1),
-        eventBeginEnd: (1, null),
-        spawnLocation: SpawnLocation.inside,
+        eventBeginEnd: (1, 500),
+        spawnLocation: SpawnLocation.outside,
       ),
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 1,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomDummy, 1)],
+      //   numberOfClusters: 20,
+      //   maxEnemies: 20,
+      //   eventTriggerInterval: (0, 0),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, null),
+      //   spawnLocation: SpawnLocation.inside,
+      // ),
     ]);
   }
 }

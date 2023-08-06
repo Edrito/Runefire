@@ -14,7 +14,7 @@ class Pistol extends PlayerWeapon
         ProjectileFunctionality,
         ReloadFunctionality,
         MultiWeaponCheck {
-  Pistol.create(
+  Pistol(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -86,7 +86,7 @@ class Pistol extends PlayerWeapon
 
 class Shotgun extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
-  Shotgun.create(
+  Shotgun(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -150,7 +150,7 @@ class Shotgun extends PlayerWeapon
 
 class LongRangeRifle extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
-  LongRangeRifle.create(
+  LongRangeRifle(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -226,7 +226,7 @@ class LongRangeRifle extends PlayerWeapon
 
 class AssaultRifle extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
-  AssaultRifle.create(
+  AssaultRifle(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -293,7 +293,7 @@ class LaserRifle extends PlayerWeapon
         ReloadFunctionality,
         SemiAutomatic,
         ChargeEffect {
-  LaserRifle.create(
+  LaserRifle(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -303,6 +303,7 @@ class LaserRifle extends PlayerWeapon
     waitForAttackRate = false;
     weaponRandomnessPercent.baseParameter = .04;
     maxChainingTargets.baseParameter = 4;
+    baseAttackCount.baseParameter = 5;
   }
   @override
   WeaponType weaponType = WeaponType.laserRifle;
@@ -362,7 +363,7 @@ class LaserRifle extends PlayerWeapon
 
 class RocketLauncher extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
-  RocketLauncher.create(
+  RocketLauncher(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -428,7 +429,7 @@ class RocketLauncher extends PlayerWeapon
 
 class Railgun extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
-  Railgun.create(
+  Railgun(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {

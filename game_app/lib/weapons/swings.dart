@@ -6,6 +6,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
+import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,6 +28,18 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
   int hitEnemies = 0;
 
   @override
+  void preSolve(Object other, Contact contact, Manifold oldManifold) async {
+    if (other is HealthFunctionality) {
+      other.applyHitAnimation(
+          await buildSpriteSheet(
+              4, 'weapons/melee/small_slash_effect.png', .05, false),
+          oldManifold.localNormal,
+          2);
+    }
+    super.preSolve(other, contact, oldManifold);
+  }
+
+  @override
   void beginContact(Object other, Contact contact) {
     if (parentAttack.isDead) {
       return;
@@ -44,10 +57,32 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       other.hitCheck(
           parentAttack.meleeId, parentAttack.parentWeapon.calculateDamage);
       onHitFunctions(other);
+      applyHitEffects(other);
       hitEnemies++;
     }
 
     super.beginContact(other, contact);
+  }
+
+  void applyHitEffects(HealthFunctionality other) async {
+    switch (parentAttack.parentWeapon.meleeType) {
+      case MeleeType.crush:
+        // other.applyHitAnimation(
+        //     await buildSpriteSheet(
+        //         4, 'weapons/melee/small_crush_effect.png', .1, false),
+        //     center,
+        //     1);
+        break;
+      case MeleeType.slash:
+        break;
+      case MeleeType.stab:
+        break;
+    }
+    other.applyHitAnimation(
+        await buildSpriteSheet(
+            4, 'weapons/melee/small_slash_effect.png', .05, false),
+        center,
+        1);
   }
 
   void onHitFunctions(HealthFunctionality other) {

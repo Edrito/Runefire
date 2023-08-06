@@ -1,6 +1,5 @@
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
-import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/main.dart';
@@ -16,8 +15,10 @@ class MenuGame extends Enviroment with PlayerFunctionality {
   late String weaponHash;
 
   String reduceWeapons() {
-    return game.playerDataComponent.dataObject.selectedWeapons.entries.fold(
-        "", (previousValue, element) => previousValue + element.value.name);
+    return game.playerDataComponent.dataObject.selectedWeapons.entries.fold("",
+            (previousValue, element) => previousValue + element.value.name) +
+        game.playerDataComponent.dataObject.selectedSecondaries.entries.fold(
+            "", (previousValue, element) => previousValue + element.value.name);
   }
 
   @override
@@ -40,13 +41,13 @@ class MenuGame extends Enviroment with PlayerFunctionality {
       if (player == null) return;
       final rectSize = Vector2(1.4 - (1.4 * i / platformsLength), .15);
       final rectPos =
-          Vector2(0, ((player!.height.parameter / 2) - .15) - (i * -.2));
+          Vector2(0, ((player!.height.parameter / 2) - .25) - (i * -.2));
       final rect = RectangleComponent(
         anchor: Anchor.topCenter,
         size: rectSize,
         priority: -1,
         position: Vector2(0, 10),
-        paint: const PaletteEntry(secondaryColor)
+        paint: ApolloColorPalette.lightBlue
             .withAlpha((255 * (1 - (1 * i / platformsLength))).round())
             .paint(),
       );
@@ -59,7 +60,7 @@ class MenuGame extends Enviroment with PlayerFunctionality {
           reverseCurve: Curves.easeInOut,
         ));
         rect.add(MoveEffect.by(
-            Vector2((.025 * rng.nextDouble()) - .0125, -.05), infEffect));
+            Vector2((.012 * rng.nextDouble()) - .006, -.03), infEffect));
       }
 
       final effect =

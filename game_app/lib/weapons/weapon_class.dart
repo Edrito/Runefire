@@ -115,6 +115,10 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   late String weaponId;
 
+  ///String is the ID, for easy removal and addition
+  ///Weapon is the weapon itself, preferably the weapon should not have reloadfunctionality
+  final Map<String, Weapon> additionalWeapons = {};
+
   AttributeWeaponFunctionsFunctionality? get attributeFunctionsFunctionality =>
       this is AttributeWeaponFunctionsFunctionality
           ? this as AttributeWeaponFunctionsFunctionality
@@ -159,6 +163,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   DoubleParameterManager maxSpreadDegrees =
       DoubleParameterManager(baseParameter: 45);
+
+  DoubleParameterManager knockBackAmount =
+      DoubleParameterManager(baseParameter: 0.005);
 
   IntParameterManager maxChainingTargets =
       IntParameterManager(baseParameter: 0);
@@ -221,7 +228,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   @mustCallSuper
-  void standardAttack([double holdDurationPercent = 1]) {}
+  void standardAttack([double holdDurationPercent = 1]) {
+    for (var element in additionalWeapons.entries) {
+      element.value.standardAttack(holdDurationPercent);
+    }
+  }
 
   /// Returns true if an attack occured, otherwise false.
   void attackAttempt([double holdDurationPercent = 1]) {

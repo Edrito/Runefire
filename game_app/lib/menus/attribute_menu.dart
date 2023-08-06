@@ -239,7 +239,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
   }
 
   final borderWidth = 5.0;
-  final borderColor = backgroundColor2.brighten(.1);
+  final borderColor = ApolloColorPalette.deepBlue.color;
 
   void selectAttribute(AttributeType attributeType) {}
 
@@ -282,7 +282,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
       effects: [
         CustomEffect(builder: (context, value, child) {
           return Container(
-            color: backgroundColor1.withOpacity(.95 * value),
+            color: ApolloColorPalette.blue.color.withOpacity(.95 * value),
             child: child,
           );
         })

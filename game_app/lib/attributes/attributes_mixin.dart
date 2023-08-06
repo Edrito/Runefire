@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
+import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/contact_callbacks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/contacts/contact.dart';
 import 'package:game_app/entities/entity.dart';
 import 'package:game_app/entities/entity_mixin.dart';
@@ -121,22 +123,166 @@ mixin AttributeFunctionality on Entity {
 }
 
 mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
-  List<Function> dashBeginFunctions = [];
-  List<Function> dashOngoingFunctions = [];
-  List<Function> dashEndFunctions = [];
+  @override
+  void update(double dt) {
+    for (var element in onUpdate) {
+      element(dt);
+    }
+    processHeadEntities(_headEntities, 1, dt);
+    processBodyEntities(_bodyComponents, height.parameter * 1.3, dt);
+    super.update(dt);
+  }
 
-  List<Function> jumpBeginFunctions = [];
-  List<Function> jumpOngoingFunctions = [];
-  List<Function> jumpEndFunctions = [];
+  final List<Function> dashBeginFunctions = [];
+  final List<Function> dashOngoingFunctions = [];
+  final List<Function> dashEndFunctions = [];
+  final List<Entity> _headEntities = [];
 
-  List<Function(Entity source)> onHit = [];
-  List<Function(HealthFunctionality victim)> onKillOtherEntity = [];
-  List<Function> onMove = [];
-  List<Function> onDeath = [];
-  List<Function> onLevelUp = [];
+  final List<BodyComponent> _bodyComponents = [];
 
-  List<Function(HealthFunctionality other)> onTouch = [];
-  List<Function(double dt)> onUpdate = [];
+  PositionComponent? headEntityWrapper;
+  double speedHead = .5;
+  double previousHeadAngle = 0;
+
+  PositionComponent? bodyEntityWrapper;
+  double speedBody = 1;
+  double previousBodyAngle = 0;
+
+  void processBodyEntities(
+      List<BodyComponent> bodyEntities, double distance, double dt) {
+    if (bodyEntities.isEmpty) return; // Avoid division by zero
+
+    int numEntities = bodyEntities.length;
+    double angleStep = 2 * pi / numEntities;
+    double currentAngle = previousBodyAngle += dt * speedBody;
+
+    for (int i = 0; i < numEntities; i++) {
+      if (numEntities != 0) {
+        double x = distance * cos(currentAngle);
+        double y = distance * sin(currentAngle);
+        if (bodyEntities[i].isLoaded) {
+          bodyEntities[i].body.setTransform(Vector2(x, y), 0);
+        }
+        currentAngle += angleStep;
+      } else {
+        if (bodyEntities[i].isLoaded) {
+          bodyEntities[i].body.setTransform(Vector2.zero(), 0);
+        }
+      }
+    }
+
+    previousBodyAngle = currentAngle;
+  }
+
+  void removBodyEntity(BodyComponent entity) {
+    final index = _bodyComponents.indexWhere((element) => element == entity);
+    if (index == -1) return;
+    final entityToRemove = _bodyComponents[index];
+    entityToRemove.removeFromParent();
+    _bodyComponents.removeAt(index);
+  }
+
+  void addBodyEntity(BodyComponent entity) {
+    bodyEntityWrapper ??= PositionComponent()..addToParent(this);
+
+    _bodyComponents.add(entity);
+    if (entity.parent == null) bodyEntityWrapper?.add(entity);
+  }
+
+  void processHeadEntities(List<Entity> entities, double distance, double dt) {
+    if (entities.isEmpty) return; // Avoid division by zero
+
+    int numEntities = entities.length;
+    double angleStep = 2 * pi / numEntities;
+    double currentAngle = previousHeadAngle += dt * speedHead;
+
+    for (int i = 0; i < numEntities; i++) {
+      if (numEntities != 0) {
+        double x = distance * cos(currentAngle);
+        double y = distance * sin(currentAngle);
+        if (entities[i].isLoaded) {
+          entities[i].body.setTransform(Vector2(x, y), 0);
+        }
+        currentAngle += angleStep;
+      } else {
+        if (entities[i].isLoaded) {
+          entities[i].body.setTransform(Vector2.zero(), 0);
+        }
+      }
+    }
+
+    previousHeadAngle = currentAngle;
+  }
+
+  void removeHeadEntity(String entityId) {
+    final index =
+        _headEntities.indexWhere((element) => element.entityId == entityId);
+    if (index == -1) return;
+    final entityToRemove = _headEntities[index];
+    entityToRemove.removeFromParent();
+    _headEntities.removeAt(index);
+  }
+
+  void addHeadEntity(Entity entity) {
+    headEntityWrapper ??= PositionComponent(
+      position: Vector2(0, height.parameter * -2),
+    )..addToParent(this);
+
+    _headEntities.add(entity);
+    if (entity.parent == null) headEntityWrapper?.add(entity);
+  }
+
+  final List<Function> _pulseFunctions = [];
+  TimerComponent? pulseTimer;
+  final pulsePeriod = 1.0;
+  bool finishPulseTimer = false;
+
+  void _checkFinishTimer() {
+    if (finishPulseTimer) {
+      pulseTimer?.removeFromParent();
+      pulseTimer = null;
+      finishPulseTimer = false;
+    }
+  }
+
+  void addPulseFunction(Function function) {
+    pulseTimer ??= TimerComponent(
+        period: pulsePeriod,
+        repeat: true,
+        onTick: () async {
+          _checkFinishTimer();
+          for (var element in _pulseFunctions) {
+            await Future.delayed(.1.seconds).then((_) {
+              element();
+            });
+            _checkFinishTimer();
+            pulseTimer?.timer.reset();
+          }
+        })
+      ..addToParent(this);
+    _pulseFunctions.add(function);
+    finishPulseTimer = false;
+  }
+
+  void removePulseFunction(Function function) {
+    _pulseFunctions.remove(function);
+    if (_pulseFunctions.isEmpty) {
+      finishPulseTimer = true;
+    }
+  }
+
+  final List<Function> jumpBeginFunctions = [];
+  final List<Function> jumpOngoingFunctions = [];
+  final List<Function> jumpEndFunctions = [];
+
+  final List<Function(Entity source)> onHit = [];
+  final List<Function(HealthFunctionality victim)> onKillOtherEntity = [];
+  final List<Function> onMove = [];
+  final List<Function> onDeath = [];
+  final List<Function> onLevelUp = [];
+
+  final List<Function(HealthFunctionality other)> onTouch = [];
+  final List<Function(double dt)> onUpdate = [];
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -150,14 +296,6 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     for (var element in onTouch) {
       element(other);
     }
-  }
-
-  @override
-  void update(double dt) {
-    for (var element in onUpdate) {
-      element(dt);
-    }
-    super.update(dt);
   }
 }
 
@@ -220,7 +358,9 @@ class HoldDuration extends PositionComponent {
           ..shader = ui.Gradient.sweep(
               Offset.zero,
               [
-                percentComplete == 1 ? secondaryColor : primaryColor,
+                percentComplete == 1
+                    ? ApolloColorPalette().secondaryColor
+                    : ApolloColorPalette().primaryColor,
                 Colors.transparent
               ],
               [percentComplete, percentComplete],
@@ -358,7 +498,9 @@ class ReloadAnimation extends PositionComponent {
   void toggleOpacity([bool? value]) =>
       value != null ? isOpaque = value : isOpaque = !isOpaque;
 
-  Color get color => isSecondaryWeapon ? secondaryColor : primaryColor;
+  Color get color => isSecondaryWeapon
+      ? ApolloColorPalette().secondaryColor
+      : ApolloColorPalette().primaryColor;
 
   double get percentReloaded => (timer.timer.current) / duration;
 

@@ -53,6 +53,49 @@ class MushroomDummy extends Enemy with JumpFunctionality
   EnemyType enemyType = EnemyType.mushroomDummy;
 }
 
+class MushroomRunner extends Enemy
+    with MovementFunctionality, TouchDamageFunctionality, DumbFollowAI {
+  MushroomRunner({
+    required super.initPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+  }) {
+    height.baseParameter = 1.7;
+    invincibilityDuration.baseParameter =
+        mushroomHopperBaseInvincibilityDuration;
+    maxHealth.baseParameter = 50.0;
+    speed.baseParameter = .05;
+    touchDamage.damageBase[DamageType.physical] = (1, 5);
+  }
+
+  @override
+  (double, double) xpRate = (0.001, 0.01);
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+        2, 'enemy_sprites/mushroomRunner/idle.png', .16, true);
+    entityAnimations[EntityStatus.run] = await buildSpriteSheet(
+        2, 'enemy_sprites/mushroomRunner/run.png', .16, true);
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await loadAnimationSprites();
+    await super.onLoad();
+    // startAttacking();
+  }
+
+  @override
+  void update(double dt) {
+    moveCharacter();
+    super.update(dt);
+  }
+
+  @override
+  EnemyType enemyType = EnemyType.mushroomDummy;
+}
+
 class MushroomHopper extends Enemy
     with
         JumpFunctionality,

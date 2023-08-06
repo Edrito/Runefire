@@ -78,7 +78,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
             style: defaultStyle.copyWith(
                 shadows: [],
                 fontSize: 18,
-                color: isNext ? secondaryColor : primaryColor),
+                color: isNext
+                    ? ApolloColorPalette.lightBlue.color
+                    : ApolloColorPalette.blue.color),
           ),
           const SizedBox(
             width: 15,
@@ -91,9 +93,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
   Widget buildLevelIndicator(bool isPointUnlocked, bool isEquipped) {
     final color = isPointUnlocked
         ? isEquipped
-            ? Colors.red
-            : primaryColor
-        : lockedColor;
+            ? ApolloColorPalette.lightRed.color
+            : ApolloColorPalette.lightBlue.color
+        : ApolloColorPalette.darkestBlue.color;
     return Padding(
       padding: const EdgeInsets.all(4),
       child: SizedBox(
@@ -215,7 +217,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
       ));
     }
 
-    Color equippedColor = isEquipped ? Colors.red : primaryColor;
+    Color equippedColor = isEquipped
+        ? ApolloColorPalette.lightRed.color
+        : ApolloColorPalette.blue.color;
     const levelAndUnlockHeight = 50.0;
     const unlockButtonWidth = 100.0;
     final levelIndicator = SizedBox(
@@ -352,9 +356,13 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
           decoration: BoxDecoration(
             // borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: !isLevelHover ? secondaryColor : unlockedColor,
+                color: !isLevelHover
+                    ? ApolloColorPalette.lightRed.color
+                    : ApolloColorPalette.blue.color,
                 width: borderWidth),
-            color: isLevelHover ? secondaryColor : unlockedColor,
+            color: isLevelHover
+                ? ApolloColorPalette.lightBlue.color
+                : ApolloColorPalette.blue.color,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

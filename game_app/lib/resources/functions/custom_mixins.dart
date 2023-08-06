@@ -173,12 +173,7 @@ mixin ProjectileSpriteLifecycle on StandardProjectile, BasicSpriteLifecycle {
 
   void applyHitAnimation(Entity other, Vector2 position) {
     if (hitAnimation == null) return;
-    other.add(ParticleSystemComponent(
-        particle: SpriteAnimationParticle(
-            size: Vector2.all(.7),
-            animation: hitAnimation!,
-            lifespan: .35,
-            position: position - other.center)));
+    other.applyHitAnimation(hitAnimation!, position, 1);
   }
 }
 
@@ -190,6 +185,7 @@ mixin BasicSpriteLifecycle on Component {
 
   abstract bool isInstant;
   SpriteAnimationComponent? spriteAnimationComponent;
+  bool randomlyFlipped = false;
 
   @override
   Future<void> onLoad() async {
@@ -199,6 +195,9 @@ mixin BasicSpriteLifecycle on Component {
       anchor: Anchor.center,
       size: Vector2.all(size),
     );
+    if (randomlyFlipped && rng.nextBool()) {
+      spriteAnimationComponent?.flipHorizontallyAroundCenter();
+    }
 
     add(spriteAnimationComponent!);
     if (!isInstant) {
@@ -216,6 +215,14 @@ mixin BasicSpriteLifecycle on Component {
         removeFromParent();
       };
       await spriteAnimationComponent?.animationTicker?.completed;
+    } else if (isInstant) {
+      if (spriteAnimationComponent?.animationTicker?.done() ?? true) {
+        removeFromParent();
+      } else {
+        spriteAnimationComponent?.animationTicker?.onComplete = () {
+          removeFromParent();
+        };
+      }
     } else {
       final controller = EffectController(
         curve: Curves.easeInCubic,

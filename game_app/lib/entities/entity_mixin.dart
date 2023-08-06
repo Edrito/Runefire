@@ -101,8 +101,8 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   final DoubleParameterManager damagePercentIncrease =
       DoubleParameterManager(baseParameter: 1);
 
-  final DoubleParameterManager knockBackParameter =
-      DoubleParameterManager(baseParameter: .005);
+  final DoubleParameterManager knockBackIncreaseParameter =
+      DoubleParameterManager(baseParameter: 1);
 
   final DoubleParameterManager meleeDamagePercentIncrease =
       DoubleParameterManager(baseParameter: 1);
@@ -316,17 +316,12 @@ mixin AttackFunctionality on AimFunctionality {
       for (var i = 0; i < player.playerData.selectedWeapons.length; i++) {
         final element = playerData.selectedWeapons[i]!;
         carriedWeapons[i] = element.build(
-            this,
-            player.playerData.selectedSecondaries[i],
-            player.playerData.unlockedWeapons[element] ?? 0);
+            this, player.playerData.selectedSecondaries[i], gameRef);
       }
     } else {
       int i = 0;
       for (var element in initialWeapons) {
-        carriedWeapons[i] = element.build(
-          this,
-          null,
-        );
+        carriedWeapons[i] = element.build(this, null, gameRef, 1);
         i++;
       }
     }
@@ -518,8 +513,8 @@ mixin HealthFunctionality on Entity {
 
     spriteAnimationComponent.add(OpacityEffect.fadeOut(
       EffectController(
-          startDelay: rng.nextDouble() * 10,
-          duration: 1.5,
+          startDelay: rng.nextDouble() * .5,
+          duration: 1.0,
           onMax: () => removeFromParent(),
           curve: Curves.easeIn),
     ));
@@ -649,7 +644,9 @@ mixin HealthFunctionality on Entity {
 
   void applyKnockback(DamageInstance damage) {
     final amount = (damage.damage / 30).clamp(0, 1);
-    final impulse = knockBackParameter.baseParameter * amount;
+    final impulse = knockBackIncreaseParameter.baseParameter *
+        amount *
+        (damage.sourceWeapon?.knockBackAmount.parameter ?? 0);
 
     body.applyLinearImpulse(
         (center - damage.source.center).normalized() * impulse);
@@ -1006,20 +1003,10 @@ mixin DashFunctionality on StaminaFunctionality {
 
     power ??= 1;
 
-    buildSpriteSheet(6, 'entity_effects/dash_effect.png', .1, false)
-        .then((value) {
-      final sprite = SpriteAnimationComponent(
-          anchor: Anchor.center,
-          position: Vector2(center.x, center.y + -.3),
-          size: Vector2.all(2),
-          animation: value);
-      if (!isFlipped) {
-        sprite.flipHorizontallyAroundCenter();
-      }
-      sprite.animationTicker?.completed
-          .then((value) => sprite.removeFromParent());
-      gameEnviroment.add(sprite);
-    });
+    applyGroundAnimation(
+        await buildSpriteSheet(7, 'entity_effects/dash_effect.png', .1, false),
+        false,
+        height.parameter * .1);
 
     dashDistanceGoal = dashDistance.parameter * power;
     _isDashing = true;
@@ -1177,10 +1164,16 @@ mixin JumpFunctionality on Entity {
     return super.jumpStatus();
   }
 
-  void jump() {
+  void jump() async {
     if (this is StaminaFunctionality) {
       (this as StaminaFunctionality).modifyStamina(-jumpStaminaCost.parameter);
     }
+
+    applyGroundAnimation(
+        await buildSpriteSheet(6, 'entity_effects/jump_effect.png', .1, false),
+        false,
+        height.parameter * .2);
+
     _isJumping = true;
     double elapsed = 0;
     double min = (jumpDuration.parameter / 2) -

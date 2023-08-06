@@ -148,6 +148,8 @@ mixin MeleeFunctionality on Weapon {
   final BoolParameterManager meleeAttacksCollision =
       BoolParameterManager(baseParameter: false);
 
+  MeleeType meleeType = MeleeType.slash;
+
   ///Pairs of attack patterns
   ///
   ///Start position - Start angle
@@ -822,7 +824,7 @@ String buildWeaponDescription(
   String returnString = "";
 
   if (!isUnlocked) return " - ";
-  final builtWeapon = weapon.build(null, null, level);
+  final builtWeapon = weapon.buildTemp(level);
 
   switch (weaponDescription) {
     case WeaponDescription.attackRate:

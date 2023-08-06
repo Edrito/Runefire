@@ -6,11 +6,11 @@ import '../resources/functions/functions.dart';
 import 'attributes_structure.dart';
 import '../resources/enums.dart';
 
-Attribute? regularAttributeBuilder(
-    AttributeType type, int level, AttributeFunctionality victimEntity) {
+Attribute? regularAttributeBuilder(AttributeType type, int level,
+    AttributeFunctionality victimEntity, DamageType? damageType) {
   switch (type) {
-    case AttributeType.enemyExplosion:
-      return ExplosionEnemyDeathAttribute(
+    case AttributeType.fireExplosionOnKill:
+      return FireExplosionEnemyDeathAttribute(
         level: level,
         victimEntity: victimEntity,
       );
@@ -20,18 +20,18 @@ Attribute? regularAttributeBuilder(
   }
 }
 
-class ExplosionEnemyDeathAttribute extends Attribute {
-  ExplosionEnemyDeathAttribute(
+class FireExplosionEnemyDeathAttribute extends Attribute {
+  FireExplosionEnemyDeathAttribute(
       {required super.level, required super.victimEntity});
 
   @override
-  AttributeType attributeType = AttributeType.enemyExplosion;
+  AttributeType attributeType = AttributeType.fireExplosionOnKill;
 
   @override
   double get factor => .25;
 
-  @override
-  int baseCost = 100;
+  // @override
+  // int baseCost = 100;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -46,13 +46,14 @@ class ExplosionEnemyDeathAttribute extends Attribute {
     final explosion = AreaEffect(
         sourceEntity: victimEntity!,
         position: other.center,
+        randomlyFlipped: true,
         playAnimation: await buildSpriteSheet(
-            61, 'weapons/projectiles/fire_area.png', .05, true),
+            16, 'effects/explosion_1_16.png', .05, false),
         size: baseSize + increasePercentOfBase(baseSize),
-        isInstant: false,
+        isInstant: true,
         duration: victimEntity!.durationPercentIncrease.parameter,
 
-        ///Map<DamageType, (double, double)>
+        ///Map<DamageType, (double, double)>>>>
         damage: {DamageType.fire: (increase(true, 5), increase(true, 10))});
     victimEntity?.gameEnviroment.physicsComponent.add(explosion);
   }

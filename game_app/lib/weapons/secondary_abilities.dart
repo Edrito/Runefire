@@ -188,7 +188,7 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
     final projectileListCopy = [...projectile.activeProjectiles.reversed];
     for (var element in projectileListCopy) {
       await Future.delayed(const Duration(milliseconds: 20));
-      weapon?.entityAncestor?.gameEnviroment.physicsComponent.add(AreaEffect(
+      weapon?.entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
         sourceEntity: weapon!.entityAncestor!,
         position: element.center,
         size: 5,

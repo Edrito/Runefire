@@ -919,7 +919,7 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() async {
-    for (var element in await victimEntity!.getAllWeaponItems(true)) {
+    for (var element in await victimEntity!.getAllWeaponItems(true, false)) {
       genericAttributeIncrease(
           element.attackTickRate, increaseFromBaseParameter, false);
     }
@@ -927,7 +927,7 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() async {
-    for (var element in await victimEntity!.getAllWeaponItems(true)) {
+    for (var element in await victimEntity!.getAllWeaponItems(true, false)) {
       element.attackTickRate.removeKey(attributeId);
     }
   }
@@ -1488,7 +1488,7 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() async {
-    for (var element in await victimEntity!.getAllWeaponItems(true)) {
+    for (var element in await victimEntity!.getAllWeaponItems(true, false)) {
       if (element is ReloadFunctionality) {
         genericAttributeIncrease(
             element.reloadTime, increaseFromBaseParameter, false);
@@ -1498,7 +1498,7 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() async {
-    for (var element in await victimEntity!.getAllWeaponItems(true)) {
+    for (var element in await victimEntity!.getAllWeaponItems(true, false)) {
       if (element is ReloadFunctionality) {
         element.reloadTime.removeKey(attributeId);
       }

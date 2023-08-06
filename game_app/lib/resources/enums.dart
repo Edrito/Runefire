@@ -3,6 +3,7 @@ import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_constants.dart' as player_constants;
+import 'package:game_app/main.dart';
 import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/player_projectile_weapons.dart';
@@ -36,6 +37,7 @@ enum EnemyType {
   mushroomBoomer,
   mushroomDummy,
   mushroomSpinner,
+  mushroomRunner
 }
 
 extension EnemyTypeExtension on EnemyType {
@@ -63,6 +65,11 @@ extension EnemyTypeExtension on EnemyType {
             upgradeLevel: level);
       case EnemyType.mushroomSpinner:
         return MushroomSpinner(
+            initPosition: position,
+            enviroment: gameEnviroment,
+            upgradeLevel: level);
+      case EnemyType.mushroomRunner:
+        return MushroomRunner(
             initPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
@@ -97,6 +104,8 @@ enum SemiAutoType { regular, release, charge }
 enum StatusEffects { burn, chill, electrified, stun, psychic, fear }
 
 enum AttackType { projectile, melee, spell }
+
+enum MeleeType { slash, stab, crush }
 
 enum DamageType { physical, magic, fire, psychic, energy, frost, healing }
 
@@ -406,40 +415,30 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 }
 
 enum WeaponType {
-  pistol(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile, 0),
-  longRangeRifle(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile, 0),
-  assaultRifle(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile, 0),
-  laserRifle(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile, 0),
-  railgun(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile, 0),
-  rocketLauncher(Pistol.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile, 0),
-  shotgun(Shotgun.create, 'assets/images/weapons/shotgun.png', 5,
-      AttackType.projectile, 500),
-  energySword(EnergySword.create, 'assets/images/weapons/energy_sword.png', 5,
-      AttackType.melee, 500),
-  flameSword(FlameSword.create, 'assets/images/weapons/fire_sword.png', 5,
-      AttackType.melee, 500),
-  dagger(Dagger.create, 'assets/images/weapons/dagger.png', 5, AttackType.spell,
-      0),
-  blankProjectileWeapon(BlankProjectileWeapon.create,
+  pistol('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  longRangeRifle(
+      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  assaultRifle(
+      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  laserRifle('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  railgun('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  rocketLauncher(
+      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  shotgun('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 500),
+  energySword(
+      'assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
+  flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
+  dagger('assets/images/weapons/dagger.png', 5, AttackType.spell, 0),
+  blankProjectileWeapon(
       'assets/images/weapons/dagger.png', 5, AttackType.projectile, 0),
-  largeSword(LargeSword.create, 'assets/images/weapons/large_sword.png', 5,
-      AttackType.melee, 600),
-  spear(
-      Dagger.create, 'assets/images/weapons/spear.png', 5, AttackType.melee, 0),
+  largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
+  spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
   ;
 
-  const WeaponType(this.createFunction, this.icon, this.maxLevel,
-      this.attackType, this.baseCost);
+  const WeaponType(this.icon, this.maxLevel, this.attackType, this.baseCost);
   final String icon;
   final int maxLevel;
   final AttackType attackType;
-  final Function createFunction;
   final int baseCost;
 
   String get flameImage {
@@ -449,60 +448,119 @@ enum WeaponType {
 }
 
 extension WeaponTypeFilename on WeaponType {
-  Weapon build(AimFunctionality? ancestor, SecondaryType? secondaryWeaponType,
-      [int upgradeLevel = 0]) {
+  Weapon build(AimFunctionality ancestor, SecondaryType? secondaryWeaponType,
+      GameRouter gameRouter,
+      [int? customWeaponLevel]) {
+    Weapon? returnWeapon;
+    int upgradeLevel = customWeaponLevel ??
+        gameRouter.playerDataComponent.dataObject.unlockedWeapons[this] ??
+        0;
+
+    switch (this) {
+      case WeaponType.pistol:
+        returnWeapon = Pistol(upgradeLevel, ancestor);
+        break;
+      case WeaponType.shotgun:
+        returnWeapon = Shotgun(upgradeLevel, ancestor);
+        break;
+      case WeaponType.railgun:
+        returnWeapon = Railgun(upgradeLevel, ancestor);
+        break;
+      case WeaponType.blankProjectileWeapon:
+        returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
+        break;
+      case WeaponType.assaultRifle:
+        returnWeapon = AssaultRifle(upgradeLevel, ancestor);
+        break;
+      case WeaponType.longRangeRifle:
+        returnWeapon = LongRangeRifle(upgradeLevel, ancestor);
+        break;
+      case WeaponType.rocketLauncher:
+        returnWeapon = RocketLauncher(upgradeLevel, ancestor);
+        break;
+      case WeaponType.laserRifle:
+        returnWeapon = LaserRifle(upgradeLevel, ancestor);
+        break;
+
+      case WeaponType.dagger:
+        returnWeapon = Dagger(upgradeLevel, ancestor);
+
+      case WeaponType.largeSword:
+        returnWeapon = LargeSword(upgradeLevel, ancestor);
+
+        break;
+      case WeaponType.spear:
+        returnWeapon = Spear(upgradeLevel, ancestor);
+        break;
+      case WeaponType.energySword:
+        returnWeapon = EnergySword(upgradeLevel, ancestor);
+
+        break;
+      case WeaponType.flameSword:
+        returnWeapon = FlameSword(upgradeLevel, ancestor);
+
+        break;
+    }
+    if (returnWeapon is SecondaryFunctionality && secondaryWeaponType != null) {
+      int secondaryWeaponUpgrade = gameRouter.playerDataComponent.dataObject
+              .unlockedSecondarys[secondaryWeaponType] ??
+          0;
+      returnWeapon.setSecondaryFunctionality =
+          secondaryWeaponType.build(returnWeapon, secondaryWeaponUpgrade);
+    }
+    ancestor.add(returnWeapon);
+    return returnWeapon;
+  }
+
+  Weapon buildTemp(int upgradeLevel) {
     Weapon? returnWeapon;
 
     switch (this) {
       case WeaponType.pistol:
-        returnWeapon = Pistol.create(upgradeLevel, ancestor);
+        returnWeapon = Pistol(upgradeLevel, null);
         break;
       case WeaponType.shotgun:
-        returnWeapon = Shotgun.create(upgradeLevel, ancestor);
+        returnWeapon = Shotgun(upgradeLevel, null);
         break;
       case WeaponType.railgun:
-        returnWeapon = Railgun.create(upgradeLevel, ancestor);
+        returnWeapon = Railgun(upgradeLevel, null);
         break;
       case WeaponType.blankProjectileWeapon:
-        returnWeapon = BlankProjectileWeapon.create(upgradeLevel, ancestor);
+        returnWeapon = BlankProjectileWeapon(upgradeLevel, null);
         break;
       case WeaponType.assaultRifle:
-        returnWeapon = AssaultRifle.create(upgradeLevel, ancestor);
+        returnWeapon = AssaultRifle(upgradeLevel, null);
         break;
       case WeaponType.longRangeRifle:
-        returnWeapon = LongRangeRifle.create(upgradeLevel, ancestor);
+        returnWeapon = LongRangeRifle(upgradeLevel, null);
         break;
       case WeaponType.rocketLauncher:
-        returnWeapon = RocketLauncher.create(upgradeLevel, ancestor);
+        returnWeapon = RocketLauncher(upgradeLevel, null);
         break;
       case WeaponType.laserRifle:
-        returnWeapon = LaserRifle.create(upgradeLevel, ancestor);
+        returnWeapon = LaserRifle(upgradeLevel, null);
         break;
 
       case WeaponType.dagger:
-        returnWeapon = Dagger.create(upgradeLevel, ancestor);
+        returnWeapon = Dagger(upgradeLevel, null);
 
       case WeaponType.largeSword:
-        returnWeapon = LargeSword.create(upgradeLevel, ancestor);
+        returnWeapon = LargeSword(upgradeLevel, null);
 
         break;
       case WeaponType.spear:
-        returnWeapon = Spear.create(upgradeLevel, ancestor);
+        returnWeapon = Spear(upgradeLevel, null);
         break;
       case WeaponType.energySword:
-        returnWeapon = EnergySword.create(upgradeLevel, ancestor);
+        returnWeapon = EnergySword(upgradeLevel, null);
 
         break;
       case WeaponType.flameSword:
-        returnWeapon = FlameSword.create(upgradeLevel, ancestor);
+        returnWeapon = FlameSword(upgradeLevel, null);
 
         break;
     }
-    if (returnWeapon is SecondaryFunctionality) {
-      returnWeapon.setSecondaryFunctionality =
-          secondaryWeaponType?.build(returnWeapon, upgradeLevel);
-    }
-    ancestor?.add(returnWeapon);
+
     return returnWeapon;
   }
 }
@@ -527,8 +585,6 @@ extension DamageTypeExtension on DamageType {
     }
   }
 }
-
-typedef WeaponCreateFunction = Weapon Function(Entity);
 
 class DamageInstance {
   DamageInstance({

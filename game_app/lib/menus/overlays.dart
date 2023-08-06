@@ -43,7 +43,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
               width: size.width / 3,
               height: size.height / 4,
               decoration: BoxDecoration(
-                  color: backgroundColor1.darken(.1),
+                  color: ApolloColorPalette.deepBlue.color.darken(.1),
                   borderRadius: const BorderRadius.all(Radius.circular(20))),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

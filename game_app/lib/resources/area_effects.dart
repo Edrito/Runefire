@@ -30,6 +30,7 @@ class AreaEffect extends BodyComponent<GameRouter>
     required this.position,
     required this.sourceEntity,
     this.isSolid = false,
+    this.randomlyFlipped = false,
   }) {
     assert(onTick != null || damage != null);
 
@@ -40,6 +41,8 @@ class AreaEffect extends BodyComponent<GameRouter>
   }
   Map<DamageType, (double, double)>? damage;
 
+  @override
+  bool randomlyFlipped;
   @override
   SpriteAnimation? spawnAnimation;
   @override
