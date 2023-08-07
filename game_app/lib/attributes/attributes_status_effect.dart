@@ -1,7 +1,7 @@
 import 'package:game_app/attributes/attributes_perpetrator.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 
-import '../entities/entity.dart';
+import '../entities/entity_class.dart';
 import '../entities/entity_mixin.dart';
 import '../resources/data_classes/base.dart';
 import '../resources/enums.dart';

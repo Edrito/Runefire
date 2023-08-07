@@ -18,7 +18,7 @@ class MushroomDummy extends Enemy with JumpFunctionality
 // DumbFollowAI,
 {
   MushroomDummy({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required super.upgradeLevel,
   }) {
@@ -27,18 +27,17 @@ class MushroomDummy extends Enemy with JumpFunctionality
         mushroomHopperBaseInvincibilityDuration;
     maxHealth.baseParameter = double.infinity;
   }
-
   @override
-  (double, double) xpRate = (0.001, 0.01);
+  (double, double, double) xpRate = (0.001, 0.01, 0.4);
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomHopper/idle.png', .1, true);
-    entityAnimations[EntityStatus.jump] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.jump] = await loadSpriteAnimation(
         3, 'enemy_sprites/mushroomHopper/jump.png', .1, false);
 
-    entityAnimations[EntityStatus.dead] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dead] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomHopper/death.png', .1, false);
   }
 
@@ -56,7 +55,7 @@ class MushroomDummy extends Enemy with JumpFunctionality
 class MushroomRunner extends Enemy
     with MovementFunctionality, TouchDamageFunctionality, DumbFollowAI {
   MushroomRunner({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required super.upgradeLevel,
   }) {
@@ -69,13 +68,13 @@ class MushroomRunner extends Enemy
   }
 
   @override
-  (double, double) xpRate = (0.001, 0.01);
+  (double, double, double) xpRate = (0.001, 0.01, 0.4);
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
         2, 'enemy_sprites/mushroomRunner/idle.png', .16, true);
-    entityAnimations[EntityStatus.run] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
         2, 'enemy_sprites/mushroomRunner/run.png', .16, true);
   }
 
@@ -103,7 +102,7 @@ class MushroomHopper extends Enemy
         HopFollowAI,
         TouchDamageFunctionality {
   MushroomHopper({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required super.upgradeLevel,
   }) {
@@ -123,16 +122,16 @@ class MushroomHopper extends Enemy
   }
 
   @override
-  (double, double) xpRate = (0.001, 0.01);
+  (double, double, double) xpRate = (0.001, 0.01, 0.4);
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomHopper/idle.png', .1, true);
-    entityAnimations[EntityStatus.jump] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.jump] = await loadSpriteAnimation(
         3, 'enemy_sprites/mushroomHopper/jump.png', .1, false);
 
-    entityAnimations[EntityStatus.dead] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dead] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomHopper/death.png', .1, false);
   }
 
@@ -150,7 +149,7 @@ class MushroomHopper extends Enemy
 class MushroomBoomer extends Enemy
     with MovementFunctionality, FollowThenSuicideAI {
   MushroomBoomer({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required super.upgradeLevel,
   }) {
@@ -164,7 +163,7 @@ class MushroomBoomer extends Enemy
       await spriteAnimationComponent.animationTicker?.completed;
       enviroment.physicsComponent.add(AreaEffect(
           position: body.worldCenter,
-          playAnimation: await buildSpriteSheet(
+          playAnimation: await loadSpriteAnimation(
               61, 'weapons/projectiles/fire_area.png', .05, true),
           sourceEntity: this,
           size: 4 * ((upgradeLevel / 2)) + 2,
@@ -182,21 +181,21 @@ class MushroomBoomer extends Enemy
   }
 
   @override
-  (double, double) xpRate = (0.001, 0.01);
+  (double, double, double) xpRate = (0.001, 0.01, 0.4);
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomBoomer/idle.png', .1, true);
-    entityAnimations[EntityStatus.jump] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.jump] = await loadSpriteAnimation(
         3, 'enemy_sprites/mushroomBoomer/jump.png', .1, false);
-    entityAnimations[EntityStatus.dash] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dash] = await loadSpriteAnimation(
         7, 'enemy_sprites/mushroomBoomer/roll.png', .06, false);
-    entityAnimations[EntityStatus.walk] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.walk] = await loadSpriteAnimation(
         8, 'enemy_sprites/mushroomBoomer/walk.png', .1, true);
-    entityAnimations[EntityStatus.run] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
         8, 'enemy_sprites/mushroomBoomer/run.png', .1, true);
-    entityAnimations[EntityStatus.dead] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dead] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomBoomer/death.png', .1, false);
   }
 
@@ -220,7 +219,7 @@ class MushroomShooter extends Enemy
         DumbShoot,
         DumbFollowRangeAI {
   MushroomShooter({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required super.upgradeLevel,
   }) {
@@ -242,21 +241,21 @@ class MushroomShooter extends Enemy
   }
 
   @override
-  (double, double) xpRate = (0.001, 0.01);
+  (double, double, double) xpRate = (0.001, 0.01, 0.4);
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomShooter/idle.png', .1, true);
-    entityAnimations[EntityStatus.jump] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.jump] = await loadSpriteAnimation(
         3, 'enemy_sprites/mushroomShooter/jump.png', .1, false);
-    entityAnimations[EntityStatus.dash] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dash] = await loadSpriteAnimation(
         7, 'enemy_sprites/mushroomShooter/roll.png', .06, false);
-    entityAnimations[EntityStatus.attack] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.attack] = await loadSpriteAnimation(
         3, 'enemy_sprites/mushroomShooter/jump.png', .1, false);
-    entityAnimations[EntityStatus.run] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
         8, 'enemy_sprites/mushroomShooter/run.png', .1, true);
-    entityAnimations[EntityStatus.dead] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dead] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomShooter/death.png', .1, false);
   }
 
@@ -284,7 +283,7 @@ class MushroomSpinner extends Enemy
         DumbFollowAI,
         StateManagedAI {
   MushroomSpinner({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required super.upgradeLevel,
   }) {
@@ -353,7 +352,7 @@ class MushroomSpinner extends Enemy
   }
 
   @override
-  (double, double) xpRate = (0.001, 0.01);
+  (double, double, double) xpRate = (0.001, 0.01, 0.4);
 
   Future<void> toggleIdleRunAnimations(bool isSpinning) async {
     if (isSpinning) {
@@ -361,10 +360,10 @@ class MushroomSpinner extends Enemy
 
       entityAnimations[EntityStatus.run] = entityAnimations["spin"]!;
     } else {
-      entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+      entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
           10, 'enemy_sprites/mushroomSpinner/idle.png', .1, true);
 
-      entityAnimations[EntityStatus.run] = await buildSpriteSheet(
+      entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
           8, 'enemy_sprites/mushroomSpinner/run.png', .1, true);
     }
   }
@@ -372,13 +371,13 @@ class MushroomSpinner extends Enemy
   @override
   Future<void> loadAnimationSprites() async {
     toggleIdleRunAnimations(false);
-    entityAnimations[EntityStatus.dead] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dead] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomSpinner/death.png', .1, false);
-    entityAnimations["spin_start"] = await buildSpriteSheet(
+    entityAnimations["spin_start"] = await loadSpriteAnimation(
         9, 'enemy_sprites/mushroomSpinner/spin_start.png', .1, false);
-    entityAnimations["spin_end"] = await buildSpriteSheet(
+    entityAnimations["spin_end"] = await loadSpriteAnimation(
         9, 'enemy_sprites/mushroomSpinner/spin_end.png', .1, false);
-    entityAnimations["spin"] = await buildSpriteSheet(
+    entityAnimations["spin"] = await loadSpriteAnimation(
         7, 'enemy_sprites/mushroomSpinner/spin.png', .02, true);
   }
 
@@ -410,7 +409,7 @@ class MushroomBurrower extends Enemy
         AttackFunctionality,
         StateManagedAI {
   MushroomBurrower({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required super.upgradeLevel,
   }) {
@@ -485,13 +484,12 @@ class MushroomBurrower extends Enemy
   double get burrowSpeed => 1.0;
 
   @override
-  (double, double) xpRate = (0.001, 0.01);
-
+  (double, double, double) xpRate = (0.001, 0.01, 0.4);
   Future<void> toggleIdleRunAnimations(bool isBurrowed) async {
     if (isBurrowed) {
       entityAnimations.remove(EntityStatus.idle);
     } else {
-      entityAnimations[EntityStatus.idle] = await buildSpriteSheet(
+      entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
           10, 'enemy_sprites/mushroomSpinner/idle.png', .1, true);
     }
   }
@@ -499,11 +497,11 @@ class MushroomBurrower extends Enemy
   @override
   Future<void> loadAnimationSprites() async {
     toggleIdleRunAnimations(false);
-    entityAnimations[EntityStatus.dead] = await buildSpriteSheet(
+    entityAnimations[EntityStatus.dead] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomBurrower/death.png', .1, false);
-    entityAnimations["burrow_in"] = await buildSpriteSheet(9,
+    entityAnimations["burrow_in"] = await loadSpriteAnimation(9,
         'enemy_sprites/mushroomBurrower/burrow_in.png', burrowSpeed / 9, false);
-    entityAnimations["burrow_out"] = await buildSpriteSheet(
+    entityAnimations["burrow_out"] = await loadSpriteAnimation(
         9,
         'enemy_sprites/mushroomBurrower/burrow_out.png',
         burrowSpeed / 9,

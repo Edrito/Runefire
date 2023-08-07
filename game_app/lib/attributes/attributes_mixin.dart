@@ -2,15 +2,15 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
-import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/contact_callbacks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/contacts/contact.dart';
-import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../resources/enums.dart';
+import 'child_entities.dart';
 import 'attributes_structure.dart';
 import '../resources/visuals.dart';
 
@@ -136,77 +136,87 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<Function> dashBeginFunctions = [];
   final List<Function> dashOngoingFunctions = [];
   final List<Function> dashEndFunctions = [];
-  final List<Entity> _headEntities = [];
+  final List<ChildEntity> _headEntities = [];
 
-  final List<BodyComponent> _bodyComponents = [];
+  final List<ChildEntity> _bodyComponents = [];
 
   PositionComponent? headEntityWrapper;
   double speedHead = .5;
   double previousHeadAngle = 0;
 
   PositionComponent? bodyEntityWrapper;
-  double speedBody = 1;
+  double speedBody = .2;
   double previousBodyAngle = 0;
 
   void processBodyEntities(
-      List<BodyComponent> bodyEntities, double distance, double dt) {
+      List<ChildEntity> bodyEntities, double distance, double dt) {
     if (bodyEntities.isEmpty) return; // Avoid division by zero
 
-    int numEntities = bodyEntities.length;
-    double angleStep = 2 * pi / numEntities;
-    double currentAngle = previousBodyAngle += dt * speedBody;
+    Vector2 offsetPosition = bodyEntityWrapper!.absolutePosition + center;
 
-    for (int i = 0; i < numEntities; i++) {
-      if (numEntities != 0) {
+    Set<double> distanceSteps = bodyEntities.fold<Set<double>>(
+        {}, (previousValue, element) => {...previousValue, element.distance});
+
+    for (var distanceStep in distanceSteps) {
+      List<ChildEntity> tempBodies = bodyEntities
+          .where((element) => element.distance == distanceStep)
+          .toList();
+
+      double currentAngle = previousBodyAngle += dt * speedBody;
+      int numEntities = tempBodies.length;
+      double angleStep = 2 * pi / numEntities;
+
+      for (int i = 0; i < numEntities; i++) {
         double x = distance * cos(currentAngle);
         double y = distance * sin(currentAngle);
-        if (bodyEntities[i].isLoaded) {
-          bodyEntities[i].body.setTransform(Vector2(x, y), 0);
+        if (tempBodies[i].isLoaded) {
+          tempBodies[i]
+              .body
+              .setTransform((Vector2(x, y) * distanceStep) + offsetPosition, 0);
         }
         currentAngle += angleStep;
-      } else {
-        if (bodyEntities[i].isLoaded) {
-          bodyEntities[i].body.setTransform(Vector2.zero(), 0);
-        }
       }
     }
 
-    previousBodyAngle = currentAngle;
+    previousBodyAngle += dt * speedBody;
   }
 
-  void removBodyEntity(BodyComponent entity) {
-    final index = _bodyComponents.indexWhere((element) => element == entity);
+  void removBodyEntity(String entityId) {
+    final index =
+        _bodyComponents.indexWhere((element) => element.entityId == entityId);
     if (index == -1) return;
     final entityToRemove = _bodyComponents[index];
     entityToRemove.removeFromParent();
     _bodyComponents.removeAt(index);
   }
 
-  void addBodyEntity(BodyComponent entity) {
+  void addBodyEntity(ChildEntity entity) {
     bodyEntityWrapper ??= PositionComponent()..addToParent(this);
 
     _bodyComponents.add(entity);
-    if (entity.parent == null) bodyEntityWrapper?.add(entity);
+    if (entity.parent == null) enviroment.physicsComponent.add(entity);
   }
 
-  void processHeadEntities(List<Entity> entities, double distance, double dt) {
+  void processHeadEntities(
+      List<ChildEntity> entities, double distance, double dt) {
     if (entities.isEmpty) return; // Avoid division by zero
 
     int numEntities = entities.length;
     double angleStep = 2 * pi / numEntities;
     double currentAngle = previousHeadAngle += dt * speedHead;
+    Vector2 offsetPosition = headEntityWrapper!.absolutePosition + center;
 
     for (int i = 0; i < numEntities; i++) {
-      if (numEntities != 0) {
+      if (numEntities != 1) {
         double x = distance * cos(currentAngle);
         double y = distance * sin(currentAngle);
         if (entities[i].isLoaded) {
-          entities[i].body.setTransform(Vector2(x, y), 0);
+          entities[i].body.setTransform(Vector2(x, y) + offsetPosition, 0);
         }
         currentAngle += angleStep;
       } else {
         if (entities[i].isLoaded) {
-          entities[i].body.setTransform(Vector2.zero(), 0);
+          entities[i].body.setTransform(Vector2.zero() + offsetPosition, 0);
         }
       }
     }
@@ -223,13 +233,13 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     _headEntities.removeAt(index);
   }
 
-  void addHeadEntity(Entity entity) {
+  void addHeadEntity(ChildEntity entity) {
     headEntityWrapper ??= PositionComponent(
       position: Vector2(0, height.parameter * -2),
     )..addToParent(this);
 
     _headEntities.add(entity);
-    if (entity.parent == null) headEntityWrapper?.add(entity);
+    if (entity.parent == null) enviroment.physicsComponent.add(entity);
   }
 
   final List<Function> _pulseFunctions = [];

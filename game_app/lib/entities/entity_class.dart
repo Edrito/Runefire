@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/attributes/child_entities.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
@@ -13,14 +14,24 @@ import '../attributes/attributes_mixin.dart';
 import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
-  Entity({required this.initPosition, required this.enviroment}) {
+  Entity({required this.initialPosition, required this.enviroment}) {
+    initializeParameterManagers();
     entityId = const Uuid().v4();
   }
 
-  AttributeFunctionsFunctionality? get attributeFunctionsFunctionality =>
-      this is AttributeFunctionsFunctionality
-          ? this as AttributeFunctionsFunctionality
-          : null;
+  AttributeFunctionsFunctionality? get attributeFunctionsFunctionality {
+    bool thisIsAttr = this is AttributeFunctionsFunctionality;
+
+    if (thisIsAttr) {
+      return this as AttributeFunctionsFunctionality;
+    }
+    bool thisIsChildEntity = this is ChildEntity;
+
+    if (thisIsChildEntity) {
+      return (this as ChildEntity).parentEntity.attributeFunctionsFunctionality;
+    }
+    return null;
+  }
 
   late String entityId;
 
@@ -91,7 +102,9 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   PlayerFunctionality get playerFunctionality =>
       enviroment as PlayerFunctionality;
 
-  bool get isPlayer => EntityType.player == entityType;
+  bool get isPlayer =>
+      EntityType.player == entityType ||
+      (isChildEntity && (this as ChildEntity).parentEntity.isPlayer);
 
   void permanentlyDisableEntity() {}
 
@@ -101,7 +114,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   late EntityStatusEffectsWrapper entityStatusWrapper;
 
   //STATUS
-  Vector2 initPosition;
+  Vector2 initialPosition;
 
   EntityStatus? statusQueue;
   EntityStatus? previousStatus;
@@ -273,7 +286,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         density: 0.001,
         filter: filter);
     final bodyDef = BodyDef(
-      position: initPosition,
+      position: initialPosition,
       userData: this,
       type: BodyType.dynamic,
       linearDamping: 12,

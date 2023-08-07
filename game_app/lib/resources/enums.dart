@@ -10,7 +10,7 @@ import 'package:game_app/weapons/player_projectile_weapons.dart';
 
 import '../enemies/enemy.dart';
 import '../enemies/enemy_mushroom.dart';
-import '../entities/entity.dart';
+import '../entities/entity_class.dart';
 import '../entities/player.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
@@ -45,37 +45,37 @@ extension EnemyTypeExtension on EnemyType {
     switch (this) {
       case EnemyType.mushroomHopper:
         return MushroomHopper(
-            initPosition: position,
+            initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomBoomer:
         return MushroomBoomer(
-            initPosition: position,
+            initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomShooter:
         return MushroomShooter(
-            initPosition: position,
+            initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomBurrower:
         return MushroomBurrower(
-            initPosition: position,
+            initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomSpinner:
         return MushroomSpinner(
-            initPosition: position,
+            initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomRunner:
         return MushroomRunner(
-            initPosition: position,
+            initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       default:
         return MushroomDummy(
-            initPosition: position,
+            initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
     }
@@ -84,7 +84,7 @@ extension EnemyTypeExtension on EnemyType {
 
 enum AudioScopeType { bgm, long, short }
 
-enum EntityType { player, enemy, npc }
+enum EntityType { player, enemy, npc, child }
 
 enum FixtureType { sensor, body }
 

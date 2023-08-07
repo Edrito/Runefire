@@ -7,7 +7,7 @@ import 'package:game_app/resources/functions/vector_functions.dart';
 
 import '../../main.dart';
 
-Future<SpriteAnimation> buildSpriteSheet(
+Future<SpriteAnimation> loadSpriteAnimation(
     int numberOfSprites, String source, double stepTime, bool loop,
     [double? scaledToDimension]) async {
   final sprite = (await Sprite.load(source));

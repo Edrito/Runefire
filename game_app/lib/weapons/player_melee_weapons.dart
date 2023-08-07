@@ -41,7 +41,7 @@ class Dagger extends PlayerWeapon
   FutureOr<void> onLoad() async {
     for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
-          .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
     }
 
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
@@ -83,7 +83,7 @@ class Dagger extends PlayerWeapon
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
@@ -93,7 +93,7 @@ class Dagger extends PlayerWeapon
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             });
     }
   }
@@ -146,7 +146,7 @@ class Spear extends PlayerWeapon
 
     for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
-          .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
     }
 
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
@@ -188,7 +188,7 @@ class Spear extends PlayerWeapon
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
@@ -198,7 +198,7 @@ class Spear extends PlayerWeapon
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             });
     }
   }
@@ -264,7 +264,7 @@ class EnergySword extends PlayerWeapon
 
     for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
-          .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
     }
 
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
@@ -313,7 +313,7 @@ class EnergySword extends PlayerWeapon
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
@@ -325,7 +325,7 @@ class EnergySword extends PlayerWeapon
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             });
     }
   }
@@ -388,7 +388,7 @@ class FlameSword extends PlayerWeapon
   FutureOr<void> onLoad() async {
     for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
-          .add(await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true));
+          .add(await loadSpriteAnimation(1, 'weapons/fire_sword.png', 1, true));
     }
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
         [],
@@ -433,8 +433,8 @@ class FlameSword extends PlayerWeapon
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
-              WeaponStatus.idle:
-                  await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true),
+              WeaponStatus.idle: await loadSpriteAnimation(
+                  1, 'weapons/fire_sword.png', 1, true),
             })
           ..position = Vector2(-.65, .67)
           ..angle = radians(-145);
@@ -443,8 +443,8 @@ class FlameSword extends PlayerWeapon
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
-              WeaponStatus.idle:
-                  await buildSpriteSheet(1, 'weapons/fire_sword.png', 1, true),
+              WeaponStatus.idle: await loadSpriteAnimation(
+                  1, 'weapons/fire_sword.png', 1, true),
             });
     }
   }
@@ -495,7 +495,7 @@ class LargeSword extends PlayerWeapon
   FutureOr<void> onLoad() async {
     for (var i = 0; i < numberOfAttacks; i++) {
       attackHitboxSpriteAnimations
-          .add(await buildSpriteSheet(1, weaponType.flameImage, 1, true));
+          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
     }
 
     attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
@@ -537,7 +537,7 @@ class LargeSword extends PlayerWeapon
             weapon: this,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
           ..position = Vector2(length / 2, -length / 2)
           ..angle = radians(45);
@@ -547,7 +547,7 @@ class LargeSword extends PlayerWeapon
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
-                  await buildSpriteSheet(1, weaponType.flameImage, 1, true),
+                  await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             });
     }
   }

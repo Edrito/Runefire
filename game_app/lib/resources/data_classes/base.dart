@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 
 import 'package:hive/hive.dart';
 
-import '../../entities/entity.dart';
+import '../../entities/entity_class.dart';
 import '../../main.dart';
 import '../../weapons/weapon_class.dart';
 import '../enums.dart';

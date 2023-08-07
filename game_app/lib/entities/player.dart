@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/entities/player_mixin.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
@@ -13,6 +13,7 @@ import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
+import '../enemies/enemy.dart';
 import '../resources/functions/vector_functions.dart';
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
@@ -35,7 +36,7 @@ class Player extends Entity
         DashFunctionality,
         HealthRegenFunctionality {
   Player(this.playerData, this.isDisplay,
-      {required super.enviroment, required super.initPosition}) {
+      {required super.enviroment, required super.initialPosition}) {
     if (!isDisplay) {
       playerData.selectedPlayer.applyBaseCharacterStats(this);
       initAttributes(playerData.unlockedPermanentAttributes);
@@ -48,17 +49,17 @@ class Player extends Entity
   @override
   Future<void> loadAnimationSprites() async {
     entityAnimations[EntityStatus.idle] =
-        await buildSpriteSheet(10, 'sprites/idle.png', .1, true);
+        await loadSpriteAnimation(10, 'sprites/idle.png', .1, true);
     entityAnimations[EntityStatus.jump] =
-        await buildSpriteSheet(3, 'sprites/jump.png', .1, false);
+        await loadSpriteAnimation(3, 'sprites/jump.png', .1, false);
     entityAnimations[EntityStatus.dash] =
-        await buildSpriteSheet(7, 'sprites/roll.png', .06, false);
+        await loadSpriteAnimation(7, 'sprites/roll.png', .06, false);
     entityAnimations[EntityStatus.walk] =
-        await buildSpriteSheet(8, 'sprites/walk.png', .1, true);
+        await loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
     entityAnimations[EntityStatus.run] =
-        await buildSpriteSheet(8, 'sprites/run.png', .1, true);
+        await loadSpriteAnimation(8, 'sprites/run.png', .1, true);
     entityAnimations[EntityStatus.dead] =
-        await buildSpriteSheet(10, 'enemy_sprites/death.png', .1, false);
+        await loadSpriteAnimation(10, 'enemy_sprites/death.png', .1, false);
   }
 
   bool isDisplay;
@@ -83,8 +84,8 @@ class Player extends Entity
   }
 
   late MouseKeyboardCallbackWrapper mouseCallbackWrapper;
-
   late final CircleComponent circleComponent;
+
   @override
   Future<void> onLoad() async {
     initialWeapons.addAll(playerData.selectedWeapons.values);
@@ -135,7 +136,7 @@ class Player extends Entity
 
     final bodyDef = BodyDef(
       userData: this,
-      position: initPosition,
+      position: initialPosition,
       type: BodyType.dynamic,
       linearDamping: 12,
       allowSleep: false,
@@ -161,9 +162,22 @@ class Player extends Entity
       moveCharacter();
     }
     aimCharacter();
-    // circleComponent.position =
-    //     inputAimPositions[InputType.mouseMove] ?? Vector2.zero();
+    findClosestEnemy();
     super.update(dt);
+  }
+
+  Enemy? closestEnemy;
+
+  void findClosestEnemy() {
+    double closestDistance = double.infinity;
+
+    for (var otherBody in world.bodies.where((element) =>
+        element.userData is Enemy && !(element.userData as Enemy).isDead)) {
+      if (otherBody.worldCenter.distanceTo(center) < closestDistance) {
+        closestDistance = otherBody.worldCenter.distanceTo(center);
+        closestEnemy = otherBody.userData as Enemy;
+      }
+    }
   }
 
   void parseKeys(RawKeyEvent? event) {

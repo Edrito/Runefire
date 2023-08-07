@@ -7,25 +7,42 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide MoveEffect;
 import 'package:game_app/resources/game_state_class.dart';
 
+import '../attributes/child_entities.dart';
 import '../resources/data_classes/base.dart';
 import '../resources/functions/custom_mixins.dart';
-import '../main.dart';
 import '../menus/overlays.dart';
 import '../resources/constants/priorities.dart';
 import '../resources/visuals.dart';
-import 'entity.dart';
+import 'entity_class.dart';
 
 mixin ExperienceFunctionality on Entity {
+  @override
+  void initializeParentParameters() {
+    xpSensorRadius = DoubleParameterManager(baseParameter: 2);
+
+    xpIncreasePercent = DoubleParameterManager(baseParameter: 1);
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    xpSensorRadius =
+        (childEntity.parentEntity as ExperienceFunctionality).xpSensorRadius;
+
+    xpIncreasePercent =
+        (childEntity.parentEntity as ExperienceFunctionality).xpIncreasePercent;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  late final DoubleParameterManager xpSensorRadius;
+
+  late final DoubleParameterManager xpIncreasePercent;
+
   double experiencePointsGained = 0;
   int currentLevel = 1;
   final double growthMultiplier = 1.2;
   final double baseExperiencePerLevel = 50;
-
-  DoubleParameterManager xpSensorRadius =
-      DoubleParameterManager(baseParameter: 2);
-
-  DoubleParameterManager xpIncreasePercent =
-      DoubleParameterManager(baseParameter: 1);
 
   int levelUpQueue = 0;
   bool currentlyLevelingUp = false;
@@ -156,7 +173,7 @@ mixin ExperienceFunctionality on Entity {
   }
 }
 
-mixin BaseStats on Entity {
+mixin StatisticsRecord on Entity {
   int enemiesKilled = 0;
   double damageDealt = 0;
   double damageTaken = 0;

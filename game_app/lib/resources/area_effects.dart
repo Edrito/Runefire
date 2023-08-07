@@ -7,7 +7,10 @@ import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:uuid/uuid.dart';
 
-import '../entities/entity.dart';
+import '../attributes/child_entities.dart';
+import '../enemies/enemy.dart';
+import '../entities/entity_class.dart';
+import '../entities/player.dart';
 import '../main.dart';
 import 'data_classes/base.dart';
 
@@ -174,6 +177,7 @@ class AreaEffect extends BodyComponent<GameRouter>
         filter.maskBits = playerCategory;
       }
     }
+
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
         isSensor: !isSolid,

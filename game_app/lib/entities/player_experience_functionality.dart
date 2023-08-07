@@ -83,7 +83,7 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
       removeFromParent();
     }
 
-    super.beginContact(other, contact);
+    // super.beginContact(other, contact);
   }
 
   late TimerComponent particleTimer;

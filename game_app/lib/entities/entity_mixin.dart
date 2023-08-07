@@ -3,9 +3,10 @@ import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
+import 'package:game_app/attributes/child_entities.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/enemies/enemy.dart';
-import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/player.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/resources/game_state_class.dart';
@@ -37,87 +38,148 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   bool get isDashing => false;
   bool get isInvincible => invincible.parameter;
   bool isDead = false;
+  bool get isChildEntity => this is ChildEntity;
 
   bool affectsAllEntities = false;
 
-  final IntParameterManager attackCount = IntParameterManager(baseParameter: 0);
+  @mustCallSuper
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    attackCount = childEntity.parentEntity.attackCount;
+    invincible = childEntity.parentEntity.invincible;
+    durationPercentIncrease = childEntity.parentEntity.durationPercentIncrease;
+    tickDamageIncrease = childEntity.parentEntity.tickDamageIncrease;
+    enableMovement = childEntity.parentEntity.enableMovement;
+    areaSizePercentIncrease = childEntity.parentEntity.areaSizePercentIncrease;
+    critChance = childEntity.parentEntity.critChance;
+    critDamage = childEntity.parentEntity.critDamage;
+    damageTypePercentIncrease =
+        childEntity.parentEntity.damageTypePercentIncrease;
+    damageTypeResistance = childEntity.parentEntity.damageTypeResistance;
+    areaDamagePercentIncrease =
+        childEntity.parentEntity.areaDamagePercentIncrease;
+    maxLives = childEntity.parentEntity.attackCount;
+    essenceSteal = childEntity.parentEntity.essenceSteal;
+    statusEffectsPercentIncrease =
+        childEntity.parentEntity.statusEffectsPercentIncrease;
+    damagePercentIncrease = childEntity.parentEntity.damagePercentIncrease;
+    knockBackIncreaseParameter =
+        childEntity.parentEntity.knockBackIncreaseParameter;
+    meleeDamagePercentIncrease =
+        childEntity.parentEntity.meleeDamagePercentIncrease;
+    projectileDamagePercentIncrease =
+        childEntity.parentEntity.projectileDamagePercentIncrease;
+    spellDamagePercentIncrease =
+        childEntity.parentEntity.spellDamagePercentIncrease;
+  }
+
+  @mustCallSuper
+  void initializeParentParameters() {
+    attackCount = IntParameterManager(baseParameter: 0);
+    invincible = BoolParameterManager(baseParameter: false);
+    durationPercentIncrease = DoubleParameterManager(baseParameter: 1);
+    tickDamageIncrease = DoubleParameterManager(baseParameter: 1);
+    enableMovement = BoolParameterManager(baseParameter: true);
+    areaSizePercentIncrease = DoubleParameterManager(baseParameter: 1);
+    critChance = DoubleParameterManager(baseParameter: 1);
+    critDamage = DoubleParameterManager(baseParameter: 1.5);
+    damageTypePercentIncrease =
+        DamagePercentParameterManager(damagePercentBase: {});
+    damageTypeResistance = DamagePercentParameterManager(
+      damagePercentBase: {},
+    );
+    areaDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
+    maxLives = IntParameterManager(baseParameter: 1);
+    essenceSteal = DoubleParameterManager(baseParameter: 0, minParameter: 0);
+    statusEffectsPercentIncrease =
+        StatusEffectPercentParameterManager(statusEffectPercentBase: {});
+    damagePercentIncrease = DoubleParameterManager(baseParameter: 1);
+    knockBackIncreaseParameter = DoubleParameterManager(baseParameter: 1);
+    meleeDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
+    projectileDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
+    spellDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
+  }
+
+  void initializeParameterManagers() {
+    if (isChildEntity) {
+      initializeChildEntityParameters(this as ChildEntity);
+    } else {
+      initializeParentParameters();
+    }
+  }
+
+  late final IntParameterManager attackCount;
 
   //Invincible
-  final BoolParameterManager invincible =
-      BoolParameterManager(baseParameter: false);
-  //Collision
-  final BoolParameterManager collision =
-      BoolParameterManager(baseParameter: true);
-  //Duration
-  final DoubleParameterManager durationPercentIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  late final BoolParameterManager invincible;
 
-  final DoubleParameterManager tickDamageIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  //Collision
+  late final BoolParameterManager collision =
+      BoolParameterManager(baseParameter: true);
+
+  //Duration
+  late final DoubleParameterManager durationPercentIncrease;
+
+  late final DoubleParameterManager tickDamageIncrease;
 
   //Movement
-  final BoolParameterManager enableMovement =
-      BoolParameterManager(baseParameter: true);
+  late final BoolParameterManager enableMovement;
 
   //Height
   final DoubleParameterManager height =
       DoubleParameterManager(baseParameter: 1);
 
   ///Multiply this with area effect spells etc
-  final DoubleParameterManager areaSizePercentIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager areaSizePercentIncrease;
 
   ///Multiply this with area effect spells etc
-  final DoubleParameterManager critChance =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager critChance;
 
-  final DoubleParameterManager critDamage =
-      DoubleParameterManager(baseParameter: 1.5);
+  late final DoubleParameterManager critDamage;
 
-  final DamagePercentParameterManager damageTypePercentIncrease =
-      DamagePercentParameterManager(damagePercentBase: {});
+  late final DamagePercentParameterManager damageTypePercentIncrease;
 
   ///1 = 100% damage
   ///0 = Take no damage
   ///2 = Take double damage
-  final DamagePercentParameterManager damageTypeResistance =
-      DamagePercentParameterManager(
-    damagePercentBase: {},
-  );
+  late final DamagePercentParameterManager damageTypeResistance;
 
-  final DoubleParameterManager areaDamagePercentIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager areaDamagePercentIncrease;
 
-  final IntParameterManager maxLives = IntParameterManager(baseParameter: 1);
+  late final IntParameterManager maxLives;
+
   int deathCount = 0;
   int get remainingLives => maxLives.parameter - deathCount;
 
-  final DoubleParameterManager essenceSteal =
-      DoubleParameterManager(baseParameter: 0, minParameter: 0);
+  late final DoubleParameterManager essenceSteal;
 
-  final StatusEffectPercentParameterManager statusEffectsPercentIncrease =
-      StatusEffectPercentParameterManager(statusEffectPercentBase: {});
+  late final StatusEffectPercentParameterManager statusEffectsPercentIncrease;
 
-  final DoubleParameterManager damagePercentIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager damagePercentIncrease;
 
-  final DoubleParameterManager knockBackIncreaseParameter =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager knockBackIncreaseParameter;
 
-  final DoubleParameterManager meleeDamagePercentIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager meleeDamagePercentIncrease;
 
-  final DoubleParameterManager projectileDamagePercentIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager projectileDamagePercentIncrease;
 
-  final DoubleParameterManager spellDamagePercentIncrease =
-      DoubleParameterManager(baseParameter: 1);
+  late final DoubleParameterManager spellDamagePercentIncrease;
 }
 
 mixin MovementFunctionality on Entity {
+  @override
+  void initializeParentParameters() {
+    speed = DoubleParameterManager(baseParameter: .1);
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    speed = (childEntity.parentEntity as MovementFunctionality).speed;
+    super.initializeChildEntityParameters(childEntity);
+  }
+
   //Speed
-  final DoubleParameterManager speed =
-      DoubleParameterManager(baseParameter: .1);
+  late final DoubleParameterManager speed;
 
   Map<InputType, Vector2?> moveVelocities = {};
   Vector2 get moveDelta => (moveVelocities[InputType.moveJoy] ??
@@ -164,7 +226,7 @@ mixin AimFunctionality on Entity {
             .normalized();
   }
 
-  Vector2 get inputAimVectors {
+  Vector2 get entityAimAngle {
     if (isDead) {
       return lastAimingPosition;
     }
@@ -224,7 +286,7 @@ mixin AimFunctionality on Entity {
   void handJointBehindBodyCheck() {
     final deg = degrees(radiansBetweenPoints(
       Vector2(1, 0),
-      inputAimVectors,
+      entityAimAngle,
     ));
 
     if ((deg >= 0 && deg < 180 && !weaponBehind) ||
@@ -274,7 +336,7 @@ mixin AimFunctionality on Entity {
   void aimCharacter() {
     if (!enableMovement.parameter) return;
 
-    handAngleTarget = inputAimVectors.clone();
+    handAngleTarget = entityAimAngle.clone();
 
     handJointBehindBodyCheck();
     spriteFlipCheck();
@@ -310,7 +372,7 @@ mixin AttackFunctionality on AimFunctionality {
   Future<void> initializeWeapons() async {
     carriedWeapons.clear();
 
-    if (isPlayer) {
+    if (isPlayer && !isChildEntity) {
       final player = this as Player;
       final playerData = player.playerData;
       for (var i = 0; i < player.playerData.selectedWeapons.length; i++) {
@@ -411,10 +473,25 @@ mixin AttackFunctionality on AimFunctionality {
 }
 
 mixin StaminaFunctionality on Entity {
-  final DoubleParameterManager stamina =
-      DoubleParameterManager(baseParameter: 100);
-  DoubleParameterManager staminaRegen =
-      DoubleParameterManager(baseParameter: 50);
+  @override
+  void initializeParentParameters() {
+    stamina = DoubleParameterManager(baseParameter: 100);
+    staminaRegen = DoubleParameterManager(baseParameter: 50);
+
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    stamina = (childEntity.parentEntity as StaminaFunctionality).stamina;
+    staminaRegen =
+        (childEntity.parentEntity as StaminaFunctionality).staminaRegen;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  late final DoubleParameterManager stamina;
+  late final DoubleParameterManager staminaRegen;
 
   double get remainingStamina => stamina.parameter - staminaUsed;
   double staminaUsed = 0;
@@ -441,8 +518,22 @@ mixin HealthRegenFunctionality on HealthFunctionality {
   void modifyHealth(double amount) =>
       damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
 
-  DoubleParameterManager healthRegen =
-      DoubleParameterManager(baseParameter: .35);
+  @override
+  void initializeParentParameters() {
+    healthRegen = DoubleParameterManager(baseParameter: .35);
+
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    healthRegen =
+        (childEntity.parentEntity as HealthRegenFunctionality).healthRegen;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  late final DoubleParameterManager healthRegen;
 
   /// Amount of health regenerated per second
   double get increaseHealthRegenSpeed =>
@@ -457,11 +548,25 @@ mixin HealthRegenFunctionality on HealthFunctionality {
 }
 
 mixin HealthFunctionality on Entity {
+  @override
+  void initializeParentParameters() {
+    invincibilityDuration = DoubleParameterManager(baseParameter: .2);
+    maxHealth = DoubleParameterManager(baseParameter: 50);
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    invincibilityDuration =
+        (childEntity.parentEntity as HealthFunctionality).invincibilityDuration;
+    maxHealth = (childEntity.parentEntity as HealthFunctionality).maxHealth;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
   //health
-  final DoubleParameterManager invincibilityDuration =
-      DoubleParameterManager(baseParameter: .2);
-  final DoubleParameterManager maxHealth =
-      DoubleParameterManager(baseParameter: 50);
+  late final DoubleParameterManager invincibilityDuration;
+  late final DoubleParameterManager maxHealth;
 
   TimerComponent? iFrameTimer;
   double sameDamageSourceDuration = .5;
@@ -766,8 +871,9 @@ mixin HealthFunctionality on Entity {
       }
     }
     final other = damage.source;
-    if (other is AttributeFunctionsFunctionality) {
-      for (var element in (other).onKillOtherEntity) {
+    final otherFunctions = other.attributeFunctionsFunctionality;
+    if (otherFunctions != null) {
+      for (var element in otherFunctions.onKillOtherEntity) {
         element(this);
       }
     }
@@ -790,12 +896,24 @@ mixin HealthFunctionality on Entity {
 }
 
 mixin DodgeFunctionality on HealthFunctionality {
-  //health
   double totalDamageDodged = 0;
   int dodges = 0;
 
-  DoubleParameterManager dodgeChance = DoubleParameterManager(
-      baseParameter: .0, maxParameter: 1, minParameter: 0);
+  @override
+  void initializeParentParameters() {
+    dodgeChance = DoubleParameterManager(
+        baseParameter: .0, maxParameter: 1, minParameter: 0);
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    dodgeChance = (childEntity.parentEntity as DodgeFunctionality).dodgeChance;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  late final DoubleParameterManager dodgeChance;
 
   @override
   bool dodgeStatus() {
@@ -875,17 +993,33 @@ mixin DodgeFunctionality on HealthFunctionality {
 }
 
 mixin TouchDamageFunctionality on ContactCallbacks, Entity {
-  final DamageParameterManager touchDamage =
-      DamageParameterManager(damageBase: {});
+  @override
+  void initializeParentParameters() {
+    touchDamage = DamageParameterManager(damageBase: {});
+    hitRate = DoubleParameterManager(
+        baseParameter: 1, maxParameter: double.infinity, minParameter: 0);
+
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    touchDamage =
+        (childEntity.parentEntity as TouchDamageFunctionality).touchDamage;
+    hitRate = (childEntity.parentEntity as TouchDamageFunctionality).hitRate;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  late final DamageParameterManager touchDamage;
+
+  late final DoubleParameterManager hitRate;
 
   DamageInstance get calculateTouchDamage =>
       damageCalculations(this, touchDamage.damageBase,
           damageSource: touchDamage);
 
   Map<Body, TimerComponent> objectsHitting = {};
-
-  final DoubleParameterManager hitRate = DoubleParameterManager(
-      baseParameter: 1, maxParameter: double.infinity, minParameter: 0);
 
   ///Time interval between damage ticks
 
@@ -941,6 +1075,45 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
 }
 
 mixin DashFunctionality on StaminaFunctionality {
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    dashCooldown = (childEntity.parentEntity as DashFunctionality).dashCooldown;
+    invincibleWhileDashing =
+        (childEntity.parentEntity as DashFunctionality).invincibleWhileDashing;
+    collisionWhileDashing =
+        (childEntity.parentEntity as DashFunctionality).collisionWhileDashing;
+    teleportDash = (childEntity.parentEntity as DashFunctionality).teleportDash;
+    dashDistance = (childEntity.parentEntity as DashFunctionality).dashDistance;
+    dashDuration = (childEntity.parentEntity as DashFunctionality).dashDuration;
+    dashStaminaCost =
+        (childEntity.parentEntity as DashFunctionality).dashStaminaCost;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  @override
+  void initializeParentParameters() {
+    dashCooldown = DoubleParameterManager(baseParameter: 2);
+
+    invincibleWhileDashing = BoolParameterManager(baseParameter: false);
+    collisionWhileDashing = BoolParameterManager(baseParameter: false);
+    teleportDash = BoolParameterManager(baseParameter: false);
+
+    dashDistance = DoubleParameterManager(baseParameter: 1);
+    dashDuration = DoubleParameterManager(baseParameter: .2, minParameter: 0);
+    dashStaminaCost = DoubleParameterManager(baseParameter: 28);
+    super.initializeParentParameters();
+  }
+
+  //DASH COOLDOWN
+  late final DoubleParameterManager dashCooldown;
+  late final BoolParameterManager invincibleWhileDashing;
+  late final BoolParameterManager collisionWhileDashing;
+  late final BoolParameterManager teleportDash;
+  late final DoubleParameterManager dashDistance;
+  late final DoubleParameterManager dashDuration;
+  late final DoubleParameterManager dashStaminaCost;
+
   //STATUS
   TimerComponent? dashTimerCooldown;
   double dashedDistance = 0;
@@ -953,24 +1126,6 @@ mixin DashFunctionality on StaminaFunctionality {
   @override
   bool get isInvincible =>
       super.isInvincible || (invincibleWhileDashing.parameter && isDashing);
-
-  //DASH COOLDOWN
-  final DoubleParameterManager dashCooldown =
-      DoubleParameterManager(baseParameter: 2);
-
-  final BoolParameterManager invincibleWhileDashing =
-      BoolParameterManager(baseParameter: false);
-  final BoolParameterManager collisionWhileDashing =
-      BoolParameterManager(baseParameter: false);
-  final BoolParameterManager teleportDash =
-      BoolParameterManager(baseParameter: false);
-
-  final DoubleParameterManager dashDistance =
-      DoubleParameterManager(baseParameter: 1);
-  final DoubleParameterManager dashDuration =
-      DoubleParameterManager(baseParameter: .2, minParameter: 0);
-  final DoubleParameterManager dashStaminaCost =
-      DoubleParameterManager(baseParameter: 28);
 
   double? dashDistanceGoal;
 
@@ -1004,7 +1159,8 @@ mixin DashFunctionality on StaminaFunctionality {
     power ??= 1;
 
     applyGroundAnimation(
-        await buildSpriteSheet(7, 'entity_effects/dash_effect.png', .1, false),
+        await loadSpriteAnimation(
+            7, 'entity_effects/dash_effect.png', .1, false),
         false,
         height.parameter * .1);
 
@@ -1012,7 +1168,7 @@ mixin DashFunctionality on StaminaFunctionality {
     _isDashing = true;
     if (weaponSource || teleportDash.parameter) {
       if (this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).inputAimVectors;
+        dashDelta = (this as AimFunctionality).entityAimAngle;
       }
       if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
         dashDelta = (this as MovementFunctionality).moveDelta;
@@ -1022,7 +1178,7 @@ mixin DashFunctionality on StaminaFunctionality {
         dashDelta = (this as MovementFunctionality).moveDelta;
       }
       if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).inputAimVectors;
+        dashDelta = (this as AimFunctionality).entityAimAngle;
       }
     }
 
@@ -1107,6 +1263,32 @@ mixin DashFunctionality on StaminaFunctionality {
 }
 
 mixin JumpFunctionality on Entity {
+  @override
+  void initializeParentParameters() {
+    jumpDuration = DoubleParameterManager(baseParameter: .6, minParameter: 0);
+    jumpStaminaCost =
+        DoubleParameterManager(baseParameter: 10, minParameter: 0);
+    jumpingInvinciblePercent = DoubleParameterManager(
+        baseParameter: .5, minParameter: 0, maxParameter: 1);
+
+    super.initializeParentParameters();
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    jumpDuration = (childEntity.parentEntity as JumpFunctionality).jumpDuration;
+    jumpStaminaCost =
+        (childEntity.parentEntity as JumpFunctionality).jumpStaminaCost;
+    jumpingInvinciblePercent = (childEntity.parentEntity as JumpFunctionality)
+        .jumpingInvinciblePercent;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  late final DoubleParameterManager jumpDuration;
+  late final DoubleParameterManager jumpStaminaCost;
+  late final DoubleParameterManager jumpingInvinciblePercent;
+
   //JUMP
 
   @override
@@ -1116,15 +1298,6 @@ mixin JumpFunctionality on Entity {
   bool isJumpingInvincible = false;
 
   double jumpHeight = .5;
-
-  final DoubleParameterManager jumpDuration =
-      DoubleParameterManager(baseParameter: .6, minParameter: 0);
-  final DoubleParameterManager jumpStaminaCost =
-      DoubleParameterManager(baseParameter: 10, minParameter: 0);
-  final DoubleParameterManager jumpingInvinciblePercent =
-      DoubleParameterManager(
-          baseParameter: .5, minParameter: 0, maxParameter: 1);
-
   void jumpBeginFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
     if (attr != null && attr.jumpBeginFunctions.isNotEmpty) {
@@ -1170,7 +1343,8 @@ mixin JumpFunctionality on Entity {
     }
 
     applyGroundAnimation(
-        await buildSpriteSheet(6, 'entity_effects/jump_effect.png', .1, false),
+        await loadSpriteAnimation(
+            6, 'entity_effects/jump_effect.png', .1, false),
         false,
         height.parameter * .2);
 

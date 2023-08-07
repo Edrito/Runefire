@@ -47,7 +47,7 @@ class FireExplosionEnemyDeathAttribute extends Attribute {
         sourceEntity: victimEntity!,
         position: other.center,
         randomlyFlipped: true,
-        playAnimation: await buildSpriteSheet(
+        playAnimation: await loadSpriteAnimation(
             16, 'effects/explosion_1_16.png', .05, false),
         size: baseSize + increasePercentOfBase(baseSize),
         isInstant: true,

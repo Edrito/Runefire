@@ -4,7 +4,7 @@ import 'package:flame/parallax.dart';
 import 'package:flutter/cupertino.dart';
 import '../test.dart';
 import 'event_management.dart';
-import '../entities/entity.dart';
+import '../entities/entity_class.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
 import 'background.dart';

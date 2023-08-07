@@ -10,7 +10,7 @@ import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 
-import '../entities/entity.dart';
+import '../entities/entity_class.dart';
 import '../entities/player.dart';
 import '../resources/functions/vector_functions.dart';
 import '../enemies/enemy.dart';
@@ -31,7 +31,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
   void preSolve(Object other, Contact contact, Manifold oldManifold) async {
     if (other is HealthFunctionality) {
       other.applyHitAnimation(
-          await buildSpriteSheet(
+          await loadSpriteAnimation(
               4, 'weapons/melee/small_slash_effect.png', .05, false),
           oldManifold.localNormal,
           2);
@@ -79,7 +79,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
         break;
     }
     other.applyHitAnimation(
-        await buildSpriteSheet(
+        await loadSpriteAnimation(
             4, 'weapons/melee/small_slash_effect.png', .05, false),
         center,
         1);

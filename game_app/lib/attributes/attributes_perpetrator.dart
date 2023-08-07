@@ -1,4 +1,4 @@
-import '../entities/entity.dart';
+import '../entities/entity_class.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';

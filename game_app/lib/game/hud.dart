@@ -33,11 +33,11 @@ class GameHud extends PositionComponent {
     if (gameRef is GameEnviroment) {
       player = (gameRef as GameEnviroment).player;
     }
-    final sprite = await buildSpriteSheet(1, 'ui/health_bar.png', 1, true);
+    final sprite = await loadSpriteAnimation(1, 'ui/health_bar.png', 1, true);
     final healthBarSize = sprite.frames.first.sprite.srcSize;
     healthBarSize.scaleTo(325);
     healthBar = SpriteAnimationComponent(
-      animation: await buildSpriteSheet(1, 'ui/health_bar.png', 1, true),
+      animation: await loadSpriteAnimation(1, 'ui/health_bar.png', 1, true),
       size: healthBarSize,
     );
 

@@ -377,7 +377,7 @@ mixin ProjectileFunctionality on Weapon {
       generator: (i) => AcceleratedParticle(
         position: getWeaponTipDownBarrel(.9),
         speed: (randomizeVector2Delta(
-                        entityAncestor?.inputAimVectors ?? Vector2.zero(), .3)
+                        entityAncestor?.entityAimAngle ?? Vector2.zero(), .3)
                     .normalized())
                 .clone() *
             3 *
@@ -414,7 +414,7 @@ mixin ProjectileFunctionality on Weapon {
     List<BodyComponent> returnList = [];
 
     List<Vector2> temp = splitVector2DeltaIntoArea(
-        entityAncestor?.handJoint.position.normalized() ?? Vector2.zero(),
+        entityAncestor!.entityAimAngle,
         attackCount,
         maxSpreadDegrees.parameter);
 
@@ -548,13 +548,13 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
     //           'weapons/projectiles/bullets/physical_bullet_spawn.png',
     //           .02,
     //           false);
-    playAnimation = await buildSpriteSheet(
+    playAnimation = await loadSpriteAnimation(
         3, 'weapons/charge/fire_charge_play.png', .1, true);
-    endAnimation = await buildSpriteSheet(
+    endAnimation = await loadSpriteAnimation(
         4, 'weapons/charge/fire_charge_end.png', .07, false);
-    spawnAnimation = await buildSpriteSheet(
+    spawnAnimation = await loadSpriteAnimation(
         5, 'weapons/charge/fire_charge_spawn.png', .01, false);
-    chargedAnimation = await buildSpriteSheet(
+    chargedAnimation = await loadSpriteAnimation(
         6, 'weapons/charge/fire_charge_charged.png', .05, false);
     // endAnimation = await buildSpriteSheet(3,
     //     'weapons/projectiles/bullets/physical_bullet_end.png', .1, false);

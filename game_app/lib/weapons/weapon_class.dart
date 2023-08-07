@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flutter/widgets.dart';
-import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/data_classes/base.dart';
 import 'package:game_app/weapons/secondary_abilities.dart';

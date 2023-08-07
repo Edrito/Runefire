@@ -1,17 +1,18 @@
 import 'package:flame/components.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/entities/experience.dart';
+import 'package:game_app/entities/player_experience_functionality.dart';
 import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
 
-enum AimPattern { player }
+enum AimPattern { player, closestEnemyToPlayer }
 
 mixin DropExperienceFunctionality on HealthFunctionality {
   ///If an [rng.double] is smaller than $1 then large experience is dropped
   ///If an [rng.double] is smaller than $2 then medium experience is dropped
-  abstract (double, double) xpRate;
+  ///If an [rng.double] is smaller than $3 then small experience is dropped
+  abstract (double, double, double) xpRate;
 
   //Random value between the two ints is chosen
   final (int, int) amountPerDrop = (1, 1);
@@ -31,8 +32,10 @@ mixin DropExperienceFunctionality on HealthFunctionality {
         experienceAmount = ExperienceAmount.large;
       } else if (chance < xpRate.$2) {
         experienceAmount = ExperienceAmount.medium;
-      } else {
+      } else if (chance < xpRate.$3) {
         experienceAmount = ExperienceAmount.small;
+      } else {
+        return super.deadStatus();
       }
 
       Future.delayed(rng.nextDouble().seconds).then((value) =>
@@ -59,6 +62,15 @@ mixin AimControlFunctionality on AimFunctionality {
         updateFunction = () {
           inputAimAngles[InputType.ai] =
               (gameEnviroment.player!.center - body.position).normalized();
+        };
+
+        break;
+      case AimPattern.closestEnemyToPlayer:
+        updateFunction = () {
+          inputAimAngles[InputType.ai] =
+              ((gameEnviroment.player!.closestEnemy?.center ?? Vector2.zero()) -
+                      body.position)
+                  .normalized();
         };
 
         break;
@@ -97,12 +109,13 @@ mixin DumbFollowAI on MovementFunctionality {
 
 mixin DumbShoot on AttackFunctionality {
   TimerComponent? shooter;
-  double interval = 2;
+  double shootInterval = 2;
   @override
   Future<void> onLoad() {
     shooter = TimerComponent(
-        period: interval,
+        period: shootInterval,
         onTick: () {
+          if (entityAimAngle.isZero()) return;
           startAttacking();
           endAttacking();
         },

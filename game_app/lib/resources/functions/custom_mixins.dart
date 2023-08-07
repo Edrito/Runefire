@@ -10,7 +10,7 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 
-import '../../entities/entity.dart';
+import '../../entities/entity_class.dart';
 import '../../weapons/projectile_mixin.dart';
 
 mixin HasOpacityProvider on Component {

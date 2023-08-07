@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/attributes/child_entities.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 
@@ -139,11 +140,14 @@ mixin StandardProjectile on Projectile {
     renderBody = false;
 
     final bulletFilter = Filter();
-    if (weaponAncestor.entityAncestor is Enemy) {
+    if (!weaponAncestor.entityAncestor!.isPlayer) {
       bulletFilter
         ..maskBits = playerCategory
         ..categoryBits = attackCategory;
-    } else if (weaponAncestor.entityAncestor is Player) {
+      if (weaponAncestor.entityAncestor!.affectsAllEntities) {
+        bulletFilter.maskBits = 0xFFFF;
+      }
+    } else {
       bulletFilter
         ..maskBits = enemyCategory
         ..categoryBits = attackCategory;
@@ -294,7 +298,8 @@ mixin LaserProjectile on Projectile {
       bulletFilter
         ..maskBits = playerCategory
         ..categoryBits = attackCategory;
-    } else if (weaponAncestor.entityAncestor is Player) {
+    } else if (weaponAncestor.entityAncestor is Player ||
+        weaponAncestor.entityAncestor is ChildEntity) {
       bulletFilter
         ..maskBits = enemyCategory
         ..categoryBits = attackCategory;

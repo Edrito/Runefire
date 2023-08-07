@@ -69,7 +69,7 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
 
   switch (statusEffect) {
     case StatusEffects.stun:
-      spriteAnimation = await buildSpriteSheet(
+      spriteAnimation = await loadSpriteAnimation(
           4, 'status_effects/fire_effect.png', defaultFrameDuration, true);
 
       break;
@@ -93,7 +93,7 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
     //   break;
 
     default:
-      spriteAnimation = await buildSpriteSheet(
+      spriteAnimation = await loadSpriteAnimation(
           4, 'status_effects/fire_effect.png', defaultFrameDuration, true);
   }
   return spriteAnimation;

@@ -66,10 +66,10 @@ class Pistol extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.1, 1.6),
           weaponAnimations: {
-            'muzzle_flash': await buildSpriteSheet(
+            'muzzle_flash': await loadSpriteAnimation(
                 1, 'weapons/muzzle_flash.png', .2, false),
             WeaponStatus.idle:
-                await buildSpriteSheet(1, 'weapons/pistol.png', 1, true)
+                await loadSpriteAnimation(1, 'weapons/pistol.png', 1, true)
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -117,12 +117,12 @@ class Shotgun extends PlayerWeapon
           Vector2.all(1),
           Vector2.all(1),
           weaponAnimations: {
-            WeaponStatus.attack: await buildSpriteSheet(
+            WeaponStatus.attack: await loadSpriteAnimation(
                 4, 'weapons/pistol_attack.png', .1, false),
-            'muzzle_flash': await buildSpriteSheet(
+            'muzzle_flash': await loadSpriteAnimation(
                 1, 'weapons/muzzle_flash.png', .2, false),
             WeaponStatus.idle:
-                await buildSpriteSheet(6, 'weapons/pistol_idle.png', 1, true)
+                await loadSpriteAnimation(6, 'weapons/pistol_idle.png', 1, true)
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -186,11 +186,11 @@ class LongRangeRifle extends PlayerWeapon
           Vector2.all(0),
           tipOffset,
           weaponAnimations: {
-            WeaponStatus.attack: await buildSpriteSheet(
+            WeaponStatus.attack: await loadSpriteAnimation(
                 6, 'weapons/long_rifle_attack.png', .02, false),
-            'muzzle_flash': await buildSpriteSheet(
+            'muzzle_flash': await loadSpriteAnimation(
                 5, 'weapons/projectiles/magic_muzzle_flash.png', .07, false),
-            WeaponStatus.idle: await buildSpriteSheet(
+            WeaponStatus.idle: await loadSpriteAnimation(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },
           flashSize: 2.0,
@@ -259,11 +259,11 @@ class AssaultRifle extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.175, 2.65),
           weaponAnimations: {
-            WeaponStatus.attack: await buildSpriteSheet(
+            WeaponStatus.attack: await loadSpriteAnimation(
                 6, 'weapons/long_rifle_attack.png', .02, false),
-            'muzzle_flash': await buildSpriteSheet(
+            'muzzle_flash': await loadSpriteAnimation(
                 5, 'weapons/projectiles/fire_muzzle_flash.png', .03, false),
-            WeaponStatus.idle: await buildSpriteSheet(
+            WeaponStatus.idle: await loadSpriteAnimation(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },
           parentJoint: parentJoint,
@@ -327,11 +327,11 @@ class LaserRifle extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.175, 2.65),
           weaponAnimations: {
-            WeaponStatus.attack: await buildSpriteSheet(
+            WeaponStatus.attack: await loadSpriteAnimation(
                 6, 'weapons/long_rifle_attack.png', .02, false),
             // 'muzzle_flash': await buildSpriteSheet(
             //     5, 'weapons/projectiles/fire_muzzle_flash.png', .1, false),
-            WeaponStatus.idle: await buildSpriteSheet(
+            WeaponStatus.idle: await loadSpriteAnimation(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },
           parentJoint: parentJoint,
@@ -393,11 +393,11 @@ class RocketLauncher extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.175, 2.65),
           weaponAnimations: {
-            WeaponStatus.attack: await buildSpriteSheet(
+            WeaponStatus.attack: await loadSpriteAnimation(
                 7, 'weapons/long_rifle_attack.png', .02, false),
-            'muzzle_flash': await buildSpriteSheet(
+            'muzzle_flash': await loadSpriteAnimation(
                 1, 'weapons/muzzle_flash.png', .2, false),
-            WeaponStatus.idle: await buildSpriteSheet(
+            WeaponStatus.idle: await loadSpriteAnimation(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },
           parentJoint: parentJoint,
@@ -459,11 +459,11 @@ class Railgun extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.175, 2.65),
           weaponAnimations: {
-            WeaponStatus.attack: await buildSpriteSheet(
+            WeaponStatus.attack: await loadSpriteAnimation(
                 7, 'weapons/long_rifle_attack.png', .02, false),
-            'muzzle_flash': await buildSpriteSheet(
+            'muzzle_flash': await loadSpriteAnimation(
                 1, 'weapons/muzzle_flash.png', .2, false),
-            WeaponStatus.idle: await buildSpriteSheet(
+            WeaponStatus.idle: await loadSpriteAnimation(
                 19, 'weapons/long_rifle_idle.png', .2, true)
           },
           parentJoint: parentJoint,

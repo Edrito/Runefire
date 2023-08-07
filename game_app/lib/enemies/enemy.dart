@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/enemies/enemy_mixin.dart';
-import 'package:game_app/entities/entity.dart';
+import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../resources/functions/custom_mixins.dart';
@@ -12,6 +12,7 @@ import '../attributes/attributes_mixin.dart';
 
 abstract class Enemy extends Entity
     with
+        BaseAttributes,
         ContactCallbacks,
         UpgradeFunctions,
         AttributeFunctionality,
@@ -19,7 +20,7 @@ abstract class Enemy extends Entity
         HealthFunctionality,
         DropExperienceFunctionality {
   Enemy({
-    required super.initPosition,
+    required super.initialPosition,
     required super.enviroment,
     required int upgradeLevel,
   }) {

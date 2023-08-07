@@ -4,7 +4,7 @@ import 'package:game_app/attributes/attributes_perpetrator.dart';
 import '../resources/data_classes/base.dart';
 import '../resources/enums.dart';
 import 'attributes_mixin.dart';
-import '../entities/entity.dart';
+import '../entities/entity_class.dart';
 import 'attributes_regular.dart';
 import 'attributes_permanent.dart';
 import 'package:uuid/uuid.dart';
