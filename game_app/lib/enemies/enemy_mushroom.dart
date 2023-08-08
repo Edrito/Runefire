@@ -59,11 +59,11 @@ class MushroomRunner extends Enemy
     required super.enviroment,
     required super.upgradeLevel,
   }) {
-    height.baseParameter = 1.7;
+    height.baseParameter = 1.2;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
     maxHealth.baseParameter = 50.0;
-    speed.baseParameter = .05;
+    speed.baseParameter = .03;
     touchDamage.damageBase[DamageType.physical] = (1, 5);
   }
 

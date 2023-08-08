@@ -222,7 +222,8 @@ mixin StandardProjectile on Projectile {
   }
 
   void chain(HealthFunctionality other) {
-    if (weaponAncestor.weaponCanChain &&
+    if (!disableChaining &&
+        weaponAncestor.weaponCanChain &&
         !projectileHasExpired &&
         chainedTargets < weaponAncestor.maxChainingTargets.parameter) {
       closeSensorBodies.sort((a, b) => rng.nextInt(2));
@@ -259,7 +260,8 @@ mixin StandardProjectile on Projectile {
   }
 
   void homingCheck(HealthFunctionality other) {
-    if (weaponAncestor.weaponCanHome &&
+    if (!disableHoming &&
+        weaponAncestor.weaponCanHome &&
         !homingComplete &&
         !hitIds.contains(other.entityId)) {
       setTarget(other);
@@ -273,8 +275,8 @@ mixin StandardProjectile on Projectile {
 
 mixin LaserProjectile on Projectile {
   int enemiesHit = 0;
-  List<Vector2> lineThroughEnemies = [];
-  List<Vector2> boxThroughEnemies = [];
+  Set<Vector2> lineThroughEnemies = {};
+  Set<Vector2> boxThroughEnemies = {};
   late Shape laserShape;
   double precisionPerDistance = .5;
 
@@ -291,7 +293,7 @@ mixin LaserProjectile on Projectile {
     debugMode = false;
     renderBody = true;
 
-    laserShape = ChainShape()..createLoop(boxThroughEnemies);
+    laserShape = ChainShape()..createLoop(boxThroughEnemies.toList());
 
     final bulletFilter = Filter();
     if (weaponAncestor.entityAncestor is Enemy) {
@@ -414,14 +416,14 @@ mixin LaserProjectile on Projectile {
     width = (power * baseWidth * .4) + baseWidth * .15;
     lineThroughEnemies.add(previousDelta);
 
-    if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
+    if ((!disableChaining || !disableHoming) &&
+        (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain)) {
       homingAndChainCalculations();
     }
 
-    lineThroughEnemies = [...lineThroughEnemies.toSet().toList()];
     if (lineThroughEnemies.length < 3) {
       if (lineThroughEnemies.length == 2) {
-        lineThroughEnemies.removeLast();
+        lineThroughEnemies = {lineThroughEnemies.first};
       }
       double distance = weaponAncestor.projectileVelocity.parameter;
       distance = (distance * .1 * power) + distance * .333;
@@ -431,9 +433,10 @@ mixin LaserProjectile on Projectile {
     }
 
     boxThroughEnemies =
-        expandToBox(lineThroughEnemies, width / 2).toSet().toList();
+        expandToBox(lineThroughEnemies.toList(), width / 2).toSet();
 
-    boxThroughEnemies = validateChainDistances(boxThroughEnemies);
+    boxThroughEnemies =
+        validateChainDistances(boxThroughEnemies.toList()).toSet();
 
     return super.onLoad();
   }

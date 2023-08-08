@@ -67,7 +67,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     isSecondaryAbility = widget.secondaryType != null;
   }
 
-  Widget buildDescriptionText(bool isNext, String string) {
+  Widget buildDescriptionText(bool isNext, String string, Color equippedColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
       child: Row(
@@ -78,9 +78,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
             style: defaultStyle.copyWith(
                 shadows: [],
                 fontSize: 18,
-                color: isNext
-                    ? ApolloColorPalette.lightBlue.color
-                    : ApolloColorPalette.blue.color),
+                color: isNext ? equippedColor.brighten(.4) : equippedColor),
           ),
           const SizedBox(
             width: 15,
@@ -177,7 +175,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
 
     List<(String, String, String)> weaponDescriptions = [];
     late dynamic secondaryWeapon;
-
+    Color equippedColor = isEquipped
+        ? ApolloColorPalette.lightRed.color
+        : ApolloColorPalette.blue.color;
     if (isWeapon) {
       for (var element in WeaponDescription.values) {
         final currentString = buildWeaponDescription(
@@ -217,9 +217,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
       ));
     }
 
-    Color equippedColor = isEquipped
-        ? ApolloColorPalette.lightRed.color
-        : ApolloColorPalette.blue.color;
     const levelAndUnlockHeight = 50.0;
     const unlockButtonWidth = 100.0;
     final levelIndicator = SizedBox(
@@ -466,12 +463,12 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  buildDescriptionText(
-                                      false, weaponDescriptions[i].$1),
-                                  buildDescriptionText(
-                                      false, weaponDescriptions[i].$2),
-                                  buildDescriptionText(
-                                      true, weaponDescriptions[i].$3),
+                                  buildDescriptionText(false,
+                                      weaponDescriptions[i].$1, equippedColor),
+                                  buildDescriptionText(false,
+                                      weaponDescriptions[i].$2, equippedColor),
+                                  buildDescriptionText(true,
+                                      weaponDescriptions[i].$3, equippedColor),
                                 ],
                               )
                         ]),

@@ -23,6 +23,9 @@ abstract class Projectile extends BodyComponent<GameRouter>
         weaponAncestor.baseDamage.damageBase.keys.toList().getRandomElement();
   }
 
+  bool disableChaining = false;
+  bool disableHoming = false;
+
   late DamageType damageType;
 
   double fadeOutDuration = .4;
@@ -104,6 +107,8 @@ abstract class Projectile extends BodyComponent<GameRouter>
         element(other);
       }
     }
+    weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
+        ?.onHitFunctions(other);
   }
 
   @override

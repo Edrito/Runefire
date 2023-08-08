@@ -19,8 +19,8 @@ import '../resources/enums.dart';
 
 class MeleeAttackHitbox extends BodyComponent<GameRouter>
     with ContactCallbacks {
-  MeleeAttackHitbox(this.size, this.parentAttack, this.onHit);
-  MeleeAttackHandler parentAttack;
+  MeleeAttackHitbox(this.size, this.meleeAttackAncestor, this.onHit);
+  MeleeAttackHandler meleeAttackAncestor;
   Function(HealthFunctionality) onHit;
   List<String> hitEnemiesId = [];
   final Vector2 size;
@@ -41,7 +41,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (parentAttack.isDead) {
+    if (meleeAttackAncestor.isDead) {
       return;
     }
 
@@ -49,23 +49,28 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       if (hitEnemiesId.contains(other.entityId) || other.isDead) {
         return;
       }
-      if (hitEnemies > parentAttack.parentWeapon.pierce.parameter) {
-        parentAttack.kill();
+      if (hitEnemies > meleeAttackAncestor.weaponAncestor.pierce.parameter) {
+        meleeAttackAncestor.kill();
         return;
       }
-      hitEnemiesId.add(other.entityId);
-      other.hitCheck(
-          parentAttack.meleeId, parentAttack.parentWeapon.calculateDamage);
-      onHitFunctions(other);
-      applyHitEffects(other);
-      hitEnemies++;
+
+      bodyContact(other);
     }
 
     super.beginContact(other, contact);
   }
 
-  void applyHitEffects(HealthFunctionality other) async {
-    switch (parentAttack.parentWeapon.meleeType) {
+  void bodyContact(HealthFunctionality other) {
+    hitEnemiesId.add(other.entityId);
+    other.hitCheck(meleeAttackAncestor.meleeId,
+        meleeAttackAncestor.weaponAncestor.calculateDamage);
+    onHitFunctions(other);
+    applyHitSpriteEffects(other);
+    hitEnemies++;
+  }
+
+  void applyHitSpriteEffects(HealthFunctionality other) async {
+    switch (meleeAttackAncestor.weaponAncestor.meleeType) {
       case MeleeType.crush:
         // other.applyHitAnimation(
         //     await buildSpriteSheet(
@@ -86,14 +91,18 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
   }
 
   void onHitFunctions(HealthFunctionality other) {
-    if (parentAttack.parentWeapon is AttributeWeaponFunctionsFunctionality) {
-      final weapon =
-          parentAttack.parentWeapon as AttributeWeaponFunctionsFunctionality;
+    if (meleeAttackAncestor.weaponAncestor
+        is AttributeWeaponFunctionsFunctionality) {
+      final weapon = meleeAttackAncestor.weaponAncestor
+          as AttributeWeaponFunctionsFunctionality;
       for (var element in weapon.onHitMelee) {
         element(other);
       }
     }
 
+    meleeAttackAncestor
+        .weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
+        ?.onHitFunctions(other);
     onHit(other);
   }
 
@@ -109,7 +118,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     ]);
 
     final swordFilter = Filter();
-    if (parentAttack.parentWeapon.entityAncestor is Enemy) {
+    if (meleeAttackAncestor.weaponAncestor.entityAncestor is Enemy) {
       swordFilter.maskBits = playerCategory;
     } else {
       swordFilter.maskBits = enemyCategory;
@@ -126,8 +135,8 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     final bodyDef = BodyDef(
       userData: this,
       allowSleep: false,
-      position: parentAttack.activeSwings.last.swingPosition,
-      angle: parentAttack.activeSwings.last.swingAngle,
+      position: meleeAttackAncestor.activeSwings.last.swingPosition,
+      angle: meleeAttackAncestor.activeSwings.last.swingAngle,
       type: BodyType.kinematic,
     );
     renderBody = false;
@@ -143,10 +152,10 @@ class MeleeAttackSprite extends PositionComponent {
         animation: swingAnimation,
         anchor: Anchor.topCenter,
         size: swingAnimation!.frames.first.sprite.srcSize
-            .scaledToDimension(true, handler.parentWeapon.length));
+            .scaledToDimension(true, handler.weaponAncestor.length));
 
     animationComponent?.animation = swingAnimation;
-    if (handler.parentWeapon.entityAncestor!.isFlipped) {
+    if (handler.weaponAncestor.entityAncestor!.isFlipped) {
       animationComponent?.flipHorizontallyAroundCenter();
     }
   }
@@ -159,12 +168,10 @@ class MeleeAttackSprite extends PositionComponent {
   Entity target;
 
   void fadeOut() {
+    removeSwing();
     animationComponent?.add(OpacityEffect.fadeOut(EffectController(
       duration: .4,
       curve: Curves.easeOut,
-      onMax: () {
-        removeSwing();
-      },
     )));
   }
 
@@ -200,14 +207,16 @@ class MeleeAttackHandler extends Component {
       required this.initAngle,
       required this.index,
       required this.chargeAmount,
-      required this.parentWeapon}) {
-    start = parentWeapon.attackHitboxPatterns[index];
-    end = parentWeapon.attackHitboxPatterns[index + 1];
-    duration = parentWeapon.attackTickRate.parameter;
+      required this.weaponAncestor}) {
+    start = weaponAncestor.attackHitboxPatterns[index];
+    end = weaponAncestor.attackHitboxPatterns[index + 1];
+    duration = weaponAncestor.attackTickRate.parameter;
     meleeId = const Uuid().v4();
   }
 
   bool isDead = false;
+
+  bool disableChaining = false;
 
   List<MeleeAttackSprite> activeSwings = [];
   Entity? target;
@@ -219,7 +228,7 @@ class MeleeAttackHandler extends Component {
   late String meleeId;
 
   int index;
-  MeleeFunctionality parentWeapon;
+  MeleeFunctionality weaponAncestor;
   MeleeAttackHitbox? hitbox;
   Vector2 initPosition;
   double initAngle;
@@ -229,12 +238,13 @@ class MeleeAttackHandler extends Component {
   }
 
   void chain(HealthFunctionality other) {
-    if (parentWeapon.weaponCanChain &&
-        hitbox!.hitEnemies < parentWeapon.maxChainingTargets.parameter &&
+    if (!disableChaining &&
+        weaponAncestor.weaponCanChain &&
+        hitbox!.hitEnemies < weaponAncestor.maxChainingTargets.parameter &&
         !isDead) {
       List<Body> bodies = [
-        ...parentWeapon.entityAncestor?.gameRef.world.bodies.where((element) {
-              if (parentWeapon.entityAncestor is Player) {
+        ...weaponAncestor.entityAncestor?.gameRef.world.bodies.where((element) {
+              if (weaponAncestor.entityAncestor is Player) {
                 return element.userData is Enemy &&
                     element.userData != other &&
                     !hitbox!.hitEnemiesId
@@ -265,16 +275,16 @@ class MeleeAttackHandler extends Component {
       initSwing(
           otherAngle,
           other.center -
-              parentWeapon.entityAncestor!.gameEnviroment.gameCamera.viewfinder
-                  .position);
+              weaponAncestor.entityAncestor!.gameEnviroment.gameCamera
+                  .viewfinder.position);
     }
   }
 
   void initSwing(double swingAngle, Vector2 swingPosition) {
     SpriteAnimation? spriteAnimation;
-    if (parentWeapon.attackHitboxSpriteAnimations.isNotEmpty) {
+    if (weaponAncestor.attackHitboxSpriteAnimations.isNotEmpty) {
       spriteAnimation =
-          parentWeapon.attackHitboxSpriteAnimations[(index / 2).round()];
+          weaponAncestor.attackHitboxSpriteAnimations[(index / 2).round()];
       spriteAnimation.stepTime = duration;
     }
 
@@ -311,13 +321,13 @@ class MeleeAttackHandler extends Component {
 
   @override
   Future<void> onLoad() async {
-    parentWeapon.activeSwings.add(this);
-    parentWeapon.spriteVisibilityCheck();
-    final hitboxSize = parentWeapon.attackHitboxSizes[(index / 2).round()];
-    target = parentWeapon.entityAncestor;
+    weaponAncestor.activeSwings.add(this);
+    weaponAncestor.spriteVisibilityCheck();
+    final hitboxSize = weaponAncestor.attackHitboxSizes[(index / 2).round()];
+    target = weaponAncestor.entityAncestor;
     initSwing(initAngle, initPosition);
     hitbox = MeleeAttackHitbox(hitboxSize, this, onHitFunction);
-    parentWeapon.entityAncestor?.enviroment.physicsComponent.add(hitbox!);
+    weaponAncestor.entityAncestor?.enviroment.physicsComponent.add(hitbox!);
 
     return super.onLoad();
   }
@@ -332,8 +342,8 @@ class MeleeAttackHandler extends Component {
   void removeSwing([MeleeAttackSprite? attack]) {
     activeSwings.remove(attack);
     if (activeSwings.isEmpty) {
-      parentWeapon.activeSwings.remove(this);
-      parentWeapon.spriteVisibilityCheck();
+      weaponAncestor.activeSwings.remove(this);
+      weaponAncestor.spriteVisibilityCheck();
       hitbox?.removeFromParent();
       removeFromParent();
     }

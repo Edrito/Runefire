@@ -307,6 +307,12 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
       element(other);
     }
   }
+
+  void onHitFunctions(HealthFunctionality other) {
+    for (var element in onHit) {
+      element(other);
+    }
+  }
 }
 
 class StatusEffect extends PositionComponent {

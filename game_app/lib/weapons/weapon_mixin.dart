@@ -209,7 +209,7 @@ mixin MeleeFunctionality on Weapon {
         initAngle: deltaDirection,
         chargeAmount: chargeAmount,
         index: attackIndex,
-        parentWeapon: this,
+        weaponAncestor: this,
       ));
     }
 
@@ -794,6 +794,7 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   List<Function(HealthFunctionality other)> onKill = [];
   List<Function(HealthFunctionality other)> onHitProjectile = [];
   List<Function(HealthFunctionality other)> onHitMelee = [];
+  List<Function(HealthFunctionality other)> onHit = [];
   List<Function()> onAttackProjectile = [];
   List<Function()> onAttackMelee = [];
   List<Function()> onAttack = [];

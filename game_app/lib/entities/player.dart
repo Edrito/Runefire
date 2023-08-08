@@ -37,10 +37,10 @@ class Player extends Entity
         HealthRegenFunctionality {
   Player(this.playerData, this.isDisplay,
       {required super.enviroment, required super.initialPosition}) {
-    if (!isDisplay) {
-      playerData.selectedPlayer.applyBaseCharacterStats(this);
-      initAttributes(playerData.unlockedPermanentAttributes);
-    }
+    // if (!isDisplay) {
+    playerData.selectedPlayer.applyBaseCharacterStats(this);
+    initAttributes(playerData.unlockedPermanentAttributes);
+    // }
   }
   final PlayerData playerData;
 
