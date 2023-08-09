@@ -5,5 +5,5 @@ const enemyCategory = 0x0008;
 const powerupCategory = 0x0010;
 const sensorCategory = 0x0020;
 const interactableCategory = 0x0040;
-const experienceCategory = 0x0080;
+const proximityCategory = 0x0080;
 // const experienceSensorCategory = 0x0100;

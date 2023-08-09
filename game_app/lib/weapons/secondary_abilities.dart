@@ -192,7 +192,7 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
         sourceEntity: weapon!.entityAncestor!,
         position: element.center,
         size: 5,
-        isInstant: true,
+        durationType: DurationType.instant,
         duration: 5,
         onTick: (entity, areaId) {
           if (entity is HealthFunctionality) {

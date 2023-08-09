@@ -8,7 +8,7 @@ import '../resources/enums.dart';
 import 'attributes_mixin.dart';
 
 StatusEffectAttribute? statusEffectBuilder(
-  StatusEffects type,
+  AttributeType type,
   int level,
   AttributeFunctionality victimEntity, {
   required Entity perpetratorEntity,
@@ -16,7 +16,7 @@ StatusEffectAttribute? statusEffectBuilder(
   double? duration,
 }) {
   switch (type) {
-    case StatusEffects.burn:
+    case AttributeType.burn:
       if (isTemporary) {
         return TemporaryFireDamage(
           level: level,
@@ -26,6 +26,22 @@ StatusEffectAttribute? statusEffectBuilder(
         );
       } else {
         return FireDamageAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
+      }
+
+    case AttributeType.fear:
+      if (isTemporary) {
+        return TemporaryFear(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+          duration: duration,
+        );
+      } else {
+        return FearAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
@@ -60,7 +76,6 @@ class TemporaryFireDamage extends FireDamageAttribute with TemporaryAttribute {
       double? duration}) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
-    print('hereeee');
   }
 
   @override
@@ -145,6 +160,74 @@ class FireDamageAttribute extends StatusEffectAttribute {
     if (victimEntity is AttributeFunctionsFunctionality) {
       final attr = victimEntity as AttributeFunctionsFunctionality;
       attr.onUpdate.remove(tickCheck);
+    }
+  }
+
+  @override
+  String icon = "powerups/power.png";
+}
+
+class TemporaryFear extends FearAttribute with TemporaryAttribute {
+  TemporaryFear(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity,
+      double? duration}) {
+    this.duration = duration ?? this.duration;
+    this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
+  }
+
+  @override
+  double duration = 1;
+}
+
+class FearAttribute extends StatusEffectAttribute {
+  FearAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
+
+  @override
+  StatusEffects statusEffect = StatusEffects.burn;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int? get maxLevel => null;
+
+  @override
+  String title = "Fear";
+
+  @override
+  AttributeType get attributeType => AttributeType.burn;
+
+  @override
+  String description() {
+    return "";
+  }
+
+  double durationPassed = 0;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.entityStatusWrapper
+        .addStatusEffect(StatusEffects.fear, upgradeLevel);
+
+    if (victimEntity is MovementFunctionality) {
+      final move = victimEntity as MovementFunctionality;
+      move.entitiesFeared[perpetratorEntity.entityId] = perpetratorEntity;
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.entityStatusWrapper
+        .addStatusEffect(StatusEffects.fear, upgradeLevel);
+
+    if (victimEntity is MovementFunctionality) {
+      final move = victimEntity as MovementFunctionality;
+      move.entitiesFeared.remove(perpetratorEntity.entityId);
     }
   }
 

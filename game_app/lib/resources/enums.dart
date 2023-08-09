@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/entities/player_constants.dart' as player_constants;
+import 'package:game_app/player/player_constants.dart' as player_constants;
 import 'package:game_app/main.dart';
 import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -11,7 +11,7 @@ import 'package:game_app/weapons/player_projectile_weapons.dart';
 import '../enemies/enemy.dart';
 import '../enemies/enemy_mushroom.dart';
 import '../entities/entity_class.dart';
-import '../entities/player.dart';
+import '../player/player.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
 import '../game/forest_game.dart';
@@ -103,7 +103,7 @@ enum SemiAutoType { regular, release, charge }
 
 enum StatusEffects { burn, chill, electrified, stun, psychic, fear }
 
-enum AttackType { projectile, melee, spell }
+enum AttackType { projectile, melee, magic }
 
 enum MeleeType { slash, stab, crush }
 
@@ -126,7 +126,7 @@ enum EntityStatus {
   attack
 }
 
-enum WeaponStatus { attack, reload, charge, spawn, idle, chargeIdle }
+enum WeaponStatus { attack, reload, charge, spawn, idle, chargeIdle, die }
 
 enum JoystickDirection {
   up,
@@ -428,7 +428,7 @@ enum WeaponType {
   energySword(
       'assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
-  dagger('assets/images/weapons/dagger.png', 5, AttackType.spell, 0),
+  dagger('assets/images/weapons/dagger.png', 5, AttackType.magic, 0),
   blankProjectileWeapon(
       'assets/images/weapons/dagger.png', 5, AttackType.projectile, 0),
   largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),

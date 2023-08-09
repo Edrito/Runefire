@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/area_effects.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 
 import '../../entities/entity_class.dart';
@@ -183,7 +184,7 @@ mixin BasicSpriteLifecycle on Component {
   abstract SpriteAnimation? endAnimation;
   abstract double size;
 
-  abstract bool isInstant;
+  abstract DurationType durationType;
   SpriteAnimationComponent? spriteAnimationComponent;
   bool randomlyFlipped = false;
 
@@ -200,7 +201,7 @@ mixin BasicSpriteLifecycle on Component {
     }
 
     add(spriteAnimationComponent!);
-    if (!isInstant) {
+    if (durationType != DurationType.instant) {
       spriteAnimationComponent!.animationTicker?.onComplete = () {
         spriteAnimationComponent!.animation = playAnimation;
       };
@@ -215,7 +216,7 @@ mixin BasicSpriteLifecycle on Component {
         removeFromParent();
       };
       await spriteAnimationComponent?.animationTicker?.completed;
-    } else if (isInstant) {
+    } else if (durationType == DurationType.instant) {
       if (spriteAnimationComponent?.animationTicker?.done() ?? true) {
         removeFromParent();
       } else {

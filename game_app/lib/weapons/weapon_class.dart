@@ -230,7 +230,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   @mustCallSuper
   void standardAttack([double holdDurationPercent = 1]) {
     for (var element in additionalWeapons.entries) {
-      element.value.standardAttack(holdDurationPercent);
+      element.value.attackAttempt(holdDurationPercent);
     }
   }
 
@@ -274,6 +274,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
       futures.add(element.value.weaponSpriteAnimation!
           .setWeaponStatus(this.weaponStatus));
     }
+
     await Future.wait(futures);
   }
 }
@@ -306,8 +307,8 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
       required this.parentJoint}) {
     animation = weaponAnimations[WeaponStatus.idle];
     anchor = Anchor.topCenter;
-    size = animation!.frames.first.sprite.srcSize.scaled(
-        parentJoint.weapon!.length / animation!.frames.first.sprite.srcSize.y);
+    size = animation!.frames.first.sprite.srcSize
+        .scaled(weapon.length / animation!.frames.first.sprite.srcSize.y);
     priority = attackPriority;
     position = spriteOffset;
   }
@@ -320,7 +321,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
 
   Map<dynamic, SpriteAnimation> weaponAnimations;
 
-  PlayerAttachmentJointComponent parentJoint;
+  PlayerAttachmentJointComponent? parentJoint;
   bool idleOnly;
   WeaponStatus? statusQueue;
   SpriteAnimation? animationQueue;
@@ -355,7 +356,15 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
         // size: Vector2.all(),
         anchor: Anchor.topCenter,
         priority: attackPriority);
-    parentJoint.weaponTip?.add(muzzleFlashComponent!);
+
+    final weaponTip = parentJoint?.weaponTip;
+    if (weaponTip == null) {
+      add(muzzleFlashComponent!..position = tipOffset);
+      return;
+    } else {
+      weaponTip.add(muzzleFlashComponent!);
+    }
+
     final previousComponent = muzzleFlashComponent;
 
     previousComponent?.animationTicker?.onComplete = () {
@@ -412,11 +421,11 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
           applyAnimation(newAnimation);
           break;
         case WeaponStatus.reload:
-          if (parentJoint.weapon is! ReloadFunctionality) break;
+          if (weapon is! ReloadFunctionality) break;
 
           assert(!newAnimation.loop, "Temp animations must not loop");
           newAnimation.stepTime =
-              (parentJoint.weapon as ReloadFunctionality).reloadTime.parameter /
+              (weapon as ReloadFunctionality).reloadTime.parameter /
                   newAnimation.frames.length;
           applyAnimation(newAnimation);
 
@@ -426,7 +435,7 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
 
           break;
         case WeaponStatus.charge:
-          animation = newAnimation;
+          await weaponCharging();
 
           break;
         default:

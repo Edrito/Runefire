@@ -5,87 +5,83 @@ import 'package:flutter/src/services/raw_keyboard.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/constants/priorities.dart';
+import 'package:game_app/resources/visuals.dart';
+import 'package:uuid/uuid.dart';
 
-import '../entities/player.dart';
+import '../player/player.dart';
 import '../resources/enums.dart';
+import 'enviroment.dart';
 
-class InteractableComponent extends BodyComponent<GameRouter>
-    with ContactCallbacks, KeyboardHandler {
-  InteractableComponent(this.initialPosition, this.spriteComponent,
-      this.onInteract, this.useKey, this.displayedTextString);
-  String displayedTextString;
-  SpriteAnimationComponent spriteComponent;
-  bool useKey;
-  Function onInteract;
+abstract class InteractableComponent extends BodyComponent<GameRouter>
+    with ContactCallbacks {
+  InteractableComponent(
+      {required this.initialPosition, required this.gameEnviroment}) {
+    id = const Uuid().v4();
+  }
+  late String id;
+  final GameEnviroment gameEnviroment;
+  abstract String displayedTextString;
+  abstract SpriteAnimationComponent spriteComponent;
+
+  double radius = 1;
+
+  void interact();
+
   Vector2 initialPosition;
-  CircleComponent? displayedText;
 
-  List<Player> currentPlayers = [];
+  TextComponent? displayedText;
+
+  // List<Player> currentPlayers = [];
   Set<PhysicalKeyboardKey> keysPressedPhysical = {};
 
   @override
   Future<void> onLoad() {
+    spriteComponent.size.scaleTo(radius * 2);
     add(spriteComponent);
     priority = backgroundObjectPriority;
     return super.onLoad();
   }
 
   @override
-  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (currentPlayers.isEmpty) return super.onKeyEvent(event, keysPressed);
-    if (!event.repeat) {
-      if (keysPressedPhysical.contains(event.physicalKey)) {
-        keysPressedPhysical.remove(event.physicalKey);
-      } else {
-        keysPressedPhysical.add(event.physicalKey);
-      }
-    }
-    if (event.physicalKey == PhysicalKeyboardKey.keyE &&
-        keysPressedPhysical.contains(event.physicalKey)) {
-      onInteract();
-    }
-
-    return super.onKeyEvent(event, keysPressed);
-  }
-
-  @override
   void beginContact(Object other, Contact contact) {
     if (other is! Player) return;
-    currentPlayers.add(other);
-    displayedText ??= CircleComponent(
-        anchor: Anchor.center,
-        radius: 5,
-        position: Vector2(0, -spriteComponent.size.y))
-      ..add(TextComponent(
-        text: displayedTextString,
-        anchor: Anchor.center,
-        position: Vector2.all(5),
-        textRenderer: TextPaint(
-            style: TextStyle(
-          fontSize: 5,
-          shadows: const [
-            BoxShadow(
-                color: Colors.black,
-                offset: Offset(0, 0),
-                spreadRadius: 3,
-                blurRadius: 1)
-          ],
-          color: Colors.red.shade100,
-        )),
-      ));
-
-    add(displayedText!);
+    other.addCloseInteractableComponents(this);
 
     super.beginContact(other, contact);
   }
 
-  @override
-  void endContact(Object other, Contact contact) {
-    currentPlayers.remove(other);
-    if (currentPlayers.isEmpty) {
+  void toggleDisplay(bool isOn) {
+    if (isOn) {
+      displayedText ??= TextComponent(
+        text: "E - $displayedTextString",
+        // anchor: Anchor.center,
+        // position: Vector2.all(5),
+        textRenderer: TextPaint(
+            style: defaultStyle.copyWith(
+          fontSize: .4,
+
+          shadows: const [
+            BoxShadow(
+                color: Colors.black,
+                offset: Offset(2, 2),
+                spreadRadius: 2,
+                blurRadius: 1)
+          ],
+          // color: Colors.red.shade100,
+        )),
+      )..addToParent(spriteComponent);
+    } else {
       displayedText?.removeFromParent();
       displayedText = null;
     }
+  }
+
+  @override
+  void endContact(Object other, Contact contact) {
+    if (other is Player) {
+      other.removeCloseInteractable(this);
+    }
+
     super.endContact(other, contact);
   }
 
@@ -93,10 +89,11 @@ class InteractableComponent extends BodyComponent<GameRouter>
   Body createBody() {
     late CircleShape shape;
     shape = CircleShape();
-    shape.radius = spriteComponent.size.x;
+    shape.radius = radius;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
+        isSensor: true,
         filter: Filter()
           ..categoryBits = interactableCategory
           ..maskBits = playerCategory);

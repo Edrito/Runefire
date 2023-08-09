@@ -13,7 +13,7 @@ import '../resources/functions/custom_mixins.dart';
 import '../menus/overlays.dart';
 import '../resources/constants/priorities.dart';
 import '../resources/visuals.dart';
-import 'entity_class.dart';
+import '../entities/entity_class.dart';
 
 mixin ExperienceFunctionality on Entity {
   @override

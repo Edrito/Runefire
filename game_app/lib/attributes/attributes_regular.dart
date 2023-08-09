@@ -50,7 +50,7 @@ class FireExplosionEnemyDeathAttribute extends Attribute {
         playAnimation: await loadSpriteAnimation(
             16, 'effects/explosion_1_16.png', .05, false),
         size: baseSize + increasePercentOfBase(baseSize),
-        isInstant: true,
+        durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter,
 
         ///Map<DamageType, (double, double)>>>>

@@ -7,29 +7,60 @@ import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
 import 'package:flutter/animation.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
-import 'player.dart';
+import '../player/player.dart';
 import '../resources/functions/custom_mixins.dart';
 import '../resources/functions/vector_functions.dart';
 import '../main.dart';
 import '../resources/enums.dart';
 
-class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
-  ExperienceItem(this.experienceAmount, this.originPosition);
+abstract class ProximityItem extends BodyComponent<GameRouter>
+    with ContactCallbacks {
+  ProximityItem({required this.originPosition});
+
+  Vector2 originPosition;
+
+  double radius = .1;
+
+  late CircleShape shape;
+
+  @override
+  Body createBody() {
+    shape = CircleShape();
+    shape.radius = radius;
+
+    renderBody = false;
+    final experienceFilter = Filter()
+      ..maskBits = playerCategory
+      ..categoryBits = proximityCategory;
+
+    final fixtureDef = FixtureDef(shape,
+        userData: {"type": FixtureType.body, "object": this},
+        isSensor: true,
+        filter: experienceFilter);
+
+    final bodyDef = BodyDef(
+      userData: this,
+      position: originPosition,
+      type: BodyType.static,
+    );
+    return world.createBody(bodyDef)..createFixture(fixtureDef);
+  }
+}
+
+class ExperienceItem extends ProximityItem {
+  ExperienceItem(
+      {required this.experienceAmount, required super.originPosition});
 
   ExperienceAmount experienceAmount;
   late ShapeComponent shapeComponent;
 
-  double radius = .1;
-  Vector2 originPosition;
   double speed = 10;
   Player? target;
   late Color color;
   final int trailCount = 10;
-
-  late CircleShape shape;
+  late TimerComponent particleTimer;
 
   List<Vector2> trails = [];
-
   set setTarget(Player player) => target = player;
   Vector2 previousPoint = Vector2.zero();
   List<Effect> effects = [];
@@ -82,11 +113,8 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
       otherObject.gainExperience(experienceAmount.experienceAmount);
       removeFromParent();
     }
-
-    // super.beginContact(other, contact);
   }
 
-  late TimerComponent particleTimer;
   void home(double dt) {
     if (target != null) {
       trails.insert(0, center.clone());
@@ -128,28 +156,5 @@ class ExperienceItem extends BodyComponent<GameRouter> with ContactCallbacks {
   void update(double dt) {
     home(dt);
     super.update(dt);
-  }
-
-  @override
-  Body createBody() {
-    shape = CircleShape();
-    shape.radius = radius;
-
-    renderBody = false;
-    final experienceFilter = Filter()
-      ..maskBits = playerCategory
-      ..categoryBits = experienceCategory;
-
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        isSensor: true,
-        filter: experienceFilter);
-
-    final bodyDef = BodyDef(
-      userData: this,
-      position: originPosition,
-      type: BodyType.static,
-    );
-    return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 }

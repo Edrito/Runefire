@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/entities/player.dart';
+import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/functions/functions.dart';
 
+import '../resources/enums.dart';
 import '../resources/functions/custom_mixins.dart';
 import '../resources/visuals.dart';
 import 'enviroment.dart';
+import 'expendables.dart';
 
 class GameHud extends PositionComponent {
   Player? player;
@@ -23,16 +26,39 @@ class GameHud extends PositionComponent {
   late HudMarginComponent timerParent;
   late final CaTextComponent timerText;
 
-  late HudMarginComponent levelParent;
+  late HudMarginComponent topLeftMarginParent;
   late CircleComponent levelBackground;
   late SpriteAnimationComponent healthBar;
   late PositionComponent levelWrapper;
+  late SpriteComponent expendableIcon;
+
+  Expendable? _currentExpendable;
+  late Sprite blankExpendableSprite;
+
+  set currentExpendable(Expendable? expendable) {
+    _currentExpendable = expendable;
+    if (expendable != null) {
+      expendable.expendableType
+          .buildSprite()
+          .then((value) => expendableIcon.sprite = value);
+    } else {
+      expendableIcon.sprite = blankExpendableSprite;
+    }
+  }
 
   @override
   FutureOr<void> onLoad() async {
     if (gameRef is GameEnviroment) {
       player = (gameRef as GameEnviroment).player;
     }
+
+    //Wrappers
+    topLeftMarginParent = HudMarginComponent(
+        margin: const EdgeInsets.fromLTRB(8, 30, 0, 0), anchor: Anchor.center);
+    levelWrapper =
+        PositionComponent(anchor: Anchor.center, position: Vector2.all(40));
+
+    //Health Bar
     final sprite = await loadSpriteAnimation(1, 'ui/health_bar.png', 1, true);
     final healthBarSize = sprite.frames.first.sprite.srcSize;
     healthBarSize.scaleTo(325);
@@ -41,11 +67,13 @@ class GameHud extends PositionComponent {
       size: healthBarSize,
     );
 
+    //FPS
     fpsCounter = FpsTextComponent(
       textRenderer: TextPaint(style: defaultStyle),
       position: Vector2(0, gameRef.gameCamera.viewport.size.y - 40),
     );
 
+    //Timer
     timerParent = HudMarginComponent(
         margin: const EdgeInsets.fromLTRB(0, 20, 120, 0),
         anchor: Anchor.center);
@@ -53,11 +81,7 @@ class GameHud extends PositionComponent {
       textRenderer: TextPaint(style: defaultStyle),
     );
 
-    levelParent = HudMarginComponent(
-        margin: const EdgeInsets.fromLTRB(8, 30, 0, 0), anchor: Anchor.center);
-    levelWrapper =
-        PositionComponent(anchor: Anchor.center, position: Vector2.all(40));
-
+    //Level
     levelCounter = CaTextComponent(
         anchor: Anchor.center,
         textRenderer: TextPaint(
@@ -69,7 +93,6 @@ class GameHud extends PositionComponent {
                   spreadRadius: 1, blurRadius: 0, offset: Offset(2, 2))
             ])),
         text: player?.currentLevel.toString());
-
     levelBackground = CircleComponent(
       radius: 32,
       anchor: Anchor.center,
@@ -78,16 +101,20 @@ class GameHud extends PositionComponent {
         ..color = Colors.black.withOpacity(.8),
     );
 
+    //Expendable
+    blankExpendableSprite = await Sprite.load('expendables/blank.png');
+    expendableIcon = SpriteComponent(
+        position: Vector2(15, 75), sprite: blankExpendableSprite);
+
     timerParent.add(timerText);
-    // levelWrapper.add(levelBackground);
     levelWrapper.add(levelCounter);
-    levelParent.add(healthBar);
-    levelParent.add(levelWrapper);
+    topLeftMarginParent.add(healthBar);
+    topLeftMarginParent.add(levelWrapper);
+    topLeftMarginParent.add(expendableIcon);
 
     add(timerParent);
 
-    // Future.delayed(loadInTime.seconds, () => addAll([levelParent]));
-    addAll([levelParent]);
+    addAll([topLeftMarginParent]);
     add(fpsCounter);
 
     return super.onLoad();
@@ -168,11 +195,26 @@ class GameHud extends PositionComponent {
           ),
           Paint()
             ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
-              ApolloColorPalette.lightCyan.color,
-              ApolloColorPalette().primaryColor,
+              staminaColor.brighten(.4),
+              staminaColor,
             ]));
     }
 
     super.render(canvas);
+  }
+
+  Color staminaColor = ApolloColorPalette().primaryColor;
+  void toggleStaminaColor(AttackType attackType) {
+    switch (attackType) {
+      case AttackType.magic:
+        staminaColor = ApolloColorPalette().primaryColor;
+        break;
+      case AttackType.melee:
+        staminaColor = ApolloColorPalette.deepGreen.color;
+        break;
+      case AttackType.projectile:
+        staminaColor = ApolloColorPalette.lightGreen.color;
+        break;
+    }
   }
 }

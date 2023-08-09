@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/entities/player.dart';
+import 'package:game_app/player/player.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/resources/enums.dart';
 

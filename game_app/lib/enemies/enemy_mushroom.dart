@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/enemies/enemy_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/event_management.dart';
+import 'package:game_app/game/expendables.dart';
 import 'package:game_app/resources/area_effects.dart';
 
 import '../resources/functions/functions.dart';
@@ -27,8 +28,13 @@ class MushroomDummy extends Enemy with JumpFunctionality
         mushroomHopperBaseInvincibilityDuration;
     maxHealth.baseParameter = double.infinity;
   }
+
   @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.4);
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -68,7 +74,15 @@ class MushroomRunner extends Enemy
   }
 
   @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.4);
+  Map<ExpendableType, double> get expendableRate =>
+      {ExpendableType.fearEnemies: 0.5};
+
+  @override
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -122,7 +136,11 @@ class MushroomHopper extends Enemy
   }
 
   @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.4);
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -181,7 +199,11 @@ class MushroomBoomer extends Enemy
   }
 
   @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.4);
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -241,7 +263,11 @@ class MushroomShooter extends Enemy
   }
 
   @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.4);
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -352,7 +378,11 @@ class MushroomSpinner extends Enemy
   }
 
   @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.4);
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
 
   Future<void> toggleIdleRunAnimations(bool isSpinning) async {
     if (isSpinning) {
@@ -484,7 +514,11 @@ class MushroomBurrower extends Enemy
   double get burrowSpeed => 1.0;
 
   @override
-  (double, double, double) xpRate = (0.001, 0.01, 0.4);
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
   Future<void> toggleIdleRunAnimations(bool isBurrowed) async {
     if (isBurrowed) {
       entityAnimations.remove(EntityStatus.idle);

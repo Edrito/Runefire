@@ -7,7 +7,7 @@ import 'package:game_app/attributes/child_entities.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity_class.dart';
-import 'package:game_app/entities/player.dart';
+import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
@@ -178,15 +178,25 @@ mixin MovementFunctionality on Entity {
     super.initializeChildEntityParameters(childEntity);
   }
 
+  Map<String, Entity> entitiesFeared = {};
+
   //Speed
   late final DoubleParameterManager speed;
 
   Map<InputType, Vector2?> moveVelocities = {};
-  Vector2 get moveDelta => (moveVelocities[InputType.moveJoy] ??
-          moveVelocities[InputType.keyboard] ??
-          moveVelocities[InputType.ai] ??
-          Vector2.zero())
-      .normalized();
+  Vector2 get moveDelta {
+    if (entitiesFeared.isNotEmpty) {
+      final fearTarget = entitiesFeared.values.fold<Vector2>(Vector2.zero(),
+          (previousValue, element) => previousValue + element.center);
+      return (center - fearTarget).normalized();
+    }
+
+    return (moveVelocities[InputType.moveJoy] ??
+            moveVelocities[InputType.keyboard] ??
+            moveVelocities[InputType.ai] ??
+            Vector2.zero())
+        .normalized();
+  }
 
   void moveFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
@@ -198,7 +208,8 @@ mixin MovementFunctionality on Entity {
   }
 
   void moveCharacter() {
-    final pulse = moveDelta;
+    Vector2 pulse = moveDelta;
+
     if (isDead || !enableMovement.parameter || pulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
       return;
@@ -462,6 +473,9 @@ mixin AttackFunctionality on AimFunctionality {
     await setWeapon(currentWeapon!);
 
     currentWeapon?.weaponSwappedTo();
+
+    gameEnviroment.hud.toggleStaminaColor(
+        currentWeapon?.weaponType.attackType ?? AttackType.projectile);
 
     if (isAttacking) {
       currentWeapon?.startAttacking();
@@ -771,7 +785,7 @@ mixin HealthFunctionality on Entity {
     applyDamage(damage);
     applyKnockback(damage);
     deathChecker(damage);
-    applyStatusEffectChecker(damage, applyStatusEffect);
+    applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
     essenceStealChecker(damage);
     onHitFunctionsCall(damage.source);
     return true;
@@ -835,7 +849,8 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void applyStatusEffectChecker(DamageInstance damage, bool applyStatusEffect) {
+  void applyStatusEffectFromDamageChecker(
+      DamageInstance damage, bool applyStatusEffect) {
     if (!applyStatusEffect) return;
     if (this is! AttributeFunctionality) return;
     final attr = this as AttributeFunctionality;
@@ -850,7 +865,6 @@ mixin HealthFunctionality on Entity {
             duration: 3,
             perpetratorEntity: damage.source,
             damageType: DamageType.fire,
-            statusEffect: StatusEffects.burn,
             isTemporary: true,
           );
           break;

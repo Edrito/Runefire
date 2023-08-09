@@ -4,7 +4,7 @@ import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
 import 'package:game_app/resources/game_state_class.dart';
 
-import '../entities/player.dart';
+import '../player/player.dart';
 import '../game/background.dart';
 
 import 'dart:async';

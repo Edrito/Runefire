@@ -39,19 +39,20 @@ mixin AttributeFunctionality on Entity {
     bool applyUpgrade = true,
     Entity? perpetratorEntity,
     DamageType? damageType,
-    StatusEffects? statusEffect,
     bool isTemporary = false,
     double? duration,
   }) {
     if (currentAttributes.containsKey(attribute)) {
       currentAttributes[attribute]?.incrementLevel(level ?? 1);
     } else {
-      currentAttributes[attribute] = attribute.buildAttribute(level ?? 1, this,
-          perpetratorEntity: perpetratorEntity,
-          damageType: damageType,
-          duration: duration,
-          isTemporary: isTemporary,
-          statusEffect: statusEffect);
+      currentAttributes[attribute] = attribute.buildAttribute(
+        level ?? 1,
+        this,
+        perpetratorEntity: perpetratorEntity,
+        damageType: damageType,
+        duration: duration,
+        isTemporary: isTemporary,
+      );
       if (applyUpgrade) {
         currentAttributes[attribute]?.applyUpgrade();
       }
@@ -340,54 +341,54 @@ class StatusEffect extends PositionComponent {
   }
 }
 
-class HoldDuration extends PositionComponent {
-  HoldDuration(this.duration);
+// class HoldDuration extends PositionComponent {
+//   HoldDuration(this.duration);
 
-  final double duration;
-  final double spriteSize = .25;
+//   final double duration;
+//   final double spriteSize = .25;
 
-  double get percentComplete => (durationProgressed / duration).clamp(0, 1);
+//   double get percentComplete => (durationProgressed / duration).clamp(0, 1);
 
-  double durationProgressed = 0;
+//   double durationProgressed = 0;
 
-  @override
-  FutureOr<void> onLoad() async {
-    // size = Vector2.all(spriteSize);
-    // anchor = Anchor.center;
+//   @override
+//   FutureOr<void> onLoad() async {
+//     // size = Vector2.all(spriteSize);
+//     // anchor = Anchor.center;
 
-    return super.onLoad();
-  }
+//     return super.onLoad();
+//   }
 
-  @override
-  void update(double dt) {
-    durationProgressed += dt;
-    super.update(dt);
-  }
+//   @override
+//   void update(double dt) {
+//     durationProgressed += dt;
+//     super.update(dt);
+//   }
 
-  @override
-  void render(Canvas canvas) {
-    // canvas.drawCircle(Offset.zero, spriteSize, BasicPalette.white.paint());
-    canvas.drawCircle(
-        Offset.zero,
-        spriteSize,
-        Paint()
-          ..shader = ui.Gradient.sweep(
-              Offset.zero,
-              [
-                percentComplete == 1
-                    ? ApolloColorPalette().secondaryColor
-                    : ApolloColorPalette().primaryColor,
-                Colors.transparent
-              ],
-              [percentComplete, percentComplete],
+//   @override
+//   void render(Canvas canvas) {
+//     // canvas.drawCircle(Offset.zero, spriteSize, BasicPalette.white.paint());
+//     canvas.drawCircle(
+//         Offset.zero,
+//         spriteSize,
+//         Paint()
+//           ..shader = ui.Gradient.sweep(
+//               Offset.zero,
+//               [
+//                 percentComplete == 1
+//                     ? ApolloColorPalette().secondaryColor
+//                     : ApolloColorPalette().primaryColor,
+//                 Colors.transparent
+//               ],
+//               [percentComplete, percentComplete],
 
-              // null,
-              TileMode.clamp,
-              0,
-              pi * 2 * percentComplete));
-    super.render(canvas);
-  }
-}
+//               // null,
+//               TileMode.clamp,
+//               0,
+//               pi * 2 * percentComplete));
+//     super.render(canvas);
+//   }
+// }
 
 class EntityStatusEffectsWrapper extends PositionComponent {
   EntityStatusEffectsWrapper({super.position, super.size}) {
@@ -399,7 +400,7 @@ class EntityStatusEffectsWrapper extends PositionComponent {
 
   ///ID, Animation
   Map<String, ReloadAnimation> reloadAnimations = {};
-  HoldDuration? holdDuration;
+  // HoldDuration? holdDuration;
 
   bool removedAnimations = false;
 
@@ -415,27 +416,27 @@ class EntityStatusEffectsWrapper extends PositionComponent {
     }
     reloadAnimations.clear();
 
-    holdDuration?.removeFromParent();
-    holdDuration = null;
+    // holdDuration?.removeFromParent();
+    // holdDuration = null;
   }
 
   double getXPosition(StatusEffects effect) {
     return ((effect.index + 1) / StatusEffects.values.length) * (width);
   }
 
-  void addHoldDuration(double duration) {
-    if (removedAnimations) return;
-    holdDuration?.removeFromParent();
-    holdDuration = HoldDuration(duration);
-    holdDuration!.position.y = -.5;
-    holdDuration!.position.x = width / 2;
-    add(holdDuration!);
-  }
+  // void addHoldDuration(double duration) {
+  //   if (removedAnimations) return;
+  //   holdDuration?.removeFromParent();
+  //   holdDuration = HoldDuration(duration);
+  //   holdDuration!.position.y = -.5;
+  //   holdDuration!.position.x = width / 2;
+  //   add(holdDuration!);
+  // }
 
-  void removeHoldDuration() {
-    holdDuration?.removeFromParent();
-    holdDuration = null;
-  }
+  // void removeHoldDuration() {
+  //   holdDuration?.removeFromParent();
+  //   holdDuration = null;
+  // }
 
   void addStatusEffect(StatusEffects effect, int level) {
     if (removedAnimations) return;

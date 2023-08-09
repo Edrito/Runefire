@@ -1,49 +1,86 @@
 import 'package:flame/components.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/entities/player_experience_functionality.dart';
+import 'package:game_app/game/expendables.dart';
+import 'package:game_app/game/proximity_item.dart';
 import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
 
 enum AimPattern { player, closestEnemyToPlayer }
 
-mixin DropExperienceFunctionality on HealthFunctionality {
-  ///If an [rng.double] is smaller than $1 then large experience is dropped
-  ///If an [rng.double] is smaller than $2 then medium experience is dropped
-  ///If an [rng.double] is smaller than $3 then small experience is dropped
-  abstract (double, double, double) xpRate;
+mixin DropItemFunctionality on HealthFunctionality {
+  ///If an [rng.double] is smaller than the respective key then experienceType is dropped
+
+  abstract Map<ExperienceAmount, double> experienceRate;
+
+  Map<ExpendableType, double> expendableRate = {
+    ExpendableType.experienceAttract: 0,
+    ExpendableType.fearEnemies: 0,
+    ExpendableType.teleportRune: 0,
+    ExpendableType.stunRune: 0,
+    ExpendableType.healingRune: 0,
+  };
 
   //Random value between the two ints is chosen
-  final (int, int) amountPerDrop = (1, 1);
+  final (int, int) experiencePerDrop = (1, 1);
 
-  @override
-  bool deadStatus() {
-    late ExperienceAmount experienceAmount;
+  List<Component> calculateExperienceDrop() {
+    ExperienceAmount? experienceAmount;
 
-    final amountCalculated = amountPerDrop.$1 == amountPerDrop.$2
-        ? amountPerDrop.$1
-        : rng.nextInt(amountPerDrop.$2 - amountPerDrop.$1) + amountPerDrop.$1;
+    List<ExperienceItem> experienceAmounts = [];
+
+    final amountCalculated =
+        rng.nextInt((experiencePerDrop.$2 - experiencePerDrop.$1) + 1) +
+            experiencePerDrop.$1;
     final spread = amountCalculated / 5;
+
     for (var i = 0; i < amountCalculated; i++) {
       double chance = rng.nextDouble();
 
-      if (chance < xpRate.$1) {
-        experienceAmount = ExperienceAmount.large;
-      } else if (chance < xpRate.$2) {
-        experienceAmount = ExperienceAmount.medium;
-      } else if (chance < xpRate.$3) {
-        experienceAmount = ExperienceAmount.small;
-      } else {
-        return super.deadStatus();
-      }
+      final entryList = experienceRate.entries.toList();
+      entryList.sort((a, b) => a.value.compareTo(b.value));
 
-      Future.delayed(rng.nextDouble().seconds).then((value) =>
-          gameEnviroment.add(ExperienceItem(
-              experienceAmount,
-              body.position +
-                  ((Vector2.random() * spread) - Vector2.all(spread / 2)))));
+      for (var element in entryList) {
+        if (element.value > chance) {
+          experienceAmount = element.key;
+          break;
+        }
+      }
+      if (experienceAmount == null) continue;
+
+      experienceAmounts.add(ExperienceItem(
+          experienceAmount: experienceAmount,
+          originPosition: body.position +
+              ((Vector2.random() * spread) - Vector2.all(spread / 2))));
     }
+    return experienceAmounts;
+  }
+
+  Component? calculateExpendableDrop() {
+    double chance = rng.nextDouble();
+    final entryList = expendableRate.entries.toList();
+    entryList.sort((a, b) => a.value.compareTo(b.value));
+    ExpendableType? expendableType;
+    for (var element in entryList) {
+      if (element.value > chance) {
+        expendableType = element.key;
+        break;
+      }
+    }
+
+    if (expendableType != null) {
+      return expendableType.buildInteractable(
+          initialPosition:
+              body.position + ((Vector2.random() * 1) - Vector2.all(1 / 2)),
+          gameEnviroment: gameEnviroment);
+    }
+    return null;
+  }
+
+  @override
+  bool deadStatus() {
+    gameEnviroment.physicsComponent.addAll(calculateExperienceDrop());
+    calculateExpendableDrop()?.addToParent(gameEnviroment.physicsComponent);
 
     return super.deadStatus();
   }

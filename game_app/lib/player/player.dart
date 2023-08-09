@@ -1,11 +1,14 @@
+// ignore_for_file: unnecessary_getters_setters
+
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/entities/player_mixin.dart';
+import 'package:game_app/player/player_mixin.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
@@ -14,11 +17,13 @@ import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../enemies/enemy.dart';
+import '../game/interactable.dart';
 import '../resources/functions/vector_functions.dart';
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 import '../attributes/attributes_mixin.dart';
+import '../game/expendables.dart';
 
 class Player extends Entity
     with
@@ -45,6 +50,40 @@ class Player extends Entity
   final PlayerData playerData;
 
   Set<PhysicalKeyboardKey> physicalKeysPressed = {};
+
+  final ListQueue<InteractableComponent> _interactableComponents = ListQueue();
+
+  void addCloseInteractableComponents(InteractableComponent newComponent) {
+    if (_interactableComponents.isNotEmpty) {
+      _interactableComponents.first.toggleDisplay(false);
+    }
+    newComponent.toggleDisplay(true);
+    _interactableComponents.addFirst(newComponent);
+  }
+
+  void removeCloseInteractable(InteractableComponent newComponent) {
+    if (_interactableComponents.isNotEmpty) {
+      newComponent.toggleDisplay(false);
+      _interactableComponents.remove(newComponent);
+
+      if (_interactableComponents.isNotEmpty) {
+        _interactableComponents.first.toggleDisplay(true);
+      }
+    }
+  }
+
+  Expendable? currentExpendable;
+
+  void pickupExpendable(Expendable groundExpendable) {
+    currentExpendable = groundExpendable;
+    gameEnviroment.hud.currentExpendable = groundExpendable;
+  }
+
+  void useExpendable() {
+    currentExpendable?.applyExpendable();
+    currentExpendable = null;
+    gameEnviroment.hud.currentExpendable = null;
+  }
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -132,7 +171,7 @@ class Player extends Entity
         isSensor: true,
         filter: Filter()
           ..categoryBits = playerCategory
-          ..maskBits = experienceCategory);
+          ..maskBits = proximityCategory);
 
     final bodyDef = BodyDef(
       userData: this,
@@ -203,6 +242,16 @@ class Player extends Entity
 
       if (event.physicalKey == (PhysicalKeyboardKey.space)) {
         setEntityStatus(EntityStatus.jump);
+      }
+
+      if (event.physicalKey == (PhysicalKeyboardKey.keyQ)) {
+        useExpendable();
+      }
+
+      if (event.physicalKey == (PhysicalKeyboardKey.keyE)) {
+        if (_interactableComponents.isNotEmpty) {
+          _interactableComponents.first.interact();
+        }
       }
 
       if (!isDisplay && event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {

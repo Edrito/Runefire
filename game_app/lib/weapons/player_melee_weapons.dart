@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
-import 'package:game_app/main.dart';
-import 'package:game_app/resources/functions/vector_functions.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
@@ -22,36 +20,34 @@ class Dagger extends PlayerWeapon
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 5;
     maxChainingTargets.baseParameter = 6;
-    attackHitboxPatterns = [
-      (Vector2(.2, 0), 0),
-      (Vector2(.2, 1), 0),
-      (Vector2(.25, 0), -35),
-      (Vector2(-.6, 0), 35),
-      (Vector2(-.2, 0), 0),
-      (Vector2(-.2, .95), 0),
-      (Vector2(-.25, 1), 35),
-      (Vector2(.6, 0), -35),
+
+    meleeAttacks = [
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(.2, 0), 0, 1),
+            (Vector2(.2, 1), 0, 1),
+            (Vector2(.25, 0), -35, 1),
+            (Vector2(-.6, 0), 35, 1),
+            (Vector2(-.2, 0), 0, 1),
+            (Vector2(-.2, .95), 0, 1),
+            (Vector2(-.25, 1), 35, 1),
+            (Vector2(.6, 0), -35, 1),
+          ])
     ];
+
     spirteComponentPositions.add(WeaponSpritePosition.back);
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    for (var i = 0; i < numberOfAttacks; i++) {
-      attackHitboxSpriteAnimations
-          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
-    }
-
-    attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
-        [],
-        (previousValue, element) => [
-              ...previousValue,
-              element.frames.first.sprite.srcSize
-                  .scaledToDimension(true, length)
-            ]);
-    return super.onLoad();
   }
 
   @override
@@ -126,37 +122,35 @@ class Spear extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (8, 16);
     attackTickRate.baseParameter = .7;
-    attackHitboxPatterns = [
-      (Vector2(.2, -.5), 0),
-      (Vector2(.2, 2.55), 0),
-      (Vector2(-.2, -.5), 0),
-      (Vector2(-.2, 2.45), 0),
-      (Vector2(-0, 0), 0),
-      (Vector2(-0, 0), 360),
+
+    meleeAttacks = [
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(.2, 0), 0, 1),
+            (Vector2(.2, 1), 0, 1),
+            (Vector2(.25, 0), -35, 1),
+            (Vector2(-.6, 0), 35, 1),
+            (Vector2(-.2, 0), 0, 1),
+            (Vector2(-.2, .95), 0, 1),
+            (Vector2(-.25, 1), 35, 1),
+            (Vector2(.6, 0), -35, 1),
+          ])
     ];
     pierce.baseParameter = 5;
     maxChainingTargets.baseParameter = 6;
     spirteComponentPositions.add(WeaponSpritePosition.back);
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-
-    for (var i = 0; i < numberOfAttacks; i++) {
-      attackHitboxSpriteAnimations
-          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
-    }
-
-    attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
-        [],
-        (previousValue, element) => [
-              ...previousValue,
-              element.frames.first.sprite.srcSize
-                  .scaledToDimension(true, length)
-            ]);
-    return super.onLoad();
   }
 
   @override
@@ -234,6 +228,33 @@ class EnergySword extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.energy] = (5, 12);
     attackTickRate.baseParameter = .5;
+
+    meleeAttacks = [
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(.2, 0), 0, 1),
+            (Vector2(.2, 1), 0, 1),
+            (Vector2(.25, 0), -35, 1),
+            (Vector2(-.6, 0), 35, 1),
+            (Vector2(-.2, 0), 0, 1),
+            (Vector2(-.2, .95), 0, 1),
+            (Vector2(-.25, 1), 35, 1),
+            (Vector2(.6, 0), -35, 1),
+          ])
+    ];
+    spirteComponentPositions.add(WeaponSpritePosition.back);
   }
 
   @override
@@ -247,35 +268,6 @@ class EnergySword extends PlayerWeapon
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
-  @override
-  FutureOr<void> onLoad() async {
-    attackHitboxPatterns = [
-      (Vector2(-.2, .25), 45),
-      (Vector2(1, .35), -30),
-      (Vector2(.2, .25), -45),
-      (Vector2(-1, .35), 30),
-      (Vector2(.0, -.5), 0),
-      (Vector2(0, 1), 0),
-    ];
-    spirteComponentPositions.add(WeaponSpritePosition.back);
-
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-
-    for (var i = 0; i < numberOfAttacks; i++) {
-      attackHitboxSpriteAnimations
-          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
-    }
-
-    attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
-        [],
-        (previousValue, element) => [
-              ...previousValue,
-              element.frames.first.sprite.srcSize
-                  .scaledToDimension(true, length)
-            ]);
-    return super.onLoad();
-  }
 
   @override
   set setSecondaryFunctionality(item) {
@@ -367,39 +359,39 @@ class FlameSword extends PlayerWeapon
     pierce.baseParameter = 2;
     maxChainingTargets.baseParameter = 6;
     baseAttackCount.baseParameter = 5;
-    attackHitboxPatterns = [
-      (Vector2(.0, -1.5), 360),
-      (Vector2(0, 1.5), -30),
-      (Vector2(.0, -1.5), 0),
-      (Vector2(0, 1.5), 390),
-      (Vector2(0, -1), 0),
-      (Vector2(0, 1.5), -0),
+    meleeAttacks = [
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(.2, 0), -45, 1),
+            (Vector2(.2, 1), 45, 1),
+            (Vector2(.2, 0), -45, 1),
+            // (Vector2(.25, 0), -35, 1),
+            // (Vector2(.2, 0), 0, 1),
+            // (Vector2(.2, 1), 0, 1),
+            // (Vector2(.25, 0), -35, 1),
+            // (Vector2(-.6, 0), 35, 1),
+            // (Vector2(-.2, 0), 0, 1),
+            // (Vector2(-.2, .95), 0, 1),
+            // (Vector2(-.25, 1), 35, 1),
+            // (Vector2(.6, 0), -35, 1),
+          ])
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
-
     if (ancestor == null) return;
-    additionalWeapons['initWeapon1'] =
-        WeaponType.spear.build(ancestor, null, gameState.gameRouter);
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    for (var i = 0; i < numberOfAttacks; i++) {
-      attackHitboxSpriteAnimations
-          .add(await loadSpriteAnimation(1, 'weapons/fire_sword.png', 1, true));
-    }
-    attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
-        [],
-        (previousValue, element) => [
-              ...previousValue,
-              element.frames.first.sprite.srcSize
-                  .scaledToDimension(true, length)
-                  .clone()
-                ..x = 1
-            ]);
-    return super.onLoad();
+    // additionalWeapons['initWeapon1'] =
+    //     WeaponType.spear.build(ancestor, null, gameState.gameRouter);
   }
 
   @override
@@ -475,39 +467,39 @@ class LargeSword extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.fire] = (20, 50);
-    attackHitboxPatterns = [
-      (Vector2(-.8, .25), 55),
-      (Vector2(1, .35), -5),
-      (Vector2(.0, -1.5), 0),
-      (Vector2(0, 1.5), 0),
+    meleeAttacks = [
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(.2, 0), 0, 1),
+            (Vector2(.2, 1), 0, 1),
+            (Vector2(.25, 0), -35, 1),
+            (Vector2(-.6, 0), 35, 1),
+            (Vector2(-.2, 0), 0, 1),
+            (Vector2(-.2, .95), 0, 1),
+            (Vector2(-.25, 1), 35, 1),
+            (Vector2(.6, 0), -35, 1),
+          ])
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
     attackTickRate.baseParameter = 2;
     maxChainingTargets.baseParameter = 5;
-
-    assert(
-        attackHitboxPatterns.length.isEven, "Must be an even number of coords");
   }
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
   @override
-  FutureOr<void> onLoad() async {
-    for (var i = 0; i < numberOfAttacks; i++) {
-      attackHitboxSpriteAnimations
-          .add(await loadSpriteAnimation(1, weaponType.flameImage, 1, true));
-    }
-
-    attackHitboxSizes = attackHitboxSpriteAnimations.fold<List<Vector2>>(
-        [],
-        (previousValue, element) => [
-              ...previousValue,
-              element.frames.first.sprite.srcSize
-                  .scaledToDimension(true, length)
-            ]);
-    return super.onLoad();
-  }
-
   @override
   set setSecondaryFunctionality(item) {
     super.setSecondaryFunctionality = item;

@@ -140,50 +140,54 @@ mixin StaminaCostFunctionality on Weapon {
     super.attackAttempt(holdDurationPercent);
   }
 }
+typedef WeaponSpriteAnimationBuilder = Future<WeaponSpriteAnimation> Function();
+
+class MeleeAttack {
+  MeleeAttack(
+      {required this.attackHitboxSize,
+      required this.entitySpriteAnimation,
+      required this.attackSpriteAnimationBuild,
+      required this.chargePattern,
+      required this.attackPattern});
+
+  final Vector2 attackHitboxSize;
+  final SpriteAnimation? entitySpriteAnimation;
+  WeaponSpriteAnimationBuilder attackSpriteAnimationBuild;
+  List<WeaponSpriteAnimation> latestAttackSpriteAnimation = [];
+
+  Future<WeaponSpriteAnimation> buildWeaponSpriteAnimation() async {
+    final spriteAnimation = await attackSpriteAnimationBuild();
+    latestAttackSpriteAnimation.add(spriteAnimation);
+    return spriteAnimation;
+  }
+
+  ///List of Patterns for single attack, each pattern is a position, angle and reletive scale of the hitbox
+  List<(Vector2, double, double)> attackPattern;
+
+  List<(Vector2, double, double)> chargePattern;
+}
 
 mixin MeleeFunctionality on Weapon {
   ///How many attacks are in the melee combo
-  int get numberOfAttacks => attackHitboxPatterns.length ~/ 2;
+  int get numberOfAttacks => meleeAttacks.length;
+
+  MeleeAttack? get currentAttack =>
+      meleeAttacks.isEmpty ? null : meleeAttacks[currentAttackIndex];
 
   final BoolParameterManager meleeAttacksCollision =
       BoolParameterManager(baseParameter: false);
 
   MeleeType meleeType = MeleeType.slash;
 
-  ///Pairs of attack patterns
-  ///
-  ///Start position - Start angle
-  ///
-  ///Finish position - Finish angle
-  List<(Vector2, double)> attackHitboxPatterns = [];
+  List<MeleeAttack> meleeAttacks = [];
 
-  ///If melee, must be the same length as [attacksLength] or 0
-  List<SpriteAnimation> attackEntitySpriteAnimations = [];
-
-  ///Must be the same length as [attacksLength] or 0
-  List<SpriteAnimation> attackHitboxSpriteAnimations = [];
-
-  ///Must be the same length as [attacksLength] or 0
-  List<SpriteAnimation> attackWeaSpriteAnimations = [];
-
-  ///Must be the same length as [attacksLength]
-  List<Vector2> attackHitboxSizes = [];
-
-  int meleeAttacksCompletedIndex = 0;
   Vector2? currentSwingPosition;
-  List<double> currentSwingAngles = [];
 
   @override
   bool get attacksAreActive => activeSwings.isNotEmpty;
   List<MeleeAttackHandler> activeSwings = [];
 
-  int get attacksLength => (attackHitboxPatterns.length / 2).ceil();
-
-  int get currentAttackPatternIndex =>
-      (meleeAttacksCompletedIndex -
-          (((meleeAttacksCompletedIndex / (attacksLength)).floor()) *
-              (attacksLength))) *
-      2;
+  int currentAttackIndex = 0;
 
   @override
   FutureOr<void> onLoad() {
@@ -193,33 +197,31 @@ mixin MeleeFunctionality on Weapon {
     return super.onLoad();
   }
 
-  void meleeAttack(int index, [double chargeAmount = 1]) {
-    final attackIndex = index.clamp(0, attackHitboxPatterns.length);
+  void meleeAttack(int? index, [double chargeAmount = 1]) {
     List<Component> returnList = [];
     final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
+    final indexUsed = (index ?? currentAttackIndex);
 
     List<double> temp = splitRadInCone(
         currentSwingAngle, attackCount, maxSpreadDegrees.parameter);
 
     for (var deltaDirection in temp) {
-      currentSwingAngles.add(deltaDirection);
-
       returnList.add(MeleeAttackHandler(
         initPosition: Vector2.zero(),
         initAngle: deltaDirection,
         chargeAmount: chargeAmount,
-        index: attackIndex,
+        currentAttack: meleeAttacks[indexUsed],
         weaponAncestor: this,
       ));
     }
 
     entityAncestor?.enviroment.physicsComponent.addAll(returnList);
-    meleeAttacksCompletedIndex++;
+    currentAttackIndex++;
   }
 
   @override
   void standardAttack([double chargeAmount = 1]) async {
-    meleeAttack(currentAttackPatternIndex, chargeAmount);
+    meleeAttack(currentAttackIndex, chargeAmount);
     super.standardAttack(chargeAmount);
   }
 
@@ -233,7 +235,7 @@ mixin MeleeFunctionality on Weapon {
 
   @override
   void attackAttempt([double holdDurationPercent = 1]) async {
-    if (meleeAttacksCompletedIndex >= attacksLength) {
+    if (currentAttackIndex >= numberOfAttacks) {
       resetToFirstSwings();
     }
     currentSwingPosition = Vector2.zero();
@@ -248,20 +250,16 @@ mixin MeleeFunctionality on Weapon {
 
     attackOnAnimationFinish
         ? await entityAncestor?.setEntityStatus(EntityStatus.attack,
-            customAnimation: attackEntitySpriteAnimations.isNotEmpty
-                ? attackEntitySpriteAnimations[meleeAttacksCompletedIndex]
-                : null)
+            customAnimation:
+                meleeAttacks[currentAttackIndex].entitySpriteAnimation)
         : entityAncestor?.setEntityStatus(EntityStatus.attack,
-            customAnimation: attackEntitySpriteAnimations.isNotEmpty
-                ? attackEntitySpriteAnimations[meleeAttacksCompletedIndex]
-                : null);
+            customAnimation: currentAttack?.entitySpriteAnimation);
     super.attackAttempt(holdDurationPercent);
   }
 
   void resetToFirstSwings() {
-    currentSwingAngles.clear();
     currentSwingPosition = null;
-    meleeAttacksCompletedIndex = 0;
+    currentAttackIndex = 0;
   }
 }
 
@@ -676,7 +674,7 @@ mixin SemiAutomatic on Weapon {
   @override
   void endAttacking() {
     isAttacking = false;
-    entityAncestor?.entityStatusWrapper.removeHoldDuration();
+    // entityAncestor?.entityStatusWrapper.removeHoldDuration();
     switch (semiAutoType) {
       case SemiAutoType.release:
         if (durationHeld > chargeLength) {
@@ -705,10 +703,10 @@ mixin SemiAutomatic on Weapon {
         attackAttempt();
         break;
       case SemiAutoType.release:
-        entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
+        // entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
         break;
       case SemiAutoType.charge:
-        entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
+        // entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
         break;
       default:
     }

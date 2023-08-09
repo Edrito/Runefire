@@ -18,7 +18,7 @@ abstract class Enemy extends Entity
         AttributeFunctionality,
         AttributeFunctionsFunctionality,
         HealthFunctionality,
-        DropExperienceFunctionality {
+        DropItemFunctionality {
   Enemy({
     required super.initialPosition,
     required super.enviroment,

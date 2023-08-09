@@ -9,7 +9,7 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 
 import '../enemies/enemy.dart';
-import '../entities/player.dart';
+import '../player/player.dart';
 import '../main.dart';
 import '../resources/constants/physics_filter.dart';
 import '../resources/enums.dart';

@@ -3,7 +3,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../entities/player.dart';
+import '../player/player.dart';
 import '../game/enviroment.dart';
 import '../game/enviroment_mixin.dart';
 import '../game/menu_game.dart';

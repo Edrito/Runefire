@@ -55,6 +55,7 @@ flutter:
 
 
     - assets/images/attribute_sprites/
+    - assets/images/expendables/
 
     - assets/images/weapons/
     - assets/images/weapons/charge/

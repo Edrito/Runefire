@@ -38,7 +38,7 @@ class Bullet extends Projectile
   }
 
   @override
-  bool isInstant = false;
+  DurationType durationType = DurationType.temporary;
 
   @override
   SpriteAnimation? spawnAnimation;
@@ -180,7 +180,7 @@ class Blast extends Projectile
   }
 
   @override
-  bool isInstant = false;
+  DurationType durationType = DurationType.temporary;
 
   @override
   SpriteAnimation? spawnAnimation;
@@ -338,7 +338,7 @@ class ExplosiveProjectile extends Projectile with StandardProjectile {
       playAnimation: await loadSpriteAnimation(
           61, 'weapons/projectiles/fire_area.png', .05, true),
       size: 5,
-      isInstant: true,
+      durationType: DurationType.instant,
       duration: 5,
       damage: {DamageType.fire: (50, 120)},
     ));

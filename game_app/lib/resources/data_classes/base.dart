@@ -376,7 +376,7 @@ DamageInstance damageCalculations(
         weaponTypeIncrease = source.projectileDamagePercentIncrease.parameter;
 
         break;
-      case AttackType.spell:
+      case AttackType.magic:
         weaponTypeIncrease = source.spellDamagePercentIncrease.parameter;
 
         break;

@@ -1,6 +1,6 @@
 import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/entities/player_mixin.dart';
+import 'package:game_app/player/player_mixin.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';

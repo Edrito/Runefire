@@ -10,9 +10,11 @@ import 'package:uuid/uuid.dart';
 import '../attributes/child_entities.dart';
 import '../enemies/enemy.dart';
 import '../entities/entity_class.dart';
-import '../entities/player.dart';
+import '../player/player.dart';
 import '../main.dart';
 import 'data_classes/base.dart';
+
+enum DurationType { instant, temporary, permanent }
 
 class AreaEffect extends BodyComponent<GameRouter>
     with ContactCallbacks, BasicSpriteLifecycle {
@@ -23,7 +25,7 @@ class AreaEffect extends BodyComponent<GameRouter>
     this.spawnAnimation,
     this.playAnimation,
     this.endAnimation,
-    this.isInstant = true,
+    this.durationType = DurationType.instant,
     this.duration = 5,
     String? areaId,
     this.tickRate = 1,
@@ -52,8 +54,10 @@ class AreaEffect extends BodyComponent<GameRouter>
   SpriteAnimation? playAnimation;
   @override
   SpriteAnimation? endAnimation;
+
   @override
-  bool isInstant;
+  DurationType durationType;
+
   @override
   double size;
 
@@ -73,7 +77,7 @@ class AreaEffect extends BodyComponent<GameRouter>
 
   @override
   Future<void> onLoad() {
-    if (!isInstant) {
+    if (durationType == DurationType.temporary) {
       aliveTimer = TimerComponent(
         period: duration,
         removeOnFinish: true,
@@ -100,7 +104,7 @@ class AreaEffect extends BodyComponent<GameRouter>
     if (other is! Entity) return;
     if (other == sourceEntity) return;
     if (affectedEntities.containsKey(other)) return;
-    if (isInstant) {
+    if (durationType == DurationType.instant) {
       doOnTick(other);
     } else {
       affectedEntities[other] = TimerComponent(
@@ -128,7 +132,7 @@ class AreaEffect extends BodyComponent<GameRouter>
   }
 
   void instantChecker() {
-    if (!isKilled && isInstant && body.isActive) {
+    if (!isKilled && durationType == DurationType.instant && body.isActive) {
       if (aliveForOneTick) {
         killArea();
       }
@@ -151,7 +155,7 @@ class AreaEffect extends BodyComponent<GameRouter>
   @override
   void endContact(Object other, Contact contact) {
     if (other is! Entity) return;
-    if (isInstant) return;
+    if (durationType == DurationType.instant) return;
     affectedEntities[other]?.removeFromParent();
     affectedEntities.remove(other);
 

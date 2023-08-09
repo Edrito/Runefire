@@ -1,7 +1,7 @@
 import 'package:game_app/attributes/attributes_structure.dart';
 
 import '../../attributes/attributes_permanent.dart';
-import '../../entities/player.dart';
+import '../../player/player.dart';
 import '../enums.dart';
 import 'package:hive/hive.dart';
 

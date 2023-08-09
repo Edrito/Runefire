@@ -59,6 +59,7 @@ enum AttributeType {
   electrified(territory: AttributeTerritory.temporary),
   stun(territory: AttributeTerritory.temporary),
   psychic(territory: AttributeTerritory.temporary),
+  fear(territory: AttributeTerritory.temporary),
 
   //Permanent
   areaSizePermanent,
@@ -118,7 +119,7 @@ extension AllAttributesExtension on AttributeType {
     AttributeFunctionality? victimEntity, {
     Entity? perpetratorEntity,
     DamageType? damageType,
-    StatusEffects? statusEffect,
+    // StatusEffects? statusEffect,
     bool isTemporary = false,
     double? duration,
   }) {
@@ -134,17 +135,15 @@ extension AllAttributesExtension on AttributeType {
             this, level, victimEntity, perpetratorEntity);
         if (perpetratorAttr != null) return perpetratorAttr;
 
-        if (statusEffect != null) {
-          final statusEffectAttr = statusEffectBuilder(
-            statusEffect,
-            level,
-            victimEntity,
-            perpetratorEntity: perpetratorEntity,
-            isTemporary: isTemporary,
-            duration: duration,
-          );
-          if (statusEffectAttr != null) return statusEffectAttr;
-        }
+        final statusEffectAttr = statusEffectBuilder(
+          this,
+          level,
+          victimEntity,
+          perpetratorEntity: perpetratorEntity,
+          isTemporary: isTemporary,
+          duration: duration,
+        );
+        if (statusEffectAttr != null) return statusEffectAttr;
       }
     }
 
