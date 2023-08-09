@@ -164,12 +164,12 @@ class MeleeAttackSprite extends PositionComponent {
   WeaponSpriteAnimation? animationComponent;
 
   Entity target;
-  double fadeDuration = .4;
 
   void fadeOut() {
-    Future.delayed(fadeDuration.seconds).then((value) => removeSwing());
+    Future.delayed(handler.attackStepDuration.seconds)
+        .then((value) => removeSwing());
     animationComponent?.add(OpacityEffect.fadeOut(EffectController(
-      duration: fadeDuration,
+      duration: handler.attackStepDuration,
       curve: Curves.easeOut,
     )));
   }
@@ -188,13 +188,15 @@ class MeleeAttackSprite extends PositionComponent {
 
   @override
   FutureOr<void> onLoad() {
-    swingTimer = TimerComponent(
-      period: handler.duration,
-      onTick: () {
-        fadeOut();
-      },
-    );
-    add(swingTimer!);
+    if (!handler.isCharging) {
+      swingTimer = TimerComponent(
+        period: handler.duration,
+        onTick: () {
+          fadeOut();
+        },
+      );
+      add(swingTimer!);
+    }
     add(animationComponent!);
     return super.onLoad();
   }
@@ -203,16 +205,22 @@ class MeleeAttackSprite extends PositionComponent {
 class MeleeAttackHandler extends Component {
   //TODO Add support for charge attacks
   MeleeAttackHandler(
-      {required this.chargeAmount,
+      {
+      // required this.chargeAmount,
       required this.currentAttack,
+      this.isCharging = false,
       required this.initPosition,
       required this.initAngle,
       required this.weaponAncestor}) {
     attackStepDuration = weaponAncestor.attackTickRate.parameter /
-        currentAttack.attackPattern.length;
+            (currentAttack.attackPattern.length - 1).clamp(1, double.infinity)
+        //  *2
+        ;
     duration = weaponAncestor.attackTickRate.parameter;
     meleeId = const Uuid().v4();
   }
+
+  bool isCharging;
 
   Vector2 initPosition;
   double initAngle;
@@ -224,7 +232,7 @@ class MeleeAttackHandler extends Component {
 
   List<MeleeAttackSprite> activeSwings = [];
   Entity? target;
-  double chargeAmount;
+  // double chargeAmount;
 
   late double duration;
   late double attackStepDuration;
@@ -282,15 +290,23 @@ class MeleeAttackHandler extends Component {
 
   void addStepToSwing(int previousIndex, double currentAngle,
       MeleeAttackSprite swing, Future? previousFuture) {
-    final previousPattern = currentAttack.attackPattern[previousIndex];
-    previousIndex++;
-    if (previousIndex == currentAttack.attackPattern.length) return;
-    final newPattern = currentAttack.attackPattern[previousIndex];
+    (Vector2, double, double) previousPattern;
+    (Vector2, double, double) newPattern;
+    if (isCharging) {
+      previousPattern = currentAttack.chargePattern[previousIndex];
+      previousIndex++;
+      if (previousIndex == currentAttack.chargePattern.length) return;
+      newPattern = currentAttack.chargePattern[previousIndex];
+    } else {
+      previousPattern = currentAttack.attackPattern[previousIndex];
+      previousIndex++;
+      if (previousIndex == currentAttack.attackPattern.length) return;
+      newPattern = currentAttack.attackPattern[previousIndex];
+    }
 
     final rotatedEndPosition = rotateVector2(newPattern.$1, currentAngle);
 
     final totalAngle = newPattern.$2 - previousPattern.$2;
-    //TODO add scale effect
     final effectController = EffectController(
       duration: attackStepDuration * 2,
       curve: Curves.easeInOutCubicEmphasized,
@@ -304,20 +320,27 @@ class MeleeAttackHandler extends Component {
       rotatedEndPosition,
       effectController,
     );
-    previousFuture?.then((value) =>
-            swing.animationComponent?.addAll([rotateEffect, moveEffect])) ??
-        swing.animationComponent?.addAll([rotateEffect, moveEffect]);
+    if (previousFuture == null) {
+      swing.animationComponent?.addAll([rotateEffect, moveEffect]);
+    } else {
+      previousFuture.then((value) =>
+          swing.animationComponent?.addAll([rotateEffect, moveEffect]));
+    }
 
     final newFuture = (previousFuture
-            ?.then((value) => Future.delayed(attackStepDuration.seconds)) ??
-        Future.delayed(attackStepDuration.seconds));
+            ?.then((value) => Future.delayed(attackStepDuration.seconds))) ??
+        Future.delayed(attackStepDuration.seconds);
     addStepToSwing(previousIndex, currentAngle += totalAngle, swing, newFuture);
   }
 
   Future<void> initSwing(double swingAngle, Vector2 swingPosition) async {
     int animationStepIndex = 0;
-
-    final startPattern = currentAttack.attackPattern[animationStepIndex];
+    (Vector2, double, double) startPattern;
+    if (isCharging) {
+      startPattern = currentAttack.chargePattern[animationStepIndex];
+    } else {
+      startPattern = currentAttack.attackPattern[animationStepIndex];
+    }
 
     final rotatedStartPosition = rotateVector2(startPattern.$1, swingAngle);
 
@@ -342,21 +365,30 @@ class MeleeAttackHandler extends Component {
     final hitboxSize = currentAttack.attackHitboxSize;
     target = weaponAncestor.entityAncestor;
     await initSwing(initAngle, initPosition);
-    hitbox = MeleeAttackHitbox(hitboxSize, this, onHitFunction);
-    weaponAncestor.entityAncestor?.enviroment.physicsComponent.add(hitbox!);
 
+    if (!isCharging) {
+      hitbox = MeleeAttackHitbox(hitboxSize, this, onHitFunction);
+      weaponAncestor.entityAncestor?.enviroment.physicsComponent.add(hitbox!);
+    }
     return super.onLoad();
   }
 
   void kill() {
     for (var element in activeSwings) {
-      element.fadeOut();
+      if (isCharging) {
+        element.removeFromParent();
+      } else {
+        element.fadeOut();
+      }
     }
+    activeSwings.clear();
     isDead = true;
   }
 
   void removeSwing([MeleeAttackSprite? attack]) {
     activeSwings.remove(attack);
+    currentAttack.latestAttackSpriteAnimation
+        .remove(attack?.animationComponent);
     if (activeSwings.isEmpty) {
       weaponAncestor.activeSwings.remove(this);
       weaponAncestor.spriteVisibilityCheck();

@@ -7,6 +7,7 @@ import 'package:flame/particles.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/resources/data_classes/base.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/secondary_abilities.dart';
@@ -152,11 +153,12 @@ class MeleeAttack {
 
   final Vector2 attackHitboxSize;
   final SpriteAnimation? entitySpriteAnimation;
-  WeaponSpriteAnimationBuilder attackSpriteAnimationBuild;
+  WeaponSpriteAnimationBuilder? attackSpriteAnimationBuild;
   List<WeaponSpriteAnimation> latestAttackSpriteAnimation = [];
 
-  Future<WeaponSpriteAnimation> buildWeaponSpriteAnimation() async {
-    final spriteAnimation = await attackSpriteAnimationBuild();
+  Future<WeaponSpriteAnimation?> buildWeaponSpriteAnimation() async {
+    if (attackSpriteAnimationBuild == null) return null;
+    final spriteAnimation = await attackSpriteAnimationBuild!.call();
     latestAttackSpriteAnimation.add(spriteAnimation);
     return spriteAnimation;
   }
@@ -209,7 +211,7 @@ mixin MeleeFunctionality on Weapon {
       returnList.add(MeleeAttackHandler(
         initPosition: Vector2.zero(),
         initAngle: deltaDirection,
-        chargeAmount: chargeAmount,
+        // chargeAmount: chargeAmount,
         currentAttack: meleeAttacks[indexUsed],
         weaponAncestor: this,
       ));
@@ -233,11 +235,15 @@ mixin MeleeFunctionality on Weapon {
     super.endAttacking();
   }
 
-  @override
-  void attackAttempt([double holdDurationPercent = 1]) async {
+  void resetCheck() {
     if (currentAttackIndex >= numberOfAttacks) {
       resetToFirstSwings();
     }
+  }
+
+  @override
+  void attackAttempt([double holdDurationPercent = 1]) async {
+    resetCheck();
     currentSwingPosition = Vector2.zero();
 
     if (this is SemiAutomatic) {
@@ -445,7 +451,82 @@ mixin ProjectileFunctionality on Weapon {
   }
 }
 
-// enum ChargeEffectType { circ, level }
+mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
+  MeleeAttackHandler? chargeAttackHandler;
+
+  @override
+  void startAttacking() async {
+    resetCheck();
+
+    chargeAttackHandler = MeleeAttackHandler(
+      currentAttack: meleeAttacks[currentAttackIndex],
+      weaponAncestor: this,
+      isCharging: true,
+      initAngle: 0,
+      initPosition: Vector2.zero(),
+    )..priority = foregroundPriority;
+    entityAncestor!.enviroment.add(chargeAttackHandler!);
+    // damageType = baseDamage.damageBase.keys.toList().getRandomElement();
+    // await buildAnimations();
+    // spawnAnimation?.stepTime =
+    //     attackTickRate.parameter / (spawnAnimation?.frames.length ?? 1);
+
+    if (semiAutoType != SemiAutoType.regular) {
+      // chargeAnimation = SpriteAnimationComponent(
+      //     size: Vector2.all(chargeSize),
+      //     anchor: Anchor.center,
+      //     animation: spawnAnimation ?? playAnimation)
+      //   ..addToParent(
+      //       weaponAttachmentPoints[WeaponSpritePosition.hand]!.weaponTip!);
+
+      // if (spawnAnimation == null) {
+      //   chargeAnimation?.size = Vector2.zero();
+      //   chargeAnimation?.add(SizeEffect.to(
+      //       Vector2.all(chargeSize),
+      //       EffectController(
+      //           duration: attackTickRate.parameter, curve: Curves.bounceIn)));
+    } else {
+      // chargeAnimation?.animationTicker?.completed
+      //     .then((value) => chargeCompleted());
+      // }
+    }
+
+    super.startAttacking();
+  }
+
+  void chargeCompleted() {
+    // chargeAnimation?.animation = playAnimation;
+    // if (chargedAnimation != null) {
+    //   chargeAnimation?.add(SpriteAnimationComponent(
+    //     anchor: Anchor.center,
+    //     position: Vector2.all(chargeSize / 2),
+    //     size: Vector2.all(chargeSize * 2.5),
+    //     animation: chargedAnimation,
+    //   ));
+    // }
+  }
+
+  @override
+  void update(double dt) {
+    if (isAttacking) {}
+    super.update(dt);
+  }
+
+  @override
+  void endAttacking() {
+    chargeAttackHandler?.kill();
+    chargeAttackHandler = null;
+    // final spriteComponent = chargeAnimation;
+    // if (endAnimation != null) {
+    //   spriteComponent?.animation = endAnimation;
+    //   spriteComponent?.animationTicker?.completed
+    //       .then((value) => spriteComponent.removeFromParent());
+    // } else {
+    //   spriteComponent?.removeFromParent();
+    // }
+    super.endAttacking();
+  }
+}
 
 mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
   SpriteAnimation? spawnAnimation;

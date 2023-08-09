@@ -27,12 +27,12 @@ import '../menus/overlays.dart' as overlay;
 final rng = Random();
 late final GameState gameState;
 
-bool startInGame = true;
+bool startInGame = false;
 
 Map<int, bool> isSecondaryPointer = {};
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final binding = WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows) {
     await windowManager.ensureInitialized();
   }
@@ -56,10 +56,20 @@ void main() async {
   FocusNode node = FocusNode();
   node.requestFocus();
 
-  // final image = Images();
-  // image.load('background/forest.png');
-  // image.load('background/dungeon.png');
-  // image.load('background/graveyard.jpg');
+  final toLoad = [
+    'background/forest.png',
+    'background/dungeon.png',
+    'background/graveyard.jpg',
+    'ui/attribute_background_mask.png',
+    'ui/attribute_border.png',
+  ];
+
+  binding.addPostFrameCallback((_) async {
+    BuildContext context = binding.rootElement as BuildContext;
+    for (var asset in toLoad) {
+      precacheImage(AssetImage("assets/images/$asset"), context);
+    }
+  });
 
   final gameRouter = GameRouter(systemData, playerData);
   gameState = GameState(gameRouter, playerData, systemData,

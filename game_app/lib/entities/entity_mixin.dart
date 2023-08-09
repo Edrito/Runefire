@@ -7,6 +7,7 @@ import 'package:game_app/attributes/child_entities.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity_class.dart';
+import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
 import 'package:game_app/resources/game_state_class.dart';
@@ -474,8 +475,10 @@ mixin AttackFunctionality on AimFunctionality {
 
     currentWeapon?.weaponSwappedTo();
 
-    gameEnviroment.hud.toggleStaminaColor(
-        currentWeapon?.weaponType.attackType ?? AttackType.projectile);
+    if (enviroment is GameEnviroment) {
+      gameEnviroment.hud.toggleStaminaColor(
+          currentWeapon?.weaponType.attackType ?? AttackType.projectile);
+    }
 
     if (isAttacking) {
       currentWeapon?.startAttacking();

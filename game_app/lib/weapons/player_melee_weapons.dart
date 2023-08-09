@@ -221,7 +221,8 @@ class EnergySword extends PlayerWeapon
         MeleeFunctionality,
         ProjectileFunctionality,
         SemiAutomatic,
-        StaminaCostFunctionality {
+        StaminaCostFunctionality,
+        MeleeChargeReady {
   EnergySword(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -242,16 +243,15 @@ class EnergySword extends PlayerWeapon
                       1, weaponType.flameImage, 1, true),
                 });
           },
-          chargePattern: [],
+          chargePattern: [
+            (Vector2(-.2, -.5), 35, 1),
+            (Vector2(.2, -.5), 30, 1),
+          ],
           attackPattern: [
-            (Vector2(.2, 0), 0, 1),
-            (Vector2(.2, 1), 0, 1),
+            // (Vector2(.2, 1), 0, 1),
             (Vector2(.25, 0), -35, 1),
-            (Vector2(-.6, 0), 35, 1),
-            (Vector2(-.2, 0), 0, 1),
-            (Vector2(-.2, .95), 0, 1),
-            (Vector2(-.25, 1), 35, 1),
-            (Vector2(.6, 0), -35, 1),
+            (Vector2(.2, 1), 0, 1),
+            // (Vector2(.2, 1), 0, 1),
           ])
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
@@ -374,19 +374,27 @@ class FlameSword extends PlayerWeapon
           },
           chargePattern: [],
           attackPattern: [
-            (Vector2(.2, 0), -45, 1),
-            (Vector2(.2, 1), 45, 1),
-            (Vector2(.2, 0), -45, 1),
-            // (Vector2(.25, 0), -35, 1),
-            // (Vector2(.2, 0), 0, 1),
-            // (Vector2(.2, 1), 0, 1),
-            // (Vector2(.25, 0), -35, 1),
-            // (Vector2(-.6, 0), 35, 1),
-            // (Vector2(-.2, 0), 0, 1),
-            // (Vector2(-.2, .95), 0, 1),
-            // (Vector2(-.25, 1), 35, 1),
-            // (Vector2(.6, 0), -35, 1),
-          ])
+            (Vector2(.2, 0), -360, 1),
+            (Vector2(.2, 1), 0, 1),
+          ]),
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(.2, 0), 360, 1),
+            (Vector2(.2, 1), 0, 1),
+            // (Vector2(.2, 0), 360, 1),
+          ]),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
     if (ancestor == null) return;
@@ -414,14 +422,18 @@ class FlameSword extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
-  Vector2 get baseOffset => Vector2(0, .25);
+  Vector2 get baseOffset => Vector2(5, .25);
+
+  @override
+  // TODO: implement tipOffset
+  Vector2 get tipOffset => Vector2(0, length);
 
   @override
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2(5, 0), Vector2(0, length),
+        return WeaponSpriteAnimation(baseOffset, tipOffset,
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
