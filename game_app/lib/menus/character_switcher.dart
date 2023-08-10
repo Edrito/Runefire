@@ -56,50 +56,40 @@ class CharacterSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     bool currentIsUnlocked =
         gameRef.playerDataComponent.dataObject.characterUnlocked();
-    return Stack(
+    return Align(
       alignment: Alignment.center,
-      children: [
-        Positioned(
-          bottom: 100,
-          // left: 0,
-          // right: 0,
-          child: Align(
-            alignment: Alignment.center,
-            child: Row(
-              // mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                arrowButton(isLeft: true),
-                Row(
+      child: Row(
+        // mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          arrowButton(isLeft: true),
+          Row(
+            children: [
+              SizedBox(
+                width: 250,
+                child: Column(
                   children: [
-                    SizedBox(
-                      width: 250,
-                      child: Column(
-                        children: [
-                          Text(
-                            currentIsUnlocked
-                                ? gameRef.playerDataComponent.dataObject
-                                    .selectedPlayer.name.titleCase
-                                : "???",
-                            style: defaultStyle,
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            "Information about character\nIf is unlocked, stats\nif hidden, how to unlock",
-                            style: defaultStyle.copyWith(fontSize: 18),
-                            textAlign: TextAlign.center,
-                          )
-                        ].animate().fadeIn(),
-                      ),
+                    Text(
+                      currentIsUnlocked
+                          ? gameRef.playerDataComponent.dataObject
+                              .selectedPlayer.name.titleCase
+                          : "???",
+                      style: defaultStyle,
+                      textAlign: TextAlign.center,
                     ),
-                  ],
+                    Text(
+                      "Information about character\nIf is unlocked, stats\nif hidden, how to unlock",
+                      style: defaultStyle.copyWith(fontSize: 18),
+                      textAlign: TextAlign.center,
+                    )
+                  ].animate().fadeIn(),
                 ),
-                arrowButton(isLeft: false),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
-      ],
+          arrowButton(isLeft: false),
+        ],
+      ),
     );
   }
 }

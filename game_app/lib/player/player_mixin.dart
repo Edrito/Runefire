@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide MoveEffect;
 import 'package:game_app/resources/game_state_class.dart';
 
-import '../attributes/child_entities.dart';
+import '../entities/child_entities.dart';
 import '../resources/data_classes/base.dart';
 import '../resources/functions/custom_mixins.dart';
 import '../menus/overlays.dart';

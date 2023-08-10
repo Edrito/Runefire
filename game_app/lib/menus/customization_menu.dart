@@ -54,18 +54,77 @@ class WeaponSecondaryTile extends StatelessWidget {
               isHover = value;
             });
           },
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                    height: isWeapon ? 200 : 150,
-                    child: Padding(
+          child: Stack(children: [
+            Positioned(
+              // bottom: -200,
+              top: 0,
+              bottom: -200,
+              left: 0,
+              right: 0,
+              child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: buildImageAsset(
-                        isWeapon ? weaponType!.icon : secondaryType!.icon,
-                        fit: BoxFit.contain,
-                      ),
+                      child: Animate(
+                        target: isHover ? 1 : 0,
+                      ).custom(
+                        curve: Curves.fastEaseInToSlowEaseOut,
+                        builder: (context, value, child) {
+                          return ShaderMask(
+                            blendMode: BlendMode.modulate,
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                      colors: [
+                                    Colors.blue.shade600
+                                        .mergeWith(Colors.white, value),
+                                    Colors.white,
+                                  ],
+                                      stops: const [
+                                    0,
+                                    .6
+                                  ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter)
+                                  .createShader(bounds);
+                            },
+                            child: buildImageAsset(
+                              'assets/images/ui/magic_hand_${isWeapon ? '' : 'small_'}${isPrimary ? 'L' : 'R'}.png',
+                              fit: BoxFit.fitWidth,
+                            ),
+                          );
+                        },
+                      ))
+                  .animate()
+                  .moveY(
+                      duration: 1.5.seconds,
+                      curve: Curves.fastEaseInToSlowEaseOut,
+                      begin: -size.height / 2)
+                  .fade(
+                    begin: 0,
+                    end: .9,
+                    duration: 1.5.seconds,
+                    curve: Curves.fastEaseInToSlowEaseOut,
+                  )
+                  .animate(
+                    onPlay: randomBegin,
+                    onComplete: onComplete,
+                  )
+                  .moveY(
+                      begin: 10,
+                      end: -10,
+                      duration: 1.4.seconds,
+                      curve: Curves.easeInOut),
+            ),
+            Positioned(
+              top: -200,
+              bottom: isWeapon ? 100 : -25,
+              // bottom: 100,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: SizedBox(
+                    height: isWeapon ? 200 : 150,
+                    child: buildImageAsset(
+                      isWeapon ? weaponType!.icon : secondaryType!.icon,
+                      // fit: BoxFit.fitWidth,
                     )
                         .animate(
                           target: isHover ? 1 : 0,
@@ -92,60 +151,9 @@ class WeaponSecondaryTile extends StatelessWidget {
                             end: -5,
                             duration: 1.seconds,
                             curve: Curves.easeInOut)),
-                Flexible(
-                  child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Animate(
-                            target: isHover ? 1 : 0,
-                          ).custom(
-                            curve: Curves.fastEaseInToSlowEaseOut,
-                            builder: (context, value, child) {
-                              return ShaderMask(
-                                blendMode: BlendMode.modulate,
-                                shaderCallback: (bounds) {
-                                  return LinearGradient(
-                                          colors: [
-                                        Colors.blue.shade600
-                                            .mergeWith(Colors.white, value),
-                                        Colors.white,
-                                      ],
-                                          stops: const [
-                                        0,
-                                        .6
-                                      ],
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter)
-                                      .createShader(bounds);
-                                },
-                                child: buildImageAsset(
-                                  'assets/images/ui/magic_hand_${isWeapon ? '' : 'small_'}${isPrimary ? 'L' : 'R'}.png',
-                                  fit: BoxFit.fitWidth,
-                                ),
-                              );
-                            },
-                          ))
-                      .animate()
-                      .moveY(
-                          duration: 1.5.seconds,
-                          curve: Curves.fastEaseInToSlowEaseOut,
-                          begin: -size.height / 2)
-                      .fade(
-                        begin: 0,
-                        end: .9,
-                        duration: 1.5.seconds,
-                        curve: Curves.fastEaseInToSlowEaseOut,
-                      )
-                      .animate(
-                        onPlay: randomBegin,
-                        onComplete: onComplete,
-                      )
-                      .moveY(
-                          begin: 10,
-                          end: -10,
-                          duration: 1.4.seconds,
-                          curve: Curves.easeInOut),
-                )
-              ]),
+              ),
+            ),
+          ]),
         ),
       );
     });
@@ -419,10 +427,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
   }
 
   Widget buildWeaponTile(Widget weapon, Widget ability, bool isPrimary) {
-    Widget weaponWidget = Padding(
-      padding: const EdgeInsets.all(12),
-      child: weapon,
-    );
+    Widget weaponWidget = weapon;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -558,114 +563,117 @@ class _WeaponMenuState extends State<WeaponMenu> {
     );
     return Stack(
       children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: uiWidthMax),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const Spacer(),
-                    buildWeaponTile(
-                        primaryWeaponTile, primarySecondaryTile, true),
-                    const Spacer(
-                      flex: 8,
-                    ),
-                    buildWeaponTile(
-                        secondaryWeaponTile, secondarySecondaryTile, false),
-                    const Spacer(),
-                  ],
-                ),
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 0,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: CustomButton(
+                "Return to your studies",
+                gameRef: widget.gameRef,
+                onTap: () {
+                  attributeUpgrader = AttributeUpgrader(
+                      onBack: () {
+                        attributeUpgrader = null;
+                      },
+                      gameRef: widget.gameRef);
+                },
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+          ),
+        ),
+        Positioned.fill(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: uiWidthMax),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: CustomButton(
-                        "Back",
-                        gameRef: widget.gameRef,
-                        onTap: () {
-                          setState(() {
-                            exitFunction = () {
-                              widget.gameRef.gameStateComponent.gameState
-                                  .changeMainMenuPage(
-                                      MenuPageType.startMenuPage);
-                            };
-                          });
-                        },
-                      ),
-                    ),
-                  ),
+                const Spacer(),
+                buildWeaponTile(primaryWeaponTile, primarySecondaryTile, true),
+                const Spacer(
+                  flex: 8,
                 ),
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Center(
-                      child: CustomButton(
-                        "Return to your studies",
-                        gameRef: widget.gameRef,
-                        onTap: () {
-                          attributeUpgrader = AttributeUpgrader(
-                              onBack: () {
-                                attributeUpgrader = null;
-                              },
-                              gameRef: widget.gameRef);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: CustomButton(
-                        "Choose Level",
-                        gameRef: widget.gameRef,
-                        onTap: () {
-                          if (!playerDataComponent.dataObject
-                              .characterUnlocked()) {
-                            return;
-                          }
-                          setState(() {
-                            exitFunction = () {
-                              widget.gameRef.gameStateComponent.gameState
-                                  .changeMainMenuPage(MenuPageType.levelMenu);
-                            };
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+                buildWeaponTile(
+                    secondaryWeaponTile, secondarySecondaryTile, false),
+                const Spacer(),
               ],
             ),
-          ],
-        )
-            .animate(
-              target: exitFunction != null ? 1 : 0,
-              onComplete: (controller) {
-                onExit();
-              },
-            )
-            .fadeOut(),
-        CharacterSwitcher(
-          gameRef: widget.gameRef,
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: CustomButton(
+                      "Back",
+                      gameRef: widget.gameRef,
+                      onTap: () {
+                        setState(() {
+                          exitFunction = () {
+                            widget.gameRef.gameStateComponent.gameState
+                                .changeMainMenuPage(MenuPageType.startMenuPage);
+                          };
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: CharacterSwitcher(
+                  gameRef: widget.gameRef,
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: CustomButton(
+                      "Choose Level",
+                      gameRef: widget.gameRef,
+                      onTap: () {
+                        if (!playerDataComponent.dataObject
+                            .characterUnlocked()) {
+                          return;
+                        }
+                        setState(() {
+                          exitFunction = () {
+                            widget.gameRef.gameStateComponent.gameState
+                                .changeMainMenuPage(MenuPageType.levelMenu);
+                          };
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         if (_weaponSelector != null) _weaponSelector!,
         if (_attributeUpgrader != null) _attributeUpgrader!,
       ],
-    );
+    )
+        .animate(
+          target: exitFunction != null ? 1 : 0,
+          onComplete: (controller) {
+            onExit();
+          },
+        )
+        .fadeOut();
   }
 }

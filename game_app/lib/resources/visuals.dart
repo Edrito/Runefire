@@ -46,7 +46,7 @@ class ApolloColorPalette {
   static const PaletteEntry orange = PaletteEntry(Color(0xFFDA863E));
   static const PaletteEntry darkPurple = PaletteEntry(Color(0xFF1E1D39));
   static const PaletteEntry deepPurple = PaletteEntry(Color(0xFF402751));
-  static const PaletteEntry mediumPurple = PaletteEntry(Color(0xFF7A367B));
+  static const PaletteEntry purple = PaletteEntry(Color(0xFF7A367B));
   static const PaletteEntry pink = PaletteEntry(Color(0xFFA23E8C));
   static const PaletteEntry palePink = PaletteEntry(Color(0xFFC65197));
   static const PaletteEntry lightPink = PaletteEntry(Color(0xFFDF84A5));

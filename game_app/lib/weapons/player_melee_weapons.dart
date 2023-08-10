@@ -34,16 +34,12 @@ class Dagger extends PlayerWeapon
                       1, weaponType.flameImage, 1, true),
                 });
           },
+          customStartAngle: false,
           chargePattern: [],
           attackPattern: [
-            (Vector2(.2, 0), 0, 1),
-            (Vector2(.2, 1), 0, 1),
+            (Vector2(.2, 0), 90, 1),
+            (Vector2(.2, 1), 90, 1),
             (Vector2(.25, 0), -35, 1),
-            (Vector2(-.6, 0), 35, 1),
-            (Vector2(-.2, 0), 0, 1),
-            (Vector2(-.2, .95), 0, 1),
-            (Vector2(-.25, 1), 35, 1),
-            (Vector2(.6, 0), -35, 1),
           ])
     ];
 
@@ -389,6 +385,7 @@ class FlameSword extends PlayerWeapon
                       1, weaponType.flameImage, 1, true),
                 });
           },
+          flippedDuringAttack: true,
           chargePattern: [],
           attackPattern: [
             (Vector2(.2, 0), 360, 1),

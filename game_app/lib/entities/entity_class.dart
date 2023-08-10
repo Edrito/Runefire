@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:game_app/attributes/child_entities.dart';
+import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/main.dart';
@@ -32,6 +32,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     }
     return null;
   }
+
+  Map<dynamic, ChildEntity> childrenEntities = {};
 
   late String entityId;
 

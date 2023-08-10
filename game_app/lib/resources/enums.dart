@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/player/player_constants.dart' as player_constants;
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/player_projectile_weapons.dart';
@@ -14,7 +15,7 @@ import '../entities/entity_class.dart';
 import '../player/player.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
-import '../game/forest_game.dart';
+import '../game/mushroom_garden_game.dart';
 import '../game/menu_game.dart';
 import '../weapons/enemy_weapons.dart';
 import '../weapons/projectiles.dart';
@@ -191,13 +192,13 @@ extension GameDifficultyExtension on GameDifficulty {
   Color get color {
     switch (this) {
       case GameDifficulty.quick:
-        return const Color.fromARGB(255, 154, 248, 255);
+        return ApolloColorPalette.offWhite.color;
       case GameDifficulty.regular:
         return Colors.transparent;
       case GameDifficulty.hard:
-        return const Color.fromARGB(255, 153, 0, 0);
+        return ApolloColorPalette.red.color;
       case GameDifficulty.chaos:
-        return const Color.fromARGB(255, 108, 0, 122);
+        return ApolloColorPalette.purple.color;
     }
   }
 }
@@ -250,13 +251,13 @@ extension GameLevelExtension on GameLevel {
   String get levelImage {
     switch (this) {
       case GameLevel.mushroomForest:
-        return 'assets/images/background/forest.png';
+        return 'assets/images/background/mushroom_garden.png';
       case GameLevel.dungeon:
         return 'assets/images/background/dungeon.png';
       case GameLevel.graveyard:
         return 'assets/images/background/graveyard.jpg';
       default:
-        return 'assets/images/background/forest.png';
+        return 'assets/images/background/mushroom_garden.png';
     }
   }
 

@@ -1,0 +1,43 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "mushroom_garden.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "forest_floor.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 0.5,
+            "scaleInEditor": 2
+        },
+        "mushroom_garden.tmx": {
+            "scale": 3,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 335.8333333333333,
+                "y": 369.33333333333326
+            }
+        }
+    },
+    "last.imagePath": "C:/Users/Edsquid/Documents/Personal Projects/Business/RogueLikeGame/assets/tiles/divided_tiles",
+    "map.fixedSize": true,
+    "map.height": 50,
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 50,
+    "openFiles": [
+        "forest_floor.tsx",
+        "mushroom_garden.tmx"
+    ],
+    "project": "mushroom_garden.tiled-project",
+    "recentFiles": [
+        "forest_floor.tsx",
+        "mushroom_garden.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.type": 1
+}

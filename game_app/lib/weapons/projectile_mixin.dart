@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
-import 'package:game_app/attributes/child_entities.dart';
+import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 

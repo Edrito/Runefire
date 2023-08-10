@@ -3,7 +3,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
-import 'package:game_app/attributes/child_entities.dart';
+import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity_class.dart';

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flame/components.dart';
-import 'package:flame/extensions.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -261,7 +260,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
             padding: const EdgeInsets.only(right: 5),
             child: ColorFiltered(
               colorFilter: ColorFilter.mode(
-                  portalColor.darken(.6).withOpacity(.5), BlendMode.modulate),
+                  portalColor.withOpacity(.8), BlendMode.modulate),
               child: Center(
                   child: SizedBox.square(dimension: portalSize, child: ring)),
             ),
@@ -277,20 +276,21 @@ class _CaveBackgroundState extends State<CaveBackground> {
         //   ),
         // ),
         Positioned(
-            bottom: size.height / 2 - portalSize / 2,
-            child: ShaderMask(
-              blendMode: BlendMode.modulate,
-              shaderCallback: (bounds) {
-                return LinearGradient(
-                        colors: [portalColor.darken(.6), Colors.white],
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter)
-                    .createShader(bounds);
-              },
-              child: Center(
-                  key: gameState.centerBackgroundKey,
-                  child: SizedBox.square(dimension: portalSize, child: ring)),
-            )),
+          bottom: size.height / 2 - portalSize / 2,
+          // child: ShaderMask(
+          //   blendMode: BlendMode.modulate,
+          //   shaderCallback: (bounds) {
+          //     return LinearGradient(colors: [
+          //       ApolloColorPalette.lightBlue.color.brighten(.6),
+          //       Colors.white
+          //     ], begin: Alignment.bottomCenter, end: Alignment.topCenter)
+          //         .createShader(bounds);
+          //   },
+          child: Center(
+              key: gameState.centerBackgroundKey,
+              child: SizedBox.square(dimension: portalSize, child: ring)),
+          // )
+        ),
         Positioned(
             bottom: size.height / 2 - portalSize / 2,
             child: Opacity(

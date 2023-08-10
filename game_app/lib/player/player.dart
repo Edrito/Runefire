@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/player/player_mixin.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/resources/functions/functions.dart';
@@ -24,6 +25,7 @@ import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 import '../attributes/attributes_mixin.dart';
 import '../game/expendables.dart';
+import '../weapons/weapon_class.dart';
 
 class Player extends Entity
     with
@@ -46,6 +48,12 @@ class Player extends Entity
     playerData.selectedPlayer.applyBaseCharacterStats(this);
     initAttributes(playerData.unlockedPermanentAttributes);
     // }
+    onAttack.add(updateRemainingAmmo);
+    onReloadComplete.add(updateRemainingAmmo);
+
+    if (isDisplay) {
+      height.setParameterPercentValue('display', .5);
+    }
   }
   final PlayerData playerData;
 
@@ -99,6 +107,18 @@ class Player extends Entity
         await loadSpriteAnimation(8, 'sprites/run.png', .1, true);
     entityAnimations[EntityStatus.dead] =
         await loadSpriteAnimation(10, 'enemy_sprites/death.png', .1, false);
+  }
+
+  @override
+  void swapWeapon() {
+    super.swapWeapon();
+    updateRemainingAmmo(currentWeapon);
+  }
+
+  void updateRemainingAmmo(Weapon? weapon) {
+    if (enviroment is GameEnviroment) {
+      gameEnviroment.hud.buildRemainingAmmoText(weapon);
+    }
   }
 
   bool isDisplay;

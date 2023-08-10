@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/resources/visuals.dart';
 
 import '../player/player.dart';
 import '../game/enviroment.dart';
@@ -84,7 +85,7 @@ class GameStateComponent extends Component with Notifier {
 }
 
 extension GameStateGetters on GameState {
-  Color get basePortalColor => const Color.fromARGB(255, 62, 184, 255);
+  Color get basePortalColor => ApolloColorPalette.lightBlue.color;
   Color portalColor([bool returnBlueIfNotLevelMenu = false]) {
     if (returnBlueIfNotLevelMenu && !menuPageIsLevel) return basePortalColor;
     if (playerData.selectedDifficulty != GameDifficulty.regular) {

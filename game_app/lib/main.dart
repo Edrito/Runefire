@@ -27,7 +27,7 @@ import '../menus/overlays.dart' as overlay;
 final rng = Random();
 late final GameState gameState;
 
-bool startInGame = false;
+bool startInGame = true;
 
 Map<int, bool> isSecondaryPointer = {};
 
@@ -57,7 +57,7 @@ void main() async {
   node.requestFocus();
 
   final toLoad = [
-    'background/forest.png',
+    'background/mushroom_garden.png',
     'background/dungeon.png',
     'background/graveyard.jpg',
     'ui/attribute_background_mask.png',

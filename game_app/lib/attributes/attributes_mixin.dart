@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/contact_callbacks.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,8 @@ import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
 import '../resources/enums.dart';
-import 'child_entities.dart';
+import '../entities/child_entities.dart';
+import '../weapons/weapon_class.dart';
 import 'attributes_structure.dart';
 import '../resources/visuals.dart';
 
@@ -291,6 +291,8 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<Function> onMove = [];
   final List<Function> onDeath = [];
   final List<Function> onLevelUp = [];
+  final List<Function(Weapon weapon)> onAttack = [];
+  final List<Function(Weapon weapon)> onReloadComplete = [];
 
   final List<Function(HealthFunctionality other)> onTouch = [];
   final List<Function(double dt)> onUpdate = [];

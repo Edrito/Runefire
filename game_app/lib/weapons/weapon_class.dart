@@ -9,6 +9,7 @@ import 'package:game_app/resources/data_classes/base.dart';
 import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
+import '../attributes/attributes_mixin.dart';
 import '../resources/functions/custom_mixins.dart';
 
 import '../resources/enums.dart';
@@ -231,6 +232,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
   void standardAttack([double holdDurationPercent = 1]) {
     for (var element in additionalWeapons.entries) {
       element.value.attackAttempt(holdDurationPercent);
+    }
+    if (entityAncestor is AttributeFunctionsFunctionality) {
+      for (var element
+          in (entityAncestor as AttributeFunctionsFunctionality).onAttack) {
+        element.call(this);
+      }
     }
   }
 

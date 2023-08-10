@@ -6,6 +6,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/resources/data_classes/base.dart';
@@ -121,6 +122,13 @@ mixin ReloadFunctionality on Weapon {
       removeOnFinish: true,
       onTick: () {
         stopReloading();
+        if (entityAncestor is AttributeFunctionsFunctionality) {
+          final attributeFunctions =
+              entityAncestor as AttributeFunctionsFunctionality;
+          for (var attribute in attributeFunctions.onReloadComplete) {
+            attribute(this);
+          }
+        }
       },
     )..addToParent(this);
     createReloadBar();
@@ -149,12 +157,17 @@ class MeleeAttack {
       required this.entitySpriteAnimation,
       required this.attackSpriteAnimationBuild,
       required this.chargePattern,
+      this.flippedDuringAttack = false,
+      this.customStartAngle = true,
       required this.attackPattern});
 
   final Vector2 attackHitboxSize;
   final SpriteAnimation? entitySpriteAnimation;
   WeaponSpriteAnimationBuilder? attackSpriteAnimationBuild;
   List<WeaponSpriteAnimation> latestAttackSpriteAnimation = [];
+
+  bool customStartAngle;
+  bool flippedDuringAttack;
 
   Future<WeaponSpriteAnimation?> buildWeaponSpriteAnimation() async {
     if (attackSpriteAnimationBuild == null) return null;
@@ -209,9 +222,9 @@ mixin MeleeFunctionality on Weapon {
 
     for (var deltaDirection in temp) {
       returnList.add(MeleeAttackHandler(
-        initPosition: Vector2.zero(),
+        initPosition: entityAncestor!.handJoint.position.normalized() *
+            distanceFromPlayer,
         initAngle: deltaDirection,
-        // chargeAmount: chargeAmount,
         currentAttack: meleeAttacks[indexUsed],
         weaponAncestor: this,
       ));
@@ -543,9 +556,9 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
   @override
   double get particleLifespan => .2;
 
-  Curve get holdDurationCurve => Curves.easeIn;
-  double get holdDurationPercentWithCurve =>
-      holdDurationCurve.transform(holdDurationPercent);
+  // Curve get holdDurationCurve => Curves.easeIn;
+  // double get holdDurationPercentWithCurve =>
+  //     holdDurationCurve.transform(holdDurationPercent);
 
   Future<void> buildAnimations() async {
     // switch (damageType) {
@@ -703,7 +716,6 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
   }
 
   Component generateChargeParticle(double percent) {
-    // Vector2 moveDelta = entityAncestor?.body.linearVelocity ?? Vector2.zero();
     var particleColor = damageType.color;
     final particle = Particle.generate(
       count: (1 + rng.nextInt(3) * percent).round(),
@@ -742,7 +754,8 @@ mixin SemiAutomatic on Weapon {
 
   double get holdDurationPercent => semiAutoType == SemiAutoType.regular
       ? 1
-      : ui.clampDouble(durationHeld / chargeLength, 0, 1);
+      : Curves.easeInCirc
+          .transform(ui.clampDouble(durationHeld / chargeLength, 0, 1));
 
   @override
   void update(double dt) {

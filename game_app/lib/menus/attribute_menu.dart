@@ -282,7 +282,8 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
       effects: [
         CustomEffect(builder: (context, value, child) {
           return Container(
-            color: ApolloColorPalette.blue.color.withOpacity(.95 * value),
+            color:
+                ApolloColorPalette.darkestGray.color.withOpacity(.95 * value),
             child: child,
           );
         })

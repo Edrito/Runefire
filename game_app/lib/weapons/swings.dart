@@ -152,10 +152,6 @@ class MeleeAttackSprite extends PositionComponent {
       this.target, this.handler) {
     this.position = position;
     animationComponent = swingAnimation;
-
-    if (handler.weaponAncestor.entityAncestor!.isFlipped) {
-      animationComponent?.flipHorizontallyAroundCenter();
-    }
   }
   void removeSwing() {
     handler.removeSwing(this);
@@ -197,6 +193,9 @@ class MeleeAttackSprite extends PositionComponent {
       );
       add(swingTimer!);
     }
+    if (handler.isCharging) {
+      animationComponent?.weaponCharging();
+    }
     add(animationComponent!);
     return super.onLoad();
   }
@@ -218,6 +217,8 @@ class MeleeAttackHandler extends Component {
         ;
     duration = weaponAncestor.attackTickRate.parameter;
     meleeId = const Uuid().v4();
+
+    if (!currentAttack.customStartAngle) initAngle = 0;
   }
 
   bool isCharging;
@@ -240,6 +241,8 @@ class MeleeAttackHandler extends Component {
 
   MeleeFunctionality weaponAncestor;
   MeleeAttackHitbox? hitbox;
+
+  bool get isFlipped => weaponAncestor.entityAncestor?.isFlipped ?? false;
 
   void onHitFunction(HealthFunctionality other) {
     chain(other);
@@ -304,6 +307,19 @@ class MeleeAttackHandler extends Component {
       newPattern = currentAttack.attackPattern[previousIndex];
     }
 
+    if (isFlipped) {
+      previousPattern = (
+        Vector2(-previousPattern.$1.x, previousPattern.$1.y),
+        -previousPattern.$2,
+        previousPattern.$3
+      );
+      newPattern = (
+        Vector2(-newPattern.$1.x, newPattern.$1.y),
+        -newPattern.$2,
+        newPattern.$3
+      );
+    }
+
     final rotatedEndPosition = rotateVector2(newPattern.$1, currentAngle);
 
     final totalAngle = newPattern.$2 - previousPattern.$2;
@@ -335,6 +351,7 @@ class MeleeAttackHandler extends Component {
 
   Future<void> initSwing(double swingAngle, Vector2 swingPosition) async {
     int animationStepIndex = 0;
+
     (Vector2, double, double) startPattern;
     if (isCharging) {
       startPattern = currentAttack.chargePattern[animationStepIndex];
@@ -342,13 +359,26 @@ class MeleeAttackHandler extends Component {
       startPattern = currentAttack.attackPattern[animationStepIndex];
     }
 
-    final rotatedStartPosition = rotateVector2(startPattern.$1, swingAngle);
+    if (isFlipped) {
+      startPattern = (
+        Vector2(-startPattern.$1.x, startPattern.$1.y),
+        -startPattern.$2,
+        startPattern.$3
+      );
+    }
 
-    final newSwing = MeleeAttackSprite(
-        await currentAttack.buildWeaponSpriteAnimation(),
-        swingPosition,
-        target!,
-        this);
+    final rotatedStartPosition = rotateVector2(startPattern.$1, swingAngle);
+    final weaponSpriteAnimation =
+        await currentAttack.buildWeaponSpriteAnimation();
+    if (isFlipped) {
+      weaponSpriteAnimation?.flipHorizontallyAroundCenter();
+    }
+    if (currentAttack.flippedDuringAttack) {
+      weaponSpriteAnimation?.flipHorizontallyAroundCenter();
+    }
+
+    final newSwing =
+        MeleeAttackSprite(weaponSpriteAnimation, swingPosition, target!, this);
 
     final startAngle = radians(startPattern.$2) + swingAngle;
     newSwing.animationComponent?.angle = startAngle;

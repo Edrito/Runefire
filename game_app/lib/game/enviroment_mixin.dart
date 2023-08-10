@@ -4,6 +4,7 @@ import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/game/menu_game.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
@@ -342,7 +343,7 @@ mixin PlayerFunctionality on Enviroment {
   final test = PositionComponent();
 
   void addPlayer() {
-    player = Player(playerData, false,
+    player = Player(playerData, this is MenuGame,
         enviroment: this, initialPosition: Vector2.zero());
 
     if (this is GameEnviroment) {

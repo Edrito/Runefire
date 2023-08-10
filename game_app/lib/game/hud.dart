@@ -6,10 +6,12 @@ import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/functions/functions.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
 import '../resources/functions/custom_mixins.dart';
 import '../resources/visuals.dart';
+import '../weapons/weapon_class.dart';
 import 'enviroment.dart';
 import 'expendables.dart';
 
@@ -22,15 +24,22 @@ class GameHud extends PositionComponent {
   @override
   final double width = 100;
   Enviroment gameRef;
-
+  //Timer
   late HudMarginComponent timerParent;
   late final CaTextComponent timerText;
 
+  //Margin Parent
   late HudMarginComponent topLeftMarginParent;
+
+  //Level
   late CircleComponent levelBackground;
-  late SpriteAnimationComponent healthBar;
   late PositionComponent levelWrapper;
+
+  late SpriteAnimationComponent healthEnergyFrame;
+
   late SpriteComponent expendableIcon;
+
+  late TextComponent remainingAmmoText;
 
   Expendable? _currentExpendable;
   late Sprite blankExpendableSprite;
@@ -62,7 +71,7 @@ class GameHud extends PositionComponent {
     final sprite = await loadSpriteAnimation(1, 'ui/health_bar.png', 1, true);
     final healthBarSize = sprite.frames.first.sprite.srcSize;
     healthBarSize.scaleTo(325);
-    healthBar = SpriteAnimationComponent(
+    healthEnergyFrame = SpriteAnimationComponent(
       animation: await loadSpriteAnimation(1, 'ui/health_bar.png', 1, true),
       size: healthBarSize,
     );
@@ -101,6 +110,20 @@ class GameHud extends PositionComponent {
         ..color = Colors.black.withOpacity(.8),
     );
 
+    //Remaining Ammo text
+    remainingAmmoText = TextComponent(
+      position: Vector2(100, 57.5),
+      textRenderer: TextPaint(
+          style: defaultStyle.copyWith(
+              fontSize: (defaultStyle.fontSize! * .5),
+              color: ApolloColorPalette.offWhite.color,
+              shadows: [
+            const BoxShadow(
+                spreadRadius: 1, blurRadius: 0, offset: Offset(2, 2))
+          ])),
+    );
+    buildRemainingAmmoText(player?.currentWeapon);
+
     //Expendable
     blankExpendableSprite = await Sprite.load('expendables/blank.png');
     expendableIcon = SpriteComponent(
@@ -108,9 +131,10 @@ class GameHud extends PositionComponent {
 
     timerParent.add(timerText);
     levelWrapper.add(levelCounter);
-    topLeftMarginParent.add(healthBar);
+    topLeftMarginParent.add(healthEnergyFrame);
     topLeftMarginParent.add(levelWrapper);
     topLeftMarginParent.add(expendableIcon);
+    topLeftMarginParent.add(remainingAmmoText);
 
     add(timerParent);
 
@@ -118,6 +142,16 @@ class GameHud extends PositionComponent {
     add(fpsCounter);
 
     return super.onLoad();
+  }
+
+  void buildRemainingAmmoText(Weapon? weapon) {
+    if (weapon == null) return;
+    if (weapon is ReloadFunctionality) {
+      remainingAmmoText.text =
+          "${weapon.remainingAttacks.toString()}/${weapon.maxAttacks.parameter.toString()}";
+    } else {
+      remainingAmmoText.text = "";
+    }
   }
 
   void setLevel(int level) {

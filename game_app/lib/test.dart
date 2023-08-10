@@ -8,7 +8,7 @@ import 'package:game_app/game/expendables.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
 
-import 'attributes/child_entities.dart';
+import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) {
   // Future.delayed(1.seconds).then((value) {
