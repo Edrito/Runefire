@@ -1,7 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
+import 'package:game_app/menus/options.dart';
 
 import '../resources/visuals.dart';
 
@@ -151,7 +154,7 @@ class CustomButton extends StatelessWidget {
 class DisplayButtons extends StatefulWidget {
   const DisplayButtons(
       {required this.buttons, this.alignment = Alignment.center, super.key});
-  final List<CustomButton> buttons;
+  final List<Widget> buttons;
   final Alignment alignment;
 
   @override
@@ -174,10 +177,14 @@ class _DisplayButtonsState extends State<DisplayButtons> {
   Widget build(BuildContext context) {
     List<Widget> displayedButtons = [];
 
-    for (CustomButton button in widget.buttons) {
+    for (Widget button in widget.buttons) {
       late Widget newButton;
       if (selectedIndex != -1 && widget.buttons[selectedIndex] == button) {
-        newButton = button.copyWith(isHighlightedInitial: true);
+        newButton = button is CustomButton
+            ? button.copyWith(isHighlightedInitial: true)
+            : button is IncrementingButton
+                ? button.button.copyWith(isHighlightedInitial: true)
+                : const SizedBox();
       } else {
         newButton = button;
       }
@@ -198,15 +205,57 @@ class _DisplayButtonsState extends State<DisplayButtons> {
         focusNode: focusNode,
         autofocus: true,
         onKeyEvent: (value) {
-          if (value is KeyUpEvent || value is KeyRepeatEvent || !loaded) return;
-          if (value.logicalKey == LogicalKeyboardKey.enter ||
-              value.logicalKey == LogicalKeyboardKey.space) {
-            if (selectedIndex != -1 &&
-                widget.buttons[selectedIndex].onTap != null) {
-              widget.buttons[selectedIndex].onTap!();
+          if (value is KeyRepeatEvent || !loaded) return;
+
+          if (selectedIndex != -1) {
+            final button = widget.buttons[selectedIndex];
+            if (value.logicalKey == LogicalKeyboardKey.arrowLeft ||
+                value.logicalKey == LogicalKeyboardKey.keyA) {
+              if (button is CustomButton) {
+                value is KeyDownEvent
+                    ? button.onSecondaryTapDown?.call(TapDownDetails())
+                    : button.onSecondaryTapUp
+                        ?.call(TapUpDetails(kind: PointerDeviceKind.unknown));
+              }
+              // else if (button is IncrementingButton) {
+              //   value is KeyDownEvent
+              //       ? button.newButton.onSecondaryTapDown?.call(TapDownDetails())
+              //       : button.newButton.onSecondaryTapUp
+              //           ?.call(TapUpDetails(kind: PointerDeviceKind.unknown));
+              // }
             }
-          } else if (value.logicalKey == LogicalKeyboardKey.keyW ||
-              value.logicalKey == LogicalKeyboardKey.arrowUp) {
+
+            if (value.logicalKey == LogicalKeyboardKey.arrowRight ||
+                value.logicalKey == LogicalKeyboardKey.keyD) {
+              if (button is CustomButton) {
+                value is KeyDownEvent
+                    ? button.onTapDown?.call(TapDownDetails())
+                    : button.onTapUp
+                        ?.call(TapUpDetails(kind: PointerDeviceKind.unknown));
+              }
+              // else if (button is IncrementingButton) {
+              //   value is KeyDownEvent
+              //       ? button.newButton.onTapDown?.call(TapDownDetails())
+              //       : button.newButton.onTapUp
+              //           ?.call(TapUpDetails(kind: PointerDeviceKind.unknown));
+              // }
+            }
+
+            if (value.logicalKey == LogicalKeyboardKey.space ||
+                value.logicalKey == LogicalKeyboardKey.enter) {
+              if (button is CustomButton && value is KeyDownEvent) {
+                button.onTap?.call();
+              } else if (button is IncrementingButton &&
+                  value is KeyDownEvent) {
+                button.button.onTap?.call();
+              }
+            }
+          }
+
+          if (value is! KeyDownEvent) return;
+
+          if ((value.logicalKey == LogicalKeyboardKey.keyW ||
+              value.logicalKey == LogicalKeyboardKey.arrowUp)) {
             setState(() {
               selectedIndex--;
               if (selectedIndex < 0) {

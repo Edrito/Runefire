@@ -159,23 +159,19 @@ class MeleeAttackSprite extends PositionComponent {
 
   WeaponSpriteAnimation? animationComponent;
 
-  Entity target;
+  Entity? target;
 
-  void fadeOut() {
-    Future.delayed(handler.attackStepDuration.seconds)
-        .then((value) => removeSwing());
-    animationComponent?.add(OpacityEffect.fadeOut(EffectController(
-      duration: handler.attackStepDuration,
-      curve: Curves.easeOut,
-    )));
+  void fadeOut() async {
+    await animationComponent?.setWeaponStatus(WeaponStatus.dead);
+    removeSwing();
   }
 
-  Vector2 get swingPosition => animationComponent!.position + target.center;
+  Vector2 get swingPosition => animationComponent!.position + position;
   double get swingAngle => animationComponent!.angle;
 
   @override
   void update(double dt) {
-    position = (target.center);
+    position.setFrom(target?.center ?? position);
     super.update(dt);
   }
 
@@ -210,6 +206,7 @@ class MeleeAttackHandler extends Component {
       this.isCharging = false,
       required this.initPosition,
       required this.initAngle,
+      this.attachmentPoint,
       required this.weaponAncestor}) {
     attackStepDuration = weaponAncestor.attackTickRate.parameter /
             (currentAttack.attackPattern.length - 1).clamp(1, double.infinity)
@@ -232,7 +229,7 @@ class MeleeAttackHandler extends Component {
   MeleeAttack currentAttack;
 
   List<MeleeAttackSprite> activeSwings = [];
-  Entity? target;
+  Entity? attachmentPoint;
   // double chargeAmount;
 
   late double duration;
@@ -281,7 +278,7 @@ class MeleeAttackHandler extends Component {
         Vector2(0, -1),
         delta,
       );
-      target = other;
+      attachmentPoint = other;
 
       initSwing(
           otherAngle,
@@ -377,8 +374,8 @@ class MeleeAttackHandler extends Component {
       weaponSpriteAnimation?.flipHorizontallyAroundCenter();
     }
 
-    final newSwing =
-        MeleeAttackSprite(weaponSpriteAnimation, swingPosition, target!, this);
+    final newSwing = MeleeAttackSprite(
+        weaponSpriteAnimation, swingPosition, attachmentPoint, this);
 
     final startAngle = radians(startPattern.$2) + swingAngle;
     newSwing.animationComponent?.angle = startAngle;
@@ -393,7 +390,7 @@ class MeleeAttackHandler extends Component {
     weaponAncestor.activeSwings.add(this);
     weaponAncestor.spriteVisibilityCheck();
     final hitboxSize = currentAttack.attackHitboxSize;
-    target = weaponAncestor.entityAncestor;
+    // target = weaponAncestor.entityAncestor;
     await initSwing(initAngle, initPosition);
 
     if (!isCharging) {

@@ -198,14 +198,7 @@ class _PauseMenuState extends State<PauseMenu> {
                     Flexible(
                       flex: 2,
                       child: ScrollConfiguration(
-                        behavior: ScrollConfiguration.of(context).copyWith(
-                          scrollbars: false,
-                          dragDevices: {
-                            // Allows to swipe in web browsers
-                            PointerDeviceKind.touch,
-                            PointerDeviceKind.mouse
-                          },
-                        ),
+                        behavior: scrollConfiguration(context),
                         child: SingleChildScrollView(
                           child: Align(
                             alignment: Alignment.topLeft,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/palette.dart';
@@ -236,4 +237,35 @@ mixin BasicSpriteLifecycle on Component {
       await Future.delayed(controller.duration!.seconds);
     }
   }
+}
+
+class CustomCollisionWorld extends World with HasCollisionDetection {}
+
+mixin CustomCollisionObject on CollisionCallbacks, PositionComponent {
+  abstract Set<int> maskCategories;
+  abstract int category;
+  abstract bool collidesWithScreenHitbox;
+
+  bool _filterCheck(CustomCollisionObject other) {
+    return maskCategories.contains(other.category);
+  }
+
+  // @override
+  // bool onComponentTypeCheck(PositionComponent other) {
+  //   // TODO: implement onComponentTypeCheck
+  //   return super.onComponentTypeCheck(other);
+  // }
+
+  @override
+  void onCollisionStart(
+      Set<Vector2> intersectionPoints, PositionComponent other) {
+    if (other is! CustomCollisionObject) {
+      return super.onCollisionStart(intersectionPoints, other);
+    } else if (_filterCheck(other)) {
+      super.onCollisionStart(intersectionPoints, other);
+    }
+  }
+
+  void onCollisionBeginFiltered(
+      Set<Vector2> intersectionPoints, PositionComponent other) {}
 }

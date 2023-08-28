@@ -16,6 +16,7 @@ enum SpawnLocation {
   outside,
   both,
   entireMap,
+  mouse,
   onPlayer,
 }
 

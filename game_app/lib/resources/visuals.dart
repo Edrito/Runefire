@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
@@ -107,6 +108,16 @@ final defaultStyle = TextStyle(
   color: ApolloColorPalette().secondaryColor,
   shadows: const [],
 );
+
+ScrollBehavior scrollConfiguration(BuildContext context) =>
+    ScrollConfiguration.of(context).copyWith(
+      scrollbars: false,
+      dragDevices: {
+        // Allows to swipe in web browsers
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse
+      },
+    );
 
 void buildProgressBar(
     {required Canvas canvas,

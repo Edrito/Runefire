@@ -335,8 +335,8 @@ class ExplosiveProjectile extends Projectile with StandardProjectile {
     weaponAncestor.entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
       sourceEntity: weaponAncestor.entityAncestor!,
       position: center,
-      playAnimation: await loadSpriteAnimation(
-          61, 'weapons/projectiles/fire_area.png', .05, true),
+      playAnimation:
+          await loadSpriteAnimation(16, 'effects/explosion_1_16.png', .1, true),
       size: 5,
       durationType: DurationType.instant,
       duration: 5,

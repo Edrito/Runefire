@@ -26,7 +26,7 @@ class Dagger extends PlayerWeapon
           attackHitboxSize: Vector2.all(1),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
                 weapon: this,
                 parentJoint: null,
                 weaponAnimations: {
@@ -70,17 +70,17 @@ class Dagger extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
                   await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
-          ..position = Vector2(length / 2, -length / 2)
+          ..position = Vector2(weaponSize / 2, -weaponSize / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
@@ -94,13 +94,10 @@ class Dagger extends PlayerWeapon
   double distanceFromPlayer = 1;
 
   @override
-  double length = 1;
+  double weaponSize = 1;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  double tipPositionPercent = 0;
 
   @override
   WeaponType weaponType = WeaponType.dagger;
@@ -124,7 +121,7 @@ class Spear extends PlayerWeapon
           attackHitboxSize: Vector2.all(1),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
                 weapon: this,
                 parentJoint: null,
                 weaponAnimations: {
@@ -134,15 +131,43 @@ class Spear extends PlayerWeapon
           },
           chargePattern: [],
           attackPattern: [
-            (Vector2(.2, 0), 0, 1),
-            (Vector2(.2, 1), 0, 1),
-            (Vector2(.25, 0), -35, 1),
-            (Vector2(-.6, 0), 35, 1),
-            (Vector2(-.2, 0), 0, 1),
-            (Vector2(-.2, .95), 0, 1),
-            (Vector2(-.25, 1), 35, 1),
-            (Vector2(.6, 0), -35, 1),
-          ])
+            (Vector2(.4, -.7), 0, 1),
+            (Vector2(.4, 1), 0, 1),
+          ]),
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(-.3, -.7), 0, 1),
+            (Vector2(-.3, 1), 0, 1),
+          ]),
+      MeleeAttack(
+          attackHitboxSize: Vector2.all(1),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [],
+          attackPattern: [
+            (Vector2(0, 1), 375, 1),
+            (Vector2(-.5, -1), -45, 1),
+          ]),
     ];
     pierce.baseParameter = 5;
     maxChainingTargets.baseParameter = 6;
@@ -173,17 +198,17 @@ class Spear extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
               WeaponStatus.idle:
                   await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
-          ..position = Vector2(length / 2, -length / 2)
+          ..position = Vector2(weaponSize / 2, -weaponSize / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
@@ -203,7 +228,7 @@ class Spear extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double length = 3;
+  double weaponSize = 3;
 
   @override
   double tipPositionPercent = 0;
@@ -231,7 +256,7 @@ class EnergySword extends PlayerWeapon
           attackHitboxSize: Vector2.all(1),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
                 weapon: this,
                 parentJoint: null,
                 weaponAnimations: {
@@ -303,7 +328,7 @@ class EnergySword extends PlayerWeapon
               WeaponStatus.idle:
                   await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
-          ..position = Vector2(length / 2, -length / 2)
+          ..position = Vector2(weaponSize / 2, -weaponSize / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(
@@ -331,10 +356,7 @@ class EnergySword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double length = 2;
-
-  @override
-  double tipPositionPercent = 0;
+  double weaponSize = 2;
 
   @override
   WeaponType weaponType = WeaponType.energySword;
@@ -360,7 +382,7 @@ class FlameSword extends PlayerWeapon
           attackHitboxSize: Vector2.all(1),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
                 weapon: this,
                 parentJoint: null,
                 weaponAnimations: {
@@ -377,7 +399,7 @@ class FlameSword extends PlayerWeapon
           attackHitboxSize: Vector2.all(1),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
                 weapon: this,
                 parentJoint: null,
                 weaponAnimations: {
@@ -423,7 +445,7 @@ class FlameSword extends PlayerWeapon
 
   @override
   // TODO: implement tipOffset
-  Vector2 get tipOffset => Vector2(0, length);
+  Vector2 get tipOffset => Vector2(0, weaponSize);
 
   @override
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
@@ -440,7 +462,7 @@ class FlameSword extends PlayerWeapon
           ..position = Vector2(-.65, .67)
           ..angle = radians(-145);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
@@ -460,7 +482,7 @@ class FlameSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double length = 2.6;
+  double weaponSize = 2.6;
 
   @override
   WeaponType weaponType = WeaponType.flameSword;
@@ -481,7 +503,7 @@ class LargeSword extends PlayerWeapon
           attackHitboxSize: Vector2.all(1),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
                 weapon: this,
                 parentJoint: null,
                 weaponAnimations: {
@@ -533,17 +555,17 @@ class LargeSword extends PlayerWeapon
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
             parentJoint: parentJoint,
             weapon: this,
             weaponAnimations: {
               WeaponStatus.idle:
                   await loadSpriteAnimation(1, weaponType.flameImage, 1, true),
             })
-          ..position = Vector2(length / 2, -length / 2)
+          ..position = Vector2(weaponSize / 2, -weaponSize / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, length),
+        return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
             weapon: this,
             parentJoint: parentJoint,
             weaponAnimations: {
@@ -560,7 +582,7 @@ class LargeSword extends PlayerWeapon
   double distanceFromPlayer = .2;
 
   @override
-  double length = 3;
+  double weaponSize = 3;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];

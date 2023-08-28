@@ -8,6 +8,7 @@ import 'package:game_app/game/menu_game.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
+import '../resources/functions/custom_mixins.dart';
 import 'event_management.dart';
 import '../game/hud.dart';
 
@@ -305,6 +306,14 @@ class Bounds extends BodyComponent<GameRouter> {
   }
 }
 
+mixin CollisionEnviroment on Enviroment {
+  @override
+  void initializeWorld() {
+    gameWorld = CustomCollisionWorld();
+    gameWorld.priority = worldPriority;
+  }
+}
+
 mixin PauseOnFocusLost on Enviroment {
   @override
   void onMount() {
@@ -340,7 +349,7 @@ mixin PlayerFunctionality on Enviroment {
     }
   }
 
-  final test = PositionComponent();
+  // final test = PositionComponent();
 
   void addPlayer() {
     player = Player(playerData, this is MenuGame,

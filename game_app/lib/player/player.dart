@@ -53,6 +53,16 @@ class Player extends Entity
 
     if (isDisplay) {
       height.setParameterPercentValue('display', .5);
+      add(TimerComponent(
+        period: .05,
+        repeat: true,
+        onTick: () {
+          var temp = center.clone();
+          temp = Vector2(double.parse(temp.x.toStringAsFixed(2)),
+              double.parse(temp.y.toStringAsFixed(2)));
+          moveVelocities[InputType.ai] = -temp.normalized();
+        },
+      ));
     }
   }
   final PlayerData playerData;
@@ -110,14 +120,14 @@ class Player extends Entity
   }
 
   @override
-  void swapWeapon() {
-    super.swapWeapon();
-    updateRemainingAmmo(currentWeapon);
+  Future<void> swapWeapon() async {
+    await super.swapWeapon();
+    updateRemainingAmmo(null);
   }
 
   void updateRemainingAmmo(Weapon? weapon) {
     if (enviroment is GameEnviroment) {
-      gameEnviroment.hud.buildRemainingAmmoText(weapon);
+      gameEnviroment.hud.buildRemainingAmmoText(this);
     }
   }
 
@@ -217,9 +227,9 @@ class Player extends Entity
 
   @override
   void update(double dt) {
-    if (!isDisplay) {
-      moveCharacter();
-    }
+    // if (!isDisplay) {
+    moveCharacter();
+    // }
     aimCharacter();
     findClosestEnemy();
     super.update(dt);
@@ -244,17 +254,19 @@ class Player extends Entity
     try {
       if (event == null || isDead) return;
 
-      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
-        moveAngle.x += 1;
-      }
-      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyA)) {
-        moveAngle.x -= 1;
-      }
-      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyW)) {
-        moveAngle.y -= 1;
-      }
-      if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyS)) {
-        moveAngle.y += 1;
+      if (!isDisplay) {
+        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
+          moveAngle.x += 1;
+        }
+        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyA)) {
+          moveAngle.x -= 1;
+        }
+        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyW)) {
+          moveAngle.y -= 1;
+        }
+        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyS)) {
+          moveAngle.y += 1;
+        }
       }
 
       if (gameRef.gameStateComponent.gameState.gameIsPaused ||
@@ -274,7 +286,7 @@ class Player extends Entity
         }
       }
 
-      if (!isDisplay && event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
+      if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
         setEntityStatus(EntityStatus.dash);
       }
       if (event.physicalKey == (PhysicalKeyboardKey.keyR)) {

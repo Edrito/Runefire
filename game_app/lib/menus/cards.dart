@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
+import 'package:game_app/menus/overlays.dart';
+import 'package:game_app/resources/enums.dart';
 import '../resources/visuals.dart';
 
 class CustomCard extends StatelessWidget {
@@ -19,7 +21,7 @@ class CustomCard extends StatelessWidget {
   }) : super(key: key);
 
   final GameRouter gameRef;
-  final Function? onTap;
+  final Function(DamageType? damageType)? onTap;
   final Function? onTapComplete;
   final bool isHighlightedInitial;
   final bool smallCard;
@@ -27,7 +29,7 @@ class CustomCard extends StatelessWidget {
   final bool isEndingInitial;
   CustomCard copyWith({
     GameRouter? gameRef,
-    Function? onTap,
+    Function(DamageType? damageType)? onTap,
     Function? onTapComplete,
     bool? isHighlightedInitial,
     bool? isEndingInitial,
@@ -68,6 +70,9 @@ class CustomCard extends StatelessWidget {
           : attribute.attributeType.rarity.color.brighten(.1);
       final regularColor = Colors.grey.shade100;
 
+      bool hasDamageTypeSelector = attribute.allowedDamageTypes.isNotEmpty &&
+          attribute.damageType == null;
+
       isHighlighted = isHighlighted! || isEnding!;
 
       TextStyle style =
@@ -79,9 +84,9 @@ class CustomCard extends StatelessWidget {
           levelIndicators.add(Padding(
             padding: const EdgeInsets.all(2),
             child: Icon(
-              Icons.star,
+              Icons.circle,
               size: 25,
-              color: regularColor,
+              color: highlightColor,
             ),
           ));
         }
@@ -91,7 +96,7 @@ class CustomCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(2),
               child: Icon(
-                Icons.star_border,
+                Icons.circle_outlined,
                 size: 25,
                 color: highlightColor,
               ),
@@ -125,7 +130,7 @@ class CustomCard extends StatelessWidget {
           Widget attributeIcon = Image.asset(
             'assets/images/${attribute.icon}',
             fit: BoxFit.fitHeight,
-            color: regularColor,
+            color: attribute.damageType?.color ?? regularColor,
             filterQuality: FilterQuality.none,
           );
 
@@ -226,34 +231,37 @@ class CustomCard extends StatelessWidget {
               child: Column(
                 children: [
                   Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          if (!showHelp) ...[
-                            Text(
-                              attribute.description(),
-                              style: style.copyWith(
-                                fontSize: (style.fontSize! * .8),
+                    child: ScrollConfiguration(
+                      behavior: scrollConfiguration(context),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            if (!showHelp) ...[
+                              Text(
+                                attribute.description(),
+                                style: style.copyWith(
+                                  fontSize: (style.fontSize! * .8),
+                                ),
+                                textAlign: TextAlign.left,
                               ),
-                              textAlign: TextAlign.left,
-                            ),
-                          ] else ...[
-                            Text(
-                              attribute.help(),
-                              style: style.copyWith(
-                                  fontSize: (style.fontSize! * .6)),
-                              textAlign: TextAlign.left,
-                            ),
+                            ] else ...[
+                              Text(
+                                attribute.help(),
+                                style: style.copyWith(
+                                    fontSize: (style.fontSize! * .6)),
+                                textAlign: TextAlign.left,
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                  if (!smallCard)
+                  if (!smallCard && !hasDamageTypeSelector)
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Align(
@@ -264,7 +272,7 @@ class CustomCard extends StatelessWidget {
                           children: levelIndicators,
                         ),
                       ),
-                    ),
+                    )
                 ],
               ),
             ),
@@ -309,19 +317,35 @@ class CustomCard extends StatelessWidget {
                         color: highlightColor,
                         fit: BoxFit.fitWidth,
                       )),
-                  Positioned.fill(child: GestureDetector(
-                    onTap: () async {
-                      if (isEnding!) return;
-                      setState(
-                        () {
-                          isEnding = true;
-                        },
-                      );
-                      if (onTap != null) {
-                        onTap!();
-                      }
-                    },
-                  )),
+                  if (!hasDamageTypeSelector)
+                    Positioned.fill(child: GestureDetector(
+                      onTap: () async {
+                        if (isEnding!) return;
+                        setState(
+                          () {
+                            isEnding = true;
+                          },
+                        );
+                        onTap?.call(null);
+                      },
+                    ))
+                  else
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 100,
+                      child: DamageTypeSelector(attribute.allowedDamageTypes,
+                          (p0) {
+                        if (isEnding!) return;
+                        setState(
+                          () {
+                            isEnding = true;
+                          },
+                        );
+                        onTap?.call(p0);
+                      }),
+                    ),
                   if (!smallCard)
                     Positioned(
                       right: 0,
@@ -354,7 +378,7 @@ class CustomCard extends StatelessWidget {
                   )
                   .rotate(
                       begin: 0,
-                      end: .005,
+                      end: .001,
                       curve: Curves.easeInOut,
                       duration: .1.seconds)
                   .scale(
@@ -471,7 +495,8 @@ class _DisplayCardsState extends State<DisplayCards>
               if (selectedIndex != -1) {
                 setState(() {
                   selectedCard = widget.cards[selectedIndex];
-                  selectedCard?.onTap!();
+                  selectedCard?.onTap!(
+                      selectedCard?.attribute.allowedDamageTypes.first);
                 });
               }
             } else if (value.logicalKey == LogicalKeyboardKey.keyA ||
@@ -496,11 +521,14 @@ class _DisplayCardsState extends State<DisplayCards>
             child: Row(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        alignment: WrapAlignment.center,
-                        children: displayedCards),
+                  child: ScrollConfiguration(
+                    behavior: scrollConfiguration(context),
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          alignment: WrapAlignment.center,
+                          children: displayedCards),
+                    ),
                   ),
                 ),
                 const SizedBox(

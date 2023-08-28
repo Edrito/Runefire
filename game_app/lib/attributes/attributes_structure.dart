@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_app/attributes/attributes_perpetrator.dart';
+import 'package:game_app/player/player.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/data_classes/base.dart';
 import '../resources/enums.dart';
@@ -30,7 +32,20 @@ extension AttributeRarityExtension on AttributeRarity {
       case AttributeRarity.rare:
         return Colors.purple;
       case AttributeRarity.unique:
-        return const Color.fromARGB(255, 252, 185, 0);
+        return const Color.fromARGB(255, 206, 151, 0);
+    }
+  }
+
+  double get weighting {
+    switch (this) {
+      case AttributeRarity.standard:
+        return 0.7;
+      case AttributeRarity.uncommon:
+        return 0.4;
+      case AttributeRarity.rare:
+        return 0.2;
+      case AttributeRarity.unique:
+        return 0.1;
     }
   }
 }
@@ -98,20 +113,450 @@ enum AttributeType {
   frostResistanceIncreasePermanent(category: AttributeCategory.resistance),
 
   ///Game Attributes
-  fireExplosionOnKill(
+  explosionOnKill(
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.attack,
+      territory: AttributeTerritory.game),
+
+  explosiveDash(
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.offense,
+      territory: AttributeTerritory.game),
+
+  gravityWell(
+      rarity: AttributeRarity.rare,
+      category: AttributeCategory.utility,
+      territory: AttributeTerritory.game),
+
+  groundSlam(
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.offense,
+      territory: AttributeTerritory.game),
+
+  psychicReach(
+      rarity: AttributeRarity.rare,
+      category: AttributeCategory.utility,
+      territory: AttributeTerritory.game,
+      attributeEligibilityTest: playerHasMeleeWeapon),
+
+  periodicPush(
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.utility,
+      territory: AttributeTerritory.game),
+
+  periodicMagicPulse(
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.offense,
+      territory: AttributeTerritory.game),
+
+  periodicStun(
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.offense,
+      territory: AttributeTerritory.game),
+
+  combinePeriodic(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offense,
+    priority: 5,
+    attributeEligibilityTest: combinePulseTest,
+    territory: AttributeTerritory.game,
+  ),
+  increaseXpGrabRadius(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+  sentryMarkEnemy(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+  sentryRangedAttack(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.attack,
+    territory: AttributeTerritory.game,
+  ),
+
+  sentryGrabItems(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+
+  sentryElementalFly(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.attack,
+    territory: AttributeTerritory.game,
+  ),
+
+  sentryElementalCaptureBullet(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+  ),
+
+  sentryCombination(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+    priority: 5,
+    attributeEligibilityTest: sentryCombinationTest,
+  ),
+
+  mirrorOrb(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+    priority: 5,
+    attributeEligibilityTest: sentryCombinationTest,
+  ),
+
+  shieldSurround(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+
+  swordSurround(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  reverseKnockback(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+
+  projectileExplode(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  dodgeStandStillIncrease(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+  ),
+
+  defenceStandStillIncrease(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+  ),
+
+  damageStandStillIncrease(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+  ),
+
+  combinationStandStillIncrease(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+    priority: 5,
+    attributeEligibilityTest: standStillTest,
+  ),
+
+  invincibleDashing(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+  ),
+
+  dashSpeedDistance(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+  ),
+
+  dashAttackEmpower(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  teleportDash(
       rarity: AttributeRarity.unique,
       category: AttributeCategory.mobility,
+      territory: AttributeTerritory.game,
+      priority: 5,
+      attributeEligibilityTest: teleportDashTest),
+
+  weaponMerge(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  thorns(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///Pushes spent ammunition in all directions around player (incentivizes using all ammo)
+  reloadBulletSpray(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///Is invincible for the duration of the reload, depending on how much ammo was spent
+  reloadInvincibility(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+  ),
+
+  reloadPush(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///increase attack count over time
+  focus(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  chainingAttacks(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///Melee attacks
+  weaponCollision(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.melee,
+    territory: AttributeTerritory.game,
+  ),
+
+  sonicWave(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.melee,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///Projectile attacks
+  daggerSwing(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.projectile,
+    territory: AttributeTerritory.game,
+  ),
+  homingProjectiles(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.projectile,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///On Crit
+
+  extremeKnockbackCrit(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///Player attributes
+  ///
+  ///
+  heavyHitter(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  quickShot(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  rapidFire(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  bigPockets(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+  secondsPlease(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+  ),
+  primalInstincts(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  appleADay(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+  ),
+  flattenDamage(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  critDamageDecreaseDamage(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  putYourWeightIntoIt(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  agile(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+  areaSizeDecreaseDamage(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  decreaseMaxAmmoDecreaseReloadSpeed(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.utility,
+    territory: AttributeTerritory.game,
+  ),
+  potionSeller(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  battleScars(
+    rarity: AttributeRarity.standard,
+    category: AttributeCategory.defence,
+    priority: 10,
+    territory: AttributeTerritory.game,
+  ),
+
+  ///Remove stamina bar, stamina actions reduce health, increase health regen by 200%
+  forbiddenMagic(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.defence,
+    priority: 10,
+    territory: AttributeTerritory.game,
+  ),
+  reduceHealthIncreaseLifeSteal(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  staminaSteal(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  splitDamage(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  rollTheDice(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+  glassWand(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offense,
+    territory: AttributeTerritory.game,
+  ),
+
+  slugTrail(
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.offense,
       territory: AttributeTerritory.game);
 
+  ///Constructor
   const AttributeType(
       {this.rarity = AttributeRarity.standard,
       this.category = AttributeCategory.utility,
-      this.territory = AttributeTerritory.permanent});
+      this.territory = AttributeTerritory.permanent,
+      // ignore: unused_element
+      ///A higher priority means the attribute will be processed last
+      this.priority = 0,
+      // ignore: unused_element
+      this.attributeEligibilityTest = defaultAttributeEligibilityTest});
 
   final AttributeRarity rarity;
   final AttributeCategory category;
   final AttributeTerritory territory;
+  final int priority;
+  final AttributeEligibilityTest attributeEligibilityTest;
 }
+
+bool teleportDashTest(Player player) {
+  return player.currentAttributes
+          .containsKey(AttributeType.dashSpeedDistance) &&
+      player.currentAttributes.containsKey(AttributeType.dashAttackEmpower) &&
+      player.currentAttributes.containsKey(AttributeType.invincibleDashing);
+}
+
+bool standStillTest(Player player) {
+  return player.currentAttributes
+          .containsKey(AttributeType.damageStandStillIncrease) &&
+      player.currentAttributes
+          .containsKey(AttributeType.defenceStandStillIncrease) &&
+      player.currentAttributes
+          .containsKey(AttributeType.dodgeStandStillIncrease);
+}
+
+bool sentryCombinationTest(Player player) {
+  if (player.currentAttributes.containsKey(AttributeType.sentryCombination) ||
+      player.currentAttributes.containsKey(AttributeType.mirrorOrb)) {
+    return false;
+  }
+
+  int good = 0;
+  if (player.currentAttributes.containsKey(AttributeType.sentryRangedAttack)) {
+    good++;
+  }
+  if (player.currentAttributes.containsKey(AttributeType.sentryGrabItems)) {
+    good++;
+  }
+  if (player.currentAttributes.containsKey(AttributeType.sentryMarkEnemy)) {
+    good++;
+  }
+  if (player.currentAttributes.containsKey(AttributeType.sentryElementalFly)) {
+    good++;
+  }
+
+  return good > 2;
+}
+
+bool combinePulseTest(Player player) {
+  return player.currentAttributes
+          .containsKey(AttributeType.periodicMagicPulse) &&
+      player.currentAttributes.containsKey(AttributeType.periodicPush) &&
+      player.currentAttributes.containsKey(AttributeType.periodicStun);
+}
+
+bool playerHasMeleeWeapon(Player player) {
+  return player.carriedWeapons.entries
+      .any((element) => element.value is MeleeFunctionality);
+}
+
+bool defaultAttributeEligibilityTest(Player player) {
+  return true;
+}
+
+typedef AttributeEligibilityTest = bool Function(Player player);
 
 extension AllAttributesExtension on AttributeType {
   Attribute buildAttribute(
@@ -148,13 +593,13 @@ extension AllAttributesExtension on AttributeType {
     }
 
     switch (this) {
-      case AttributeType.fireExplosionOnKill:
-        return FireExplosionEnemyDeathAttribute(
+      case AttributeType.explosionOnKill:
+        return ExplosionOnKillAttribute(
           level: level,
           victimEntity: victimEntity,
         );
       default:
-        return FireExplosionEnemyDeathAttribute(
+        return PeriodicPushAttribute(
           level: level,
           victimEntity: victimEntity,
         );
@@ -177,8 +622,13 @@ abstract class Attribute with UpgradeFunctions {
   }
 
   bool hasRandomDamageType = false;
+
   bool hasRandomStatusEffect = false;
+
   DamageType? damageType;
+
+  Set<DamageType> allowedDamageTypes = {};
+
   bool get isTemporary => this is TemporaryAttribute;
   AttributeTerritory get attributeTerritory => attributeType.territory;
 
@@ -188,7 +638,7 @@ abstract class Attribute with UpgradeFunctions {
     String current = "${upgradeLevel * percent}%";
     String next = "${(upgradeLevel + 1) * percent}%";
 
-    return "$current${upgradeLevel == maxLevel ? "" : " ⇒ $next"}";
+    return "$current${upgradeLevel == maxLevel ? "" : " > $next"}";
   }
 
   String help() {
@@ -227,7 +677,9 @@ abstract class Attribute with UpgradeFunctions {
   ///Increase or decrease the level based on the input value
 
   CustomCard buildWidget(
-      {Function? onTap, Function? onTapComplete, bool small = false}) {
+      {Function(DamageType? damageType)? onTap,
+      Function? onTapComplete,
+      bool small = false}) {
     return CustomCard(
       this,
       gameRef: gameState.gameRouter,

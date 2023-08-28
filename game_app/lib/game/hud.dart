@@ -32,7 +32,7 @@ class GameHud extends PositionComponent {
   late HudMarginComponent topLeftMarginParent;
 
   //Level
-  late CircleComponent levelBackground;
+  // late CircleComponent levelBackground;
   late PositionComponent levelWrapper;
 
   late SpriteAnimationComponent healthEnergyFrame;
@@ -40,6 +40,8 @@ class GameHud extends PositionComponent {
   late SpriteComponent expendableIcon;
 
   late TextComponent remainingAmmoText;
+
+  double hudScale = 1;
 
   Expendable? _currentExpendable;
   late Sprite blankExpendableSprite;
@@ -64,13 +66,13 @@ class GameHud extends PositionComponent {
     //Wrappers
     topLeftMarginParent = HudMarginComponent(
         margin: const EdgeInsets.fromLTRB(8, 30, 0, 0), anchor: Anchor.center);
-    levelWrapper =
-        PositionComponent(anchor: Anchor.center, position: Vector2.all(40));
+    levelWrapper = PositionComponent(
+        anchor: Anchor.center, position: Vector2.all(40 * hudScale));
 
     //Health Bar
     final sprite = await loadSpriteAnimation(1, 'ui/health_bar.png', 1, true);
     final healthBarSize = sprite.frames.first.sprite.srcSize;
-    healthBarSize.scaleTo(325);
+    healthBarSize.scaleTo(325 * hudScale);
     healthEnergyFrame = SpriteAnimationComponent(
       animation: await loadSpriteAnimation(1, 'ui/health_bar.png', 1, true),
       size: healthBarSize,
@@ -84,10 +86,12 @@ class GameHud extends PositionComponent {
 
     //Timer
     timerParent = HudMarginComponent(
-        margin: const EdgeInsets.fromLTRB(0, 20, 120, 0),
+        margin: EdgeInsets.fromLTRB(0, 5, 110 * hudScale, 0),
         anchor: Anchor.center);
     timerText = CaTextComponent(
-      textRenderer: TextPaint(style: defaultStyle),
+      textRenderer: TextPaint(
+          style: defaultStyle.copyWith(
+              fontSize: defaultStyle.fontSize! * hudScale)),
     );
 
     //Level
@@ -95,39 +99,43 @@ class GameHud extends PositionComponent {
         anchor: Anchor.center,
         textRenderer: TextPaint(
             style: defaultStyle.copyWith(
-                fontSize: (defaultStyle.fontSize! * .8),
+                fontSize: (defaultStyle.fontSize! * .8 * hudScale),
                 color: ApolloColorPalette.lightCyan.color,
                 shadows: [
-              const BoxShadow(
-                  spreadRadius: 1, blurRadius: 0, offset: Offset(2, 2))
+              BoxShadow(
+                  blurStyle: BlurStyle.solid,
+                  color: ApolloColorPalette.lightCyan.color.darken(.75),
+                  offset: const Offset(1, 1))
             ])),
         text: player?.currentLevel.toString());
-    levelBackground = CircleComponent(
-      radius: 32,
-      anchor: Anchor.center,
-      paint: Paint()
-        ..blendMode = BlendMode.darken
-        ..color = Colors.black.withOpacity(.8),
-    );
+    // levelBackground = CircleComponent(
+    //   radius: 32,
+    //   anchor: Anchor.center,
+    //   paint: Paint()
+    //     ..blendMode = BlendMode.darken
+    //     ..color = Colors.black.withOpacity(.8),
+    // );
 
     //Remaining Ammo text
     remainingAmmoText = TextComponent(
-      position: Vector2(100, 57.5),
+      position: Vector2(125 * hudScale, 57.5 * hudScale),
       textRenderer: TextPaint(
           style: defaultStyle.copyWith(
-              fontSize: (defaultStyle.fontSize! * .5),
+              fontSize: (defaultStyle.fontSize! * .65 * hudScale),
               color: ApolloColorPalette.offWhite.color,
               shadows: [
-            const BoxShadow(
-                spreadRadius: 1, blurRadius: 0, offset: Offset(2, 2))
+            BoxShadow(
+                blurStyle: BlurStyle.solid,
+                color: ApolloColorPalette.offWhite.color.darken(.75),
+                offset: const Offset(1, 1))
           ])),
     );
-    buildRemainingAmmoText(player?.currentWeapon);
 
     //Expendable
     blankExpendableSprite = await Sprite.load('expendables/blank.png');
     expendableIcon = SpriteComponent(
-        position: Vector2(15, 75), sprite: blankExpendableSprite);
+        position: Vector2(15 * hudScale, 85 * hudScale),
+        sprite: blankExpendableSprite);
 
     timerParent.add(timerText);
     levelWrapper.add(levelCounter);
@@ -144,11 +152,11 @@ class GameHud extends PositionComponent {
     return super.onLoad();
   }
 
-  void buildRemainingAmmoText(Weapon? weapon) {
-    if (weapon == null) return;
-    if (weapon is ReloadFunctionality) {
+  Future<void> buildRemainingAmmoText(Player player) async {
+    Weapon? currentWeapon = player.currentWeapon;
+    if (currentWeapon is ReloadFunctionality) {
       remainingAmmoText.text =
-          "${weapon.remainingAttacks.toString()}/${weapon.maxAttacks.parameter.toString()}";
+          "${currentWeapon.remainingAttacks.toString()}/${currentWeapon.maxAttacks.parameter.toString()}";
     } else {
       remainingAmmoText.text = "";
     }
@@ -184,14 +192,14 @@ class GameHud extends PositionComponent {
       // XP
       const widthOfBar = 6.0;
 
-      const peak = 0.0;
-      const exponentialGrowth = 2.0;
+      const peak = 1.05;
+      const exponentialGrowth = 7.5;
       final viewportSize = gameRef.gameCamera.viewport.size;
 
       buildProgressBar(
           canvas: canvas,
           percentProgress: player!.percentOfLevelGained,
-          color: ApolloColorPalette().primaryColor,
+          color: ApolloColorPalette().secondaryColor,
           size: viewportSize,
           heightOfBar: 50,
           widthOfBar: widthOfBar,
@@ -201,16 +209,20 @@ class GameHud extends PositionComponent {
           growth: exponentialGrowth);
 
       //Health and Stamina
-      const leftPadding = 75.0;
+      const leftPadding = 72.5;
       const heightOfSmallBar = 18.5;
       const startSmallBar = 42.0;
 
       canvas.drawPath(
           buildSlantedPath(
             1,
-            const Offset(leftPadding, startSmallBar),
-            heightOfSmallBar + .2,
-            player!.maxHealth.parameter * 6 * player!.healthPercentage,
+            Offset(
+                leftPadding * hudScale, startSmallBar + (13 * (hudScale - 1))),
+            (heightOfSmallBar + .2) * hudScale,
+            player!.maxHealth.parameter *
+                6 *
+                player!.healthPercentage *
+                hudScale,
           ),
           Paint()
             ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
@@ -221,11 +233,15 @@ class GameHud extends PositionComponent {
       canvas.drawPath(
           buildSlantedPath(
             1,
-            const Offset(leftPadding + 10, startSmallBar + heightOfSmallBar),
-            heightOfSmallBar,
+            Offset(
+                (leftPadding + 5) * hudScale,
+                (startSmallBar + (heightOfSmallBar + .1) * hudScale) +
+                    (13 * (hudScale - 1))),
+            heightOfSmallBar * hudScale,
             player!.stamina.parameter *
                 3 *
-                (player!.remainingStamina / player!.stamina.parameter),
+                (player!.remainingStamina / player!.stamina.parameter) *
+                hudScale,
           ),
           Paint()
             ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
@@ -242,13 +258,8 @@ class GameHud extends PositionComponent {
     switch (attackType) {
       case AttackType.magic:
         staminaColor = ApolloColorPalette().primaryColor;
-        break;
-      case AttackType.melee:
-        staminaColor = ApolloColorPalette.deepGreen.color;
-        break;
-      case AttackType.projectile:
+      default:
         staminaColor = ApolloColorPalette.lightGreen.color;
-        break;
     }
   }
 }

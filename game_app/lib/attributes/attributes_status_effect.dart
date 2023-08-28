@@ -222,9 +222,7 @@ class FearAttribute extends StatusEffectAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.entityStatusWrapper
-        .addStatusEffect(StatusEffects.fear, upgradeLevel);
-
+    victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.fear);
     if (victimEntity is MovementFunctionality) {
       final move = victimEntity as MovementFunctionality;
       move.entitiesFeared.remove(perpetratorEntity.entityId);

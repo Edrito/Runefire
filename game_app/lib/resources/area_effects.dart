@@ -5,6 +5,7 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/functions/custom_mixins.dart';
+import 'package:game_app/resources/functions/functions.dart';
 import 'package:uuid/uuid.dart';
 
 import '../entities/entity_class.dart';
@@ -32,7 +33,7 @@ class AreaEffect extends BodyComponent<GameRouter>
     required this.position,
     required this.sourceEntity,
     this.isSolid = false,
-    this.randomlyFlipped = false,
+    this.animationRandomlyFlipped = false,
   }) {
     assert(onTick != null || damage != null);
 
@@ -43,8 +44,8 @@ class AreaEffect extends BodyComponent<GameRouter>
   }
   Map<DamageType, (double, double)>? damage;
 
-  @override
-  bool randomlyFlipped;
+  bool animationRandomlyFlipped;
+
   @override
   SpriteAnimation? spawnAnimation;
   @override
@@ -73,7 +74,7 @@ class AreaEffect extends BodyComponent<GameRouter>
   bool isKilled = false;
 
   @override
-  Future<void> onLoad() {
+  Future<void> onLoad() async {
     if (durationType == DurationType.temporary) {
       aliveTimer = TimerComponent(
         period: duration,
@@ -85,13 +86,8 @@ class AreaEffect extends BodyComponent<GameRouter>
       )..addToParent(this);
     }
 
-    if (playAnimation == null) {
-      circleComponent = CircleComponent(
-          radius: size,
-          anchor: Anchor.center,
-          paint: BasicPalette.red.withAlpha(100).paint());
-      add(circleComponent);
-    }
+    playAnimation ??=
+        await loadSpriteAnimation(16, 'effects/explosion_1_16.png', .05, false);
 
     return super.onLoad();
   }

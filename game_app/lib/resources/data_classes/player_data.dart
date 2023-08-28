@@ -41,7 +41,7 @@ class PlayerData extends DataClass {
 
   GameDifficulty selectedDifficulty = GameDifficulty.regular;
 
-  GameLevel selectedLevel = GameLevel.mushroomForest;
+  GameLevel selectedLevel = GameLevel.hexedForest;
   CharacterType selectedPlayer = CharacterType.regular;
 
   List<GameLevel> completedLevels = [];
@@ -66,7 +66,7 @@ class PlayerData extends DataClass {
   }
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.longRangeRifle,
+    0: WeaponType.scryshot,
     1: WeaponType.flameSword,
   };
   Map<int, SecondaryType> selectedSecondaries = {
@@ -75,13 +75,22 @@ class PlayerData extends DataClass {
   };
 
   Map<WeaponType, int> unlockedWeapons = {
-    WeaponType.pistol: 0,
+    WeaponType.crystalPistol: 0,
     WeaponType.dagger: 0,
   };
+
+  Set<WeaponType> availableWeapons = {
+    WeaponType.crystalPistol,
+    WeaponType.dagger,
+    WeaponType.scryshot,
+    WeaponType.flameSword,
+  };
+
   Map<SecondaryType, int> unlockedSecondarys = {
     SecondaryType.pistol: 0,
     SecondaryType.reloadAndRapidFire: 0
   };
+
   Map<AttributeType, int> unlockedPermanentAttributes = {};
 
   bool enoughMoney(int cost) {

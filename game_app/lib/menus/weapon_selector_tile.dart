@@ -454,24 +454,35 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                     ],
                   ),
                   Expanded(
-                    child: SingleChildScrollView(
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Wrap(children: [
-                          if (weaponDescriptions.isNotEmpty)
-                            for (var i = 0; i < weaponDescriptions.length; i++)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  buildDescriptionText(false,
-                                      weaponDescriptions[i].$1, equippedColor),
-                                  buildDescriptionText(false,
-                                      weaponDescriptions[i].$2, equippedColor),
-                                  buildDescriptionText(true,
-                                      weaponDescriptions[i].$3, equippedColor),
-                                ],
-                              )
-                        ]),
+                    child: ScrollConfiguration(
+                      behavior: scrollConfiguration(context),
+                      child: SingleChildScrollView(
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Wrap(children: [
+                            if (weaponDescriptions.isNotEmpty)
+                              for (var i = 0;
+                                  i < weaponDescriptions.length;
+                                  i++)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    buildDescriptionText(
+                                        false,
+                                        weaponDescriptions[i].$1,
+                                        equippedColor),
+                                    buildDescriptionText(
+                                        false,
+                                        weaponDescriptions[i].$2,
+                                        equippedColor),
+                                    buildDescriptionText(
+                                        true,
+                                        weaponDescriptions[i].$3,
+                                        equippedColor),
+                                  ],
+                                )
+                          ]),
+                        ),
                       ),
                     ),
                   ),

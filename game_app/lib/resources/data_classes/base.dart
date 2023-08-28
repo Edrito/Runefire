@@ -333,6 +333,7 @@ DamageInstance damageCalculations(
   Map<DamageType, (double, double)> damageBase, {
   DamageParameterManager? damageSource,
   Weapon? sourceWeapon,
+  bool forceCrit = false,
   DamageKind damageKind = DamageKind.regular,
   StatusEffects? statusEffect,
 }) {
@@ -404,7 +405,7 @@ DamageInstance damageCalculations(
   double rngCrit = rng.nextDouble();
   double critDamageIncrease = 1;
   bool isCrit = false;
-  if (rngCrit <= source.critChance.parameter) {
+  if (rngCrit <= source.critChance.parameter || forceCrit) {
     isCrit = true;
     critDamageIncrease = source.critDamage.parameter;
   }

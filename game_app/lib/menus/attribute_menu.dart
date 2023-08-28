@@ -293,14 +293,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
           children: [
             Expanded(
                 child: ScrollConfiguration(
-              behavior: ScrollConfiguration.of(context).copyWith(
-                scrollbars: false,
-                dragDevices: {
-                  // Allows to swipe in web browsers
-                  PointerDeviceKind.touch,
-                  PointerDeviceKind.mouse
-                },
-              ),
+              behavior: scrollConfiguration(context),
               child: SingleChildScrollView(
                 child: Column(
                   children: [

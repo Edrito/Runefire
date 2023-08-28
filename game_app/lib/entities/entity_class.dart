@@ -118,18 +118,15 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   //STATUS
   Vector2 initialPosition;
 
-  EntityStatus? statusQueue;
-  EntityStatus? previousStatus;
-  EntityStatus entityStatus = EntityStatus.spawn;
+  dynamic statusQueue;
+  dynamic statusPrevious;
+  dynamic entityStatus = EntityStatus.spawn;
 
   Map<dynamic, SpriteAnimation> entityAnimations = {};
 
-  SpriteAnimation? animationQueue;
-  SpriteAnimation? previousAnimation;
-
   bool temporaryAnimationPlaying = false;
 
-  late SpriteAnimationComponent spriteAnimationComponent;
+  late SpriteAnimationGroupComponent spriteAnimationComponent;
   // late PositionComponent spriteWrapper;
   // late Shadow3DDecorator shadow3DDecorator;
 
@@ -144,36 +141,23 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void tickerComplete() {
     temporaryAnimationPlaying = false;
-    entityStatus = statusQueue ?? previousStatus ?? entityStatus;
-    spriteAnimationComponent.animation = animationQueue ??
-        previousAnimation ??
-        spriteAnimationComponent.animation;
-    previousAnimation = null;
-    previousStatus = null;
+    entityStatus = statusQueue ?? statusPrevious ?? entityStatus;
+    spriteAnimationComponent.current = entityStatus;
+    statusPrevious = null;
+    statusQueue = null;
   }
 
   void spawnStatus() {
-    applyTempAnimation(entityAnimations[EntityStatus.spawn]);
-    animationQueue = entityAnimations[EntityStatus.idle];
+    // applyTempAnimation(entityAnimations[EntityStatus.spawn]);
+    // animationQueue = entityAnimations[EntityStatus.idle];
   }
 
-  void attackStatus(SpriteAnimation? attackAnimation) {
-    applyTempAnimation(attackAnimation);
+  void attackStatus() {
+    // applyTempAnimation();
   }
 
-  void customStatus(SpriteAnimation? customAnimation) {
-    applyTempAnimation(customAnimation);
-  }
-
-  void applyTempAnimation(SpriteAnimation? tempAnimation) {
-    if (tempAnimation == null) return;
-    spriteAnimationComponent.animationTicker?.onComplete = null;
-    previousAnimation = spriteAnimationComponent.animation;
-    previousStatus = entityStatus;
-    assert(!tempAnimation.loop, "Temp animations must not loop");
-    temporaryAnimationPlaying = true;
-    spriteAnimationComponent.animation = tempAnimation.clone();
-    spriteAnimationComponent.animationTicker?.onComplete = tickerComplete;
+  void customStatus() {
+    // applyTempAnimation(customAnimation);
   }
 
   bool jumpStatus() {
@@ -197,10 +181,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   }
 
   Future<void> setEntityStatus(EntityStatus newEntityStatus,
-      {SpriteAnimation? customAnimation, bool playAnimation = true}) async {
+      {dynamic customAnimationKey, bool playAnimation = true}) async {
     if (entityStatus == EntityStatus.dead) return;
-
-    SpriteAnimation? animation;
 
     if (newEntityStatus == entityStatus &&
         [EntityStatus.run, EntityStatus.walk, EntityStatus.idle]
@@ -212,7 +194,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         spawnStatus();
         break;
       case EntityStatus.attack:
-        attackStatus(customAnimation);
+        attackStatus();
 
         break;
 
@@ -227,7 +209,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         statusResult = deadStatus();
         break;
       case EntityStatus.custom:
-        customStatus(customAnimation);
+        customStatus();
         break;
       case EntityStatus.damage:
         statusResult = damageStatus();
@@ -236,33 +218,29 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
       case EntityStatus.dodge:
         statusResult = dodgeStatus();
         break;
-      case EntityStatus.idle:
-        animation = entityAnimations[EntityStatus.idle];
 
-        break;
-      case EntityStatus.run:
-        animation = entityAnimations[EntityStatus.run];
-
-        break;
-      case EntityStatus.walk:
-        animation = entityAnimations[EntityStatus.walk];
-
-        break;
+      default:
     }
 
     if (!statusResult) return;
 
     ///If a temporary animation is playing, queue the animation
     if (!(spriteAnimationComponent.animation?.loop ?? true) &&
-        temporaryAnimationPlaying) {
-      statusQueue = newEntityStatus;
-      animationQueue = animation ?? entityAnimations[EntityStatus.idle];
+        temporaryAnimationPlaying &&
+        newEntityStatus != EntityStatus.dead) {
+      statusQueue = customAnimationKey ?? newEntityStatus;
     } else {
-      entityStatus = newEntityStatus;
-      spriteAnimationComponent.animation =
-          animation ?? entityAnimations[EntityStatus.idle];
+      entityStatus = customAnimationKey ?? newEntityStatus;
+      spriteAnimationComponent.current = entityStatus;
+      if (!(spriteAnimationComponent.animation?.loop ?? true) &&
+          newEntityStatus != EntityStatus.dead) {
+        temporaryAnimationPlaying = true;
+        spriteAnimationComponent.animationTicker?.onComplete = () {
+          spriteAnimationComponent.animationTicker?.reset();
+          tickerComplete();
+        };
+      }
     }
-
     if (!(spriteAnimationComponent.animation?.loop ?? false)) {
       await spriteAnimationComponent.animationTicker?.completed;
     }
@@ -299,10 +277,10 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   @override
   Future<void> onLoad() async {
-    spriteAnimationComponent = SpriteAnimationComponent(
-      size: Vector2.all(height.parameter),
-      anchor: Anchor.center,
-    );
+    spriteAnimationComponent = SpriteAnimationGroupComponent(
+        size: Vector2.all(height.parameter),
+        anchor: Anchor.center,
+        animations: entityAnimations);
     setEntityStatus(EntityStatus.spawn);
 
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,

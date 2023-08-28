@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/data_classes/base.dart';
@@ -114,6 +116,45 @@ abstract class Weapon extends Component with UpgradeFunctions {
     return null;
   }
 
+  SourceAttackLocation? sourceAttackLocation;
+
+  Vector2? get weaponTipPosition {
+    final weaponTip =
+        weaponAttachmentPoints[WeaponSpritePosition.hand]?.weaponTip;
+    if (weaponTip != null) {
+      return weaponTip.absolutePosition + entityAncestor!.center;
+    } else {
+      return ((entityAncestor!.handJoint.absolutePosition.normalized() *
+              weaponSize /
+              2) +
+          entityAncestor!.center);
+    }
+  }
+
+  Vector2 generateSourcePosition(SourceAttackLocation attackLocation,
+      [Vector2? delta]) {
+    Vector2 center = entityAncestor!.center;
+
+    switch (attackLocation) {
+      case SourceAttackLocation.mouse:
+        center += entityAncestor!.mouseJoint.position;
+        break;
+      case SourceAttackLocation.weaponTip:
+        center = weaponTipPosition ?? center;
+        break;
+      case SourceAttackLocation.weaponMid:
+        center +=
+            (delta!.normalized() * (distanceFromPlayer + (weaponSize / 2)));
+      case SourceAttackLocation.distanceFromPlayer:
+        center += entityAncestor!.handJoint.position.normalized() *
+            distanceFromPlayer;
+        break;
+      default:
+    }
+
+    return center;
+  }
+
   late String weaponId;
 
   ///String is the ID, for easy removal and addition
@@ -193,7 +234,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   FutureOr<WeaponSpriteAnimation> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint);
   abstract double distanceFromPlayer;
-  abstract double length;
+  abstract double weaponSize;
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent>
       weaponAttachmentPoints = {};
   bool removeSpriteOnAttack = false;
@@ -305,38 +346,39 @@ abstract class EnemyWeapon extends Weapon
 ///
 ///Based on the current action of the weapon, this will display different kinds
 ///of animations.
-class WeaponSpriteAnimation extends SpriteAnimationComponent {
+class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   WeaponSpriteAnimation(this.spriteOffset, this.tipOffset,
       {required this.weaponAnimations,
       required this.weapon,
       this.flashSize = 2.0,
       this.idleOnly = false,
       required this.parentJoint}) {
-    animation = weaponAnimations[WeaponStatus.idle];
+    animations = weaponAnimations;
+    current = WeaponStatus.idle;
     anchor = Anchor.topCenter;
-    size = animation!.frames.first.sprite.srcSize
-        .scaled(weapon.length / animation!.frames.first.sprite.srcSize.y);
+    size.scaleTo(weapon.weaponSize);
+
     priority = attackPriority;
     position = spriteOffset;
+    setWeaponStatus(WeaponStatus.spawn);
   }
 
   Vector2 spriteOffset;
   Vector2 tipOffset;
   Weapon weapon;
   double flashSize;
-  WeaponStatus currentStatus = WeaponStatus.idle;
+  WeaponStatus currentStatus = WeaponStatus.spawn;
 
   Map<dynamic, SpriteAnimation> weaponAnimations;
 
   PlayerAttachmentJointComponent? parentJoint;
   bool idleOnly;
   WeaponStatus? statusQueue;
-  SpriteAnimation? animationQueue;
 
   bool tempAnimationPlaying = false;
 
-  void applyAnimation(SpriteAnimation? animation) {
-    this.animation = animation?.clone();
+  void applyAnimation(dynamic key) {
+    current = key;
     initTicker();
   }
 
@@ -347,8 +389,11 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
 
   void tickerComplete() {
     tempAnimationPlaying = false;
-    currentStatus = statusQueue ?? currentStatus;
-    animation = animationQueue ?? weaponAnimations[WeaponStatus.idle];
+    currentStatus = statusQueue ?? WeaponStatus.idle;
+    animationTicker?.reset();
+    current = currentStatus;
+    statusQueue = null;
+    // current = animationQueue ?? weaponAnimations[WeaponStatus.idle];
   }
 
   SpriteAnimationComponent? muzzleFlashComponent;
@@ -379,24 +424,26 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
     };
   }
 
-  @override
-  void update(double dt) {
-    if (!isAnimationPlaying) {
-      setWeaponStatus(WeaponStatus.idle);
-    }
-    super.update(dt);
-  }
+  // @override
+  // void update(double dt) {
+  //   if (!isAnimationPlaying) {
+  //     setWeaponStatus(WeaponStatus.idle);
+  //   }
+  //   super.update(dt);
+  // }
 
   bool get isAnimationPlaying => !(animationTicker?.done() ?? true);
 
   Future<void> weaponCharging() async {
     if (!weaponAnimations.containsKey(WeaponStatus.charge)) return;
     double chargeDuration = weapon.attackTickRate.parameter;
-    final chargeAnim = weaponAnimations[WeaponStatus.charge]!;
-    applyAnimation(
-        chargeAnim..stepTime = (chargeDuration / chargeAnim.frames.length));
+    final length = weaponAnimations[WeaponStatus.charge]!.frames.length;
 
-    animationQueue = weaponAnimations[WeaponStatus.chargeIdle];
+    weaponAnimations[WeaponStatus.charge]?.stepTime = (chargeDuration / length);
+
+    applyAnimation(WeaponStatus.charge);
+
+    statusQueue = WeaponStatus.chargeIdle;
   }
 
   Future<void> setWeaponStatus(WeaponStatus newWeaponStatus,
@@ -409,9 +456,9 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
 
     if (tempAnimationPlaying) {
       statusQueue = newWeaponStatus;
-      animationQueue = newAnimation ?? weaponAnimations[WeaponStatus.idle];
+      // animationQueue = newAnimation ?? weaponAnimations[WeaponStatus.idle];
     } else {
-      animationQueue = null;
+      // animationQueue = null;
       currentStatus = newWeaponStatus;
     }
 
@@ -419,34 +466,36 @@ class WeaponSpriteAnimation extends SpriteAnimationComponent {
       switch (newWeaponStatus) {
         case WeaponStatus.spawn:
           assert(!newAnimation.loop, "Temp animations must not loop");
-          applyAnimation(newAnimation);
-
+          break;
+        case WeaponStatus.dead:
+          assert(!newAnimation.loop, "Temp animations must not loop");
           break;
         case WeaponStatus.attack:
           addMuzzleFlash();
           assert(!newAnimation.loop, "Temp animations must not loop");
-          applyAnimation(newAnimation);
           break;
         case WeaponStatus.reload:
           if (weapon is! ReloadFunctionality) break;
-
           assert(!newAnimation.loop, "Temp animations must not loop");
-          newAnimation.stepTime =
+          weaponAnimations[WeaponStatus.reload]?.stepTime =
               (weapon as ReloadFunctionality).reloadTime.parameter /
                   newAnimation.frames.length;
-          applyAnimation(newAnimation);
-
           break;
-        case WeaponStatus.idle:
-          animation = newAnimation;
 
-          break;
         case WeaponStatus.charge:
           await weaponCharging();
-
           break;
         default:
-          animation = newAnimation;
+      }
+      applyAnimation(newWeaponStatus);
+    } else {
+      if (newWeaponStatus == WeaponStatus.dead) {
+        final duration = weapon.attackTickRate.baseParameter / 3;
+        add(OpacityEffect.fadeOut(EffectController(
+          duration: duration,
+          curve: Curves.easeOut,
+        )));
+        await Future.delayed(duration.seconds);
       }
     }
 

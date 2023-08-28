@@ -15,7 +15,7 @@ import '../entities/entity_class.dart';
 import '../player/player.dart';
 import '../game/background.dart';
 import '../game/enviroment.dart';
-import '../game/mushroom_garden_game.dart';
+import '../game/hexed_forest_game.dart';
 import '../game/menu_game.dart';
 import '../weapons/enemy_weapons.dart';
 import '../weapons/projectiles.dart';
@@ -27,6 +27,16 @@ enum AudioType {
   music,
   voice,
   ui,
+}
+
+enum SourceAttackLocation {
+  body,
+  weaponTip,
+  weaponMid,
+  distanceFromPlayer,
+  mouse,
+  closestEnemyToMouse,
+  closestEnemyToPlayer,
 }
 
 enum EnemyType {
@@ -127,7 +137,7 @@ enum EntityStatus {
   attack
 }
 
-enum WeaponStatus { attack, reload, charge, spawn, idle, chargeIdle, die }
+enum WeaponStatus { attack, reload, charge, spawn, idle, chargeIdle, dead }
 
 enum JoystickDirection {
   up,
@@ -165,7 +175,7 @@ extension CharacterTypeUnlockCost on CharacterType {
   }
 }
 
-enum GameLevel { mushroomForest, dungeon, graveyard, menu }
+enum GameLevel { hexedForest, dungeon, graveyard, menu }
 
 enum GameDifficulty { quick, regular, hard, chaos }
 
@@ -196,7 +206,7 @@ extension GameDifficultyExtension on GameDifficulty {
       case GameDifficulty.regular:
         return Colors.transparent;
       case GameDifficulty.hard:
-        return ApolloColorPalette.red.color;
+        return ApolloColorPalette.mediumRed.color;
       case GameDifficulty.chaos:
         return ApolloColorPalette.purple.color;
     }
@@ -237,12 +247,12 @@ extension CharacterTypeExtension on CharacterType {
 extension GameLevelExtension on GameLevel {
   Color get levelColor {
     switch (this) {
-      case GameLevel.mushroomForest:
-        return const Color.fromARGB(255, 117, 219, 156);
+      case GameLevel.hexedForest:
+        return ApolloColorPalette.blue.color;
       case GameLevel.dungeon:
-        return const Color.fromARGB(255, 102, 98, 98);
+        return ApolloColorPalette.paleGray.color;
       case GameLevel.graveyard:
-        return const Color.fromARGB(255, 188, 192, 207);
+        return ApolloColorPalette.extraLightGray.color;
       default:
         return Colors.green;
     }
@@ -250,20 +260,20 @@ extension GameLevelExtension on GameLevel {
 
   String get levelImage {
     switch (this) {
-      case GameLevel.mushroomForest:
-        return 'assets/images/background/mushroom_garden.png';
+      case GameLevel.hexedForest:
+        return 'assets/images/background/hexed_forest_display.png';
       case GameLevel.dungeon:
         return 'assets/images/background/dungeon.png';
       case GameLevel.graveyard:
         return 'assets/images/background/graveyard.jpg';
       default:
-        return 'assets/images/background/mushroom_garden.png';
+        return 'assets/images/background/hexed_forest_display.png';
     }
   }
 
   Enviroment buildEnvrioment() {
     switch (this) {
-      case GameLevel.mushroomForest:
+      case GameLevel.hexedForest:
         return ForestGame();
       // case GameLevel.dungeon:
       // return DungeonGame(gameDifficulty);
@@ -282,12 +292,12 @@ extension GameLevelExtension on GameLevel {
     switch (this) {
       // case GameLevel.space:
       //   return ForestBackground(gameRef);
-      case GameLevel.mushroomForest:
-        return ForestBackground(gameRef);
+      case GameLevel.hexedForest:
+        return HexedForestBackground(gameRef);
       case GameLevel.menu:
         return BlankBackground(gameRef);
       default:
-        return ForestBackground(gameRef);
+        return HexedForestBackground(gameRef);
     }
   }
 }
@@ -416,16 +426,18 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 }
 
 enum WeaponType {
-  pistol('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  longRangeRifle(
+  crystalPistol(
       'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  assaultRifle(
+  scryshot('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  arcaneBlaster(
       'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  laserRifle('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  railgun('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  rocketLauncher(
+  prismaticBeam(
       'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  shotgun('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 500),
+  railspire('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  eldritchRunner(
+      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+  scatterCaster(
+      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 500),
   energySword(
       'assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
@@ -458,28 +470,28 @@ extension WeaponTypeFilename on WeaponType {
         0;
 
     switch (this) {
-      case WeaponType.pistol:
+      case WeaponType.crystalPistol:
         returnWeapon = Pistol(upgradeLevel, ancestor);
         break;
-      case WeaponType.shotgun:
+      case WeaponType.scatterCaster:
         returnWeapon = Shotgun(upgradeLevel, ancestor);
         break;
-      case WeaponType.railgun:
+      case WeaponType.railspire:
         returnWeapon = Railgun(upgradeLevel, ancestor);
         break;
       case WeaponType.blankProjectileWeapon:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
         break;
-      case WeaponType.assaultRifle:
+      case WeaponType.arcaneBlaster:
         returnWeapon = AssaultRifle(upgradeLevel, ancestor);
         break;
-      case WeaponType.longRangeRifle:
+      case WeaponType.scryshot:
         returnWeapon = LongRangeRifle(upgradeLevel, ancestor);
         break;
-      case WeaponType.rocketLauncher:
+      case WeaponType.eldritchRunner:
         returnWeapon = RocketLauncher(upgradeLevel, ancestor);
         break;
-      case WeaponType.laserRifle:
+      case WeaponType.prismaticBeam:
         returnWeapon = LaserRifle(upgradeLevel, ancestor);
         break;
 
@@ -517,28 +529,28 @@ extension WeaponTypeFilename on WeaponType {
     Weapon? returnWeapon;
 
     switch (this) {
-      case WeaponType.pistol:
+      case WeaponType.crystalPistol:
         returnWeapon = Pistol(upgradeLevel, null);
         break;
-      case WeaponType.shotgun:
+      case WeaponType.scatterCaster:
         returnWeapon = Shotgun(upgradeLevel, null);
         break;
-      case WeaponType.railgun:
+      case WeaponType.railspire:
         returnWeapon = Railgun(upgradeLevel, null);
         break;
       case WeaponType.blankProjectileWeapon:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, null);
         break;
-      case WeaponType.assaultRifle:
+      case WeaponType.arcaneBlaster:
         returnWeapon = AssaultRifle(upgradeLevel, null);
         break;
-      case WeaponType.longRangeRifle:
+      case WeaponType.scryshot:
         returnWeapon = LongRangeRifle(upgradeLevel, null);
         break;
-      case WeaponType.rocketLauncher:
+      case WeaponType.eldritchRunner:
         returnWeapon = RocketLauncher(upgradeLevel, null);
         break;
-      case WeaponType.laserRifle:
+      case WeaponType.prismaticBeam:
         returnWeapon = LaserRifle(upgradeLevel, null);
         break;
 
@@ -572,17 +584,17 @@ extension DamageTypeExtension on DamageType {
       case DamageType.physical:
         return Colors.white;
       case DamageType.energy:
-        return const Color.fromARGB(255, 247, 255, 199);
+        return ApolloColorPalette.yellow.color;
       case DamageType.psychic:
-        return Colors.purple;
+        return ApolloColorPalette.purple.color;
       case DamageType.magic:
-        return Colors.blue;
+        return ApolloColorPalette.lightBlue.color;
       case DamageType.fire:
-        return Colors.orange;
+        return ApolloColorPalette.orange.color;
       case DamageType.frost:
-        return const Color.fromARGB(255, 170, 233, 248);
+        return ApolloColorPalette.lightCyan.color;
       case DamageType.healing:
-        return const Color.fromARGB(255, 0, 197, 16);
+        return ApolloColorPalette.lightGreen.color;
     }
   }
 }

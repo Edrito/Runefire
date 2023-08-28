@@ -7,6 +7,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/contacts/contact.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/player/player.dart';
+import 'package:game_app/resources/data_classes/base.dart';
+import 'package:game_app/resources/functions/custom_mixins.dart';
 
 import '../resources/enums.dart';
 import '../entities/child_entities.dart';
@@ -16,6 +19,7 @@ import '../resources/visuals.dart';
 
 mixin AttributeFunctionality on Entity {
   Map<AttributeType, Attribute> currentAttributes = {};
+
   Random rng = Random();
 
   void loadPlayerConfig(Map<String, dynamic> config) {}
@@ -25,11 +29,15 @@ mixin AttributeFunctionality on Entity {
   ///i.e. Max Speed : Level 3
   void initAttributes(Map<AttributeType, int> attributesToAdd) {
     if (initalized) return;
-    for (var element in attributesToAdd.entries) {
-      currentAttributes[element.key] = element.key
-          .buildAttribute(element.value, this, perpetratorEntity: this)
+    List<AttributeType> attributeTypes = attributesToAdd.keys.toList();
+    attributeTypes.sort((a, b) => a.priority.compareTo(b.priority));
+    for (var element in attributeTypes) {
+      currentAttributes[element] = element.buildAttribute(
+          attributesToAdd[element]!, this,
+          perpetratorEntity: this)
         ..applyUpgrade();
     }
+
     initalized = true;
   }
 
@@ -80,6 +88,10 @@ mixin AttributeFunctionality on Entity {
         tempList.add(element);
       }
     }
+
+    tempList.sort(
+        (a, b) => a.attributeType.priority.compareTo(b.attributeType.priority));
+
     for (var element in tempList) {
       element.mapUpgrade();
     }
@@ -92,14 +104,63 @@ mixin AttributeFunctionality on Entity {
     }
   }
 
-  List<Attribute> buildAttributeSelection() {
+  List<Attribute> buildAttributeSelection(Player player) {
     List<Attribute> returnList = [];
-    final potentialCandidates = AttributeType.values
-        .where((element) => element.territory == AttributeTerritory.game)
-        .toList();
-    for (var i = 0; i < 3; i++) {
-      final attr = potentialCandidates
-          .elementAt(rng.nextInt(potentialCandidates.length));
+
+    int attempts = 0;
+
+    while (returnList.length < 3 && attempts < 1000) {
+      attempts++;
+
+      final potentialCandidates = AttributeType.values
+          .where((element) =>
+              element.territory == AttributeTerritory.game &&
+              player.currentAttributes[element]?.isMaxLevel != true &&
+              !returnList
+                  .any((elementD) => elementD.attributeType == element) &&
+              element.attributeEligibilityTest(player))
+          .toList();
+
+      Map<AttributeRarity, double> weightings = {};
+      Map<AttributeRarity, int> rarityAmounts = {
+        for (var e in potentialCandidates)
+          e.rarity: potentialCandidates
+              .where((element) => element.rarity == e.rarity)
+              .length
+      };
+
+      for (var element in rarityAmounts.entries) {
+        weightings[element.key] = (element.value / potentialCandidates.length) *
+            element.key.weighting;
+      }
+
+      final totalWeighting =
+          weightings.values.reduce((value, element) => value + element);
+      final increase = 1 / totalWeighting;
+      for (var element in weightings.entries) {
+        weightings[element.key] = element.value * increase;
+      }
+
+      final weightList = weightings.values.toList();
+      weightList.sort();
+
+      final random = rng.nextDouble();
+      AttributeRarity rarity = AttributeRarity.standard;
+      for (var element in weightList) {
+        if (random < element) {
+          rarity =
+              weightings.keys.firstWhere((key) => weightings[key] == element);
+          break;
+        }
+      }
+
+      final tempPotentialCandidates =
+          potentialCandidates.where((element) => element.rarity == rarity);
+
+      if (tempPotentialCandidates.isEmpty) continue;
+
+      final attr = tempPotentialCandidates
+          .elementAt(rng.nextInt(tempPotentialCandidates.length));
 
       if (currentAttributes.containsKey(attr)) {
         returnList.add(currentAttributes[attr]!);
@@ -107,6 +168,7 @@ mixin AttributeFunctionality on Entity {
         returnList.add(attr.buildAttribute(0, this));
       }
     }
+
     return returnList;
   }
 
@@ -245,7 +307,9 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
 
   final List<Function> _pulseFunctions = [];
   TimerComponent? pulseTimer;
-  final pulsePeriod = 1.0;
+
+  DoubleParameterManager pulsePeriod =
+      DoubleParameterManager(baseParameter: 3, minParameter: 0.5);
   bool finishPulseTimer = false;
 
   void _checkFinishTimer() {
@@ -258,7 +322,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
 
   void addPulseFunction(Function function) {
     pulseTimer ??= TimerComponent(
-        period: pulsePeriod,
+        period: pulsePeriod.parameter,
         repeat: true,
         onTick: () async {
           _checkFinishTimer();

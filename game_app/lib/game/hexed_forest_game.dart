@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/parallax.dart';
+import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/cupertino.dart';
 import '../test.dart';
 import 'event_management.dart';
@@ -36,11 +37,11 @@ class ForestGame extends GameEnviroment {
   }
 
   @override
-  GameLevel level = GameLevel.mushroomForest;
+  GameLevel level = GameLevel.hexedForest;
 }
 
-class ForestBackground extends BackgroundComponent {
-  ForestBackground(super.gameRef);
+class HexedForestBackground extends BackgroundComponent {
+  HexedForestBackground(super.gameRef);
 
   @override
   FutureOr<void> onLoad() async {

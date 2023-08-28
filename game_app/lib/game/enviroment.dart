@@ -37,7 +37,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   int children2 = 0;
   void printChildren(var children) {
     for (Component element in children) {
-      print(element);
+      // print(element);
       children2++;
       printChildren(element.children);
     }
@@ -103,6 +103,11 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     super.onRemove();
   }
 
+  void initializeWorld() {
+    gameWorld = World();
+    gameWorld.priority = worldPriority;
+  }
+
   bool discernJoystate(int id, Vector2 eventPosition) {
     inputIdStates[id] = InputType.mouseDrag;
     return false;
@@ -113,15 +118,13 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     children.register<CameraComponent>();
     priority = worldPriority;
     //World
-    gameWorld = World();
-    gameWorld.priority = worldPriority;
-
+    initializeWorld();
+    super.add(gameWorld);
     //Camera
     gameCamera = CameraComponent(world: gameWorld);
     gameCamera.priority = -50000;
     gameCamera.viewfinder.zoom = 75;
     super.add(gameCamera);
-    super.add(gameWorld);
     // gameCamera.viewfinder.angle = radians(180);
     //Physics
     physicsComponent = Forge2DComponent();
@@ -146,6 +149,7 @@ abstract class GameEnviroment extends Enviroment
         PauseOnFocusLost,
         BoundsFunctionality,
         GameTimerFunctionality,
+        CollisionEnviroment,
         HudFunctionality {
   late final GameDifficulty difficulty;
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
@@ -218,8 +220,16 @@ mixin MovementFunctionality on Entity {
     spriteFlipCheck();
 
     // body.setTransform(center + (pulse * speed.parameter), 0);
-    body.applyForce(pulse * speed.parameter);
-    gameEnviroment.test.position += pulse * speed.parameter;
+    if (isPlayer) {
+      body.applyForce(pulse *
+          speed.parameter *
+          ((this as Player).isDisplay
+              ? center.distanceTo(Vector2.zero()).clamp(0, 1)
+              : 1));
+    } else {
+      body.applyForce(pulse * speed.parameter);
+    }
+    // gameEnviroment.test.position += pulse * speed.parameter;
     moveFunctionsCall();
     setEntityStatus(EntityStatus.run);
   }
@@ -330,7 +340,8 @@ mixin AimFunctionality on Entity {
     if (isPlayer) {
       const distance = 7.5;
       distanceFactor = (Curves.easeInOutCubic.transform(
-                  (mouseJoint.position.normalize() / distance).clamp(0, 1)) *
+                  (mouseJoint.position.clone().normalize() / distance)
+                      .clamp(0, 1)) *
               distance)
           .clamp(0, distance)
           .toDouble();
@@ -354,13 +365,20 @@ mixin AimFunctionality on Entity {
     spriteFlipCheck();
 
     if (inputAimPositions.containsKey(InputType.mouseMove)) {
-      mouseJoint.position = inputAimPositions[InputType.mouseMove]!;
+      mouseJoint.position = inputAimPositions[InputType.mouseMove]!.clone();
     }
   }
 }
 
 mixin AttackFunctionality on AimFunctionality {
-  Weapon? get currentWeapon => carriedWeapons[weaponIndex];
+  Weapon? get currentWeapon {
+    if (!weaponsInitialized) {
+      initializeWeapons();
+    }
+
+    return carriedWeapons[weaponIndex];
+  }
+
   int weaponIndex = 0;
   void incrementWeaponIndex() {
     weaponIndex++;
@@ -381,7 +399,9 @@ mixin AttackFunctionality on AimFunctionality {
     return super.deadStatus();
   }
 
-  Future<void> initializeWeapons() async {
+  void initializeWeapons() {
+    weaponsInitialized = false;
+
     carriedWeapons.clear();
 
     if (isPlayer && !isChildEntity) {
@@ -400,15 +420,18 @@ mixin AttackFunctionality on AimFunctionality {
       }
     }
 
-    await setWeapon(currentWeapon!);
+    weaponsInitialized = true;
   }
 
+  bool weaponsInitialized = false;
+
   @override
-  void permanentlyDisableEntity() {
+  void permanentlyDisableEntity() async {
     endAttacking();
     endAltAttacking();
-    if (currentWeapon != null) {
-      for (var element in currentWeapon!.weaponAttachmentPoints.values) {
+    final weapon = currentWeapon;
+    if (weapon != null) {
+      for (var element in weapon.weaponAttachmentPoints.values) {
         element.weaponSpriteAnimation?.removeFromParent();
       }
     }
@@ -423,13 +446,13 @@ mixin AttackFunctionality on AimFunctionality {
     super.onRemove();
   }
 
-  void endAttacking() {
+  void endAttacking() async {
     if (!isAttacking) return;
     isAttacking = false;
     currentWeapon?.endAttacking();
   }
 
-  void endAltAttacking() {
+  void endAltAttacking() async {
     if (!isAltAttacking) return;
     isAltAttacking = false;
     currentWeapon?.endAltAttacking();
@@ -439,7 +462,16 @@ mixin AttackFunctionality on AimFunctionality {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    await initializeWeapons();
+    initializeWeapons();
+    final weapon = currentWeapon;
+    if (weapon != null) {
+      await setWeapon(weapon);
+    }
+
+    if (isPlayer && enviroment is GameEnviroment) {
+      gameEnviroment.hud.mounted.then(
+          (value) => gameEnviroment.hud.buildRemainingAmmoText(this as Player));
+    }
   }
 
   Future<void> setWeapon(Weapon weapon) async {
@@ -447,44 +479,45 @@ mixin AttackFunctionality on AimFunctionality {
     await mouseJoint.loaded
         .whenComplete(() => mouseJoint.addWeaponClass(weapon));
     await backJoint.loaded.whenComplete(() => backJoint.addWeaponClass(weapon));
+    if (enviroment is GameEnviroment && isPlayer) {
+      gameEnviroment.hud.toggleStaminaColor(weapon.weaponType.attackType);
+    }
   }
 
   void startAttacking() async {
     if (isAttacking || isDead) return;
     isAttacking = true;
-    currentWeapon?.startAttacking();
+    (currentWeapon)?.startAttacking();
   }
 
   void startAltAttacking() async {
     if (isAltAttacking) return;
     isAltAttacking = true;
-    currentWeapon?.startAltAttacking();
+    (currentWeapon)?.startAltAttacking();
   }
 
-  void swapWeapon() async {
+  Future<void> swapWeapon() async {
+    var weapon = currentWeapon;
     if (isAttacking) {
-      currentWeapon?.endAttacking();
+      weapon?.endAttacking();
     }
     if (isAltAttacking) {
-      currentWeapon?.endAltAttacking();
+      weapon?.endAltAttacking();
     }
-    currentWeapon?.weaponSwappedFrom();
+    weapon?.weaponSwappedFrom();
 
     incrementWeaponIndex();
-    await setWeapon(currentWeapon!);
+    weapon = currentWeapon;
 
-    currentWeapon?.weaponSwappedTo();
+    await setWeapon(weapon!);
 
-    if (enviroment is GameEnviroment) {
-      gameEnviroment.hud.toggleStaminaColor(
-          currentWeapon?.weaponType.attackType ?? AttackType.projectile);
-    }
+    weapon.weaponSwappedTo();
 
     if (isAttacking) {
-      currentWeapon?.startAttacking();
+      weapon.startAttacking();
     }
     if (isAltAttacking) {
-      currentWeapon?.startAltAttacking();
+      weapon.startAltAttacking();
     }
   }
 }
@@ -627,11 +660,6 @@ mixin HealthFunctionality on Entity {
     permanentlyDisableEntity();
     entityStatusWrapper.removeAllAnimations();
     temporaryAnimationPlaying = true;
-    final deadAnimation = entityAnimations[EntityStatus.dead];
-    if (deadAnimation != null) {
-      assert(!deadAnimation.loop, "Temp animations must not loop");
-      spriteAnimationComponent.animation = deadAnimation.clone();
-    }
 
     spriteAnimationComponent.add(OpacityEffect.fadeOut(
       EffectController(
@@ -671,11 +699,13 @@ mixin HealthFunctionality on Entity {
       color: color.brighten(.2),
     ));
     String damageString = "";
-    if (amount < 1) {
-      damageString = amount.toStringAsFixed(1);
-    } else {
-      damageString = amount.toStringAsFixed(0);
-    }
+    // if (amount < 1) {
+    //   damageString = amount.toStringAsFixed(1);
+    // } else {
+    //   damageString = amount.toStringAsFixed(0);
+    // }
+    damageString = amount.ceil().toString();
+
     if (damageType == DamageType.healing) {
       damageString = "+ $damageString";
     }
@@ -738,13 +768,6 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  @override
-  bool damageStatus() {
-    applyTempAnimation(entityAnimations[EntityStatus.damage]);
-
-    return super.damageStatus();
-  }
-
   void addDamageEffects(Color color) {
     final reversedController = EffectController(
       duration: .3,
@@ -782,10 +805,11 @@ mixin HealthFunctionality on Entity {
     addDamageEffects(largestEntry.key.color);
 
     damage.applyResistances(this);
-
     setEntityStatus(EntityStatus.damage);
     applyIFrameTimer(id);
+    applyHealing(damage);
     applyDamage(damage);
+
     applyKnockback(damage);
     deathChecker(damage);
     applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
@@ -831,6 +855,14 @@ mixin HealthFunctionality on Entity {
     damageTaken.clamp(0, maxHealth.parameter);
 
     damageInstancesRecieved.add(damage);
+  }
+
+  void applyHealing(DamageInstance damage) {
+    if (damage.damageMap.containsKey(DamageType.healing)) {
+      damageTaken -= damage.damageMap[DamageType.healing]!;
+      damageTaken.clamp(0, maxHealth.parameter);
+      damage.damageMap.remove(DamageType.healing);
+    }
   }
 
   ///Heal the attacker if they have the essence steal attribute
@@ -931,12 +963,6 @@ mixin DodgeFunctionality on HealthFunctionality {
   }
 
   late final DoubleParameterManager dodgeChance;
-
-  @override
-  bool dodgeStatus() {
-    applyTempAnimation(entityAnimations[EntityStatus.dodge]);
-    return super.dodgeStatus();
-  }
 
   void addDodgeText() {
     final test = TextPaint(
@@ -1149,10 +1175,10 @@ mixin DashFunctionality on StaminaFunctionality {
   @override
   bool dashStatus() {
     if (!dashCheck()) return false;
-    final dashAnimation = entityAnimations[EntityStatus.dash];
-    dashAnimation?.stepTime =
-        dashDuration.parameter / dashAnimation.frames.length * 2;
-    applyTempAnimation(dashAnimation);
+    final dashAnimation =
+        spriteAnimationComponent.animations?[EntityStatus.dash];
+    spriteAnimationComponent.animations?[EntityStatus.dash]?.stepTime =
+        dashDuration.parameter / (dashAnimation?.frames.length ?? 1) * 2;
     return super.dashStatus();
   }
 
@@ -1170,9 +1196,13 @@ mixin DashFunctionality on StaminaFunctionality {
     return true;
   }
 
-  void dashInit({double? power, bool weaponSource = false}) async {
+  bool triggerFunctions = true;
+  void dashInit(
+      {double? power,
+      bool weaponSource = false,
+      bool triggerFunctions = true}) async {
     if (!weaponSource) modifyStamina(-dashStaminaCost.parameter);
-
+    this.triggerFunctions = triggerFunctions;
     power ??= 1;
 
     applyGroundAnimation(
@@ -1220,7 +1250,9 @@ mixin DashFunctionality on StaminaFunctionality {
 
   void dashBeginFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
-    if (attr != null && attr.dashBeginFunctions.isNotEmpty) {
+    if (attr != null &&
+        attr.dashBeginFunctions.isNotEmpty &&
+        triggerFunctions) {
       for (var element in attr.dashBeginFunctions) {
         element();
       }
@@ -1229,7 +1261,7 @@ mixin DashFunctionality on StaminaFunctionality {
 
   void dashEndFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
-    if (attr != null && attr.dashEndFunctions.isNotEmpty) {
+    if (attr != null && attr.dashEndFunctions.isNotEmpty && triggerFunctions) {
       for (var element in attr.dashEndFunctions) {
         element();
       }
@@ -1238,7 +1270,9 @@ mixin DashFunctionality on StaminaFunctionality {
 
   void dashOngoingFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
-    if (attr != null && attr.dashOngoingFunctions.isNotEmpty) {
+    if (attr != null &&
+        attr.dashOngoingFunctions.isNotEmpty &&
+        triggerFunctions) {
       for (var element in attr.dashOngoingFunctions) {
         element();
       }
@@ -1345,11 +1379,12 @@ mixin JumpFunctionality on Entity {
   @override
   bool jumpStatus() {
     if (!jumpCheck()) return false;
-    final jumpAnimation = entityAnimations[EntityStatus.jump];
 
-    jumpAnimation?.stepTime =
-        jumpDuration.parameter / jumpAnimation.frames.length;
-    applyTempAnimation(jumpAnimation);
+    final jumpAnimation =
+        spriteAnimationComponent.animations?[EntityStatus.jump];
+
+    spriteAnimationComponent.animations?[EntityStatus.jump]?.stepTime =
+        jumpDuration.parameter / (jumpAnimation?.frames.length ?? 1);
 
     return super.jumpStatus();
   }

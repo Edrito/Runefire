@@ -205,6 +205,10 @@ mixin MeleeFunctionality on Weapon {
   int currentAttackIndex = 0;
 
   @override
+  SourceAttackLocation? sourceAttackLocation =
+      SourceAttackLocation.distanceFromPlayer;
+
+  @override
   FutureOr<void> onLoad() {
     if (this is ReloadFunctionality) {
       (this as ReloadFunctionality).maxAttacks.baseParameter = numberOfAttacks;
@@ -222,9 +226,11 @@ mixin MeleeFunctionality on Weapon {
 
     for (var deltaDirection in temp) {
       returnList.add(MeleeAttackHandler(
-        initPosition: entityAncestor!.handJoint.position.normalized() *
-            distanceFromPlayer,
+        initPosition: generateSourcePosition(sourceAttackLocation!),
         initAngle: deltaDirection,
+        attachmentPoint: sourceAttackLocation != SourceAttackLocation.mouse
+            ? entityAncestor
+            : null,
         currentAttack: meleeAttacks[indexUsed],
         weaponAncestor: this,
       ));
@@ -266,13 +272,10 @@ mixin MeleeFunctionality on Weapon {
     attackOnAnimationFinish
         ? await setWeaponStatus(WeaponStatus.attack)
         : setWeaponStatus(WeaponStatus.attack);
-
-    attackOnAnimationFinish
-        ? await entityAncestor?.setEntityStatus(EntityStatus.attack,
-            customAnimation:
-                meleeAttacks[currentAttackIndex].entitySpriteAnimation)
-        : entityAncestor?.setEntityStatus(EntityStatus.attack,
-            customAnimation: currentAttack?.entitySpriteAnimation);
+    final future = entityAncestor?.setEntityStatus(EntityStatus.attack,
+        customAnimationKey:
+            meleeAttacks.indexWhere((element) => element == currentAttack));
+    attackOnAnimationFinish ? await future : future;
     super.attackAttempt(holdDurationPercent);
   }
 
@@ -363,6 +366,10 @@ mixin ProjectileFunctionality on Weapon {
     super.attackAttempt(holdDurationPercent);
   }
 
+  @override
+  SourceAttackLocation? get sourceAttackLocation =>
+      super.sourceAttackLocation ?? SourceAttackLocation.weaponTip;
+
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
 
   void shootProjectile([double chargeAmount = 1]) {
@@ -414,19 +421,6 @@ mixin ProjectileFunctionality on Weapon {
         entityAncestor!.center;
   }
 
-  Vector2? get weaponTipPosition {
-    final weaponTip =
-        weaponAttachmentPoints[WeaponSpritePosition.hand]?.weaponTip;
-    if (weaponTip != null) {
-      return weaponTip.absolutePosition + entityAncestor!.center;
-    } else {
-      return ((entityAncestor!.handJoint.absolutePosition.normalized() *
-              length /
-              2) +
-          entityAncestor!.center);
-    }
-  }
-
   List<BodyComponent> generateProjectileFunction([double chargeAmount = 1]) {
     List<BodyComponent> returnList = [];
 
@@ -440,22 +434,9 @@ mixin ProjectileFunctionality on Weapon {
       final delta = (randomizeVector2Delta(
           deltaDirection, weaponRandomnessPercent.parameter));
 
-      final Vector2 originPosition;
-
-      if (weaponType.attackType == AttackType.melee && !originateFromCenter) {
-        originPosition =
-            (delta.normalized() * (distanceFromPlayer + (length / 2))) +
-                entityAncestor!.center;
-      } else if (weaponType.attackType == AttackType.projectile &&
-          !originateFromCenter) {
-        originPosition = weaponTipPosition ?? Vector2.zero();
-      } else {
-        originPosition = entityAncestor!.center;
-      }
-
       returnList.add(projectileType!.generateProjectile(
           delta: delta,
-          originPositionVar: originPosition,
+          originPositionVar: generateSourcePosition(sourceAttackLocation!),
           ancestorVar: this,
           chargeAmount: chargeAmount));
     }

@@ -6,8 +6,10 @@ import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/menus/buttons.dart';
 import 'package:game_app/menus/menus.dart';
 import 'package:game_app/menus/pause_menu.dart';
+import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
+import 'package:recase/recase.dart';
 
 import '../attributes/attributes_structure.dart';
 import '../main.dart';
@@ -144,22 +146,21 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
           .first
           .player;
   const double loadInDuration = .2;
-  currentSelection ??= player?.buildAttributeSelection();
+  currentSelection ??= player?.buildAttributeSelection(player);
 
   List<CustomCard> selection = [];
   late CustomCard xpCard;
   const exitAnimationDuration = .2;
 
   for (var element in currentSelection ?? List<Attribute>.from([])) {
-    CustomCard card = element.buildWidget(onTap: () {
+    CustomCard card = element.buildWidget(onTap: (damageType) {
       setState(() {
         ignoring = true;
+        player?.addAttribute(element.attributeType, damageType: damageType);
       });
     }, onTapComplete: () {
       gameRouter.resumeEngine();
-      player?.addAttribute(
-        element.attributeType,
-      );
+
       Future.delayed(exitAnimationDuration.seconds).then((value) => {
             gameRouter.gameStateComponent.gameState.resumeGame(),
             currentSelection = null
@@ -171,16 +172,16 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
   final xpAttribute = player!.buildXpAttribute();
 
   xpCard = xpAttribute.buildWidget(
-      onTap: () {
+      onTap: (damageType) {
         setState(() {
+          player.addAttribute(xpAttribute.attributeType,
+              damageType: damageType);
           ignoring = true;
         });
       },
       onTapComplete: () {
         gameRouter.resumeEngine();
-        player.addAttribute(
-          xpAttribute.attributeType,
-        );
+
         Future.delayed(exitAnimationDuration.seconds).then((value) => {
               gameRouter.gameStateComponent.gameState.resumeGame(),
               currentSelection = null
@@ -257,3 +258,47 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
     ),
   );
 });
+
+class DamageTypeSelector extends StatefulWidget {
+  const DamageTypeSelector(this.damageTypes, this.selectDamageType,
+      {super.key});
+  final Set<DamageType> damageTypes;
+  final Function(DamageType) selectDamageType;
+  @override
+  State<DamageTypeSelector> createState() => _DamageTypeSelectorState();
+}
+
+class _DamageTypeSelectorState extends State<DamageTypeSelector> {
+  Map<DamageType, bool> hoveredDamageTypes = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var damageType in widget.damageTypes)
+          Expanded(
+            child: InkWell(
+              onHover: (value) {
+                setState(() {
+                  hoveredDamageTypes[damageType] = value;
+                });
+              },
+              onTap: () {
+                widget.selectDamageType(damageType);
+              },
+              child: Container(
+                color: hoveredDamageTypes[damageType] ?? false
+                    ? Colors.white
+                    : damageType.color,
+                child: Center(
+                    child: Text(
+                  damageType.name.titleCase,
+                  style: defaultStyle.copyWith(fontSize: 12),
+                )),
+              ),
+            ),
+          )
+      ],
+    );
+  }
+}

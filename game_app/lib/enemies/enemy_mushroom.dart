@@ -333,8 +333,7 @@ class MushroomSpinner extends Enemy
       //Walking
       0: EnemyState(this, priority: 0, randomFunctions: [], onStateStart: () {
         if (initState) {
-          setEntityStatus(EntityStatus.custom,
-              customAnimation: entityAnimations["spin_end"]);
+          setEntityStatus(EntityStatus.custom, customAnimationKey: "spin_end");
         } else {
           initState = true;
         }
@@ -347,8 +346,7 @@ class MushroomSpinner extends Enemy
           priority: 5,
           randomFunctions: [],
           stateDuration: (spinDuration, spinDuration * 1.5), onStateStart: () {
-        setEntityStatus(EntityStatus.custom,
-            customAnimation: entityAnimations["spin_start"]);
+        setEntityStatus(EntityStatus.custom, customAnimationKey: "spin_start");
         toggleIdleRunAnimations(true);
         speed.baseParameter = .05;
         for (var i = 1; i < 4; i++) {
@@ -466,8 +464,7 @@ class MushroomBurrower extends Enemy
       //Out
       0: EnemyState(this, priority: 0, randomFunctions: [], onStateStart: () {
         if (initState) {
-          setEntityStatus(EntityStatus.custom,
-                  customAnimation: entityAnimations["burrow_out"])
+          setEntityStatus(EntityStatus.custom, customAnimationKey: "burrow_out")
               .then((value) => setEntityStatus(EntityStatus.idle));
           body.setTransform(
               SpawnLocation.onPlayer.grabNewPosition(gameEnviroment), angle);
@@ -498,8 +495,7 @@ class MushroomBurrower extends Enemy
           randomFunctions: [],
           stateDuration: (groundDuration, groundDuration * 1.5),
           onStateStart: () {
-        setEntityStatus(EntityStatus.custom,
-                customAnimation: entityAnimations["burrow_in"])
+        setEntityStatus(EntityStatus.custom, customAnimationKey: "burrow_in")
             .then((value) => setEntityStatus(EntityStatus.idle));
         toggleIdleRunAnimations(true);
         touchDamage.damageBase.clear();

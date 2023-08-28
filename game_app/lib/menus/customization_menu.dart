@@ -197,11 +197,14 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
   @override
   void initState() {
     super.initState();
+
     playerDataComponent = widget.gameRef.playerDataComponent;
+
     // playerDataNotifier =
     //     widget.gameRef.componentsNotifier<PlayerDataComponent>();
 
     // playerDataNotifier.addListener(onPlayerDataNotification);
+
     playerData = playerDataComponent.dataObject;
 
     WeaponType? selectedWeapon =
@@ -210,8 +213,9 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
       if (selectedWeapon?.attackType == element) {
         selectedWeapons[element] = (selectedWeapon!);
       } else {
-        selectedWeapons[element] = (WeaponType.values
-            .firstWhere((elementD) => elementD.attackType == element));
+        selectedWeapons[element] = (WeaponType.values.firstWhere((elementD) =>
+            elementD.attackType == element &&
+            playerData.availableWeapons.contains(elementD)));
       }
     }
 
@@ -230,7 +234,9 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
     bool isSecondary = attackType == null;
     int currentIndex = -1;
     final attackTypeWeapons = WeaponType.values
-        .where((element) => element.attackType == attackType)
+        .where((element) =>
+            element.attackType == attackType &&
+            playerData.availableWeapons.contains(element))
         .toList();
     if (isSecondary) {
       currentIndex = SecondaryType.values.indexOf(selectedSecondary!);
@@ -610,6 +616,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
           right: 0,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: Padding(

@@ -27,7 +27,7 @@ class Pistol extends PlayerWeapon
   }
 
   @override
-  WeaponType weaponType = WeaponType.pistol;
+  WeaponType weaponType = WeaponType.crystalPistol;
 
   @override
   void mapUpgrade() {
@@ -78,7 +78,7 @@ class Pistol extends PlayerWeapon
   }
 
   @override
-  double length = 1.356;
+  double weaponSize = 1.356;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -96,7 +96,7 @@ class Shotgun extends PlayerWeapon
     baseAttackCount.baseParameter = 4;
   }
   @override
-  WeaponType weaponType = WeaponType.shotgun;
+  WeaponType weaponType = WeaponType.scatterCaster;
 
   @override
   void mapUpgrade() {
@@ -139,7 +139,7 @@ class Shotgun extends PlayerWeapon
   ];
 
   @override
-  double length = 2;
+  double weaponSize = 2;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -162,7 +162,7 @@ class LongRangeRifle extends PlayerWeapon
     pierce.baseParameter = 5;
   }
   @override
-  WeaponType weaponType = WeaponType.longRangeRifle;
+  WeaponType weaponType = WeaponType.scryshot;
 
   @override
   void mapUpgrade() {
@@ -215,7 +215,7 @@ class LongRangeRifle extends PlayerWeapon
   ];
 
   @override
-  double length = 3.0;
+  double weaponSize = 3.0;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -238,7 +238,7 @@ class AssaultRifle extends PlayerWeapon
     projectileVelocity.baseParameter = 40;
   }
   @override
-  WeaponType weaponType = WeaponType.assaultRifle;
+  WeaponType weaponType = WeaponType.arcaneBlaster;
 
   @override
   void mapUpgrade() {
@@ -281,7 +281,7 @@ class AssaultRifle extends PlayerWeapon
   ];
 
   @override
-  double length = 1.4;
+  double weaponSize = 1.4;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
@@ -298,6 +298,11 @@ class LaserRifle extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.energy] = (5, 12);
+    baseDamage.damageBase[DamageType.fire] = (5, 12);
+    baseDamage.damageBase[DamageType.frost] = (5, 12);
+    baseDamage.damageBase[DamageType.psychic] = (5, 12);
+    baseDamage.damageBase[DamageType.magic] = (5, 12);
+    baseDamage.damageBase[DamageType.healing] = (5, 12);
     maxAttacks.baseParameter = 12;
     attackTickRate.baseParameter = .4;
     waitForAttackRate = false;
@@ -306,7 +311,7 @@ class LaserRifle extends PlayerWeapon
     baseAttackCount.baseParameter = 5;
   }
   @override
-  WeaponType weaponType = WeaponType.laserRifle;
+  WeaponType weaponType = WeaponType.prismaticBeam;
 
   @override
   void mapUpgrade() {
@@ -349,7 +354,7 @@ class LaserRifle extends PlayerWeapon
   ];
 
   @override
-  double length = 1.4;
+  double weaponSize = 1.4;
 
   @override
   ProjectileType? projectileType = ProjectileType.laser;
@@ -372,7 +377,7 @@ class RocketLauncher extends PlayerWeapon
     attackTickRate.baseParameter = 2;
   }
   @override
-  WeaponType weaponType = WeaponType.rocketLauncher;
+  WeaponType weaponType = WeaponType.eldritchRunner;
 
   @override
   void mapUpgrade() {
@@ -415,7 +420,7 @@ class RocketLauncher extends PlayerWeapon
   ];
 
   @override
-  double length = 1.7;
+  double weaponSize = 1.7;
 
   @override
   ProjectileType? projectileType = ProjectileType.fireball;
@@ -438,7 +443,7 @@ class Railgun extends PlayerWeapon
     attackTickRate.baseParameter = 2;
   }
   @override
-  WeaponType weaponType = WeaponType.railgun;
+  WeaponType weaponType = WeaponType.railspire;
 
   @override
   void mapUpgrade() {
@@ -490,5 +495,5 @@ class Railgun extends PlayerWeapon
   SemiAutoType semiAutoType = SemiAutoType.release;
 
   @override
-  double length = 3;
+  double weaponSize = 3;
 }

@@ -19,7 +19,7 @@ class BlankProjectileWeapon extends EnemyWeapon
     projectileVelocity.baseParameter = 10;
   }
   @override
-  WeaponType weaponType = WeaponType.shotgun;
+  WeaponType weaponType = WeaponType.scatterCaster;
 
   @override
   void mapUpgrade() {
@@ -56,7 +56,7 @@ class BlankProjectileWeapon extends EnemyWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double length = 2;
+  double weaponSize = 2;
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
