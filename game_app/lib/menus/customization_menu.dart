@@ -6,7 +6,7 @@ import 'package:game_app/menus/attribute_menu.dart';
 import 'package:game_app/menus/weapon_selector_tile.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/enums.dart';
-import 'package:game_app/resources/functions/custom_mixins.dart';
+import 'package:game_app/resources/functions/custom.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
 

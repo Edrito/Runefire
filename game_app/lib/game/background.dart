@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/resources/constants/priorities.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
-import 'package:game_app/resources/functions/custom_mixins.dart';
+import 'package:game_app/resources/functions/custom.dart';
 
 import '../main.dart';
 import '../menus/menus.dart';

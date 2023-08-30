@@ -32,7 +32,7 @@ class ForestGame extends GameEnviroment {
         anchor: Anchor.center);
     enemyManagement = ForestEnemyManagement(this);
     add(enemyManagement);
-    add(forestBackground);
+    // add(forestBackground);
     conductTests(this);
   }
 

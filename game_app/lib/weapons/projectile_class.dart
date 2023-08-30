@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:game_app/resources/functions/custom_mixins.dart';
+import 'package:game_app/resources/functions/custom.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flame/components.dart';
@@ -96,7 +96,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   void bodyContact(HealthFunctionality other) {
     hitIds.add(other.entityId);
-    other.hitCheck(projectileId, weaponAncestor.calculateDamage);
+    other.hitCheck(projectileId, weaponAncestor.calculateDamage(other));
     onHitFunctions(other);
   }
 

@@ -9,7 +9,7 @@ import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 import '../resources/visuals.dart';
 import '../weapons/weapon_class.dart';
 import 'enviroment.dart';

@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:game_app/attributes/attributes_mixin.dart';
+import 'package:game_app/entities/entity_mixin.dart';
 
 import 'package:hive/hive.dart';
 
@@ -185,7 +187,7 @@ class BoolParameterManager {
     return [baseParameter, ..._parameterIncrease.values].fold<int>(
             0,
             (previousValue, element) =>
-                previousValue + ((element) ? 0 : (element ? 1 : -1))) >
+                previousValue + ((element) ? 0 : (element ? 1 : -1))) >=
         0;
   }
 
@@ -330,6 +332,7 @@ class DamagePercentParameterManager {
 
 DamageInstance damageCalculations(
   Entity source,
+  Entity victim,
   Map<DamageType, (double, double)> damageBase, {
   DamageParameterManager? damageSource,
   Weapon? sourceWeapon,
@@ -405,6 +408,9 @@ DamageInstance damageCalculations(
   double rngCrit = rng.nextDouble();
   double critDamageIncrease = 1;
   bool isCrit = false;
+  if (victim is HealthFunctionality && victim.consumeMark()) {
+    forceCrit = true;
+  }
   if (rngCrit <= source.critChance.parameter || forceCrit) {
     isCrit = true;
     critDamageIncrease = source.critDamage.parameter;

@@ -74,7 +74,11 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
           4, 'status_effects/fire_effect.png', defaultFrameDuration, true);
 
       break;
+    case StatusEffects.marked:
+      spriteAnimation = await loadSpriteAnimation(
+          4, 'attribute_sprites/mark_enemy_4.png', defaultFrameDuration, true);
 
+      break;
     // case StatusEffects.slow:
     //   break;
 

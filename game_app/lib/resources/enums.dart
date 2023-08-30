@@ -112,7 +112,7 @@ enum WeaponDescription {
 
 enum SemiAutoType { regular, release, charge }
 
-enum StatusEffects { burn, chill, electrified, stun, psychic, fear }
+enum StatusEffects { burn, chill, electrified, stun, psychic, fear, marked }
 
 enum AttackType { projectile, melee, magic }
 
@@ -444,6 +444,7 @@ enum WeaponType {
   dagger('assets/images/weapons/dagger.png', 5, AttackType.magic, 0),
   blankProjectileWeapon(
       'assets/images/weapons/dagger.png', 5, AttackType.projectile, 0),
+
   largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
   spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
   ;

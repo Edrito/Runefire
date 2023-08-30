@@ -8,7 +8,7 @@ import 'package:game_app/game/menu_game.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 import 'event_management.dart';
 import '../game/hud.dart';
 

@@ -12,7 +12,7 @@ import 'package:game_app/weapons/secondary_abilities.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 import '../attributes/attributes_mixin.dart';
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';
@@ -225,8 +225,8 @@ abstract class Weapon extends Component with UpgradeFunctions {
   final DamageParameterManager baseDamage =
       DamageParameterManager(damageBase: {});
 
-  DamageInstance get calculateDamage =>
-      damageCalculations(entityAncestor!, baseDamage.damageBase,
+  DamageInstance calculateDamage(Entity victim) =>
+      damageCalculations(entityAncestor!, victim, baseDamage.damageBase,
           sourceWeapon: this, damageSource: baseDamage);
 
   //VISUAL

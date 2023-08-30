@@ -11,7 +11,7 @@ import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/player/player.dart';
-import 'package:game_app/resources/functions/custom_mixins.dart';
+import 'package:game_app/resources/functions/custom.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -83,7 +83,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
     tickDamageIncrease = DoubleParameterManager(baseParameter: 1);
     enableMovement = BoolParameterManager(baseParameter: true);
     areaSizePercentIncrease = DoubleParameterManager(baseParameter: 1);
-    critChance = DoubleParameterManager(baseParameter: 1);
+    critChance = DoubleParameterManager(baseParameter: 0.05);
     critDamage = DoubleParameterManager(baseParameter: 1.5);
     damageTypePercentIncrease =
         DamagePercentParameterManager(damagePercentBase: {});
@@ -602,6 +602,8 @@ mixin HealthFunctionality on Entity {
   void initializeParentParameters() {
     invincibilityDuration = DoubleParameterManager(baseParameter: .2);
     maxHealth = DoubleParameterManager(baseParameter: 50);
+    isMarked =
+        BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
     super.initializeParentParameters();
   }
 
@@ -610,6 +612,7 @@ mixin HealthFunctionality on Entity {
     invincibilityDuration =
         (childEntity.parentEntity as HealthFunctionality).invincibilityDuration;
     maxHealth = (childEntity.parentEntity as HealthFunctionality).maxHealth;
+    isMarked = (childEntity.parentEntity as HealthFunctionality).isMarked;
 
     super.initializeChildEntityParameters(childEntity);
   }
@@ -617,6 +620,16 @@ mixin HealthFunctionality on Entity {
   //health
   late final DoubleParameterManager invincibilityDuration;
   late final DoubleParameterManager maxHealth;
+  late final BoolParameterManager isMarked;
+
+  bool consumeMark() {
+    bool isMarked = this.isMarked.parameter;
+    if (isMarked && this is AttributeFunctionality) {
+      final attr = this as AttributeFunctionality;
+      attr.removeAttribute(AttributeType.marked);
+    }
+    return isMarked;
+  }
 
   TimerComponent? iFrameTimer;
   double sameDamageSourceDuration = .5;
@@ -631,13 +644,13 @@ mixin HealthFunctionality on Entity {
     final amount = essenceSteal.parameter * instance.damage;
     if (amount == 0) return;
     damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
-    addDamageText(DamageType.healing, amount);
+    addDamageText(DamageType.healing, amount, false);
     addDamageEffects(DamageType.healing.color);
   }
 
   void heal(double amount) {
     damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
-    addDamageText(DamageType.healing, amount);
+    addDamageText(DamageType.healing, amount, false);
     addDamageEffects(DamageType.healing.color);
   }
 
@@ -682,9 +695,9 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void addDamageText(DamageType damageType, double amount) {
+  void addDamageText(DamageType damageType, double amount, bool isCrit) {
     final color = damageType.color;
-    const fontSize = .55;
+    final fontSize = .55 * (isCrit ? 1.3 : 1);
 
     final textRenderer = TextPaint(
         style: defaultStyle.copyWith(
@@ -696,7 +709,7 @@ mixin HealthFunctionality on Entity {
             spreadRadius: .4,
             blurRadius: .75)
       ],
-      color: color.brighten(.2),
+      color: isCrit ? Colors.red : color.brighten(.2),
     ));
     String damageString = "";
     // if (amount < 1) {
@@ -729,7 +742,7 @@ mixin HealthFunctionality on Entity {
         ..addToParent(this);
       damageText!.add(
         MoveEffect.by(
-          (Vector2.random() * .5) - Vector2.all(.25),
+          (Vector2.random() * .5) - Vector2.all(.25) * (isCrit ? 3 : 1),
           EffectController(
             duration: 2,
             curve: Curves.decelerate,
@@ -801,7 +814,7 @@ mixin HealthFunctionality on Entity {
       [bool applyStatusEffect = true]) {
     if (damage.damageMap.isEmpty) return false;
     MapEntry<DamageType, double> largestEntry = fetchLargestDamageType(damage);
-    addDamageText(largestEntry.key, largestEntry.value);
+    addDamageText(largestEntry.key, largestEntry.value, damage.isCrit);
     addDamageEffects(largestEntry.key.color);
 
     damage.applyResistances(this);
@@ -1058,8 +1071,8 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
 
   late final DoubleParameterManager hitRate;
 
-  DamageInstance get calculateTouchDamage =>
-      damageCalculations(this, touchDamage.damageBase,
+  DamageInstance calculateTouchDamage(Entity victim) =>
+      damageCalculations(this, victim, touchDamage.damageBase,
           damageSource: touchDamage);
 
   Map<Body, TimerComponent> objectsHitting = {};
@@ -1072,7 +1085,7 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
     if (otherReference is! HealthFunctionality) return;
     if ((isPlayer && otherReference is Enemy) ||
         (!isPlayer && otherReference is Player)) {
-      otherReference.hitCheck(entityId, calculateTouchDamage);
+      otherReference.hitCheck(entityId, calculateTouchDamage(otherReference));
     }
   }
 
@@ -1090,7 +1103,7 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
       )
         ..addToParent(this)
         ..onTick();
-      other.hitCheck(entityId, calculateTouchDamage);
+      other.hitCheck(entityId, calculateTouchDamage(other));
     } else if (!isPlayer && other is Player) {
       objectsHitting[other.body] = TimerComponent(
         period: hitRate.parameter,

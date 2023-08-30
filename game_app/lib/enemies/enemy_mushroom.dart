@@ -6,6 +6,7 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/event_management.dart';
 import 'package:game_app/game/expendables.dart';
 import 'package:game_app/resources/area_effects.dart';
+import 'package:game_app/resources/functions/custom.dart';
 
 import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
@@ -181,10 +182,12 @@ class MushroomBoomer extends Enemy
       await spriteAnimationComponent.animationTicker?.completed;
       enviroment.physicsComponent.add(AreaEffect(
           position: body.worldCenter,
-          playAnimation: await loadSpriteAnimation(
-              61, 'weapons/projectiles/fire_area.png', .05, true),
+          animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
+              playAnimation: await loadSpriteAnimation(
+                  61, 'weapons/projectiles/fire_area.png', .05, true),
+              durationType: DurationType.instant),
           sourceEntity: this,
-          size: 4 * ((upgradeLevel / 2)) + 2,
+          radius: 4 * ((upgradeLevel / 2)) + 2,
           damage: {DamageType.fire: (2, 15)}));
     });
   }

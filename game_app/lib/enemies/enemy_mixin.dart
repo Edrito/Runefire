@@ -6,7 +6,7 @@ import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
 
-enum AimPattern { player, closestEnemyToPlayer }
+enum AimPattern { player, closestEnemyToPlayer, randomEntity, randomEnemy }
 
 mixin DropItemFunctionality on HealthFunctionality {
   ///If an [rng.double] is smaller than the respective key then experienceType is dropped

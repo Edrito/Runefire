@@ -4,7 +4,7 @@ import 'package:game_app/enemies/enemy_mixin.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 import '../resources/constants/physics_filter.dart';
 import '../resources/enums.dart';
 import '../resources/constants/priorities.dart';

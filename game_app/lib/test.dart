@@ -13,7 +13,9 @@ import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) {
   Future.delayed(1.seconds).then((value) {
-    gameEnviroment.player?.addAttribute(AttributeType.periodicPush);
+    gameEnviroment.player?.addAttribute(
+      AttributeType.sentryMarkEnemy,
+    );
   });
 
   // for (var element in ExpendableType.values) {

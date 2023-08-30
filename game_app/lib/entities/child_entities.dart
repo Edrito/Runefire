@@ -1,11 +1,15 @@
+import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/attributes/attributes_mixin.dart';
+import 'package:game_app/attributes/attributes_structure.dart';
+import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/functions/functions.dart';
 
 import '../enemies/enemy_mixin.dart';
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 
 ///Class of Entity that is attached to the Player or Enemy as a form of
 ///weapon, armor, or other attribute
@@ -96,4 +100,79 @@ class TeslaCrystal extends ChildEntity
   double get shootInterval => .1;
   @override
   AimPattern aimPattern = AimPattern.closestEnemyToPlayer;
+}
+
+class MarkEnemySentry extends ChildEntity {
+  MarkEnemySentry(
+      {required super.initialPosition,
+      required super.enviroment,
+      super.distance = 2,
+      required super.upgradeLevel,
+      required super.parentEntity});
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
+        6, 'attribute_sprites/hovering_crystal_6.png', .1, true);
+
+    entityAnimations[EntityStatus.attack] = await loadSpriteAnimation(
+        6, 'attribute_sprites/hovering_crystal_attack_6.png', .05, false);
+  }
+
+  TimerComponent? targetUpdater;
+  Entity? target;
+
+  @override
+  Future<void> onLoad() {
+    targetUpdater = TimerComponent(
+      period: shootInterval,
+      repeat: true,
+      onTick: () {
+        findTarget();
+        markTarget();
+      },
+    );
+    targetUpdater?.addToParent(this);
+    return super.onLoad();
+  }
+
+  void findTarget() {
+    final bodies = world.bodies.where(
+      (element) => element.userData is Entity,
+    );
+
+    switch (aimPattern) {
+      case AimPattern.randomEnemy:
+        final filteredBodies = bodies
+            .where((element) =>
+                element.userData is Enemy &&
+                element.userData is AttributeFunctionality &&
+                !(element.userData as HealthFunctionality).isMarked.parameter)
+            .toList();
+        if (filteredBodies.isNotEmpty) {
+          target = filteredBodies.getRandomElement<Body>().userData as Enemy;
+        }
+        break;
+      default:
+    }
+  }
+
+  void markTarget() {
+    if (target == null) return;
+    final attr = target as AttributeFunctionality;
+    setEntityStatus(EntityStatus.attack);
+
+    attr.addAttribute(AttributeType.marked,
+        perpetratorEntity: parentEntity,
+        isTemporary: true,
+        duration: markerDuration);
+  }
+
+  // @override
+  // double  distance = 5;
+
+  double shootInterval = 8;
+  double markerDuration = 4;
+
+  AimPattern aimPattern = AimPattern.randomEnemy;
 }

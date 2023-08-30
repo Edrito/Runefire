@@ -4,7 +4,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
-import 'package:game_app/resources/functions/custom_mixins.dart';
+import 'package:game_app/resources/functions/custom.dart';
 import 'package:game_app/resources/functions/functions.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,20 +14,17 @@ import 'data_classes/base.dart';
 
 enum DurationType { instant, temporary, permanent }
 
-class AreaEffect extends BodyComponent<GameRouter>
-    with ContactCallbacks, BasicSpriteLifecycle {
+class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   ///Use [damage] if you want to deal damage to entities in the area
-  ///Declare a custom area if you are making multiple areas and want
+  ///Declare a custom [areaId] if you are making multiple areas and want
   ///to prevent enemies getting super spammed with deeps
   AreaEffect({
-    this.spawnAnimation,
-    this.playAnimation,
-    this.endAnimation,
-    this.durationType = DurationType.instant,
+    this.animationComponent,
+    this.radius = 3,
     this.duration = 5,
+    this.durationType = DurationType.instant,
     String? areaId,
     this.tickRate = 1,
-    this.size = 3,
     this.damage,
     this.onTick,
     required this.position,
@@ -36,8 +33,12 @@ class AreaEffect extends BodyComponent<GameRouter>
     this.animationRandomlyFlipped = false,
   }) {
     assert(onTick != null || damage != null);
+    radius *= sourceEntity.areaSizePercentIncrease.parameter;
 
-    size *= sourceEntity.areaSizePercentIncrease.parameter;
+    animationComponent?.size = Vector2.all(radius);
+    animationComponent?.durationType = durationType;
+    animationComponent?.randomlyFlipped = animationRandomlyFlipped;
+
     duration *= sourceEntity.durationPercentIncrease.parameter;
 
     this.areaId = areaId ?? const Uuid().v4();
@@ -46,18 +47,10 @@ class AreaEffect extends BodyComponent<GameRouter>
 
   bool animationRandomlyFlipped;
 
-  @override
-  SpriteAnimation? spawnAnimation;
-  @override
-  SpriteAnimation? playAnimation;
-  @override
-  SpriteAnimation? endAnimation;
+  double radius;
+  final DurationType durationType;
 
-  @override
-  DurationType durationType;
-
-  @override
-  double size;
+  SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
 
   double duration;
   late String areaId;
@@ -75,7 +68,17 @@ class AreaEffect extends BodyComponent<GameRouter>
 
   @override
   Future<void> onLoad() async {
-    if (durationType == DurationType.temporary) {
+    animationComponent ??= SimpleStartPlayEndSpriteAnimationComponent(
+      durationType: durationType,
+      spawnAnimation: await loadSpriteAnimation(
+          16, 'effects/explosion_1_16.png', .05, false),
+      randomlyFlipped: animationRandomlyFlipped,
+      size: Vector2.all(radius),
+    );
+
+    animationComponent?.addToParent(this);
+
+    if (animationComponent?.durationType == DurationType.temporary) {
       aliveTimer = TimerComponent(
         period: duration,
         removeOnFinish: true,
@@ -86,9 +89,6 @@ class AreaEffect extends BodyComponent<GameRouter>
       )..addToParent(this);
     }
 
-    playAnimation ??=
-        await loadSpriteAnimation(16, 'effects/explosion_1_16.png', .05, false);
-
     return super.onLoad();
   }
 
@@ -97,7 +97,7 @@ class AreaEffect extends BodyComponent<GameRouter>
     if (other is! Entity) return;
     if (other == sourceEntity) return;
     if (affectedEntities.containsKey(other)) return;
-    if (durationType == DurationType.instant) {
+    if (animationComponent?.durationType == DurationType.instant) {
       doOnTick(other);
     } else {
       affectedEntities[other] = TimerComponent(
@@ -115,17 +115,21 @@ class AreaEffect extends BodyComponent<GameRouter>
 
   bool aliveForOneTick = false;
 
-  void doOnTick(Entity entity) {
+  void doOnTick(Entity other) {
     if (isKilled) return;
-    if (damage != null && entity is HealthFunctionality) {
-      entity.takeDamage(areaId,
-          damageCalculations(entity, damage!, damageKind: DamageKind.area));
+    if (damage != null && other is HealthFunctionality) {
+      other.takeDamage(
+          areaId,
+          damageCalculations(sourceEntity, other, damage!,
+              damageKind: DamageKind.area));
     }
-    onTick?.call(entity, areaId);
+    onTick?.call(other, areaId);
   }
 
   void instantChecker() {
-    if (!isKilled && durationType == DurationType.instant && body.isActive) {
+    if (!isKilled &&
+        animationComponent?.durationType == DurationType.instant &&
+        body.isActive) {
       if (aliveForOneTick) {
         killArea();
       }
@@ -142,13 +146,13 @@ class AreaEffect extends BodyComponent<GameRouter>
   void killArea() {
     isKilled = true;
     affectedEntities.clear();
-    killSprite();
+    animationComponent?.triggerEnding();
   }
 
   @override
   void endContact(Object other, Contact contact) {
     if (other is! Entity) return;
-    if (durationType == DurationType.instant) return;
+    if (animationComponent?.durationType == DurationType.instant) return;
     affectedEntities[other]?.removeFromParent();
     affectedEntities.remove(other);
 
@@ -161,7 +165,7 @@ class AreaEffect extends BodyComponent<GameRouter>
     late CircleShape shape;
 
     shape = CircleShape();
-    shape.radius = size * .45;
+    shape.radius = radius * .45;
     renderBody = false;
     final filter = Filter();
     filter.categoryBits = attackCategory;

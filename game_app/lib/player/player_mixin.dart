@@ -9,7 +9,7 @@ import 'package:game_app/resources/game_state_class.dart';
 
 import '../entities/child_entities.dart';
 import '../resources/data_classes/base.dart';
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 import '../menus/overlays.dart';
 import '../resources/constants/priorities.dart';
 import '../resources/visuals.dart';

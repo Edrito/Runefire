@@ -13,7 +13,7 @@ import 'package:uuid/uuid.dart';
 
 import '../main.dart';
 import '../menus/cards.dart';
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 import 'attributes_status_effect.dart';
 
 /// This file contains all the enums for the attributes.
@@ -75,6 +75,7 @@ enum AttributeType {
   stun(territory: AttributeTerritory.temporary),
   psychic(territory: AttributeTerritory.temporary),
   fear(territory: AttributeTerritory.temporary),
+  marked(territory: AttributeTerritory.temporary),
 
   //Permanent
   areaSizePermanent,
@@ -142,19 +143,22 @@ enum AttributeType {
   periodicPush(
       rarity: AttributeRarity.uncommon,
       category: AttributeCategory.utility,
+      attributeEligibilityTest: negativeCombinePulseTest,
       territory: AttributeTerritory.game),
 
   periodicMagicPulse(
       rarity: AttributeRarity.uncommon,
+      attributeEligibilityTest: negativeCombinePulseTest,
       category: AttributeCategory.offense,
       territory: AttributeTerritory.game),
 
   periodicStun(
       rarity: AttributeRarity.uncommon,
+      attributeEligibilityTest: negativeCombinePulseTest,
       category: AttributeCategory.offense,
       territory: AttributeTerritory.game),
 
-  combinePeriodic(
+  combinePeriodicPulse(
     rarity: AttributeRarity.unique,
     category: AttributeCategory.offense,
     priority: 5,
@@ -540,6 +544,11 @@ bool sentryCombinationTest(Player player) {
   return good > 2;
 }
 
+bool negativeCombinePulseTest(Player player) {
+  return !player.currentAttributes
+      .containsKey(AttributeType.combinePeriodicPulse);
+}
+
 bool combinePulseTest(Player player) {
   return player.currentAttributes
           .containsKey(AttributeType.periodicMagicPulse) &&
@@ -620,6 +629,8 @@ abstract class Attribute with UpgradeFunctions {
     }
     attributeId = const Uuid().v4();
   }
+
+  void action() {}
 
   bool hasRandomDamageType = false;
 

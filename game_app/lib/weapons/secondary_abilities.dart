@@ -7,7 +7,7 @@ import '../entities/entity_mixin.dart';
 import '../resources/area_effects.dart';
 import '../resources/enums.dart';
 
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 
 abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   SecondaryWeaponAbility(this.weapon, this.cooldown, int? newUpgradeLevel) {
@@ -191,7 +191,7 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
       weapon?.entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
         sourceEntity: weapon!.entityAncestor!,
         position: element.center,
-        size: 5,
+        radius: 5,
         durationType: DurationType.instant,
         duration: 5,
         onTick: (entity, areaId) {

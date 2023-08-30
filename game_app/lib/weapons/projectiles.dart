@@ -6,11 +6,11 @@ import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/projectile_mixin.dart';
 
 import '../resources/enums.dart';
-import '../resources/functions/custom_mixins.dart';
+import '../resources/functions/custom.dart';
 import '../resources/functions/functions.dart';
 
 class Bullet extends Projectile
-    with StandardProjectile, BasicSpriteLifecycle, ProjectileSpriteLifecycle {
+    with StandardProjectile, ProjectileSpriteLifecycle {
   Bullet(
       {required super.delta,
       required super.originPosition,
@@ -38,19 +38,14 @@ class Bullet extends Projectile
   }
 
   @override
-  DurationType durationType = DurationType.temporary;
-
-  @override
-  SpriteAnimation? spawnAnimation;
-
-  @override
-  SpriteAnimation? playAnimation;
-
-  @override
-  SpriteAnimation? endAnimation;
+  SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
 
   @override
   Future<void> onLoad() async {
+    late SpriteAnimation spawnAnimation;
+    late SpriteAnimation playAnimation;
+    late SpriteAnimation endAnimation;
+
     switch (damageType) {
       case DamageType.physical:
         spawnAnimation = await loadSpriteAnimation(
@@ -132,6 +127,15 @@ class Bullet extends Projectile
         break;
     }
 
+    animationComponent ??= SimpleStartPlayEndSpriteAnimationComponent(
+      // spawnAnimation:spawnAnimation,
+      durationType: DurationType.temporary,
+      playAnimation: playAnimation,
+      spawnAnimation: spawnAnimation,
+      size: Vector2.all(size),
+      endAnimation: endAnimation,
+    );
+
     super.onLoad();
   }
 
@@ -141,7 +145,7 @@ class Bullet extends Projectile
       body.setType(BodyType.static);
     }
     if (withEffect) {
-      killSprite();
+      animationComponent?.triggerEnding();
     } else {
       removeFromParent();
     }
@@ -152,7 +156,7 @@ class Bullet extends Projectile
 }
 
 class Blast extends Projectile
-    with StandardProjectile, BasicSpriteLifecycle, ProjectileSpriteLifecycle {
+    with StandardProjectile, ProjectileSpriteLifecycle {
   Blast(
       {required super.delta,
       required super.originPosition,
@@ -180,16 +184,7 @@ class Blast extends Projectile
   }
 
   @override
-  DurationType durationType = DurationType.temporary;
-
-  @override
-  SpriteAnimation? spawnAnimation;
-
-  @override
-  SpriteAnimation? playAnimation;
-
-  @override
-  SpriteAnimation? endAnimation;
+  SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
 
   @override
   Future<void> onLoad() async {
@@ -274,12 +269,13 @@ class Blast extends Projectile
     //     break;
     // }
 
-    // spawnAnimation = await buildSpriteSheet(
+    // final spawnAnimation = await loadSpriteAnimation(
     //       4,
     //       'weapons/projectiles/bullets/physical_bullet_spawn.png',
     //       .02,
     //       false);
-    playAnimation = await loadSpriteAnimation(
+
+    final playAnimation = await loadSpriteAnimation(
         4,
         [
           'weapons/projectiles/blasts/fire_blast_play.png',
@@ -287,10 +283,18 @@ class Blast extends Projectile
         ].getRandomElement(),
         .1,
         true);
-    endAnimation = await loadSpriteAnimation(
+    final endAnimation = await loadSpriteAnimation(
         4, 'weapons/projectiles/blasts/fire_blast_end.png', .1, false);
     // hitAnimation = await buildSpriteSheet(6,
     // 'weapons/projectiles/bullets/physical_bullet_hit.png', .02, false);
+
+    animationComponent ??= SimpleStartPlayEndSpriteAnimationComponent(
+      // spawnAnimation:spawnAnimation,
+      durationType: DurationType.temporary,
+      playAnimation: playAnimation,
+      size: Vector2.all(size),
+      endAnimation: endAnimation,
+    );
 
     super.onLoad();
   }
@@ -301,7 +305,7 @@ class Blast extends Projectile
       body.setType(BodyType.static);
     }
     if (withEffect) {
-      killSprite();
+      animationComponent?.triggerEnding();
     } else {
       removeFromParent();
     }
@@ -335,10 +339,10 @@ class ExplosiveProjectile extends Projectile with StandardProjectile {
     weaponAncestor.entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
       sourceEntity: weaponAncestor.entityAncestor!,
       position: center,
-      playAnimation:
-          await loadSpriteAnimation(16, 'effects/explosion_1_16.png', .1, true),
-      size: 5,
-      durationType: DurationType.instant,
+      animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
+          playAnimation: await loadSpriteAnimation(
+              16, 'effects/explosion_1_16.png', .1, true),
+          durationType: DurationType.instant),
       duration: 5,
       damage: {DamageType.fire: (50, 120)},
     ));

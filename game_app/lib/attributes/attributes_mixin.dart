@@ -9,7 +9,7 @@ import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/data_classes/base.dart';
-import 'package:game_app/resources/functions/custom_mixins.dart';
+import 'package:game_app/resources/functions/custom.dart';
 
 import '../resources/enums.dart';
 import '../entities/child_entities.dart';
@@ -457,16 +457,20 @@ class StatusEffect extends PositionComponent {
 // }
 
 class EntityStatusEffectsWrapper extends PositionComponent {
-  EntityStatusEffectsWrapper({super.position, super.size}) {
+  EntityStatusEffectsWrapper(
+      {super.position, super.size, required this.entity}) {
     anchor = Anchor.center;
   }
+
+  Entity entity;
 
   ///ID, Effect
   Map<StatusEffects, StatusEffect> activeStatusEffects = {};
 
   ///ID, Animation
   Map<String, ReloadAnimation> reloadAnimations = {};
-  // HoldDuration? holdDuration;
+
+  SpriteAnimationComponent? markerAnimation;
 
   bool removedAnimations = false;
 
@@ -481,9 +485,14 @@ class EntityStatusEffectsWrapper extends PositionComponent {
       element.removeFromParent();
     }
     reloadAnimations.clear();
-
+    removeMarked();
     // holdDuration?.removeFromParent();
     // holdDuration = null;
+  }
+
+  void removeMarked() {
+    markerAnimation?.removeFromParent();
+    markerAnimation = null;
   }
 
   double getXPosition(StatusEffects effect) {
@@ -503,6 +512,17 @@ class EntityStatusEffectsWrapper extends PositionComponent {
   //   holdDuration?.removeFromParent();
   //   holdDuration = null;
   // }
+
+  void addMarkedStatus() async {
+    if (removedAnimations) return;
+    markerAnimation = SpriteAnimationComponent(
+        animation: await getEffectSprite(StatusEffects.marked),
+        size: Vector2.all(1.25),
+        anchor: Anchor.center);
+    markerAnimation!.position.y = entity.height.parameter * .75;
+    markerAnimation!.position.x = width / 2;
+    add(markerAnimation!);
+  }
 
   void addStatusEffect(StatusEffects effect, int level) {
     if (removedAnimations) return;

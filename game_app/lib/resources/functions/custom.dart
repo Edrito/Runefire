@@ -10,6 +10,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/area_effects.dart';
+import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 
 import '../../entities/entity_class.dart';
@@ -152,19 +153,22 @@ mixin UpgradeFunctions {
   bool upgradeApplied = false;
 }
 
-mixin ProjectileSpriteLifecycle on StandardProjectile, BasicSpriteLifecycle {
+mixin ProjectileSpriteLifecycle on StandardProjectile {
   abstract SpriteAnimation? hitAnimation;
+
+  abstract SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
 
   void changeSpriteAngle() {
     final rad = -radiansBetweenPoints(Vector2(0, 1), delta);
 
-    spriteAnimationComponent?.angle = rad;
+    animationComponent?.angle = rad;
   }
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
     changeSpriteAngle();
+    animationComponent?.addToParent(this);
   }
 
   @override
@@ -176,66 +180,6 @@ mixin ProjectileSpriteLifecycle on StandardProjectile, BasicSpriteLifecycle {
   void applyHitAnimation(Entity other, Vector2 position) {
     if (hitAnimation == null) return;
     other.applyHitAnimation(hitAnimation!, position, 1);
-  }
-}
-
-mixin BasicSpriteLifecycle on Component {
-  abstract SpriteAnimation? spawnAnimation;
-  abstract SpriteAnimation? playAnimation;
-  abstract SpriteAnimation? endAnimation;
-  abstract double size;
-
-  abstract DurationType durationType;
-  SpriteAnimationComponent? spriteAnimationComponent;
-  bool randomlyFlipped = false;
-
-  @override
-  Future<void> onLoad() async {
-    spawnAnimation ??= playAnimation;
-    spriteAnimationComponent = SpriteAnimationComponent(
-      animation: spawnAnimation ?? playAnimation,
-      anchor: Anchor.center,
-      size: Vector2.all(size),
-    );
-    if (randomlyFlipped && rng.nextBool()) {
-      spriteAnimationComponent?.flipHorizontallyAroundCenter();
-    }
-
-    add(spriteAnimationComponent!);
-    if (durationType != DurationType.instant) {
-      spriteAnimationComponent!.animationTicker?.onComplete = () {
-        spriteAnimationComponent!.animation = playAnimation;
-      };
-    }
-    return super.onLoad();
-  }
-
-  Future<void> killSprite() async {
-    if (endAnimation != null) {
-      spriteAnimationComponent?.animation = endAnimation;
-      spriteAnimationComponent?.animationTicker?.onComplete = () {
-        removeFromParent();
-      };
-      await spriteAnimationComponent?.animationTicker?.completed;
-    } else if (durationType == DurationType.instant) {
-      if (spriteAnimationComponent?.animationTicker?.done() ?? true) {
-        removeFromParent();
-      } else {
-        spriteAnimationComponent?.animationTicker?.onComplete = () {
-          removeFromParent();
-        };
-      }
-    } else {
-      final controller = EffectController(
-        curve: Curves.easeInCubic,
-        duration: .5,
-        onMax: () {
-          removeFromParent();
-        },
-      );
-      spriteAnimationComponent?.add(OpacityEffect.fadeOut(controller));
-      await Future.delayed(controller.duration!.seconds);
-    }
   }
 }
 
@@ -268,4 +212,92 @@ mixin CustomCollisionObject on CollisionCallbacks, PositionComponent {
 
   void onCollisionBeginFiltered(
       Set<Vector2> intersectionPoints, PositionComponent other) {}
+}
+
+class SimpleStartPlayEndSpriteAnimationComponent
+    extends SpriteAnimationGroupComponent {
+  SpriteAnimation? spawnAnimation;
+  SpriteAnimation? playAnimation;
+  SpriteAnimation? endAnimation;
+  DurationType durationType;
+  bool randomlyFlipped;
+
+  SimpleStartPlayEndSpriteAnimationComponent(
+      {this.spawnAnimation,
+      this.playAnimation,
+      this.durationType = DurationType.temporary,
+      this.randomlyFlipped = false,
+      this.endAnimation,
+      super.size,
+      super.position,
+      super.anchor = Anchor.center}) {
+    assert(playAnimation != null || spawnAnimation != null);
+    assert(spawnAnimation != null || durationType != DurationType.instant);
+  }
+
+  late EntityStatus currentStatus;
+
+  @override
+  FutureOr<void> onLoad() {
+    // autoResize = true;
+    // scale = Vector2.all(1);
+    // size = Vector2.all(1);
+
+    Map<dynamic, SpriteAnimation>? animationsToSet = {
+      if (spawnAnimation != null) EntityStatus.spawn: spawnAnimation!,
+      EntityStatus.idle: playAnimation ?? spawnAnimation!,
+      if (endAnimation != null) EntityStatus.dead: endAnimation!,
+    };
+    animations = animationsToSet;
+
+    if (randomlyFlipped && rng.nextBool()) {
+      flipHorizontallyAroundCenter();
+    }
+
+    if (spawnAnimation != null) {
+      _setStatus(EntityStatus.spawn);
+
+      animationTicker?.onComplete = () {
+        switch (durationType) {
+          case DurationType.instant:
+            triggerEnding();
+            break;
+          default:
+            if (durationType == DurationType.permanent) {
+              animation?.loop = true;
+            }
+            _setStatus(EntityStatus.idle);
+        }
+      };
+    } else {
+      _setStatus(EntityStatus.idle);
+    }
+
+    return super.onLoad();
+  }
+
+  void _setStatus(EntityStatus status) {
+    currentStatus = status;
+    current = status;
+  }
+
+  void triggerEnding() {
+    if (endAnimation == null) {
+      final controller = EffectController(
+        curve: Curves.easeInCubic,
+        duration: .5,
+        onMax: () {
+          removeFromParent();
+        },
+      );
+      add(OpacityEffect.fadeOut(controller));
+      return;
+    } else {
+      _setStatus(EntityStatus.dead);
+      animation?.loop = false;
+      animationTicker?.onComplete = () {
+        removeFromParent();
+      };
+    }
+  }
 }

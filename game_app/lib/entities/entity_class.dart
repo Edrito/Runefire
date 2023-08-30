@@ -141,7 +141,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void tickerComplete() {
     temporaryAnimationPlaying = false;
-    entityStatus = statusQueue ?? statusPrevious ?? entityStatus;
+    entityStatus = statusQueue ?? statusPrevious ?? EntityStatus.idle;
     spriteAnimationComponent.current = entityStatus;
     statusPrevious = null;
     statusQueue = null;
@@ -149,7 +149,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void spawnStatus() {
     // applyTempAnimation(entityAnimations[EntityStatus.spawn]);
-    // animationQueue = entityAnimations[EntityStatus.idle];
+    statusQueue = EntityStatus.idle;
   }
 
   void attackStatus() {
@@ -225,13 +225,17 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     if (!statusResult) return;
 
     ///If a temporary animation is playing, queue the animation
-    if (!(spriteAnimationComponent.animation?.loop ?? true) &&
-        temporaryAnimationPlaying &&
-        newEntityStatus != EntityStatus.dead) {
+    if (temporaryAnimationPlaying && newEntityStatus != EntityStatus.dead) {
       statusQueue = customAnimationKey ?? newEntityStatus;
     } else {
       entityStatus = customAnimationKey ?? newEntityStatus;
-      spriteAnimationComponent.current = entityStatus;
+
+      if (spriteAnimationComponent.animations!.containsKey(entityStatus)) {
+        spriteAnimationComponent.current = entityStatus;
+      } else {
+        tickerComplete();
+      }
+
       if (!(spriteAnimationComponent.animation?.loop ?? true) &&
           newEntityStatus != EntityStatus.dead) {
         temporaryAnimationPlaying = true;
@@ -241,7 +245,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         };
       }
     }
-    if (!(spriteAnimationComponent.animation?.loop ?? false)) {
+
+    if (temporaryAnimationPlaying) {
       await spriteAnimationComponent.animationTicker?.completed;
     }
   }
@@ -294,7 +299,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     add(spriteAnimationComponent);
     entityStatusWrapper = EntityStatusEffectsWrapper(
         position: Vector2(0, -entityStatusHeight),
-        size: Vector2(spriteAnimationComponent.width * 1.5, 0))
+        size: Vector2(spriteAnimationComponent.width * 1.5, 0),
+        entity: this)
       ..addToParent(this);
 
     add(backJoint);

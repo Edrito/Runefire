@@ -47,7 +47,21 @@ StatusEffectAttribute? statusEffectBuilder(
           perpetratorEntity: perpetratorEntity,
         );
       }
-
+    case AttributeType.marked:
+      if (isTemporary) {
+        return TemporaryMark(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+          duration: duration,
+        );
+      } else {
+        return MarkAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
+      }
     default:
       return null;
   }
@@ -117,11 +131,12 @@ class FireDamageAttribute extends StatusEffectAttribute {
 
   void fireDamage() {
     if (victimEntity is HealthFunctionality) {
-      final health = victimEntity as HealthFunctionality;
-      health.hitCheck(
+      final victimHealth = victimEntity as HealthFunctionality;
+      victimHealth.hitCheck(
           attributeId,
           damageCalculations(
               perpetratorEntity,
+              victimHealth,
               {
                 DamageType.fire: (
                   minDamage * upgradeLevel.toDouble(),
@@ -231,4 +246,74 @@ class FearAttribute extends StatusEffectAttribute {
 
   @override
   String icon = "powerups/power.png";
+}
+
+class TemporaryMark extends MarkAttribute with TemporaryAttribute {
+  TemporaryMark(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity,
+      double? duration}) {
+    this.duration = duration ?? this.duration;
+    this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
+  }
+
+  @override
+  double duration = 1;
+}
+
+class MarkAttribute extends StatusEffectAttribute {
+  MarkAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int? get maxLevel => null;
+
+  @override
+  String title = "Marked";
+
+  @override
+  AttributeType get attributeType => AttributeType.marked;
+
+  @override
+  String description() {
+    return "";
+  }
+
+  double durationPassed = 0;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.entityStatusWrapper.addMarkedStatus();
+
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+      health.isMarked.setIncrease(attributeId, true);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.entityStatusWrapper.removeMarked();
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+      health.isMarked.setIncrease(attributeId, false);
+    }
+
+    // if (victimEntity is MovementFunctionality) {
+    //   final move = victimEntity as MovementFunctionality;
+    //   move.entitiesFeared.remove(perpetratorEntity.entityId);
+    // }
+  }
+
+  @override
+  String icon = "powerups/power.png";
+
+  @override
+  StatusEffects statusEffect = StatusEffects.marked;
 }

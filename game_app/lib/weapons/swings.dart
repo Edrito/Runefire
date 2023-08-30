@@ -66,7 +66,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
   void bodyContact(HealthFunctionality other) {
     hitEnemiesId.add(other.entityId);
     other.hitCheck(meleeAttackAncestor.meleeId,
-        meleeAttackAncestor.weaponAncestor.calculateDamage);
+        meleeAttackAncestor.weaponAncestor.calculateDamage(other));
     onHitFunctions(other);
     applyHitSpriteEffects(other);
     hitEnemies++;

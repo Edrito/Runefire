@@ -1,5 +1,8 @@
+import 'package:flame/components.dart';
 import 'package:game_app/attributes/attributes_mixin.dart';
+import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/player/player.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/area_effects.dart';
@@ -15,6 +18,9 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
           level: level, victimEntity: victimEntity, damageType: damageType);
     case AttributeType.explosiveDash:
       return ExplosiveDashAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.sentryMarkEnemy:
+      return MarkSentryAttribute(
           level: level, victimEntity: victimEntity, damageType: damageType);
 
     default:
@@ -50,7 +56,7 @@ class ExplosionOnKillAttribute extends Attribute {
         sourceEntity: victimEntity!,
         position: other.center,
         animationRandomlyFlipped: true,
-        size: baseSize + increasePercentOfBase(baseSize),
+        radius: baseSize + increasePercentOfBase(baseSize),
         durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter,
 
@@ -118,7 +124,7 @@ class ExplosiveDashAttribute extends Attribute {
         sourceEntity: victimEntity!,
         position: victimEntity!.center,
         animationRandomlyFlipped: true,
-        size: baseSize + increasePercentOfBase(baseSize),
+        radius: baseSize + increasePercentOfBase(baseSize),
         durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter,
         damage: {
@@ -181,7 +187,7 @@ class GravityDashAttribute extends Attribute {
       sourceEntity: victimEntity!,
       position: victimEntity!.center,
       animationRandomlyFlipped: true,
-      size: baseSize + increasePercentOfBase(baseSize),
+      radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       durationType: DurationType.temporary,
       duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
@@ -246,7 +252,7 @@ class GroundSlamAttribute extends Attribute {
         sourceEntity: victimEntity!,
         position: victimEntity!.center,
         animationRandomlyFlipped: true,
-        size: baseSize + increasePercentOfBase(baseSize),
+        radius: baseSize + increasePercentOfBase(baseSize),
         durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter,
         damage: {
@@ -368,14 +374,15 @@ class PeriodicPushAttribute extends Attribute {
 
   double baseSize = 4;
 
-  void pulse() async {
+  @override
+  void action() async {
     if (victimEntity == null) return;
     final playerPos = victimEntity!.center.clone();
     final explosion = AreaEffect(
       sourceEntity: victimEntity!,
       position: victimEntity!.center,
       animationRandomlyFlipped: true,
-      size: baseSize + increasePercentOfBase(baseSize),
+      radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       durationType: DurationType.instant,
       duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
@@ -392,14 +399,14 @@ class PeriodicPushAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.addPulseFunction(pulse);
+    attr.addPulseFunction(action);
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.removePulseFunction(pulse);
+    attr.removePulseFunction(action);
   }
 
   @override
@@ -435,13 +442,14 @@ class PeriodicMagicPulseAttribute extends Attribute {
 
   double baseSize = 4;
 
-  void pulse() async {
+  @override
+  void action() async {
     if (victimEntity == null) return;
     final explosion = AreaEffect(
         sourceEntity: victimEntity!,
         position: victimEntity!.center,
         animationRandomlyFlipped: true,
-        size: baseSize + increasePercentOfBase(baseSize),
+        radius: baseSize + increasePercentOfBase(baseSize),
         tickRate: .05,
         durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
@@ -453,14 +461,14 @@ class PeriodicMagicPulseAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.addPulseFunction(pulse);
+    attr.addPulseFunction(action);
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.removePulseFunction(pulse);
+    attr.removePulseFunction(action);
   }
 
   @override
@@ -474,7 +482,8 @@ class PeriodicMagicPulseAttribute extends Attribute {
     return "The power of the arcane flows through you, maybe a little too much though...";
   }
 }
-aaa
+
+// aaa
 class PeriodicStunAttribute extends Attribute {
   PeriodicStunAttribute(
       {required super.level, required super.victimEntity, super.damageType});
@@ -496,23 +505,23 @@ class PeriodicStunAttribute extends Attribute {
 
   double baseSize = 4;
 
-  void pulse() async {
+  @override
+  void action() async {
     if (victimEntity == null) return;
     final explosion = AreaEffect(
       sourceEntity: victimEntity!,
       position: victimEntity!.center,
       animationRandomlyFlipped: true,
-      size: baseSize + increasePercentOfBase(baseSize),
+      radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       durationType: DurationType.instant,
       duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
       onTick: (entity, areaId) {
         if (entity is AttributeFunctionality) {
           entity.addAttribute(AttributeType.stun,
-          duration:  victimEntity!.durationPercentIncrease.parameter * 1,
-          perpetratorEntity: victimEntity,
-          isTemporary: true
-          );
+              duration: victimEntity!.durationPercentIncrease.parameter * 1,
+              perpetratorEntity: victimEntity,
+              isTemporary: true);
         }
       },
     );
@@ -523,14 +532,14 @@ class PeriodicStunAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.addPulseFunction(pulse);
+    attr.addPulseFunction(action);
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.removePulseFunction(pulse);
+    attr.removePulseFunction(action);
   }
 
   @override
@@ -542,5 +551,219 @@ class PeriodicStunAttribute extends Attribute {
   @override
   String description() {
     return "Stun your enemies!";
+  }
+}
+
+// aaa
+class CombinePeriodicPulseAttribute extends Attribute {
+  CombinePeriodicPulseAttribute(
+      {required super.level, required super.victimEntity, super.damageType});
+
+  @override
+  AttributeType attributeType = AttributeType.combinePeriodicPulse;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  @override
+  void action() async {
+    if (victimEntity == null) return;
+    final playerPos = victimEntity!.center.clone();
+    final explosion = AreaEffect(
+      sourceEntity: victimEntity!,
+      position: victimEntity!.center,
+      animationRandomlyFlipped: true,
+      radius: baseSize + increasePercentOfBase(baseSize),
+      tickRate: .05,
+      durationType: DurationType.instant,
+      duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
+      damage: {DamageType.magic: (increase(true, 5), increase(true, 10))},
+      onTick: (entity, areaId) {
+        if (entity is AttributeFunctionality) {
+          entity.addAttribute(AttributeType.stun,
+              duration: victimEntity!.durationPercentIncrease.parameter * 1,
+              perpetratorEntity: victimEntity,
+              isTemporary: true);
+        }
+        final increaseRes = increase(true, 3);
+        entity.body.applyForce(
+            (entity.center - playerPos).normalized() * (3 + increaseRes));
+      },
+    );
+    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+
+    final periodicMagicPulse =
+        victimEntity?.currentAttributes[AttributeType.periodicMagicPulse];
+    final periodicPush =
+        victimEntity?.currentAttributes[AttributeType.periodicPush];
+    final periodicStun =
+        victimEntity?.currentAttributes[AttributeType.periodicStun];
+
+    attr.addPulseFunction(action);
+
+    pulseAttributes.addAll([
+      if (periodicMagicPulse != null) periodicMagicPulse..unMapUpgrade(),
+      if (periodicPush != null) periodicPush..unMapUpgrade(),
+      if (periodicStun != null) periodicStun..unMapUpgrade()
+    ]);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in pulseAttributes) {
+      element.mapUpgrade();
+    }
+    attr.removePulseFunction(action);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Combined pulse";
+
+  @override
+  String description() {
+    return "Concentrate your magic into a singular powerful pulse!";
+  }
+}
+
+// aaa
+class IncreaseExperienceGrabAttribute extends Attribute {
+  IncreaseExperienceGrabAttribute(
+      {required super.level, required super.victimEntity, super.damageType});
+
+  @override
+  AttributeType attributeType = AttributeType.combinePeriodicPulse;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 1;
+
+  double baseSize = 4;
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! Player) return;
+    final player = victimEntity as Player;
+    player.xpSensorRadius.setParameterPercentValue(attributeId, 1);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! Player) return;
+    final player = victimEntity as Player;
+    player.xpSensorRadius.removePercentKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Focus.";
+
+  @override
+  String description() {
+    return "Double experience grab radius";
+  }
+}
+
+// aaa
+class MarkSentryAttribute extends Attribute {
+  MarkSentryAttribute(
+      {required super.level, required super.victimEntity, super.damageType});
+
+  @override
+  AttributeType attributeType = AttributeType.sentryMarkEnemy;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  List<ChildEntity> sentries = [];
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var i = 0; i < upgradeLevel; i++) {
+      final temp = MarkEnemySentry(
+          initialPosition: Vector2.zero(),
+          enviroment: attr.enviroment,
+          upgradeLevel: upgradeLevel,
+          parentEntity: attr);
+      sentries.add(temp);
+      attr.addHeadEntity(temp);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in sentries) {
+      attr.removeHeadEntity(element.entityId);
+    }
+    sentries.clear();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Keep a watchful eye";
+
+  @override
+  String description() {
+    return "Mark enemies for crit";
   }
 }
