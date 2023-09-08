@@ -30,6 +30,7 @@ class ForestGame extends GameEnviroment {
         priority: backgroundPriority,
         size: Vector2.all(boundsDistanceFromCenter * 2),
         anchor: Anchor.center);
+
     enemyManagement = ForestEnemyManagement(this);
     add(enemyManagement);
     // add(forestBackground);
@@ -122,7 +123,20 @@ class ForestEnemyManagement extends EventManagement {
         eventTriggerInterval: (1, 1),
         levels: (0, 1),
         eventBeginEnd: (1, 500),
-        spawnLocation: SpawnLocation.outside,
+        spawnLocation: SpawnLocation.inside,
+      ),
+      EnemyEvent(
+        gameEnviroment,
+        this,
+        isBigBoss: false,
+        clusterSpread: 1,
+        enemyClusters: [EnemyCluster(EnemyType.mushroomShooter, 1)],
+        numberOfClusters: 1,
+        maxEnemies: 1,
+        eventTriggerInterval: (1, 1),
+        levels: (0, 1),
+        eventBeginEnd: (1, 500),
+        spawnLocation: SpawnLocation.inside,
       ),
       // EnemyEvent(
       //   gameEnviroment,

@@ -131,8 +131,10 @@ abstract class Weapon extends Component with UpgradeFunctions {
     }
   }
 
+  Vector2? customOffset;
+
   Vector2 generateSourcePosition(SourceAttackLocation attackLocation,
-      [Vector2? delta]) {
+      [Vector2? delta, bool melee = false]) {
     Vector2 center = entityAncestor!.center;
 
     switch (attackLocation) {
@@ -148,6 +150,15 @@ abstract class Weapon extends Component with UpgradeFunctions {
       case SourceAttackLocation.distanceFromPlayer:
         center += entityAncestor!.handJoint.position.normalized() *
             distanceFromPlayer;
+        break;
+      case SourceAttackLocation.customOffset:
+        if (melee) {
+          center += (entityAncestor!.handJoint.position.normalized() *
+              distanceFromPlayer);
+        }
+
+        center += (customOffset ?? Vector2.zero());
+
         break;
       default:
     }
@@ -225,9 +236,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
   final DamageParameterManager baseDamage =
       DamageParameterManager(damageBase: {});
 
-  DamageInstance calculateDamage(Entity victim) =>
+  DamageInstance calculateDamage(
+          HealthFunctionality victim, dynamic sourceAttack) =>
       damageCalculations(entityAncestor!, victim, baseDamage.damageBase,
-          sourceWeapon: this, damageSource: baseDamage);
+          sourceWeapon: this,
+          sourceAttack: sourceAttack,
+          damageSource: baseDamage);
 
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
@@ -270,15 +284,25 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   @mustCallSuper
-  void standardAttack([double holdDurationPercent = 1]) {
+  void standardAttack(
+      [double holdDurationPercent = 1, bool callFunctions = true]) {
+    muzzleFlash();
     for (var element in additionalWeapons.entries) {
       element.value.attackAttempt(holdDurationPercent);
     }
-    if (entityAncestor is AttributeFunctionsFunctionality) {
+    if (callFunctions && entityAncestor is AttributeFunctionsFunctionality) {
       for (var element
           in (entityAncestor as AttributeFunctionsFunctionality).onAttack) {
         element.call(this);
       }
+    }
+  }
+
+  void muzzleFlash() {
+    for (var element in weaponAttachmentPoints.entries) {
+      if (element.value.weaponSpriteAnimation == null) continue;
+
+      element.value.weaponSpriteAnimation!.addMuzzleFlash();
     }
   }
 
@@ -471,7 +495,6 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
           assert(!newAnimation.loop, "Temp animations must not loop");
           break;
         case WeaponStatus.attack:
-          addMuzzleFlash();
           assert(!newAnimation.loop, "Temp animations must not loop");
           break;
         case WeaponStatus.reload:

@@ -307,11 +307,11 @@ class Bounds extends BodyComponent<GameRouter> {
 }
 
 mixin CollisionEnviroment on Enviroment {
-  @override
-  void initializeWorld() {
-    gameWorld = CustomCollisionWorld();
-    gameWorld.priority = worldPriority;
-  }
+  // @override
+  // void initializeWorld() {
+  //   gameWorld = CustomCollisionWorld();
+  //   gameWorld.priority = worldPriority;
+  // }
 }
 
 mixin PauseOnFocusLost on Enviroment {

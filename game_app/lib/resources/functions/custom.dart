@@ -183,36 +183,36 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
   }
 }
 
-class CustomCollisionWorld extends World with HasCollisionDetection {}
+// class CustomCollisionWorld extends World with HasCollisionDetection {}
 
-mixin CustomCollisionObject on CollisionCallbacks, PositionComponent {
-  abstract Set<int> maskCategories;
-  abstract int category;
-  abstract bool collidesWithScreenHitbox;
+// mixin CustomCollisionObject on CollisionCallbacks, PositionComponent {
+//   abstract Set<int> maskCategories;
+//   abstract int category;
+//   abstract bool collidesWithScreenHitbox;
 
-  bool _filterCheck(CustomCollisionObject other) {
-    return maskCategories.contains(other.category);
-  }
+//   bool _filterCheck(CustomCollisionObject other) {
+//     return maskCategories.contains(other.category);
+//   }
 
-  // @override
-  // bool onComponentTypeCheck(PositionComponent other) {
-  //   // TODO: implement onComponentTypeCheck
-  //   return super.onComponentTypeCheck(other);
-  // }
+//   // @override
+//   // bool onComponentTypeCheck(PositionComponent other) {
+//   //   // TODO: implement onComponentTypeCheck
+//   //   return super.onComponentTypeCheck(other);
+//   // }
 
-  @override
-  void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
-    if (other is! CustomCollisionObject) {
-      return super.onCollisionStart(intersectionPoints, other);
-    } else if (_filterCheck(other)) {
-      super.onCollisionStart(intersectionPoints, other);
-    }
-  }
+//   @override
+//   void onCollisionStart(
+//       Set<Vector2> intersectionPoints, PositionComponent other) {
+//     if (other is! CustomCollisionObject) {
+//       return super.onCollisionStart(intersectionPoints, other);
+//     } else if (_filterCheck(other)) {
+//       super.onCollisionStart(intersectionPoints, other);
+//     }
+//   }
 
-  void onCollisionBeginFiltered(
-      Set<Vector2> intersectionPoints, PositionComponent other) {}
-}
+//   void onCollisionBeginFiltered(
+//       Set<Vector2> intersectionPoints, PositionComponent other) {}
+// }
 
 class SimpleStartPlayEndSpriteAnimationComponent
     extends SpriteAnimationGroupComponent {
@@ -281,16 +281,18 @@ class SimpleStartPlayEndSpriteAnimationComponent
     current = status;
   }
 
-  void triggerEnding() {
+  Future<void> triggerEnding() async {
     if (endAnimation == null) {
+      const duration = .5;
       final controller = EffectController(
         curve: Curves.easeInCubic,
-        duration: .5,
+        duration: duration,
         onMax: () {
           removeFromParent();
         },
       );
       add(OpacityEffect.fadeOut(controller));
+      await Future.delayed(duration.seconds * 2);
       return;
     } else {
       _setStatus(EntityStatus.dead);
@@ -298,6 +300,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
       animationTicker?.onComplete = () {
         removeFromParent();
       };
+      await animationTicker?.completed;
     }
   }
 }

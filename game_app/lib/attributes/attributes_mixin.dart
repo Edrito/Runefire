@@ -10,6 +10,7 @@ import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/data_classes/base.dart';
 import 'package:game_app/resources/functions/custom.dart';
+import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
 import '../entities/child_entities.dart';
@@ -191,7 +192,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     for (var element in onUpdate) {
       element(dt);
     }
-    processHeadEntities(_headEntities, 1, dt);
+    processHeadEntities(_headEntities, .5, dt);
     processBodyEntities(_bodyComponents, height.parameter * 1.3, dt);
     super.update(dt);
   }
@@ -200,6 +201,8 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<Function> dashOngoingFunctions = [];
   final List<Function> dashEndFunctions = [];
   final List<ChildEntity> _headEntities = [];
+
+  int get numHeadEntities => _headEntities.length;
 
   final List<ChildEntity> _bodyComponents = [];
 
@@ -234,7 +237,6 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
         double y = distance * sin(currentAngle);
         if (tempBodies[i].isLoaded) {
           tempBodies[i]
-              .body
               .setTransform((Vector2(x, y) * distanceStep) + offsetPosition, 0);
         }
         currentAngle += angleStep;
@@ -244,7 +246,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     previousBodyAngle += dt * speedBody;
   }
 
-  void removBodyEntity(String entityId) {
+  void removeBodyEntity(String entityId) {
     final index =
         _bodyComponents.indexWhere((element) => element.entityId == entityId);
     if (index == -1) return;
@@ -274,17 +276,24 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
         double x = distance * cos(currentAngle);
         double y = distance * sin(currentAngle);
         if (entities[i].isLoaded) {
-          entities[i].body.setTransform(Vector2(x, y) + offsetPosition, 0);
+          entities[i].setTransform(Vector2(x * 2, y * .75) + offsetPosition, 0);
         }
         currentAngle += angleStep;
       } else {
         if (entities[i].isLoaded) {
-          entities[i].body.setTransform(Vector2.zero() + offsetPosition, 0);
+          entities[i].setTransform(Vector2.zero() + offsetPosition, 0);
         }
       }
     }
 
     previousHeadAngle = currentAngle;
+  }
+
+  void removeAllHeadEntities() {
+    for (var element in _headEntities) {
+      element.removeFromParent();
+    }
+    _headEntities.clear();
   }
 
   void removeHeadEntity(String entityId) {
@@ -350,8 +359,13 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<Function> jumpOngoingFunctions = [];
   final List<Function> jumpEndFunctions = [];
 
-  final List<Function(Entity source)> onHit = [];
-  final List<Function(HealthFunctionality victim)> onKillOtherEntity = [];
+  final List<OnHitDef> onHitByProjectile = [];
+  // final List<OnHitProjectileDef> onHitByMelee = [];
+  final List<OnHitDef> onHitByOtherEntity = [];
+
+  final List<OnHitDef> onHitOtherEntity = [];
+  final List<Function(DamageInstance instance)> onKillOtherEntity = [];
+
   final List<Function> onMove = [];
   final List<Function> onDeath = [];
   final List<Function> onLevelUp = [];
@@ -375,9 +389,9 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     }
   }
 
-  void onHitFunctions(HealthFunctionality other) {
-    for (var element in onHit) {
-      element(other);
+  void onHitFunctions(DamageInstance damage) {
+    for (var element in onHitOtherEntity) {
+      element(damage);
     }
   }
 }

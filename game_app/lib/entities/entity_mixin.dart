@@ -14,6 +14,7 @@ import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/functions/custom.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
+import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/data_classes/base.dart';
@@ -48,10 +49,8 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   @mustCallSuper
   void initializeChildEntityParameters(ChildEntity childEntity) {
     attackCount = childEntity.parentEntity.attackCount;
-    invincible = childEntity.parentEntity.invincible;
     durationPercentIncrease = childEntity.parentEntity.durationPercentIncrease;
     tickDamageIncrease = childEntity.parentEntity.tickDamageIncrease;
-    enableMovement = childEntity.parentEntity.enableMovement;
     areaSizePercentIncrease = childEntity.parentEntity.areaSizePercentIncrease;
     critChance = childEntity.parentEntity.critChance;
     critDamage = childEntity.parentEntity.critDamage;
@@ -78,10 +77,8 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   @mustCallSuper
   void initializeParentParameters() {
     attackCount = IntParameterManager(baseParameter: 0);
-    invincible = BoolParameterManager(baseParameter: false);
     durationPercentIncrease = DoubleParameterManager(baseParameter: 1);
     tickDamageIncrease = DoubleParameterManager(baseParameter: 1);
-    enableMovement = BoolParameterManager(baseParameter: true);
     areaSizePercentIncrease = DoubleParameterManager(baseParameter: 1);
     critChance = DoubleParameterManager(baseParameter: 0.05);
     critDamage = DoubleParameterManager(baseParameter: 1.5);
@@ -102,12 +99,18 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
     spellDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
   }
 
+  void forceInitializeParameters() {
+    invincible = BoolParameterManager(baseParameter: false);
+    enableMovement = BoolParameterManager(baseParameter: true);
+  }
+
   void initializeParameterManagers() {
     if (isChildEntity) {
       initializeChildEntityParameters(this as ChildEntity);
     } else {
       initializeParentParameters();
     }
+    forceInitializeParameters();
   }
 
   late final IntParameterManager attackCount;
@@ -175,6 +178,8 @@ mixin MovementFunctionality on Entity {
     super.initializeParentParameters();
   }
 
+  bool get hasMoveVelocities => moveVelocities.isNotEmpty;
+
   @override
   void initializeChildEntityParameters(ChildEntity childEntity) {
     speed = (childEntity.parentEntity as MovementFunctionality).speed;
@@ -220,7 +225,7 @@ mixin MovementFunctionality on Entity {
     spriteFlipCheck();
 
     // body.setTransform(center + (pulse * speed.parameter), 0);
-    if (isPlayer) {
+    if (isPlayer && !isChildEntity) {
       body.applyForce(pulse *
           speed.parameter *
           ((this as Player).isDisplay
@@ -379,6 +384,8 @@ mixin AttackFunctionality on AimFunctionality {
     return carriedWeapons[weaponIndex];
   }
 
+  List<Function(Weapon? from, Weapon to)> onWeaponSwap = [];
+
   int weaponIndex = 0;
   void incrementWeaponIndex() {
     weaponIndex++;
@@ -468,7 +475,7 @@ mixin AttackFunctionality on AimFunctionality {
       await setWeapon(weapon);
     }
 
-    if (isPlayer && enviroment is GameEnviroment) {
+    if (isPlayer && enviroment is GameEnviroment && !isChildEntity) {
       gameEnviroment.hud.mounted.then(
           (value) => gameEnviroment.hud.buildRemainingAmmoText(this as Player));
     }
@@ -497,27 +504,33 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> swapWeapon() async {
-    var weapon = currentWeapon;
+    final previousWeapon = currentWeapon;
     if (isAttacking) {
-      weapon?.endAttacking();
+      previousWeapon?.endAttacking();
     }
     if (isAltAttacking) {
-      weapon?.endAltAttacking();
+      previousWeapon?.endAltAttacking();
     }
-    weapon?.weaponSwappedFrom();
+    previousWeapon?.weaponSwappedFrom();
 
     incrementWeaponIndex();
-    weapon = currentWeapon;
+    final newWeapon = currentWeapon;
 
-    await setWeapon(weapon!);
+    await setWeapon(newWeapon!);
 
-    weapon.weaponSwappedTo();
+    newWeapon.weaponSwappedTo();
 
     if (isAttacking) {
-      weapon.startAttacking();
+      newWeapon.startAttacking();
     }
     if (isAltAttacking) {
-      weapon.startAltAttacking();
+      newWeapon.startAltAttacking();
+    }
+
+    if (onWeaponSwap.isNotEmpty) {
+      for (var element in onWeaponSwap) {
+        element(previousWeapon, newWeapon);
+      }
     }
   }
 }
@@ -772,13 +785,24 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void onHitFunctionsCall(Entity other) {
+  ///Returning true means cancel the damage
+  bool onHitByOtherFunctionsCall(DamageInstance damage) {
     final attr = attributeFunctionsFunctionality;
-    if (attr != null && attr.onHit.isNotEmpty) {
-      for (var element in attr.onHit) {
-        element(other);
+    if (attr == null) return false;
+
+    bool cancelDamage = false;
+    if (attr.onHitByOtherEntity.isNotEmpty) {
+      for (var element in attr.onHitByOtherEntity) {
+        cancelDamage = cancelDamage || element(damage);
       }
     }
+    if (attr.onHitByProjectile.isNotEmpty &&
+        damage.sourceAttack is Projectile) {
+      for (var element in attr.onHitByProjectile) {
+        cancelDamage = cancelDamage || element(damage);
+      }
+    }
+    return cancelDamage;
   }
 
   void addDamageEffects(Color color) {
@@ -812,22 +836,25 @@ mixin HealthFunctionality on Entity {
 
   bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
-    if (damage.damageMap.isEmpty) return false;
+    applyHealing(damage);
+    applyIFrameTimer(id);
+    setEntityStatus(EntityStatus.damage);
+
+    if (damage.damageMap.isEmpty || onHitByOtherFunctionsCall(damage)) {
+      return false;
+    }
+
     MapEntry<DamageType, double> largestEntry = fetchLargestDamageType(damage);
     addDamageText(largestEntry.key, largestEntry.value, damage.isCrit);
     addDamageEffects(largestEntry.key.color);
 
     damage.applyResistances(this);
-    setEntityStatus(EntityStatus.damage);
-    applyIFrameTimer(id);
-    applyHealing(damage);
     applyDamage(damage);
 
     applyKnockback(damage);
     deathChecker(damage);
     applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
     essenceStealChecker(damage);
-    onHitFunctionsCall(damage.source);
     return true;
   }
 
@@ -936,7 +963,7 @@ mixin HealthFunctionality on Entity {
     final otherFunctions = other.attributeFunctionsFunctionality;
     if (otherFunctions != null) {
       for (var element in otherFunctions.onKillOtherEntity) {
-        element(this);
+        element(damage);
       }
     }
   }
@@ -1048,21 +1075,29 @@ mixin DodgeFunctionality on HealthFunctionality {
   }
 }
 
-mixin TouchDamageFunctionality on ContactCallbacks, Entity {
+mixin TouchDamageFunctionality on Entity, ContactCallbacks {
   @override
   void initializeParentParameters() {
+    initTouchParameters();
+    super.initializeParentParameters();
+  }
+
+  void initTouchParameters() {
     touchDamage = DamageParameterManager(damageBase: {});
     hitRate = DoubleParameterManager(
         baseParameter: 1, maxParameter: double.infinity, minParameter: 0);
-
-    super.initializeParentParameters();
   }
 
   @override
   void initializeChildEntityParameters(ChildEntity childEntity) {
-    touchDamage =
-        (childEntity.parentEntity as TouchDamageFunctionality).touchDamage;
-    hitRate = (childEntity.parentEntity as TouchDamageFunctionality).hitRate;
+    bool parentIsTouch = childEntity.parentEntity is TouchDamageFunctionality;
+    if (parentIsTouch) {
+      touchDamage =
+          (childEntity.parentEntity as TouchDamageFunctionality).touchDamage;
+      hitRate = (childEntity.parentEntity as TouchDamageFunctionality).hitRate;
+    } else {
+      initTouchParameters();
+    }
 
     super.initializeChildEntityParameters(childEntity);
   }
@@ -1071,9 +1106,10 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
 
   late final DoubleParameterManager hitRate;
 
-  DamageInstance calculateTouchDamage(Entity victim) =>
+  DamageInstance calculateTouchDamage(
+          HealthFunctionality victim, dynamic sourceAttack) =>
       damageCalculations(this, victim, touchDamage.damageBase,
-          damageSource: touchDamage);
+          sourceAttack: sourceAttack, damageSource: touchDamage);
 
   Map<Body, TimerComponent> objectsHitting = {};
 
@@ -1085,7 +1121,8 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
     if (otherReference is! HealthFunctionality) return;
     if ((isPlayer && otherReference is Enemy) ||
         (!isPlayer && otherReference is Player)) {
-      otherReference.hitCheck(entityId, calculateTouchDamage(otherReference));
+      otherReference.hitCheck(
+          entityId, calculateTouchDamage(otherReference, this));
     }
   }
 
@@ -1103,7 +1140,7 @@ mixin TouchDamageFunctionality on ContactCallbacks, Entity {
       )
         ..addToParent(this)
         ..onTick();
-      other.hitCheck(entityId, calculateTouchDamage(other));
+      other.hitCheck(entityId, calculateTouchDamage(other, this));
     } else if (!isPlayer && other is Player) {
       objectsHitting[other.body] = TimerComponent(
         period: hitRate.parameter,

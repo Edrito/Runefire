@@ -117,15 +117,17 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   FutureOr<void> onLoad() {
     children.register<CameraComponent>();
     priority = worldPriority;
+
     //World
     initializeWorld();
     super.add(gameWorld);
+
     //Camera
     gameCamera = CameraComponent(world: gameWorld);
     gameCamera.priority = -50000;
     gameCamera.viewfinder.zoom = 75;
     super.add(gameCamera);
-    // gameCamera.viewfinder.angle = radians(180);
+
     //Physics
     physicsComponent = Forge2DComponent();
     physicsComponent.priority = enemyPriority;

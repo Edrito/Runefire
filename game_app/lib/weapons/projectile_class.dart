@@ -96,19 +96,22 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   void bodyContact(HealthFunctionality other) {
     hitIds.add(other.entityId);
-    other.hitCheck(projectileId, weaponAncestor.calculateDamage(other));
-    onHitFunctions(other);
+    final damageInstance = weaponAncestor.calculateDamage(other, this);
+    other.hitCheck(projectileId, damageInstance);
+    onHitFunctions(damageInstance, other);
   }
 
-  void onHitFunctions(HealthFunctionality other) {
+  void onHitFunctions(
+      DamageInstance damageInstance, HealthFunctionality victim) {
     if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
       final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
+      bool result = false;
       for (var element in weapon.onHitProjectile) {
-        element(other);
+        result = result || element(damageInstance);
       }
     }
     weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
-        ?.onHitFunctions(other);
+        ?.onHitFunctions(damageInstance);
   }
 
   @override
@@ -149,9 +152,11 @@ abstract class Projectile extends BodyComponent<GameRouter>
     super.onRemove();
   }
 
+  bool isDead = false;
+
   void killBullet([bool withEffect = false]) async {
     body.setType(BodyType.static);
-
     removeFromParent();
+    isDead = true;
   }
 }

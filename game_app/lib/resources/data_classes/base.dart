@@ -330,12 +330,18 @@ class DamagePercentParameterManager {
   }
 }
 
+///[sourceAttack] represents the source object that did the damage
+///examples are
+///[Entity] for status effects and touch damage
+///[MeleeAttackHitbox] for melee attacks
+///[Projectile] for projectiles
 DamageInstance damageCalculations(
   Entity source,
-  Entity victim,
+  HealthFunctionality victim,
   Map<DamageType, (double, double)> damageBase, {
   DamageParameterManager? damageSource,
   Weapon? sourceWeapon,
+  required dynamic sourceAttack,
   bool forceCrit = false,
   DamageKind damageKind = DamageKind.regular,
   StatusEffects? statusEffect,
@@ -366,7 +372,11 @@ DamageInstance damageCalculations(
   }
 
   final returnInstance = DamageInstance(
-      source: source, damageMap: returnMap, sourceWeapon: sourceWeapon);
+      source: source,
+      damageMap: returnMap,
+      sourceAttack: sourceAttack,
+      victim: victim,
+      sourceWeapon: sourceWeapon);
 
   double weaponTypeIncrease = 1;
 
@@ -408,7 +418,7 @@ DamageInstance damageCalculations(
   double rngCrit = rng.nextDouble();
   double critDamageIncrease = 1;
   bool isCrit = false;
-  if (victim is HealthFunctionality && victim.consumeMark()) {
+  if (victim.consumeMark()) {
     forceCrit = true;
   }
   if (rngCrit <= source.critChance.parameter || forceCrit) {

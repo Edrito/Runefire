@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/expendables.dart';
 import 'package:game_app/game/proximity_item.dart';
@@ -6,7 +7,13 @@ import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
 
-enum AimPattern { player, closestEnemyToPlayer, randomEntity, randomEnemy }
+enum AimPattern {
+  player,
+  closestEnemyToPlayer,
+  randomEntity,
+  randomEnemy,
+  target
+}
 
 mixin DropItemFunctionality on HealthFunctionality {
   ///If an [rng.double] is smaller than the respective key then experienceType is dropped
@@ -90,6 +97,8 @@ mixin AimControlFunctionality on AimFunctionality {
   abstract AimPattern aimPattern;
   late final Function updateFunction;
 
+  Body? target;
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -108,6 +117,16 @@ mixin AimControlFunctionality on AimFunctionality {
               ((gameEnviroment.player!.closestEnemy?.center ?? Vector2.zero()) -
                       body.position)
                   .normalized();
+        };
+
+        break;
+      case AimPattern.target:
+        updateFunction = () {
+          inputAimAngles[InputType.ai] = ((target?.worldCenter ??
+                      gameEnviroment.player!.closestEnemy?.center ??
+                      Vector2.zero()) -
+                  body.position)
+              .normalized();
         };
 
         break;
@@ -154,6 +173,7 @@ mixin DumbShoot on AttackFunctionality {
         onTick: () {
           if (entityAimAngle.isZero()) return;
           startAttacking();
+          setEntityStatus(EntityStatus.attack);
           endAttacking();
         },
         repeat: true)

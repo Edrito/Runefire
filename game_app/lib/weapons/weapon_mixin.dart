@@ -225,8 +225,10 @@ mixin MeleeFunctionality on Weapon {
         currentSwingAngle, attackCount, maxSpreadDegrees.parameter);
 
     for (var deltaDirection in temp) {
+      final customPosition =
+          generateSourcePosition(sourceAttackLocation!, null, true);
       returnList.add(MeleeAttackHandler(
-        initPosition: generateSourcePosition(sourceAttackLocation!),
+        initPosition: customPosition,
         initAngle: deltaDirection,
         attachmentPoint: sourceAttackLocation != SourceAttackLocation.mouse
             ? entityAncestor
@@ -241,9 +243,10 @@ mixin MeleeFunctionality on Weapon {
   }
 
   @override
-  void standardAttack([double chargeAmount = 1]) async {
-    meleeAttack(currentAttackIndex, chargeAmount);
-    super.standardAttack(chargeAmount);
+  void standardAttack(
+      [double holdDurationPercent = 1, bool callFunctions = true]) async {
+    meleeAttack(currentAttackIndex, holdDurationPercent);
+    super.standardAttack(holdDurationPercent, callFunctions);
   }
 
   @override
@@ -384,9 +387,10 @@ mixin ProjectileFunctionality on Weapon {
   }
 
   @override
-  void standardAttack([double chargeAmount = 1]) async {
-    shootProjectile(chargeAmount);
-    super.standardAttack(chargeAmount);
+  void standardAttack(
+      [double holdDurationPercent = 1, bool callFunctions = true]) async {
+    shootProjectile(holdDurationPercent);
+    super.standardAttack(holdDurationPercent, callFunctions);
   }
 
   double particleLifespan = .5;
@@ -465,25 +469,25 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
     // spawnAnimation?.stepTime =
     //     attackTickRate.parameter / (spawnAnimation?.frames.length ?? 1);
 
-    if (semiAutoType != SemiAutoType.regular) {
-      // chargeAnimation = SpriteAnimationComponent(
-      //     size: Vector2.all(chargeSize),
-      //     anchor: Anchor.center,
-      //     animation: spawnAnimation ?? playAnimation)
-      //   ..addToParent(
-      //       weaponAttachmentPoints[WeaponSpritePosition.hand]!.weaponTip!);
+    // if (semiAutoType != SemiAutoType.regular) {
+    // chargeAnimation = SpriteAnimationComponent(
+    //     size: Vector2.all(chargeSize),
+    //     anchor: Anchor.center,
+    //     animation: spawnAnimation ?? playAnimation)
+    //   ..addToParent(
+    //       weaponAttachmentPoints[WeaponSpritePosition.hand]!.weaponTip!);
 
-      // if (spawnAnimation == null) {
-      //   chargeAnimation?.size = Vector2.zero();
-      //   chargeAnimation?.add(SizeEffect.to(
-      //       Vector2.all(chargeSize),
-      //       EffectController(
-      //           duration: attackTickRate.parameter, curve: Curves.bounceIn)));
-    } else {
-      // chargeAnimation?.animationTicker?.completed
-      //     .then((value) => chargeCompleted());
-      // }
-    }
+    // if (spawnAnimation == null) {
+    //   chargeAnimation?.size = Vector2.zero();
+    //   chargeAnimation?.add(SizeEffect.to(
+    //       Vector2.all(chargeSize),
+    //       EffectController(
+    //           duration: attackTickRate.parameter, curve: Curves.bounceIn)));
+    // } else {
+    // chargeAnimation?.animationTicker?.completed
+    //     .then((value) => chargeCompleted());
+    // }
+    // }
 
     super.startAttacking();
   }
@@ -861,21 +865,21 @@ mixin FullAutomatic on Weapon {
     )..addToParent(this);
   }
 }
-
+typedef OnHitDef = bool Function(DamageInstance damage);
 mixin AttributeWeaponFunctionsFunctionality on Weapon {
   //Event functions that are modified from attributes
   List<Function(HealthFunctionality other)> onKill = [];
-  List<Function(HealthFunctionality other)> onHitProjectile = [];
-  List<Function(HealthFunctionality other)> onHitMelee = [];
-  List<Function(HealthFunctionality other)> onHit = [];
+  List<OnHitDef> onHitProjectile = [];
+  List<OnHitDef> onHitMelee = [];
+  List<OnHitDef> onHit = [];
   List<Function()> onAttackProjectile = [];
   List<Function()> onAttackMelee = [];
   List<Function()> onAttack = [];
   List<Function()> onReload = [];
-  List<Function(Weapon from, Weapon to)> onSwapWeapon = [];
 
   @override
-  void standardAttack([double holdDurationPercent = 1]) {
+  void standardAttack(
+      [double holdDurationPercent = 1, bool callFunctions = true]) {
     if (this is ProjectileFunctionality) {
       for (var element in onAttackProjectile) {
         element();
@@ -888,7 +892,7 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
     for (var element in onAttack) {
       element();
     }
-    super.standardAttack();
+    super.standardAttack(holdDurationPercent, callFunctions);
   }
 }
 

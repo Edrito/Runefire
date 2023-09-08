@@ -24,7 +24,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     with ContactCallbacks {
   MeleeAttackHitbox(this.size, this.meleeAttackAncestor, this.onHit);
   MeleeAttackHandler meleeAttackAncestor;
-  Function(HealthFunctionality) onHit;
+  Function(DamageInstance damage) onHit;
   List<String> hitEnemiesId = [];
   final Vector2 size;
   late PolygonShape shape;
@@ -65,9 +65,10 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
   void bodyContact(HealthFunctionality other) {
     hitEnemiesId.add(other.entityId);
-    other.hitCheck(meleeAttackAncestor.meleeId,
-        meleeAttackAncestor.weaponAncestor.calculateDamage(other));
-    onHitFunctions(other);
+    final damageInstance =
+        meleeAttackAncestor.weaponAncestor.calculateDamage(other, this);
+    other.hitCheck(meleeAttackAncestor.meleeId, damageInstance);
+    onHitFunctions(damageInstance);
     applyHitSpriteEffects(other);
     hitEnemies++;
   }
@@ -93,20 +94,21 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
         1);
   }
 
-  void onHitFunctions(HealthFunctionality other) {
+  void onHitFunctions(DamageInstance instance) {
     if (meleeAttackAncestor.weaponAncestor
         is AttributeWeaponFunctionsFunctionality) {
       final weapon = meleeAttackAncestor.weaponAncestor
           as AttributeWeaponFunctionsFunctionality;
       for (var element in weapon.onHitMelee) {
-        element(other);
+        element(instance);
       }
     }
 
     meleeAttackAncestor
         .weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
-        ?.onHitFunctions(other);
-    onHit(other);
+        ?.onHitFunctions(instance);
+
+    onHit(instance);
   }
 
   @override
@@ -127,6 +129,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       swordFilter.maskBits = enemyCategory;
     }
     swordFilter.categoryBits = swordCategory;
+
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
@@ -134,7 +137,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
         density: 0,
         isSensor: true,
         filter: swordFilter);
-//  activeSwings.last.swingPosition, activeSwings.last.swingAngle
+
     final bodyDef = BodyDef(
       userData: this,
       allowSleep: false,
@@ -148,9 +151,13 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 }
 
 class MeleeAttackSprite extends PositionComponent {
-  MeleeAttackSprite(WeaponSpriteAnimation? swingAnimation, Vector2 position,
+  MeleeAttackSprite(WeaponSpriteAnimation? swingAnimation, this.initPosition,
       this.target, this.handler) {
-    this.position = position;
+    if (target != null) {
+      initTargetPosition = target!.center.clone();
+    }
+    position.setFrom(initPosition);
+
     animationComponent = swingAnimation;
   }
   void removeSwing() {
@@ -160,6 +167,8 @@ class MeleeAttackSprite extends PositionComponent {
   WeaponSpriteAnimation? animationComponent;
 
   Entity? target;
+  late Vector2 initTargetPosition;
+  Vector2 initPosition;
 
   void fadeOut() async {
     await animationComponent?.setWeaponStatus(WeaponStatus.dead);
@@ -171,7 +180,11 @@ class MeleeAttackSprite extends PositionComponent {
 
   @override
   void update(double dt) {
-    position.setFrom(target?.center ?? position);
+    if (target != null) {
+      // print((target!.center));
+      // print((initTargetPosition));
+      position.setFrom(initPosition + (target!.center - initTargetPosition));
+    }
     super.update(dt);
   }
 
@@ -198,7 +211,6 @@ class MeleeAttackSprite extends PositionComponent {
 }
 
 class MeleeAttackHandler extends Component {
-  //TODO Add support for charge attacks
   MeleeAttackHandler(
       {
       // required this.chargeAmount,
@@ -241,8 +253,8 @@ class MeleeAttackHandler extends Component {
 
   bool get isFlipped => weaponAncestor.entityAncestor?.isFlipped ?? false;
 
-  void onHitFunction(HealthFunctionality other) {
-    chain(other);
+  void onHitFunction(DamageInstance damage) {
+    chain(damage.victim);
   }
 
   void chain(HealthFunctionality other) {
@@ -280,11 +292,7 @@ class MeleeAttackHandler extends Component {
       );
       attachmentPoint = other;
 
-      initSwing(
-          otherAngle,
-          other.center -
-              weaponAncestor.entityAncestor!.gameEnviroment.gameCamera
-                  .viewfinder.position);
+      initSwing(otherAngle, other.center);
     }
   }
 
@@ -374,12 +382,11 @@ class MeleeAttackHandler extends Component {
       weaponSpriteAnimation?.flipHorizontallyAroundCenter();
     }
 
-    final newSwing = MeleeAttackSprite(
-        weaponSpriteAnimation, swingPosition, attachmentPoint, this);
+    final newSwing = MeleeAttackSprite(weaponSpriteAnimation,
+        swingPosition + rotatedStartPosition, attachmentPoint, this);
 
     final startAngle = radians(startPattern.$2) + swingAngle;
     newSwing.animationComponent?.angle = startAngle;
-    newSwing.animationComponent?.position += rotatedStartPosition;
     addStepToSwing(animationStepIndex, swingAngle, newSwing, null);
     activeSwings.add(newSwing);
     newSwing.addToParent(this);

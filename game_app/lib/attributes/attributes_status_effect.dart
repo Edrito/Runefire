@@ -144,6 +144,7 @@ class FireDamageAttribute extends StatusEffectAttribute {
                 )
               },
               statusEffect: statusEffect,
+              sourceAttack: perpetratorEntity,
               damageKind: DamageKind.dot),
           false);
     }

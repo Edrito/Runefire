@@ -193,12 +193,13 @@ enum AttributeType {
     territory: AttributeTerritory.game,
   ),
 
-  sentryElementalCaptureBullet(
+  sentryCaptureBullet(
     rarity: AttributeRarity.rare,
     category: AttributeCategory.defence,
     territory: AttributeTerritory.game,
   ),
 
+  //TODO
   sentryCombination(
     rarity: AttributeRarity.unique,
     category: AttributeCategory.utility,

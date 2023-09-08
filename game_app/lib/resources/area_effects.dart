@@ -35,7 +35,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     assert(onTick != null || damage != null);
     radius *= sourceEntity.areaSizePercentIncrease.parameter;
 
-    animationComponent?.size = Vector2.all(radius);
+    animationComponent?.size = Vector2.all(radius * 2);
     animationComponent?.durationType = durationType;
     animationComponent?.randomlyFlipped = animationRandomlyFlipped;
 
@@ -73,7 +73,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       spawnAnimation: await loadSpriteAnimation(
           16, 'effects/explosion_1_16.png', .05, false),
       randomlyFlipped: animationRandomlyFlipped,
-      size: Vector2.all(radius),
+      size: Vector2.all(radius * 2),
     );
 
     animationComponent?.addToParent(this);
@@ -121,7 +121,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       other.takeDamage(
           areaId,
           damageCalculations(sourceEntity, other, damage!,
-              damageKind: DamageKind.area));
+              sourceAttack: this, damageKind: DamageKind.area));
     }
     onTick?.call(other, areaId);
   }
@@ -143,10 +143,11 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     super.update(dt);
   }
 
-  void killArea() {
+  void killArea() async {
     isKilled = true;
     affectedEntities.clear();
-    animationComponent?.triggerEnding();
+    await animationComponent?.triggerEnding();
+    removeFromParent();
   }
 
   @override
@@ -165,7 +166,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     late CircleShape shape;
 
     shape = CircleShape();
-    shape.radius = radius * .45;
+    shape.radius = radius;
     renderBody = false;
     final filter = Filter();
     filter.categoryBits = attackCategory;

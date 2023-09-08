@@ -22,6 +22,22 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
     case AttributeType.sentryMarkEnemy:
       return MarkSentryAttribute(
           level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.sentryRangedAttack:
+      return RangedAttackSentryAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.sentryGrabItems:
+      return GrabItemsSentryAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.sentryElementalFly:
+      return ElementalSentryAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.sentryCaptureBullet:
+      return CaptureBulletSentryAttribute(
+          level: level, victimEntity: victimEntity);
+    case AttributeType.mirrorOrb:
+      return MirrorOrbAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.shieldSurround:
+      return ShieldSentryAttribute(level: level, victimEntity: victimEntity);
 
     default:
       return null;
@@ -50,11 +66,11 @@ class ExplosionOnKillAttribute extends Attribute {
 
   double baseSize = 3;
 
-  void onKill(HealthFunctionality other) async {
+  void onKill(DamageInstance damage) async {
     if (victimEntity == null) return;
     final explosion = AreaEffect(
         sourceEntity: victimEntity!,
-        position: other.center,
+        position: damage.victim.center,
         animationRandomlyFlipped: true,
         radius: baseSize + increasePercentOfBase(baseSize),
         durationType: DurationType.instant,
@@ -372,24 +388,29 @@ class PeriodicPushAttribute extends Attribute {
   @override
   int get maxLevel => 2;
 
-  double baseSize = 4;
+  double baseSize = 5;
+  double baseOomph = 8;
 
   @override
   void action() async {
     if (victimEntity == null) return;
+    final radius = baseSize + increasePercentOfBase(baseSize);
     final playerPos = victimEntity!.center.clone();
     final explosion = AreaEffect(
       sourceEntity: victimEntity!,
       position: victimEntity!.center,
       animationRandomlyFlipped: true,
-      radius: baseSize + increasePercentOfBase(baseSize),
+      radius: radius,
       tickRate: .05,
       durationType: DurationType.instant,
       duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
       onTick: (entity, areaId) {
-        final increaseRes = increase(true, 3);
-        entity.body.applyForce(
-            (entity.center - playerPos).normalized() * (3 + increaseRes));
+        final increaseRes = increase(true, baseOomph);
+        final double distanceScaled =
+            (entity.center.distanceTo(playerPos).clamp(0, radius) / radius);
+        entity.body.applyForce((entity.center - playerPos).normalized() *
+            (baseOomph + increaseRes) *
+            (1 - distanceScaled));
       },
     );
     victimEntity?.gameEnviroment.physicsComponent.add(explosion);
@@ -702,7 +723,6 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   }
 }
 
-// aaa
 class MarkSentryAttribute extends Attribute {
   MarkSentryAttribute(
       {required super.level, required super.victimEntity, super.damageType});
@@ -765,5 +785,392 @@ class MarkSentryAttribute extends Attribute {
   @override
   String description() {
     return "Mark enemies for crit";
+  }
+}
+
+class RangedAttackSentryAttribute extends Attribute {
+  RangedAttackSentryAttribute(
+      {required super.level, required super.victimEntity, super.damageType});
+
+  @override
+  AttributeType attributeType = AttributeType.sentryRangedAttack;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.frost, DamageType.energy, DamageType.magic};
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  List<ChildEntity> sentries = [];
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var i = 0; i < upgradeLevel; i++) {
+      final temp = RangedAttackSentry(
+          initialPosition: Vector2.zero(),
+          enviroment: attr.enviroment,
+          damageType: damageType ?? allowedDamageTypes.first,
+          upgradeLevel: upgradeLevel,
+          parentEntity: attr);
+      sentries.add(temp);
+      attr.addHeadEntity(temp);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in sentries) {
+      attr.removeHeadEntity(element.entityId);
+    }
+    sentries.clear();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Keep a watchful eye";
+
+  @override
+  String description() {
+    return "Periodically attack enemies";
+  }
+}
+
+class GrabItemsSentryAttribute extends Attribute {
+  GrabItemsSentryAttribute(
+      {required super.level, required super.victimEntity, super.damageType});
+
+  @override
+  AttributeType attributeType = AttributeType.sentryGrabItems;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  List<ChildEntity> sentries = [];
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var i = 0; i < upgradeLevel; i++) {
+      final temp = GrabItemsSentry(
+          initialPosition: Vector2.zero(),
+          enviroment: attr.enviroment,
+          upgradeLevel: upgradeLevel,
+          parentEntity: attr);
+      sentries.add(temp);
+      attr.addHeadEntity(temp);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in sentries) {
+      attr.removeHeadEntity(element.entityId);
+    }
+    sentries.clear();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Keep a watchful eye";
+
+  @override
+  String description() {
+    return "Grab dropped items scattered across the world";
+  }
+}
+
+class ElementalSentryAttribute extends Attribute {
+  ElementalSentryAttribute(
+      {required super.level, required super.victimEntity, super.damageType});
+
+  @override
+  AttributeType attributeType = AttributeType.sentryElementalFly;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.psychic};
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  List<ChildEntity> sentries = [];
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var i = 0; i < upgradeLevel; i++) {
+      final temp = ElementalAttackSentry(
+          initialPosition: Vector2.zero(),
+          enviroment: attr.enviroment,
+          damageType: damageType ?? allowedDamageTypes.first,
+          upgradeLevel: upgradeLevel,
+          parentEntity: attr);
+      sentries.add(temp);
+      attr.addHeadEntity(temp);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in sentries) {
+      attr.removeHeadEntity(element.entityId);
+    }
+    sentries.clear();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Keep a watchful eye";
+
+  @override
+  String description() {
+    return "Attacks enemies";
+  }
+}
+
+class CaptureBulletSentryAttribute extends Attribute {
+  CaptureBulletSentryAttribute(
+      {required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.sentryCaptureBullet;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  List<ChildEntity> sentries = [];
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var i = 0; i < upgradeLevel; i++) {
+      final temp = ElementalCaptureBulletSentry(
+          initialPosition: Vector2.zero(),
+          enviroment: attr.enviroment,
+          upgradeLevel: upgradeLevel,
+          parentEntity: attr);
+      sentries.add(temp);
+      attr.addHeadEntity(temp);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in sentries) {
+      attr.removeHeadEntity(element.entityId);
+    }
+    sentries.clear();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Keep a watchful eye";
+
+  @override
+  String description() {
+    return "Redirect";
+  }
+}
+
+class MirrorOrbAttribute extends Attribute {
+  MirrorOrbAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.mirrorOrb;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  List<ChildEntity> sentries = [];
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    attr.removeAllHeadEntities();
+
+    for (var i = 0; i < upgradeLevel; i++) {
+      final temp = MirrorOrbSentry(
+          initialPosition: Vector2.zero(),
+          enviroment: attr.enviroment,
+          upgradeLevel: upgradeLevel,
+          parentEntity: attr);
+      sentries.add(temp);
+      attr.addBodyEntity(temp);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in sentries) {
+      attr.removeBodyEntity(element.entityId);
+    }
+    sentries.clear();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Keep a watchful eye";
+
+  @override
+  String description() {
+    return "Redirect";
+  }
+}
+
+class ShieldSentryAttribute extends Attribute {
+  ShieldSentryAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.shieldSurround;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  List<Attribute> pulseAttributes = [];
+
+  @override
+  int get maxLevel => 2;
+
+  double baseSize = 4;
+
+  List<ChildEntity> sentries = [];
+
+  @override
+  void action() async {}
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    attr.removeAllHeadEntities();
+
+    for (var i = 0; i < upgradeLevel; i++) {
+      final temp = ShieldSentry(
+          initialPosition: Vector2.zero(),
+          enviroment: attr.enviroment,
+          upgradeLevel: upgradeLevel,
+          parentEntity: attr);
+      sentries.add(temp);
+      attr.addBodyEntity(temp);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    for (var element in sentries) {
+      attr.removeBodyEntity(element.entityId);
+    }
+    sentries.clear();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Keep a watchful eye";
+
+  @override
+  String description() {
+    return "Shield";
   }
 }

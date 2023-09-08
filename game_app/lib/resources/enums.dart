@@ -37,6 +37,7 @@ enum SourceAttackLocation {
   mouse,
   closestEnemyToMouse,
   closestEnemyToPlayer,
+  customOffset,
 }
 
 enum EnemyType {
@@ -604,6 +605,8 @@ class DamageInstance {
   DamageInstance({
     required this.damageMap,
     required this.source,
+    required this.victim,
+    required this.sourceAttack,
     this.isCrit = false,
     this.damageKind = DamageKind.regular,
     this.sourceWeapon,
@@ -622,7 +625,9 @@ class DamageInstance {
     }
   }
 
+  dynamic sourceAttack;
   Entity source;
+  HealthFunctionality victim;
   Weapon? sourceWeapon;
   DamageKind damageKind;
   AttackType get attackType =>
@@ -642,13 +647,17 @@ class DamageInstance {
   DamageInstance copyWith({
     Map<DamageType, double>? damageMap,
     Entity? source,
+    HealthFunctionality? victim,
     Weapon? sourceWeapon,
+    dynamic sourceAttack,
     DamageKind? damageKind,
     bool? isCrit,
   }) {
     return DamageInstance(
       damageMap: damageMap ?? this.damageMap,
       source: source ?? this.source,
+      victim: victim ?? this.victim,
+      sourceAttack: sourceAttack ?? this.sourceAttack,
       sourceWeapon: sourceWeapon ?? this.sourceWeapon,
       damageKind: damageKind ?? this.damageKind,
       isCrit: isCrit ?? this.isCrit,

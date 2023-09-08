@@ -279,12 +279,13 @@ class EnergySword extends PlayerWeapon
   }
 
   @override
-  void standardAttack([double chargeAmount = 1]) {
+  void standardAttack(
+      [double holdDurationPercent = 1, bool callFunctions = true]) {
     // if (entityAncestor is DashFunctionality) {
     //   (entityAncestor as DashFunctionality)
     //       .dashInit(power: chargeAmount, PlayerWeapon: true);
     // }
-    super.standardAttack(chargeAmount);
+    super.standardAttack(holdDurationPercent, callFunctions);
   }
 
   @override

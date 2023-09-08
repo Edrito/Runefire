@@ -12,11 +12,21 @@ import 'package:game_app/resources/enums.dart';
 import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) {
+  // Future.delayed(1.seconds).then((value) {
+  //   gameEnviroment.player?.addAttribute(
+  //     AttributeType.sentryRangedAttack,
+  //   );
+  // });
   Future.delayed(1.seconds).then((value) {
     gameEnviroment.player?.addAttribute(
-      AttributeType.sentryMarkEnemy,
+      AttributeType.shieldSurround,
     );
   });
+  // Future.delayed(2.seconds).then((value) {
+  //   gameEnviroment.player?.addAttribute(
+  //     AttributeType.sentryCaptureBullet,
+  //   );
+  // });
 
   // for (var element in ExpendableType.values) {
   //   Future.delayed(1.seconds).then((value) {

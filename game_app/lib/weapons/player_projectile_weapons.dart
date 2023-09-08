@@ -1,3 +1,5 @@
+// ignore_for_file: overridden_fields
+
 import 'dart:async';
 
 import 'package:flame/components.dart';
@@ -172,7 +174,7 @@ class LongRangeRifle extends PlayerWeapon
   }
 
   @override
-  Vector2 get tipOffset => Vector2(-0.1, 2.225);
+  Vector2 tipOffset = Vector2(-0.1, 2.225);
 
   @override
   void unMapUpgrade() {}

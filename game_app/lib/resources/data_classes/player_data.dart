@@ -84,6 +84,7 @@ class PlayerData extends DataClass {
     WeaponType.dagger,
     WeaponType.scryshot,
     WeaponType.flameSword,
+    ...WeaponType.values
   };
 
   Map<SecondaryType, int> unlockedSecondarys = {

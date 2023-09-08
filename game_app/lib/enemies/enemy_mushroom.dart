@@ -70,7 +70,7 @@ class MushroomRunner extends Enemy
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
     maxHealth.baseParameter = 50.0;
-    speed.baseParameter = .03;
+    speed.baseParameter = .0;
     touchDamage.damageBase[DamageType.physical] = (1, 5);
   }
 
