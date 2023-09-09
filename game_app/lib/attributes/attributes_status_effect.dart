@@ -31,6 +31,22 @@ StatusEffectAttribute? statusEffectBuilder(
           perpetratorEntity: perpetratorEntity,
         );
       }
+    //TODO
+    case AttributeType.bleed:
+      if (isTemporary) {
+        return TemporaryFireDamage(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+          duration: duration,
+        );
+      } else {
+        return FireDamageAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
+      }
 
     case AttributeType.fear:
       if (isTemporary) {
@@ -57,6 +73,21 @@ StatusEffectAttribute? statusEffectBuilder(
         );
       } else {
         return MarkAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
+      }
+    case AttributeType.empowered:
+      if (isTemporary) {
+        return TemporaryEmpowered(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+          duration: duration,
+        );
+      } else {
+        return EmpoweredAttribute(
           level: level,
           victimEntity: victimEntity,
           perpetratorEntity: perpetratorEntity,
@@ -317,4 +348,74 @@ class MarkAttribute extends StatusEffectAttribute {
 
   @override
   StatusEffects statusEffect = StatusEffects.marked;
+}
+
+class TemporaryEmpowered extends EmpoweredAttribute with TemporaryAttribute {
+  TemporaryEmpowered(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity,
+      double? duration}) {
+    this.duration = duration ?? this.duration;
+    this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
+  }
+
+  @override
+  double duration = 5;
+}
+
+class EmpoweredAttribute extends StatusEffectAttribute {
+  EmpoweredAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int? get maxLevel => 1;
+
+  @override
+  String title = "Empowered";
+
+  @override
+  AttributeType get attributeType => AttributeType.empowered;
+
+  @override
+  String description() {
+    return "";
+  }
+
+  bool onHitOtherEntity(DamageInstance instance) {
+    instance.checkCrit(true);
+    Future.delayed(const Duration(milliseconds: 10)).then((value) {
+      removeAttribute();
+    });
+    return true;
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    victimEntity?.entityStatusWrapper
+        .addStatusEffect(StatusEffects.empowered, upgradeLevel);
+    attr.onHitOtherEntity.add(onHitOtherEntity);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    victimEntity?.entityStatusWrapper
+        .removeStatusEffect(StatusEffects.empowered);
+    attr.onHitOtherEntity.remove(onHitOtherEntity);
+  }
+
+  @override
+  String icon = "powerups/power.png";
+
+  @override
+  StatusEffects statusEffect = StatusEffects.empowered;
 }

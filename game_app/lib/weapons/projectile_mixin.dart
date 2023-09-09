@@ -20,14 +20,17 @@ mixin CanvasTrail on StandardProjectile {
   late int skip;
   List<Vector2> trails = [];
 
+  late Color projectileColor;
+
   @override
   Future<void> onLoad() {
     trailCount = 20;
     skip = 2;
-    add(CircleComponent(
-        radius: size / 2,
-        anchor: Anchor.center,
-        paint: Paint()..color = Colors.blue.shade900.withOpacity(.4)));
+    projectileColor = damageType.color;
+    // add(CircleComponent(
+    //     radius: size / 4,
+    //     anchor: Anchor.center,
+    //     paint: Paint()..color = Colors.blue.shade900.withOpacity(.4)));
 
     return super.onLoad();
   }
@@ -40,8 +43,8 @@ mixin CanvasTrail on StandardProjectile {
 
   @override
   void render(Canvas canvas) {
-    drawBullet(canvas);
     super.render(canvas);
+    drawBullet(canvas);
   }
 
   int amountSkipped = 999;
@@ -65,50 +68,63 @@ mixin CanvasTrail on StandardProjectile {
     previousTrailPoint = null;
   }
 
+  Paint? bulletBackPaint;
+  Paint? bulletPaint;
+
   void drawBullet(Canvas canvas) {
-    final points = (trails.fold<List<Vector2>>([],
-        (previousValue, element) => [...previousValue, (element - center)]));
+    // final points = (trails.fold<List<Vector2>>([],
+    //     (previousValue, element) => [...previousValue, (element - center)]));
 
-    final lengthShader =
-        .5 + ((projectileLength * .5) * ((durationPassed * 2).clamp(0, 1)));
-    final gradientShader =
-        ui.Gradient.linear(Offset.zero, -(delta).toOffset() * lengthShader, [
-      Colors.blue.darken(.5),
-      Colors.blue,
-      Colors.transparent,
-    ], [
-      0,
-      .1,
-      1
-    ]);
-    final linePaint = Paint()
-      ..strokeWidth = size
+    // final lengthShader =
+    //     .5 + ((projectileLength * .5) * ((durationPassed * 2).clamp(0, 1)));
+    // final gradientShader =
+    //     ui.Gradient.linear(Offset.zero, -(delta).toOffset() * lengthShader, [
+    //   Colors.blue.darken(.5),
+    //   Colors.blue,
+    //   Colors.transparent,
+    // ], [
+    //   0,
+    //   .1,
+    //   1
+    // ]);
+    bulletBackPaint ??= Paint()
+      // ..strokeWidth = size
       ..blendMode = BlendMode.plus
-      ..style = PaintingStyle.stroke
+      // ..style = PaintingStyle.stroke
       ..filterQuality = FilterQuality.none
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.bevel
-      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, .04)
-      ..shader = gradientShader;
-    final path = Path();
-    path.moveTo(0, 0);
+      ..color = projectileColor
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, .5);
+    bulletPaint ??= Paint()
+      // ..strokeWidth = size
+      // ..blendMode = BlendMode.plus
+      // ..style = PaintingStyle.stroke
+      ..filterQuality = FilterQuality.none
+      // ..strokeCap = StrokeCap.round
+      ..color = projectileColor.brighten(.7)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, .2);
 
-    if (points.length % 2 != 0) {
-      points.add(points.last);
-    }
+    canvas.drawCircle(Offset.zero, size * .5, bulletBackPaint!);
 
-    for (var i = 0; i < points.length; i += 2) {
-      var firstPoint = points[i];
-      var secondPoint = points[i + 1];
-      path.quadraticBezierTo(
-        firstPoint.x,
-        firstPoint.y,
-        secondPoint.x,
-        secondPoint.y,
-      );
-    }
+    canvas.drawCircle(Offset.zero, size * .4, bulletPaint!);
+    // final path = Path();
+    // path.moveTo(0, 0);
 
-    canvas.drawPath(path, linePaint);
+    // if (points.length % 2 != 0) {
+    //   points.add(points.last);
+    // }
+
+    // for (var i = 0; i < points.length; i += 2) {
+    //   var firstPoint = points[i];
+    //   var secondPoint = points[i + 1];
+    //   path.quadraticBezierTo(
+    //     firstPoint.x,
+    //     firstPoint.y,
+    //     secondPoint.x,
+    //     secondPoint.y,
+    //   );
+    // }
+
+    // canvas.drawPath(path, bulletPaint!);
   }
 }
 
@@ -121,9 +137,6 @@ mixin StandardProjectile on Projectile {
   void incrementHits() {
     enemiesHit++;
     projectileHasExpired = enemiesHit > weaponAncestor.pierce.parameter;
-    if (projectileHasExpired) {
-      killBullet();
-    }
   }
 
   late Shape shape;
@@ -218,6 +231,9 @@ mixin StandardProjectile on Projectile {
     setTarget(null);
     incrementHits();
     super.bodyContact(other);
+    if (projectileHasExpired) {
+      killBullet();
+    }
     chain(other);
   }
 
@@ -285,8 +301,8 @@ mixin LaserProjectile on Projectile {
   abstract final double baseWidth;
   late double width;
 
-  Color get backColor => damageType.color.brighten(.6);
-  Color get frontColor => damageType.color;
+  Color get brightColor => damageType.color.brighten(.7);
+  Color get color => damageType.color;
 
   @override
   Body createBody() {
@@ -468,11 +484,20 @@ mixin LaserProjectile on Projectile {
         path,
         paint
           ..strokeWidth = width * opacity
-          ..color = backColor.withOpacity(opacity));
+          ..maskFilter = const MaskFilter.blur(BlurStyle.outer, .04)
+          ..color = color.withOpacity(opacity));
+
     canvas.drawPath(
         path,
         paint
-          ..strokeWidth = width * .6 * opacity
-          ..color = frontColor.withOpacity(opacity));
+          ..maskFilter = null
+          ..strokeWidth = width * opacity
+          ..color = color.withOpacity(opacity));
+
+    canvas.drawPath(
+        path,
+        paint
+          ..strokeWidth = width * .7 * opacity
+          ..color = brightColor.withOpacity(opacity));
   }
 }

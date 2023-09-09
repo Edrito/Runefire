@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:game_app/attributes/attributes_perpetrator.dart';
 import 'package:game_app/player/player.dart';
@@ -75,6 +77,7 @@ enum AttributeType {
   stun(territory: AttributeTerritory.temporary),
   psychic(territory: AttributeTerritory.temporary),
   fear(territory: AttributeTerritory.temporary),
+  empowered(territory: AttributeTerritory.temporary),
   marked(territory: AttributeTerritory.temporary),
 
   //Permanent
@@ -229,15 +232,16 @@ enum AttributeType {
   ),
 
   reverseKnockback(
-    rarity: AttributeRarity.rare,
-    category: AttributeCategory.utility,
-    territory: AttributeTerritory.game,
-  ),
+      rarity: AttributeRarity.rare,
+      category: AttributeCategory.utility,
+      territory: AttributeTerritory.game,
+      priority: 5),
 
-  projectileExplode(
+  projectileSplitExplode(
     rarity: AttributeRarity.rare,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
+    attributeEligibilityTest: playerHasProjectileWeapon,
   ),
 
   dodgeStandStillIncrease(
@@ -250,6 +254,7 @@ enum AttributeType {
     rarity: AttributeRarity.standard,
     category: AttributeCategory.mobility,
     territory: AttributeTerritory.game,
+    priority: 5,
   ),
 
   damageStandStillIncrease(
@@ -258,6 +263,7 @@ enum AttributeType {
     territory: AttributeTerritory.game,
   ),
 
+  //TODO
   combinationStandStillIncrease(
     rarity: AttributeRarity.unique,
     category: AttributeCategory.mobility,
@@ -303,25 +309,26 @@ enum AttributeType {
     territory: AttributeTerritory.game,
   ),
 
-  ///Pushes spent ammunition in all directions around player (incentivizes using all ammo)
-  reloadBulletSpray(
-    rarity: AttributeRarity.rare,
-    category: AttributeCategory.offense,
-    territory: AttributeTerritory.game,
-  ),
+  ///Pushes spent ammunition in all directions around player
+  ///(incentivizes using all ammo)
+  reloadSpray(
+      rarity: AttributeRarity.rare,
+      category: AttributeCategory.offense,
+      territory: AttributeTerritory.game,
+      attributeEligibilityTest: playerIsReloadFunctionality),
 
   ///Is invincible for the duration of the reload, depending on how much ammo was spent
   reloadInvincibility(
-    rarity: AttributeRarity.rare,
-    category: AttributeCategory.defence,
-    territory: AttributeTerritory.game,
-  ),
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.defence,
+      territory: AttributeTerritory.game,
+      attributeEligibilityTest: playerIsReloadFunctionality),
 
   reloadPush(
-    rarity: AttributeRarity.rare,
-    category: AttributeCategory.offense,
-    territory: AttributeTerritory.game,
-  ),
+      rarity: AttributeRarity.uncommon,
+      category: AttributeCategory.offense,
+      territory: AttributeTerritory.game,
+      attributeEligibilityTest: playerIsReloadFunctionality),
 
   ///increase attack count over time
   focus(
@@ -337,11 +344,12 @@ enum AttributeType {
   ),
 
   ///Melee attacks
-  weaponCollision(
-    rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.melee,
-    territory: AttributeTerritory.game,
-  ),
+  ///
+  // weaponCollision(
+  //   rarity: AttributeRarity.uncommon,
+  //   category: AttributeCategory.melee,
+  //   territory: AttributeTerritory.game,
+  // ),
 
   sonicWave(
     rarity: AttributeRarity.rare,
@@ -355,6 +363,7 @@ enum AttributeType {
     category: AttributeCategory.projectile,
     territory: AttributeTerritory.game,
   ),
+
   homingProjectiles(
     rarity: AttributeRarity.rare,
     category: AttributeCategory.projectile,
@@ -550,6 +559,10 @@ bool negativeCombinePulseTest(Player player) {
       .containsKey(AttributeType.combinePeriodicPulse);
 }
 
+bool playerIsReloadFunctionality(Player player) {
+  return player is ReloadFunctionality;
+}
+
 bool combinePulseTest(Player player) {
   return player.currentAttributes
           .containsKey(AttributeType.periodicMagicPulse) &&
@@ -560,6 +573,12 @@ bool combinePulseTest(Player player) {
 bool playerHasMeleeWeapon(Player player) {
   return player.carriedWeapons.entries
       .any((element) => element.value is MeleeFunctionality);
+}
+
+bool playerHasProjectileWeapon(Player player) {
+  return player
+      .getAllWeaponItems(false, true)
+      .any((element) => element is ProjectileFunctionality);
 }
 
 bool defaultAttributeEligibilityTest(Player player) {
@@ -629,6 +648,10 @@ abstract class Attribute with UpgradeFunctions {
       upgradeLevel = upgradeLevel.clamp(0, maxLevel!);
     }
     attributeId = const Uuid().v4();
+  }
+
+  void removeAttribute() {
+    victimEntity?.removeAttribute(attributeType);
   }
 
   void action() {}
@@ -746,7 +769,7 @@ abstract class Attribute with UpgradeFunctions {
       case DamagePercentParameterManager:
         (parameterManager as DamagePercentParameterManager)
             .setDamagePercentIncrease(
-                attributeId, damageType!, increase(false));
+                attributeId, {damageType!: increase(false)});
 
         break;
 

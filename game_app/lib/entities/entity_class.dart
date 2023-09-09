@@ -37,16 +37,16 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   late String entityId;
 
-  Future<Iterable<Weapon>> getAllWeaponItems(
-      bool includeSecondaries, bool includeAdditionalPrimaries) async {
+  Iterable<Weapon> getAllWeaponItems(
+      bool includeSecondaries, bool includeAdditionalPrimaries) {
     Iterable<Weapon> returnList = [];
-    await loaded;
+    // await loaded;
     if (this is! AttackFunctionality) return returnList;
+
     final attackFunctionality = this as AttackFunctionality;
     for (var element in attackFunctionality.carriedWeapons.values) {
       returnList = [...returnList, element];
-      if (includeSecondaries) continue;
-      {
+      if (includeSecondaries) {
         final secondary = element.getSecondaryWeapon;
         if (secondary != null) {
           returnList = [...returnList, secondary];

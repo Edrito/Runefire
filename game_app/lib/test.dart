@@ -12,39 +12,9 @@ import 'package:game_app/resources/enums.dart';
 import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) {
-  // Future.delayed(1.seconds).then((value) {
-  //   gameEnviroment.player?.addAttribute(
-  //     AttributeType.sentryRangedAttack,
-  //   );
-  // });
-  Future.delayed(1.seconds).then((value) {
+  Future.delayed(2.seconds).then((value) {
     gameEnviroment.player?.addAttribute(
-      AttributeType.shieldSurround,
+      AttributeType.daggerSwing,
     );
   });
-  // Future.delayed(2.seconds).then((value) {
-  //   gameEnviroment.player?.addAttribute(
-  //     AttributeType.sentryCaptureBullet,
-  //   );
-  // });
-
-  // for (var element in ExpendableType.values) {
-  //   Future.delayed(1.seconds).then((value) {
-  //     gameEnviroment.physicsComponent.add(InteractableExpendable(
-  //         expendableType: element,
-  //         initialPosition: SpawnLocation.inside.grabNewPosition(gameEnviroment),
-  //         gameEnviroment: gameEnviroment));
-  //   });
-  // }
-
-  // for (var i = 0; i < 30; i++) {
-  //   Future.delayed((3 + (i * .1)).seconds).then((value) {
-  //     gameEnviroment.player?.addBodyEntity(TeslaCrystal(
-  //         initialPosition: Vector2.zero(),
-  //         parentEntity: gameEnviroment.player!,
-  //         distance: rng.nextInt(3).toDouble() / 2,
-  //         enviroment: gameEnviroment,
-  //         upgradeLevel: 1));
-  //   });
-  // }
 }

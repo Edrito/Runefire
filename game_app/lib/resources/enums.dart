@@ -6,6 +6,7 @@ import 'package:game_app/player/player_constants.dart' as player_constants;
 import 'package:game_app/main.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/player_melee_weapons.dart';
+import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 import 'package:game_app/weapons/player_projectile_weapons.dart';
 
@@ -113,7 +114,16 @@ enum WeaponDescription {
 
 enum SemiAutoType { regular, release, charge }
 
-enum StatusEffects { burn, chill, electrified, stun, psychic, fear, marked }
+enum StatusEffects {
+  burn,
+  chill,
+  electrified,
+  stun,
+  psychic,
+  fear,
+  marked,
+  empowered
+}
 
 enum AttackType { projectile, melee, magic }
 
@@ -364,7 +374,7 @@ extension ExperienceAmountExtension on ExperienceAmount {
 enum ProjectileType { bullet, arrow, laser, fireball, blast }
 
 extension ProjectileTypeExtension on ProjectileType {
-  BodyComponent generateProjectile(
+  Projectile generateProjectile(
       {required Vector2 delta,
       required Vector2 originPositionVar,
       required ProjectileFunctionality ancestorVar,
@@ -623,6 +633,20 @@ class DamageInstance {
 
       damageMap[damageType] = damageInc;
     }
+  }
+
+  void checkCrit(bool force) {
+    double rngCrit = rng.nextDouble();
+    double critDamageIncrease = 1;
+    if (!force && victim.consumeMark()) {
+      force = true;
+    }
+    if (rngCrit <= source.critChance.parameter || force) {
+      isCrit = true;
+      critDamageIncrease = source.critDamage.parameter;
+    }
+
+    increaseByPercent(critDamageIncrease);
   }
 
   dynamic sourceAttack;

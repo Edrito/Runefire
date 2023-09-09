@@ -211,15 +211,14 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   double previousHeadAngle = 0;
 
   PositionComponent? bodyEntityWrapper;
-  double speedBody = .2;
-  double previousBodyAngle = 0;
+  double speedBody = .25;
+  Map<double, double> previousBodyAngle = {1: 0};
 
   void processBodyEntities(
       List<ChildEntity> bodyEntities, double distance, double dt) {
     if (bodyEntities.isEmpty) return; // Avoid division by zero
 
     Vector2 offsetPosition = bodyEntityWrapper!.absolutePosition + center;
-
     Set<double> distanceSteps = bodyEntities.fold<Set<double>>(
         {}, (previousValue, element) => {...previousValue, element.distance});
 
@@ -228,22 +227,23 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
           .where((element) => element.distance == distanceStep)
           .toList();
 
-      double currentAngle = previousBodyAngle += dt * speedBody;
       int numEntities = tempBodies.length;
       double angleStep = 2 * pi / numEntities;
+      double currentAngle = (previousBodyAngle[distanceStep] ?? 0) +
+          (dt * (tempBodies.first.rotationSpeed ?? speedBody));
 
       for (int i = 0; i < numEntities; i++) {
+        final body = tempBodies[i];
+
         double x = distance * cos(currentAngle);
         double y = distance * sin(currentAngle);
-        if (tempBodies[i].isLoaded) {
-          tempBodies[i]
-              .setTransform((Vector2(x, y) * distanceStep) + offsetPosition, 0);
+        if (body.isLoaded) {
+          body.setTransform((Vector2(x, y) * distanceStep) + offsetPosition, 0);
         }
         currentAngle += angleStep;
       }
+      previousBodyAngle[distanceStep] = currentAngle;
     }
-
-    previousBodyAngle += dt * speedBody;
   }
 
   void removeBodyEntity(String entityId) {
@@ -370,7 +370,8 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<Function> onDeath = [];
   final List<Function> onLevelUp = [];
   final List<Function(Weapon weapon)> onAttack = [];
-  final List<Function(Weapon weapon)> onReloadComplete = [];
+  final List<Function(ReloadFunctionality weapon)> onReloadComplete = [];
+  final List<Function(ReloadFunctionality weapon)> onReload = [];
 
   final List<Function(HealthFunctionality other)> onTouch = [];
   final List<Function(double dt)> onUpdate = [];

@@ -309,8 +309,12 @@ class DamagePercentParameterManager {
   final Map<String, Map<DamageType, double>> _damagePercentIncrease = {};
 
   void setDamagePercentIncrease(
-      String sourceId, DamageType damageType, double increase) {
-    _damagePercentIncrease[sourceId] = {damageType: increase};
+      String sourceId, Map<DamageType, double> damageMap) {
+    _damagePercentIncrease[sourceId] = {
+      if (_damagePercentIncrease[sourceId] != null)
+        ..._damagePercentIncrease[sourceId]!,
+      ...damageMap
+    };
   }
 
   Map<DamageType, double> get damagePercentIncrease {
@@ -415,21 +419,12 @@ DamageInstance damageCalculations(
 
   double totalDamageIncrease = source.damagePercentIncrease.parameter;
 
-  double rngCrit = rng.nextDouble();
-  double critDamageIncrease = 1;
-  bool isCrit = false;
-  if (victim.consumeMark()) {
-    forceCrit = true;
-  }
-  if (rngCrit <= source.critChance.parameter || forceCrit) {
-    isCrit = true;
-    critDamageIncrease = source.critDamage.parameter;
-  }
   returnInstance.increaseByPercent(totalDamageIncrease *
-      critDamageIncrease *
       weaponTypeIncrease *
       statusEffectIncrease *
       damageKindIncrease);
-  returnInstance.isCrit = isCrit;
+
+  returnInstance.checkCrit(forceCrit);
+
   return returnInstance;
 }

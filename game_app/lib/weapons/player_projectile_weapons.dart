@@ -145,9 +145,6 @@ class Shotgun extends PlayerWeapon
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double tipPositionPercent = -.2;
 }
 
 class LongRangeRifle extends PlayerWeapon
@@ -159,9 +156,9 @@ class LongRangeRifle extends PlayerWeapon
     baseDamage.damageBase[DamageType.magic] = (50, 100);
     maxAttacks.baseParameter = 10;
     attackTickRate.baseParameter = .1;
-    projectileVelocity.baseParameter = 70;
+    projectileVelocity.baseParameter = 30;
     baseAttackCount.baseParameter = 1;
-    pierce.baseParameter = 5;
+    pierce.baseParameter = 0;
   }
   @override
   WeaponType weaponType = WeaponType.scryshot;

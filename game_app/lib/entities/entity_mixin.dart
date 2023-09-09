@@ -241,6 +241,7 @@ mixin MovementFunctionality on Entity {
 }
 
 mixin AimFunctionality on Entity {
+  Vector2 lastAimingDelta = Vector2.zero();
   Vector2 lastAimingPosition = Vector2.zero();
   double handPositionFromBody = .1;
   bool weaponBehind = false;
@@ -253,9 +254,25 @@ mixin AimFunctionality on Entity {
             .normalized();
   }
 
-  Vector2 get entityAimAngle {
+  Vector2? get entityAimPosition {
     if (isDead) {
       return lastAimingPosition;
+    }
+
+    final returnVal = inputAimPositions[InputType.aimJoy] ??
+        inputAimPositions[InputType.mouseMove] ??
+        inputAimPositions[InputType.mouseDrag] ??
+        inputAimPositions[InputType.tapClick] ??
+        inputAimPositions[InputType.ai];
+    if (returnVal != null) {
+      lastAimingPosition = returnVal;
+    }
+    return returnVal;
+  }
+
+  Vector2 get entityAimAngle {
+    if (isDead) {
+      return lastAimingDelta;
     }
     if (inputAimPositions.containsKey(InputType.mouseMove)) {
       buildDeltaFromMousePosition();
@@ -270,7 +287,7 @@ mixin AimFunctionality on Entity {
                 ? (this as MovementFunctionality).moveDelta
                 : Vector2.zero())
             .normalized();
-    lastAimingPosition = returnVal;
+    lastAimingDelta = returnVal;
     return returnVal;
   }
 
@@ -826,7 +843,7 @@ mixin HealthFunctionality on Entity {
 
   void applyKnockback(DamageInstance damage) {
     final amount = (damage.damage / 30).clamp(0, 1);
-    final impulse = knockBackIncreaseParameter.baseParameter *
+    final impulse = damage.source.knockBackIncreaseParameter.parameter *
         amount *
         (damage.sourceWeapon?.knockBackAmount.parameter ?? 0);
 
@@ -1190,7 +1207,8 @@ mixin DashFunctionality on StaminaFunctionality {
 
     invincibleWhileDashing = BoolParameterManager(baseParameter: false);
     collisionWhileDashing = BoolParameterManager(baseParameter: false);
-    teleportDash = BoolParameterManager(baseParameter: false);
+    teleportDash =
+        BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
 
     dashDistance = DoubleParameterManager(baseParameter: 1);
     dashDuration = DoubleParameterManager(baseParameter: .2, minParameter: 0);
@@ -1263,9 +1281,20 @@ mixin DashFunctionality on StaminaFunctionality {
 
     dashDistanceGoal = dashDistance.parameter * power;
     _isDashing = true;
-    if (weaponSource || teleportDash.parameter) {
+    if (weaponSource) {
       if (this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).entityAimAngle;
+        dashDelta = (this as AimFunctionality).lastAimingDelta;
+      }
+      if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
+        dashDelta =
+            (this as MovementFunctionality).moveDelta * dashDistance.parameter;
+      }
+    } else if (teleportDash.parameter) {
+      if (this is AimFunctionality) {
+        dashDelta = (this as AimFunctionality).entityAimPosition;
+
+        dashDistanceGoal =
+            dashDelta?.length ?? (dashDistance.parameter * power);
       }
       if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
         dashDelta = (this as MovementFunctionality).moveDelta;
@@ -1280,6 +1309,9 @@ mixin DashFunctionality on StaminaFunctionality {
     }
 
     dashDelta = dashDelta!.normalized();
+    dashDistanceGoal =
+        dashDistanceGoal?.clamp(0, dashDistance.parameter * power);
+
     if (!weaponSource) {
       dashTimerCooldown = TimerComponent(
         period: dashCooldown.parameter,
@@ -1293,7 +1325,9 @@ mixin DashFunctionality on StaminaFunctionality {
       );
 
       add(dashTimerCooldown!);
-
+      if (teleportDash.parameter) {
+        teleport();
+      }
       dashBeginFunctionsCall();
     }
   }
@@ -1350,6 +1384,12 @@ mixin DashFunctionality on StaminaFunctionality {
     dashDelta = null;
     _isDashing = false;
     dashedDistance = 0;
+  }
+
+  void teleport() {
+    body.setTransform(
+        body.position + (dashDelta!.normalized() * dashDistanceGoal!), 0);
+    finishDash();
   }
 
   void dashMove(double dt) {

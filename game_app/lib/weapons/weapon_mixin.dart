@@ -117,21 +117,36 @@ mixin ReloadFunctionality on Weapon {
         attribute();
       }
     }
+    reloadFunctions();
     reloadTimer = TimerComponent(
       period: reloadTime.parameter,
       removeOnFinish: true,
       onTick: () {
         stopReloading();
-        if (entityAncestor is AttributeFunctionsFunctionality) {
-          final attributeFunctions =
-              entityAncestor as AttributeFunctionsFunctionality;
-          for (var attribute in attributeFunctions.onReloadComplete) {
-            attribute(this);
-          }
-        }
+        reloadCompleteFunctions();
       },
     )..addToParent(this);
     createReloadBar();
+  }
+
+  void reloadCompleteFunctions() {
+    if (entityAncestor is AttributeFunctionsFunctionality) {
+      final attributeFunctions =
+          entityAncestor as AttributeFunctionsFunctionality;
+      for (var attribute in attributeFunctions.onReloadComplete) {
+        attribute(this);
+      }
+    }
+  }
+
+  void reloadFunctions() {
+    if (entityAncestor is AttributeFunctionsFunctionality) {
+      final attributeFunctions =
+          entityAncestor as AttributeFunctionsFunctionality;
+      for (var attribute in attributeFunctions.onReload) {
+        attribute(this);
+      }
+    }
   }
 }
 
@@ -870,6 +885,7 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   //Event functions that are modified from attributes
   List<Function(HealthFunctionality other)> onKill = [];
   List<OnHitDef> onHitProjectile = [];
+  List<Function(Projectile projectile)> onProjectileDeath = [];
   List<OnHitDef> onHitMelee = [];
   List<OnHitDef> onHit = [];
   List<Function()> onAttackProjectile = [];

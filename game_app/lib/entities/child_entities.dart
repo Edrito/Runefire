@@ -30,6 +30,7 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
     required this.parentEntity,
     required int upgradeLevel,
     this.distance = 1,
+    this.rotationSpeed,
   }) {
     this.upgradeLevel = upgradeLevel;
     applyUpgrade();
@@ -37,6 +38,7 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
 
   Entity parentEntity;
   double distance;
+  double? rotationSpeed;
 
   @override
   EntityType entityType = EntityType.child;
@@ -697,7 +699,7 @@ class ShieldSentry extends ChildEntity
   ShieldSentry(
       {required super.initialPosition,
       required super.enviroment,
-      super.distance = 2,
+      super.distance = 1.25,
       required super.upgradeLevel,
       required super.parentEntity}) {
     height.baseParameter = 3;
@@ -736,5 +738,54 @@ class ShieldSentry extends ChildEntity
     } else if (other is MeleeAttackHandler) {
       other.kill();
     }
+  }
+}
+
+class SwordSentry extends ChildEntity
+    with ContactCallbacks, HealthFunctionality, TouchDamageFunctionality {
+  SwordSentry(
+      {required super.initialPosition,
+      required super.enviroment,
+      super.distance = 2.5,
+      required super.upgradeLevel,
+      super.rotationSpeed = .5,
+      required super.parentEntity}) {
+    if (rotationSpeed != null) {
+      rotationSpeed = rotationSpeed! * upgradeLevel;
+    }
+
+    height.baseParameter = 2;
+    invincible.baseParameter = true;
+    touchDamage.damageBase[DamageType.physical] = (1, 4);
+  }
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    entityAnimations[EntityStatus.idle] =
+        await loadSpriteAnimation(1, 'weapons/energy_sword.png', .3, true);
+
+    // entityAnimations[EntityStatus.attack] = await loadSpriteAnimation(
+    //     1, 'weapons/energy_sword.png', .05, false);
+  }
+
+  @override
+  createBody() {
+    final fixture = FixtureDef(CircleShape()..radius = height.parameter / 3,
+        filter: Filter()
+          ..maskBits = (!isPlayer ? playerCategory : enemyCategory)
+          ..categoryBits = attackCategory,
+        userData: {'type': FixtureType.body, 'object': this},
+        isSensor: true,
+        density: 0.005);
+    renderBody = false;
+    return super.createBody()
+      ..createFixture(fixture)
+      ..setType(BodyType.static);
+  }
+
+  @override
+  void beginContact(Object other, Contact contact) {
+    print('here');
+    super.beginContact(other, contact);
   }
 }

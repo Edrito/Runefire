@@ -172,6 +172,18 @@ abstract class Weapon extends Component with UpgradeFunctions {
   ///Weapon is the weapon itself, preferably the weapon should not have reloadfunctionality
   final Map<String, Weapon> additionalWeapons = {};
 
+  bool isAdditionalWeapon = false;
+
+  void addAdditionalWeapon(Weapon newWeapon) {
+    additionalWeapons[newWeapon.weaponId] = newWeapon;
+    newWeapon.isAdditionalWeapon = true;
+  }
+
+  void removeAdditionalWeapon(String id) {
+    final weapon = additionalWeapons.remove(id);
+    weapon?.removeFromParent();
+  }
+
   AttributeWeaponFunctionsFunctionality? get attributeFunctionsFunctionality =>
       this is AttributeWeaponFunctionsFunctionality
           ? this as AttributeWeaponFunctionsFunctionality
@@ -313,24 +325,24 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   void spriteVisibilityCheck() {
-    if (removeSpriteOnAttack) {
-      if (attacksAreActive && !spritesHidden) {
-        entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 0;
-        entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
-        spritesHidden = true;
-      } else if (!attacksAreActive && spritesHidden) {
-        // final controller = EffectController(duration: .1, curve: Curves.easeIn);
+    if (!removeSpriteOnAttack || isAdditionalWeapon) return;
 
-        // entityAncestor?.backJoint.weaponSpriteAnimation
-        //     ?.add(OpacityEffect.fadeIn(controller));
+    if (attacksAreActive && !spritesHidden) {
+      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 0;
+      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
+      spritesHidden = true;
+    } else if (!attacksAreActive && spritesHidden) {
+      // final controller = EffectController(duration: .1, curve: Curves.easeIn);
 
-        // entityAncestor?.handJoint.weaponSpriteAnimation
-        //     ?.add(OpacityEffect.fadeIn(controller));
+      // entityAncestor?.backJoint.weaponSpriteAnimation
+      //     ?.add(OpacityEffect.fadeIn(controller));
 
-        entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
-        entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
-        spritesHidden = false;
-      }
+      // entityAncestor?.handJoint.weaponSpriteAnimation
+      //     ?.add(OpacityEffect.fadeIn(controller));
+
+      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
+      spritesHidden = false;
     }
   }
 

@@ -10,7 +10,11 @@ import '../resources/functions/custom.dart';
 import '../resources/functions/functions.dart';
 
 class Bullet extends Projectile
-    with StandardProjectile, ProjectileSpriteLifecycle {
+    with
+        StandardProjectile,
+        //  ProjectileSpriteLifecycle
+//  ,
+        CanvasTrail {
   Bullet(
       {required super.delta,
       required super.originPosition,
@@ -32,7 +36,7 @@ class Bullet extends Projectile
 
   @override
   void bodyContact(HealthFunctionality other) {
-    applyHitAnimation(other, center);
+    // applyHitAnimation(other, center);
 
     super.bodyContact(other);
   }
@@ -140,15 +144,17 @@ class Bullet extends Projectile
   }
 
   @override
-  void killBullet([bool withEffect = false]) {
+  void killBullet([bool withEffect = false]) async {
     if (!world.isLocked) {
       body.setType(BodyType.static);
     }
     if (withEffect) {
-      animationComponent?.triggerEnding();
+      await animationComponent?.triggerEnding();
+      removeFromParent();
     } else {
       removeFromParent();
     }
+    callBulletKillFunctions();
   }
 
   @override
@@ -309,6 +315,7 @@ class Blast extends Projectile
     } else {
       removeFromParent();
     }
+    callBulletKillFunctions();
   }
 
   @override
