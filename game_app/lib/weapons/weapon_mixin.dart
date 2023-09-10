@@ -158,7 +158,7 @@ mixin StaminaCostFunctionality on Weapon {
   void attackAttempt([double holdDurationPercent = 1]) {
     if (entityAncestor is StaminaFunctionality) {
       final stamina = entityAncestor as StaminaFunctionality;
-      if (stamina.remainingStamina < weaponStaminaCost.parameter) return;
+      if (!stamina.hasEnoughStamina(weaponStaminaCost.parameter)) return;
       stamina.modifyStamina(-weaponStaminaCost.parameter);
     }
     super.attackAttempt(holdDurationPercent);

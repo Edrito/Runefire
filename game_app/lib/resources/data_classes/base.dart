@@ -54,7 +54,8 @@ class DoubleParameterManager {
     final returnVal =
         ((baseParameter + parameterFlatIncrease) * parameterPercentIncrease)
             .clamp(minParameter ?? double.negativeInfinity,
-                maxParameter ?? double.infinity);
+                maxParameter ?? double.infinity)
+            .toDouble();
     return returnVal;
   }
 
@@ -66,8 +67,7 @@ class DoubleParameterManager {
 
   double get parameterPercentIncrease =>
       (_parameterPercentIncrease.values.fold<double>(
-          0, (previousValue, element) => previousValue + element)) +
-      1;
+          1, (previousValue, element) => previousValue * (element + 1)));
 
   void setParameterFlatValue(String sourceId, double value) {
     _parameterFlatIncrease[sourceId] = value;

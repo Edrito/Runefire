@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/main.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -199,7 +200,7 @@ class GameHud extends PositionComponent {
       buildProgressBar(
           canvas: canvas,
           percentProgress: player!.percentOfLevelGained,
-          color: ApolloColorPalette().secondaryColor,
+          color: colorPalette.secondaryColor,
           size: viewportSize,
           heightOfBar: 50,
           widthOfBar: widthOfBar,
@@ -253,11 +254,11 @@ class GameHud extends PositionComponent {
     super.render(canvas);
   }
 
-  Color staminaColor = ApolloColorPalette().primaryColor;
+  Color staminaColor = colorPalette.primaryColor;
   void toggleStaminaColor(AttackType attackType) {
     switch (attackType) {
       case AttackType.magic:
-        staminaColor = ApolloColorPalette().primaryColor;
+        staminaColor = colorPalette.primaryColor;
       default:
         staminaColor = ApolloColorPalette.lightGreen.color;
     }

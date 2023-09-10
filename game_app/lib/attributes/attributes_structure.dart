@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:game_app/attributes/attributes_perpetrator.dart';
 import 'package:game_app/player/player.dart';
+import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/data_classes/base.dart';
@@ -127,7 +128,7 @@ enum AttributeType {
       category: AttributeCategory.offense,
       territory: AttributeTerritory.game),
 
-  gravityWell(
+  gravityDash(
       rarity: AttributeRarity.rare,
       category: AttributeCategory.utility,
       territory: AttributeTerritory.game),
@@ -372,11 +373,11 @@ enum AttributeType {
 
   ///On Crit
 
-  extremeKnockbackCrit(
-    rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.offense,
-    territory: AttributeTerritory.game,
-  ),
+  // extremeKnockbackCrit(
+  //   rarity: AttributeRarity.uncommon,
+  //   category: AttributeCategory.offense,
+  //   territory: AttributeTerritory.game,
+  // ),
 
   ///Player attributes
   ///
@@ -396,7 +397,6 @@ enum AttributeType {
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
-
   bigPockets(
     rarity: AttributeRarity.standard,
     category: AttributeCategory.utility,
@@ -407,7 +407,7 @@ enum AttributeType {
     category: AttributeCategory.defence,
     territory: AttributeTerritory.game,
   ),
-  primalInstincts(
+  primalMagic(
     rarity: AttributeRarity.standard,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
@@ -417,17 +417,22 @@ enum AttributeType {
     category: AttributeCategory.defence,
     territory: AttributeTerritory.game,
   ),
-  flattenDamage(
+  // balancingTechnique(
+  //   rarity: AttributeRarity.standard,
+  //   category: AttributeCategory.offense,
+  //   territory: AttributeTerritory.game,
+  // ),
+  //   chaoticChances(
+  //   rarity: AttributeRarity.standard,
+  //   category: AttributeCategory.offense,
+  //   territory: AttributeTerritory.game,
+  // ),
+  critChanceDecreaseDamage(
     rarity: AttributeRarity.standard,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
-  critDamageDecreaseDamage(
-    rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
-    territory: AttributeTerritory.game,
-  ),
-  putYourWeightIntoIt(
+  putYourBackIntoIt(
     rarity: AttributeRarity.standard,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
@@ -442,16 +447,18 @@ enum AttributeType {
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
-  decreaseMaxAmmoDecreaseReloadSpeed(
+  decreaseMaxAmmoIncreaseReloadSpeed(
     rarity: AttributeRarity.standard,
     category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
+
   potionSeller(
     rarity: AttributeRarity.standard,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
+
   battleScars(
     rarity: AttributeRarity.standard,
     category: AttributeCategory.defence,
@@ -461,31 +468,36 @@ enum AttributeType {
 
   ///Remove stamina bar, stamina actions reduce health, increase health regen by 200%
   forbiddenMagic(
-    rarity: AttributeRarity.uncommon,
+    rarity: AttributeRarity.rare,
     category: AttributeCategory.defence,
     priority: 10,
     territory: AttributeTerritory.game,
   ),
+
   reduceHealthIncreaseLifeSteal(
     rarity: AttributeRarity.uncommon,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
+
   staminaSteal(
     rarity: AttributeRarity.uncommon,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
+
   splitDamage(
     rarity: AttributeRarity.unique,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
+
   rollTheDice(
     rarity: AttributeRarity.unique,
     category: AttributeCategory.offense,
     territory: AttributeTerritory.game,
   ),
+
   glassWand(
     rarity: AttributeRarity.unique,
     category: AttributeCategory.offense,
@@ -599,9 +611,11 @@ extension AllAttributesExtension on AttributeType {
   }) {
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);
     if (permanentAttr != null) return permanentAttr;
+
     if (victimEntity != null) {
       final regularAttr =
           regularAttributeBuilder(this, level, victimEntity, damageType);
+
       if (regularAttr != null) return regularAttr;
 
       if (perpetratorEntity != null) {
@@ -674,6 +688,17 @@ abstract class Attribute with UpgradeFunctions {
     String next = "${(upgradeLevel + 1) * percent}%";
 
     return "$current${upgradeLevel == maxLevel ? "" : " > $next"}";
+  }
+
+  void applyActionToWeapons(Function(Weapon weapon) function,
+      bool includeSecondaries, bool includeAdditionalPrimaries) {
+    final weapons = victimEntity?.getAllWeaponItems(
+        includeSecondaries, includeAdditionalPrimaries);
+    if (weapons == null) return;
+
+    for (var element in weapons) {
+      function(element);
+    }
   }
 
   String help() {

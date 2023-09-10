@@ -72,6 +72,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
         childEntity.parentEntity.projectileDamagePercentIncrease;
     spellDamagePercentIncrease =
         childEntity.parentEntity.spellDamagePercentIncrease;
+    staminaSteal = childEntity.parentEntity.staminaSteal;
   }
 
   @mustCallSuper
@@ -80,14 +81,17 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
     durationPercentIncrease = DoubleParameterManager(baseParameter: 1);
     tickDamageIncrease = DoubleParameterManager(baseParameter: 1);
     areaSizePercentIncrease = DoubleParameterManager(baseParameter: 1);
-    critChance = DoubleParameterManager(baseParameter: 0.05);
-    critDamage = DoubleParameterManager(baseParameter: 1.5);
+    critChance = DoubleParameterManager(
+        baseParameter: 0.05, minParameter: 0, maxParameter: 1);
+    critDamage = DoubleParameterManager(baseParameter: 1.4, minParameter: 1);
     damageTypePercentIncrease =
         DamagePercentParameterManager(damagePercentBase: {});
     damageTypeResistance = DamagePercentParameterManager(
       damagePercentBase: {},
     );
     areaDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
+    staminaSteal =
+        BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
     maxLives = IntParameterManager(baseParameter: 1);
     essenceSteal = DoubleParameterManager(baseParameter: 0, minParameter: 0);
     statusEffectsPercentIncrease =
@@ -157,6 +161,8 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   int get remainingLives => maxLives.parameter - deathCount;
 
   late final DoubleParameterManager essenceSteal;
+
+  late final BoolParameterManager staminaSteal;
 
   late final StatusEffectPercentParameterManager statusEffectsPercentIncrease;
 
@@ -572,14 +578,30 @@ mixin StaminaFunctionality on Entity {
 
   late final DoubleParameterManager stamina;
   late final DoubleParameterManager staminaRegen;
+  bool isForbiddenMagic = false;
 
   double get remainingStamina => stamina.parameter - staminaUsed;
   double staminaUsed = 0;
 
   ///Requires a positive value to reduce the amount of stamina used
   ///5 = 5 more stamina, -5 = 5 less stamina
-  void modifyStamina(double amount) =>
+  void modifyStamina(double amount) {
+    if (isForbiddenMagic && this is HealthFunctionality && amount < 0) {
+      final health = this as HealthFunctionality;
+
+      health.applyDamage(DamageInstance(damageMap: {
+        DamageType.magic: amount.abs(),
+      }, source: this, victim: health, sourceAttack: this));
+    } else {
       staminaUsed = (staminaUsed -= amount).clamp(0, stamina.parameter);
+    }
+  }
+
+  bool hasEnoughStamina(double cost) {
+    return isForbiddenMagic && this is HealthFunctionality
+        ? (this as HealthFunctionality).remainingHealth >= cost.abs()
+        : remainingStamina >= cost;
+  }
 
   /// Amount of stamina regenerated per second
   double get increaseStaminaRegenSpeed =>
@@ -631,7 +653,7 @@ mixin HealthFunctionality on Entity {
   @override
   void initializeParentParameters() {
     invincibilityDuration = DoubleParameterManager(baseParameter: .2);
-    maxHealth = DoubleParameterManager(baseParameter: 50);
+    maxHealth = DoubleParameterManager(baseParameter: 50, minParameter: 1);
     isMarked =
         BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
     super.initializeParentParameters();
@@ -673,7 +695,12 @@ mixin HealthFunctionality on Entity {
   void applyEssenceSteal(DamageInstance instance) {
     final amount = essenceSteal.parameter * instance.damage;
     if (amount == 0) return;
-    damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
+    if (staminaSteal.parameter && this is StaminaFunctionality) {
+      final stamina = this as StaminaFunctionality;
+      stamina.modifyStamina(amount);
+    } else {
+      damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
+    }
     addDamageText(DamageType.healing, amount, false);
     addDamageEffects(DamageType.healing.color);
   }
@@ -1255,7 +1282,7 @@ mixin DashFunctionality on StaminaFunctionality {
         isJumping ||
         isDead ||
         !enableMovement.parameter ||
-        dashStaminaCost.parameter > remainingStamina) {
+        !hasEnoughStamina(dashStaminaCost.parameter)) {
       return false;
     }
 
@@ -1554,8 +1581,8 @@ mixin JumpFunctionality on Entity {
       !enableMovement.parameter ||
       isDead ||
       (this is StaminaFunctionality
-          ? (jumpStaminaCost.parameter >
-              (this as StaminaFunctionality).remainingStamina)
+          ? !(this as StaminaFunctionality)
+              .hasEnoughStamina(jumpStaminaCost.parameter)
           : false);
 
   bool jumpCheck() {

@@ -2,10 +2,13 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:ffi';
 
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/enviroment.dart';

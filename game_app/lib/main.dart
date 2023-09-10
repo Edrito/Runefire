@@ -31,6 +31,8 @@ bool startInGame = true;
 
 Map<int, bool> isSecondaryPointer = {};
 
+late ApolloColorPalette colorPalette;
+
 void main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows) {
@@ -40,6 +42,8 @@ void main() async {
     Flame.device.setLandscape(),
     Hive.initFlutter(),
   ]);
+
+  colorPalette = ApolloColorPalette();
 
   //load goodies from HIVE
   Hive.registerAdapter(SystemDataAdapter());

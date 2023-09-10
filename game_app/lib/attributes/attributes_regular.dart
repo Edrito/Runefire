@@ -2,9 +2,12 @@ import 'package:flame/components.dart';
 import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/main.dart';
 import 'package:game_app/player/player.dart';
+import 'package:game_app/resources/functions/custom.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 import 'package:game_app/weapons/projectile_class.dart';
+import 'package:game_app/weapons/projectile_mixin.dart';
 import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -23,6 +26,34 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
     case AttributeType.explosiveDash:
       return ExplosiveDashAttribute(
           level: level, victimEntity: victimEntity, damageType: damageType);
+
+    case AttributeType.gravityDash:
+      return GravityDashAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.groundSlam:
+      return GroundSlamAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.psychicReach:
+      return PsychicReachAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.periodicPush:
+      return PeriodicPushAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.periodicMagicPulse:
+      return PeriodicMagicPulseAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+    case AttributeType.periodicStun:
+      return PeriodicStunAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+
+    case AttributeType.combinePeriodicPulse:
+      return CombinePeriodicPulseAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+
+    case AttributeType.increaseXpGrabRadius:
+      return IncreaseExperienceGrabAttribute(
+          level: level, victimEntity: victimEntity, damageType: damageType);
+
     case AttributeType.sentryMarkEnemy:
       return MarkSentryAttribute(
           level: level, victimEntity: victimEntity, damageType: damageType);
@@ -35,9 +66,13 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
     case AttributeType.sentryElementalFly:
       return ElementalSentryAttribute(
           level: level, victimEntity: victimEntity, damageType: damageType);
+
     case AttributeType.sentryCaptureBullet:
       return CaptureBulletSentryAttribute(
           level: level, victimEntity: victimEntity);
+
+    //TODO Sentry Combinations
+
     case AttributeType.mirrorOrb:
       return MirrorOrbAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.shieldSurround:
@@ -59,6 +94,8 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
     case AttributeType.defenceStandStillIncrease:
       return DefenceIncreaseStandStillAttribute(
           level: level, victimEntity: victimEntity);
+    //TODO Combination Standstill
+
     case AttributeType.invincibleDashing:
       return InvincibleDashAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.dashSpeedDistance:
@@ -67,10 +104,14 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
     case AttributeType.dashAttackEmpower:
       return DashAttackEmpowerAttribute(
           level: level, victimEntity: victimEntity);
+
     case AttributeType.teleportDash:
       return TeleportDashAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.weaponMerge:
       return WeaponMergeAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.thorns:
+      return ThornsAttribute(level: level, victimEntity: victimEntity);
+
     case AttributeType.reloadSpray:
       return ReloadSprayAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.reloadInvincibility:
@@ -84,6 +125,66 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
       return SonicWaveAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.daggerSwing:
       return DaggerSwingAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.forbiddenMagic:
+      return ForbiddenMagicAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.glassWand:
+      return GlassWandAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.chainingAttacks:
+      return ChainingAttacksAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.homingProjectiles:
+      return ChainingAttacksAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.heavyHitter:
+      return HeavyHitterAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.quickShot:
+      return QuickShotAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.rapidFire:
+      return RapidFireAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.bigPockets:
+      return BigPocketsAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.secondsPlease:
+      return SecondsPleaseAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.primalMagic:
+      return PrimalMagicAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.appleADay:
+      return AppleADayAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.critChanceDecreaseDamage:
+      return CritChanceDecreaseDamageAttribute(
+          level: level, victimEntity: victimEntity);
+    case AttributeType.putYourBackIntoIt:
+      return PutYourBackIntoItAttribute(
+          level: level, victimEntity: victimEntity);
+    case AttributeType.agile:
+      return AgileAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.areaSizeDecreaseDamage:
+      return AreaSizeDecreaseDamageAttribute(
+          level: level, victimEntity: victimEntity);
+
+    case AttributeType.decreaseMaxAmmoIncreaseReloadSpeed:
+      return DecreaseMaxAmmoIncreaseReloadSpeedAttribute(
+          level: level, victimEntity: victimEntity);
+
+    case AttributeType.potionSeller:
+      return PotionSellerAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.reduceHealthIncreaseLifeSteal:
+      return ReduceHealthIncreaseLifeStealAttribute(
+          level: level, victimEntity: victimEntity);
+    case AttributeType.staminaSteal:
+      return StaminaStealAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.splitDamage:
+      return SplitDamageAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.rollTheDice:
+      return RollTheDiceAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.slugTrail:
+      return SlugTrailAttribute(level: level, victimEntity: victimEntity);
 
     default:
       return null;
@@ -229,7 +330,7 @@ class GravityDashAttribute extends Attribute {
       {required super.level, required super.victimEntity, super.damageType});
 
   @override
-  AttributeType attributeType = AttributeType.gravityWell;
+  AttributeType attributeType = AttributeType.gravityDash;
 
   @override
   double get factor => .25;
@@ -480,11 +581,11 @@ class PeriodicPushAttribute extends Attribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Psychic Reach";
+  String title = "Periodic Push";
 
   @override
   String description() {
-    return "Use your mind to swing your sword even further!";
+    return "Periodically push enemies away from you!";
   }
 }
 
@@ -722,7 +823,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
       {required super.level, required super.victimEntity, super.damageType});
 
   @override
-  AttributeType attributeType = AttributeType.combinePeriodicPulse;
+  AttributeType attributeType = AttributeType.increaseXpGrabRadius;
 
   @override
   double get factor => .25;
@@ -761,7 +862,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Focus.";
+  String title = "Increase experience grab radius";
 
   @override
   String description() {
@@ -1357,7 +1458,12 @@ class ProjectileSplitExplodeAttribute extends Attribute {
         onTick: () => cooldownTimer = null)
       ..addToParent(victimEntity!);
 
-    final position = projectile.center.clone();
+    Vector2 position = projectile.center.clone();
+    if (projectile.projectileType == ProjectileType.laser) {
+      final list = (projectile as LaserProjectile).lineThroughEnemies.toList();
+
+      position = list[rng.nextInt(list.length.clamp(0, 3))];
+    }
     List<Vector2> temp =
         splitVector2DeltaIntoArea(projectile.delta, count, 360 - (360 / count));
 
@@ -1376,25 +1482,19 @@ class ProjectileSplitExplodeAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttackFunctionality) {
-      for (var element in victimEntity?.getAllWeaponItems(true, true) ??
-          const Iterable.empty()) {
-        if (element is! AttributeWeaponFunctionsFunctionality ||
-            element is! ProjectileFunctionality) continue;
-        element.onProjectileDeath.add(projectileExplode);
-      }
-    }
+    applyActionToWeapons((weapon) {
+      if (weapon is! AttributeWeaponFunctionsFunctionality ||
+          weapon is! ProjectileFunctionality) return;
+      weapon.onProjectileDeath.add(projectileExplode);
+    }, true, true);
   }
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttackFunctionality) {
-      for (var element in victimEntity?.getAllWeaponItems(true, true) ??
-          const Iterable.empty()) {
-        if (element is! AttributeWeaponFunctionsFunctionality) continue;
-        element.onProjectileDeath.remove(projectileExplode);
-      }
-    }
+    applyActionToWeapons((weapon) {
+      if (weapon is! AttributeWeaponFunctionsFunctionality) return;
+      weapon.onProjectileDeath.remove(projectileExplode);
+    }, true, true);
   }
 
   @override
@@ -1409,8 +1509,8 @@ class ProjectileSplitExplodeAttribute extends Attribute {
   }
 }
 
-abstract class StillAttribute extends Attribute {
-  StillAttribute({required super.level, required super.victimEntity});
+abstract class StandStillAttribute extends Attribute {
+  StandStillAttribute({required super.level, required super.victimEntity});
 
   @override
   void action() async {}
@@ -1483,7 +1583,7 @@ abstract class StillAttribute extends Attribute {
   }
 }
 
-class DodgeIncreaseStandStillAttribute extends StillAttribute {
+class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
   DodgeIncreaseStandStillAttribute(
       {required super.level, required super.victimEntity});
 
@@ -1526,7 +1626,7 @@ class DodgeIncreaseStandStillAttribute extends StillAttribute {
   }
 }
 
-class DefenceIncreaseStandStillAttribute extends StillAttribute {
+class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
   DefenceIncreaseStandStillAttribute(
       {required super.level, required super.victimEntity});
 
@@ -1571,7 +1671,7 @@ class DefenceIncreaseStandStillAttribute extends StillAttribute {
   }
 }
 
-class DamageIncreaseStandStillAttribute extends StillAttribute {
+class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   DamageIncreaseStandStillAttribute(
       {required super.level, required super.victimEntity});
 
@@ -1849,11 +1949,11 @@ class WeaponMergeAttribute extends Attribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Keep a watchful eye";
+  String title = "Merge Weapons";
 
   @override
   String description() {
-    return "Teleport";
+    return "Merge Weapons";
   }
 }
 
@@ -2263,21 +2363,17 @@ class ChainingAttacksAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    final weapons = victimEntity?.getAllWeaponItems(false, false);
-    if (weapons == null) return;
-    for (var element in weapons) {
-      element.maxChainingTargets
+    applyActionToWeapons((weapon) {
+      weapon.maxChainingTargets
           .setParameterFlatValue(attributeId, upgradeLevel);
-    }
+    }, false, false);
   }
 
   @override
   void unMapUpgrade() {
-    final weapons = victimEntity?.getAllWeaponItems(false, false);
-    if (weapons == null) return;
-    for (var element in weapons) {
-      element.maxChainingTargets.removeKey(attributeId);
-    }
+    applyActionToWeapons((weapon) {
+      weapon.maxChainingTargets.removeKey(attributeId);
+    }, false, false);
   }
 
   @override
@@ -2311,31 +2407,24 @@ class SonicWaveAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    final weapons = victimEntity
-        ?.getAllWeaponItems(false, false)
-        .whereType<MeleeFunctionality>();
-    if (weapons == null) return;
-
-    for (var element in weapons) {
+    applyActionToWeapons((weapon) {
+      if (weapon is! MeleeFunctionality) return;
       final newWeapon = WeaponType.blankProjectileWeapon
-          .build(element.entityAncestor!, null, victimEntity!.gameRef, 0);
-      element.addAdditionalWeapon(newWeapon);
+          .build(weapon.entityAncestor!, null, victimEntity!.gameRef, 0);
+      weapon.addAdditionalWeapon(newWeapon);
       newWeapons.add(newWeapon);
-    }
+    }, false, false);
   }
 
   @override
   void unMapUpgrade() {
-    final weapons = victimEntity
-        ?.getAllWeaponItems(false, false)
-        .whereType<MeleeFunctionality>();
-    if (weapons == null) return;
-
-    for (var element in weapons) {
+    applyActionToWeapons((weapon) {
+      if (weapon is! MeleeFunctionality) return;
       for (var additionalWeapon in newWeapons) {
-        element.removeAdditionalWeapon(additionalWeapon.weaponId);
+        weapon.removeAdditionalWeapon(additionalWeapon.weaponId);
       }
-    }
+    }, false, false);
+
     newWeapons.clear();
   }
 
@@ -2370,31 +2459,30 @@ class DaggerSwingAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    final weapons = victimEntity
-        ?.getAllWeaponItems(false, false)
-        .whereType<ProjectileFunctionality>();
-    if (weapons == null) return;
-
-    for (var element in weapons) {
+    applyActionToWeapons((weapon) {
+      if (weapon is! ProjectileFunctionality) return;
       final newWeapon = WeaponType.energySword
-          .build(element.entityAncestor!, null, victimEntity!.gameRef, 0);
-      element.addAdditionalWeapon(newWeapon);
+          .build(weapon.entityAncestor!, null, victimEntity!.gameRef, 0);
+
+      if (newWeapon is StaminaCostFunctionality) {
+        newWeapon.weaponStaminaCost.setParameterPercentValue(attributeId, -1);
+      }
+
+      weapon.addAdditionalWeapon(newWeapon);
+
       newWeapons.add(newWeapon);
-    }
+    }, false, false);
   }
 
   @override
   void unMapUpgrade() {
-    final weapons = victimEntity
-        ?.getAllWeaponItems(false, false)
-        .whereType<ProjectileFunctionality>();
-    if (weapons == null) return;
-
-    for (var element in weapons) {
+    applyActionToWeapons((weapon) {
+      if (weapon is! ProjectileFunctionality) return;
       for (var additionalWeapon in newWeapons) {
-        element.removeAdditionalWeapon(additionalWeapon.weaponId);
+        weapon.removeAdditionalWeapon(additionalWeapon.weaponId);
       }
-    }
+    }, false, false);
+
     newWeapons.clear();
   }
 
@@ -2428,26 +2516,18 @@ class HomingProjectileAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    final weapons = victimEntity
-        ?.getAllWeaponItems(false, true)
-        .whereType<ProjectileFunctionality>();
-    if (weapons == null) return;
-
-    for (var element in weapons) {
-      element.maxHomingTargets.setParameterFlatValue(attributeId, upgradeLevel);
-    }
+    applyActionToWeapons((weapon) {
+      if (weapon is! ProjectileFunctionality) return;
+      weapon.maxHomingTargets.setParameterFlatValue(attributeId, upgradeLevel);
+    }, false, true);
   }
 
   @override
   void unMapUpgrade() {
-    final weapons = victimEntity
-        ?.getAllWeaponItems(false, true)
-        .whereType<ProjectileFunctionality>();
-    if (weapons == null) return;
-
-    for (var element in weapons) {
-      element.maxHomingTargets.removeKey(attributeId);
-    }
+    applyActionToWeapons((weapon) {
+      if (weapon is! ProjectileFunctionality) return;
+      weapon.maxHomingTargets.removeKey(attributeId);
+    }, false, true);
   }
 
   @override
@@ -2458,6 +2538,1061 @@ class HomingProjectileAttribute extends Attribute {
 
   @override
   String description() {
-    return "add a sonic wave to your melee attacks";
+    return "Homing projectiles";
+  }
+}
+
+class HeavyHitterAttribute extends Attribute {
+  HeavyHitterAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.heavyHitter;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.damagePercentIncrease
+        .setParameterPercentValue(attributeId, .25);
+
+    applyActionToWeapons((weapon) {
+      weapon.attackTickRate.setParameterPercentValue(attributeId, .35);
+    }, false, true);
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+    applyActionToWeapons((weapon) {
+      weapon.attackTickRate.removeKey(attributeId);
+    }, false, true);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Heavy Hitter";
+
+  @override
+  String description() {
+    return "Reduce attack speed while increasing damage";
+  }
+}
+
+class QuickShotAttribute extends Attribute {
+  QuickShotAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.quickShot;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.damagePercentIncrease
+        .setParameterPercentValue(attributeId, -.35);
+    applyActionToWeapons((weapon) {
+      weapon.attackTickRate.setParameterPercentValue(attributeId, -.25);
+    }, false, true);
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+
+    applyActionToWeapons((weapon) {
+      weapon.attackTickRate.removeKey(attributeId);
+    }, false, true);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Quick Shot";
+
+  @override
+  String description() {
+    return "Increase attack speed while decreasing damage";
+  }
+}
+
+class RapidFireAttribute extends Attribute {
+  RapidFireAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.rapidFire;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.damagePercentIncrease
+        .setParameterPercentValue(attributeId, -.15 * upgradeLevel);
+
+    applyActionToWeapons((weapon) {
+      weapon.attackTickRate
+          .setParameterPercentValue(attributeId, -.15 * upgradeLevel);
+      if (weapon is ReloadFunctionality) {
+        weapon.maxAttacks
+            .setParameterPercentValue(attributeId, .25 * upgradeLevel);
+      }
+    }, false, true);
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+
+    applyActionToWeapons((weapon) {
+      weapon.attackTickRate.removeKey(attributeId);
+      if (weapon is ReloadFunctionality) {
+        weapon.maxAttacks.removeKey(attributeId);
+      }
+    }, false, true);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Quick Shot";
+
+  @override
+  String description() {
+    return "Increase attack speed while decreasing damage";
+  }
+}
+
+class BigPocketsAttribute extends Attribute {
+  BigPocketsAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.bigPockets;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttackFunctionality) return;
+    final attack = victimEntity as AttackFunctionality;
+
+    applyActionToWeapons((weapon) {
+      if (weapon is ReloadFunctionality) {
+        weapon.maxAttacks.setParameterPercentValue(attributeId, .5);
+      }
+    }, false, true);
+
+    if (victimEntity is! MovementFunctionality) return;
+    final move = victimEntity as MovementFunctionality;
+    move.speed.setParameterPercentValue(attributeId, -.25);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttackFunctionality) return;
+
+    applyActionToWeapons((weapon) {
+      if (weapon is ReloadFunctionality) {
+        weapon.maxAttacks.removeKey(attributeId);
+      }
+    }, false, true);
+
+    if (victimEntity is! MovementFunctionality) return;
+    final move = victimEntity as MovementFunctionality;
+    move.speed.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Bag of Holding";
+
+  @override
+  String description() {
+    return "Increase max ammo, reduce movement speed";
+  }
+}
+
+class SecondsPleaseAttribute extends Attribute {
+  SecondsPleaseAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.secondsPlease;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! MovementFunctionality) return;
+    final move = victimEntity as MovementFunctionality;
+    move.speed.setParameterPercentValue(attributeId, -.2);
+
+    if (victimEntity is! HealthFunctionality) return;
+    final health = victimEntity as HealthFunctionality;
+    health.maxHealth.setParameterPercentValue(attributeId, .5);
+
+    victimEntity?.height.setParameterPercentValue(attributeId, .5);
+    victimEntity?.applyHeightToSprite();
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! MovementFunctionality) return;
+    final move = victimEntity as MovementFunctionality;
+    move.speed.removeKey(attributeId);
+
+    if (victimEntity is! HealthFunctionality) return;
+    final health = victimEntity as HealthFunctionality;
+    health.maxHealth.removeKey(attributeId);
+    victimEntity?.height.removeKey(attributeId);
+    victimEntity?.applyHeightToSprite();
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Seconds Please";
+
+  @override
+  String description() {
+    return "Increase health, reduce movement speed, increase max health";
+  }
+}
+
+class PrimalMagicAttribute extends Attribute {
+  PrimalMagicAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.primalMagic;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! StaminaFunctionality) return;
+    final stamina = victimEntity as StaminaFunctionality;
+    stamina.staminaRegen
+        .setParameterPercentValue(attributeId, .25 * upgradeLevel);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! StaminaFunctionality) return;
+    final stamina = victimEntity as StaminaFunctionality;
+    stamina.staminaRegen.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Primal Magic";
+
+  @override
+  String description() {
+    return "Increase Stamina Regen";
+  }
+}
+
+class AppleADayAttribute extends Attribute {
+  AppleADayAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.appleADay;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! HealthRegenFunctionality) return;
+    final health = victimEntity as HealthRegenFunctionality;
+    health.healthRegen
+        .setParameterPercentValue(attributeId, .25 * upgradeLevel);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! HealthRegenFunctionality) return;
+    final health = victimEntity as HealthRegenFunctionality;
+    health.healthRegen.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Primal Magic";
+
+  @override
+  String description() {
+    return "Increase Stamina Regen";
+  }
+}
+
+class CritChanceDecreaseDamageAttribute extends Attribute {
+  CritChanceDecreaseDamageAttribute(
+      {required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.critChanceDecreaseDamage;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.critChance.setParameterFlatValue(attributeId, .4);
+    victimEntity?.critDamage.setParameterPercentValue(attributeId, -.25);
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.critChance.removeKey(attributeId);
+    victimEntity?.critDamage.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Critical Switch";
+
+  @override
+  String description() {
+    return "Increase Crit Chance while also Decrease Crit Damage";
+  }
+}
+
+class PutYourBackIntoItAttribute extends Attribute {
+  PutYourBackIntoItAttribute(
+      {required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.putYourBackIntoIt;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  bool increaseDamage(DamageInstance instance) {
+    final health = victimEntity as HealthFunctionality;
+    final increase =
+        ((health.maxHealth.parameter / 100) / 2).clamp(1.0, double.infinity);
+    instance.increaseByPercent(increase);
+    return true;
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality ||
+        victimEntity is! HealthFunctionality) return;
+
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+
+    attr.onHitOtherEntity.add(increaseDamage);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+
+    attr.onHitOtherEntity.remove(increaseDamage);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Put your back into it";
+
+  @override
+  String description() {
+    return "Melee attacks deal more damage the more health you have";
+  }
+}
+
+class AgileAttribute extends Attribute {
+  AgileAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.agile;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! HealthFunctionality) return;
+
+    final health = victimEntity as HealthFunctionality;
+
+    health.maxHealth.setParameterPercentValue(attributeId, -.2);
+
+    if (victimEntity is! MovementFunctionality) return;
+
+    final move = victimEntity as MovementFunctionality;
+
+    move.speed.setParameterPercentValue(attributeId, .3);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! HealthFunctionality) return;
+
+    final health = victimEntity as HealthFunctionality;
+
+    health.maxHealth.removeKey(attributeId);
+
+    if (victimEntity is! MovementFunctionality) return;
+
+    final move = victimEntity as MovementFunctionality;
+
+    move.speed.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Agile";
+
+  @override
+  String description() {
+    return "Reduce max health by X and increase speed";
+  }
+}
+
+class AreaSizeDecreaseDamageAttribute extends Attribute {
+  AreaSizeDecreaseDamageAttribute(
+      {required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.areaSizeDecreaseDamage;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.areaSizePercentIncrease
+        .setParameterPercentValue(attributeId, .5);
+    victimEntity?.areaDamagePercentIncrease
+        .setParameterPercentValue(attributeId, -.25);
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.areaSizePercentIncrease.removeKey(attributeId);
+    victimEntity?.areaDamagePercentIncrease.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Area Size Decrease Damage";
+
+  @override
+  String description() {
+    return "Reduce area damage and increase area size";
+  }
+}
+
+class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
+  DecreaseMaxAmmoIncreaseReloadSpeedAttribute(
+      {required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType =
+      AttributeType.decreaseMaxAmmoIncreaseReloadSpeed;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    applyActionToWeapons((weapon) {
+      if (weapon is! ReloadFunctionality) return;
+      weapon.maxAttacks.setParameterPercentValue(attributeId, -.5);
+      weapon.reloadTime.setParameterPercentValue(attributeId, .25);
+    }, false, true);
+  }
+
+  @override
+  void unMapUpgrade() {
+    applyActionToWeapons((weapon) {
+      if (weapon is! ReloadFunctionality) return;
+      weapon.maxAttacks.removeKey(attributeId);
+      weapon.reloadTime.removeKey(attributeId);
+    }, false, true);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Decrease Max Ammo Increase Reload Speed";
+
+  @override
+  String description() {
+    return "Reduce max ammo while increase attack rate";
+  }
+}
+
+class PotionSellerAttribute extends Attribute {
+  PotionSellerAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.potionSeller;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.damagePercentIncrease
+        .setParameterPercentValue(attributeId, -.2);
+    victimEntity?.tickDamageIncrease.setParameterPercentValue(attributeId, .5);
+
+    for (var element in StatusEffects.values) {
+      victimEntity?.statusEffectsPercentIncrease
+          .setDamagePercentIncrease(attributeId, element, .5);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+    victimEntity?.tickDamageIncrease.removeKey(attributeId);
+    victimEntity?.statusEffectsPercentIncrease.removePercentKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Potion Seller";
+
+  @override
+  String description() {
+    return "Increase the effects of status effects and dots, while reducing regular damage.";
+  }
+}
+
+class BattleScarsAttribute extends Attribute {
+  BattleScarsAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.battleScars;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+      health.maxHealth.setParameterPercentValue(attributeId, 1.0);
+    }
+    if (victimEntity is DashFunctionality) {
+      final dash = victimEntity as DashFunctionality;
+      dash.dashDistance.setParameterPercentValue(attributeId, -.5);
+      dash.dashCooldown.setParameterPercentValue(attributeId, .5);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+      health.maxHealth.removeKey(attributeId);
+    }
+    if (victimEntity is DashFunctionality) {
+      final dash = victimEntity as DashFunctionality;
+      dash.dashDistance.removeKey(attributeId);
+      dash.dashCooldown.removeKey(attributeId);
+    }
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Battle Scars";
+
+  @override
+  String description() {
+    return "Reducing dash effectivness, while increasing health by 200%";
+  }
+}
+
+class ForbiddenMagicAttribute extends Attribute {
+  ForbiddenMagicAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.forbiddenMagic;
+
+  // @override
+  // double get factor => .33;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 1;
+
+  bool previousValue = false;
+
+  @override
+  void mapUpgrade() {
+    int amountOfStaminaWeapons = 0;
+    applyActionToWeapons((weapon) {
+      if (weapon is StaminaCostFunctionality) {
+        amountOfStaminaWeapons++;
+      }
+    }, true, true);
+
+    if (victimEntity is HealthRegenFunctionality) {
+      final health = victimEntity as HealthRegenFunctionality;
+      health.healthRegen.setParameterPercentValue(attributeId,
+          amountOfStaminaWeapons.clamp(0.5, double.infinity).toDouble());
+    }
+    if (victimEntity is StaminaFunctionality) {
+      final stamina = victimEntity as StaminaFunctionality;
+      stamina.stamina.setParameterPercentValue(attributeId, -1);
+      previousValue = stamina.isForbiddenMagic;
+      stamina.isForbiddenMagic = true;
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is HealthRegenFunctionality) {
+      final health = victimEntity as HealthRegenFunctionality;
+      health.healthRegen.removeKey(attributeId);
+    }
+    if (victimEntity is StaminaFunctionality) {
+      final stamina = victimEntity as StaminaFunctionality;
+      stamina.stamina.removeKey(attributeId);
+      stamina.isForbiddenMagic = previousValue;
+    }
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Forbidden Magic";
+
+  @override
+  String description() {
+    return "Remove stamina, stamina actions reduce health, increase health regen by 100% for each stamina consuming weapon possessed";
+  }
+}
+
+class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
+  ReduceHealthIncreaseLifeStealAttribute(
+      {required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.reduceHealthIncreaseLifeSteal;
+
+  @override
+  double get factor => .035;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+      health.maxHealth
+          .setParameterPercentValue(attributeId, -.1 * upgradeLevel);
+    }
+
+    victimEntity?.essenceSteal
+        .setParameterPercentValue(attributeId, increase(false));
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+      health.maxHealth.removeKey(attributeId);
+    }
+
+    victimEntity?.essenceSteal.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Reduce Health Increase Life Steal";
+
+  @override
+  String description() {
+    return "Reduce max health, increase life steal";
+  }
+}
+
+class StaminaStealAttribute extends Attribute {
+  StaminaStealAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.staminaSteal;
+
+  @override
+  double get factor => .035;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.staminaSteal.setIncrease(attributeId, true);
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.staminaSteal.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Stamina Steal";
+
+  @override
+  String description() {
+    return "Converts life steal to stamina steal";
+  }
+}
+
+class SplitDamageAttribute extends Attribute {
+  SplitDamageAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.splitDamage;
+
+  @override
+  double get factor => .035;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  bool splitDamage(DamageInstance instance) {
+    final count = DamageType.values.length;
+    double totalDamage = 0;
+
+    for (var element in instance.damageMap.values) {
+      totalDamage += element;
+    }
+
+    final splitDamage = totalDamage / count;
+
+    instance.damageMap.clear();
+
+    for (var element in DamageType.values) {
+      instance.damageMap[element] = splitDamage;
+    }
+
+    return true;
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is AttributeFunctionsFunctionality) {
+      final attr = victimEntity as AttributeFunctionsFunctionality;
+      attr.onHitOtherEntity.add(splitDamage);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is AttributeFunctionsFunctionality) {
+      final attr = victimEntity as AttributeFunctionsFunctionality;
+      attr.onHitOtherEntity.remove(splitDamage);
+    }
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Damage Split";
+
+  @override
+  String description() {
+    return "Evenly distributes damage across all damage types";
+  }
+}
+
+class RollTheDiceAttribute extends Attribute {
+  RollTheDiceAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.rollTheDice;
+
+  @override
+  double get factor => .035;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.critChance.setParameterFlatValue(attributeId, .25);
+    victimEntity?.critDamage.setParameterFlatValue(attributeId, .25);
+    victimEntity?.damagePercentIncrease
+        .setParameterPercentValue(attributeId, -.5);
+  }
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.critChance.removeKey(attributeId);
+    victimEntity?.critDamage.removeKey(attributeId);
+    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+  }
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Increase crit chance and damage, while reducing damage";
+
+  @override
+  String description() {
+    return "Increase crit chance and damage by 25%, while reducing base damage by 50%";
+  }
+}
+
+class GlassWandAttribute extends Attribute {
+  GlassWandAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.glassWand;
+
+  @override
+  double get factor => .035;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.maxLives.setParameterFlatValue(attributeId, 10);
+    victimEntity?.damagePercentIncrease
+        .setParameterPercentValue(attributeId, 1);
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+
+      health.maxHealth.setParameterPercentValue(attributeId, -0.9999999);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Glass Wand";
+
+  @override
+  String description() {
+    return "Doubling damage, adding 10 lives but reducing max health to 1.";
+  }
+}
+
+class SlugTrailAttribute extends Attribute {
+  SlugTrailAttribute({required super.level, required super.victimEntity});
+
+  @override
+  AttributeType attributeType = AttributeType.slugTrail;
+
+  @override
+  double get factor => .25;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.energy};
+
+  @override
+  int get maxLevel => 3;
+
+  double baseSize = 2.5;
+
+  @override
+  void action() {
+    final explosion = AreaEffect(
+        sourceEntity: victimEntity!,
+        position: victimEntity!.center,
+        animationRandomlyFlipped: true,
+        radius: baseSize + increasePercentOfBase(baseSize),
+        durationType: DurationType.temporary,
+        duration: victimEntity!.durationPercentIncrease.parameter * 2,
+
+        ///Map<DamageType, (double, double)>>>>
+        damage: {
+          damageType ?? allowedDamageTypes.first: (
+            increase(true, 2),
+            increase(true, 5)
+          )
+        });
+    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+  }
+
+  TimerComponent? timer;
+  double interval = 2.0;
+  double notMovingSpeed = .01;
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is MovementFunctionality) {
+      timer = TimerComponent(
+          period: interval,
+          onTick: () {
+            final move = victimEntity as MovementFunctionality;
+            final speed = move.moveDelta.clone().normalize();
+
+            if (speed >= notMovingSpeed) {
+              action();
+            }
+          },
+          repeat: true);
+      victimEntity?.add(timer!);
+    }
+  }
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  String icon = "attributes/topSpeed.png";
+
+  @override
+  String title = "Slug trail";
+
+  @override
+  String description() {
+    return "While moving, leave a damaging area effect";
   }
 }

@@ -229,7 +229,7 @@ class AssaultRifle extends PlayerWeapon
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.physical] = (1, 3);
+    baseDamage.damageBase[DamageType.fire] = (1, 3);
     maxAttacks.baseParameter = 22;
     attackTickRate.baseParameter = .1;
     // baseAttackCount.baseParameter = 10;

@@ -6,6 +6,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
+import 'package:game_app/main.dart';
 import 'enums.dart';
 import 'functions/functions.dart';
 
@@ -61,6 +62,46 @@ class ApolloColorPalette {
   static const PaletteEntry lightestGray = PaletteEntry(Color(0xFFA8B5B2));
   static const PaletteEntry nearlyWhite = PaletteEntry(Color(0xFFC7CFCC));
   static const PaletteEntry offWhite = PaletteEntry(Color(0xFFebede9));
+
+  Map<String, Paint> cachedPaints = {};
+
+  Paint buildProjectile({
+    required Color color,
+    required ProjectileType projectileType,
+    required bool lighten,
+    BlendMode? blendMode,
+    double opacity = 1,
+    double width = 1,
+    MaskFilter? maskFilter,
+    FilterQuality filterQuality = FilterQuality.none,
+  }) {
+    String key = color.value.toString() +
+        projectileType.toString() +
+        lighten.toString() +
+        blendMode.toString() +
+        opacity.toString() +
+        maskFilter.toString() +
+        filterQuality.toString();
+    if (cachedPaints.containsKey(key)) return cachedPaints[key]!;
+    Paint returnPaint = Paint()
+      ..maskFilter = maskFilter
+      ..filterQuality = filterQuality
+      ..isAntiAlias = true
+      ..colorFilter = ColorFilter.mode(
+          (lighten ? color.brighten(.8) : color).withOpacity(opacity),
+          BlendMode.srcATop);
+    if (blendMode != null) {
+      returnPaint.blendMode = blendMode;
+    }
+
+    if (projectileType == ProjectileType.laser) {
+      returnPaint.strokeWidth = width;
+      returnPaint.style = PaintingStyle.stroke;
+    }
+
+    cachedPaints[key] = returnPaint;
+    return returnPaint;
+  }
 }
 
 double defaultFrameDuration = .15;
@@ -109,7 +150,7 @@ final defaultStyle = TextStyle(
   fontFamily: "Alagard",
   // fontWeight: FontWeight.bold,
 
-  color: ApolloColorPalette().secondaryColor,
+  color: colorPalette.secondaryColor,
   shadows: const [],
 );
 

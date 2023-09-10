@@ -67,7 +67,7 @@ class PlayerData extends DataClass {
 
   Map<int, WeaponType> selectedWeapons = {
     0: WeaponType.scryshot,
-    1: WeaponType.flameSword,
+    1: WeaponType.spear,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,

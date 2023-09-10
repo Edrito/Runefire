@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/contacts/contact.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/main.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/data_classes/base.dart';
 import 'package:game_app/resources/functions/custom.dart';
@@ -617,8 +618,8 @@ class ReloadAnimation extends PositionComponent {
       value != null ? isOpaque = value : isOpaque = !isOpaque;
 
   Color get color => isSecondaryWeapon
-      ? ApolloColorPalette().secondaryColor
-      : ApolloColorPalette().primaryColor;
+      ? colorPalette.secondaryColor
+      : colorPalette.primaryColor;
 
   double get percentReloaded => (timer.timer.current) / duration;
 

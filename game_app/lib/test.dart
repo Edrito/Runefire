@@ -12,9 +12,9 @@ import 'package:game_app/resources/enums.dart';
 import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) {
-  Future.delayed(2.seconds).then((value) {
-    gameEnviroment.player?.addAttribute(
-      AttributeType.daggerSwing,
-    );
-  });
+  // Future.delayed(2.1.seconds).then((value) {
+  //   gameEnviroment.player?.addAttribute(
+  //     AttributeType.glassWand,
+  //   );
+  // });
 }

@@ -280,14 +280,16 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 
+  void applyHeightToSprite() {
+    spriteAnimationComponent.size = Vector2.all(height.parameter);
+  }
+
   @override
   Future<void> onLoad() async {
     spriteAnimationComponent = SpriteAnimationGroupComponent(
-        size: Vector2.all(height.parameter),
-        anchor: Anchor.center,
-        animations: entityAnimations);
+        anchor: Anchor.center, animations: entityAnimations);
     setEntityStatus(EntityStatus.spawn);
-
+    applyHeightToSprite();
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
         anchor: Anchor.center,
         size: Vector2.zero(),

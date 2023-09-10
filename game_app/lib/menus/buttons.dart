@@ -79,8 +79,8 @@ class CustomButton extends StatelessWidget {
                 ? upDownColor!.$2
                 : upDownColor!.$1
             : isHighlighted ?? isHighlightedInitial
-                ? ApolloColorPalette().primaryColor
-                : ApolloColorPalette().secondaryColor,
+                ? colorPalette.primaryColor
+                : colorPalette.secondaryColor,
       );
       return InkWell(
         splashFactory: NoSplash.splashFactory,

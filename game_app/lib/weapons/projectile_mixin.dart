@@ -6,6 +6,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 
 import '../enemies/enemy.dart';
@@ -22,15 +23,37 @@ mixin CanvasTrail on StandardProjectile {
 
   late Color projectileColor;
 
+  late Paint bulletBackPaint;
+  late Paint bulletPaint;
+  late Paint glowPaint;
+
   @override
   Future<void> onLoad() {
     trailCount = 20;
     skip = 2;
     projectileColor = damageType.color;
-    // add(CircleComponent(
-    //     radius: size / 4,
-    //     anchor: Anchor.center,
-    //     paint: Paint()..color = Colors.blue.shade900.withOpacity(.4)));
+
+    bulletBackPaint = colorPalette.buildProjectile(
+      color: projectileColor,
+      projectileType: projectileType,
+      lighten: false,
+      // blendMode: BlendMode.plus,
+      // opacity: opacity,
+      // maskFilter: const MaskFilter.blur(BlurStyle.solid, .5),
+    );
+    bulletPaint = colorPalette.buildProjectile(
+      color: projectileColor,
+      projectileType: projectileType,
+      lighten: true,
+      // blendMode: BlendMode.plus,
+      // opacity: opacity,
+      // maskFilter: const MaskFilter.blur(BlurStyle.solid, .2),
+    );
+
+    glowPaint = bulletBackPaint;
+    glowPaint.blendMode = BlendMode.plus;
+    glowPaint.shader = ui.Gradient.radial(
+        Offset.zero, size * .75, [bulletBackPaint.color, Colors.transparent]);
 
     return super.onLoad();
   }
@@ -68,9 +91,6 @@ mixin CanvasTrail on StandardProjectile {
     previousTrailPoint = null;
   }
 
-  Paint? bulletBackPaint;
-  Paint? bulletPaint;
-
   void drawBullet(Canvas canvas) {
     // final points = (trails.fold<List<Vector2>>([],
     //     (previousValue, element) => [...previousValue, (element - center)]));
@@ -87,25 +107,11 @@ mixin CanvasTrail on StandardProjectile {
     //   .1,
     //   1
     // ]);
-    bulletBackPaint ??= Paint()
-      // ..strokeWidth = size
-      ..blendMode = BlendMode.plus
-      // ..style = PaintingStyle.stroke
-      ..filterQuality = FilterQuality.none
-      ..color = projectileColor
-      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, .5);
-    bulletPaint ??= Paint()
-      // ..strokeWidth = size
-      // ..blendMode = BlendMode.plus
-      // ..style = PaintingStyle.stroke
-      ..filterQuality = FilterQuality.none
-      // ..strokeCap = StrokeCap.round
-      ..color = projectileColor.brighten(.7)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, .2);
 
-    canvas.drawCircle(Offset.zero, size * .5, bulletBackPaint!);
+    canvas.drawCircle(Offset.zero, size, glowPaint);
+    canvas.drawCircle(Offset.zero, size * .5, bulletBackPaint);
 
-    canvas.drawCircle(Offset.zero, size * .4, bulletPaint!);
+    canvas.drawCircle(Offset.zero, size * .4, bulletPaint);
     // final path = Path();
     // path.moveTo(0, 0);
 
@@ -454,8 +460,26 @@ mixin LaserProjectile on Projectile {
     boxThroughEnemies =
         validateChainDistances(boxThroughEnemies.toList()).toSet();
 
+    backPaint = colorPalette.buildProjectile(
+      color: color,
+      projectileType: projectileType,
+      lighten: false,
+      width: width,
+      opacity: opacity,
+    );
+    frontPaint = colorPalette.buildProjectile(
+      color: color,
+      projectileType: projectileType,
+      lighten: true,
+      width: width,
+      opacity: opacity,
+    );
+
     return super.onLoad();
   }
+
+  late Paint backPaint;
+  late Paint frontPaint;
 
   @override
   double get opacity => Curves.easeInCirc.transform(
@@ -472,31 +496,25 @@ mixin LaserProjectile on Projectile {
   @override
   void render(Canvas canvas) {
     var path = Path();
-    paint.strokeWidth = width;
-    paint.style = PaintingStyle.stroke;
-    paint.strokeCap = StrokeCap.butt;
-
     for (var element in lineThroughEnemies) {
       path.lineTo(element.x, element.y);
     }
 
-    canvas.drawPath(
-        path,
-        paint
-          ..strokeWidth = width * opacity
-          ..maskFilter = const MaskFilter.blur(BlurStyle.outer, .04)
-          ..color = color.withOpacity(opacity));
+    // canvas.drawPath(
+    //     path,
+    //     paint
+    //       ..strokeWidth = width * opacity
+    //       ..color = color.withOpacity(opacity));
 
     canvas.drawPath(
         path,
-        paint
-          ..maskFilter = null
+        backPaint
           ..strokeWidth = width * opacity
           ..color = color.withOpacity(opacity));
 
     canvas.drawPath(
         path,
-        paint
+        frontPaint
           ..strokeWidth = width * .7 * opacity
           ..color = brightColor.withOpacity(opacity));
   }

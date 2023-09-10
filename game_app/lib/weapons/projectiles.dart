@@ -349,6 +349,8 @@ class ExplosiveProjectile extends Projectile with StandardProjectile {
       animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
           playAnimation: await loadSpriteAnimation(
               16, 'effects/explosion_1_16.png', .1, true),
+          spawnAnimation: await loadSpriteAnimation(
+              16, 'effects/explosion_1_16.png', .1, false),
           durationType: DurationType.instant),
       duration: 5,
       damage: {DamageType.fire: (50, 120)},
