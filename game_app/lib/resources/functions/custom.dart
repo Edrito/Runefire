@@ -9,12 +9,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/main.dart';
-import 'package:game_app/resources/area_effects.dart';
+import 'package:game_app/game/area_effects.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/functions/vector_functions.dart';
 
 import '../../entities/entity_class.dart';
 import '../../weapons/projectile_mixin.dart';
+
+extension ResetTicker on SpriteAnimationGroupComponent {
+  void resetTicker(dynamic key) {
+    final newTicker = animations?[key]?.createTicker();
+    if (newTicker != null) {
+      animationTickers?[key] = newTicker;
+    } else {
+      animationTickers?.remove(key);
+    }
+  }
+}
 
 mixin HasOpacityProvider on Component {
   final Paint _paint = BasicPalette.transparent.paint();

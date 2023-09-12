@@ -19,7 +19,7 @@ class BlankProjectileWeapon extends EnemyWeapon
     projectileVelocity.baseParameter = 10;
   }
   @override
-  WeaponType weaponType = WeaponType.scatterCaster;
+  WeaponType weaponType = WeaponType.blankProjectileWeapon;
 
   @override
   void mapUpgrade() {
@@ -60,9 +60,6 @@ class BlankProjectileWeapon extends EnemyWeapon
 
   @override
   ProjectileType? projectileType = ProjectileType.bullet;
-
-  @override
-  double tipPositionPercent = -.2;
 
   @override
   void endAltAttacking() {

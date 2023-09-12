@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
+import 'package:flame/text.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
 import 'package:game_app/entities/child_entities.dart';
@@ -715,7 +716,7 @@ mixin HealthFunctionality on Entity {
   double recentDamage = 0;
 
   //HEALTH
-  TextComponent? damageText;
+  Map<DamageType, TextComponent> damageTexts = {};
   Map<String, TimerComponent> hitSourceInvincibility = {};
   int targetsHomingEntity = 0;
   int maxTargetsHomingEntity = 5;
@@ -731,7 +732,7 @@ mixin HealthFunctionality on Entity {
     entityStatusWrapper.removeAllAnimations();
     temporaryAnimationPlaying = true;
 
-    spriteAnimationComponent.add(OpacityEffect.fadeOut(
+    spriteAnimationGroupComponent.add(OpacityEffect.fadeOut(
       EffectController(
           startDelay: rng.nextDouble() * .5,
           duration: 1.0,
@@ -754,79 +755,51 @@ mixin HealthFunctionality on Entity {
 
   void addDamageText(DamageType damageType, double amount, bool isCrit) {
     final color = damageType.color;
-    final fontSize = .55 * (isCrit ? 1.3 : 1);
+    final fontSize = .45 * (isCrit ? 1.3 : 1);
 
-    final textRenderer = TextPaint(
-        style: defaultStyle.copyWith(
-      fontSize: fontSize,
-      shadows: [
-        BoxShadow(
-            color: Colors.black.withOpacity(.25),
-            offset: const Offset(.05, .05),
-            spreadRadius: .4,
-            blurRadius: .75)
-      ],
-      color: isCrit ? Colors.red : color.brighten(.2),
-    ));
+    final textRenderer = colorPalette.buildTextPaint(
+        fontSize, ShadowStyle.light, isCrit ? Colors.red : color.brighten(.2));
+
     String damageString = "";
-    // if (amount < 1) {
-    //   damageString = amount.toStringAsFixed(1);
-    // } else {
-    //   damageString = amount.toStringAsFixed(0);
-    // }
+
     damageString = amount.ceil().toString();
 
     if (damageType == DamageType.healing) {
       damageString = "+ $damageString";
     }
-    //TODO
-    if (damageText == null) {
-      damageText = TextComponent(
-        text: damageString,
-        anchor: Anchor.bottomLeft,
-        textRenderer: textRenderer,
-        priority: foregroundPriority,
-        position: (Vector2.random() * .25) + Vector2(.35, .35),
-      )
-        ..add(TimerComponent(
-          period: 2,
-          onTick: () {
-            damageText?.removeFromParent();
-            damageText = null;
-            recentDamage = 0;
-          },
-        ))
-        ..addToParent(this);
-      damageText!.add(
-        MoveEffect.by(
-          (Vector2.random() * .5) - Vector2.all(.25) * (isCrit ? 3 : 1),
-          EffectController(
-            duration: 2,
-            curve: Curves.decelerate,
-          ),
-        ),
-      );
-    } else {
-      damageText!.text = damageString;
-      damageText!.children.whereType<TimerComponent>().first.timer.reset();
 
-      damageText!.textRenderer = (damageText!.textRenderer as TextPaint)
-          .copyWith((p0) => p0.copyWith(
-              color: p0.color!.brighten(.01),
-              fontSize: (p0.fontSize! * 1.02).clamp(fontSize, fontSize * 1.1)));
-      baseTextSize ??= damageText!.size;
+    final tempText = TextComponent(
+      text: damageString,
+      anchor: Anchor.bottomLeft,
+      textRenderer: textRenderer,
+      priority: foregroundPriority,
+      position: (Vector2.random() * .25) +
+          Vector2(spriteAnimationGroupComponent.width, 0),
+    );
 
-      damageText!.add(
-        ScaleEffect.to(
-          baseTextSize! * (1 + (.2 * rng.nextDouble())),
-          EffectController(
-            duration: .05,
-            curve: Curves.decelerate,
-            reverseDuration: .1,
-          ),
+    tempText.add(
+      TimerComponent(
+        period: 1.33,
+        onTick: () {
+          tempText.removeFromParent();
+          damageTexts.remove(tempText);
+        },
+      ),
+    );
+
+    tempText.add(
+      MoveEffect.by(
+        (Vector2.random() * .5) - Vector2.all(.25) * (isCrit ? 3 : 1),
+        EffectController(
+          duration: 1.33,
+          curve: Curves.linear,
         ),
-      );
-    }
+      ),
+    );
+
+    damageTexts[damageType]?.removeFromParent();
+    damageTexts[damageType] = tempText;
+    entityStatusWrapper.add(tempText);
   }
 
   ///Returning true means cancel the damage
@@ -855,17 +828,17 @@ mixin HealthFunctionality on Entity {
       reverseDuration: .1,
     );
 
-    baseSize ??= spriteAnimationComponent.size;
+    baseSize ??= spriteAnimationGroupComponent.size;
 
     (SizeEffect.to(
             baseSize! * (1 + (.15 * rng.nextDouble())), reversedController))
-        .addToParent(spriteAnimationComponent);
+        .addToParent(spriteAnimationGroupComponent);
 
     (ColorEffect(
       color,
       const Offset(0.0, 1),
       reversedController,
-    )).addToParent(spriteAnimationComponent);
+    )).addToParent(spriteAnimationGroupComponent);
   }
 
   void applyKnockback(DamageInstance damage) {
@@ -935,7 +908,7 @@ mixin HealthFunctionality on Entity {
 
   void applyDamage(DamageInstance damage) {
     damageTaken += damage.damage;
-    recentDamage += damage.damage;
+    // recentDamage += damage.damage;
     damageTaken.clamp(0, maxHealth.parameter);
 
     damageInstancesRecieved.add(damage);
@@ -1271,8 +1244,8 @@ mixin DashFunctionality on StaminaFunctionality {
   bool dashStatus() {
     if (!dashCheck()) return false;
     final dashAnimation =
-        spriteAnimationComponent.animations?[EntityStatus.dash];
-    spriteAnimationComponent.animations?[EntityStatus.dash]?.stepTime =
+        spriteAnimationGroupComponent.animations?[EntityStatus.dash];
+    spriteAnimationGroupComponent.animations?[EntityStatus.dash]?.stepTime =
         dashDuration.parameter / (dashAnimation?.frames.length ?? 1) * 2;
     return super.dashStatus();
   }
@@ -1498,9 +1471,9 @@ mixin JumpFunctionality on Entity {
     if (!jumpCheck()) return false;
 
     final jumpAnimation =
-        spriteAnimationComponent.animations?[EntityStatus.jump];
+        spriteAnimationGroupComponent.animations?[EntityStatus.jump];
 
-    spriteAnimationComponent.animations?[EntityStatus.jump]?.stepTime =
+    spriteAnimationGroupComponent.animations?[EntityStatus.jump]?.stepTime =
         jumpDuration.parameter / (jumpAnimation?.frames.length ?? 1);
 
     return super.jumpStatus();
@@ -1553,11 +1526,11 @@ mixin JumpFunctionality on Entity {
       });
     }
 
-    spriteAnimationComponent.add(ScaleEffect.by(
+    spriteAnimationGroupComponent.add(ScaleEffect.by(
       Vector2(1.025, 1.025),
       controller,
     ));
-    spriteAnimationComponent.add(MoveEffect.by(
+    spriteAnimationGroupComponent.add(MoveEffect.by(
       Vector2(0, -jumpHeight),
       controller,
     ));

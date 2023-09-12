@@ -5,7 +5,7 @@ import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/game/proximity_item.dart';
+import 'package:game_app/enviroment_interactables/proximity_item.dart';
 import 'package:game_app/player/player.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/enums.dart';

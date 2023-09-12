@@ -635,18 +635,7 @@ extension AllAttributesExtension on AttributeType {
       }
     }
 
-    switch (this) {
-      case AttributeType.explosionOnKill:
-        return ExplosionOnKillAttribute(
-          level: level,
-          victimEntity: victimEntity,
-        );
-      default:
-        return PeriodicPushAttribute(
-          level: level,
-          victimEntity: victimEntity,
-        );
-    }
+    throw Exception("Attribute not found - $this");
   }
 }
 

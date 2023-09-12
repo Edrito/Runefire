@@ -14,7 +14,7 @@ import '../resources/functions/custom.dart';
 import '../resources/visuals.dart';
 import '../weapons/weapon_class.dart';
 import 'enviroment.dart';
-import 'expendables.dart';
+import '../enviroment_interactables/expendables.dart';
 
 class GameHud extends PositionComponent {
   Player? player;

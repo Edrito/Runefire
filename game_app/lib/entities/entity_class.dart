@@ -1,5 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:game_app/attributes/attributes_status_effect.dart';
+import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/weapons/weapon_class.dart';
@@ -31,6 +33,24 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
       return (this as ChildEntity).parentEntity.attributeFunctionsFunctionality;
     }
     return null;
+  }
+
+  Set<StatusEffects> get statusEffects {
+    if (isChildEntity) {
+      return (this as ChildEntity).parentEntity.statusEffects;
+    }
+
+    bool thisIsAttr = this is AttributeFunctionality;
+    if (thisIsAttr) {
+      return (this as AttributeFunctionality)
+          .currentAttributes
+          .values
+          .whereType<StatusEffectAttribute>()
+          .map((e) => e.statusEffect)
+          .toSet();
+    }
+
+    return {};
   }
 
   Map<dynamic, ChildEntity> childrenEntities = {};
@@ -126,7 +146,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   bool temporaryAnimationPlaying = false;
 
-  late SpriteAnimationGroupComponent spriteAnimationComponent;
+  late SpriteAnimationGroupComponent spriteAnimationGroupComponent;
   // late PositionComponent spriteWrapper;
   // late Shadow3DDecorator shadow3DDecorator;
 
@@ -142,7 +162,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   void tickerComplete() {
     temporaryAnimationPlaying = false;
     entityStatus = statusQueue ?? statusPrevious ?? EntityStatus.idle;
-    spriteAnimationComponent.current = entityStatus;
+    spriteAnimationGroupComponent.current = entityStatus;
+
     statusPrevious = null;
     statusQueue = null;
   }
@@ -185,6 +206,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     if (entityStatus == EntityStatus.dead) return;
 
     if (newEntityStatus == entityStatus &&
+        spriteAnimationGroupComponent.current == newEntityStatus &&
         [EntityStatus.run, EntityStatus.walk, EntityStatus.idle]
             .contains(newEntityStatus)) return;
 
@@ -230,24 +252,27 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     } else {
       entityStatus = customAnimationKey ?? newEntityStatus;
 
-      if (spriteAnimationComponent.animations!.containsKey(entityStatus)) {
-        spriteAnimationComponent.current = entityStatus;
+      if (spriteAnimationGroupComponent.animations!.containsKey(entityStatus)) {
+        spriteAnimationGroupComponent.current = entityStatus;
       } else {
         tickerComplete();
       }
 
-      if (!(spriteAnimationComponent.animation?.loop ?? true) &&
+      spriteAnimationGroupComponent.animationTicker?.reset();
+
+      if (!(spriteAnimationGroupComponent.animation?.loop ?? true) &&
           newEntityStatus != EntityStatus.dead) {
         temporaryAnimationPlaying = true;
-        spriteAnimationComponent.animationTicker?.onComplete = () {
-          spriteAnimationComponent.animationTicker?.reset();
+
+        spriteAnimationGroupComponent.animationTicker?.onComplete = () {
+          spriteAnimationGroupComponent.animationTicker?.reset();
           tickerComplete();
         };
       }
     }
 
     if (temporaryAnimationPlaying) {
-      await spriteAnimationComponent.animationTicker?.completed;
+      await spriteAnimationGroupComponent.animationTicker?.completed;
     }
   }
 
@@ -262,7 +287,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   Body createBody() {
     late CircleShape shape;
     shape = CircleShape();
-    shape.radius = spriteAnimationComponent.size.x / 3;
+    shape.radius = spriteAnimationGroupComponent.size.x / 3;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
@@ -281,13 +306,14 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
   }
 
   void applyHeightToSprite() {
-    spriteAnimationComponent.size = Vector2.all(height.parameter);
+    spriteAnimationGroupComponent.size = Vector2.all(height.parameter);
   }
 
   @override
   Future<void> onLoad() async {
-    spriteAnimationComponent = SpriteAnimationGroupComponent(
+    spriteAnimationGroupComponent = SpriteAnimationGroupComponent(
         anchor: Anchor.center, animations: entityAnimations);
+
     setEntityStatus(EntityStatus.spawn);
     applyHeightToSprite();
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
@@ -297,11 +323,11 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
     // spriteWrapper = PositionComponent(
     //     size: spriteAnimationComponent.size, anchor: Anchor.center);
-    spriteAnimationComponent.flipHorizontallyAroundCenter();
-    add(spriteAnimationComponent);
+    spriteAnimationGroupComponent.flipHorizontallyAroundCenter();
+    add(spriteAnimationGroupComponent);
     entityStatusWrapper = EntityStatusEffectsWrapper(
         position: Vector2(0, -entityStatusHeight),
-        size: Vector2(spriteAnimationComponent.width * 1.5, 0),
+        size: Vector2(spriteAnimationGroupComponent.width * 1.5, 0),
         entity: this)
       ..addToParent(this);
 
@@ -319,7 +345,7 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
 
   void flipSprite() {
     backJoint.flipHorizontallyAroundCenter();
-    spriteAnimationComponent.flipHorizontallyAroundCenter();
+    spriteAnimationGroupComponent.flipHorizontallyAroundCenter();
 
     isFlipped = !isFlipped;
   }

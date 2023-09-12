@@ -606,7 +606,7 @@ extension DamageTypeExtension on DamageType {
       case DamageType.frost:
         return ApolloColorPalette.lightCyan.color;
       case DamageType.healing:
-        return ApolloColorPalette.lightGreen.color;
+        return ApolloColorPalette.paleGreen.color;
     }
   }
 }

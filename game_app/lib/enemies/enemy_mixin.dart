@@ -1,8 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/game/expendables.dart';
-import 'package:game_app/game/proximity_item.dart';
+import 'package:game_app/enviroment_interactables/expendables.dart';
+import 'package:game_app/enviroment_interactables/proximity_item.dart';
 import 'package:game_app/main.dart';
 
 import '../resources/enums.dart';
@@ -21,8 +21,8 @@ mixin DropItemFunctionality on HealthFunctionality {
   abstract Map<ExperienceAmount, double> experienceRate;
 
   Map<ExpendableType, double> expendableRate = {
-    ExpendableType.experienceAttract: 0,
-    ExpendableType.fearEnemies: 0,
+    ExpendableType.experienceAttractRune: 0,
+    ExpendableType.fearEnemiesRunes: 0,
     ExpendableType.teleportRune: 0,
     ExpendableType.stunRune: 0,
     ExpendableType.healingRune: 0,

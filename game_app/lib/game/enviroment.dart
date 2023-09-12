@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:game_app/game/enviroment_mixin.dart';
 import 'package:game_app/resources/data_classes/player_data.dart';
 import 'package:game_app/resources/game_state_class.dart';
+import 'package:game_app/test.dart';
 
 import '../player/player.dart';
 import '../game/background.dart';
@@ -37,7 +38,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   int children2 = 0;
   void printChildren(var children) {
     for (Component element in children) {
-      // print(element);
+      print(element);
       children2++;
       printChildren(element.children);
     }
@@ -71,6 +72,8 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     //   print(children2);
     //   children2 = 0;
     // }
+
+    updateFunction(this, dt);
     super.update(dt);
   }
 
@@ -158,6 +161,7 @@ abstract class GameEnviroment extends Enviroment
   @override
   Future<void> onLoad() async {
     difficulty = playerData.selectedDifficulty;
+
     super.onLoad();
   }
 

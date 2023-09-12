@@ -163,6 +163,7 @@ mixin StandardProjectile on Projectile {
       bulletFilter
         ..maskBits = playerCategory
         ..categoryBits = attackCategory;
+
       if (weaponAncestor.entityAncestor!.affectsAllEntities) {
         bulletFilter.maskBits = 0xFFFF;
       }

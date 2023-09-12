@@ -100,7 +100,13 @@ class MenuGame extends Enviroment with PlayerFunctionality {
 
     if (weaponHash != reduceWeapons()) {
       weaponHash = reduceWeapons();
+
       player?.initializeWeapons();
+
+      final weapon = player?.currentWeapon;
+      if (weapon != null) {
+        await player?.setWeapon(weapon);
+      }
     }
   }
 

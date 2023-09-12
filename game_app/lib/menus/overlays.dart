@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/menus/buttons.dart';
+import 'package:game_app/menus/custom_widgets.dart';
 import 'package:game_app/menus/menus.dart';
 import 'package:game_app/menus/pause_menu.dart';
 import 'package:game_app/resources/enums.dart';
@@ -210,47 +211,58 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
         child: Center(
           child: StatefulBuilder(builder: (context, setstate) {
             setState = setstate;
-            return ConstrainedBox(
-              constraints: BoxConstraints(
-                  maxWidth: size.width * .95,
-                  minHeight: 200,
-                  maxHeight: size.height * .9,
-                  minWidth: 250),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      "Choose an attribute",
-                      style: defaultStyle,
-                    ),
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                    right: 0,
+                    left: 0,
+                    height: size.height * .6,
+                    child: const StarBackstripe(
+                      percentOfHeight: .6,
+                    )),
+                Positioned.fill(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40),
+                          child: Text(
+                            "Choose an attribute",
+                            style: defaultStyle.copyWith(
+                                fontSize: 60,
+                                color: ApolloColorPalette.offWhite.color),
+                          ),
+                        ),
+                      ),
+                      IgnorePointer(
+                        ignoring: ignoring,
+                        child: DisplayCards(
+                          cards: selection,
+                          ending: ignoring,
+                          loadInDuration: loadInDuration,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      xpCard,
+                      const Spacer()
+                    ]
+                        .animate(interval: (loadInDuration / 3).seconds)
+                        .fadeIn(
+                          duration: loadInDuration.seconds,
+                          curve: Curves.decelerate,
+                        )
+                        .moveY(
+                            duration: loadInDuration.seconds,
+                            curve: Curves.decelerate,
+                            begin: 50,
+                            end: 0),
                   ),
-                  Expanded(
-                      child: IgnorePointer(
-                    ignoring: ignoring,
-                    child: DisplayCards(
-                      cards: selection,
-                      ending: ignoring,
-                      loadInDuration: loadInDuration,
-                    ),
-                  )),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  xpCard
-                ]
-                    .animate(interval: (loadInDuration / 3).seconds)
-                    .fadeIn(
-                      duration: loadInDuration.seconds,
-                      curve: Curves.decelerate,
-                    )
-                    .moveY(
-                        duration: loadInDuration.seconds,
-                        curve: Curves.decelerate,
-                        begin: 50,
-                        end: 0),
-              ),
+                ),
+              ],
             );
           }),
         ),
@@ -288,12 +300,16 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
               },
               child: Container(
                 color: hoveredDamageTypes[damageType] ?? false
-                    ? Colors.white
-                    : damageType.color,
+                    ? damageType.color.darken(.7)
+                    : damageType.color.darken(.3),
                 child: Center(
                     child: Text(
                   damageType.name.titleCase,
-                  style: defaultStyle.copyWith(fontSize: 12),
+                  style: defaultStyle.copyWith(
+                      fontSize: 18,
+                      color: hoveredDamageTypes[damageType] ?? false
+                          ? damageType.color.brighten(1)
+                          : damageType.color.brighten(.7)),
                 )),
               ),
             ),

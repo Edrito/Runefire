@@ -6,6 +6,7 @@ import 'package:game_app/main.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/menus/overlays.dart';
 import 'package:game_app/resources/enums.dart';
+import 'package:game_app/resources/functions/functions.dart';
 import '../resources/visuals.dart';
 
 class CustomCard extends StatelessWidget {
@@ -47,7 +48,7 @@ class CustomCard extends StatelessWidget {
     );
   }
 
-  final topPadding = 80.0;
+  final topPadding = 90.0;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +71,15 @@ class CustomCard extends StatelessWidget {
           : attribute.attributeType.rarity.color.brighten(.1);
       final regularColor = Colors.grey.shade100;
 
+      final border = Image.asset(
+        smallCard
+            ? 'assets/images/ui/attribute_border_small.png'
+            : 'assets/images/ui/attribute_border.png',
+        filterQuality: FilterQuality.none,
+        color: highlightColor.darken(.7),
+        fit: BoxFit.fitWidth,
+      );
+
       bool hasDamageTypeSelector = attribute.allowedDamageTypes.isNotEmpty &&
           attribute.damageType == null;
 
@@ -86,7 +96,7 @@ class CustomCard extends StatelessWidget {
             child: Icon(
               Icons.circle,
               size: 25,
-              color: highlightColor,
+              color: highlightColor.darken(.4),
             ),
           ));
         }
@@ -98,7 +108,7 @@ class CustomCard extends StatelessWidget {
               child: Icon(
                 Icons.circle_outlined,
                 size: 25,
-                color: highlightColor,
+                color: highlightColor.darken(.2),
               ),
             ),
           );
@@ -123,35 +133,34 @@ class CustomCard extends StatelessWidget {
                     ? 'assets/images/ui/attribute_background_mask_small.png'
                     : 'assets/images/ui/attribute_background_mask.png',
                 fit: BoxFit.fitWidth,
-                color: Colors.grey.shade800.withOpacity(.6),
+                color: Colors.grey.shade900.withOpacity(.85),
                 filterQuality: FilterQuality.none,
               ));
 
-          Widget attributeIcon = Image.asset(
+          Widget attributeIcon = buildImageAsset(
             'assets/images/${attribute.icon}',
-            fit: BoxFit.fitHeight,
+            fit: BoxFit.contain,
             color: attribute.damageType?.color ?? regularColor,
-            filterQuality: FilterQuality.none,
           );
 
-          Widget slantBackground = Positioned.fill(
-            child: Column(
-              children: [
-                const Spacer(
-                  flex: 1,
-                ),
-                Expanded(
-                  child: Container(
-                    transform: Matrix4.skewY(-.15)..translate(0.0, 75.0),
-                    decoration: BoxDecoration(
-                      color: highlightColor.darken(.5).withOpacity(.45),
-                    ),
-                    height: 250,
-                  ),
-                ),
-              ],
-            ),
-          );
+          // Widget slantBackground = const Positioned.fill(
+          //   child: Column(
+          //     children: [
+          //       Spacer(
+          //         flex: 1,
+          //       ),
+          //       // Expanded(
+          //       //   child: Container(
+          //       //     transform: Matrix4.skewY(-.15)..translate(0.0, 75.0),
+          //       //     decoration: BoxDecoration(
+          //       //       color: highlightColor.darken(.5).withOpacity(.45),
+          //       //     ),
+          //       //     height: 250,
+          //       //   ),
+          //       // ),
+          //     ],
+          //   ),
+          // );
 
           Widget helpIcon = Positioned(
             right: 10,
@@ -178,102 +187,102 @@ class CustomCard extends StatelessWidget {
             ),
           );
 
-          Widget title = Positioned.fill(
-            top: 10,
-
-            // right: topPadding,
+          Widget title = Positioned(
+            // top: 10,
+            height: topPadding,
             left: 0,
             right: 0,
             bottom: null,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      attributeIcon,
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        child: Text(
-                          attribute.title,
-                          style: style,
-                          textAlign: TextAlign.left,
-                          maxLines: 2,
-                          overflow: TextOverflow.clip,
-                        ),
-                      ),
-                    ],
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+              child: Center(
+                child: Text(
+                  attribute.title,
+                  style: style.copyWith(color: highlightColor.brighten(.3)),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.clip,
                 ),
-                if (!smallCard)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: Container(
-                      height: 4,
-                      color: highlightColor,
-                    ),
-                  )
-              ],
+              ),
             ),
           );
 
-          Widget content = Positioned.fill(
-            bottom: 10,
-            top: smallCard ? topPadding / 1.25 : topPadding,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ScrollConfiguration(
-                      behavior: scrollConfiguration(context),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 10,
+          Widget content = Positioned(
+            // bottom: 10,
+            height: cardHeight - (smallCard ? topPadding / 1.15 : topPadding),
+            // top: ,
+            width: cardWidth,
+            bottom: 0,
+
+            child: Container(
+              color:
+                  // smallCard ? null :
+                  highlightColor.withOpacity(.05),
+              child: Padding(
+                padding: smallCard
+                    ? const EdgeInsets.symmetric(horizontal: 20, vertical: 5)
+                    : const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: smallCard
+                            ? CrossAxisAlignment.center
+                            : CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              attribute.description(),
+                              style: style.copyWith(
+                                fontSize: (style.fontSize! * .75),
+                                color: style.color!.darken(.1),
+                                fontWeight: FontWeight.w200,
+                              ),
+                              textAlign:
+                                  smallCard ? TextAlign.center : TextAlign.left,
                             ),
-                            if (!showHelp) ...[
-                              Text(
-                                attribute.description(),
-                                style: style.copyWith(
-                                  fontSize: (style.fontSize! * .8),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Flexible(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: SizedBox.expand(
+                                child: Padding(
+                                  padding: smallCard
+                                      ? const EdgeInsets.all(2)
+                                      : const EdgeInsets.all(12.0),
+                                  child: attributeIcon,
                                 ),
-                                textAlign: TextAlign.left,
                               ),
-                            ] else ...[
-                              Text(
-                                attribute.help(),
-                                style: style.copyWith(
-                                    fontSize: (style.fontSize! * .6)),
-                                textAlign: TextAlign.left,
-                              ),
-                            ],
-                          ],
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  if (!smallCard && !hasDamageTypeSelector)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Wrap(
-                          alignment: WrapAlignment.center,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: levelIndicators,
-                        ),
-                      ),
-                    )
-                ],
+                    if (!smallCard)
+                      SizedBox(
+                        height: 50,
+                        child: !hasDamageTypeSelector && attribute.maxLevel != 1
+                            ? Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Wrap(
+                                    alignment: WrapAlignment.center,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: levelIndicators,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      )
+                  ],
+                ),
               ),
             ),
           );
@@ -299,7 +308,7 @@ class CustomCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(35),
                       child: Stack(
                         children: [
-                          slantBackground,
+                          // slantBackground,
                           // helpIcon,
                           title,
                           content
@@ -307,16 +316,6 @@ class CustomCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Positioned.fill(
-                      bottom: null,
-                      child: Image.asset(
-                        smallCard
-                            ? 'assets/images/ui/attribute_border_small.png'
-                            : 'assets/images/ui/attribute_border.png',
-                        filterQuality: FilterQuality.none,
-                        color: highlightColor,
-                        fit: BoxFit.fitWidth,
-                      )),
                   if (!hasDamageTypeSelector)
                     Positioned.fill(child: GestureDetector(
                       onTap: () async {
@@ -334,18 +333,60 @@ class CustomCard extends StatelessWidget {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: 100,
-                      child: DamageTypeSelector(attribute.allowedDamageTypes,
-                          (p0) {
-                        if (isEnding!) return;
-                        setState(
-                          () {
-                            isEnding = true;
-                          },
-                        );
-                        onTap?.call(p0);
-                      }),
+                      height: 80,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(35),
+                            bottomRight: Radius.circular(35)),
+                        child: DamageTypeSelector(attribute.allowedDamageTypes,
+                            (p0) {
+                          if (isEnding!) return;
+                          setState(
+                            () {
+                              isEnding = true;
+                            },
+                          );
+                          onTap?.call(p0);
+                        }),
+                      ),
                     ),
+                  Positioned.fill(
+                      bottom: null,
+                      child: IgnorePointer(
+                        child: Padding(
+                            padding: const EdgeInsets.all(5),
+                            child: buildImageAsset(
+                              smallCard
+                                  ? 'assets/images/ui/attribute_border_small.png'
+                                  : 'assets/images/ui/attribute_border.png',
+                              fit: BoxFit.fitWidth,
+                              color: highlightColor.darken(.85),
+                            )),
+                      )),
+                  Positioned.fill(
+                      bottom: null,
+                      child: IgnorePointer(
+                        child: Padding(
+                            padding: const EdgeInsets.all(3),
+                            child: buildImageAsset(
+                              smallCard
+                                  ? 'assets/images/ui/attribute_border_small.png'
+                                  : 'assets/images/ui/attribute_border.png',
+                              fit: BoxFit.fitWidth,
+                              color: highlightColor.darken(.7),
+                            )),
+                      )),
+                  Positioned.fill(
+                      bottom: null,
+                      child: IgnorePointer(
+                        child: buildImageAsset(
+                          smallCard
+                              ? 'assets/images/ui/attribute_border_small.png'
+                              : 'assets/images/ui/attribute_border.png',
+                          fit: BoxFit.fitWidth,
+                          color: highlightColor.darken(.4),
+                        ),
+                      )),
                   if (!smallCard)
                     Positioned(
                       right: 0,

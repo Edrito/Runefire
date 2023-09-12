@@ -10,7 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../entities/entity_class.dart';
 import '../main.dart';
-import 'data_classes/base.dart';
+import '../resources/data_classes/base.dart';
 
 enum DurationType { instant, temporary, permanent }
 

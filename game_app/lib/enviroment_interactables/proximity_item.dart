@@ -67,7 +67,7 @@ class ExperienceItem extends ProximityItem {
       {required this.experienceAmount, required super.originPosition});
 
   ExperienceAmount experienceAmount;
-  late ShapeComponent shapeComponent;
+  // late ShapeComponent shapeComponent;
 
   late Color color;
   final int trailCount = 10;
@@ -92,20 +92,30 @@ class ExperienceItem extends ProximityItem {
                 [...previousValue, (element - center).toOffset()]),
         paint);
 
+    canvas.drawCircle(
+        Offset.zero,
+        radius,
+        colorPalette.buildProjectile(
+            color: color,
+            projectileType: ProjectileType.bullet,
+            lighten: false));
+
     super.render(canvas);
   }
 
   @override
   Future<void> onLoad() async {
-    shapeComponent = experienceAmount.getShapeComponent(radius);
+    // shapeComponent = experienceAmount.getShapeComponent(radius);
     color = experienceAmount.color;
-    shapeComponent.paint = Paint()..color = color;
-    shapeComponent.size = Vector2.all(0);
-    shapeComponent.position -= Vector2(0, .5);
-    final controller = EffectController(curve: Curves.easeOutCirc, duration: 1);
-    shapeComponent.add(SizeEffect.to(Vector2.all(radius * 2), controller));
-    shapeComponent.add(MoveEffect.by(Vector2(0, .5), controller));
-    add(shapeComponent);
+    // shapeComponent.paint = Paint()..color = color;
+    // shapeComponent.size = Vector2.all(0);
+    // shapeComponent.position -= Vector2(0, .5);
+    // final controller = EffectController(curve: Curves.easeOutCirc, duration: 1);
+
+    // shapeComponent.add(SizeEffect.to(Vector2.all(radius * 2), controller));
+    // shapeComponent.add(MoveEffect.by(Vector2(0, .5), controller));
+
+    // add(shapeComponent);
 
     return super.onLoad();
   }

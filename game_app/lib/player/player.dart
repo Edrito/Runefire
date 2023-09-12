@@ -21,13 +21,13 @@ import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../enemies/enemy.dart';
-import '../game/interactable.dart';
+import '../enviroment_interactables/interactable.dart';
 import '../resources/functions/vector_functions.dart';
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
 import '../resources/enums.dart';
 import '../attributes/attributes_mixin.dart';
-import '../game/expendables.dart';
+import '../enviroment_interactables/expendables.dart';
 import '../weapons/weapon_class.dart';
 
 class Player extends Entity
@@ -96,6 +96,11 @@ class Player extends Entity
   Expendable? currentExpendable;
 
   void pickupExpendable(Expendable groundExpendable) {
+    if (groundExpendable.instantApply) {
+      groundExpendable.applyExpendable();
+      return;
+    }
+
     currentExpendable = groundExpendable;
     gameEnviroment.hud.currentExpendable = groundExpendable;
   }
@@ -188,7 +193,7 @@ class Player extends Entity
     late CircleShape xpGrabRadius;
     shape = CircleShape();
     xpGrabRadius = CircleShape();
-    shape.radius = spriteAnimationComponent.size.x / 2;
+    shape.radius = spriteAnimationGroupComponent.size.x / 2;
     xpGrabRadius.radius = xpSensorRadius.parameter;
     renderBody = false;
 

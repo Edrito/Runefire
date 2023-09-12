@@ -4,8 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/enemies/enemy_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/event_management.dart';
-import 'package:game_app/game/expendables.dart';
-import 'package:game_app/resources/area_effects.dart';
+import 'package:game_app/enviroment_interactables/expendables.dart';
+import 'package:game_app/game/area_effects.dart';
 import 'package:game_app/resources/functions/custom.dart';
 
 import '../resources/functions/functions.dart';
@@ -70,19 +70,19 @@ class MushroomRunner extends Enemy
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
     maxHealth.baseParameter = 50.0;
-    speed.baseParameter = .0;
+    speed.baseParameter = .03;
     touchDamage.damageBase[DamageType.physical] = (1, 5);
   }
 
   @override
   Map<ExpendableType, double> get expendableRate =>
-      {ExpendableType.fearEnemies: 0.5};
+      {ExpendableType.fearEnemiesRunes: 0.005};
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
     ExperienceAmount.large: 0.001,
     ExperienceAmount.medium: 0.01,
-    ExperienceAmount.small: 0.4,
+    ExperienceAmount.small: 0.5,
   };
 
   @override
@@ -179,15 +179,18 @@ class MushroomBoomer extends Enemy
     speed.baseParameter = mushroomBoomerBaseSpeed;
 
     onDeath.add(() async {
-      await spriteAnimationComponent.animationTicker?.completed;
+      await spriteAnimationGroupComponent
+          .animationTickers?[EntityStatus.dead]?.completed;
+
       enviroment.physicsComponent.add(AreaEffect(
           position: body.worldCenter,
-          animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
-              playAnimation: await loadSpriteAnimation(
-                  61, 'weapons/projectiles/fire_area.png', .05, true),
-              durationType: DurationType.instant),
+          // animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
+          //     playAnimation: await loadSpriteAnimation(
+          //         61, 'weapons/projectiles/fire_area.png', .05, true),
+          //     durationType: DurationType.instant),
           sourceEntity: this,
           radius: 4 * ((upgradeLevel / 2)) + 2,
+          durationType: DurationType.instant,
           damage: {DamageType.fire: (2, 15)}));
     });
   }
@@ -257,7 +260,7 @@ class MushroomShooter extends Enemy
   }
 
   @override
-  bool get affectsAllEntities => true;
+  bool get affectsAllEntities => false;
 
   @override
   void update(double dt) {
@@ -334,23 +337,27 @@ class MushroomSpinner extends Enemy
     const spinDuration = 6.0;
     enemyStates = {
       //Walking
-      0: EnemyState(this, priority: 0, randomFunctions: [], onStateStart: () {
+      0: EnemyState(this, priority: 0, randomFunctions: [],
+          onStateStart: () async {
+        await toggleIdleRunAnimations(false);
+
         if (initState) {
           setEntityStatus(EntityStatus.custom, customAnimationKey: "spin_end");
         } else {
           initState = true;
         }
         speed.baseParameter = .03;
-        toggleIdleRunAnimations(false);
         touchDamage.damageBase.clear();
       }, stateDuration: (4, 5), triggerFunctions: []),
       //Spinning
       1: EnemyState(this,
           priority: 5,
           randomFunctions: [],
-          stateDuration: (spinDuration, spinDuration * 1.5), onStateStart: () {
+          stateDuration: (spinDuration, spinDuration * 1.5),
+          onStateStart: () async {
+        await toggleIdleRunAnimations(true);
+
         setEntityStatus(EntityStatus.custom, customAnimationKey: "spin_start");
-        toggleIdleRunAnimations(true);
         speed.baseParameter = .05;
         for (var i = 1; i < 4; i++) {
           Future.delayed(((spinDuration / 4) * i).seconds, () {
@@ -370,10 +377,15 @@ class MushroomSpinner extends Enemy
   }
 
   @override
-  bool get affectsAllEntities => true;
+  bool get affectsAllEntities => false;
 
   @override
   void update(double dt) {
+    if (spriteAnimationGroupComponent.animations?[EntityStatus.run] ==
+        entityAnimations["spin"]) {
+      print('here');
+    }
+
     moveCharacter();
     super.update(dt);
   }
@@ -387,21 +399,28 @@ class MushroomSpinner extends Enemy
 
   Future<void> toggleIdleRunAnimations(bool isSpinning) async {
     if (isSpinning) {
-      entityAnimations[EntityStatus.idle] = entityAnimations["spin"]!;
+      entityAnimations[EntityStatus.idle] = entityAnimations["spin"]!.clone();
 
-      entityAnimations[EntityStatus.run] = entityAnimations["spin"]!;
+      entityAnimations[EntityStatus.run] = entityAnimations["spin"]!.clone();
     } else {
-      entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
-          10, 'enemy_sprites/mushroomSpinner/idle.png', .1, true);
-
-      entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
-          8, 'enemy_sprites/mushroomSpinner/run.png', .1, true);
+      await loadRunIdleAnimations();
     }
+    spriteAnimationGroupComponent.resetTicker(EntityStatus.run);
+    spriteAnimationGroupComponent.resetTicker(EntityStatus.idle);
+  }
+
+  Future<void> loadRunIdleAnimations() async {
+    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
+        10, 'enemy_sprites/mushroomSpinner/idle.png', .1, true);
+
+    entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
+        8, 'enemy_sprites/mushroomSpinner/run.png', .1, true);
   }
 
   @override
   Future<void> loadAnimationSprites() async {
-    toggleIdleRunAnimations(false);
+    loadRunIdleAnimations();
+
     entityAnimations[EntityStatus.dead] = await loadSpriteAnimation(
         10, 'enemy_sprites/mushroomSpinner/death.png', .1, false);
     entityAnimations["spin_start"] = await loadSpriteAnimation(
@@ -410,6 +429,8 @@ class MushroomSpinner extends Enemy
         9, 'enemy_sprites/mushroomSpinner/spin_end.png', .1, false);
     entityAnimations["spin"] = await loadSpriteAnimation(
         7, 'enemy_sprites/mushroomSpinner/spin.png', .02, true);
+    // entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
+    //     7, 'enemy_sprites/mushroomSpinner/spin.png', .02, true);
   }
 
   @override
@@ -508,7 +529,7 @@ class MushroomBurrower extends Enemy
   }
 
   @override
-  bool get affectsAllEntities => true;
+  bool get affectsAllEntities => false;
 
   double get burrowSpeed => 1.0;
 
@@ -521,9 +542,13 @@ class MushroomBurrower extends Enemy
   Future<void> toggleIdleRunAnimations(bool isBurrowed) async {
     if (isBurrowed) {
       entityAnimations.remove(EntityStatus.idle);
+      spriteAnimationGroupComponent.resetTicker(EntityStatus.idle);
     } else {
       entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
           10, 'enemy_sprites/mushroomSpinner/idle.png', .1, true);
+      if (isMounted) {
+        spriteAnimationGroupComponent.resetTicker(EntityStatus.idle);
+      }
     }
   }
 

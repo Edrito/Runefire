@@ -80,9 +80,9 @@ class PlayerAttachmentJointComponent extends PositionComponent
       weaponTipCenter?.addToParent(weaponBase!);
       weaponTip?.addToParent(weaponBase!);
     }
-    if (weaponBase!.parent == null) {
-      add(weaponBase!);
-    }
+    // if (weaponBase!.parent == null) {
+    add(weaponBase!);
+    // }
     weapon!.weaponAttachmentPoints[jointPosition] = this;
   }
 }

@@ -12,7 +12,7 @@ import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
-import '../resources/area_effects.dart';
+import '../game/area_effects.dart';
 import '../resources/functions/functions.dart';
 import 'attributes_structure.dart';
 import '../resources/enums.dart';
@@ -26,7 +26,6 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
     case AttributeType.explosiveDash:
       return ExplosiveDashAttribute(
           level: level, victimEntity: victimEntity, damageType: damageType);
-
     case AttributeType.gravityDash:
       return GravityDashAttribute(
           level: level, victimEntity: victimEntity, damageType: damageType);
@@ -121,6 +120,8 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
       return ReloadPushAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.focus:
       return FocusAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.battleScars:
+      return BattleScarsAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.sonicWave:
       return SonicWaveAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.daggerSwing:
@@ -848,14 +849,14 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! Player) return;
     final player = victimEntity as Player;
-    player.xpSensorRadius.setParameterPercentValue(attributeId, 1);
+    player.xpSensorRadius.setParameterFlatValue(attributeId, 10);
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is! Player) return;
     final player = victimEntity as Player;
-    player.xpSensorRadius.removePercentKey(attributeId);
+    player.xpSensorRadius.removeKey(attributeId);
   }
 
   @override

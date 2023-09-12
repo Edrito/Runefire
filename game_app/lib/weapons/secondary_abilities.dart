@@ -4,7 +4,7 @@ import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../entities/entity_mixin.dart';
-import '../resources/area_effects.dart';
+import '../game/area_effects.dart';
 import '../resources/enums.dart';
 
 import '../resources/functions/custom.dart';

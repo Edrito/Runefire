@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:game_app/entities/entity_mixin.dart';
-import 'package:game_app/resources/area_effects.dart';
+import 'package:game_app/game/area_effects.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/projectile_mixin.dart';
 

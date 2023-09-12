@@ -192,8 +192,11 @@ mixin StateManagedAI
   }
 
   @override
-  Future<void> onLoad() {
+  Future<void> onLoad() async {
     //Init base state
+
+    await super.onLoad();
+
     baseState.onStateStartCall();
     onDeath.add(baseState.onStateEndCall);
 
@@ -205,7 +208,6 @@ mixin StateManagedAI
       },
     )..addToParent(this);
     stateChecker();
-    return super.onLoad();
   }
 
   @override

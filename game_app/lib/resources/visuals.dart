@@ -12,6 +12,8 @@ import 'functions/functions.dart';
 
 const uiWidthMax = 1700.0;
 
+enum ShadowStyle { light, medium }
+
 class ApolloColorPalette {
   Color get primaryColor => lightBlue.color;
   Color get secondaryColor => lightCyan.color;
@@ -64,6 +66,53 @@ class ApolloColorPalette {
   static const PaletteEntry offWhite = PaletteEntry(Color(0xFFebede9));
 
   Map<String, Paint> cachedPaints = {};
+  Map<String, TextPaint> cachedTextPaints = {};
+  Map<ShadowStyle, BoxShadow> cachedShadows = {};
+
+  BoxShadow buildShadow(ShadowStyle shadowStyle) {
+    if (cachedShadows.containsKey(shadowStyle)) {
+      return cachedShadows[shadowStyle]!;
+    }
+
+    late final BoxShadow returnShadow;
+
+    switch (shadowStyle) {
+      case ShadowStyle.light:
+        returnShadow = BoxShadow(
+            color: Colors.black.withOpacity(.25),
+            offset: const Offset(.05, .05),
+            spreadRadius: .4,
+            blurRadius: .75);
+        break;
+      case ShadowStyle.medium:
+        returnShadow = BoxShadow(
+            color: Colors.black.withOpacity(.45),
+            offset: const Offset(.1, .1),
+            spreadRadius: .5,
+            blurRadius: .85);
+        break;
+    }
+
+    cachedShadows[shadowStyle] = returnShadow;
+    return returnShadow;
+  }
+
+  TextPaint buildTextPaint(
+      double fontSize, ShadowStyle shadowStyle, Color color) {
+    String key =
+        fontSize.toString() + shadowStyle.toString() + color.toString();
+
+    if (cachedTextPaints.containsKey(key)) return cachedTextPaints[key]!;
+
+    TextPaint returnPaint = TextPaint(
+        style: defaultStyle.copyWith(
+      fontSize: fontSize,
+      shadows: [buildShadow(shadowStyle)],
+      color: color,
+    ));
+    cachedTextPaints[key] = returnPaint;
+    return returnPaint;
+  }
 
   Paint buildProjectile({
     required Color color,

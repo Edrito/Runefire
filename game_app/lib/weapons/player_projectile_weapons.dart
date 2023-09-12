@@ -296,12 +296,12 @@ class LaserRifle extends PlayerWeapon
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.energy] = (5, 12);
-    baseDamage.damageBase[DamageType.fire] = (5, 12);
-    baseDamage.damageBase[DamageType.frost] = (5, 12);
-    baseDamage.damageBase[DamageType.psychic] = (5, 12);
-    baseDamage.damageBase[DamageType.magic] = (5, 12);
-    baseDamage.damageBase[DamageType.healing] = (5, 12);
+    baseDamage.damageBase[DamageType.energy] = (1, 3);
+    baseDamage.damageBase[DamageType.fire] = (1, 3);
+    baseDamage.damageBase[DamageType.frost] = (1, 3);
+    baseDamage.damageBase[DamageType.psychic] = (1, 3);
+    baseDamage.damageBase[DamageType.magic] = (1, 3);
+    baseDamage.damageBase[DamageType.healing] = (1, 3);
     maxAttacks.baseParameter = 12;
     attackTickRate.baseParameter = .4;
     waitForAttackRate = false;
@@ -357,9 +357,6 @@ class LaserRifle extends PlayerWeapon
 
   @override
   ProjectileType? projectileType = ProjectileType.laser;
-
-  @override
-  double tipPositionPercent = -.0;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;

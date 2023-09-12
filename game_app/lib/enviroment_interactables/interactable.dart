@@ -10,7 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../player/player.dart';
 import '../resources/enums.dart';
-import 'enviroment.dart';
+import '../game/enviroment.dart';
 
 abstract class InteractableComponent extends BodyComponent<GameRouter>
     with ContactCallbacks {
