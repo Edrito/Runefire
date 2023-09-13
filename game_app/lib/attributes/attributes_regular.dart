@@ -212,7 +212,7 @@ class ExplosionOnKillAttribute extends Attribute {
   @override
   int get maxLevel => 3;
 
-  double baseSize = 3;
+  double baseSize = 1;
 
   void onKill(DamageInstance damage) async {
     if (victimEntity == null) return;
@@ -280,7 +280,7 @@ class ExplosiveDashAttribute extends Attribute {
   @override
   int get maxLevel => 3;
 
-  double baseSize = 3;
+  double baseSize = 1;
 
   void onDash() async {
     if (victimEntity == null) return;
@@ -288,6 +288,7 @@ class ExplosiveDashAttribute extends Attribute {
         sourceEntity: victimEntity!,
         position: victimEntity!.center,
         animationRandomlyFlipped: true,
+        collisionDelay: .35,
         radius: baseSize + increasePercentOfBase(baseSize),
         durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter,
@@ -303,15 +304,15 @@ class ExplosiveDashAttribute extends Attribute {
   @override
   void mapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final dashFunc = victimEntity as AttributeFunctionsFunctionality;
-    dashFunc.dashBeginFunctions.add(onDash);
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    attr.dashBeginFunctions.add(onDash);
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final dashFunc = victimEntity as AttributeFunctionsFunctionality;
-    dashFunc.dashBeginFunctions.remove(onDash);
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    attr.dashBeginFunctions.remove(onDash);
   }
 
   @override
@@ -365,8 +366,8 @@ class GravityDashAttribute extends Attribute {
   @override
   void mapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final dashFunc = victimEntity as AttributeFunctionsFunctionality;
-    dashFunc.dashBeginFunctions.add(onDash);
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    attr.dashBeginFunctions.add(onDash);
   }
 
   @override
@@ -1288,7 +1289,7 @@ class ShieldSentryAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.removeAllHeadEntities();
+    // attr.removeAllHeadEntities();
 
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = ShieldSentry(
@@ -1351,7 +1352,7 @@ class SwordSentryAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! AttributeFunctionsFunctionality) return;
     final attr = victimEntity as AttributeFunctionsFunctionality;
-    attr.removeAllHeadEntities();
+    // attr.removeAllHeadEntities();
 
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = SwordSentry(

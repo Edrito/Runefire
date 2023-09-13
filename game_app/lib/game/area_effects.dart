@@ -1,6 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
@@ -23,6 +25,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.radius = 3,
     this.duration = 5,
     this.durationType = DurationType.instant,
+    this.collisionDelay,
     String? areaId,
     this.tickRate = 1,
     this.damage,
@@ -48,6 +51,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   bool animationRandomlyFlipped;
 
   double radius;
+  double? collisionDelay;
   final DurationType durationType;
 
   SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
@@ -68,13 +72,48 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   Future<void> onLoad() async {
-    animationComponent ??= SimpleStartPlayEndSpriteAnimationComponent(
-      durationType: durationType,
-      spawnAnimation: await loadSpriteAnimation(
-          16, 'effects/explosion_1_16.png', .05, false),
-      randomlyFlipped: animationRandomlyFlipped,
-      size: Vector2.all(radius * 2),
-    );
+    if (animationComponent == null) {
+      SpriteAnimation? spawnAnimation;
+      Anchor anchor = Anchor.center;
+
+      if (damage != null && damage!.isNotEmpty) {
+        final damageType = damage!.keys.toList().getRandomElement();
+        switch (damageType) {
+          case DamageType.fire:
+            spawnAnimation = await loadSpriteAnimation(
+                16, 'effects/explosion_1_16.png', .05, false);
+
+            break;
+          case DamageType.energy:
+            spawnAnimation = await loadSpriteAnimation(
+                10, 'effects/energy_1_10.png', .05, false);
+
+            anchor = Anchor.bottomCenter;
+
+            break;
+          case DamageType.psychic:
+            spawnAnimation = await loadSpriteAnimation(
+                11, 'effects/psychic_1_11.png', .05, false);
+            anchor = const Anchor(.5, .9);
+
+            break;
+          default:
+            spawnAnimation = await loadSpriteAnimation(
+                16, 'effects/explosion_1_16.png', .05, false);
+        }
+        animationComponent?.spawnAnimation = spawnAnimation;
+      }
+
+      animationComponent = SimpleStartPlayEndSpriteAnimationComponent(
+        durationType: durationType,
+        anchor: anchor,
+        spawnAnimation: spawnAnimation ??
+            await loadSpriteAnimation(
+                16, 'effects/explosion_1_16.png', .05, false),
+        randomlyFlipped: animationRandomlyFlipped,
+        desiredWidth: (radius * 2),
+      );
+    }
 
     animationComponent?.addToParent(this);
 
@@ -129,7 +168,8 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   void instantChecker() {
     if (!isKilled &&
         animationComponent?.durationType == DurationType.instant &&
-        body.isActive) {
+        body.isActive &&
+        collisionDelay == null) {
       if (aliveForOneTick) {
         killArea();
       }
@@ -167,6 +207,10 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
     shape = CircleShape();
     shape.radius = radius;
+    // add(CircleComponent()
+    //   ..radius = radius
+    //   ..anchor = Anchor.center
+    //   ..paint = (paint..color = Colors.red.withOpacity(.3)));
     renderBody = false;
     final filter = Filter();
     filter.categoryBits = attackCategory;
@@ -191,6 +235,12 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       type: BodyType.static,
       fixedRotation: true,
     );
-    return world.createBody(bodyDef)..createFixture(fixtureDef);
+
+    final newBody = world.createBody(bodyDef);
+    Future.delayed((collisionDelay ?? 0).seconds).then((value) {
+      newBody.createFixture(fixtureDef);
+      collisionDelay = null;
+    });
+    return newBody;
   }
 }

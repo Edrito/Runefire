@@ -30,22 +30,22 @@ enum ExpendableType {
 }
 
 extension ExpendableTypeExtension on ExpendableType {
-  Expendable build(Player owner, {WeaponType? weaponType}) {
+  Expendable build(Player player, {WeaponType? weaponType}) {
     switch (this) {
       case ExpendableType.experienceAttractRune:
-        return ExperienceAttract(owner: owner);
+        return ExperienceAttract(player: player);
       case ExpendableType.fearEnemiesRunes:
-        return FearEnemiesRune(owner: owner);
+        return FearEnemiesRune(player: player);
       case ExpendableType.teleportRune:
-        return TeleportRune(owner: owner);
+        return TeleportRune(player: player);
       case ExpendableType.stunRune:
-        return StunEnemiesRune(owner: owner);
+        return StunEnemiesRune(player: player);
       case ExpendableType.healingRune:
-        return HealingRune(owner: owner);
+        return HealingRune(player: player);
       case ExpendableType.weapon:
-        return WeaponPickup(owner: owner, weaponType: weaponType!);
+        return WeaponPickup(player: player, weaponType: weaponType!);
       default:
-        return FearEnemiesRune(owner: owner);
+        return FearEnemiesRune(player: player);
     }
   }
 
@@ -68,9 +68,9 @@ extension ExpendableTypeExtension on ExpendableType {
 }
 
 abstract class Expendable {
-  Expendable({required this.owner});
+  Expendable({required this.player});
   abstract ExpendableType expendableType;
-  Player owner;
+  Player player;
   void applyExpendable();
   bool instantApply = false;
 }

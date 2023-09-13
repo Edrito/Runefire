@@ -12,6 +12,7 @@ import 'package:game_app/enemies/enemy.dart';
 import 'package:game_app/entities/entity_class.dart';
 import 'package:game_app/game/enviroment.dart';
 import 'package:game_app/player/player.dart';
+import 'package:game_app/resources/constants/damage_values.dart';
 import 'package:game_app/resources/functions/custom.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:game_app/resources/visuals.dart';
@@ -951,6 +952,11 @@ mixin HealthFunctionality on Entity {
 
       switch (damageType) {
         case DamageType.fire:
+          final chance = damage.statusEffectChance?[StatusEffects.burn] ??
+              defaultStatusEffectChance;
+
+          if (chance > rng.nextDouble()) continue;
+
           attr.addAttribute(
             AttributeType.burn,
             level: 1,
@@ -1264,6 +1270,24 @@ mixin DashFunctionality on StaminaFunctionality {
     return true;
   }
 
+  void applyGroundAnimationDash() async {
+    final attr = this as AttributeFunctionality;
+    bool shouldApplyGroundAnimation = this is! AttributeFunctionality ||
+        !attr.currentAttributes.keys.any((element) => [
+              AttributeType.gravityDash,
+              AttributeType.teleportDash,
+              AttributeType.explosiveDash,
+            ].contains(element));
+
+    if (!shouldApplyGroundAnimation) return;
+
+    applyGroundAnimation(
+        await loadSpriteAnimation(
+            7, 'entity_effects/dash_effect.png', .1, false),
+        false,
+        height.parameter * .1);
+  }
+
   bool triggerFunctions = true;
   void dashInit(
       {double? power,
@@ -1273,12 +1297,7 @@ mixin DashFunctionality on StaminaFunctionality {
     this.triggerFunctions = triggerFunctions;
     power ??= 1;
 
-    applyGroundAnimation(
-        await loadSpriteAnimation(
-            7, 'entity_effects/dash_effect.png', .1, false),
-        false,
-        height.parameter * .1);
-
+    applyGroundAnimationDash();
     dashDistanceGoal = dashDistance.parameter * power;
     _isDashing = true;
     if (weaponSource) {

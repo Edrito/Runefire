@@ -136,7 +136,7 @@ class Bullet extends Projectile
       durationType: DurationType.temporary,
       playAnimation: playAnimation,
       spawnAnimation: spawnAnimation,
-      size: Vector2.all(size),
+      desiredWidth: (size),
       endAnimation: endAnimation,
     );
 
@@ -298,7 +298,7 @@ class Blast extends Projectile
       // spawnAnimation:spawnAnimation,
       durationType: DurationType.temporary,
       playAnimation: playAnimation,
-      size: Vector2.all(size),
+      desiredWidth: (size),
       endAnimation: endAnimation,
     );
 
@@ -346,12 +346,6 @@ class ExplosiveProjectile extends Projectile with StandardProjectile {
     weaponAncestor.entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
       sourceEntity: weaponAncestor.entityAncestor!,
       position: center,
-      animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
-          playAnimation: await loadSpriteAnimation(
-              16, 'effects/explosion_1_16.png', .1, true),
-          spawnAnimation: await loadSpriteAnimation(
-              16, 'effects/explosion_1_16.png', .1, false),
-          durationType: DurationType.instant),
       duration: 5,
       damage: {DamageType.fire: (50, 120)},
     ));

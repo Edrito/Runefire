@@ -407,11 +407,18 @@ class ElementalAttackSentry extends MovingSentry
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
-        6, 'attribute_sprites/hovering_crystal_6.png', .3, true);
+    if (damageType == DamageType.energy) {
+      entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
+          7, 'attribute_sprites/spark_child_1_7.png', .2, true);
+      entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
+          7, 'attribute_sprites/spark_child_1_7.png', .1, true);
+    } else {
+      entityAnimations[EntityStatus.idle] = await loadSpriteAnimation(
+          6, 'attribute_sprites/hovering_crystal_6.png', .3, true);
 
-    entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
-        6, 'attribute_sprites/hovering_crystal_attack_6.png', .05, true);
+      entityAnimations[EntityStatus.run] = await loadSpriteAnimation(
+          6, 'attribute_sprites/hovering_crystal_attack_6.png', .05, true);
+    }
   }
 
   // @override

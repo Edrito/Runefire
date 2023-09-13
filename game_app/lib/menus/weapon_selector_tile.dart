@@ -173,6 +173,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     //     ? hoverColor
     //     : (isUnlocked ? unlockedColor : lockedColor).withOpacity(1));
 
+    String titleString =
+        (isWeapon ? weaponType.name.titleCase : secondaryType!.name.titleCase);
+
     List<(String, String, String)> weaponDescriptions = [];
     late dynamic secondaryWeapon;
     Color equippedColor = isEquipped
@@ -275,11 +278,13 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
             child: Padding(
               padding: const EdgeInsets.all(6),
               child: RotatedBox(
-                  quarterTurns: 2,
+                  quarterTurns: 1,
                   child: Image.asset(
                     icon,
+
+                    // scale: -1,
                     color: isUnlocked ? null : Colors.black,
-                    fit: BoxFit.fitHeight,
+                    fit: BoxFit.contain,
                     filterQuality: FilterQuality.none,
                   )),
             )
@@ -298,14 +303,15 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                     duration: 3.seconds,
                     curve: Curves.easeInOut)
                 .animate()
-                .rotate(
-                    begin: widget.animateLeft == null
-                        ? 0
-                        : widget.animateLeft == true
-                            ? -.1
-                            : .1,
-                    curve: Curves.fastEaseInToSlowEaseOut)
-                .moveX(
+                // .scale(
+                //     begin: Vector2.all(widget.animateLeft == null
+                //             ? 0
+                //             : widget.animateLeft == true
+                //                 ? -.1
+                //                 : .1)
+                //         .toOffset(),
+                //     curve: Curves.fastEaseInToSlowEaseOut)
+                .moveY(
                     curve: Curves.fastEaseInToSlowEaseOut,
                     begin: widget.animateLeft == null
                         ? 0
@@ -391,7 +397,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
         child: Column(
           children: [
             Expanded(
-              child: Row(
+              child: Column(
                 children: [
                   InkWell(
                       onTap: () {
@@ -402,9 +408,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                         }
                       },
                       child: Icon(
-                        Icons.arrow_left,
+                        Icons.arrow_drop_up_sharp,
                         color: equippedColor,
-                        size: 100,
+                        size: 50,
                       )),
                   Expanded(child: imageDisplay),
                   InkWell(
@@ -416,9 +422,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                         }
                       },
                       child: Icon(
-                        Icons.arrow_right,
+                        Icons.arrow_drop_down_sharp,
                         color: equippedColor,
-                        size: 100,
+                        size: 50,
                       )),
                 ],
               ),
@@ -441,9 +447,10 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        isWeapon
-                            ? weaponType.name.titleCase
-                            : secondaryType!.name.titleCase,
+                        isUnlocked
+                            ? titleString
+                            : titleString.split('').fold("",
+                                (previousValue, element) => "$previousValue?"),
                         style: defaultStyle.copyWith(color: equippedColor),
                         textAlign: TextAlign.left,
                       ),

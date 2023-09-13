@@ -15,13 +15,13 @@ import '../player/player.dart';
 import '../game/enviroment.dart';
 
 class ExperienceAttract extends Expendable {
-  ExperienceAttract({required Player owner}) : super(owner: owner);
+  ExperienceAttract({required Player player}) : super(player: player);
   @override
   ExpendableType expendableType = ExpendableType.experienceAttractRune;
 
   @override
   void applyExpendable() {
-    final activeExperiennceItems = owner.world.bodies
+    final activeExperiennceItems = player.world.bodies
         .where((element) => element.userData is ExperienceItem);
 
     //Player effect
@@ -29,21 +29,21 @@ class ExperienceAttract extends Expendable {
 
     for (var element in activeExperiennceItems) {
       final item = element.userData as ExperienceItem;
-      item.setTarget = owner;
+      item.setTarget = player;
     }
   }
 }
 
 class StunEnemiesRune extends Expendable {
-  StunEnemiesRune({required Player owner}) : super(owner: owner);
+  StunEnemiesRune({required Player player}) : super(player: player);
   @override
   ExpendableType expendableType = ExpendableType.stunRune;
 
   @override
   void applyExpendable() {
-    final enemies = owner.world.bodies.where((element) =>
+    final enemies = player.world.bodies.where((element) =>
         element.userData is Enemy &&
-        owner.gameEnviroment.gameCamera.visibleWorldRect
+        player.gameEnviroment.gameCamera.visibleWorldRect
             .containsPoint(element.worldCenter));
 
     //Player effect
@@ -52,42 +52,42 @@ class StunEnemiesRune extends Expendable {
     for (var element in enemies) {
       final item = element.userData as Enemy;
       item.addAttribute(AttributeType.stun,
-          isTemporary: true, perpetratorEntity: owner);
+          isTemporary: true, perpetratorEntity: player);
     }
   }
 }
 
 class TeleportRune extends Expendable {
-  TeleportRune({required Player owner}) : super(owner: owner);
+  TeleportRune({required Player player}) : super(player: player);
   @override
   ExpendableType expendableType = ExpendableType.teleportRune;
 
   @override
   void applyExpendable() {
-    Vector2 newPos = owner.center;
-    final length = owner.gameEnviroment.boundsDistanceFromCenter * .8;
+    Vector2 newPos = player.center;
+    final length = player.gameEnviroment.boundsDistanceFromCenter * .8;
 
     //Dumb logic, prevents teleporting into current area
     //TODO - add logic to prevent teleporting into walls
-    while (owner.gameEnviroment.gameCamera.visibleWorldRect
+    while (player.gameEnviroment.gameCamera.visibleWorldRect
         .containsPoint(newPos)) {
       newPos = (Vector2.random() * length * 2) - Vector2.all(length);
     }
 
-    owner.body.setTransform(newPos, 0);
+    player.body.setTransform(newPos, 0);
   }
 }
 
 class FearEnemiesRune extends Expendable {
-  FearEnemiesRune({required Player owner}) : super(owner: owner);
+  FearEnemiesRune({required Player player}) : super(player: player);
   @override
   ExpendableType expendableType = ExpendableType.fearEnemiesRunes;
 
   @override
   void applyExpendable() {
-    final enemies = owner.world.bodies.where((element) =>
+    final enemies = player.world.bodies.where((element) =>
         element.userData is Enemy &&
-        owner.gameEnviroment.gameCamera.visibleWorldRect
+        player.gameEnviroment.gameCamera.visibleWorldRect
             .containsPoint(element.worldCenter));
 
     //Player effect
@@ -96,25 +96,25 @@ class FearEnemiesRune extends Expendable {
     for (var element in enemies) {
       final item = element.userData as Enemy;
       item.addAttribute(AttributeType.fear,
-          level: 1, isTemporary: true, duration: 3, perpetratorEntity: owner);
+          level: 1, isTemporary: true, duration: 3, perpetratorEntity: player);
     }
   }
 }
 
 class HealingRune extends Expendable {
-  HealingRune({required Player owner}) : super(owner: owner);
+  HealingRune({required Player player}) : super(player: player);
   @override
   ExpendableType expendableType = ExpendableType.healingRune;
 
   @override
   void applyExpendable() {
-    owner.heal(owner.damageTaken);
+    player.heal(player.damageTaken);
   }
 }
 
 class WeaponPickup extends Expendable {
   WeaponType weaponType;
-  WeaponPickup({required this.weaponType, required super.owner});
+  WeaponPickup({required this.weaponType, required super.player});
 
   @override
   ExpendableType expendableType = ExpendableType.weapon;
@@ -124,7 +124,7 @@ class WeaponPickup extends Expendable {
 
   @override
   void applyExpendable() {
-    owner.playerData.availableWeapons.add(weaponType);
+    player.playerData.availableWeapons.add(weaponType);
     // owner.playerData.save();
     //TODO add animation yno
   }

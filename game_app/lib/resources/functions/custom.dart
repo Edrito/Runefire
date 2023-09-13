@@ -239,15 +239,25 @@ class SimpleStartPlayEndSpriteAnimationComponent
       this.durationType = DurationType.temporary,
       this.randomlyFlipped = false,
       this.endAnimation,
-      super.size,
+      this.desiredWidth,
       super.position,
       super.anchor = Anchor.center}) {
     assert(playAnimation != null || spawnAnimation != null);
     assert(spawnAnimation != null || durationType != DurationType.instant);
+    desiredWidth ??= 1.0;
+    final bool isSizeZero = size.x == 0 || size.y == 0;
+    if (isSizeZero) {
+      final spriteSize = playAnimation?.frames.first.sprite.srcSize ??
+          spawnAnimation!.frames.first.sprite.srcSize;
+
+      size = spriteSize;
+    }
+    final widthRatio = desiredWidth! / (size.x);
+    size = Vector2(desiredWidth!, size.y * widthRatio);
   }
 
   late EntityStatus currentStatus;
-
+  double? desiredWidth;
   @override
   FutureOr<void> onLoad() {
     // autoResize = true;
@@ -294,15 +304,18 @@ class SimpleStartPlayEndSpriteAnimationComponent
 
   Future<void> triggerEnding() async {
     if (endAnimation == null) {
+      if (animationTicker?.done() ?? true) {
+        removeFromParent();
+      }
       const duration = .5;
-      final controller = EffectController(
-        curve: Curves.easeInCubic,
-        duration: duration,
-        onMax: () {
-          removeFromParent();
-        },
-      );
-      add(OpacityEffect.fadeOut(controller));
+      // final controller = EffectController(
+      //   curve: Curves.easeInCubic,
+      //   duration: duration,
+      //   onMax: () {
+      //     removeFromParent();
+      //   },
+      // );
+      // add(OpacityEffect.fadeOut(controller));
       await Future.delayed(duration.seconds * 2);
       return;
     } else {

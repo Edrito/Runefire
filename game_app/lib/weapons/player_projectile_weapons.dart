@@ -116,15 +116,15 @@ class Shotgun extends PlayerWeapon
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
-          Vector2.all(1),
-          Vector2.all(1),
+          Vector2.zero(),
+          Vector2(0, 1.65),
           weaponAnimations: {
-            WeaponStatus.attack: await loadSpriteAnimation(
-                4, 'weapons/pistol_attack.png', .1, false),
-            'muzzle_flash': await loadSpriteAnimation(
-                1, 'weapons/muzzle_flash.png', .2, false),
-            WeaponStatus.idle:
-                await loadSpriteAnimation(6, 'weapons/pistol_idle.png', 1, true)
+            // WeaponStatus.attack: await loadSpriteAnimation(
+            //     4, 'weapons/pistol_attack.png', .1, false),
+            // 'muzzle_flash': await loadSpriteAnimation(
+            //     1, 'weapons/muzzle_flash.png', .2, false),
+            WeaponStatus.idle: await loadSpriteAnimation(
+                1, 'weapons/scatter_vine.png', 1, true)
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -258,12 +258,12 @@ class AssaultRifle extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.175, 2.65),
           weaponAnimations: {
-            WeaponStatus.attack: await loadSpriteAnimation(
-                6, 'weapons/long_rifle_attack.png', .02, false),
+            // WeaponStatus.attack: await loadSpriteAnimation(
+            //     6, 'weapons/long_rifle_attack.png', .02, false),
             'muzzle_flash': await loadSpriteAnimation(
                 5, 'weapons/projectiles/fire_muzzle_flash.png', .03, false),
             WeaponStatus.idle: await loadSpriteAnimation(
-                19, 'weapons/long_rifle_idle.png', .2, true)
+                1, 'weapons/arcane_blaster.png', .2, true)
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -323,20 +323,24 @@ class LaserRifle extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
+  // TODO: implement tipOffset
+  Vector2 get tipOffset => Vector2(0, 1.42);
+
+  @override
   Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
           Vector2.all(0),
-          Vector2(-.175, 2.65),
+          tipOffset,
           weaponAnimations: {
-            WeaponStatus.attack: await loadSpriteAnimation(
-                6, 'weapons/long_rifle_attack.png', .02, false),
+            // WeaponStatus.attack: await loadSpriteAnimation(
+            //     6, 'weapons/long_rifle_attack.png', .02, false),
             // 'muzzle_flash': await buildSpriteSheet(
             //     5, 'weapons/projectiles/fire_muzzle_flash.png', .1, false),
             WeaponStatus.idle: await loadSpriteAnimation(
-                19, 'weapons/long_rifle_idle.png', .2, true)
+                1, 'weapons/prismatic_beam.png', .2, true)
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -353,7 +357,7 @@ class LaserRifle extends PlayerWeapon
   ];
 
   @override
-  double weaponSize = 1.4;
+  double weaponSize = 2;
 
   @override
   ProjectileType? projectileType = ProjectileType.laser;
@@ -394,12 +398,12 @@ class RocketLauncher extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.175, 2.65),
           weaponAnimations: {
-            WeaponStatus.attack: await loadSpriteAnimation(
-                7, 'weapons/long_rifle_attack.png', .02, false),
-            'muzzle_flash': await loadSpriteAnimation(
-                1, 'weapons/muzzle_flash.png', .2, false),
+            // WeaponStatus.attack: await loadSpriteAnimation(
+            //     7, 'weapons/long_rifle_attack.png', .02, false),
+            // 'muzzle_flash': await loadSpriteAnimation(
+            //     1, 'weapons/muzzle_flash.png', .2, false),
             WeaponStatus.idle: await loadSpriteAnimation(
-                19, 'weapons/long_rifle_idle.png', .2, true)
+                1, 'weapons/eldritch_runner.png', .2, true)
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -419,7 +423,7 @@ class RocketLauncher extends PlayerWeapon
   double weaponSize = 1.7;
 
   @override
-  ProjectileType? projectileType = ProjectileType.fireball;
+  ProjectileType? projectileType = ProjectileType.bullet;
 
   @override
   double tipPositionPercent = -.2;
@@ -429,7 +433,11 @@ class RocketLauncher extends PlayerWeapon
 }
 
 class Railgun extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        SemiAutomatic,
+        ChargeEffect {
   Railgun(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -460,12 +468,12 @@ class Railgun extends PlayerWeapon
           Vector2.all(0),
           Vector2(-.175, 2.65),
           weaponAnimations: {
-            WeaponStatus.attack: await loadSpriteAnimation(
-                7, 'weapons/long_rifle_attack.png', .02, false),
+            // WeaponStatus.attack: await loadSpriteAnimation(
+            //     7, 'weapons/long_rifle_attack.png', .02, false),
             'muzzle_flash': await loadSpriteAnimation(
                 1, 'weapons/muzzle_flash.png', .2, false),
-            WeaponStatus.idle: await loadSpriteAnimation(
-                19, 'weapons/long_rifle_idle.png', .2, true)
+            WeaponStatus.idle:
+                await loadSpriteAnimation(1, 'weapons/railspire.png', .2, true)
           },
           parentJoint: parentJoint,
           weapon: this,

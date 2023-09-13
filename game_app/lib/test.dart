@@ -17,10 +17,8 @@ import 'entities/child_entities.dart';
 void conductTests(GameEnviroment gameEnviroment) {
   final player = gameEnviroment.player;
   Future.delayed(2.1.seconds).then((value) {
-    gameEnviroment.physicsComponent.add(ExpendableType.weapon.buildInteractable(
-        initialPosition: Vector2.zero(),
-        gameEnviroment: gameEnviroment,
-        weaponType: WeaponType.arcaneBlaster));
+    player?.addAttribute(AttributeType.explosiveDash,
+        damageType: DamageType.psychic);
   });
 }
 

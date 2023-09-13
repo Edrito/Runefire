@@ -696,9 +696,9 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
 
   @override
   void update(double dt) {
-    if (isAttacking) {
-      addParticles(.5);
-    }
+    // if (isAttacking) {
+    //   addParticles(.5);
+    // }
     super.update(dt);
   }
 

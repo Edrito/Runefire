@@ -438,17 +438,17 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 
 enum WeaponType {
   crystalPistol(
-      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  scryshot('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/pistol.png', 5, AttackType.projectile, 0),
+  scryshot('assets/images/weapons/long_rifle.png', 5, AttackType.projectile, 0),
   arcaneBlaster(
-      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/arcane_blaster.png', 5, AttackType.projectile, 0),
   prismaticBeam(
-      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
-  railspire('assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/prismatic_beam.png', 5, AttackType.projectile, 0),
+  railspire('assets/images/weapons/railspire.png', 5, AttackType.projectile, 0),
   eldritchRunner(
-      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/eldritch_runner.png', 5, AttackType.projectile, 0),
   scatterCaster(
-      'assets/images/weapons/shotgun.png', 5, AttackType.projectile, 500),
+      'assets/images/weapons/scatter_vine.png', 5, AttackType.projectile, 500),
   energySword(
       'assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
@@ -620,6 +620,7 @@ class DamageInstance {
     this.isCrit = false,
     this.damageKind = DamageKind.regular,
     this.sourceWeapon,
+    this.statusEffectChance,
   });
 
   ///Modifies [damageMap] based on entity resistances
@@ -650,6 +651,7 @@ class DamageInstance {
   }
 
   dynamic sourceAttack;
+  Map<StatusEffects, double>? statusEffectChance;
   Entity source;
   HealthFunctionality victim;
   Weapon? sourceWeapon;

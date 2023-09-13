@@ -122,38 +122,37 @@ class WeaponSecondaryTile extends StatelessWidget {
               child: Center(
                 child: SizedBox(
                     height: isWeapon ? 200 : 150,
-                    child: buildImageAsset(
-                      isWeapon ? weaponType!.icon : secondaryType!.icon,
-                      // fit: BoxFit.fitWidth,
-                    )
-                        .animate(
-                          target: isHover ? 1 : 0,
-                        )
-                        .rotate(
-                            end: !isPrimary ? .5 : -.5,
-                            curve: Curves.fastLinearToSlowEaseIn,
-                            duration: 1.seconds)
-                        .animate()
-                        .moveY(
-                            duration: 1.5.seconds,
-                            curve: Curves.fastEaseInToSlowEaseOut,
-                            begin: -size.height / 2)
-                        .fadeIn(
-                          duration: 1.5.seconds,
-                          curve: Curves.fastEaseInToSlowEaseOut,
-                        )
-                        .animate(
-                          onPlay: randomBegin,
-                          onComplete: onComplete,
-                        )
-                        .moveY(
-                            begin: 5,
-                            end: -5,
-                            duration: 1.seconds,
-                            curve: Curves.easeInOut)),
+                    child: RotatedBox(
+                        quarterTurns: 1,
+                        child: buildImageAsset(
+                          isWeapon ? weaponType!.icon : secondaryType!.icon,
+                          fit: BoxFit.contain,
+                        ))),
               ),
             ),
-          ]),
+          ])
+              .animate(
+                target: isHover ? 1 : 0,
+              )
+              .scaleXY(end: 1.05, curve: Curves.linear, duration: .1.seconds)
+              .animate()
+              .moveY(
+                  duration: 1.5.seconds,
+                  curve: Curves.fastEaseInToSlowEaseOut,
+                  begin: -size.height / 2)
+              .fadeIn(
+                duration: 1.5.seconds,
+                curve: Curves.fastEaseInToSlowEaseOut,
+              )
+              .animate(
+                onPlay: randomBegin,
+                onComplete: onComplete,
+              )
+              .moveY(
+                  begin: 5,
+                  end: -5,
+                  duration: 1.seconds,
+                  curve: Curves.easeInOut),
         ),
       );
     });
