@@ -850,7 +850,8 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   void mapUpgrade() {
     if (victimEntity is! Player) return;
     final player = victimEntity as Player;
-    player.xpSensorRadius.setParameterFlatValue(attributeId, 10);
+    player.xpSensorRadius.setParameterFlatValue(attributeId, 5);
+    player.xpGrabRadiusFixture.shape.radius = player.xpSensorRadius.parameter;
   }
 
   @override
@@ -858,6 +859,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
     if (victimEntity is! Player) return;
     final player = victimEntity as Player;
     player.xpSensorRadius.removeKey(attributeId);
+    player.xpGrabRadiusFixture.shape.radius = player.xpSensorRadius.parameter;
   }
 
   @override

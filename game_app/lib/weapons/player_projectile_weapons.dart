@@ -60,7 +60,7 @@ class Pistol extends PlayerWeapon
   ];
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
@@ -98,7 +98,7 @@ class Shotgun extends PlayerWeapon
     baseAttackCount.baseParameter = 4;
   }
   @override
-  WeaponType weaponType = WeaponType.scatterCaster;
+  WeaponType weaponType = WeaponType.scatterBlast;
 
   @override
   void mapUpgrade() {
@@ -111,7 +111,7 @@ class Shotgun extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
@@ -177,7 +177,7 @@ class LongRangeRifle extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
@@ -250,7 +250,7 @@ class AssaultRifle extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
@@ -327,7 +327,7 @@ class LaserRifle extends PlayerWeapon
   Vector2 get tipOffset => Vector2(0, 1.42);
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
@@ -390,7 +390,7 @@ class RocketLauncher extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:
@@ -460,7 +460,7 @@ class Railgun extends PlayerWeapon
   void unMapUpgrade() {}
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:

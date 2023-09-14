@@ -466,16 +466,15 @@ class _WeaponMenuState extends State<WeaponMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final entries = playerDataComponent.dataObject.selectedWeapons.entries;
-    final secondaryEntries =
-        playerDataComponent.dataObject.selectedSecondaries.entries;
+    Map<int, WeaponType> weaponMap =
+        playerDataComponent.dataObject.selectedWeapons;
+    Map<int, SecondaryType> secondaryMap =
+        playerDataComponent.dataObject.selectedSecondaries;
 
     Widget primaryWeaponTile = WeaponSecondaryTile(
-      level:
-          playerDataComponent.dataObject.unlockedWeapons[entries.first.value] ??
-              0,
+      level: playerDataComponent.dataObject.unlockedWeapons[weaponMap[0]] ?? 0,
       isPrimary: true,
-      weaponType: entries.first.value,
+      weaponType: weaponMap[0],
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
@@ -490,23 +489,17 @@ class _WeaponMenuState extends State<WeaponMenu> {
         );
       },
     );
+
     Widget primarySecondaryTile = WeaponSecondaryTile(
       isPrimary: true,
-      level: playerDataComponent
-              .dataObject.unlockedSecondarys[secondaryEntries.first.value] ??
-          0,
-      secondaryType: secondaryEntries.first.value,
+      level:
+          playerDataComponent.dataObject.unlockedSecondarys[secondaryMap[0]] ??
+              0,
+      secondaryType: secondaryMap[0],
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
           isSecondaryAbility: true,
-          // onSelect: (secondaryType) {
-          //   setState(() {
-          //     playerDataComponent.dataObject.selectedSecondaries[0] =
-          //         secondaryType;
-          //     playerDataComponent.notifyListeners();
-          //   });
-          // },
           isPrimary: true,
           gameRef: widget.gameRef,
           onBack: () {
@@ -518,11 +511,9 @@ class _WeaponMenuState extends State<WeaponMenu> {
       },
     );
     Widget secondaryWeaponTile = WeaponSecondaryTile(
-      level:
-          playerDataComponent.dataObject.unlockedWeapons[entries.last.value] ??
-              0,
+      level: playerDataComponent.dataObject.unlockedWeapons[weaponMap[1]] ?? 0,
       isPrimary: false,
-      weaponType: entries.last.value,
+      weaponType: weaponMap[1],
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
@@ -548,10 +539,10 @@ class _WeaponMenuState extends State<WeaponMenu> {
 
     Widget secondarySecondaryTile = WeaponSecondaryTile(
       isPrimary: false,
-      level: playerDataComponent
-              .dataObject.unlockedSecondarys[secondaryEntries.last.value] ??
-          0,
-      secondaryType: secondaryEntries.last.value,
+      level:
+          playerDataComponent.dataObject.unlockedSecondarys[secondaryMap[1]] ??
+              0,
+      secondaryType: secondaryMap[1],
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),

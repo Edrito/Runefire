@@ -32,7 +32,7 @@ class BlankProjectileWeapon extends EnemyWeapon
   void unMapUpgrade() {}
 
   @override
-  Future<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint) async {
     switch (parentJoint.jointPosition) {
       default:

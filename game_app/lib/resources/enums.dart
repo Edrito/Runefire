@@ -447,17 +447,19 @@ enum WeaponType {
   railspire('assets/images/weapons/railspire.png', 5, AttackType.projectile, 0),
   eldritchRunner(
       'assets/images/weapons/eldritch_runner.png', 5, AttackType.projectile, 0),
-  scatterCaster(
+  scatterBlast(
       'assets/images/weapons/scatter_vine.png', 5, AttackType.projectile, 500),
   energySword(
       'assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
-  dagger('assets/images/weapons/dagger.png', 5, AttackType.magic, 0),
+  phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.magic, 0),
   blankProjectileWeapon(
       'assets/images/weapons/dagger.png', 5, AttackType.projectile, 0),
 
   largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
   spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
+  crystalSword(
+      'assets/images/weapons/crystal_sword.png', 5, AttackType.melee, 100),
   ;
 
   const WeaponType(this.icon, this.maxLevel, this.attackType, this.baseCost);
@@ -485,7 +487,7 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.crystalPistol:
         returnWeapon = Pistol(upgradeLevel, ancestor);
         break;
-      case WeaponType.scatterCaster:
+      case WeaponType.scatterBlast:
         returnWeapon = Shotgun(upgradeLevel, ancestor);
         break;
       case WeaponType.railspire:
@@ -507,8 +509,8 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = LaserRifle(upgradeLevel, ancestor);
         break;
 
-      case WeaponType.dagger:
-        returnWeapon = Dagger(upgradeLevel, ancestor);
+      case WeaponType.phaseDagger:
+        returnWeapon = PhaseDagger(upgradeLevel, ancestor);
 
       case WeaponType.largeSword:
         returnWeapon = LargeSword(upgradeLevel, ancestor);
@@ -519,6 +521,8 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.energySword:
         returnWeapon = EnergySword(upgradeLevel, ancestor);
+      case WeaponType.crystalSword:
+        returnWeapon = CrystalSword(upgradeLevel, ancestor);
 
         break;
       case WeaponType.flameSword:
@@ -544,7 +548,7 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.crystalPistol:
         returnWeapon = Pistol(upgradeLevel, null);
         break;
-      case WeaponType.scatterCaster:
+      case WeaponType.scatterBlast:
         returnWeapon = Shotgun(upgradeLevel, null);
         break;
       case WeaponType.railspire:
@@ -562,12 +566,15 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.eldritchRunner:
         returnWeapon = RocketLauncher(upgradeLevel, null);
         break;
+      case WeaponType.crystalSword:
+        returnWeapon = CrystalSword(upgradeLevel, null);
+
       case WeaponType.prismaticBeam:
         returnWeapon = LaserRifle(upgradeLevel, null);
         break;
 
-      case WeaponType.dagger:
-        returnWeapon = Dagger(upgradeLevel, null);
+      case WeaponType.phaseDagger:
+        returnWeapon = PhaseDagger(upgradeLevel, null);
 
       case WeaponType.largeSword:
         returnWeapon = LargeSword(upgradeLevel, null);

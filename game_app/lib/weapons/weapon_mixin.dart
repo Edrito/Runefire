@@ -172,6 +172,7 @@ class MeleeAttack {
       required this.entitySpriteAnimation,
       required this.attackSpriteAnimationBuild,
       required this.chargePattern,
+      this.weaponTrailConfig,
       this.flippedDuringAttack = false,
       this.customStartAngle = true,
       required this.attackPattern});
@@ -180,7 +181,7 @@ class MeleeAttack {
   final SpriteAnimation? entitySpriteAnimation;
   WeaponSpriteAnimationBuilder? attackSpriteAnimationBuild;
   List<WeaponSpriteAnimation> latestAttackSpriteAnimation = [];
-
+  WeaponTrailConfig? weaponTrailConfig;
   bool customStartAngle;
   bool flippedDuringAttack;
 
@@ -252,7 +253,6 @@ mixin MeleeFunctionality on Weapon {
         weaponAncestor: this,
       ));
     }
-
     entityAncestor?.enviroment.physicsComponent.addAll(returnList);
     currentAttackIndex++;
   }
@@ -290,6 +290,7 @@ mixin MeleeFunctionality on Weapon {
     attackOnAnimationFinish
         ? await setWeaponStatus(WeaponStatus.attack)
         : setWeaponStatus(WeaponStatus.attack);
+
     final future = entityAncestor?.setEntityStatus(EntityStatus.attack,
         customAnimationKey:
             meleeAttacks.indexWhere((element) => element == currentAttack));

@@ -187,6 +187,8 @@ class Player extends Entity
     await super.onLoad();
   }
 
+  late final FixtureDef xpGrabRadiusFixture;
+
   @override
   Body createBody() {
     late CircleShape shape;
@@ -204,7 +206,7 @@ class Player extends Entity
         density: 0.001,
         filter: filter);
 
-    final xpGrabRadiusFixture = FixtureDef(xpGrabRadius,
+    xpGrabRadiusFixture = FixtureDef(xpGrabRadius,
         userData: {"type": FixtureType.sensor, "object": this},
         isSensor: true,
         filter: Filter()

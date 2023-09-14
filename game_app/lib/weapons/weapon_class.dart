@@ -68,7 +68,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
 
     if (newWeapon.spirteComponentPositions.contains(jointPosition)) {
       weaponSpriteAnimation =
-          await newWeapon.buildSpriteAnimationComponent(this);
+          await newWeapon.buildJointSpriteAnimationComponent(this);
 
       weaponTip = PositionComponent(
           anchor: Anchor.center, position: weaponSpriteAnimation!.tipOffset);
@@ -257,7 +257,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
-  FutureOr<WeaponSpriteAnimation> buildSpriteAnimationComponent(
+  FutureOr<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
       PlayerAttachmentJointComponent parentJoint);
   abstract double distanceFromPlayer;
   abstract double weaponSize;
@@ -390,13 +390,18 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
       this.idleOnly = false,
       required this.parentJoint}) {
     animations = weaponAnimations;
-    current = WeaponStatus.idle;
+    applyKey(WeaponStatus.idle);
     anchor = Anchor.topCenter;
-    size.scaleTo(weapon.weaponSize);
 
     priority = attackPriority;
     position = spriteOffset;
     setWeaponStatus(WeaponStatus.spawn);
+  }
+
+  void resize(Vector2 sourceSize) {
+    final ratio = weapon.weaponSize / sourceSize.y;
+
+    size = Vector2(sourceSize.x * ratio, weapon.weaponSize);
   }
 
   Vector2 spriteOffset;
@@ -413,8 +418,13 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
 
   bool tempAnimationPlaying = false;
 
-  void applyAnimation(dynamic key) {
+  void applyKey(dynamic key) {
     current = key;
+    resize(animation!.frames.first.sprite.srcSize);
+  }
+
+  void applyAnimation(dynamic key) {
+    applyKey(key);
     initTicker();
   }
 
@@ -427,7 +437,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     tempAnimationPlaying = false;
     currentStatus = statusQueue ?? WeaponStatus.idle;
     animationTicker?.reset();
-    current = currentStatus;
+    applyKey(currentStatus);
     statusQueue = null;
     // current = animationQueue ?? weaponAnimations[WeaponStatus.idle];
   }
@@ -486,7 +496,6 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
       [dynamic key]) async {
     SpriteAnimation? newAnimation =
         weaponAnimations[key] ?? weaponAnimations[newWeaponStatus];
-
     if (newWeaponStatus == currentStatus &&
         [WeaponStatus.idle].contains(newWeaponStatus)) return;
 
@@ -508,6 +517,8 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
           break;
         case WeaponStatus.attack:
           assert(!newAnimation.loop, "Temp animations must not loop");
+          weaponAnimations[WeaponStatus.attack]?.stepTime =
+              weapon.attackTickRate.parameter / newAnimation.frames.length;
           break;
         case WeaponStatus.reload:
           if (weapon is! ReloadFunctionality) break;

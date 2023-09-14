@@ -66,8 +66,8 @@ class PlayerData extends DataClass {
   }
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.prismaticBeam,
-    1: WeaponType.spear,
+    1: WeaponType.scryshot,
+    0: WeaponType.crystalSword,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,
@@ -76,12 +76,12 @@ class PlayerData extends DataClass {
 
   Map<WeaponType, int> unlockedWeapons = {
     WeaponType.crystalPistol: 0,
-    WeaponType.dagger: 0,
+    WeaponType.phaseDagger: 0,
   };
 
   Set<WeaponType> availableWeapons = {
     WeaponType.crystalPistol,
-    WeaponType.dagger,
+    WeaponType.phaseDagger,
     WeaponType.scryshot,
     WeaponType.flameSword,
     ...WeaponType.values
