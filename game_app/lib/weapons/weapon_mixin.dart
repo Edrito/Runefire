@@ -6,6 +6,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide RotateEffect;
 import 'package:game_app/attributes/attributes_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/constants/priorities.dart';
@@ -468,18 +469,61 @@ mixin ProjectileFunctionality on Weapon {
 mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
   MeleeAttackHandler? chargeAttackHandler;
 
-  @override
-  void startAttacking() async {
-    resetCheck();
+  void onBodyFlip(bool isFlipped) {
+    chargeAttackHandler?.activeSwings.forEach((element) {
+      element.flipHorizontallyAroundCenter();
+    });
+  }
 
+  @override
+  FutureOr<void> onLoad() {
+    entityAncestor?.onBodyFlip.add(onBodyFlip);
+    return super.onLoad();
+  }
+
+  @override
+  void onRemove() {
+    entityAncestor?.onBodyFlip.remove(onBodyFlip);
+    super.onRemove();
+  }
+
+  void buildChargeHandler() {
+    final customPosition =
+        generateSourcePosition(SourceAttackLocation.body, null, true);
     chargeAttackHandler = MeleeAttackHandler(
       currentAttack: meleeAttacks[currentAttackIndex],
       weaponAncestor: this,
       isCharging: true,
+      attachmentPoint: entityAncestor,
       initAngle: 0,
-      initPosition: Vector2.zero(),
+      initPosition: customPosition,
     )..priority = foregroundPriority;
-    entityAncestor!.enviroment.add(chargeAttackHandler!);
+    entityAncestor!.enviroment.physicsComponent.add(chargeAttackHandler!);
+  }
+
+  @override
+  void startAttacking() async {
+    resetCheck();
+
+    // if (!attacksAreActive) {
+
+    if (attacksAreActive) {
+      final activeSwing = activeSwings.firstOrNull;
+      buildChargeHandler();
+      await chargeAttackHandler!.loaded;
+      if (chargeAttackHandler != null) {
+        chargeAttackHandler!.activeSwings.first.animationComponent!.opacity = 0;
+      }
+      await activeSwing?.removed;
+      if (chargeAttackHandler != null) {
+        chargeAttackHandler!.activeSwings.first.animationComponent!.opacity = 1;
+      }
+    } else {
+      buildChargeHandler();
+    }
+
+    // }
+
     // damageType = baseDamage.damageBase.keys.toList().getRandomElement();
     // await buildAnimations();
     // spawnAnimation?.stepTime =
@@ -789,21 +833,12 @@ mixin SemiAutomatic on Weapon {
   @override
   void startAttacking() {
     isAttacking = true;
-    if (semiAutoType != SemiAutoType.charge) {
-      setWeaponStatus(WeaponStatus.charge);
-      // entityAncestor?.setEntityStatus(EntityStatus.attack);
-    }
     switch (semiAutoType) {
       case SemiAutoType.regular:
         attackAttempt();
         break;
-      case SemiAutoType.release:
-        // entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
-        break;
-      case SemiAutoType.charge:
-        // entityAncestor?.entityStatusWrapper.addHoldDuration(chargeLength);
-        break;
       default:
+        setWeaponStatus(WeaponStatus.charge);
     }
   }
 
@@ -889,9 +924,9 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   List<Function(Projectile projectile)> onProjectileDeath = [];
   List<OnHitDef> onHitMelee = [];
   List<OnHitDef> onHit = [];
-  List<Function()> onAttackProjectile = [];
-  List<Function()> onAttackMelee = [];
-  List<Function()> onAttack = [];
+  List<Function(double holdDuration)> onAttackProjectile = [];
+  List<Function(double holdDuration)> onAttackMelee = [];
+  List<Function(double holdDuration)> onAttack = [];
   List<Function()> onReload = [];
 
   @override
@@ -899,15 +934,15 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
       [double holdDurationPercent = 1, bool callFunctions = true]) {
     if (this is ProjectileFunctionality) {
       for (var element in onAttackProjectile) {
-        element();
+        element(holdDurationPercent);
       }
     } else if (this is MeleeFunctionality) {
       for (var element in onAttackMelee) {
-        element();
+        element(holdDurationPercent);
       }
     }
     for (var element in onAttack) {
-      element();
+      element(holdDurationPercent);
     }
     super.standardAttack(holdDurationPercent, callFunctions);
   }

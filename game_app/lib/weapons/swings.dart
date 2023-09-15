@@ -172,7 +172,11 @@ class MeleeAttackSprite extends PositionComponent {
     position.setFrom(initPosition);
 
     weaponTrailConfig = handler.currentAttack.weaponTrailConfig;
-    disableTrail = weaponTrailConfig?.disableTrail ?? false;
+    if (handler.isCharging) {
+      disableTrail = true;
+    } else {
+      disableTrail = weaponTrailConfig?.disableTrail ?? false;
+    }
     animationComponent = swingAnimation;
   }
   void removeSwing() {
@@ -191,8 +195,18 @@ class MeleeAttackSprite extends PositionComponent {
     if (animationComponent?.animations?.containsKey(WeaponStatus.dead) ==
         true) {
       await animationComponent?.setWeaponStatus(WeaponStatus.dead);
+      removeSwing();
+    } else {
+      const fadeOutDuration = .3;
+      final controller = EffectController(
+        duration: fadeOutDuration,
+        curve: Curves.easeIn,
+        onMax: () {
+          removeSwing();
+        },
+      );
+      animationComponent?.add(OpacityEffect.fadeOut(controller));
     }
-    removeSwing();
   }
 
   Vector2 get swingPosition => animationComponent!.position + position;
@@ -275,9 +289,9 @@ class MeleeAttackSprite extends PositionComponent {
   }
 
   void generateSwingTrail() {
-    final timer = swingTimer!.timer;
+    final timer = swingTimer?.timer;
     if (triggerRemove && points.length < 3 ||
-        timer.current > timer.limit * .6) {
+        (timer != null && timer.current > timer.limit * .6)) {
       points.clear();
       return;
     }
@@ -516,14 +530,15 @@ class MeleeAttackHandler extends Component {
   }
 
   void kill() {
-    for (var element in activeSwings) {
-      if (isCharging) {
-        element.removeFromParent();
-      } else {
-        element.fadeOut();
-      }
-    }
+    // for (var element in activeSwings) {
+    //   // if (isCharging) {
+    //   // element.removeFromParent();
+    //   // } else {
+    //   element.fadeOut();
+    //   // }
+    // }
     activeSwings.clear();
+    removeSwing();
     isDead = true;
   }
 

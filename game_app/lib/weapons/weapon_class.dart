@@ -332,14 +332,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
       entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
       spritesHidden = true;
     } else if (!attacksAreActive && spritesHidden) {
-      // final controller = EffectController(duration: .1, curve: Curves.easeIn);
-
-      // entityAncestor?.backJoint.weaponSpriteAnimation
-      //     ?.add(OpacityEffect.fadeIn(controller));
-
-      // entityAncestor?.handJoint.weaponSpriteAnimation
-      //     ?.add(OpacityEffect.fadeIn(controller));
-
       entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
       entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
       spritesHidden = false;
@@ -481,7 +473,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   bool get isAnimationPlaying => !(animationTicker?.done() ?? true);
 
   Future<void> weaponCharging() async {
-    if (!weaponAnimations.containsKey(WeaponStatus.charge)) return;
+    if (animations?.containsKey(WeaponStatus.charge) != true) return;
     double chargeDuration = weapon.attackTickRate.parameter;
     final length = weaponAnimations[WeaponStatus.charge]!.frames.length;
 

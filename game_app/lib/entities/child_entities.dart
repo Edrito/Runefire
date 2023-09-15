@@ -616,7 +616,7 @@ class MirrorOrbSentry extends ChildEntity
         6, 'attribute_sprites/hovering_crystal_attack_6.png', .05, false);
   }
 
-  void mirrorAttack() {
+  void mirrorAttack(double holdDuration) {
     if (parentEntity is! AttackFunctionality || currentWeapon == null) return;
     final parentAttackFunctionality = parentEntity as AttackFunctionality;
     final parentWeapon = parentAttackFunctionality.currentWeapon;
@@ -632,12 +632,8 @@ class MirrorOrbSentry extends ChildEntity
       // print(melee.currentAttackIndex);
     }
 
-    double holdPercent = 1;
-    if (currentWeapon! is SemiAutomatic) {
-      holdPercent = (currentWeapon! as SemiAutomatic).holdDurationPercent;
-    }
     isFlipped = parentAttackFunctionality.isFlipped;
-    currentWeapon!.standardAttack(holdPercent);
+    currentWeapon!.standardAttack(holdDuration);
 
     setEntityStatus(EntityStatus.attack);
   }

@@ -696,7 +696,7 @@ mixin HealthFunctionality on Entity {
 
   void applyEssenceSteal(DamageInstance instance) {
     final amount = essenceSteal.parameter * instance.damage;
-    if (amount == 0) return;
+    if (amount == 0 || !amount.isFinite) return;
     if (staminaSteal.parameter && this is StaminaFunctionality) {
       final stamina = this as StaminaFunctionality;
       stamina.modifyStamina(amount);
@@ -763,7 +763,7 @@ mixin HealthFunctionality on Entity {
 
     String damageString = "";
 
-    damageString = amount.ceil().toString();
+    damageString = !amount.isFinite ? "X" : amount.ceil().toString();
 
     if (damageType == DamageType.healing) {
       damageString = "+ $damageString";
@@ -866,13 +866,15 @@ mixin HealthFunctionality on Entity {
     addDamageText(largestEntry.key, largestEntry.value, damage.isCrit);
     addDamageEffects(largestEntry.key.color);
 
-    damage.applyResistances(this);
-    applyDamage(damage);
+    if (largestEntry.value.isFinite) {
+      damage.applyResistances(this);
+      applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
+      essenceStealChecker(damage);
+    }
 
+    applyDamage(damage);
     applyKnockback(damage);
     deathChecker(damage);
-    applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
-    essenceStealChecker(damage);
     return true;
   }
 

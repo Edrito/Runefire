@@ -21,6 +21,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     entityId = const Uuid().v4();
   }
 
+  List<Function(bool isFlipped)> onBodyFlip = [];
+
   AttributeFunctionsFunctionality? get attributeFunctionsFunctionality {
     bool thisIsAttr = this is AttributeFunctionsFunctionality;
 
@@ -348,5 +350,8 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
     spriteAnimationGroupComponent.flipHorizontallyAroundCenter();
 
     isFlipped = !isFlipped;
+    for (var element in onBodyFlip) {
+      element.call(isFlipped);
+    }
   }
 }

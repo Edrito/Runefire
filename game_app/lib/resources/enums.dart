@@ -445,12 +445,16 @@ enum WeaponType {
   prismaticBeam(
       'assets/images/weapons/prismatic_beam.png', 5, AttackType.projectile, 0),
   railspire('assets/images/weapons/railspire.png', 5, AttackType.projectile, 0),
+  swordOfJustice(
+      'assets/images/weapons/sword_of_justice.png', 5, AttackType.melee, 1250),
   eldritchRunner(
       'assets/images/weapons/eldritch_runner.png', 5, AttackType.projectile, 0),
   scatterBlast(
       'assets/images/weapons/scatter_vine.png', 5, AttackType.projectile, 500),
   energySword(
       'assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
+  frostKatana(
+      'assets/images/weapons/frost_katana.png', 5, AttackType.melee, 500),
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
   phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.magic, 0),
   blankProjectileWeapon(
@@ -493,6 +497,9 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.railspire:
         returnWeapon = Railgun(upgradeLevel, ancestor);
         break;
+      case WeaponType.frostKatana:
+        returnWeapon = FrostKatana(upgradeLevel, ancestor);
+        break;
       case WeaponType.blankProjectileWeapon:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
         break;
@@ -501,6 +508,9 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.scryshot:
         returnWeapon = LongRangeRifle(upgradeLevel, ancestor);
+        break;
+      case WeaponType.swordOfJustice:
+        returnWeapon = SwordOfJustice(upgradeLevel, ancestor);
         break;
       case WeaponType.eldritchRunner:
         returnWeapon = RocketLauncher(upgradeLevel, ancestor);
@@ -560,6 +570,8 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.arcaneBlaster:
         returnWeapon = AssaultRifle(upgradeLevel, null);
         break;
+      case WeaponType.frostKatana:
+        returnWeapon = FrostKatana(upgradeLevel, null);
       case WeaponType.scryshot:
         returnWeapon = LongRangeRifle(upgradeLevel, null);
         break;
@@ -575,6 +587,8 @@ extension WeaponTypeFilename on WeaponType {
 
       case WeaponType.phaseDagger:
         returnWeapon = PhaseDagger(upgradeLevel, null);
+      case WeaponType.swordOfJustice:
+        returnWeapon = SwordOfJustice(upgradeLevel, null);
 
       case WeaponType.largeSword:
         returnWeapon = LargeSword(upgradeLevel, null);
