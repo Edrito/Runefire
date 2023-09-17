@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/resources/visuals.dart';
+import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/swings.dart';
 import 'package:game_app/weapons/weapon_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -420,19 +422,21 @@ class Spear extends PlayerWeapon
   WeaponType weaponType = WeaponType.spear;
 }
 
-class EnergySword extends PlayerWeapon
+class HolySword extends PlayerWeapon
     with
         MeleeFunctionality,
         ProjectileFunctionality,
         SemiAutomatic,
         StaminaCostFunctionality,
         MeleeChargeReady {
-  EnergySword(
+  HolySword(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.energy] = (5, 12);
     attackTickRate.baseParameter = .7;
+    projectileVelocity.baseParameter = 15;
+    pierce.baseParameter = 6;
 
     tipOffset = Vector2(0, weaponSize);
 
@@ -450,51 +454,42 @@ class EnergySword extends PlayerWeapon
                 });
           },
           chargePattern: [
-            (Vector2(-.2, -.2), -120, 1),
-            (Vector2(.2, -.2), -100, 1),
-            (Vector2(.2, -.4), -80, 1),
+            (Vector2(0, -.5), -140, .8),
+            (Vector2(.2, 0), -120, 1.0),
+            (Vector2(.1, 0), -100, 1.2),
           ],
           attackPattern: [
             // (Vector2(.2, 1), 0, 1),
-            (Vector2(0, -.2), 140, 1),
-            (Vector2(1, .2), -45, 1.1),
+            (Vector2(-1, .5), 140, 1),
+            (Vector2(2, 0), -45, 1.1),
             // (Vector2(0, -.4), 55, 1),
             // (Vector2(.2, 1), 0, 1),
           ]),
-      // MeleeAttack(
-      //     attackHitboxSize: Vector2(1, weaponSize),
-      //     entitySpriteAnimation: null,
-      //     attackSpriteAnimationBuild: () async {
-      //       return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
-      //           weapon: this,
-      //           parentJoint: null,
-      //           weaponAnimations: {
-      //             WeaponStatus.idle: await loadSpriteAnimation(
-      //                 1, weaponType.flameImage, 1, true),
-      //           });
-      //     },
-      //     chargePattern: [
-      //       (Vector2(-.2, -.2), 120, 1),
-      //       (Vector2(.2, -.2), 100, 1),
-      //     ],
-      //     attackPattern: [
-      //       // (Vector2(.2, 1), 0, 1),
-      //       (Vector2(0, -.2), -130, 1),
-      //       (Vector2(1, .2), 45, 1),
-      //       // (Vector2(.2, 1), 0, 1),
-      //     ]),
+      MeleeAttack(
+          attackHitboxSize: Vector2(1, weaponSize),
+          entitySpriteAnimation: null,
+          attackSpriteAnimationBuild: () async {
+            return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
+                weapon: this,
+                parentJoint: null,
+                weaponAnimations: {
+                  WeaponStatus.idle: await loadSpriteAnimation(
+                      1, weaponType.flameImage, 1, true),
+                });
+          },
+          chargePattern: [
+            (Vector2(0, .3), -20, 1),
+            (Vector2(.2, .3), -40, 1),
+            (Vector2(.1, .3), -60, 1),
+          ],
+          attackPattern: [
+            // (Vector2(.2, 1), 0, 1),
+            (Vector2(.5, .5), -130, 1),
+            (Vector2(-1.5, -.0), 45, 1),
+            // (Vector2(.2, 1), 0, 1),
+          ]),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
-  }
-
-  @override
-  void standardAttack(
-      [double holdDurationPercent = 1, bool callFunctions = true]) {
-    // if (entityAncestor is DashFunctionality) {
-    //   (entityAncestor as DashFunctionality)
-    //       .dashInit(power: chargeAmount, PlayerWeapon: true);
-    // }
-    super.standardAttack(holdDurationPercent, callFunctions);
   }
 
   @override
@@ -517,10 +512,13 @@ class EnergySword extends PlayerWeapon
   }
 
   @override
-  List<BodyComponent<Forge2DGame>> generateProjectileFunction(
-      [double chargeAmount = 1]) {
-    if (chargeAmount != 1) return [];
-    return super.generateProjectileFunction(chargeAmount);
+  List<Projectile> generateProjectileFunction([double chargeAmount = 1]) {
+    print(chargeAmount);
+    if (chargeAmount < .7) return [];
+    return super.generateProjectileFunction(chargeAmount)
+      ..forEach((element) {
+        element.size = weaponSize / 2;
+      });
   }
 
   @override
@@ -560,7 +558,7 @@ class EnergySword extends PlayerWeapon
   double distanceFromPlayer = .2;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.holyBullet;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
@@ -569,7 +567,7 @@ class EnergySword extends PlayerWeapon
   double weaponSize = 2;
 
   @override
-  WeaponType weaponType = WeaponType.energySword;
+  WeaponType weaponType = WeaponType.holySword;
 }
 
 class FlameSword extends PlayerWeapon
@@ -729,7 +727,7 @@ class LargeSword extends PlayerWeapon
             (Vector2(-.2, .95), 0, 1),
             (Vector2(-.25, 1), 35, 1),
             (Vector2(.6, 0), -35, 1),
-          ])
+          ]),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
     attackTickRate.baseParameter = 2;
@@ -814,17 +812,23 @@ class FrostKatana extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.frost] = (5, 12);
     attackTickRate.baseParameter = .5;
+    pierce.baseParameter = 5;
+
+    customChargeDuration = 1;
 
     tipOffset = Vector2(0, weaponSize);
 
     onAttackMelee.add((holdDurationPercent) {
       if (entityAncestor is DashFunctionality) {
         final dash = (entityAncestor as DashFunctionality);
-        if (holdDurationPercent < .5) return;
+        if (holdDurationPercent < .6) return;
+        pierce.setParameterFlatValue(weaponId, 999);
         dash.dashInit(
-            power: holdDurationPercent,
+            power: holdDurationPercent * 2.5,
             weaponSource: true,
             triggerFunctions: false);
+        Future.delayed(dash.dashDuration.parameter.seconds)
+            .then((value) => pierce.removeFlatKey(weaponId));
       }
     });
 
@@ -847,13 +851,17 @@ class FrostKatana extends PlayerWeapon
           chargePattern: [
             (Vector2(-.2, -.2), -120, 1),
             (Vector2(.2, -.2), -100, 1),
+            (Vector2(-.2, -.2), -120, 1),
+            (Vector2(.2, -.2), -100, 1),
+            (Vector2(-.2, -.2), -120, 1),
+            (Vector2(.2, -.2), -100, 1),
             // (Vector2(.2, -.4), -80, 1),
           ],
           attackPattern: [
             // (Vector2(.2, 1), 0, 1),
             (Vector2(0, -.2), 140, 1),
             (Vector2(1, .2), -45, 1.1),
-            (Vector2(0, 0), 65, 1.1),
+            // (Vector2(0, 0), 65, 1.1),
             // (Vector2(0, -.4), 55, 1),
             // (Vector2(.2, 1), 0, 1),
           ]),

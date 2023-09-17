@@ -1,1 +1,1 @@
-const defaultStatusEffectChance = 0.15;
+const defaultStatusEffectChance = 0.025;

@@ -382,9 +382,7 @@ class MushroomSpinner extends Enemy
   @override
   void update(double dt) {
     if (spriteAnimationGroupComponent.animations?[EntityStatus.run] ==
-        entityAnimations["spin"]) {
-      print('here');
-    }
+        entityAnimations["spin"]) {}
 
     moveCharacter();
     super.update(dt);

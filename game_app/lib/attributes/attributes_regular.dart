@@ -95,8 +95,8 @@ Attribute? regularAttributeBuilder(AttributeType type, int level,
           level: level, victimEntity: victimEntity);
     //TODO Combination Standstill
 
-    case AttributeType.invincibleDashing:
-      return InvincibleDashAttribute(level: level, victimEntity: victimEntity);
+    // case AttributeType.invincibleDashing:
+    //   return InvincibleDashAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.dashSpeedDistance:
       return DashSpeedDistanceAttribute(
           level: level, victimEntity: victimEntity);
@@ -1716,49 +1716,49 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   }
 }
 
-class InvincibleDashAttribute extends Attribute {
-  InvincibleDashAttribute({required super.level, required super.victimEntity});
+// class InvincibleDashAttribute extends Attribute {
+//   InvincibleDashAttribute({required super.level, required super.victimEntity});
 
-  @override
-  AttributeType attributeType = AttributeType.invincibleDashing;
+//   @override
+//   AttributeType attributeType = AttributeType.invincibleDashing;
 
-  @override
-  double get factor => .25;
+//   @override
+//   double get factor => .25;
 
-  @override
-  bool increaseFromBaseParameter = false;
+//   @override
+//   bool increaseFromBaseParameter = false;
 
-  @override
-  int get maxLevel => 1;
+//   @override
+//   int get maxLevel => 1;
 
-  @override
-  void action() async {}
+//   @override
+//   void action() async {}
 
-  @override
-  void mapUpgrade() {
-    if (victimEntity is! DashFunctionality) return;
-    final dashFunc = victimEntity as DashFunctionality;
-    dashFunc.invincibleWhileDashing.setIncrease(attributeId, true);
-  }
+//   @override
+//   void mapUpgrade() {
+//     if (victimEntity is! DashFunctionality) return;
+//     final dashFunc = victimEntity as DashFunctionality;
+//     dashFunc.invincibleWhileDashing.setIncrease(attributeId, true);
+//   }
 
-  @override
-  void unMapUpgrade() {
-    if (victimEntity is! DashFunctionality) return;
-    final dashFunc = victimEntity as DashFunctionality;
-    dashFunc.invincibleWhileDashing.removeKey(attributeId);
-  }
+//   @override
+//   void unMapUpgrade() {
+//     if (victimEntity is! DashFunctionality) return;
+//     final dashFunc = victimEntity as DashFunctionality;
+//     dashFunc.invincibleWhileDashing.removeKey(attributeId);
+//   }
 
-  @override
-  String icon = "attributes/topSpeed.png";
+//   @override
+//   String icon = "attributes/topSpeed.png";
 
-  @override
-  String title = "Keep a watchful eye";
+//   @override
+//   String title = "Keep a watchful eye";
 
-  @override
-  String description() {
-    return "Invincible Dashing";
-  }
-}
+//   @override
+//   String description() {
+//     return "Invincible Dashing";
+//   }
+// }
 
 class DashSpeedDistanceAttribute extends Attribute {
   DashSpeedDistanceAttribute(
@@ -2465,7 +2465,7 @@ class DaggerSwingAttribute extends Attribute {
   void mapUpgrade() {
     applyActionToWeapons((weapon) {
       if (weapon is! ProjectileFunctionality) return;
-      final newWeapon = WeaponType.energySword
+      final newWeapon = WeaponType.holySword
           .build(weapon.entityAncestor!, null, victimEntity!.gameRef, 0);
 
       if (newWeapon is StaminaCostFunctionality) {

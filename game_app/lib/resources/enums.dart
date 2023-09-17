@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/player/player_constants.dart' as player_constants;
 import 'package:game_app/main.dart';
+import 'package:game_app/resources/functions/functions.dart';
 import 'package:game_app/resources/visuals.dart';
+import 'package:game_app/weapons/player_magic_weapons.dart';
 import 'package:game_app/weapons/player_melee_weapons.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 import 'package:game_app/weapons/weapon_mixin.dart';
@@ -362,16 +364,25 @@ extension ExperienceAmountExtension on ExperienceAmount {
   Color get color {
     switch (this) {
       case ExperienceAmount.small:
-        return const Color.fromARGB(255, 143, 219, 255);
+        return ApolloColorPalette.lightBlue.color;
+
       case ExperienceAmount.medium:
-        return const Color.fromARGB(255, 151, 255, 155);
+        return ApolloColorPalette.mediumGreen.color;
+
       case ExperienceAmount.large:
-        return const Color.fromARGB(255, 242, 170, 255);
+        return ApolloColorPalette.purple.color;
     }
   }
 }
 
-enum ProjectileType { bullet, arrow, laser, fireball, blast }
+enum ProjectileType {
+  bullet,
+  arrow,
+  laser,
+  explosiveProjectile,
+  blast,
+  holyBullet
+}
 
 extension ProjectileTypeExtension on ProjectileType {
   Projectile generateProjectile(
@@ -394,7 +405,7 @@ extension ProjectileTypeExtension on ProjectileType {
             size: size,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
-      case ProjectileType.fireball:
+      case ProjectileType.explosiveProjectile:
         return ExplosiveProjectile(
             weaponAncestor: ancestorVar,
             originPosition: originPositionVar,
@@ -407,7 +418,17 @@ extension ProjectileTypeExtension on ProjectileType {
             delta: delta,
             size: 1,
             power: chargeAmount);
-
+      case ProjectileType.holyBullet:
+        return Bullet(
+            originPosition: originPositionVar,
+            delta: delta,
+            size: size,
+            weaponAncestor: ancestorVar,
+            customSpawnAnimation: loadSpriteAnimation(1,
+                'weapons/projectiles/bullets/holy_bullet_spawn.png', .1, false),
+            customPlayAnimation: loadSpriteAnimation(
+                1, 'weapons/projectiles/bullets/holy_bullet_play.png', 1, true),
+            power: chargeAmount);
       default:
         return Bullet(
             originPosition: originPositionVar,
@@ -451,14 +472,14 @@ enum WeaponType {
       'assets/images/weapons/eldritch_runner.png', 5, AttackType.projectile, 0),
   scatterBlast(
       'assets/images/weapons/scatter_vine.png', 5, AttackType.projectile, 500),
-  energySword(
-      'assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
+  holySword('assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
   frostKatana(
       'assets/images/weapons/frost_katana.png', 5, AttackType.melee, 500),
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
-  phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.magic, 0),
+  phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.melee, 0),
   blankProjectileWeapon(
       'assets/images/weapons/dagger.png', 5, AttackType.projectile, 0),
+  icecicleMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
 
   largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
   spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
@@ -518,6 +539,9 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.prismaticBeam:
         returnWeapon = LaserRifle(upgradeLevel, ancestor);
         break;
+      case WeaponType.icecicleMagic:
+        returnWeapon = Icecicle(upgradeLevel, ancestor);
+        break;
 
       case WeaponType.phaseDagger:
         returnWeapon = PhaseDagger(upgradeLevel, ancestor);
@@ -529,8 +553,8 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.spear:
         returnWeapon = Spear(upgradeLevel, ancestor);
         break;
-      case WeaponType.energySword:
-        returnWeapon = EnergySword(upgradeLevel, ancestor);
+      case WeaponType.holySword:
+        returnWeapon = HolySword(upgradeLevel, ancestor);
       case WeaponType.crystalSword:
         returnWeapon = CrystalSword(upgradeLevel, ancestor);
 
@@ -594,11 +618,15 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = LargeSword(upgradeLevel, null);
 
         break;
+      case WeaponType.icecicleMagic:
+        returnWeapon = Icecicle(upgradeLevel, null);
+        break;
+
       case WeaponType.spear:
         returnWeapon = Spear(upgradeLevel, null);
         break;
-      case WeaponType.energySword:
-        returnWeapon = EnergySword(upgradeLevel, null);
+      case WeaponType.holySword:
+        returnWeapon = HolySword(upgradeLevel, null);
 
         break;
       case WeaponType.flameSword:
@@ -697,6 +725,7 @@ class DamageInstance {
     HealthFunctionality? victim,
     Weapon? sourceWeapon,
     dynamic sourceAttack,
+    Map<StatusEffects, double>? statusEffectChance,
     DamageKind? damageKind,
     bool? isCrit,
   }) {
@@ -707,6 +736,7 @@ class DamageInstance {
       sourceAttack: sourceAttack ?? this.sourceAttack,
       sourceWeapon: sourceWeapon ?? this.sourceWeapon,
       damageKind: damageKind ?? this.damageKind,
+      statusEffectChance: statusEffectChance ?? this.statusEffectChance,
       isCrit: isCrit ?? this.isCrit,
     );
   }

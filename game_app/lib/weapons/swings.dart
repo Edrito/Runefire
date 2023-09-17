@@ -8,7 +8,7 @@ import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart'
-    hide RotateEffect, MoveEffect;
+    hide RotateEffect, MoveEffect, ScaleEffect;
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/resources/constants/physics_filter.dart';
 import 'package:game_app/resources/functions/custom.dart';
@@ -131,9 +131,9 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
     shape.set(verts);
 
-    // add(PolygonComponent(verts,
-    //     anchor: Anchor.center,
-    //     paint: Paint()..color = Colors.red.withOpacity(.2)));
+    add(PolygonComponent(verts,
+        anchor: Anchor.center,
+        paint: Paint()..color = Colors.red.withOpacity(.2)));
 
     final swordFilter = Filter();
     if (meleeAttackAncestor.weaponAncestor.entityAncestor is Enemy) {
@@ -153,6 +153,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
     final bodyDef = BodyDef(
       userData: this,
+      bullet: true,
       allowSleep: false,
       position: meleeAttackAncestor.activeSwings.last.swingPosition,
       angle: meleeAttackAncestor.activeSwings.last.swingAngle,
@@ -338,13 +339,23 @@ class MeleeAttackHandler extends Component {
       required this.initAngle,
       this.attachmentPoint,
       required this.weaponAncestor}) {
-    attackStepDuration = weaponAncestor.attackTickRate.parameter /
-            (currentAttack.attackPattern.length - 1).clamp(1, double.infinity)
+    double? tempStepDuration;
+    int? tempAttackPatternLength;
+
+    if (isCharging && weaponAncestor is SemiAutomatic) {
+      tempStepDuration = (weaponAncestor as SemiAutomatic).customChargeDuration;
+      tempAttackPatternLength = currentAttack.chargePattern.length;
+    }
+    final l = tempAttackPatternLength ?? currentAttack.attackPattern.length;
+
+    attackStepDuration =
+            ((tempStepDuration ?? weaponAncestor.attackTickRate.parameter) /
+                    (l - 1))
+                .clamp(0, double.infinity)
         //  *2
         ;
-    duration = weaponAncestor.attackTickRate.parameter;
+    duration = tempStepDuration ?? weaponAncestor.attackTickRate.parameter;
     meleeId = const Uuid().v4();
-
     if (!currentAttack.customStartAngle) initAngle = 0;
   }
 
@@ -444,6 +455,7 @@ class MeleeAttackHandler extends Component {
     }
 
     final rotatedEndPosition = rotateVector2(newPattern.$1, currentAngle);
+    // final rotatedEndPosition = rotateVector2(newPattern.$1, currentAngle);
 
     final totalAngle = newPattern.$2 - previousPattern.$2;
     final effectController = EffectController(
@@ -455,15 +467,19 @@ class MeleeAttackHandler extends Component {
       effectController,
     );
 
-    final moveEffect = MoveEffect.to(
+    final scaleEffect = SizeEffect.to(
+      swing.animationComponent!.size * newPattern.$3,
+      effectController,
+    );
+    final moveEffect = MoveEffect.by(
       rotatedEndPosition,
       effectController,
     );
     if (previousFuture == null) {
-      swing.animationComponent?.addAll([rotateEffect, moveEffect]);
+      swing.animationComponent?.addAll([rotateEffect, moveEffect, scaleEffect]);
     } else {
-      previousFuture.then((value) =>
-          swing.animationComponent?.addAll([rotateEffect, moveEffect]));
+      previousFuture.then((value) => swing.animationComponent
+          ?.addAll([rotateEffect, moveEffect, scaleEffect]));
     }
 
     final newFuture = (previousFuture

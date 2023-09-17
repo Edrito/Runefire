@@ -785,10 +785,4 @@ class SwordSentry extends ChildEntity
       ..createFixture(fixture)
       ..setType(BodyType.static);
   }
-
-  @override
-  void beginContact(Object other, Contact contact) {
-    print('here');
-    super.beginContact(other, contact);
-  }
 }

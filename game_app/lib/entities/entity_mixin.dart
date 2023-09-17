@@ -957,7 +957,7 @@ mixin HealthFunctionality on Entity {
           final chance = damage.statusEffectChance?[StatusEffects.burn] ??
               defaultStatusEffectChance;
 
-          if (chance > rng.nextDouble()) continue;
+          if (chance <= rng.nextDouble()) continue;
 
           attr.addAttribute(
             AttributeType.burn,
@@ -1196,8 +1196,8 @@ mixin DashFunctionality on StaminaFunctionality {
   @override
   void initializeChildEntityParameters(ChildEntity childEntity) {
     dashCooldown = (childEntity.parentEntity as DashFunctionality).dashCooldown;
-    invincibleWhileDashing =
-        (childEntity.parentEntity as DashFunctionality).invincibleWhileDashing;
+    // invincibleWhileDashing =
+    //     (childEntity.parentEntity as DashFunctionality).invincibleWhileDashing;
     collisionWhileDashing =
         (childEntity.parentEntity as DashFunctionality).collisionWhileDashing;
     teleportDash = (childEntity.parentEntity as DashFunctionality).teleportDash;
@@ -1213,7 +1213,7 @@ mixin DashFunctionality on StaminaFunctionality {
   void initializeParentParameters() {
     dashCooldown = DoubleParameterManager(baseParameter: 2);
 
-    invincibleWhileDashing = BoolParameterManager(baseParameter: false);
+    // invincibleWhileDashing = BoolParameterManager(baseParameter: false);
     collisionWhileDashing = BoolParameterManager(baseParameter: false);
     teleportDash =
         BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
@@ -1226,7 +1226,7 @@ mixin DashFunctionality on StaminaFunctionality {
 
   //DASH COOLDOWN
   late final DoubleParameterManager dashCooldown;
-  late final BoolParameterManager invincibleWhileDashing;
+  // late final BoolParameterManager invincibleWhileDashing;
   late final BoolParameterManager collisionWhileDashing;
   late final BoolParameterManager teleportDash;
   late final DoubleParameterManager dashDistance;
@@ -1243,8 +1243,7 @@ mixin DashFunctionality on StaminaFunctionality {
   Vector2? dashDelta;
 
   @override
-  bool get isInvincible =>
-      super.isInvincible || (invincibleWhileDashing.parameter && isDashing);
+  bool get isInvincible => super.isInvincible || (isDashing);
 
   double? dashDistanceGoal;
 
@@ -1258,12 +1257,15 @@ mixin DashFunctionality on StaminaFunctionality {
     return super.dashStatus();
   }
 
+  bool get canDash => !(dashTimerCooldown != null ||
+      isJumping ||
+      isDead ||
+      isDashing ||
+      !enableMovement.parameter ||
+      !hasEnoughStamina(dashStaminaCost.parameter));
+
   bool dashCheck() {
-    if (dashTimerCooldown != null ||
-        isJumping ||
-        isDead ||
-        !enableMovement.parameter ||
-        !hasEnoughStamina(dashStaminaCost.parameter)) {
+    if (!canDash) {
       return false;
     }
 
@@ -1414,10 +1416,8 @@ mixin DashFunctionality on StaminaFunctionality {
   }
 
   void dashMove(double dt) {
-    final double distance =
-        ((dashDistance.parameter / dashDuration.parameter) * dt)
-            .clamp(0, dashDistance.parameter);
-
+    final double distance = ((dashDistanceGoal! / dashDuration.parameter) * dt)
+        .clamp(0, dashDistanceGoal!);
     body.setTransform(body.position + (dashDelta! * distance), 0);
     dashedDistance += distance;
     dashOngoingFunctionsCall();

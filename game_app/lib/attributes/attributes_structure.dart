@@ -273,11 +273,11 @@ enum AttributeType {
     attributeEligibilityTest: standStillTest,
   ),
 
-  invincibleDashing(
-    rarity: AttributeRarity.rare,
-    category: AttributeCategory.mobility,
-    territory: AttributeTerritory.game,
-  ),
+  // invincibleDashing(
+  //   rarity: AttributeRarity.rare,
+  //   category: AttributeCategory.mobility,
+  //   territory: AttributeTerritory.game,
+  // ),
 
   dashSpeedDistance(
     rarity: AttributeRarity.uncommon,
@@ -529,9 +529,11 @@ enum AttributeType {
 
 bool teleportDashTest(Player player) {
   return player.currentAttributes
-          .containsKey(AttributeType.dashSpeedDistance) &&
-      player.currentAttributes.containsKey(AttributeType.dashAttackEmpower) &&
-      player.currentAttributes.containsKey(AttributeType.invincibleDashing);
+              .containsKey(AttributeType.dashSpeedDistance) &&
+          player.currentAttributes.containsKey(AttributeType.dashAttackEmpower)
+      //  &&
+      // player.currentAttributes.containsKey(AttributeType.invincibleDashing)
+      ;
 }
 
 bool standStillTest(Player player) {

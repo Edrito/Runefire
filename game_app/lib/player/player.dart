@@ -154,7 +154,7 @@ class Player extends Entity
 
   @override
   void preSolve(Object other, Contact contact, Manifold oldManifold) {
-    if (!collision.parameter) {
+    if (!collision.parameter || isDashing) {
       contact.setEnabled(false);
     }
     super.preSolve(other, contact, oldManifold);
@@ -183,7 +183,12 @@ class Player extends Entity
 
     mouseCallbackWrapper.keyEvent = (event) => onKeyEvent(event);
     game.mouseCallback.add(mouseCallbackWrapper);
-
+    cloestEnemyTimer = TimerComponent(
+      period: .5,
+      onTick: () {
+        findClosestEnemy();
+      },
+    );
     await super.onLoad();
   }
 
@@ -241,11 +246,11 @@ class Player extends Entity
     moveCharacter();
     // }
     aimCharacter();
-    findClosestEnemy();
     super.update(dt);
   }
 
   Enemy? closestEnemy;
+  late TimerComponent cloestEnemyTimer;
 
   void findClosestEnemy() {
     double closestDistance = double.infinity;

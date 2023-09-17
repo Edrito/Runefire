@@ -150,6 +150,8 @@ class GameHud extends PositionComponent {
     addAll([topLeftMarginParent]);
     add(fpsCounter);
 
+    initPaints();
+
     return super.onLoad();
   }
 
@@ -186,6 +188,27 @@ class GameHud extends PositionComponent {
     returnPath.lineTo(start.dx + width, start.dy);
     return returnPath;
   }
+
+  void initPaints([bool staminaOnly = false]) {
+    if (!staminaOnly) {
+      healthPaint = Paint()
+        ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
+          ApolloColorPalette.lightRed.color,
+          ApolloColorPalette.red.color,
+        ]);
+    }
+
+    staminaPaint = Paint()
+      ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
+        staminaColor.brighten(.4),
+        staminaColor,
+      ]);
+  }
+
+  late final Paint healthPaint;
+  late Paint staminaPaint;
+  late final Paint magicPaint;
+  late final Paint xpPaint;
 
   @override
   void render(Canvas canvas) {
@@ -225,11 +248,7 @@ class GameHud extends PositionComponent {
                 player!.healthPercentage *
                 hudScale,
           ),
-          Paint()
-            ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
-              ApolloColorPalette.lightRed.color,
-              ApolloColorPalette.red.color,
-            ]));
+          healthPaint);
 
       canvas.drawPath(
           buildSlantedPath(
@@ -244,11 +263,7 @@ class GameHud extends PositionComponent {
                 (player!.remainingStamina / player!.stamina.parameter) *
                 hudScale,
           ),
-          Paint()
-            ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
-              staminaColor.brighten(.4),
-              staminaColor,
-            ]));
+          staminaPaint);
     }
 
     super.render(canvas);
@@ -262,5 +277,6 @@ class GameHud extends PositionComponent {
       default:
         staminaColor = ApolloColorPalette.lightGreen.color;
     }
+    initPaints(true);
   }
 }

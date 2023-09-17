@@ -81,7 +81,7 @@ class ExperienceItem extends ProximityItem {
   void render(Canvas canvas) {
     for (var i = trails.length - 1; i > 1; i--) {
       canvas.drawCircle(((trails[i] - center)).toOffset(),
-          radius * .65 / trailCount * (trailCount - i), Paint()..color = color);
+          radius * .65 / trailCount * (trailCount - i), trailPaint);
     }
 
     canvas.drawPoints(
@@ -92,30 +92,20 @@ class ExperienceItem extends ProximityItem {
                 [...previousValue, (element - center).toOffset()]),
         paint);
 
-    canvas.drawCircle(
-        Offset.zero,
-        radius,
-        colorPalette.buildProjectile(
-            color: color,
-            projectileType: ProjectileType.bullet,
-            lighten: false));
+    canvas.drawCircle(Offset.zero, radius, xpPaint);
 
     super.render(canvas);
   }
 
+  late final Paint trailPaint;
+  late final Paint xpPaint;
+
   @override
   Future<void> onLoad() async {
-    // shapeComponent = experienceAmount.getShapeComponent(radius);
     color = experienceAmount.color;
-    // shapeComponent.paint = Paint()..color = color;
-    // shapeComponent.size = Vector2.all(0);
-    // shapeComponent.position -= Vector2(0, .5);
-    // final controller = EffectController(curve: Curves.easeOutCirc, duration: 1);
-
-    // shapeComponent.add(SizeEffect.to(Vector2.all(radius * 2), controller));
-    // shapeComponent.add(MoveEffect.by(Vector2(0, .5), controller));
-
-    // add(shapeComponent);
+    trailPaint = Paint()..color = color;
+    xpPaint = colorPalette.buildProjectile(
+        color: color, projectileType: ProjectileType.bullet, lighten: false);
 
     return super.onLoad();
   }
@@ -139,6 +129,7 @@ class ExperienceItem extends ProximityItem {
   Component generateParticle() {
     final moveDelta = (target!.center - center).normalized();
     var particleColor = color.withAlpha(120 + rng.nextInt(125));
+    final particlePaint = Paint()..color = particleColor;
     final particle = Particle.generate(
       lifespan: 1,
       count: 1,
@@ -149,7 +140,7 @@ class ExperienceItem extends ProximityItem {
                 (.5 + rng.nextDouble()),
         child: SquareParticle(
           size: Vector2.all(.1) * (1 + rng.nextDouble() * .5),
-          paint: Paint()..color = particleColor,
+          paint: particlePaint,
         ),
       ),
     );

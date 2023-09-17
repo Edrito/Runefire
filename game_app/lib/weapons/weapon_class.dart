@@ -411,6 +411,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   bool tempAnimationPlaying = false;
 
   void applyKey(dynamic key) {
+    if (animations?.containsKey(key) != true) return;
     current = key;
     resize(animation!.frames.first.sprite.srcSize);
   }

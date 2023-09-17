@@ -232,7 +232,7 @@ class AssaultRifle extends PlayerWeapon
     baseDamage.damageBase[DamageType.fire] = (1, 3);
     maxAttacks.baseParameter = 22;
     attackTickRate.baseParameter = .1;
-    // baseAttackCount.baseParameter = 10;
+    baseAttackCount.baseParameter = 10;
     weaponRandomnessPercent.baseParameter = .025;
     projectileVelocity.baseParameter = 40;
   }

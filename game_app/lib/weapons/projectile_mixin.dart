@@ -501,12 +501,6 @@ mixin LaserProjectile on Projectile {
       path.lineTo(element.x, element.y);
     }
 
-    // canvas.drawPath(
-    //     path,
-    //     paint
-    //       ..strokeWidth = width * opacity
-    //       ..color = color.withOpacity(opacity));
-
     canvas.drawPath(
         path,
         backPaint

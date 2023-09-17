@@ -10,17 +10,22 @@ import '../resources/functions/custom.dart';
 import '../resources/functions/functions.dart';
 
 class Bullet extends Projectile
-    with
-        StandardProjectile,
-        //  ProjectileSpriteLifecycle
-//  ,
-        CanvasTrail {
+    with StandardProjectile, ProjectileSpriteLifecycle {
   Bullet(
       {required super.delta,
       required super.originPosition,
       required super.weaponAncestor,
       required this.size,
+      this.customSpawnAnimation,
+      this.customPlayAnimation,
+      this.customEndAnimation,
+      this.customHitAnimation,
       super.power});
+
+  Future<SpriteAnimation>? customSpawnAnimation;
+  Future<SpriteAnimation>? customPlayAnimation;
+  Future<SpriteAnimation>? customEndAnimation;
+  Future<SpriteAnimation>? customHitAnimation;
 
   @override
   double embedIntoEnemyChance = .8;
@@ -36,7 +41,7 @@ class Bullet extends Projectile
 
   @override
   void bodyContact(HealthFunctionality other) {
-    // applyHitAnimation(other, center);
+    applyHitAnimation(other, center);
 
     super.bodyContact(other);
   }
@@ -44,102 +49,48 @@ class Bullet extends Projectile
   @override
   SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
 
-  @override
-  Future<void> onLoad() async {
+  Future<void> buildAnimations() async {
     late SpriteAnimation spawnAnimation;
     late SpriteAnimation playAnimation;
     late SpriteAnimation endAnimation;
 
-    switch (damageType) {
-      case DamageType.physical:
-        spawnAnimation = await loadSpriteAnimation(
+    spawnAnimation = await customSpawnAnimation ??
+        await loadSpriteAnimation(
             4,
-            'weapons/projectiles/bullets/physical_bullet_spawn.png',
+            'weapons/projectiles/bullets/${damageType.name}_bullet_spawn.png',
             .02,
             false);
-        playAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/physical_bullet_play.png', .02, true);
-        endAnimation = await loadSpriteAnimation(3,
-            'weapons/projectiles/bullets/physical_bullet_end.png', .1, false);
-        hitAnimation = await loadSpriteAnimation(6,
-            'weapons/projectiles/bullets/physical_bullet_hit.png', .02, false);
-        break;
-
-      case DamageType.energy:
-        spawnAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/energy_bullet_spawn.png', .02, false);
-        playAnimation = await loadSpriteAnimation(
-            4, 'weapons/projectiles/bullets/energy_bullet_play.png', .02, true);
-        endAnimation = await loadSpriteAnimation(
-            3, 'weapons/projectiles/bullets/energy_bullet_end.png', .1, false);
-        hitAnimation = await loadSpriteAnimation(
-            6, 'weapons/projectiles/bullets/energy_bullet_hit.png', .02, false);
-        break;
-
-      case DamageType.fire:
-        spawnAnimation = await loadSpriteAnimation(
-            4, 'weapons/projectiles/bullets/fire_bullet_spawn.png', .02, false);
-        playAnimation = await loadSpriteAnimation(
-            4, 'weapons/projectiles/bullets/fire_bullet_play.png', .02, true);
-        endAnimation = await loadSpriteAnimation(
-            3, 'weapons/projectiles/bullets/fire_bullet_end.png', .1, false);
-        hitAnimation = await loadSpriteAnimation(
-            6, 'weapons/projectiles/bullets/fire_bullet_hit.png', .02, false);
-        break;
-
-      case DamageType.frost:
-        spawnAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/frost_bullet_spawn.png', .02, false);
-        playAnimation = await loadSpriteAnimation(
-            4, 'weapons/projectiles/bullets/frost_bullet_play.png', .02, true);
-        endAnimation = await loadSpriteAnimation(
-            3, 'weapons/projectiles/bullets/frost_bullet_end.png', .1, false);
-        hitAnimation = await loadSpriteAnimation(
-            6, 'weapons/projectiles/bullets/frost_bullet_hit.png', .02, false);
-        break;
-
-      case DamageType.magic:
-        spawnAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/magic_bullet_spawn.png', .02, false);
-        playAnimation = await loadSpriteAnimation(
-            4, 'weapons/projectiles/bullets/magic_bullet_play.png', .02, true);
-        endAnimation = await loadSpriteAnimation(
-            3, 'weapons/projectiles/bullets/magic_bullet_end.png', .1, false);
-        hitAnimation = await loadSpriteAnimation(
-            6, 'weapons/projectiles/bullets/magic_bullet_hit.png', .02, false);
-        break;
-
-      case DamageType.psychic:
-        spawnAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/psychic_bullet_spawn.png', .02, false);
-        playAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/psychic_bullet_play.png', .02, true);
-        endAnimation = await loadSpriteAnimation(
-            3, 'weapons/projectiles/bullets/psychic_bullet_end.png', .1, false);
-        hitAnimation = await loadSpriteAnimation(6,
-            'weapons/projectiles/bullets/psychic_bullet_hit.png', .02, false);
-        break;
-      case DamageType.healing:
-        spawnAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/healing_bullet_spawn.png', .02, false);
-        playAnimation = await loadSpriteAnimation(4,
-            'weapons/projectiles/bullets/healing_bullet_play.png', .02, true);
-        endAnimation = await loadSpriteAnimation(
-            3, 'weapons/projectiles/bullets/healing_bullet_end.png', .1, false);
-        hitAnimation = await loadSpriteAnimation(6,
-            'weapons/projectiles/bullets/healing_bullet_hit.png', .02, false);
-        break;
-    }
+    playAnimation = await customPlayAnimation ??
+        await loadSpriteAnimation(
+            4,
+            'weapons/projectiles/bullets/${damageType.name}_bullet_play.png',
+            .02,
+            true);
+    endAnimation = await customEndAnimation ??
+        await loadSpriteAnimation(
+            3,
+            'weapons/projectiles/bullets/${damageType.name}_bullet_end.png',
+            .1,
+            false);
+    hitAnimation = await customHitAnimation ??
+        await loadSpriteAnimation(
+            6,
+            'weapons/projectiles/bullets/${damageType.name}_bullet_hit.png',
+            .02,
+            false);
 
     animationComponent ??= SimpleStartPlayEndSpriteAnimationComponent(
-      // spawnAnimation:spawnAnimation,
       durationType: DurationType.temporary,
       playAnimation: playAnimation,
       spawnAnimation: spawnAnimation,
       desiredWidth: (size),
       endAnimation: endAnimation,
     );
+  }
 
+  @override
+  Future<void> onLoad() async {
+    await buildAnimations();
     super.onLoad();
   }
 
@@ -174,7 +125,7 @@ class Blast extends Projectile
   double embedIntoEnemyChance = .8;
 
   @override
-  ProjectileType projectileType = ProjectileType.bullet;
+  ProjectileType projectileType = ProjectileType.blast;
 
   @override
   double size;
@@ -333,7 +284,7 @@ class ExplosiveProjectile extends Projectile with StandardProjectile {
   double embedIntoEnemyChance = 0;
 
   @override
-  ProjectileType projectileType = ProjectileType.fireball;
+  ProjectileType projectileType = ProjectileType.explosiveProjectile;
 
   @override
   double size = 3;

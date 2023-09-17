@@ -206,6 +206,8 @@ mixin MeleeFunctionality on Weapon {
   MeleeAttack? get currentAttack =>
       meleeAttacks.isEmpty ? null : meleeAttacks[currentAttackIndex];
 
+  bool resetSwingsOnEndAttacking = true;
+
   final BoolParameterManager meleeAttacksCollision =
       BoolParameterManager(baseParameter: false);
 
@@ -267,7 +269,9 @@ mixin MeleeFunctionality on Weapon {
 
   @override
   void endAttacking() {
-    if (this is! ReloadFunctionality && this is! SemiAutomatic) {
+    if (this is! ReloadFunctionality &&
+        this is! SemiAutomatic &&
+        resetSwingsOnEndAttacking) {
       resetToFirstSwings();
     }
     super.endAttacking();
@@ -392,7 +396,7 @@ mixin ProjectileFunctionality on Weapon {
 
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
 
-  void shootProjectile([double chargeAmount = 1]) {
+  void shootProjectile([double chargeAmount = 1]) async {
     entityAncestor?.enviroment.physicsComponent
         .addAll(generateProjectileFunction(chargeAmount));
     // entityAncestor?.enviroment.add(generateParticle());
@@ -415,6 +419,7 @@ mixin ProjectileFunctionality on Weapon {
   Component generateParticle() {
     Vector2 moveDelta = entityAncestor?.body.linearVelocity ?? Vector2.zero();
     var particleColor = Colors.blue.withOpacity(.5);
+    final paint = Paint()..color = particleColor;
     final particle = Particle.generate(
       count: 20 + rng.nextInt(10),
       lifespan: 2,
@@ -429,7 +434,7 @@ mixin ProjectileFunctionality on Weapon {
             (1 + rng.nextDouble()),
         child: FadeOutCircleParticle(
             radius: .05 * ((rng.nextDouble() * .9) + .1),
-            paint: Paint()..color = particleColor,
+            paint: paint,
             lifespan: (particleLifespan * rng.nextDouble()) + particleLifespan),
       ),
     );
@@ -442,8 +447,8 @@ mixin ProjectileFunctionality on Weapon {
         entityAncestor!.center;
   }
 
-  List<BodyComponent> generateProjectileFunction([double chargeAmount = 1]) {
-    List<BodyComponent> returnList = [];
+  List<Projectile> generateProjectileFunction([double chargeAmount = 1]) {
+    List<Projectile> returnList = [];
 
     List<Vector2> temp = splitVector2DeltaIntoArea(
         entityAncestor!.entityAimAngle,
@@ -762,6 +767,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
 
   Component generateChargeParticle(double percent) {
     var particleColor = damageType.color;
+    final paint = Paint()..color = particleColor;
     final particle = Particle.generate(
       count: (1 + rng.nextInt(3) * percent).round(),
       lifespan: 2,
@@ -771,7 +777,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
         speed: ((Vector2.random() * 4) - Vector2.all(2)) * percent,
         child: FadeOutCircleParticle(
             radius: .04 * ((rng.nextDouble() * .9) + .1),
-            paint: Paint()..color = particleColor,
+            paint: paint,
             lifespan: (particleLifespan * rng.nextDouble()) + particleLifespan),
       ),
     );
@@ -790,7 +796,9 @@ mixin SemiAutomatic on Weapon {
   abstract SemiAutoType semiAutoType;
   bool waitForAttackRate = true;
 
-  double get chargeLength => attackTickRate.parameter;
+  double get chargeLength => customChargeDuration ?? attackTickRate.parameter;
+
+  double? customChargeDuration;
 
   @override
   double durationHeld = 0;
@@ -799,7 +807,7 @@ mixin SemiAutomatic on Weapon {
 
   double get holdDurationPercent => semiAutoType == SemiAutoType.regular
       ? 1
-      : Curves.easeInCirc
+      : Curves.easeIn
           .transform(ui.clampDouble(durationHeld / chargeLength, 0, 1));
 
   @override
