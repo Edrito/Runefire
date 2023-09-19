@@ -4,8 +4,10 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/child_entities.dart';
 import 'package:game_app/entities/entity_mixin.dart';
+import 'package:game_app/resources/functions/custom.dart';
 import 'package:game_app/resources/visuals.dart';
 import 'package:game_app/weapons/projectile_class.dart';
 
@@ -16,7 +18,7 @@ import '../resources/constants/physics_filter.dart';
 import '../resources/enums.dart';
 import '../resources/functions/vector_functions.dart';
 
-mixin CanvasTrail on StandardProjectile {
+mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
   late int trailCount;
   late int skip;
   List<Vector2> trails = [];
@@ -108,10 +110,20 @@ mixin CanvasTrail on StandardProjectile {
     //   1
     // ]);
 
-    canvas.drawCircle(Offset.zero, size, glowPaint);
-    canvas.drawCircle(Offset.zero, size * .5, bulletBackPaint);
+    canvas.drawCircle(Offset.zero, size * opacity, glowPaint);
+    canvas.drawCircle(Offset.zero, size * .5 * opacity, bulletBackPaint);
 
-    canvas.drawCircle(Offset.zero, size * .4, bulletPaint);
+    canvas.drawCircle(Offset.zero, size * .4 * opacity, bulletPaint);
+
+    // if (opacity != 1) {
+    //   canvas.drawCircle(
+    //       Offset.zero,
+    //       size,
+    //       Paint()
+    //         ..blendMode = BlendMode.dstOut
+    //         ..color = Colors.black.withOpacity(1 - opacity));
+    // }
+
     // final path = Path();
     // path.moveTo(0, 0);
 
@@ -136,9 +148,6 @@ mixin CanvasTrail on StandardProjectile {
 
 mixin StandardProjectile on Projectile {
   int enemiesHit = 0;
-  abstract double embedIntoEnemyChance;
-
-  double projectileLength = 5;
 
   void incrementHits() {
     enemiesHit++;
@@ -206,9 +215,13 @@ mixin StandardProjectile on Projectile {
   @override
   Future<void> onLoad() {
     gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
-
+    beginHoming =
+        Future.delayed(.1.seconds).then((value) => futureComplete = true);
     return super.onLoad();
   }
+
+  late Future beginHoming;
+  bool futureComplete = false;
 
   HealthFunctionality? target;
   bool targetSet = false;
@@ -220,15 +233,18 @@ mixin StandardProjectile on Projectile {
     }
   }
 
+  bool homingStopped = false;
+
   @override
   void update(double dt) {
-    if (target != null) {
+    if (target != null && futureComplete) {
       home(target!, dt);
-    } else if (body.linearVelocity.isZero()) {
+    } else if (homingStopped) {
       body.applyLinearImpulse(
-        (Vector2.random() * 2) -
-            Vector2.all(1) * weaponAncestor.projectileVelocity.parameter,
+        ((Vector2.random() * 2) - Vector2.all(1)) *
+            weaponAncestor.projectileVelocity.parameter,
       );
+      homingStopped = false;
     }
     super.update(dt);
   }
@@ -275,28 +291,55 @@ mixin StandardProjectile on Projectile {
     closetPosition = other.center;
 
     setDelta((closetPosition - body.worldCenter).normalized());
-    final impulse = (delta * weaponAncestor.projectileVelocity.parameter);
+    final impulse = (delta * weaponAncestor.projectileVelocity.parameter * 10);
 
-    body.applyLinearImpulse(impulse);
+    body.applyForce(impulse);
 
-    if (other.isDead) setTarget(null);
+    if (other.isDead) {
+      homingStopped = true;
+      setTarget(null);
+    }
   }
 
   void homingCheck(HealthFunctionality other) {
     if (!disableHoming &&
         weaponAncestor.weaponCanHome &&
+        !other.isDead &&
         !homingComplete &&
         !hitIds.contains(other.entityId)) {
       setTarget(other);
       homedTargets++;
       if (homedTargets > weaponAncestor.maxHomingTargets.parameter) {
         homingComplete = true;
+        homingStopped = true;
       }
+    }
+  }
+
+  @override
+  void killBullet([bool withEffect = false]) async {
+    if (!world.isLocked) {
+      body.setType(BodyType.static);
+    }
+    callBulletKillFunctions();
+    if (withEffect) {
+      if (this is ProjectileSpriteLifecycle) {
+        await (this as ProjectileSpriteLifecycle)
+            .animationComponent
+            ?.triggerEnding();
+      } else if (this is FadeOutProjectile) {
+        await Future.delayed(
+            (this as FadeOutProjectile).fadeOutDuration.seconds);
+      }
+
+      removeFromParent();
+    } else {
+      removeFromParent();
     }
   }
 }
 
-mixin LaserProjectile on Projectile {
+mixin LaserProjectile on FadeOutProjectile {
   int enemiesHit = 0;
   Set<Vector2> lineThroughEnemies = {};
   Set<Vector2> boxThroughEnemies = {};
@@ -304,7 +347,6 @@ mixin LaserProjectile on Projectile {
   double precisionPerDistance = .5;
 
   bool startChaining = false;
-  double timePassed = 0;
   abstract final double baseWidth;
   late double width;
 
@@ -481,18 +523,6 @@ mixin LaserProjectile on Projectile {
 
   late Paint backPaint;
   late Paint frontPaint;
-
-  @override
-  double get opacity => Curves.easeInCirc.transform(
-      (1 - ((timePassed - fadeOutDuration) / fadeOutDuration))
-          .clamp(0, 1)
-          .toDouble());
-
-  @override
-  void update(double dt) {
-    timePassed += dt;
-    super.update(dt);
-  }
 
   @override
   void render(Canvas canvas) {

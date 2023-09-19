@@ -82,7 +82,7 @@ class Icecicle extends PlayerWeapon
   ];
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.spriteBullet;
 
   @override
   double weaponSize = .85;

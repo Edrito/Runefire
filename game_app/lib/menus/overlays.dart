@@ -25,7 +25,6 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
     MapEntry('DeathScreen', (context, gameRouter) {
-  final size = MediaQuery.of(context).size;
   FocusNode node = FocusNode();
 
   node.requestFocus();
@@ -40,46 +39,27 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
       child: Center(
         child: StatefulBuilder(builder: (context, setState) {
           return ConstrainedBox(
-            constraints: const BoxConstraints(
-                maxWidth: 400, minHeight: 200, maxHeight: 500, minWidth: 250),
-            child: Container(
-              width: size.width / 3,
-              height: size.height / 4,
-              decoration: BoxDecoration(
-                  color: ApolloColorPalette.deepBlue.color.darken(.1),
-                  borderRadius: const BorderRadius.all(Radius.circular(20))),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      "You Died :'(",
-                      style: defaultStyle,
+              constraints: const BoxConstraints(
+                  maxWidth: 400, minHeight: 200, maxHeight: 500, minWidth: 250),
+              child: InGameMenu(
+                  gameRouter,
+                  [
+                    CustomButton(
+                      "Try again",
+                      gameRef: gameRouter,
+                      onTap: () {
+                        gameRouter.gameStateComponent.gameState.endGame(true);
+                      },
                     ),
-                  ),
-                  DisplayButtons(
-                    buttons: List<CustomButton>.from([
-                      CustomButton(
-                        "Try again",
-                        gameRef: gameRouter,
-                        onTap: () {
-                          gameRouter.gameStateComponent.gameState.endGame(true);
-                        },
-                      ),
-                      CustomButton(
-                        "Give up",
-                        gameRef: gameRouter,
-                        onTap: () {
-                          gameRouter.gameStateComponent.gameState.endGame();
-                        },
-                      )
-                    ]),
-                  ),
-                ],
-              ),
-            ),
-          );
+                    CustomButton(
+                      "Give up",
+                      gameRef: gameRouter,
+                      onTap: () {
+                        gameRouter.gameStateComponent.gameState.endGame();
+                      },
+                    )
+                  ],
+                  "You Died :'("));
         }),
       ),
     ),

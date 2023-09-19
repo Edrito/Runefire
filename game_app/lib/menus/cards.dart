@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/main.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
 import 'package:game_app/menus/overlays.dart';
+import 'package:game_app/resources/constants/constants.dart';
 import 'package:game_app/resources/enums.dart';
 import 'package:game_app/resources/functions/functions.dart';
 import '../resources/visuals.dart';
@@ -58,9 +59,9 @@ class CustomCard extends StatelessWidget {
     Size cardSize;
 
     if (smallCard) {
-      cardSize = const Size(128, 48);
+      cardSize = smallCardSize;
     } else {
-      cardSize = const Size(128, 96);
+      cardSize = largeCardSize;
     }
 
     return StatefulBuilder(builder: (context, setState) {

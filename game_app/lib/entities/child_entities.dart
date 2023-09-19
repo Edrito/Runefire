@@ -551,7 +551,9 @@ class ElementalCaptureBulletSentry extends ChildEntity
 
     var projectile = damage.sourceAttack as Projectile;
 
-    if (!projectile.isMounted || projectile.isRemoved || projectile.isDead) {
+    if (!projectile.isMounted ||
+        projectile.isRemoved ||
+        projectile.projectileHasExpired) {
       return false;
     }
 

@@ -9,36 +9,34 @@ import '../resources/enums.dart';
 import '../resources/functions/custom.dart';
 import '../resources/functions/functions.dart';
 
-class Bullet extends Projectile
-    with StandardProjectile, ProjectileSpriteLifecycle {
-  Bullet(
+class PaintBullet extends FadeOutBullet with PaintProjectile {
+  PaintBullet(
       {required super.delta,
       required super.originPosition,
       required super.weaponAncestor,
-      required this.size,
-      this.customSpawnAnimation,
-      this.customPlayAnimation,
-      this.customEndAnimation,
-      this.customHitAnimation,
+      required super.size,
       super.power});
 
+  @override
+  ProjectileType projectileType = ProjectileType.paintBullet;
+}
+
+class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
   Future<SpriteAnimation>? customSpawnAnimation;
   Future<SpriteAnimation>? customPlayAnimation;
   Future<SpriteAnimation>? customEndAnimation;
   Future<SpriteAnimation>? customHitAnimation;
 
-  @override
-  double embedIntoEnemyChance = .8;
-
-  @override
-  ProjectileType projectileType = ProjectileType.bullet;
-
-  @override
-  double size;
-
-  @override
-  double ttl = 1.5;
-
+  SpriteBullet(
+      {required super.delta,
+      required super.originPosition,
+      required super.weaponAncestor,
+      required super.size,
+      this.customSpawnAnimation,
+      this.customPlayAnimation,
+      this.customEndAnimation,
+      this.customHitAnimation,
+      super.power});
   @override
   void bodyContact(HealthFunctionality other) {
     applyHitAnimation(other, center);
@@ -95,43 +93,22 @@ class Bullet extends Projectile
   }
 
   @override
-  void killBullet([bool withEffect = false]) async {
-    if (!world.isLocked) {
-      body.setType(BodyType.static);
-    }
-    if (withEffect) {
-      await animationComponent?.triggerEnding();
-      removeFromParent();
-    } else {
-      removeFromParent();
-    }
-    callBulletKillFunctions();
-  }
+  SpriteAnimation? hitAnimation;
 
   @override
-  SpriteAnimation? hitAnimation;
+  ProjectileType projectileType = ProjectileType.spriteBullet;
 }
 
-class Blast extends Projectile
-    with StandardProjectile, ProjectileSpriteLifecycle {
+class Blast extends Bullet with ProjectileSpriteLifecycle {
   Blast(
       {required super.delta,
       required super.originPosition,
       required super.weaponAncestor,
-      required this.size,
+      required super.size,
       super.power});
 
   @override
-  double embedIntoEnemyChance = .8;
-
-  @override
   ProjectileType projectileType = ProjectileType.blast;
-
-  @override
-  double size;
-
-  @override
-  double ttl = 1.5;
 
   @override
   void bodyContact(HealthFunctionality other) {
@@ -257,40 +234,19 @@ class Blast extends Projectile
   }
 
   @override
-  void killBullet([bool withEffect = false]) {
-    if (!world.isLocked) {
-      body.setType(BodyType.static);
-    }
-    if (withEffect) {
-      animationComponent?.triggerEnding();
-    } else {
-      removeFromParent();
-    }
-    callBulletKillFunctions();
-  }
-
-  @override
   SpriteAnimation? hitAnimation;
 }
 
-class ExplosiveProjectile extends Projectile with StandardProjectile {
+class ExplosiveProjectile extends FadeOutBullet with PaintProjectile {
   ExplosiveProjectile(
       {required super.delta,
       required super.originPosition,
+      super.size = 3,
       required super.weaponAncestor,
       super.power});
 
   @override
-  double embedIntoEnemyChance = 0;
-
-  @override
   ProjectileType projectileType = ProjectileType.explosiveProjectile;
-
-  @override
-  double size = 3;
-
-  @override
-  double ttl = 2.0;
 
   @override
   void killBullet([bool withEffect = false]) async {
@@ -302,26 +258,30 @@ class ExplosiveProjectile extends Projectile with StandardProjectile {
     ));
     super.killBullet(withEffect);
   }
+
+  @override
+  SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
+
+  @override
+  SpriteAnimation? hitAnimation;
 }
 
-class Laser extends Projectile with LaserProjectile {
+class Laser extends Projectile with FadeOutProjectile, LaserProjectile {
   Laser(
       {required super.delta,
       required super.originPosition,
       required super.weaponAncestor,
-      super.power}) {
-    ttl = weaponAncestor.attackTickRate.parameter * 2;
-  }
-
+      super.size = 1.5,
+      super.power});
   @override
   ProjectileType projectileType = ProjectileType.laser;
 
   @override
-  double size = 1.5;
-
-  @override
-  double ttl = 0;
+  late final double ttl = weaponAncestor.attackTickRate.parameter * 2;
 
   @override
   double baseWidth = .3;
+
+  @override
+  set ttl(double val) {}
 }

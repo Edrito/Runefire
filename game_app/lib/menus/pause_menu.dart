@@ -5,12 +5,347 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/attributes/attributes_structure.dart';
+import 'package:game_app/resources/constants/constants.dart';
 import 'package:game_app/resources/game_state_class.dart';
 import 'package:numerus/numerus.dart';
 import '../game/enviroment.dart';
 import '../main.dart';
 import '../resources/visuals.dart';
 import 'buttons.dart';
+
+class AttributeDisplay extends StatefulWidget {
+  const AttributeDisplay(this.gameRef, this.attributes, this.title,
+      {super.key});
+  final String title;
+  final List<Attribute> attributes;
+  final GameRouter gameRef;
+
+  @override
+  State<AttributeDisplay> createState() => _AttributeDisplayState();
+}
+
+class _AttributeDisplayState extends State<AttributeDisplay> {
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    Color backgroundColor = ApolloColorPalette.mediumGray.color;
+    Color color = colorPalette.secondaryColor;
+    Widget background = Positioned.fill(
+        // bottom: null,
+        child: Image.asset(
+      'assets/images/ui/attribute_background_mask.png',
+      fit: BoxFit.fitWidth,
+      color: backgroundColor.withOpacity(1),
+      filterQuality: FilterQuality.none,
+    ));
+
+    Widget border = Positioned.fill(
+        // bottom: null,
+        child: Image.asset(
+      'assets/images/ui/attribute_border.png',
+      filterQuality: FilterQuality.none,
+      color: backgroundColor.brighten(.4),
+      fit: BoxFit.fitWidth,
+    ));
+    Widget borderInner = Positioned.fill(
+        // bottom: null,
+        child: Padding(
+      padding: const EdgeInsets.all(3),
+      child: Image.asset(
+        'assets/images/ui/attribute_border.png',
+        filterQuality: FilterQuality.none,
+        color: backgroundColor.brighten(.1),
+        fit: BoxFit.fitWidth,
+      ),
+    ));
+    Widget borderInnerInner = Positioned.fill(
+        // bottom: null,
+        child: Padding(
+      padding: const EdgeInsets.all(6),
+      child: Image.asset(
+        'assets/images/ui/attribute_border.png',
+        filterQuality: FilterQuality.none,
+        color: backgroundColor.darken(.7),
+        fit: BoxFit.fitWidth,
+      ),
+    ));
+
+    Widget title = Positioned.fill(
+      bottom: null,
+      child: Text(
+        widget.title,
+        textAlign: TextAlign.center,
+        style: defaultStyle.copyWith(
+            color: color,
+            shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+      ).animate().fadeIn(),
+    );
+    return LayoutBuilder(builder: (context, constraints) {
+      final ratio = largeCardSize.aspectRatio;
+      final double maxHeightOfAttributes = constraints.maxWidth / ratio;
+
+      return SizedBox.expand(
+        child: Stack(
+          children: [
+            background,
+            borderInnerInner,
+            borderInner,
+            border,
+            Positioned.fill(
+              child: Center(
+                child: SizedBox(
+                  height: maxHeightOfAttributes,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    child: ScrollConfiguration(
+                      behavior: scrollConfiguration(context),
+                      child: SingleChildScrollView(
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Wrap(
+                            children: [
+                              for (int i = 0;
+                                  i < (widget.attributes.length);
+                                  i++)
+                                Builder(
+                                  builder: (context) {
+                                    final currentAttrib =
+                                        widget.attributes.elementAt(i);
+
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: SizedBox(
+                                        // color: Colors.blue,
+                                        height: 100,
+                                        width: 60,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Image.asset(
+                                                'assets/images/${currentAttrib.icon}',
+                                                color: currentAttrib
+                                                    .attributeType
+                                                    .rarity
+                                                    .color),
+                                            SizedBox(
+                                              width: 55,
+                                              child: Text(
+                                                currentAttrib.upgradeLevel
+                                                        .toRomanNumeralString() ??
+                                                    "",
+                                                style: defaultStyle.copyWith(
+                                                    color: currentAttrib
+                                                        .attributeType
+                                                        .rarity
+                                                        .color,
+                                                    fontSize: 20),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            title
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class InGameMenu extends StatefulWidget {
+  const InGameMenu(this.gameRef, this.buttons, this.title, {super.key});
+  final String title;
+  final List<CustomButton> buttons;
+  final GameRouter gameRef;
+  @override
+  State<InGameMenu> createState() => _InGameMenuState();
+}
+
+class _InGameMenuState extends State<InGameMenu> {
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    Color backgroundColor = ApolloColorPalette.mediumGray.color;
+    Color color = colorPalette.secondaryColor;
+
+    Widget background = Positioned.fill(
+        // bottom: null,
+        child: Image.asset(
+      'assets/images/ui/attribute_background_mask.png',
+      fit: BoxFit.fitWidth,
+      color: backgroundColor.withOpacity(1),
+      filterQuality: FilterQuality.none,
+    ));
+
+    Widget border = Positioned.fill(
+        // bottom: null,
+        child: Image.asset(
+      'assets/images/ui/attribute_border.png',
+      filterQuality: FilterQuality.none,
+      color: backgroundColor.brighten(.4),
+      fit: BoxFit.fitWidth,
+    ));
+    Widget borderInner = Positioned.fill(
+        // bottom: null,
+        child: Padding(
+      padding: const EdgeInsets.all(3),
+      child: Image.asset(
+        'assets/images/ui/attribute_border.png',
+        filterQuality: FilterQuality.none,
+        color: backgroundColor.brighten(.1),
+        fit: BoxFit.fitWidth,
+      ),
+    ));
+    Widget borderInnerInner = Positioned.fill(
+        // bottom: null,
+        child: Padding(
+      padding: const EdgeInsets.all(6),
+      child: Image.asset(
+        'assets/images/ui/attribute_border.png',
+        filterQuality: FilterQuality.none,
+        color: backgroundColor.darken(.7),
+        fit: BoxFit.fitWidth,
+      ),
+    ));
+
+    Widget title = Positioned.fill(
+      bottom: null,
+      child: Text(
+        widget.title,
+        textAlign: TextAlign.center,
+        style: defaultStyle.copyWith(
+            color: color,
+            shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+      ).animate().fadeIn(),
+    );
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          background,
+          borderInnerInner,
+          borderInner,
+          border,
+          Positioned.fill(
+            // top: 50,
+            // right: 0,
+            // left: 0,
+            child: Center(
+              child: DisplayButtons(
+                buttons: List<CustomButton>.from(widget.buttons),
+              ),
+            ),
+          ),
+          title
+        ],
+      ),
+    );
+  }
+}
+
+// class InGameMenu extends StatefulWidget {
+//   const InGameMenu(this.gameRef, this.buttons, this.title, {super.key});
+//   final String title;
+//   final List<CustomButton> buttons;
+//   final GameRouter gameRef;
+//   @override
+//   State<InGameMenu> createState() => _InGameMenuState();
+// }
+
+// class _InGameMenuState extends State<InGameMenu> {
+//   @override
+//   Widget build(BuildContext context) {
+//     final size = MediaQuery.of(context).size;
+//     Color backgroundColor = ApolloColorPalette.mediumGray.color;
+//     Color color = colorPalette.secondaryColor;
+
+//     Widget background = Positioned.fill(
+//         // bottom: null,
+//         child: Image.asset(
+//       'assets/images/ui/attribute_background_mask.png',
+//       fit: BoxFit.fitWidth,
+//       color: backgroundColor.withOpacity(1),
+//       filterQuality: FilterQuality.none,
+//     ));
+
+//     Widget border = Positioned.fill(
+//         // bottom: null,
+//         child: Image.asset(
+//       'assets/images/ui/attribute_border.png',
+//       filterQuality: FilterQuality.none,
+//       color: backgroundColor.brighten(.4),
+//       fit: BoxFit.fitWidth,
+//     ));
+//     Widget borderInner = Positioned.fill(
+//         // bottom: null,
+//         child: Padding(
+//       padding: const EdgeInsets.all(3),
+//       child: Image.asset(
+//         'assets/images/ui/attribute_border.png',
+//         filterQuality: FilterQuality.none,
+//         color: backgroundColor.brighten(.1),
+//         fit: BoxFit.fitWidth,
+//       ),
+//     ));
+//     Widget borderInnerInner = Positioned.fill(
+//         // bottom: null,
+//         child: Padding(
+//       padding: const EdgeInsets.all(6),
+//       child: Image.asset(
+//         'assets/images/ui/attribute_border.png',
+//         filterQuality: FilterQuality.none,
+//         color: backgroundColor.darken(.7),
+//         fit: BoxFit.fitWidth,
+//       ),
+//     ));
+
+//     Widget title = Positioned.fill(
+//       bottom: null,
+//       child: Text(
+//         widget.title,
+//         textAlign: TextAlign.center,
+//         style: defaultStyle.copyWith(
+//             color: color,
+//             shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+//       ).animate().fadeIn(),
+//     );
+//     return SizedBox.expand(
+//       child: Stack(
+//         children: [
+//           background,
+//           borderInnerInner,
+//           borderInner,
+//           border,
+//           Positioned.fill(
+//             // top: 50,
+//             // right: 0,
+//             // left: 0,
+//             child: Center(
+//               child: DisplayButtons(
+//                 buttons: List<CustomButton>.from(widget.buttons),
+//               ),
+//             ),
+//           ),
+//           title
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 class PauseMenu extends StatefulWidget {
   const PauseMenu(this.gameRef, {super.key});
@@ -25,14 +360,15 @@ class _PauseMenuState extends State<PauseMenu> {
   late final GameState gameState;
   late final GameRouter gameRouter;
 
-  bool fetchAttributeLogicChecker(
-      MapEntry<AttributeType, Attribute> element, bool isTemp) {
+  bool fetchAttributeLogicChecker(Attribute element, bool isTemp) {
     final tempChecker =
-        ((element.key.territory == AttributeTerritory.temporary && isTemp) ||
-            (element.key.territory != AttributeTerritory.temporary && !isTemp));
+        ((element.attributeType.territory == AttributeTerritory.temporary &&
+                isTemp) ||
+            (element.attributeType.territory != AttributeTerritory.temporary &&
+                !isTemp));
 
     final permanentChecker =
-        element.key.territory != AttributeTerritory.permanent;
+        element.attributeType.territory != AttributeTerritory.permanent;
     return tempChecker && permanentChecker;
   }
 
@@ -52,24 +388,6 @@ class _PauseMenuState extends State<PauseMenu> {
     final size = MediaQuery.of(context).size;
     Color highlightColor = Colors.grey.shade800;
 
-    Widget background = Positioned.fill(
-        bottom: null,
-        child: Image.asset(
-          'assets/images/ui/attribute_background_mask.png',
-          fit: BoxFit.fitWidth,
-          color: highlightColor.withOpacity(.6),
-          filterQuality: FilterQuality.none,
-        ));
-
-    Widget border = Positioned.fill(
-        bottom: null,
-        child: Image.asset(
-          'assets/images/ui/attribute_border.png',
-          filterQuality: FilterQuality.none,
-          color: highlightColor,
-          fit: BoxFit.fitWidth,
-        ));
-
     return KeyboardListener(
       focusNode: node,
       onKeyEvent: (value) {
@@ -79,261 +397,106 @@ class _PauseMenuState extends State<PauseMenu> {
           gameState.resumeGame();
         }
       },
-      child: Center(
-        child: StatefulBuilder(builder: (context, setState) {
-          var entries = env.player?.currentAttributes.entries.toList();
-          var tempEntries = entries
-              ?.where((element) => fetchAttributeLogicChecker(element, true));
-          var nonTempEntries = entries
-              ?.where((element) => fetchAttributeLogicChecker(element, false));
+      child: Container(
+        color: ApolloColorPalette.darkestGray.color.withOpacity(.8),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 900),
+            child: StatefulBuilder(builder: (context, setState) {
+              var entries = env.player?.currentAttributes;
+              var tempEntries = entries?.values
+                      .where((element) =>
+                          fetchAttributeLogicChecker(element, true))
+                      .toList() ??
+                  [];
+              var nonTempEntries = entries?.values
+                      .where((element) =>
+                          fetchAttributeLogicChecker(element, false))
+                      .toList() ??
+                  [];
 
-          entries?.sort(
-              (a, b) => a.key.rarity.index.compareTo(b.key.rarity.index));
+              nonTempEntries.sort((a, b) => a.attributeType.rarity.index
+                  .compareTo(b.attributeType.rarity.index));
 
-          entries?.sort(
-              (b, a) => a.value.upgradeLevel.compareTo(b.value.upgradeLevel));
-          // nonTempEntries = [
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          //   ...nonTempEntries ?? [],
-          // ];
-          return Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 100,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Temporary Effects",
-                        style: defaultStyle,
-                      ),
-                    ),
-                    Container(
-                      height: 5,
-                      color: defaultStyle.color,
-                    ),
-                    Flexible(
-                      child: ListView.builder(
-                        itemCount: tempEntries?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          final currentAttrib = tempEntries?.elementAt(index);
+              nonTempEntries
+                  .sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
 
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: SizedBox(
-                              // color: Colors.blue,
-                              height: 100,
-                              width: 60,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                      'assets/images/${currentAttrib?.value.icon}',
-                                      color: currentAttrib?.key.rarity.color),
-                                  SizedBox(
-                                    width: 55,
-                                    child: Text(
-                                      currentAttrib?.value.upgradeLevel
-                                              .toRomanNumeralString() ??
-                                          "",
-                                      style: defaultStyle.copyWith(
-                                          color:
-                                              currentAttrib?.key.rarity.color,
-                                          fontSize: 20),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Permanent Effects",
-                        style: defaultStyle,
-                      ),
-                    ),
-                    Container(
-                      height: 5,
-                      color: defaultStyle.color,
-                    ),
-                    Flexible(
-                      flex: 2,
-                      child: ScrollConfiguration(
-                        behavior: scrollConfiguration(context),
-                        child: SingleChildScrollView(
-                          child: Align(
-                            alignment: Alignment.topLeft,
-                            child: Wrap(
-                              children: [
-                                for (int i = 0;
-                                    i < (nonTempEntries?.length ?? 0);
-                                    i++)
-                                  Builder(
-                                    builder: (context) {
-                                      final currentAttrib =
-                                          nonTempEntries?.elementAt(i);
+              // final paddingIncrease =
+              //     ((size.width - 1200) / size.width).clamp(0.0, 1.0);
 
-                                      return Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: SizedBox(
-                                          // color: Colors.blue,
-                                          height: 100,
-                                          width: 60,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Image.asset(
-                                                  'assets/images/${currentAttrib?.value.icon}',
-                                                  color: currentAttrib
-                                                      ?.key.rarity.color),
-                                              SizedBox(
-                                                width: 55,
-                                                child: Text(
-                                                  currentAttrib
-                                                          ?.value.upgradeLevel
-                                                          .toRomanNumeralString() ??
-                                                      "",
-                                                  style: defaultStyle.copyWith(
-                                                      color: currentAttrib
-                                                          ?.key.rarity.color,
-                                                      fontSize: 20),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  )
-                              ],
-                            ),
-                          ),
+              // print(paddingIncrease);
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 700),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          child: AttributeDisplay(
+                              gameRouter, tempEntries, "Temporary Effects"),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints:
-                        const BoxConstraints(maxWidth: 350, minWidth: 250),
-                    child: Column(
-                      children: [
-                        const Spacer(),
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  "Taking a break?",
-                                  style: defaultStyle.copyWith(
-                                      color: highlightColor),
-                                ),
-                              ).animate().fadeIn(),
-                              const SizedBox(
-                                height: 50,
-                              ),
-                              Expanded(
-                                child: Stack(
-                                  children: [
-                                    background,
-                                    border,
-                                    Positioned(
-                                      top: 50,
-                                      right: 0,
-                                      left: 0,
-                                      child: DisplayButtons(
-                                        buttons: List<CustomButton>.from([
-                                          CustomButton(
-                                            "Resume",
-                                            upDownColor: (
-                                              highlightColor.brighten(.5),
-                                              highlightColor
-                                            ),
-                                            gameRef: gameRouter,
-                                            onTap: () {
-                                              gameState.resumeGame();
-                                            },
-                                          ),
-                                          CustomButton(
-                                            "Give up",
-                                            gameRef: gameRouter,
-                                            upDownColor: (
-                                              highlightColor.brighten(.5),
-                                              highlightColor
-                                            ),
-                                            onTap: () {
-                                              gameState.resumeGame();
-                                              gameState.killPlayer(
-                                                  false, env.player!);
-                                            },
-                                          )
-                                        ]),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                      ],
                     ),
                   ),
-                ),
-              ),
-              const Spacer()
-            ],
-          );
-        }),
-      ),
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                          maxWidth: 400,
+                          minHeight: 200,
+                          maxHeight: 500,
+                          minWidth: 250),
+                      child: InGameMenu(
+                          gameRouter,
+                          [
+                            CustomButton(
+                              "Resume",
+                              upDownColor: (
+                                colorPalette.primaryColor.brighten(.5),
+                                colorPalette.primaryColor
+                              ),
+                              gameRef: widget.gameRef,
+                              onTap: () {
+                                gameState.resumeGame();
+                              },
+                            ),
+                            CustomButton(
+                              "Give up",
+                              gameRef: gameRouter,
+                              upDownColor: (
+                                colorPalette.primaryColor.brighten(.5),
+                                colorPalette.primaryColor
+                              ),
+                              onTap: () {
+                                gameState.resumeGame();
+                                gameState.killPlayer(false, env.player!);
+                              },
+                            )
+                          ],
+                          "Pause Menu"),
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 700),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          child: AttributeDisplay(gameRouter, nonTempEntries,
+                              "Unlocked Attributes"),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ),
+      ).animate().fadeIn(),
     );
   }
 }

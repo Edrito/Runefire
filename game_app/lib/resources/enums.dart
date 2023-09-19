@@ -376,8 +376,8 @@ extension ExperienceAmountExtension on ExperienceAmount {
 }
 
 enum ProjectileType {
-  bullet,
-  arrow,
+  spriteBullet,
+  paintBullet,
   laser,
   explosiveProjectile,
   blast,
@@ -398,8 +398,8 @@ extension ProjectileTypeExtension on ProjectileType {
             delta: delta,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
-      case ProjectileType.bullet:
-        return Bullet(
+      case ProjectileType.spriteBullet:
+        return SpriteBullet(
             originPosition: originPositionVar,
             delta: delta,
             size: size,
@@ -416,10 +416,17 @@ extension ProjectileTypeExtension on ProjectileType {
             weaponAncestor: ancestorVar,
             originPosition: originPositionVar,
             delta: delta,
-            size: 1,
+            size: size,
+            power: chargeAmount);
+      case ProjectileType.paintBullet:
+        return PaintBullet(
+            weaponAncestor: ancestorVar,
+            originPosition: originPositionVar,
+            delta: delta,
+            size: size,
             power: chargeAmount);
       case ProjectileType.holyBullet:
-        return Bullet(
+        return SpriteBullet(
             originPosition: originPositionVar,
             delta: delta,
             size: size,
@@ -428,13 +435,6 @@ extension ProjectileTypeExtension on ProjectileType {
                 'weapons/projectiles/bullets/holy_bullet_spawn.png', .1, false),
             customPlayAnimation: loadSpriteAnimation(
                 1, 'weapons/projectiles/bullets/holy_bullet_play.png', 1, true),
-            power: chargeAmount);
-      default:
-        return Bullet(
-            originPosition: originPositionVar,
-            delta: delta,
-            size: size,
-            weaponAncestor: ancestorVar,
             power: chargeAmount);
     }
   }
@@ -655,7 +655,7 @@ extension DamageTypeExtension on DamageType {
       case DamageType.frost:
         return ApolloColorPalette.lightCyan.color;
       case DamageType.healing:
-        return ApolloColorPalette.paleGreen.color;
+        return ApolloColorPalette.lightGreen.color;
     }
   }
 }
@@ -743,10 +743,10 @@ class DamageInstance {
 }
 
 enum SecondaryType {
-  reloadAndRapidFire(
-      'assets/images/weapons/dagger.png', 5, weaponIsReloadFunctionality, 500),
-  pistol('assets/images/weapons/dagger.png', 5, alwaysCompatible, 500),
-  explodeProjectiles('assets/images/weapons/dagger.png', 5,
+  reloadAndRapidFire('assets/images/attributes/topSpeed.png', 5,
+      weaponIsReloadFunctionality, 500),
+  pistol('assets/images/attributes/topSpeed.png', 5, alwaysCompatible, 500),
+  explodeProjectiles('assets/images/attributes/topSpeed.png', 5,
       weaponIsProjectileFunctionality, 500);
 
   const SecondaryType(

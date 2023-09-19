@@ -14,8 +14,8 @@ class BlankProjectileWeapon extends EnemyWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (5, 8);
-    attackTickRate.baseParameter = .8;
-
+    attackTickRate.baseParameter = .01;
+    baseAttackCount.baseParameter = 10;
     projectileVelocity.baseParameter = 10;
   }
   @override
@@ -59,7 +59,10 @@ class BlankProjectileWeapon extends EnemyWeapon
   double weaponSize = 2;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.paintBullet;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.regular;
 
   @override
   void endAltAttacking() {
@@ -70,7 +73,4 @@ class BlankProjectileWeapon extends EnemyWeapon
   void startAltAttacking() {
     // TODO: implement startAltAttacking
   }
-
-  @override
-  SemiAutoType semiAutoType = SemiAutoType.regular;
 }

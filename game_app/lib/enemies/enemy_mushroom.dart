@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:forge2d/src/dynamics/body.dart';
 import 'package:game_app/enemies/enemy_mixin.dart';
 import 'package:game_app/entities/entity_mixin.dart';
 import 'package:game_app/game/event_management.dart';
@@ -471,6 +472,8 @@ class MushroomBurrower extends Enemy
     maxHealth.baseParameter = mushroomShooterBaseMaxHealth;
     speed.baseParameter = 0;
 
+    collision.baseParameter = false;
+
     initialWeapons.add(WeaponType.blankProjectileWeapon);
 
     bool initState = false;
@@ -563,6 +566,14 @@ class MushroomBurrower extends Enemy
         burrowSpeed / 9,
         false);
   }
+
+  // @override
+  // Body createBody() {
+  //   return super.createBody()
+  //     ..fixtures.forEach((element) {
+  //       element.setSensor(true);
+  //     });
+  // }
 
   @override
   Future<void> onLoad() async {

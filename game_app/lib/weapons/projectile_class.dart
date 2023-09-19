@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:game_app/resources/functions/custom.dart';
+import 'package:game_app/weapons/projectile_mixin.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flame/components.dart';
@@ -11,24 +13,62 @@ import 'package:game_app/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
 
+abstract class FadeOutBullet extends Bullet with FadeOutProjectile {
+  FadeOutBullet(
+      {required super.delta,
+      required super.originPosition,
+      required super.weaponAncestor,
+      required super.size,
+      super.power});
+}
+
+abstract class Bullet extends Projectile with StandardProjectile {
+  Bullet(
+      {required super.delta,
+      required super.originPosition,
+      required super.weaponAncestor,
+      required super.size,
+      super.power});
+
+  @override
+  double ttl = 2;
+}
+
+mixin FadeOutProjectile on Projectile {
+  @override
+  void update(double dt) {
+    timePassed += dt;
+    super.update(dt);
+  }
+
+  double timePassed = 0;
+  double fadeOutDuration = .4;
+  Curve fadeOutCurve = Curves.easeOut;
+  @override
+  double get opacity => fadeOutCurve.transform(
+      (1 - ((timePassed - ttl) / fadeOutDuration)).clamp(0, 1).toDouble());
+}
+
 abstract class Projectile extends BodyComponent<GameRouter>
     with ContactCallbacks {
   Projectile(
       {required this.delta,
       required this.originPosition,
       required this.weaponAncestor,
+      required this.size,
       this.power = 1}) {
     projectileId = const Uuid().v4();
     damageType =
         weaponAncestor.baseDamage.damageBase.keys.toList().getRandomElement();
   }
 
+  double size;
+
   bool disableChaining = false;
   bool disableHoming = false;
 
   late DamageType damageType;
 
-  double fadeOutDuration = .4;
   late String projectileId;
   Random rng = Random();
   double durationPassed = 0;
@@ -42,7 +82,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
   ProjectileFunctionality weaponAncestor;
   double closeBodySensorRadius = 3;
   Vector2 originPosition;
-  abstract double size;
   abstract double ttl;
   abstract ProjectileType projectileType;
 
@@ -138,6 +177,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
     projectileDeathTimer = TimerComponent(
       period: ttl,
       onTick: () {
+        projectileHasExpired = true;
         killBullet(true);
       },
     );
@@ -152,8 +192,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
     super.onRemove();
   }
 
-  bool isDead = false;
-
   void callBulletKillFunctions() {
     if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
       final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
@@ -164,9 +202,10 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void killBullet([bool withEffect = false]) async {
-    body.setType(BodyType.static);
+    if (!world.isLocked) {
+      body.setType(BodyType.static);
+    }
     removeFromParent();
     callBulletKillFunctions();
-    isDead = true;
   }
 }

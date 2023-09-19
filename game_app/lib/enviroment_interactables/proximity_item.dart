@@ -105,7 +105,9 @@ class ExperienceItem extends ProximityItem {
     color = experienceAmount.color;
     trailPaint = Paint()..color = color;
     xpPaint = colorPalette.buildProjectile(
-        color: color, projectileType: ProjectileType.bullet, lighten: false);
+        color: color,
+        projectileType: ProjectileType.spriteBullet,
+        lighten: false);
 
     return super.onLoad();
   }

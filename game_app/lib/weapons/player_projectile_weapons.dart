@@ -83,7 +83,7 @@ class Pistol extends PlayerWeapon
   double weaponSize = 1.356;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.spriteBullet;
 }
 
 class Shotgun extends PlayerWeapon
@@ -144,7 +144,7 @@ class Shotgun extends PlayerWeapon
   double weaponSize = 2;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.spriteBullet;
 }
 
 class LongRangeRifle extends PlayerWeapon
@@ -217,7 +217,7 @@ class LongRangeRifle extends PlayerWeapon
   double weaponSize = 3.0;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.spriteBullet;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
@@ -283,7 +283,7 @@ class AssaultRifle extends PlayerWeapon
   double weaponSize = 1.4;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.spriteBullet;
 }
 
 class LaserRifle extends PlayerWeapon
@@ -423,7 +423,7 @@ class RocketLauncher extends PlayerWeapon
   double weaponSize = 1.7;
 
   @override
-  ProjectileType? projectileType = ProjectileType.bullet;
+  ProjectileType? projectileType = ProjectileType.spriteBullet;
 
   @override
   double tipPositionPercent = -.2;

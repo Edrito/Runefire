@@ -170,7 +170,7 @@ class CrystalSword extends PlayerWeapon
           attackPattern: [
             (Vector2(-1, 0), 55, 1),
             // (Vector2(.2, 1), 90, 1),
-            (Vector2(2, -1), -75, .5),
+            (Vector2(2, -1), -75, 1),
             // (Vector2(0, 0), -90, .9),
           ]),
       MeleeAttack(
@@ -296,13 +296,13 @@ class Spear extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (8, 16);
-    attackTickRate.baseParameter = .7;
+    attackTickRate.baseParameter = .8;
     tipOffset = Vector2(0, weaponSize);
     pierce.baseParameter = 100;
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2.all(1),
+          attackHitboxSize: Vector2(1, weaponSize),
           weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
@@ -321,7 +321,7 @@ class Spear extends PlayerWeapon
             // (Vector2(0, 1.5), -20, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2.all(1),
+          attackHitboxSize: Vector2(1, weaponSize),
           entitySpriteAnimation: null,
           weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
           attackSpriteAnimationBuild: () async {
@@ -340,7 +340,7 @@ class Spear extends PlayerWeapon
             // (Vector2(0, 1.5), 20, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2.all(1),
+          attackHitboxSize: Vector2(3, weaponSize),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(), Vector2(0, weaponSize),
@@ -353,8 +353,8 @@ class Spear extends PlayerWeapon
           },
           chargePattern: [],
           attackPattern: [
-            (Vector2(0, 3), 375, 1),
-            (Vector2(0, -4.0), -45, 1),
+            (Vector2(0, 3), 370, 1),
+            (Vector2(0, -4), -10, 1),
           ]),
     ];
     pierce.baseParameter = 5;
@@ -478,9 +478,9 @@ class HolySword extends PlayerWeapon
                 });
           },
           chargePattern: [
-            (Vector2(0, .3), -20, 1),
+            (Vector2(0, .3), -20, .8),
             (Vector2(.2, .3), -40, 1),
-            (Vector2(.1, .3), -60, 1),
+            (Vector2(.1, .3), -60, 1.2),
           ],
           attackPattern: [
             // (Vector2(.2, 1), 0, 1),

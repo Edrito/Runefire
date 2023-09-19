@@ -133,7 +133,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
     add(PolygonComponent(verts,
         anchor: Anchor.center,
-        paint: Paint()..color = Colors.red.withOpacity(.2)));
+        paint: Paint()..color = Colors.red.withOpacity(.1)));
 
     final swordFilter = Filter();
     if (meleeAttackAncestor.weaponAncestor.entityAncestor is Enemy) {
@@ -147,8 +147,8 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
         userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
-        density: 0,
         isSensor: true,
+        density: 0,
         filter: swordFilter);
 
     final bodyDef = BodyDef(

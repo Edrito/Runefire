@@ -1,10 +1,9 @@
 import 'dart:async';
 
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
 import 'package:flame/palette.dart';
 import 'package:flame/particles.dart';
+import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:game_app/entities/entity_mixin.dart';
@@ -170,9 +169,16 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
   abstract SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
 
   void changeSpriteAngle() {
-    final rad = -radiansBetweenPoints(Vector2(0, 1), delta);
+    final rad = -radiansBetweenPoints(Vector2(0, 1), body.linearVelocity);
 
     animationComponent?.angle = rad;
+  }
+
+  @override
+  void update(double dt) {
+    changeSpriteAngle();
+
+    super.update(dt);
   }
 
   @override
@@ -182,15 +188,22 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
     animationComponent?.addToParent(this);
   }
 
-  @override
-  void home(HealthFunctionality other, double dt) {
-    changeSpriteAngle();
-    super.home(other, dt);
-  }
-
   void applyHitAnimation(Entity other, Vector2 position) {
     if (hitAnimation == null) return;
     other.applyHitAnimation(hitAnimation!, position, 1);
+  }
+
+  @override
+  void killBullet([bool withEffect = false]) {
+    if (!world.isLocked) {
+      body.setType(BodyType.static);
+    }
+    if (withEffect) {
+      animationComponent?.triggerEnding();
+    } else {
+      removeFromParent();
+    }
+    callBulletKillFunctions();
   }
 }
 
