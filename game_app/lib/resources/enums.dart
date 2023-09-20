@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
@@ -450,7 +452,8 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
       case SecondaryType.reloadAndRapidFire:
         return RapidFire(primaryWeaponAncestor, 5, upgradeLevel);
       case SecondaryType.pistol:
-        return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
+        return BlankProjectileWeapon(
+            upgradeLevel, primaryWeaponAncestor?.entityAncestor!);
       case SecondaryType.explodeProjectiles:
         return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
     }
@@ -483,6 +486,7 @@ enum WeaponType {
 
   largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
   spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
+  powerWord('assets/images/weapons/book_idle.png', 5, AttackType.magic, 1500),
   crystalSword(
       'assets/images/weapons/crystal_sword.png', 5, AttackType.melee, 100),
   ;
@@ -520,6 +524,9 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.frostKatana:
         returnWeapon = FrostKatana(upgradeLevel, ancestor);
+        break;
+      case WeaponType.powerWord:
+        returnWeapon = PowerWord(upgradeLevel, ancestor);
         break;
       case WeaponType.blankProjectileWeapon:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
@@ -618,6 +625,9 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = LargeSword(upgradeLevel, null);
 
         break;
+      case WeaponType.powerWord:
+        returnWeapon = PowerWord(upgradeLevel, null);
+        break;
       case WeaponType.icecicleMagic:
         returnWeapon = Icecicle(upgradeLevel, null);
         break;
@@ -666,9 +676,9 @@ class DamageInstance {
     required this.source,
     required this.victim,
     required this.sourceAttack,
+    this.sourceWeapon,
     this.isCrit = false,
     this.damageKind = DamageKind.regular,
-    this.sourceWeapon,
     this.statusEffectChance,
   });
 
@@ -691,9 +701,13 @@ class DamageInstance {
     if (!force && victim.consumeMark()) {
       force = true;
     }
-    if (rngCrit <= source.critChance.parameter || force) {
+    if (rngCrit <=
+            source.critChance.parameter +
+                (sourceWeapon?.critChance.parameter ?? 0) ||
+        force) {
       isCrit = true;
-      critDamageIncrease = source.critDamage.parameter;
+      critDamageIncrease = max(source.critDamage.parameter,
+          (sourceWeapon?.critDamage.parameter ?? 1));
     }
 
     increaseByPercent(critDamageIncrease);

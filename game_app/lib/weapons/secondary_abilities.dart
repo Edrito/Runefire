@@ -187,24 +187,16 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
     final projectile = weapon as ProjectileFunctionality;
     final projectileListCopy = [...projectile.activeProjectiles.reversed];
     for (var element in projectileListCopy) {
-      await Future.delayed(const Duration(milliseconds: 20));
-      weapon?.entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
-        sourceEntity: weapon!.entityAncestor!,
-        position: element.center,
-        radius: 5,
-        durationType: DurationType.instant,
-        duration: 5,
-        onTick: (entity, areaId) {
-          if (entity is HealthFunctionality) {
-            // entity.hitCheck(areaId, [
-            //   DamageInstance(
-            //       damageBase: .1,
-            //       damageType: DamageType.fire,
-            //       source: weapon!.entityAncestor!)
-            // ]);
-          }
-        },
-      ));
+      Future.delayed(const Duration(milliseconds: 10)).then((value) {
+        weapon?.entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
+          sourceEntity: weapon!.entityAncestor!,
+          position: element.center,
+          radius: 3,
+          durationType: DurationType.instant,
+          damage: {DamageType.fire: (2, 5)},
+        ));
+      });
+
       element.killBullet();
     }
   }

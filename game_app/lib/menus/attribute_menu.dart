@@ -46,8 +46,8 @@ class AttributeTile extends StatelessWidget {
           child: Image.asset(
             'assets/images/powerups/start.png',
             color: isUnlocked
-                ? (customColor ?? Colors.white).brighten(.2)
-                : (customColor ?? Colors.blue).darken(.5),
+                ? (customColor ?? ApolloColorPalette.offWhite.color)
+                : (customColor ?? colorPalette.primaryColor),
           ),
         ),
       ),
@@ -58,7 +58,6 @@ class AttributeTile extends StatelessWidget {
           Animate(effects: const [FadeEffect()], child: returnWidget);
     }
     return Expanded(child: returnWidget);
-    return returnWidget;
   }
 
   @override
@@ -66,8 +65,11 @@ class AttributeTile extends StatelessWidget {
     Color? customColor = isSelected
         ? attribute.damageType?.color.brighten(1)
         : attribute.damageType?.color;
-    final selectedColor = isSelected ? Colors.white : Colors.blue;
-    final style = defaultStyle.copyWith(fontSize: 20, color: Colors.white);
+    final selectedColor = isSelected
+        ? ApolloColorPalette.offWhite.color
+        : colorPalette.primaryColor;
+    final style = defaultStyle.copyWith(
+        fontSize: 20, color: ApolloColorPalette.offWhite.color);
     final count = attribute.maxLevel;
     final levelCountWidget = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -92,10 +94,10 @@ class AttributeTile extends StatelessWidget {
           ShaderMask(
             shaderCallback: (bounds) {
               return LinearGradient(colors: [
-                Colors.black.withOpacity(.3),
-                Colors.white,
-                Colors.white,
-                Colors.black.withOpacity(.3)
+                ApolloColorPalette.darkestGray.color.withOpacity(.3),
+                ApolloColorPalette.offWhite.color,
+                ApolloColorPalette.offWhite.color,
+                ApolloColorPalette.darkestGray.color.withOpacity(.3)
               ], stops: const [
                 0,
                 0.3,
@@ -187,7 +189,7 @@ class AttributeTile extends StatelessWidget {
                       style: style.copyWith(
                           // fontStyle: FontStyle.italic,
                           fontSize: style.fontSize! * .9,
-                          color: Colors.blueGrey.shade200),
+                          color: ApolloColorPalette.lightCyan.color),
                     ),
                   ),
                 ],

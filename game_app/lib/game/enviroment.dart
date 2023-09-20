@@ -153,6 +153,7 @@ abstract class GameEnviroment extends Enviroment
         PlayerFunctionality,
         PauseOnFocusLost,
         BoundsFunctionality,
+        // JoystickFunctionality,
         GameTimerFunctionality,
         CollisionEnviroment,
         HudFunctionality {

@@ -426,19 +426,22 @@ class Player extends Entity
         inputAimAngles.remove(InputType.tapClick);
         break;
 
-      case InputType.mouseDrag:
-        inputAimPositions[InputType.mouseMove] = shiftCoordinatesToCenter(
-                eventPosition, enviroment.gameCamera.viewport.size) /
-            enviroment.gameCamera.viewfinder.zoom;
-        inputAimPositions[InputType.mouseDrag] =
-            inputAimPositions[InputType.mouseMove]!;
-        inputAimAngles[InputType.mouseDrag] =
-            inputAimPositions[InputType.mouseDrag]!.normalized();
-        inputAimAngles[InputType.mouseMove] =
-            inputAimAngles[InputType.mouseDrag]!.clone();
-        startAttacking();
+      // case InputType.mouseDrag:
+      //   print('drag here');
+      //   inputAimPositions[InputType.mouseMove] = shiftCoordinatesToCenter(
+      //           eventPosition, enviroment.gameCamera.viewport.size) /
+      //       enviroment.gameCamera.viewfinder.zoom;
 
-        break;
+      //   inputAimPositions[InputType.mouseDrag] =
+      //       inputAimPositions[InputType.mouseMove]!;
+
+      //   inputAimAngles[InputType.mouseDrag] =
+      //       inputAimPositions[InputType.mouseDrag]!.normalized();
+      //   inputAimAngles[InputType.mouseMove] =
+      //       inputAimAngles[InputType.mouseDrag]!.clone();
+      //   startAttacking();
+
+      //   break;
       // case InputType.mouseDragStart:
       //   if (!inputAimAngles.containsKey(InputType.mouseMove)) return;
       //   startAttacking();

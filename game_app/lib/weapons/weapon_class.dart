@@ -102,6 +102,14 @@ abstract class Weapon extends Component with UpgradeFunctions {
   //META INFORMATION
   bool attackOnAnimationFinish = false;
 
+  bool get isCurrentWeapon {
+    if (entityAncestor is AttackFunctionality) {
+      final att = entityAncestor as AttackFunctionality;
+      return att.currentWeapon == this;
+    }
+    return false;
+  }
+
   Weapon? get getSecondaryWeapon {
     if (this is SecondaryFunctionality) {
       return (this as SecondaryFunctionality).secondaryWeapon;
@@ -226,13 +234,18 @@ abstract class Weapon extends Component with UpgradeFunctions {
     }
   }
 
-  DoubleParameterManager maxSpreadDegrees =
+  final DoubleParameterManager critChance = DoubleParameterManager(
+      baseParameter: 0.05, minParameter: 0, maxParameter: 1);
+  final DoubleParameterManager critDamage =
+      DoubleParameterManager(baseParameter: 1.4, minParameter: 1);
+
+  final DoubleParameterManager maxSpreadDegrees =
       DoubleParameterManager(baseParameter: 45);
 
-  DoubleParameterManager knockBackAmount =
+  final DoubleParameterManager knockBackAmount =
       DoubleParameterManager(baseParameter: 0.005);
 
-  IntParameterManager maxChainingTargets =
+  final IntParameterManager maxChainingTargets =
       IntParameterManager(baseParameter: 0);
   bool get weaponCanChain => maxChainingTargets.parameter > 0;
 

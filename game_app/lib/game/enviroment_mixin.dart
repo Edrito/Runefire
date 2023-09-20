@@ -50,12 +50,21 @@ mixin JoystickFunctionality on PlayerFunctionality {
     );
   }
 
+  bool isMoveJoyClicked(Vector2 pos) {
+    return moveJoystick?.background?.containsPoint(pos) ?? false;
+  }
+
+  bool isAimJoyClicked(Vector2 pos) {
+    return (aimJoystick?.background?.containsPoint(pos) ?? false);
+  }
+
   @override
   bool discernJoystate(int id, Vector2 eventPosition) {
-    final moveEnabled =
-        moveJoystick?.background?.containsPoint(eventPosition) ?? false;
-    final aimEnabled =
-        aimJoystick?.background?.containsPoint(eventPosition) ?? false;
+    if (inputIdStates[id] == InputType.moveJoy) return true;
+    if (inputIdStates[id] == InputType.aimJoy) return true;
+
+    final moveEnabled = isMoveJoyClicked(eventPosition);
+    final aimEnabled = isAimJoyClicked(eventPosition);
 
     if (moveEnabled) {
       inputIdStates[id] = InputType.moveJoy;
@@ -92,9 +101,9 @@ mixin JoystickFunctionality on PlayerFunctionality {
         player?.gestureEventStart(
             InputType.moveJoy, info.localPosition.toVector2());
         break;
-      case InputType.mouseDrag:
-        player?.gestureEventStart(
-            InputType.mouseDrag, info.localPosition.toVector2());
+      // case InputType.mouseDrag:
+      //   player?.gestureEventStart(
+      //       InputType.mouseDrag, info.localPosition.toVector2());
 
       default:
     }
@@ -113,10 +122,10 @@ mixin JoystickFunctionality on PlayerFunctionality {
           moveJoystick?.onDragCancel();
           player?.gestureEventEnd(InputType.moveJoy);
           break;
-        case InputType.mouseDrag:
-          player?.gestureEventEnd(InputType.mouseDrag);
+        // case InputType.mouseDrag:
+        //   player?.gestureEventEnd(InputType.mouseDrag);
 
-          break;
+        // break;
         default:
       }
       inputIdStates.remove(id);
@@ -365,26 +374,26 @@ mixin PlayerFunctionality on Enviroment {
   }
 
   void transmitDragInfo(int pointerId, PointerMoveEvent info) {
-    switch (inputIdStates[pointerId]) {
-      case InputType.mouseDrag:
-        player?.gestureEventStart(
-            InputType.mouseDrag, info.localPosition.toVector2());
+    // switch (inputIdStates[pointerId]) {
+    //   case InputType.mouseDrag:
+    //     player?.gestureEventStart(
+    //         InputType.mouseDrag, info.localPosition.toVector2());
 
-      default:
-    }
+    //   default:
+    // }
   }
 
   void endIdState(int id) {
-    if (inputIdStates.containsKey(id)) {
-      switch (inputIdStates[id]) {
-        case InputType.mouseDrag:
-          player?.gestureEventEnd(InputType.mouseDrag);
+    // if (inputIdStates.containsKey(id)) {
+    //   switch (inputIdStates[id]) {
+    //     case InputType.mouseDrag:
+    //       player?.gestureEventEnd(InputType.mouseDrag);
 
-          break;
-        default:
-      }
-      inputIdStates.remove(id);
-    }
+    //       break;
+    //     default:
+    //   }
+    //   inputIdStates.remove(id);
+    // }
   }
 
   // @override
@@ -405,9 +414,21 @@ mixin PlayerFunctionality on Enviroment {
   // }
 
   @override
+  void onMount() {
+    wrapper.onPrimaryMove = onTapMove;
+    super.onMount();
+  }
+
+  @override
   void onTapDown(PointerDownEvent info) {
-    if (Platform.isWindows &&
-        !discernJoystate(-1, info.localPosition.toVector2())) {
+    bool check() {
+      final joy = this as JoystickFunctionality;
+      return joy.isAimJoyClicked(info.localPosition.toVector2()) ||
+          joy.isMoveJoyClicked(info.localPosition.toVector2());
+    }
+
+    bool moveOrAimClicked = this is JoystickFunctionality ? check() : false;
+    if (Platform.isWindows && !moveOrAimClicked) {
       player?.gestureEventStart(
           InputType.tapClick, info.localPosition.toVector2());
     }
@@ -416,8 +437,6 @@ mixin PlayerFunctionality on Enviroment {
   void onTapMove(PointerMoveEvent event) {
     transmitDragInfo(event.pointer, event);
     discernJoystate(event.pointer, event.localPosition.toVector2());
-    // player?.gestureEventStart(
-    //     InputType.mouseDragStart, event.localPosition.toVector2());
   }
 
   @override

@@ -269,7 +269,7 @@ mixin AimFunctionality on Entity {
 
     final returnVal = inputAimPositions[InputType.aimJoy] ??
         inputAimPositions[InputType.mouseMove] ??
-        inputAimPositions[InputType.mouseDrag] ??
+        // inputAimPositions[InputType.mouseDrag] ??
         inputAimPositions[InputType.tapClick] ??
         inputAimPositions[InputType.ai];
     if (returnVal != null) {
@@ -288,7 +288,7 @@ mixin AimFunctionality on Entity {
 
     final returnVal = inputAimAngles[InputType.aimJoy] ??
         inputAimAngles[InputType.tapClick] ??
-        inputAimAngles[InputType.mouseDrag] ??
+        // inputAimAngles[InputType.mouseDrag] ??
         inputAimAngles[InputType.mouseMove] ??
         inputAimAngles[InputType.ai] ??
         ((this is MovementFunctionality)
@@ -402,9 +402,9 @@ mixin AimFunctionality on Entity {
 
 mixin AttackFunctionality on AimFunctionality {
   Weapon? get currentWeapon {
-    if (!weaponsInitialized) {
-      initializeWeapons();
-    }
+    // if (!weaponsInitialized) {
+    //   initializeWeapons();
+    // }
 
     return carriedWeapons[weaponIndex];
   }
@@ -545,17 +545,17 @@ mixin AttackFunctionality on AimFunctionality {
 
     newWeapon.weaponSwappedTo();
 
+    if (onWeaponSwap.isNotEmpty) {
+      for (var element in onWeaponSwap) {
+        element(previousWeapon, newWeapon);
+      }
+    }
+
     if (isAttacking) {
       newWeapon.startAttacking();
     }
     if (isAltAttacking) {
       newWeapon.startAltAttacking();
-    }
-
-    if (onWeaponSwap.isNotEmpty) {
-      for (var element in onWeaponSwap) {
-        element(previousWeapon, newWeapon);
-      }
     }
   }
 }

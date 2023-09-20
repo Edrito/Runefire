@@ -27,7 +27,7 @@ import '../menus/overlays.dart' as overlay;
 final rng = Random();
 late final GameState gameState;
 
-bool startInGame = true;
+bool startInGame = false;
 
 Map<int, bool> isSecondaryPointer = {};
 
@@ -92,13 +92,13 @@ void main() async {
             gameRouter.onMouseMove(event);
           },
           onPointerMove: (event) {
-            if (event.kind == PointerDeviceKind.mouse) {
-              if (event.buttons == 2) {
-                gameRouter.onSecondaryMove(event);
-              } else {
-                gameRouter.onTapMove(event);
-              }
+            // if (event.kind == PointerDeviceKind.mouse) {
+            if (event.kind == PointerDeviceKind.mouse && event.buttons == 2) {
+              gameRouter.onSecondaryMove(event);
+            } else {
+              gameRouter.onTapMove(event);
             }
+            // }
 
             gameRouter.onMouseMove(PointerHoverEvent(
                 buttons: event.buttons,
@@ -113,35 +113,37 @@ void main() async {
           },
           onPointerDown: (event) {
             if (gameRouter.paused) return;
-            if (event.kind == PointerDeviceKind.mouse) {
-              if (event.buttons == 2) {
-                isSecondaryPointer[event.pointer] = true;
-                gameRouter.onSecondaryTapDown(event);
-              } else {
-                isSecondaryPointer[event.pointer] = false;
+            // if (event.kind == PointerDeviceKind.mouse) {
+            if (event.kind == PointerDeviceKind.mouse && event.buttons == 2) {
+              isSecondaryPointer[event.pointer] = true;
+              gameRouter.onSecondaryTapDown(event);
+            } else {
+              isSecondaryPointer[event.pointer] = false;
 
-                gameRouter.onTapDown(event);
-              }
+              gameRouter.onTapDown(event);
             }
+            // }
           },
           onPointerUp: (event) {
-            if (event.kind == PointerDeviceKind.mouse) {
-              if (isSecondaryPointer[event.pointer] == true) {
-                gameRouter.onSecondaryTapUp(event);
-              } else {
-                gameRouter.onTapUp(event);
-              }
+            // if (event.kind == PointerDeviceKind.mouse) {
+            if (event.kind == PointerDeviceKind.mouse &&
+                isSecondaryPointer[event.pointer] == true) {
+              gameRouter.onSecondaryTapUp(event);
+            } else {
+              gameRouter.onTapUp(event);
             }
+            // }
             isSecondaryPointer.remove(event.pointer);
           },
           onPointerCancel: (event) {
-            if (event.kind == PointerDeviceKind.mouse) {
-              if (isSecondaryPointer[event.pointer] == true) {
-                gameRouter.onSecondaryTapCancel();
-              } else {
-                gameRouter.onTapCancel();
-              }
+            // if (event.kind == PointerDeviceKind.mouse) {
+            if (event.kind == PointerDeviceKind.mouse &&
+                isSecondaryPointer[event.pointer] == true) {
+              gameRouter.onSecondaryTapCancel();
+            } else {
+              gameRouter.onTapCancel();
             }
+            // }
             isSecondaryPointer.remove(event.pointer);
           },
           child: RawKeyboardListener(

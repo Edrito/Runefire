@@ -78,6 +78,21 @@ StatusEffectAttribute? statusEffectBuilder(
           perpetratorEntity: perpetratorEntity,
         );
       }
+    case AttributeType.stun:
+      if (isTemporary) {
+        return TemporaryStun(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+          duration: duration,
+        );
+      } else {
+        return StunAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
+      }
     case AttributeType.empowered:
       if (isTemporary) {
         return TemporaryEmpowered(
@@ -418,4 +433,67 @@ class EmpoweredAttribute extends StatusEffectAttribute {
 
   @override
   StatusEffects statusEffect = StatusEffects.empowered;
+}
+
+class TemporaryStun extends StunAttribute with TemporaryAttribute {
+  TemporaryStun(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity,
+      double? duration}) {
+    this.duration = duration ?? this.duration;
+    this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
+  }
+
+  @override
+  double duration = 5;
+}
+
+class StunAttribute extends StatusEffectAttribute {
+  StunAttribute(
+      {required super.level,
+      required super.victimEntity,
+      required super.perpetratorEntity});
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  int? get maxLevel => 1;
+
+  @override
+  String title = "Stunned";
+
+  @override
+  AttributeType get attributeType => AttributeType.empowered;
+
+  @override
+  String description() {
+    return "";
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    victimEntity?.entityStatusWrapper
+        .addStatusEffect(StatusEffects.stun, upgradeLevel);
+    attr.enableMovement.setIncrease(attributeId, false);
+    attr.enableMovement.setIncrease("${attributeId}2", false);
+  }
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final attr = victimEntity as AttributeFunctionsFunctionality;
+    victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.stun);
+    attr.enableMovement.removeKey(attributeId);
+    attr.enableMovement.removeKey("${attributeId}2");
+  }
+
+  @override
+  String icon = "powerups/power.png";
+
+  @override
+  StatusEffects statusEffect = StatusEffects.stun;
 }

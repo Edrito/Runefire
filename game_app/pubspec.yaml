@@ -71,14 +71,11 @@ flutter:
 
 
     - assets/images/powerups/
-    - assets/images/portal/
     - assets/images/sprites/
     - assets/images/status_effects/
     - assets/images/effects/
     - assets/images/ui/
-    - assets/images/buttons/
     - assets/images/background/
-    - assets/images/decorations/
     - assets/images/experience/
 
     - assets/images/attributes/

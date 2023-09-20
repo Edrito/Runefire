@@ -25,15 +25,15 @@ class ForestGame extends GameEnviroment {
     await super.onLoad();
 
     // forestBackground = level.buildBackground(this);
-    // forestBackground = SpriteComponent(
-    //     sprite: await Sprite.load('background/mushroom_garden.png'),
-    //     priority: backgroundPriority,
-    //     size: Vector2.all(boundsDistanceFromCenter * 2),
-    //     anchor: Anchor.center);
+    forestBackground = SpriteComponent(
+        sprite: await Sprite.load('background/mushroom_garden.png'),
+        priority: backgroundPriority,
+        size: Vector2.all(boundsDistanceFromCenter * 2),
+        anchor: Anchor.center);
 
     enemyManagement = ForestEnemyManagement(this);
     add(enemyManagement);
-    // add(forestBackground);
+    add(forestBackground);
     conductTests(this);
   }
 
