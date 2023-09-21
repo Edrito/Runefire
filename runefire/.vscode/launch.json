@@ -6,20 +6,23 @@
     "configurations": [
         {
             "name": "runefire",
-            "cwd": "runefire",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+        },
+        {
+            "name": "runefire_verbose",
+            "request": "launch",
+            "type": "dart",
+            "args": ["--verbose"]
         },
         {
             "name": "runefire (profile mode)",
-            "cwd": "runefire",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
             "name": "runefire (release mode)",
-            "cwd": "runefire",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

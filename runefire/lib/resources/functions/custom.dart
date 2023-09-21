@@ -1,0 +1,430 @@
+import 'dart:async';
+
+import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
+import 'package:flame/palette.dart';
+import 'package:flame/particles.dart';
+import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/game/area_effects.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+
+import '../../entities/entity_class.dart';
+import '../../weapons/projectile_mixin.dart';
+
+extension ResetTicker on SpriteAnimationGroupComponent {
+  void resetTicker(dynamic key) {
+    final newTicker = animations?[key]?.createTicker();
+    if (newTicker != null) {
+      animationTickers?[key] = newTicker;
+    } else {
+      animationTickers?.remove(key);
+    }
+  }
+}
+
+mixin HasOpacityProvider on Component {
+  final Paint _paint = BasicPalette.transparent.paint();
+
+  @override
+  void renderTree(Canvas canvas) {
+    super.renderTree(canvas);
+    canvas.drawPaint(_paint..blendMode = BlendMode.color);
+  }
+}
+
+extension RandomGrabber on List {
+  T getRandomElement<T>() {
+    return this[rng.nextInt(length)] as T;
+  }
+}
+
+extension ColorExtension on Color {
+  /// Merges two colors based on a merge factor between 0 and 1.
+  Color mergeWith(Color other, double mergeFactor) {
+    mergeFactor = mergeFactor.clamp(0.0, 1.0);
+
+    int mergedRed =
+        ((red + (other.red - red) * mergeFactor).round()).clamp(0, 255);
+    int mergedGreen =
+        ((green + (other.green - green) * mergeFactor).round()).clamp(0, 255);
+    int mergedBlue =
+        ((blue + (other.blue - blue) * mergeFactor).round()).clamp(0, 255);
+
+    return Color.fromARGB(alpha, mergedRed, mergedGreen, mergedBlue);
+  }
+}
+
+class CaTextComponent extends TextComponent with HasOpacityProvider {
+  CaTextComponent(
+      {super.anchor,
+      super.angle,
+      super.children,
+      super.position,
+      super.priority,
+      super.scale,
+      super.size,
+      super.text,
+      super.textRenderer});
+}
+
+class SquareParticle extends Particle {
+  final Paint paint;
+  final Vector2 size;
+
+  SquareParticle({
+    required this.paint,
+    required this.size,
+    super.lifespan,
+  });
+
+  @override
+  void render(Canvas canvas) {
+    canvas.drawRect(
+        Rect.fromCenter(center: Offset.zero, width: size.x, height: size.y),
+        paint);
+  }
+}
+
+class FadeOutCircleParticle extends CircleParticle {
+  FadeOutCircleParticle({
+    required Paint paint,
+    required double lifespan,
+    double radius = 10.0,
+  }) : super(paint: paint, radius: radius, lifespan: lifespan) {
+    lifespanForOpacity = lifespan;
+  }
+  late double lifespanForOpacity;
+  double duration = 0;
+  @override
+  void update(double dt) {
+    duration += dt;
+    super.update(dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    canvas.drawCircle(
+        Offset.zero,
+        radius,
+        Paint()
+          ..color = paint.color
+              .withOpacity((1 - duration / lifespanForOpacity).clamp(0, 1)));
+  }
+}
+
+mixin UpgradeFunctions {
+  int upgradeLevel = 0;
+  abstract int? maxLevel;
+  bool get isMaxLevel => upgradeLevel == maxLevel;
+
+  void changeLevel(int newUpgradeLevel) {
+    removeUpgrade();
+
+    upgradeLevel = newUpgradeLevel;
+
+    if (maxLevel != null) upgradeLevel = upgradeLevel.clamp(0, maxLevel!);
+
+    applyUpgrade();
+  }
+
+  void incrementLevel(int increment) {
+    changeLevel(upgradeLevel + increment);
+  }
+
+  void reMapUpgrade() {
+    removeUpgrade();
+    applyUpgrade();
+  }
+
+  void applyUpgrade() {
+    if (upgradeApplied) {
+      return;
+    }
+    mapUpgrade();
+    upgradeApplied = true;
+  }
+
+  void mapUpgrade() {}
+
+  void removeUpgrade() {
+    if (!upgradeApplied) {
+      return;
+    }
+    unMapUpgrade();
+    upgradeApplied = false;
+  }
+
+  void unMapUpgrade() {}
+
+  bool upgradeApplied = false;
+}
+
+mixin ProjectileSpriteLifecycle on StandardProjectile {
+  abstract SpriteAnimation? hitAnimation;
+
+  abstract SimpleStartPlayEndSpriteAnimationComponent? animationComponent;
+
+  void changeSpriteAngle() {
+    final rad = -radiansBetweenPoints(Vector2(0, 1), body.linearVelocity);
+
+    animationComponent?.angle = rad;
+  }
+
+  @override
+  void update(double dt) {
+    changeSpriteAngle();
+
+    super.update(dt);
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    changeSpriteAngle();
+    animationComponent?.addToParent(this);
+  }
+
+  void applyHitAnimation(Entity other, Vector2 position) {
+    if (hitAnimation == null) return;
+    other.applyHitAnimation(hitAnimation!, position, 1);
+  }
+
+  @override
+  void killBullet([bool withEffect = false]) {
+    if (!world.isLocked) {
+      body.setType(BodyType.static);
+    }
+    if (withEffect) {
+      animationComponent?.triggerEnding().then((value) {
+        removeFromParent();
+      });
+    } else {
+      removeFromParent();
+    }
+    callBulletKillFunctions();
+  }
+}
+
+class SimpleStartPlayEndSpriteAnimationComponent
+    extends SpriteAnimationGroupComponent {
+  SpriteAnimation? spawnAnimation;
+  SpriteAnimation? playAnimation;
+  SpriteAnimation? endAnimation;
+  DurationType durationType;
+  bool randomlyFlipped;
+
+  SimpleStartPlayEndSpriteAnimationComponent(
+      {this.spawnAnimation,
+      this.playAnimation,
+      this.durationType = DurationType.temporary,
+      this.randomlyFlipped = false,
+      this.endAnimation,
+      this.desiredWidth,
+      super.position,
+      super.anchor = Anchor.center}) {
+    assert(playAnimation != null || spawnAnimation != null);
+    assert(spawnAnimation != null || durationType != DurationType.instant);
+    desiredWidth ??= 1.0;
+    final bool isSizeZero = size.x == 0 || size.y == 0;
+    if (isSizeZero) {
+      final spriteSize = playAnimation?.frames.first.sprite.srcSize ??
+          spawnAnimation!.frames.first.sprite.srcSize;
+
+      size = spriteSize;
+    }
+    final widthRatio = desiredWidth! / (size.x);
+    size = Vector2(desiredWidth!, size.y * widthRatio);
+  }
+
+  late EntityStatus currentStatus;
+  double? desiredWidth;
+  @override
+  FutureOr<void> onLoad() {
+    // autoResize = true;
+    // scale = Vector2.all(1);
+    // size = Vector2.all(1);
+
+    Map<dynamic, SpriteAnimation>? animationsToSet = {
+      if (spawnAnimation != null) EntityStatus.spawn: spawnAnimation!,
+      EntityStatus.idle: playAnimation ?? spawnAnimation!,
+      if (endAnimation != null) EntityStatus.dead: endAnimation!,
+    };
+    animations = animationsToSet;
+
+    if (randomlyFlipped && rng.nextBool()) {
+      flipHorizontallyAroundCenter();
+    }
+
+    if (spawnAnimation != null) {
+      _setStatus(EntityStatus.spawn);
+
+      animationTicker?.onComplete = () {
+        switch (durationType) {
+          case DurationType.instant:
+            triggerEnding();
+            break;
+          default:
+            if (durationType == DurationType.permanent) {
+              animation?.loop = true;
+            }
+            _setStatus(EntityStatus.idle);
+        }
+      };
+    } else {
+      _setStatus(EntityStatus.idle);
+    }
+
+    return super.onLoad();
+  }
+
+  void _setStatus(EntityStatus status) {
+    currentStatus = status;
+    current = status;
+  }
+
+  Future<void> triggerEnding() async {
+    if (endAnimation == null) {
+      if (animationTicker?.done() ?? true) {
+        removeFromParent();
+      } else {
+        const duration = .5;
+        final controller = EffectController(
+          curve: Curves.easeInCubic,
+          duration: duration,
+          onMax: () {
+            removeFromParent();
+          },
+        );
+        add(OpacityEffect.fadeOut(controller));
+      }
+
+      return;
+    } else {
+      _setStatus(EntityStatus.dead);
+      if (animation != null) {
+        animation?.loop = false;
+        animationTicker?.onComplete = () {
+          removeFromParent();
+        };
+        await animationTicker?.completed;
+      } else {
+        removeFromParent();
+      }
+    }
+  }
+}
+
+class CustomParticleGenerator extends Component {
+  CustomParticleGenerator({
+    required this.minSize,
+    required this.maxSize,
+    required this.lifespan,
+    required this.frequency,
+    required this.velocity,
+    this.color,
+    required this.particlePosition,
+    this.sprites,
+    this.duration,
+    this.damageType,
+    this.parentBody,
+    super.priority,
+    super.key,
+  });
+  final Body? parentBody;
+  final double frequency;
+  final double minSize;
+  final double maxSize;
+  final Vector2? velocity;
+  final Color? color;
+  final List<Sprite>? sprites;
+  final double lifespan;
+  final DamageType? damageType;
+  final Vector2 particlePosition;
+  final double? duration;
+
+  Paint? customPaint;
+
+  TimerComponent? timer;
+
+  late Vector2 position = Vector2.zero();
+
+  int ticks = 0;
+
+  @override
+  FutureOr<void> onLoad() {
+    timer = TimerComponent(
+      period: .1,
+      repeat: true,
+      onTick: () {
+        ticks++;
+        if (duration != null && ticks > duration! / .05) {
+          removeFromParent();
+          return;
+        }
+        if (parentBody != null) {
+          position = parentBody!.worldCenter;
+        }
+        final particleSystem = ParticleSystemComponent(
+            position: position,
+            particle: Particle.generate(
+              // applyLifespanToChildren: true,
+              count: rng.nextInt((frequency / 2).ceil()) +
+                  (frequency * .75).round(),
+              generator: (p0) {
+                final randomLifespan =
+                    ((rng.nextDouble() - .5) * lifespan) + (lifespan);
+                final randomPosition = Vector2(
+                    ((rng.nextDouble() * 2) - 1) * particlePosition.x,
+                    ((rng.nextDouble() * 2) - 1) * particlePosition.y);
+                Vector2? velocity;
+                if (this.velocity != null) {
+                  velocity = Vector2(
+                      ((rng.nextDouble() * 2) - 1) * this.velocity!.x,
+                      ((rng.nextDouble() * 2) - 1) * this.velocity!.y);
+                }
+
+                (particlePosition * .75) +
+                    Vector2(rng.nextDouble() * .5 * particlePosition.x,
+                        rng.nextDouble() * .5 * particlePosition.y);
+                final size = rng.nextDouble() * (maxSize - minSize) + minSize;
+                if (color != null) {
+                  customPaint = colorPalette.buildProjectile(
+                      color: color!,
+                      projectileType: ProjectileType.paintBullet,
+                      lighten: false);
+                }
+                if (sprites != null && sprites!.isNotEmpty) {
+                  final sprite = sprites?.getRandomElement<Sprite>();
+                  return SpriteParticle(
+                      sprite: sprite!,
+                      position: randomPosition,
+                      lifespan: randomLifespan,
+                      size: Vector2(size, size),
+                      overridePaint: customPaint);
+                }
+
+                final particle = AcceleratedParticle(
+                  position: randomPosition,
+                  speed: velocity,
+                  child: CircleParticle(
+                    paint: customPaint!,
+                    lifespan: randomLifespan,
+                    radius: size / 2,
+                  ),
+                );
+
+                return particle;
+              },
+            ));
+        add(particleSystem);
+      },
+    )..addToParent(this);
+
+    return super.onLoad();
+  }
+}
