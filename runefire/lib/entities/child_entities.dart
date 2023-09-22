@@ -236,7 +236,7 @@ class MarkEnemySentry extends ChildEntity {
   }
 
   void findTarget() {
-    final bodies = world.bodies.where(
+    final bodies = world.physicsWorld.bodies.where(
       (element) => element.userData is Entity,
     );
 
@@ -360,7 +360,7 @@ class GrabItemsSentry extends MovingSentry with ContactCallbacks {
   }
 
   void findTarget() {
-    final bodies = world.bodies
+    final bodies = world.physicsWorld.bodies
         .where(
           (element) =>
               element.userData is ProximityItem &&
@@ -465,7 +465,7 @@ class ElementalAttackSentry extends MovingSentry
   void findTarget() {
     deadCheck();
     if (!shouldFetchNewTarget) return;
-    final bodies = world.bodies.where(
+    final bodies = world.physicsWorld.bodies.where(
       (element) => element.userData is Entity,
     );
 

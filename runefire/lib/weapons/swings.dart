@@ -376,7 +376,8 @@ class MeleeAttackHandler extends Component {
         hitbox!.hitEnemies < weaponAncestor.chainingTargets.parameter &&
         !isDead) {
       List<Body> bodies = [
-        ...weaponAncestor.entityAncestor?.gameRef.world.bodies.where((element) {
+        ...weaponAncestor.entityAncestor?.world.physicsWorld.bodies
+                .where((element) {
               if (weaponAncestor.entityAncestor is Player) {
                 return element.userData is Enemy &&
                     element.userData != other &&

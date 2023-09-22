@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:flame/components.dart';
+import 'package:flame/components.dart' hide World;
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -11,6 +11,8 @@ import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/game/background.dart';
+import 'package:flame_forge2d/forge2d_game.dart' as f2d;
+import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/resources/constants/sprite_animations.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';

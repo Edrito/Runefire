@@ -196,7 +196,7 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
 
   @override
   void killBullet([bool withEffect = false]) {
-    if (!world.isLocked) {
+    if (!world.physicsWorld.isLocked) {
       body.setType(BodyType.static);
     }
     if (withEffect) {
@@ -289,7 +289,8 @@ class SimpleStartPlayEndSpriteAnimationComponent
 
   Future<void> triggerEnding() async {
     if (endAnimation == null) {
-      if (animationTicker?.done() ?? true) {
+      if (!animation!.loop && !animationTicker!.isPaused) {
+        await animationTicker?.completed;
         removeFromParent();
       } else {
         const duration = .5;

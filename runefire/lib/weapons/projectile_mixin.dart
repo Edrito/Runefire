@@ -318,7 +318,7 @@ mixin StandardProjectile on Projectile {
 
   @override
   void killBullet([bool withEffect = false]) async {
-    if (!world.isLocked) {
+    if (!world.physicsWorld.isLocked) {
       body.setType(BodyType.static);
     }
     callBulletKillFunctions();
@@ -402,7 +402,7 @@ mixin LaserProjectile on FadeOutProjectile {
   void homingAndChainCalculations() {
     double distance = weaponAncestor.projectileVelocity.parameter;
 
-    List<Body> bodies = game.world.bodies
+    List<Body> bodies = world.physicsWorld.bodies
         .where((element) => infrontWeaponCheck(element))
         .toList();
 

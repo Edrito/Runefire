@@ -2413,7 +2413,7 @@ class SonicWaveAttribute extends Attribute {
     applyActionToWeapons((weapon) {
       if (weapon is! MeleeFunctionality) return;
       final newWeapon = WeaponType.blankProjectileWeapon
-          .build(weapon.entityAncestor!, null, victimEntity!.gameRef, 0);
+          .build(weapon.entityAncestor!, null, victimEntity!.game, 0);
       weapon.addAdditionalWeapon(newWeapon);
       newWeapons.add(newWeapon);
     }, false, false);
@@ -2465,7 +2465,7 @@ class DaggerSwingAttribute extends Attribute {
     applyActionToWeapons((weapon) {
       if (weapon is! ProjectileFunctionality) return;
       final newWeapon = WeaponType.holySword
-          .build(weapon.entityAncestor!, null, victimEntity!.gameRef, 0);
+          .build(weapon.entityAncestor!, null, victimEntity!.game, 0);
 
       if (newWeapon is StaminaCostFunctionality) {
         newWeapon.weaponStaminaCost.setParameterPercentValue(attributeId, -1);

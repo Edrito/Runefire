@@ -177,7 +177,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
       [double holdDurationPercent = 1, bool callFunctions = true]) {
     toggleTextComponent(false);
     explodeTextComponent();
-    final enemies = entityAncestor!.world.bodies.where((element) =>
+    final enemies = entityAncestor!.world.physicsWorld.bodies.where((element) =>
         element.userData is Enemy &&
         entityAncestor!.gameEnviroment.gameCamera.visibleWorldRect
             .containsPoint(element.worldCenter) &&
@@ -361,14 +361,15 @@ class EnergyMagic extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     chainingTargets.baseParameter = 3;
-    baseDamage.damageBase[DamageType.energy] = (3, 7);
+    baseDamage.damageBase[DamageType.energy] = (1, 3);
     maxAttacks.baseParameter = 20;
+    baseAttackCount.baseParameter = 3;
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 4;
     tipOffset = Vector2(0, weaponSize);
 
     primaryDamageType = DamageType.energy;
-    projectileSize = 1.25;
+    projectileSize = .75;
 
     // onProjectileDeath.add((projectile) {
     //   entityAncestor?.enviroment.physicsComponent.add(AreaEffect(

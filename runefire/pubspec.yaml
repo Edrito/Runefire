@@ -11,8 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flame_forge2d: ^0.14.0
-
 
   cupertino_icons: ^1.0.2
   flame: ^1.7.3
@@ -30,6 +28,7 @@ dependencies:
   numerus: ^2.1.2
   particle_field: ^1.0.0
   rnd: ^0.2.0
+  flame_forge2d: ^0.15.0
 
   
 

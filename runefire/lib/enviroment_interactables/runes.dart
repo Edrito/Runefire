@@ -21,7 +21,7 @@ class ExperienceAttract extends Expendable {
 
   @override
   void applyExpendable() {
-    final activeExperiennceItems = player.world.bodies
+    final activeExperiennceItems = player.world.physicsWorld.bodies
         .where((element) => element.userData is ExperienceItem);
 
     //Player effect
@@ -41,7 +41,7 @@ class StunEnemiesRune extends Expendable {
 
   @override
   void applyExpendable() {
-    final enemies = player.world.bodies.where((element) =>
+    final enemies = player.world.physicsWorld.bodies.where((element) =>
         element.userData is Enemy &&
         player.gameEnviroment.gameCamera.visibleWorldRect
             .containsPoint(element.worldCenter));
@@ -85,7 +85,7 @@ class FearEnemiesRune extends Expendable {
 
   @override
   void applyExpendable() {
-    final enemies = player.world.bodies.where((element) =>
+    final enemies = player.world.physicsWorld.bodies.where((element) =>
         element.userData is Enemy &&
         player.gameEnviroment.gameCamera.visibleWorldRect
             .containsPoint(element.worldCenter));

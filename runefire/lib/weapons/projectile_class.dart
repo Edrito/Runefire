@@ -207,7 +207,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void killBullet([bool withEffect = false]) async {
-    if (!world.isLocked) {
+    if (!world.physicsWorld.isLocked) {
       body.setType(BodyType.static);
     }
     removeFromParent();

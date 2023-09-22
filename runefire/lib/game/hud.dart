@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -20,7 +21,10 @@ class GameHud extends PositionComponent {
   Player? player;
   GameHud(this.gameRef);
   int fps = 0;
-  late final FpsTextComponent fpsCounter;
+  late final FpsTextComponent fpsCounter = FpsTextComponent(
+    textRenderer: TextPaint(style: defaultStyle),
+    position: Vector2(0, gameRef.gameCamera.viewport.size.y - 100),
+  );
   late final TextComponent levelCounter;
   @override
   final double width = 100;
@@ -81,11 +85,10 @@ class GameHud extends PositionComponent {
     );
 
     //FPS
-    fpsCounter = FpsTextComponent(
-      textRenderer: TextPaint(style: defaultStyle),
-      position: Vector2(0, gameRef.gameCamera.viewport.size.y - 40),
-    );
 
+    Future.delayed(2.seconds).then((_) {
+      add(fpsCounter);
+    });
     //Timer
     timerParent = HudMarginComponent(
         margin: EdgeInsets.fromLTRB(0, 5, 110 * hudScale, 0),
@@ -149,7 +152,6 @@ class GameHud extends PositionComponent {
     add(timerParent);
 
     addAll([topLeftMarginParent]);
-    add(fpsCounter);
 
     initPaints();
 

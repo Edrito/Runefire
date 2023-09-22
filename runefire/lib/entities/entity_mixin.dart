@@ -444,13 +444,13 @@ mixin AttackFunctionality on AimFunctionality {
       final playerData = player.playerData;
       for (var i = 0; i < player.playerData.selectedWeapons.length; i++) {
         final element = playerData.selectedWeapons[i]!;
-        carriedWeapons[i] = element.build(
-            this, player.playerData.selectedSecondaries[i], gameRef);
+        carriedWeapons[i] =
+            element.build(this, player.playerData.selectedSecondaries[i], game);
       }
     } else {
       int i = 0;
       for (var element in initialWeapons) {
-        carriedWeapons[i] = element.build(this, null, gameRef, 1);
+        carriedWeapons[i] = element.build(this, null, game, 1);
         i++;
       }
     }
@@ -943,7 +943,7 @@ mixin HealthFunctionality on Entity {
   void deathChecker(DamageInstance damage) {
     if (remainingHealth <= 0 && !isDead) {
       if (this is Player) {
-        gameRef.gameStateComponent.gameState.killPlayer(true, this as Player);
+        game.gameStateComponent.gameState.killPlayer(true, this as Player);
       } else {
         setEntityStatus(EntityStatus.dead);
       }

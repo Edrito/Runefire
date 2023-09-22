@@ -6,6 +6,7 @@ import 'package:runefire/attributes/attributes_status_effect.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/main.dart';
 import 'package:uuid/uuid.dart';
@@ -105,10 +106,12 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         .then((value) => sprite.removeFromParent());
   }
 
+  int currentHitAnimations = 0;
   Future<void> applyHitAnimation(
       SpriteAnimation animation, Vector2 sourcePosition, double size,
       [Color? color]) async {
-    if (animation.loop) return;
+    if (animation.loop || currentHitAnimations > hitAnimationLimit) return;
+    currentHitAnimations++;
     final spriteSize = animation.frames.first.sprite.srcSize;
     spriteSize.scaleTo(size);
     final thisHeight = height.parameter;
@@ -125,8 +128,11 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         ((sourcePosition - center).y).clamp(thisHeight / -2, thisHeight / 2));
 
     add(sprite);
-    sprite.animationTicker?.completed
-        .then((value) => sprite.removeFromParent());
+    sprite.animationTicker?.completed.then((value) {
+      sprite.removeFromParent();
+
+      currentHitAnimations--;
+    });
   }
 
   abstract EntityType entityType;

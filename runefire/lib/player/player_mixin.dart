@@ -49,7 +49,7 @@ mixin ExperienceFunctionality on Entity {
   TimerComponent? levelUpQueueTimer;
 
   void levelUp() {
-    gameRef.gameStateComponent.gameState.pauseGame(attributeSelection.key);
+    game.gameStateComponent.gameState.pauseGame(attributeSelection.key);
     currentlyLevelingUp = false;
 
     if (levelUpQueue == 0) {

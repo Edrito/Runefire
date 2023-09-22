@@ -255,7 +255,7 @@ class Player extends Entity
   void findClosestEnemy() {
     double closestDistance = double.infinity;
 
-    for (var otherBody in world.bodies.where((element) =>
+    for (var otherBody in world.physicsWorld.bodies.where((element) =>
         element.userData is Enemy && !(element.userData as Enemy).isDead)) {
       if (otherBody.worldCenter.distanceTo(center) < closestDistance) {
         closestDistance = otherBody.worldCenter.distanceTo(center);
@@ -284,7 +284,7 @@ class Player extends Entity
         }
       }
 
-      if (gameRef.gameStateComponent.gameState.gameIsPaused ||
+      if (game.gameStateComponent.gameState.gameIsPaused ||
           event is! RawKeyDownEvent) return;
 
       if (event.physicalKey == (PhysicalKeyboardKey.space)) {
@@ -334,7 +334,7 @@ class Player extends Entity
     } finally {
       if (moveAngle.isZero()) {
         moveVelocities.remove(InputType.keyboard);
-      } else if (!gameRef.gameStateComponent.gameState.gameIsPaused) {
+      } else if (!game.gameStateComponent.gameState.gameIsPaused) {
         moveVelocities[InputType.keyboard] = moveAngle;
       }
     }
