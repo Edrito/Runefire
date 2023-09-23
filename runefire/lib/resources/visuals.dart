@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/main.dart';
 import 'enums.dart';
@@ -130,6 +131,7 @@ class ApolloColorPalette {
         lighten.toString() +
         blendMode.toString() +
         opacity.toString() +
+        width.toString() +
         maskFilter.toString() +
         filterQuality.toString();
     if (cachedPaints.containsKey(key)) return cachedPaints[key]!;
@@ -138,7 +140,7 @@ class ApolloColorPalette {
       ..filterQuality = filterQuality
       ..isAntiAlias = true
       ..colorFilter = ColorFilter.mode(
-          (lighten ? color.brighten(.8) : color).withOpacity(opacity),
+          (lighten ? color.brighten(.7) : color).withOpacity(opacity),
           BlendMode.srcATop);
     if (blendMode != null) {
       returnPaint.blendMode = blendMode;
@@ -152,6 +154,8 @@ class ApolloColorPalette {
     cachedPaints[key] = returnPaint;
     return returnPaint;
   }
+
+  // Shape buildShape() {}
 }
 
 double defaultFrameDuration = .15;

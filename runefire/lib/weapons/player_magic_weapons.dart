@@ -7,10 +7,14 @@ import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ScaleEffect;
+import 'package:runefire/attributes/attribute_constants.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
@@ -20,14 +24,19 @@ import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
 
 class Icecicle extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        SemiAutomatic,
+        ChargeEffect {
   Icecicle(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.frost] = (5, 10);
-    maxAttacks.baseParameter = 20;
+    baseDamage.damageBase[DamageType.frost] = (7, 15);
+    maxAttacks.baseParameter = 3;
     attackTickRate.baseParameter = .35;
+    pierce.baseParameter = 5;
     primaryDamageType = DamageType.frost;
     projectileSize = .6;
     tipOffset = Vector2(0, weaponSize);
@@ -80,6 +89,9 @@ class Icecicle extends PlayerWeapon
 
   @override
   double weaponSize = .85;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.charge;
 }
 
 class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
@@ -281,26 +293,44 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
 }
 
 class FireballMagic extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        SemiAutomatic,
+        ChargeEffect {
   FireballMagic(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.fire] = (3, 7);
-    maxAttacks.baseParameter = 20;
-    attackTickRate.baseParameter = .35;
+    maxAttacks.baseParameter = 3;
+    attackTickRate.baseParameter = 1;
     pierce.baseParameter = 0;
     primaryDamageType = DamageType.fire;
-    projectileSize = 1.5;
+    projectileSize = .7;
     tipOffset = Vector2(0, weaponSize);
 
     onProjectileDeath.add((projectile) {
-      entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
+      final area = AreaEffect(
         sourceEntity: entityAncestor!,
         position: projectile.center,
+        animationRandomlyFlipped: true,
         durationType: DurationType.instant,
         damage: {DamageType.fire: (10, 25)},
-      ));
+      );
+      final particleGenerator = CustomParticleGenerator(
+        minSize: .05,
+        maxSize: .15,
+        lifespan: 1,
+        frequency: 10,
+        particlePosition: Vector2(2, 2),
+        velocity: Vector2.all(0.5),
+        durationType: DurationType.instant,
+        originPosition: projectile.center.clone(),
+        color: DamageType.fire.color,
+      );
+      entityAncestor?.enviroment.physicsComponent
+          .addAll([area, particleGenerator]);
     });
   }
   @override
@@ -317,7 +347,6 @@ class FireballMagic extends PlayerWeapon
   // void unMapUpgrade() {}
 
   @override
-  // TODO: implement removeSpriteOnAttack
   bool get removeSpriteOnAttack => true;
 
   @override
@@ -352,6 +381,9 @@ class FireballMagic extends PlayerWeapon
 
   @override
   double weaponSize = .85;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.release;
 }
 
 class EnergyMagic extends PlayerWeapon
@@ -581,4 +613,112 @@ class MagicBlast extends PlayerWeapon
 
   @override
   double weaponSize = .85;
+}
+
+class MagicMissile extends PlayerWeapon
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        SemiAutomatic,
+        ChargeEffect {
+  MagicMissile(
+    int? newUpgradeLevel,
+    AimFunctionality? ancestor,
+  ) : super(newUpgradeLevel, ancestor) {
+    baseDamage.damageBase[DamageType.magic] = (3, 7);
+    maxAttacks.baseParameter = 3;
+    attackTickRate.baseParameter = .5;
+    pierce.baseParameter = 0;
+    primaryDamageType = DamageType.psychic;
+    projectileSize = .2;
+    maxHomingTargets.baseParameter = 1;
+    tipOffset = Vector2(0, weaponSize);
+    increaseAttackCountWhenCharged = true;
+    increaseWhenFullyCharged.baseParameter = 3;
+    instantHome = false;
+    // onAttackProjectile.add((projectile) {
+    //   final bodyList = entityAncestor?.world.physicsWorld.bodies.where((element) {
+    //     if (entityAncestor!.isPlayer) {
+    //       return element.userData is Enemy &&
+    //           !(element.userData as Entity).isDead;
+    //     } else {
+    //       return element is Player && !(element.userData as Entity).isDead;
+    //     }
+    //   });
+
+    // });
+    // onProjectileDeath.add((projectile) {
+    //   final area = AreaEffect(
+    //     sourceEntity: entityAncestor!,
+    //     position: projectile.center,
+    //     animationRandomlyFlipped: true,
+    //     durationType: DurationType.instant,
+    //     damage: {DamageType.fire: (10, 25)},
+    //   );
+    //   final particleGenerator = CustomParticleGenerator(
+    //     minSize: .05,
+    //     maxSize: .15,
+    //     lifespan: 1,
+    //     frequency: 10,
+    //     particlePosition: Vector2(2, 2),
+    //     velocity: Vector2.all(0.5),
+    //     durationType: DurationType.instant,
+    //     originPosition: projectile.center.clone(),
+    //     color: DamageType.fire.color,
+    //   );
+    //   entityAncestor?.enviroment.physicsComponent
+    //       .addAll([area, particleGenerator]);
+    // });
+  }
+  @override
+  WeaponType weaponType = WeaponType.fireballMagic;
+
+  // @override
+  // void mapUpgrade() {
+  //   unMapUpgrade();
+
+  //   super.mapUpgrade();
+  // }
+
+  // @override
+  // void unMapUpgrade() {}
+
+  @override
+  bool get removeSpriteOnAttack => true;
+
+  @override
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
+      PlayerAttachmentJointComponent parentJoint) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          weaponAnimations: {
+            'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
+            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
+            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 1;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    // WeaponSpritePosition.back,
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  ProjectileType? projectileType = ProjectileType.paintBullet;
+
+  @override
+  double weaponSize = .85;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.charge;
 }

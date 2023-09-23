@@ -13,7 +13,7 @@ import '../attributes/attributes_mixin.dart';
 abstract class Enemy extends Entity
     with
         BaseAttributes,
-        ContactCallbacks,
+        // ContactCallbacks,
         UpgradeFunctions,
         AttributeFunctionality,
         AttributeFunctionsFunctionality,
@@ -55,9 +55,10 @@ abstract class Enemy extends Entity
   @override
   Filter? filter = Filter()
     ..categoryBits = enemyCategory
-    ..maskBits = attackCategory +
+    ..maskBits = projectileCategory +
         playerCategory +
         enemyCategory +
+        areaEffectCategory +
         sensorCategory +
         swordCategory;
 

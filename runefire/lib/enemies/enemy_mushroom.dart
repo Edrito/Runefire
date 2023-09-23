@@ -29,7 +29,7 @@ class MushroomDummy extends Enemy with JumpFunctionality
     height.baseParameter = mushroomHopperBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
-    maxHealth.baseParameter = double.infinity;
+    maxHealth.baseParameter = 1000;
   }
 
   @override
@@ -70,7 +70,7 @@ class MushroomRunner extends Enemy
     height.baseParameter = 1.2;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
-    maxHealth.baseParameter = 50.0;
+    maxHealth.baseParameter = 5.0 + rng.nextInt(5);
     speed.baseParameter = .03;
     touchDamage.damageBase[DamageType.physical] = (1, 5);
   }
@@ -90,7 +90,8 @@ class MushroomRunner extends Enemy
   Future<void> loadAnimationSprites() async {
     entityAnimations[EntityStatus.idle] =
         await spriteAnimations.mushroomRunnerIdle1;
-
+    entityAnimations[EntityStatus.dead] =
+        await spriteAnimations.mushroomRunnerDead1;
     entityAnimations[EntityStatus.run] =
         await spriteAnimations.mushroomRunnerRun1;
   }

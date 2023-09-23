@@ -3,7 +3,9 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
+import 'package:flutter/widgets.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
@@ -11,28 +13,29 @@ import '../entities/entity_mixin.dart';
 import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
 
-class Pistol extends PlayerWeapon
+class CrystalPistol extends PlayerWeapon
     with
         FullAutomatic,
         ProjectileFunctionality,
         ReloadFunctionality,
         MultiWeaponCheck {
-  Pistol(
+  CrystalPistol(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.magic] = (7, 10);
     maxAttacks.baseParameter = 8;
-    projectileVelocity.baseParameter = 30;
+    projectileVelocity.baseParameter = 20;
     attackTickRate.baseParameter = .3;
     maxHomingTargets.baseParameter = 1;
     pierce.baseParameter = 2;
-    tipOffset = Vector2(-.1, 1.6);
+    projectileSize = .75;
+
+    tipOffset = Vector2(-.035, weaponSize - .1);
   }
 
   @override
   WeaponType weaponType = WeaponType.crystalPistol;
-
   @override
   void mapUpgrade() {
     unMapUpgrade();
@@ -69,7 +72,7 @@ class Pistol extends PlayerWeapon
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
-            'muzzle_flash': await spriteAnimations.fireMuzzleFlash1,
+            'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
             WeaponStatus.idle: await spriteAnimations.crystalPistolIdle1
           },
           parentJoint: parentJoint,
@@ -95,8 +98,13 @@ class Shotgun extends PlayerWeapon
     maxAttacks.baseParameter = 5;
     attackTickRate.baseParameter = .8;
     baseAttackCount.baseParameter = 4;
+    projectileSize = 1.2;
     tipOffset = Vector2(0, 1.65);
+
+    increaseCloseDamage.baseParameter = true;
+    closeDamageIncreaseDistanceCutoff = 6;
   }
+
   @override
   WeaponType weaponType = WeaponType.scatterBlast;
 
@@ -178,7 +186,7 @@ class LongRangeRifle extends PlayerWeapon
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
-            WeaponStatus.attack: await await spriteAnimations.scryshotAttack1,
+            WeaponStatus.attack: await spriteAnimations.scryshotAttack1,
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
             WeaponStatus.idle: await spriteAnimations.scryshotIdle1,
           },
@@ -213,18 +221,19 @@ class LongRangeRifle extends PlayerWeapon
   SemiAutoType semiAutoType = SemiAutoType.regular;
 }
 
-class AssaultRifle extends PlayerWeapon
+class ArcaneBlaster extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
-  AssaultRifle(
+  ArcaneBlaster(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.fire] = (1, 3);
-    maxAttacks.baseParameter = 22;
-    attackTickRate.baseParameter = .1;
-    baseAttackCount.baseParameter = 10;
+    baseDamage.damageBase[DamageType.physical] = (2, 4);
+    maxAttacks.baseParameter = 15;
+    attackTickRate.baseParameter = .2;
+    baseAttackCount.baseParameter = 1;
     weaponRandomnessPercent.baseParameter = .025;
-    projectileVelocity.baseParameter = 40;
+    projectileVelocity.baseParameter = 20;
+    projectileSize = .5;
     tipOffset = Vector2(0, weaponSize);
   }
   @override
@@ -248,7 +257,7 @@ class AssaultRifle extends PlayerWeapon
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
-            'muzzle_flash': await spriteAnimations.fireMuzzleFlash1,
+            'muzzle_flash': await spriteAnimations.blackMuzzleFlash1,
             WeaponStatus.idle: await spriteAnimations.arcaneBlasterIdle1,
           },
           parentJoint: parentJoint,
@@ -266,10 +275,9 @@ class AssaultRifle extends PlayerWeapon
   ];
 
   @override
-  double weaponSize = 1.4;
-
+  double weaponSize = 2;
   @override
-  ProjectileType? projectileType = ProjectileType.spriteBullet;
+  ProjectileType? projectileType = ProjectileType.blackSpriteBullet;
 }
 
 class LaserRifle extends PlayerWeapon
@@ -287,16 +295,18 @@ class LaserRifle extends PlayerWeapon
     baseDamage.damageBase[DamageType.frost] = (1, 3);
     baseDamage.damageBase[DamageType.psychic] = (1, 3);
     baseDamage.damageBase[DamageType.magic] = (1, 3);
-    baseDamage.damageBase[DamageType.healing] = (1, 3);
-    maxAttacks.baseParameter = 12;
+    // baseDamage.damageBase[DamageType.healing] = (1, 3);
+    maxAttacks.baseParameter = 4;
     attackTickRate.baseParameter = .4;
-    waitForAttackRate = false;
     weaponRandomnessPercent.baseParameter = .04;
-    chainingTargets.baseParameter = 4;
+    chainingTargets.baseParameter = 1;
     baseAttackCount.baseParameter = 5;
   }
   @override
   WeaponType weaponType = WeaponType.prismaticBeam;
+
+  @override
+  double get attackRateDelay => attackTickRate.parameter / 4;
 
   @override
   void mapUpgrade() {

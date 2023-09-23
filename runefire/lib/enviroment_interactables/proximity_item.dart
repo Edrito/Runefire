@@ -35,7 +35,7 @@ abstract class ProximityItem extends BodyComponent<GameRouter>
 
     renderBody = false;
     final proxFilter = Filter()
-      ..maskBits = enemyCategory + playerCategory
+      ..maskBits = playerCategory
       ..categoryBits = proximityCategory;
 
     final fixtureDef = FixtureDef(shape,
@@ -53,10 +53,10 @@ abstract class ProximityItem extends BodyComponent<GameRouter>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Map || other['object'] is ProximityItem) return;
-    final otherObject = other['object'];
-    final otherType = other['type'];
-    itemContact(otherType, otherObject);
+    if (other is Player) {
+      itemContact((contact.fixtureA.userData as Map)['type'], other);
+    }
+    super.beginContact(other, contact);
   }
 
   void itemContact(FixtureType otherType, dynamic otherObject);
@@ -158,13 +158,14 @@ class ExperienceItem extends ProximityItem {
 
   @override
   void itemContact(FixtureType otherType, dynamic otherObject) {
-    if (otherType == FixtureType.sensor && otherObject is Player) {
+    if (otherObject is! Player) return;
+    if (otherType == FixtureType.sensor) {
       target = otherObject;
       for (var element in effects) {
         element.reset();
         element.removeFromParent();
       }
-    } else if (otherType == FixtureType.body && otherObject is Player) {
+    } else {
       otherObject.gainExperience(experienceAmount.experienceAmount);
       removeFromParent();
     }

@@ -241,8 +241,8 @@ mixin MeleeFunctionality on Weapon {
     final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
     final indexUsed = (index ?? currentAttackIndex);
 
-    List<double> temp = splitRadInCone(
-        currentSwingAngle, attackCount, maxSpreadDegrees.parameter);
+    List<double> temp = splitRadInCone(currentSwingAngle,
+        getAttackCount(chargeAmount), maxSpreadDegrees.parameter);
 
     for (var deltaDirection in temp) {
       final customPosition =
@@ -367,17 +367,79 @@ mixin ProjectileFunctionality on Weapon {
       DoubleParameterManager(baseParameter: 20);
 
   List<Projectile> activeProjectiles = [];
+  double projectileSize = .3;
+
+  bool instantHome = true;
 
   final bool originateFromCenter = false;
 
-  double projectileSize = .3;
+  final BoolParameterManager increaseCloseDamage =
+      BoolParameterManager(baseParameter: false);
+
+  final BoolParameterManager increaseFarDamage =
+      BoolParameterManager(baseParameter: false);
+
+  double closeDamageIncreaseDistanceCutoff = 8;
+  double closeDamageIncreaseAmount = 2.5;
+  Curve closeDamageIncreaseCurve = Curves.easeInCubic;
+
+  double farDamageIncreaseDistanceBegin = 20;
+  double farDamageIncreaseDistanceCutoff = 30;
+  double farDamageIncreaseAmount = 2.5;
+  Curve farDamageIncreaseCurve = Curves.easeInCubic;
 
   @override
   FutureOr<void> onLoad() {
     pierce.baseParameter = pierce.baseParameter
         .clamp(chainingTargets.parameter, double.infinity)
         .toInt();
+
+    if (increaseCloseDamage.parameter &&
+        this is AttributeWeaponFunctionsFunctionality) {
+      (this as AttributeWeaponFunctionsFunctionality)
+          .onHitProjectile
+          .add(_closeDamageAddition);
+    }
+
+    if (increaseFarDamage.parameter &&
+        this is AttributeWeaponFunctionsFunctionality) {
+      (this as AttributeWeaponFunctionsFunctionality)
+          .onHitProjectile
+          .add(_closeDamageAddition);
+    }
+
     return super.onLoad();
+  }
+
+  bool _closeDamageAddition(DamageInstance damage) {
+    Projectile projectile = damage.sourceAttack;
+    final distance = projectile.position.distanceTo(projectile.originPosition);
+
+    double increase = closeDamageIncreaseCurve.transform(
+        1 - ((distance) / closeDamageIncreaseDistanceCutoff).clamp(0, 1));
+    increase = (increase * (closeDamageIncreaseAmount - 1)) + 1;
+
+    damage.damageMap.forEach((key, value) {
+      damage.damageMap[key] = value * increase;
+      print(increase);
+    });
+    return true;
+  }
+
+  // ignore: unused_element
+  bool _farDamageAddition(DamageInstance damage) {
+    Projectile projectile = damage.sourceAttack;
+    final distance = projectile.position.distanceTo(projectile.originPosition);
+
+    double increase = farDamageIncreaseCurve.transform(1 -
+        ((distance - farDamageIncreaseDistanceBegin) /
+                farDamageIncreaseDistanceCutoff)
+            .clamp(0, 1));
+
+    damage.damageMap.forEach((key, value) {
+      damage.damageMap[key] = value * increase * farDamageIncreaseAmount;
+    });
+    return true;
   }
 
   @override
@@ -401,8 +463,8 @@ mixin ProjectileFunctionality on Weapon {
 
   void shootProjectile([double chargeAmount = 1]) async {
     entityAncestor?.enviroment.physicsComponent
-        .addAll(generateProjectileFunction(chargeAmount));
-    // entityAncestor?.enviroment.add(generateParticle());
+        .addAll(generateMultipleProjectileFunction(chargeAmount));
+    entityAncestor?.enviroment.add(generateParticle());
 
     entityAncestor?.handJoint.weaponSpriteAnimation?.add(RotateEffect.to(
         (entityAncestor?.handJoint.weaponSpriteAnimation?.angle ?? 0) +
@@ -421,10 +483,12 @@ mixin ProjectileFunctionality on Weapon {
 
   Component generateParticle() {
     Vector2 moveDelta = entityAncestor?.body.linearVelocity ?? Vector2.zero();
-    var particleColor = Colors.blue.withOpacity(.5);
+    var particleColor =
+        (primaryDamageType ?? baseDamage.damageBase.entries.first.key).color;
+
     final paint = Paint()..color = particleColor;
     final particle = Particle.generate(
-      count: 20 + rng.nextInt(10),
+      count: 5 + rng.nextInt(5),
       lifespan: 2,
       applyLifespanToChildren: false,
       generator: (i) => AcceleratedParticle(
@@ -450,12 +514,13 @@ mixin ProjectileFunctionality on Weapon {
         entityAncestor!.center;
   }
 
-  List<Projectile> generateProjectileFunction([double chargeAmount = 1]) {
+  List<Projectile> generateMultipleProjectileFunction(
+      [double chargeAmount = 1]) {
     List<Projectile> returnList = [];
 
     List<Vector2> temp = splitVector2DeltaIntoArea(
         entityAncestor!.entityAimAngle,
-        attackCount,
+        getAttackCount(chargeAmount),
         maxSpreadDegrees.parameter);
 
     for (var deltaDirection in temp) {
@@ -463,16 +528,26 @@ mixin ProjectileFunctionality on Weapon {
       final delta = (randomizeVector2Delta(
           deltaDirection, weaponRandomnessPercent.parameter));
 
-      returnList.add(projectileType!.generateProjectile(
-          delta: delta,
-          size: projectileSize,
-          primaryDamageType: primaryDamageType,
-          originPositionVar: generateSourcePosition(sourceAttackLocation!),
-          ancestorVar: this,
-          chargeAmount: chargeAmount));
+      returnList.add(buildProjectile(delta, chargeAmount));
     }
 
     return returnList;
+  }
+
+  Projectile buildProjectile(Vector2 delta, double chargeAmount) {
+    double newSize = projectileSize;
+    if (this is SemiAutomatic &&
+        (this as SemiAutomatic).increaseSizeWhenCharged) {
+      newSize *= (1 + chargeAmount);
+    }
+
+    return projectileType!.generateProjectile(
+        delta: delta,
+        size: newSize,
+        primaryDamageType: primaryDamageType,
+        originPositionVar: generateSourcePosition(sourceAttackLocation!),
+        ancestorVar: this,
+        chargeAmount: chargeAmount);
   }
 }
 
@@ -710,11 +785,17 @@ mixin SemiAutomatic on Weapon {
   bool isAttacking = false;
 
   abstract SemiAutoType semiAutoType;
-  bool waitForAttackRate = true;
+  double get attackRateDelay => attackTickRate.parameter;
 
   double get chargeLength => customChargeDuration ?? attackTickRate.parameter;
 
   double? customChargeDuration;
+
+  bool increaseSizeWhenCharged = true;
+  bool increaseAttackCountWhenCharged = false;
+
+  IntParameterManager increaseWhenFullyCharged =
+      IntParameterManager(baseParameter: 3);
 
   @override
   double durationHeld = 0;
@@ -768,7 +849,7 @@ mixin SemiAutomatic on Weapon {
 
   @override
   void attackAttempt([double holdDurationPercent = 1]) {
-    if (waitForAttackRate) {
+    if (attackRateDelay != 0) {
       if (attackTimer == null) {
         attackTimer = TimerComponent(
             period: attackTickRate.parameter,
@@ -848,7 +929,7 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   List<Function(Projectile projectile)> onProjectileDeath = [];
   List<OnHitDef> onHitMelee = [];
   List<OnHitDef> onHit = [];
-  List<Function(double holdDuration)> onAttackProjectile = [];
+  List<Function(Projectile projectile)> onAttackProjectile = [];
   List<Function(double holdDuration)> onAttackMelee = [];
   List<Function(double holdDuration)> onAttack = [];
   List<Function()> onReload = [];
@@ -856,11 +937,7 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   @override
   void standardAttack(
       [double holdDurationPercent = 1, bool callFunctions = true]) {
-    if (this is ProjectileFunctionality) {
-      for (var element in onAttackProjectile) {
-        element(holdDurationPercent);
-      }
-    } else if (this is MeleeFunctionality) {
+    if (this is MeleeFunctionality) {
       for (var element in onAttackMelee) {
         element(holdDurationPercent);
       }
@@ -948,7 +1025,7 @@ String buildWeaponDescription(
       break;
 
     case WeaponDescription.attackCount:
-      returnString = "${builtWeapon.attackCount} attack(s)";
+      returnString = "${builtWeapon.getAttackCount(1)} attack(s)";
 
       break;
   }

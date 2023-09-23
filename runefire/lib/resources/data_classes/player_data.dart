@@ -66,8 +66,8 @@ class PlayerData extends DataClass {
   }
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.energyMagic,
-    1: WeaponType.crystalSword,
+    0: WeaponType.crystalPistol,
+    1: WeaponType.energyMagic,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,

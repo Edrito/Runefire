@@ -730,7 +730,7 @@ class ShieldSentry extends ChildEntity
     final fixture = FixtureDef(CircleShape()..radius = height.parameter / 3,
         filter: Filter()
           ..maskBits =
-              attackCategory + (!isPlayer ? playerCategory : enemyCategory)
+              projectileCategory + (!isPlayer ? playerCategory : enemyCategory)
           ..categoryBits = isPlayer ? playerCategory : enemyCategory,
         userData: {'type': FixtureType.body, 'object': this},
         isSensor: false,
@@ -780,7 +780,7 @@ class SwordSentry extends ChildEntity
     final fixture = FixtureDef(CircleShape()..radius = height.parameter / 3,
         filter: Filter()
           ..maskBits = (!isPlayer ? playerCategory : enemyCategory)
-          ..categoryBits = attackCategory,
+          ..categoryBits = swordCategory,
         userData: {'type': FixtureType.body, 'object': this},
         isSensor: true,
         density: 0.005);

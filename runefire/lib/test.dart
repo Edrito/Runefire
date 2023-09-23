@@ -16,9 +16,10 @@ import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) {
   final player = gameEnviroment.player;
-  Future.delayed(2.1.seconds).then((value) {
-    player?.addAttribute(AttributeType.explosiveDash,
-        damageType: DamageType.psychic);
+  Future.delayed(1.seconds).then((value) {
+    player?.addAttribute(
+      AttributeType.chainingAttacks,
+    );
   });
 }
 

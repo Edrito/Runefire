@@ -104,7 +104,9 @@ class PaintBullet extends FadeOutBullet with PaintProjectile {
       required super.weaponAncestor,
       super.primaryDamageType,
       required super.size,
-      super.power});
+      super.power}) {
+    defaultLinearDamping = .3;
+  }
 
   @override
   ProjectileType projectileType = ProjectileType.paintBullet;
@@ -122,6 +124,7 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
       required super.weaponAncestor,
       required super.size,
       this.useDefaults = true,
+      this.customBulletName,
       super.primaryDamageType,
       this.customSpawnAnimation,
       this.customPlayAnimation,
@@ -134,6 +137,8 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
 
     super.bodyContact(other);
   }
+
+  String? customBulletName;
 
   bool useDefaults;
   @override
@@ -148,23 +153,23 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
         (useDefaults
             ? await loadSpriteAnimation(
                 4,
-                'weapons/projectiles/bullets/${damageType.name}_bullet_spawn.png',
-                .02,
+                'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_spawn.png',
+                .03,
                 false)
             : null);
     playAnimation = await customPlayAnimation ??
         (useDefaults
             ? await loadSpriteAnimation(
                 4,
-                'weapons/projectiles/bullets/${damageType.name}_bullet_play.png',
-                .02,
+                'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_play.png',
+                .05,
                 true)
             : null);
     endAnimation = await customEndAnimation ??
         (useDefaults
             ? await loadSpriteAnimation(
                 3,
-                'weapons/projectiles/bullets/${damageType.name}_bullet_end.png',
+                'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_end.png',
                 .1,
                 false)
             : null);
@@ -172,8 +177,8 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
         (useDefaults
             ? await loadSpriteAnimation(
                 6,
-                'weapons/projectiles/bullets/${damageType.name}_bullet_hit.png',
-                .02,
+                'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_hit.png',
+                .035,
                 false)
             : null);
 
@@ -181,7 +186,8 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
       durationType: DurationType.temporary,
       playAnimation: playAnimation,
       spawnAnimation: spawnAnimation,
-      anchor: Anchor.topCenter,
+      randomizePlay: true,
+      anchor: Anchor.center,
       desiredWidth: (size),
       endAnimation: endAnimation,
     );

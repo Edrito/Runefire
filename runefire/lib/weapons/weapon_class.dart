@@ -225,8 +225,19 @@ abstract class Weapon extends Component with UpgradeFunctions {
   final BoolParameterManager countIncreaseWithTime =
       BoolParameterManager(baseParameter: false);
 
-  int get attackCount =>
-      baseAttackCount.parameter + additionalDurationCountIncrease;
+  int getAttackCount(double chargeDuration) {
+    int additional = 0;
+    if (this is SemiAutomatic) {
+      final semi = (this as SemiAutomatic);
+      if (semi.increaseAttackCountWhenCharged) {
+        additional =
+            (semi.increaseWhenFullyCharged.parameter * chargeDuration).round();
+      }
+    }
+    return baseAttackCount.parameter +
+        additionalDurationCountIncrease +
+        additional;
+  }
 
   int additionalDurationCountIncrease = 0;
   void additionalCountCheck() {

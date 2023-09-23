@@ -31,17 +31,19 @@ class SpriteAnimations {
 //Character One
 
   late Future<SpriteAnimation> playerCharacterOneIdle1 =
-      loadSpriteAnimation(10, 'sprites/idle.png', .1, true);
+      loadSpriteAnimation(6, 'sprites/idle.png', .15, true);
   late Future<SpriteAnimation> playerCharacterOneJump1 =
-      loadSpriteAnimation(3, 'sprites/jump.png', .1, false);
+      loadSpriteAnimation(6, 'sprites/jump.png', .1, false);
   late Future<SpriteAnimation> playerCharacterOneDash1 =
-      loadSpriteAnimation(7, 'sprites/roll.png', .06, false);
-  late Future<SpriteAnimation> playerCharacterOneWalk1 =
-      loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
+      loadSpriteAnimation(5, 'sprites/roll.png', .075, false);
+  // late Future<SpriteAnimation> playerCharacterOneWalk1 =
+  //     loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
   late Future<SpriteAnimation> playerCharacterOneRun1 =
-      loadSpriteAnimation(8, 'sprites/run.png', .1, true);
+      loadSpriteAnimation(6, 'sprites/run.png', .13, true);
+  late Future<SpriteAnimation> playerCharacterOneHit1 =
+      loadSpriteAnimation(3, 'sprites/hit.png', .1, true);
   late Future<SpriteAnimation> playerCharacterOneDead1 =
-      loadSpriteAnimation(10, 'enemy_sprites/death.png', .1, false);
+      loadSpriteAnimation(6, 'enemy_sprites/death.png', .1, false);
 
 //Enemies
 //Mushroom Hopper
@@ -55,11 +57,12 @@ class SpriteAnimations {
 //Mushroom Runner
 
   late Future<SpriteAnimation> mushroomRunnerIdle1 = loadSpriteAnimation(
-      2, 'enemy_sprites/mushroomRunner/idle.png', .16, true);
+      2, 'enemy_sprites/mushroomRunner/idle.png', .15, true);
 
   late Future<SpriteAnimation> mushroomRunnerRun1 =
-      loadSpriteAnimation(2, 'enemy_sprites/mushroomRunner/run.png', .16, true);
-
+      loadSpriteAnimation(2, 'enemy_sprites/mushroomRunner/run.png', .15, true);
+  late Future<SpriteAnimation> mushroomRunnerDead1 = loadSpriteAnimation(
+      4, 'enemy_sprites/mushroomRunner/dead.png', .15, false);
 //Mushroom Boomer
 
   late Future<SpriteAnimation> mushroomBoomerIdle1 = loadSpriteAnimation(
@@ -156,6 +159,8 @@ class SpriteAnimations {
       5, 'weapons/projectiles/magic_muzzle_flash.png', .07, false);
   late Future<SpriteAnimation> fireMuzzleFlash1 = loadSpriteAnimation(
       5, 'weapons/projectiles/fire_muzzle_flash.png', .03, false);
+  late Future<SpriteAnimation> blackMuzzleFlash1 = loadSpriteAnimation(
+      5, 'weapons/projectiles/black_muzzle_flash.png', .03, false);
 
 //Weapons
 //Guns

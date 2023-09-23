@@ -60,6 +60,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   late String areaId;
   double tickRate;
   Function(Entity entity, String areaId)? onTick;
+  @override
   Vector2 position;
   Entity sourceEntity;
   bool isSolid;
@@ -129,9 +130,11 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Entity) return;
-    if (other == sourceEntity) return;
-    if (affectedEntities.containsKey(other)) return;
+    bool shouldCalculate = other is Entity &&
+        other != sourceEntity &&
+        !affectedEntities.containsKey(other);
+    if (!shouldCalculate) return super.beginContact(other, contact);
+
     if (animationComponent?.durationType == DurationType.instant) {
       doOnTick(other);
     } else {
@@ -209,7 +212,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     //   ..paint = (paint..color = Colors.red.withOpacity(.3)));
     renderBody = false;
     final filter = Filter();
-    filter.categoryBits = attackCategory;
+    filter.categoryBits = areaEffectCategory;
     if (sourceEntity.isPlayer) {
       filter.maskBits = enemyCategory;
     } else {

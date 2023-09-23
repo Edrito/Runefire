@@ -44,8 +44,9 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! Player) return;
-    other.addCloseInteractableComponents(this);
+    if (other is Player) {
+      other.addCloseInteractableComponents(this);
+    }
 
     super.beginContact(other, contact);
   }

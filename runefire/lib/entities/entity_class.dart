@@ -7,6 +7,8 @@ import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/resources/constants/constants.dart';
+import 'package:runefire/resources/constants/physics_filter.dart';
+import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/main.dart';
 import 'package:uuid/uuid.dart';
@@ -18,7 +20,8 @@ import '../resources/constants/priorities.dart';
 import '../attributes/attributes_mixin.dart';
 import 'entity_mixin.dart';
 
-abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
+abstract class Entity extends BodyComponent<GameRouter>
+    with BaseAttributes, ContactCallbacks {
   Entity({required this.initialPosition, required this.enviroment}) {
     initializeParameterManagers();
     entityId = const Uuid().v4();
@@ -309,14 +312,66 @@ abstract class Entity extends BodyComponent<GameRouter> with BaseAttributes {
         friction: 0,
         density: 0.001,
         filter: filter);
+
+    final closeBodySensor =
+        FixtureDef(CircleShape()..radius = closeBodiesSensorRadius,
+            userData: {"type": FixtureType.sensor, "object": this},
+            restitution: 0,
+            friction: 0,
+            isSensor: true,
+            density: 0,
+            filter: Filter()
+              ..categoryBits = sensorCategory
+              ..maskBits = enemyCategory + playerCategory + projectileCategory);
+
     final bodyDef = BodyDef(
       position: initialPosition,
       userData: this,
       type: BodyType.dynamic,
+      allowSleep: false,
       linearDamping: 12,
       fixedRotation: true,
     );
-    return world.createBody(bodyDef)..createFixture(fixtureDef);
+
+    return world.createBody(bodyDef)
+      ..createFixture(fixtureDef)
+      ..createFixture(closeBodySensor);
+  }
+
+  Set<Entity> closeSensorBodies = {};
+  Set<Projectile> closeProjectiles = {};
+
+  @override
+  void beginContact(Object other, Contact contact) {
+    if (other is Entity) {
+      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+        closeSensorBodies.add(other);
+      }
+    } else if (other is Projectile) {
+      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+        closeProjectiles.add(other);
+      }
+    }
+    super.beginContact(other, contact);
+  }
+
+  @override
+  void endContact(Object other, Contact contact) {
+    if (other is Entity) {
+      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+        closeSensorBodies.remove(other);
+      }
+    } else if (other is Projectile) {
+      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+        closeProjectiles.remove(other);
+      }
+    }
+
+    super.endContact(other, contact);
   }
 
   void applyHeightToSprite() {

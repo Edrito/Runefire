@@ -104,12 +104,13 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is! AttributeFunctionality) return;
-    other.addAttribute(
-      powerup.attributeType,
-      level: 1,
-    );
-    removeFromParent();
+    if (other is AttributeFunctionality) {
+      other.addAttribute(
+        powerup.attributeType,
+        level: 1,
+      );
+      removeFromParent();
+    }
     super.beginContact(other, contact);
   }
 

@@ -10,6 +10,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/game/area_effects.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 
@@ -224,6 +225,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
       this.durationType = DurationType.temporary,
       this.randomlyFlipped = false,
       this.endAnimation,
+      this.randomizePlay = false,
       this.desiredWidth,
       super.position,
       super.anchor = Anchor.center}) {
@@ -240,7 +242,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
     final widthRatio = desiredWidth! / (size.x);
     size = Vector2(desiredWidth!, size.y * widthRatio);
   }
-
+  bool randomizePlay = false;
   late EntityStatus currentStatus;
   double? desiredWidth;
   @override
@@ -285,6 +287,9 @@ class SimpleStartPlayEndSpriteAnimationComponent
   void _setStatus(EntityStatus status) {
     currentStatus = status;
     current = status;
+    if (status == EntityStatus.idle && randomizePlay) {
+      animationTicker?.currentIndex = rng.nextInt(animation!.frames.length);
+    }
   }
 
   Future<void> triggerEnding() async {
@@ -330,7 +335,9 @@ class CustomParticleGenerator extends Component {
     this.color,
     required this.particlePosition,
     this.sprites,
+    this.originPosition,
     this.duration,
+    this.durationType = DurationType.temporary,
     this.damageType,
     this.parentBody,
     super.priority,
@@ -341,90 +348,114 @@ class CustomParticleGenerator extends Component {
   final double minSize;
   final double maxSize;
   final Vector2? velocity;
+  final Vector2? originPosition;
   final Color? color;
   final List<Sprite>? sprites;
   final double lifespan;
   final DamageType? damageType;
   final Vector2 particlePosition;
   final double? duration;
+  final DurationType durationType;
 
   Paint? customPaint;
 
-  TimerComponent? timer;
+  late TimerComponent timer;
 
   late Vector2 position = Vector2.zero();
 
   int ticks = 0;
 
-  @override
-  FutureOr<void> onLoad() {
-    timer = TimerComponent(
-      period: .1,
-      repeat: true,
-      onTick: () {
-        ticks++;
-        if (duration != null && ticks > duration! / .05) {
-          removeFromParent();
-          return;
-        }
-        if (parentBody != null) {
-          position = parentBody!.worldCenter;
-        }
-        final particleSystem = ParticleSystemComponent(
-            position: position,
-            particle: Particle.generate(
-              // applyLifespanToChildren: true,
-              count: rng.nextInt((frequency / 2).ceil()) +
-                  (frequency * .75).round(),
-              generator: (p0) {
-                final randomLifespan =
-                    ((rng.nextDouble() - .5) * lifespan) + (lifespan);
-                final randomPosition = Vector2(
-                    ((rng.nextDouble() * 2) - 1) * particlePosition.x,
-                    ((rng.nextDouble() * 2) - 1) * particlePosition.y);
-                Vector2? velocity;
-                if (this.velocity != null) {
-                  velocity = Vector2(
-                      ((rng.nextDouble() * 2) - 1) * this.velocity!.x,
-                      ((rng.nextDouble() * 2) - 1) * this.velocity!.y);
-                }
+  // late ParticleSystemComponent particleSystem;
 
-                (particlePosition * .75) +
-                    Vector2(rng.nextDouble() * .5 * particlePosition.x,
-                        rng.nextDouble() * .5 * particlePosition.y);
-                final size = rng.nextDouble() * (maxSize - minSize) + minSize;
-                if (color != null) {
-                  customPaint = colorPalette.buildProjectile(
-                      color: color!,
-                      projectileType: ProjectileType.paintBullet,
-                      lighten: false);
-                }
-                if (sprites != null && sprites!.isNotEmpty) {
-                  final sprite = sprites?.getRandomElement<Sprite>();
-                  return SpriteParticle(
-                      sprite: sprite!,
-                      position: randomPosition,
-                      lifespan: randomLifespan,
-                      size: Vector2(size, size),
-                      overridePaint: customPaint);
-                }
+  Future<void> generateParticles() async {
+    if (parentBody != null) {
+      position = parentBody!.worldCenter;
+    } else if (originPosition != null) {
+      position = originPosition!;
+    }
 
-                final particle = AcceleratedParticle(
+    double randomLifespan = ((rng.nextDouble() - .5) * lifespan) + (lifespan);
+    int count = rng.nextInt((frequency / 2).ceil()) + (frequency * .75).round();
+    // int i = 0;
+    final particleSystem = ParticleSystemComponent(
+        position: position,
+        particle: Particle.generate(
+          applyLifespanToChildren: true,
+          lifespan: randomLifespan,
+          count: count,
+          // count: 50,
+          generator: (p0) {
+            final randomPosition = Vector2(
+                ((rng.nextDouble() * 2) - 1) * particlePosition.x,
+                ((rng.nextDouble() * 2) - 1) * particlePosition.y);
+            Vector2? velocity;
+            if (this.velocity != null) {
+              velocity = Vector2(
+                  ((rng.nextDouble() * 2) - 1) * this.velocity!.x,
+                  ((rng.nextDouble() * 2) - 1) * this.velocity!.y);
+            }
+
+            (particlePosition * .75) +
+                Vector2(rng.nextDouble() * .5 * particlePosition.x,
+                    rng.nextDouble() * .5 * particlePosition.y);
+            final size = rng.nextDouble() * (maxSize - minSize) + minSize;
+            if (color != null) {
+              customPaint = colorPalette.buildProjectile(
+                  color: color!,
+                  projectileType: ProjectileType.paintBullet,
+                  lighten: false);
+            }
+            if (sprites != null && sprites!.isNotEmpty) {
+              final sprite = sprites?.getRandomElement<Sprite>();
+              return SpriteParticle(
+                  sprite: sprite!,
                   position: randomPosition,
-                  speed: velocity,
-                  child: CircleParticle(
-                    paint: customPaint!,
-                    lifespan: randomLifespan,
-                    radius: size / 2,
-                  ),
-                );
+                  lifespan: randomLifespan,
+                  size: Vector2(size, size),
+                  overridePaint: customPaint);
+            }
 
-                return particle;
-              },
-            ));
-        add(particleSystem);
-      },
-    )..addToParent(this);
+            final particle = AcceleratedParticle(
+              position: randomPosition,
+              speed: velocity,
+              child: CircleParticle(
+                paint: customPaint!,
+                lifespan: randomLifespan,
+                radius: size / 2,
+              ),
+            );
+
+            return particle;
+          },
+        ));
+    add(particleSystem);
+    await Future.delayed(randomLifespan.seconds).then((value) {
+      particleSystem.removeFromParent();
+    });
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    if (durationType != DurationType.instant) {
+      timer = TimerComponent(
+        period: (rng.nextDouble() * .2) + .1,
+        // period: 2,
+        repeat: true,
+        onTick: () {
+          if (durationType != DurationType.permanent &&
+              duration != null &&
+              ticks > duration! / .05) {
+            removeFromParent();
+            return;
+          }
+          generateParticles();
+          ticks++;
+        },
+      )..addToParent(this);
+      timer.onTick();
+    } else {
+      generateParticles().then((value) => removeFromParent());
+    }
 
     return super.onLoad();
   }

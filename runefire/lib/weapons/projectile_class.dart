@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/weapons/projectile_mixin.dart';
 import 'package:uuid/uuid.dart';
@@ -48,7 +51,12 @@ mixin FadeOutProjectile on Projectile {
   Curve fadeOutCurve = Curves.easeOut;
   @override
   double get opacity => fadeOutCurve.transform(
-      (1 - ((timePassed - ttl) / fadeOutDuration)).clamp(0, 1).toDouble());
+      (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
+          .clamp(0, 1)
+          .toDouble());
+
+  // @override
+  // void killBullet([bool withEffect = false]) async {}
 }
 
 abstract class Projectile extends BodyComponent<GameRouter>
@@ -67,10 +75,12 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   double size;
 
-  bool get isSmallProjectile => size < 3;
+  bool isPlayer = false;
 
-  bool disableChaining = false;
-  bool disableHoming = false;
+  bool get isSmallProjectile => size < projectileBigSizeThreshold;
+
+  bool enableChaining = false;
+  bool enableHoming = false;
 
   late DamageType damageType;
 
@@ -85,7 +95,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   //Structure
   ProjectileFunctionality weaponAncestor;
-  double closeBodySensorRadius = 3;
   Vector2 originPosition;
   abstract double ttl;
   abstract ProjectileType projectileType;
@@ -116,7 +125,16 @@ abstract class Projectile extends BodyComponent<GameRouter>
   @override
   void beginContact(Object other, Contact contact) {
     if (other is! HealthFunctionality || hitIds.contains(other.entityId)) {
-      return;
+      return super.beginContact(other, contact);
+    }
+
+    if (isPlayer && other is Player) {
+      return super.beginContact(other, contact);
+    }
+    if (!isPlayer &&
+        other is Enemy &&
+        !weaponAncestor.entityAncestor!.affectsAllEntities) {
+      return super.beginContact(other, contact);
     }
 
     bool isHomingSensor =
@@ -150,6 +168,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
     if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
       final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
       bool result = false;
+
       for (var element in weapon.onHitProjectile) {
         result = result || element(damageInstance);
       }
@@ -188,6 +207,13 @@ abstract class Projectile extends BodyComponent<GameRouter>
     );
     add(projectileDeathTimer!);
     weaponAncestor.activeProjectiles.add(this);
+    isPlayer = weaponAncestor.entityAncestor?.isPlayer ?? false;
+    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
+      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
+      for (var element in weapon.onAttackProjectile) {
+        element(this);
+      }
+    }
     return super.onLoad();
   }
 

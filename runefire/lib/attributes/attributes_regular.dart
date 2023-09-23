@@ -2076,7 +2076,7 @@ class ReloadSprayAttribute extends Attribute {
           initPosition: position,
           initAngle: element,
           attachmentPoint: victimEntity,
-          currentAttack: weapon.meleeAttacks[i % weapon.attackCount],
+          currentAttack: weapon.meleeAttacks[i % weapon.getAttackCount(0)],
           weaponAncestor: weapon);
 
       victimEntity?.gameEnviroment.physicsComponent.add(newSwing);

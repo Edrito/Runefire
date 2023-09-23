@@ -383,7 +383,8 @@ enum ProjectileType {
   paintBullet,
   laser,
   magicProjectile,
-  holyBullet
+  holyBullet,
+  blackSpriteBullet
 }
 
 extension ProjectileTypeExtension on ProjectileType {
@@ -408,6 +409,15 @@ extension ProjectileTypeExtension on ProjectileType {
             size: size,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
+      case ProjectileType.blackSpriteBullet:
+        return SpriteBullet(
+            originPosition: originPositionVar,
+            delta: delta,
+            size: size,
+            customBulletName: "black",
+            weaponAncestor: ancestorVar,
+            // customHitAnimation: spriteAnimations.,
+            power: chargeAmount);
 
       case ProjectileType.magicProjectile:
         return MagicalProjectile(
@@ -422,8 +432,10 @@ extension ProjectileTypeExtension on ProjectileType {
             weaponAncestor: ancestorVar,
             originPosition: originPositionVar,
             delta: delta,
+            primaryDamageType: primaryDamageType,
             size: size,
             power: chargeAmount);
+
       case ProjectileType.holyBullet:
         return SpriteBullet(
             originPosition: originPositionVar,
@@ -482,6 +494,7 @@ enum WeaponType {
   fireballMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   energyMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   magicBlast('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
+  magicMissile('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
 
   largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
   spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
@@ -513,13 +526,16 @@ extension WeaponTypeFilename on WeaponType {
 
     switch (this) {
       case WeaponType.crystalPistol:
-        returnWeapon = Pistol(upgradeLevel, ancestor);
+        returnWeapon = CrystalPistol(upgradeLevel, ancestor);
         break;
       case WeaponType.scatterBlast:
         returnWeapon = Shotgun(upgradeLevel, ancestor);
         break;
       case WeaponType.railspire:
         returnWeapon = Railgun(upgradeLevel, ancestor);
+        break;
+      case WeaponType.magicMissile:
+        returnWeapon = MagicMissile(upgradeLevel, ancestor);
         break;
       case WeaponType.frostKatana:
         returnWeapon = FrostKatana(upgradeLevel, ancestor);
@@ -534,7 +550,7 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
         break;
       case WeaponType.arcaneBlaster:
-        returnWeapon = AssaultRifle(upgradeLevel, ancestor);
+        returnWeapon = ArcaneBlaster(upgradeLevel, ancestor);
         break;
       case WeaponType.scryshot:
         returnWeapon = LongRangeRifle(upgradeLevel, ancestor);
@@ -596,7 +612,7 @@ extension WeaponTypeFilename on WeaponType {
 
     switch (this) {
       case WeaponType.crystalPistol:
-        returnWeapon = Pistol(upgradeLevel, null);
+        returnWeapon = CrystalPistol(upgradeLevel, null);
         break;
       case WeaponType.scatterBlast:
         returnWeapon = Shotgun(upgradeLevel, null);
@@ -608,7 +624,7 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = BlankProjectileWeapon(upgradeLevel, null);
         break;
       case WeaponType.arcaneBlaster:
-        returnWeapon = AssaultRifle(upgradeLevel, null);
+        returnWeapon = ArcaneBlaster(upgradeLevel, null);
         break;
       case WeaponType.fireballMagic:
         returnWeapon = FireballMagic(upgradeLevel, null);
@@ -623,7 +639,10 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.crystalSword:
         returnWeapon = CrystalSword(upgradeLevel, null);
-
+        break;
+      case WeaponType.magicMissile:
+        returnWeapon = MagicMissile(upgradeLevel, null);
+        break;
       case WeaponType.prismaticBeam:
         returnWeapon = LaserRifle(upgradeLevel, null);
         break;

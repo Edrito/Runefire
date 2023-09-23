@@ -32,7 +32,7 @@ import '../weapons/weapon_class.dart';
 
 class Player extends Entity
     with
-        ContactCallbacks,
+        // ContactCallbacks,
         StaminaFunctionality,
         HealthFunctionality,
         AimFunctionality,
@@ -119,12 +119,14 @@ class Player extends Entity
         await spriteAnimations.playerCharacterOneJump1;
     entityAnimations[EntityStatus.dash] =
         await spriteAnimations.playerCharacterOneDash1;
-    entityAnimations[EntityStatus.walk] =
-        await spriteAnimations.playerCharacterOneWalk1;
+    // entityAnimations[EntityStatus.walk] =
+    //     await spriteAnimations.playerCharacterOneWalk1;
     entityAnimations[EntityStatus.run] =
         await spriteAnimations.playerCharacterOneRun1;
     entityAnimations[EntityStatus.dead] =
         await spriteAnimations.playerCharacterOneDead1;
+    entityAnimations[EntityStatus.damage] =
+        await spriteAnimations.playerCharacterOneHit1;
   }
 
   @override
@@ -196,20 +198,10 @@ class Player extends Entity
 
   @override
   Body createBody() {
-    late CircleShape shape;
     late CircleShape xpGrabRadius;
-    shape = CircleShape();
     xpGrabRadius = CircleShape();
-    shape.radius = entityAnimationsGroup.size.x / 2;
     xpGrabRadius.radius = xpSensorRadius.parameter;
     renderBody = false;
-
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        restitution: 0,
-        friction: 0,
-        density: 0.001,
-        filter: filter);
 
     xpGrabRadiusFixture = FixtureDef(xpGrabRadius,
         userData: {"type": FixtureType.sensor, "object": this},
@@ -218,17 +210,7 @@ class Player extends Entity
           ..categoryBits = playerCategory
           ..maskBits = proximityCategory);
 
-    final bodyDef = BodyDef(
-      userData: this,
-      position: initialPosition,
-      type: BodyType.dynamic,
-      linearDamping: 12,
-      allowSleep: false,
-      fixedRotation: true,
-    );
-    return world.createBody(bodyDef)
-      ..createFixture(fixtureDef)
-      ..createFixture(xpGrabRadiusFixture);
+    return super.createBody()..createFixture(xpGrabRadiusFixture);
   }
 
   void onKeyEvent(RawKeyEvent event) {

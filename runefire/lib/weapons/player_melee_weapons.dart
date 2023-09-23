@@ -488,9 +488,10 @@ class HolySword extends PlayerWeapon
   }
 
   @override
-  List<Projectile> generateProjectileFunction([double chargeAmount = 1]) {
+  List<Projectile> generateMultipleProjectileFunction(
+      [double chargeAmount = 1]) {
     if (chargeAmount < .7) return [];
-    return super.generateProjectileFunction(chargeAmount)
+    return super.generateMultipleProjectileFunction(chargeAmount)
       ..forEach((element) {
         element.size = weaponSize / 2;
       });
@@ -749,7 +750,7 @@ class LargeSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  bool get waitForAttackRate => false;
+  double get attackRateDelay => 0;
 
   @override
   WeaponType weaponType = WeaponType.largeSword;
@@ -826,6 +827,9 @@ class FrostKatana extends PlayerWeapon
       spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
+
+  @override
+  double get attackRateDelay => attackTickRate.parameter / 4;
 
   @override
   void mapUpgrade() {

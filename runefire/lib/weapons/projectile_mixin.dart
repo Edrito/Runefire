@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/projectile_class.dart';
+import 'package:runefire/weapons/weapon_mixin.dart';
 
 import '../enemies/enemy.dart';
 import '../player/player.dart';
@@ -39,17 +41,11 @@ mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
       color: projectileColor,
       projectileType: projectileType,
       lighten: false,
-      // blendMode: BlendMode.plus,
-      // opacity: opacity,
-      // maskFilter: const MaskFilter.blur(BlurStyle.solid, .5),
     );
     bulletPaint = colorPalette.buildProjectile(
       color: projectileColor,
       projectileType: projectileType,
       lighten: true,
-      // blendMode: BlendMode.plus,
-      // opacity: opacity,
-      // maskFilter: const MaskFilter.blur(BlurStyle.solid, .2),
     );
 
     glowPaint = bulletBackPaint;
@@ -142,7 +138,7 @@ mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
     //   );
     // }
 
-    // canvas.drawPath(path, bulletPaint!);
+    // canvas.drawPath(path, bulletPaint);
   }
 }
 
@@ -161,6 +157,8 @@ mixin StandardProjectile on Projectile {
     shape.radius = size * .45;
   }
 
+  double defaultLinearDamping = 0;
+
   @override
   Body createBody() {
     createBodyShape();
@@ -168,10 +166,10 @@ mixin StandardProjectile on Projectile {
     renderBody = false;
 
     final bulletFilter = Filter();
-    if (!weaponAncestor.entityAncestor!.isPlayer) {
+    if (!isPlayer) {
       bulletFilter
         ..maskBits = playerCategory
-        ..categoryBits = attackCategory;
+        ..categoryBits = projectileCategory;
 
       if (weaponAncestor.entityAncestor!.affectsAllEntities) {
         bulletFilter.maskBits = 0xFFFF;
@@ -179,8 +177,10 @@ mixin StandardProjectile on Projectile {
     } else {
       bulletFilter
         ..maskBits = enemyCategory
-        ..categoryBits = attackCategory;
+        ..categoryBits = projectileCategory;
     }
+
+    bulletFilter.maskBits += sensorCategory;
 
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
@@ -193,21 +193,26 @@ mixin StandardProjectile on Projectile {
       userData: this,
       position: originPosition,
       type: BodyType.dynamic,
-      linearDamping: (5 - (5 * power)).clamp(0, 5),
+      linearDamping: defaultLinearDamping + (3 - (3 * power)).clamp(0, 3),
       bullet: true,
+      allowSleep: false,
       linearVelocity: (delta * weaponAncestor.projectileVelocity.parameter),
       fixedRotation: true,
     );
-    var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
+    Body returnBody;
 
-    if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
-      bulletFilter.categoryBits = sensorCategory;
-      sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
-          userData: {"type": FixtureType.sensor, "object": this},
-          isSensor: true,
-          filter: bulletFilter);
-      returnBody.createFixture(sensorDef!);
-    }
+    // if (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain) {
+    //   bulletFilter.categoryBits = sensorCategory;
+    // sensorDef = FixtureDef(CircleShape()..radius = closeBodySensorRadius,
+    //     userData: {"type": FixtureType.sensor, "object": this},
+    //     isSensor: true,
+    //     filter: bulletFilter);
+
+    //   returnBody = world.createBody(bodyDef)
+    //     ..createFixture(fixtureDef)
+    //     ..createFixture(sensorDef!);
+    // } else {
+    returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
 
     return returnBody;
   }
@@ -215,8 +220,15 @@ mixin StandardProjectile on Projectile {
   @override
   Future<void> onLoad() {
     gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
-    beginHoming =
-        Future.delayed(.1.seconds).then((value) => futureComplete = true);
+    enableHoming = weaponAncestor.weaponCanHome;
+
+    enableChaining = weaponAncestor.weaponCanChain;
+
+    if (enableHoming || enableChaining) {
+      beginHoming =
+          Future.delayed(.1.seconds).then((value) => futureComplete = true);
+    }
+
     return super.onLoad();
   }
 
@@ -226,10 +238,24 @@ mixin StandardProjectile on Projectile {
   HealthFunctionality? target;
   bool targetSet = false;
   void setTarget(HealthFunctionality? target) {
+    bool instantHome = true;
+    instantHome = (weaponAncestor).instantHome;
     targetSet = true;
+
     this.target = target;
-    if (target != null) {
-      body.linearVelocity = Vector2.zero();
+
+    if (target == null) {
+      body.linearDamping = defaultLinearDamping;
+    }
+
+    if (target != null && instantHome) {
+      body.linearVelocity = (target.center - body.worldCenter).normalized();
+    } else if (homingStopped) {
+      body.applyLinearImpulse(
+        ((Vector2.random() * 2) - Vector2.all(1)) *
+            weaponAncestor.projectileVelocity.parameter,
+      );
+      homingStopped = false;
     }
   }
 
@@ -239,12 +265,6 @@ mixin StandardProjectile on Projectile {
   void update(double dt) {
     if (target != null && futureComplete) {
       home(target!, dt);
-    } else if (homingStopped) {
-      body.applyLinearImpulse(
-        ((Vector2.random() * 2) - Vector2.all(1)) *
-            weaponAncestor.projectileVelocity.parameter,
-      );
-      homingStopped = false;
     }
     super.update(dt);
   }
@@ -261,11 +281,11 @@ mixin StandardProjectile on Projectile {
   }
 
   void chain(HealthFunctionality other) {
-    if (!disableChaining &&
-        weaponAncestor.weaponCanChain &&
+    if (enableChaining &&
         !projectileHasExpired &&
         chainedTargets < weaponAncestor.chainingTargets.parameter) {
       closeSensorBodies.sort((a, b) => rng.nextInt(2));
+
       int index = closeSensorBodies.indexWhere(
           (element) => !hitIds.contains(element.entityId) && !element.isDead);
 
@@ -279,6 +299,8 @@ mixin StandardProjectile on Projectile {
     }
   }
 
+  Vector2 impulse = Vector2.zero();
+
   @override
   void sensorContact(HealthFunctionality other) {
     homingCheck(other);
@@ -291,7 +313,14 @@ mixin StandardProjectile on Projectile {
     closetPosition = other.center;
 
     setDelta((closetPosition - body.worldCenter).normalized());
-    final impulse = (delta * weaponAncestor.projectileVelocity.parameter * 10);
+    setDelta(((body.worldCenter.clone()..moveToTarget(closetPosition, 2)) -
+        body.worldCenter));
+
+    double distance = (other.center.distanceTo(center)) - .5;
+    body.linearDamping = 6 - distance.clamp(0, 6);
+    impulse.setFrom(delta *
+        weaponAncestor.projectileVelocity.parameter *
+        projectileHomingSpeedIncrease);
 
     body.applyForce(impulse);
 
@@ -302,8 +331,7 @@ mixin StandardProjectile on Projectile {
   }
 
   void homingCheck(HealthFunctionality other) {
-    if (!disableHoming &&
-        weaponAncestor.weaponCanHome &&
+    if (enableHoming &&
         !other.isDead &&
         !homingComplete &&
         !hitIds.contains(other.entityId)) {
@@ -318,9 +346,9 @@ mixin StandardProjectile on Projectile {
 
   @override
   void killBullet([bool withEffect = false]) async {
-    if (!world.physicsWorld.isLocked) {
-      body.setType(BodyType.static);
-    }
+    // if (!world.physicsWorld.isLocked) {
+    //   body.setType(BodyType.static);
+    // }
     callBulletKillFunctions();
     if (withEffect) {
       if (this is ProjectileSpriteLifecycle) {
@@ -364,12 +392,12 @@ mixin LaserProjectile on FadeOutProjectile {
     if (weaponAncestor.entityAncestor is Enemy) {
       bulletFilter
         ..maskBits = playerCategory
-        ..categoryBits = attackCategory;
+        ..categoryBits = projectileCategory;
     } else if (weaponAncestor.entityAncestor is Player ||
         weaponAncestor.entityAncestor is ChildEntity) {
       bulletFilter
         ..maskBits = enemyCategory
-        ..categoryBits = attackCategory;
+        ..categoryBits = projectileCategory;
     }
     final fixtureDef = FixtureDef(laserShape,
         userData: {"type": FixtureType.body, "object": this},
@@ -435,7 +463,7 @@ mixin LaserProjectile on FadeOutProjectile {
       if (weaponAncestor.weaponCanChain && !startChaining) {
         for (var element in bodies) {
           if ((element.position).distanceTo(newPointPosition + originPosition) <
-              closeBodySensorRadius) {
+              closeBodiesSensorRadius) {
             startChaining = true;
             break;
           }
@@ -452,7 +480,7 @@ mixin LaserProjectile on FadeOutProjectile {
       if (!homingComplete || shouldChain) {
         for (var element in bodies) {
           if ((element.position).distanceTo(newPointPosition + originPosition) <
-              closeBodySensorRadius) {
+              closeBodiesSensorRadius) {
             bodyToJumpTo = element;
             break;
           }
@@ -480,9 +508,9 @@ mixin LaserProjectile on FadeOutProjectile {
   Future<void> onLoad() async {
     width = (power * baseWidth * .4) + baseWidth * .15;
     lineThroughEnemies.add(previousDelta);
-
-    if ((!disableChaining || !disableHoming) &&
-        (weaponAncestor.weaponCanHome || weaponAncestor.weaponCanChain)) {
+    enableHoming = weaponAncestor.weaponCanHome;
+    enableChaining = weaponAncestor.weaponCanChain;
+    if ((enableHoming || enableChaining)) {
       homingAndChainCalculations();
     }
 
@@ -509,15 +537,15 @@ mixin LaserProjectile on FadeOutProjectile {
       lighten: false,
       width: width,
       opacity: opacity,
-    );
+    )..strokeWidth = width;
+
     frontPaint = colorPalette.buildProjectile(
       color: color,
       projectileType: projectileType,
       lighten: true,
-      width: width,
+      width: width * .7,
       opacity: opacity,
-    );
-
+    )..strokeWidth = width * .7;
     return super.onLoad();
   }
 
@@ -530,17 +558,14 @@ mixin LaserProjectile on FadeOutProjectile {
     for (var element in lineThroughEnemies) {
       path.lineTo(element.x, element.y);
     }
+    if (opacity != 1) {
+      canvas.drawPath(path, backPaint..strokeWidth = width * opacity);
 
-    canvas.drawPath(
-        path,
-        backPaint
-          ..strokeWidth = width * opacity
-          ..color = color.withOpacity(opacity));
+      canvas.drawPath(path, frontPaint..strokeWidth = width * .7 * opacity);
+    } else {
+      canvas.drawPath(path, backPaint);
 
-    canvas.drawPath(
-        path,
-        frontPaint
-          ..strokeWidth = width * .7 * opacity
-          ..color = brightColor.withOpacity(opacity));
+      canvas.drawPath(path, frontPaint);
+    }
   }
 }

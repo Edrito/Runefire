@@ -778,11 +778,12 @@ mixin HealthFunctionality on Entity {
 
     final tempText = TextComponent(
       text: damageString,
-      anchor: Anchor.bottomLeft,
+      // anchor: Anchor.center,
       textRenderer: textRenderer,
       priority: foregroundPriority,
       position:
-          (Vector2.random() * .25) + Vector2(entityAnimationsGroup.width, 0),
+          // (Vector2.random() * .25) +
+          Vector2(entityAnimationsGroup.width, 0),
     );
 
     tempText.add(
@@ -795,9 +796,11 @@ mixin HealthFunctionality on Entity {
       ),
     );
 
+    final moveBy = ((Vector2.random() * .5) * (isCrit ? 3 : 1));
+
     tempText.add(
       MoveEffect.by(
-        (Vector2.random() * .5) - Vector2.all(.25) * (isCrit ? 3 : 1),
+        Vector2(moveBy.x, -moveBy.y),
         EffectController(
           duration: 1.33,
           curve: Curves.linear,
@@ -830,23 +833,34 @@ mixin HealthFunctionality on Entity {
     return cancelDamage;
   }
 
+  SizeEffect? currentScaleEffect;
+  ColorEffect? currentColorEffect;
+
   void addDamageEffects(Color color) {
     final reversedController = EffectController(
-      duration: .3,
-      reverseDuration: .1,
-    );
+        duration: .2,
+        reverseDuration: .1,
+        onMin: () {
+          currentScaleEffect?.removeFromParent();
+          currentColorEffect?.removeFromParent();
+          currentScaleEffect = null;
+          currentColorEffect = null;
+        });
 
     baseSize ??= entityAnimationsGroup.size;
 
-    (SizeEffect.to(
-            baseSize! * (1 + (.15 * rng.nextDouble())), reversedController))
-        .addToParent(entityAnimationsGroup);
+    currentScaleEffect?.controller.setToStart();
+    currentColorEffect?.controller.setToStart();
 
-    (ColorEffect(
+    currentScaleEffect ??= SizeEffect.to(
+        baseSize! * (1 + (.25 * rng.nextDouble())), reversedController)
+      ..addToParent(entityAnimationsGroup);
+
+    currentColorEffect ??= ColorEffect(
       color,
       const Offset(0.0, 1),
       reversedController,
-    )).addToParent(entityAnimationsGroup);
+    )..addToParent(entityAnimationsGroup);
   }
 
   void applyKnockback(DamageInstance damage) {
@@ -878,7 +892,6 @@ mixin HealthFunctionality on Entity {
       applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
       essenceStealChecker(damage);
     }
-
     applyDamage(damage);
     applyKnockback(damage);
     deathChecker(damage);
@@ -1160,29 +1173,34 @@ mixin TouchDamageFunctionality on Entity, ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (touchDamage.damageBase.isEmpty || isDead) return;
-    if (other is! HealthFunctionality) return;
-    if (isPlayer && other is Enemy) {
-      objectsHitting[other.body] = TimerComponent(
-        period: hitRate.parameter,
-        repeat: true,
-        onTick: () {
-          damageOther(other.body);
-        },
-      )
-        ..addToParent(this)
-        ..onTick();
-      other.hitCheck(entityId, calculateTouchDamage(other, this));
-    } else if (!isPlayer && other is Player) {
-      objectsHitting[other.body] = TimerComponent(
-        period: hitRate.parameter,
-        repeat: true,
-        onTick: () {
-          damageOther(other.body);
-        },
-      )
-        ..addToParent(this)
-        ..onTick();
+    bool shouldCalculate = touchDamage.damageBase.isNotEmpty &&
+        !isDead &&
+        other is HealthFunctionality &&
+        ((contact.fixtureA.userData as Map)['type'] == FixtureType.body &&
+            (contact.fixtureB.userData as Map)['type'] == FixtureType.body);
+    if (shouldCalculate) {
+      if (isPlayer && other is Enemy) {
+        objectsHitting[other.body] = TimerComponent(
+          period: hitRate.parameter,
+          repeat: true,
+          onTick: () {
+            damageOther(other.body);
+          },
+        )
+          ..addToParent(this)
+          ..onTick();
+        other.hitCheck(entityId, calculateTouchDamage(other, this));
+      } else if (!isPlayer && other is Player) {
+        objectsHitting[other.body] = TimerComponent(
+          period: hitRate.parameter,
+          repeat: true,
+          onTick: () {
+            damageOther(other.body);
+          },
+        )
+          ..addToParent(this)
+          ..onTick();
+      }
     }
 
     super.beginContact(other, contact);

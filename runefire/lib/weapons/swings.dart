@@ -38,24 +38,26 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (meleeAttackAncestor.isDead || hitboxIsDead) {
-      return;
-    }
-
-    if (other is HealthFunctionality) {
-      if (hitEnemiesId.contains(other.entityId) || other.isDead) {
-        return;
-      }
-      if (hitEnemies > meleeAttackAncestor.weaponAncestor.pierce.parameter) {
-        // meleeAttackAncestor.kill();
-        hitboxIsDead = true;
+    try {
+      if (meleeAttackAncestor.isDead || hitboxIsDead) {
         return;
       }
 
-      bodyContact(other);
-    }
+      if (other is HealthFunctionality) {
+        if (hitEnemiesId.contains(other.entityId) || other.isDead) {
+          return;
+        }
+        if (hitEnemies > meleeAttackAncestor.weaponAncestor.pierce.parameter) {
+          // meleeAttackAncestor.kill();
+          hitboxIsDead = true;
+          return;
+        }
 
-    super.beginContact(other, contact);
+        bodyContact(other);
+      }
+    } finally {
+      super.beginContact(other, contact);
+    }
   }
 
   void bodyContact(HealthFunctionality other) {
