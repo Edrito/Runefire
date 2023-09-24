@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/player/player.dart';
@@ -49,12 +50,13 @@ mixin FadeOutProjectile on Projectile {
   double timePassed = 0;
   double fadeOutDuration = .4;
   Curve fadeOutCurve = Curves.easeOut;
+  // @override
+  // double get opacity => fadeOutCurve.transform(
+  //     (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
+  //         .clamp(0, 1)
+  //         .toDouble());
   @override
-  double get opacity => fadeOutCurve.transform(
-      (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
-          .clamp(0, 1)
-          .toDouble());
-
+  double get opacity => 1;
   // @override
   // void killBullet([bool withEffect = false]) async {}
 }
@@ -70,7 +72,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
       this.power = 1}) {
     projectileId = const Uuid().v4();
     damageType = primaryDamageType ??
-        weaponAncestor.baseDamage.damageBase.keys.toList().getRandomElement();
+        weaponAncestor.baseDamage.damageBase.keys.toList().random();
   }
 
   double size;
@@ -81,6 +83,14 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   bool enableChaining = false;
   bool enableHoming = false;
+  bool removeOnEndAttack = false;
+
+  late final int targetsToChain = weaponAncestor.chainingTargets.parameter;
+  late final int targetsToHome = weaponAncestor.maxHomingTargets.parameter;
+  int chainedTargets = 0;
+  int homedTargets = 0;
+  bool get homingComplete => homedTargets > targetsToHome;
+  bool get chainingComplete => chainedTargets > targetsToChain;
 
   late DamageType damageType;
 
@@ -111,12 +121,9 @@ abstract class Projectile extends BodyComponent<GameRouter>
   List<HealthFunctionality> closeSensorBodies = [];
   TimerComponent? projectileDeathTimer;
   bool projectileHasExpired = false;
-  bool homingComplete = false;
 
   //Attributes
   double power;
-  int chainedTargets = 0;
-  int homedTargets = 0;
 
   FixtureDef? sensorDef;
 
@@ -198,22 +205,27 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   @override
   Future<void> onLoad() async {
-    projectileDeathTimer = TimerComponent(
-      period: ttl,
-      onTick: () {
-        projectileHasExpired = true;
+    if (removeOnEndAttack &&
+        weaponAncestor is AttributeWeaponFunctionsFunctionality) {
+      (weaponAncestor as AttributeWeaponFunctionsFunctionality)
+          .onAttackingFinish
+          .add((weapon) {
         killBullet(true);
-      },
-    );
-    add(projectileDeathTimer!);
+      });
+    } else {
+      projectileDeathTimer = TimerComponent(
+        period: ttl,
+        onTick: () {
+          projectileHasExpired = true;
+          killBullet(true);
+        },
+      );
+      add(projectileDeathTimer!);
+    }
+
     weaponAncestor.activeProjectiles.add(this);
     isPlayer = weaponAncestor.entityAncestor?.isPlayer ?? false;
-    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
-      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      for (var element in weapon.onAttackProjectile) {
-        element(this);
-      }
-    }
+    callOnProjectileAttackFunctions();
     return super.onLoad();
   }
 
@@ -221,6 +233,15 @@ abstract class Projectile extends BodyComponent<GameRouter>
   void onRemove() {
     weaponAncestor.activeProjectiles.remove(this);
     super.onRemove();
+  }
+
+  void callOnProjectileAttackFunctions() {
+    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
+      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
+      for (var element in weapon.onAttackProjectile) {
+        element(this);
+      }
+    }
   }
 
   void callBulletKillFunctions() {

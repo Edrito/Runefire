@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
+import 'package:runefire/resources/functions/functions.dart';
 
 import '../../game/enviroment.dart';
 import 'package:forge2d/src/settings.dart' as settings;
@@ -360,6 +361,16 @@ Vector2 newPosition(Vector2 origin, double angleInDegrees, double distance) {
   return Vector2(newX, newY);
 }
 
+Vector2 newPositionRad(Vector2 origin, double rad, double distance) {
+  // Convert angle from degrees to radians
+  // Calculate new position
+  double newX = origin.x + distance * sin(rad);
+  double newY = origin.y + distance * cos(rad);
+
+  // Return new position
+  return Vector2(newX, newY);
+}
+
 List<Vector2> triangleZoomEffect(
   double baseWidth,
   double height,
@@ -423,3 +434,62 @@ List<Vector2> triangleZoomEffect(
 
 //   return result;
 // }
+
+List<(Vector2, Vector2)> separateIntoAnglePairs(List<Vector2> vectors) {
+  List<(Vector2, Vector2)> anglePairs = [];
+  if (vectors.length < 2) {
+    return anglePairs;
+  }
+
+  for (int i = 1; i < vectors.length; i++) {
+    Vector2 vector1 = vectors[i - 1];
+    Vector2 vector2 = vectors[i];
+
+    double angle = atan2(vector2.y - vector1.y, vector2.x - vector1.x);
+
+    angle = roundDouble(angle, 3);
+
+    if (i == 1) {
+      anglePairs.add((vector1, vector2));
+      continue;
+    }
+
+    double previousAngle = atan2(anglePairs.last.$2.y - anglePairs.last.$1.y,
+        anglePairs.last.$2.x - anglePairs.last.$1.x);
+
+    previousAngle = roundDouble(previousAngle, 3);
+    if (angle != previousAngle) {
+      anglePairs.add((vector1, vector2));
+    } else {
+      anglePairs.last = (anglePairs.last.$1, vector2);
+    }
+  }
+
+  return anglePairs;
+}
+
+List<List<Vector2>> turnPairsIntoBoxes(
+    List<(Vector2, Vector2)> anglePairs, double size) {
+  List<List<Vector2>> boxes = [];
+
+  for ((Vector2, Vector2) pair in anglePairs) {
+    Vector2 vector1 = pair.$1;
+    Vector2 vector2 = pair.$2;
+
+    Vector2 perpendicular1 =
+        Vector2(vector1.y - vector2.y, vector2.x - vector1.x).normalized() *
+            size;
+    Vector2 perpendicular2 =
+        Vector2(vector2.y - vector1.y, vector1.x - vector2.x).normalized() *
+            size;
+
+    Vector2 p1 = vector1 + perpendicular1;
+    Vector2 p2 = vector1 - perpendicular1;
+    Vector2 p3 = vector2 - perpendicular2;
+    Vector2 p4 = vector2 + perpendicular2;
+
+    boxes.add([p1, p2, p3, p4]);
+  }
+
+  return boxes;
+}

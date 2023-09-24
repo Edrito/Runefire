@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/contacts/contact.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/data_classes/base.dart';
@@ -365,16 +366,23 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<OnHitDef> onHitByOtherEntity = [];
 
   final List<OnHitDef> onHitOtherEntity = [];
+  final List<OnHitDef> onDamageOtherEntity = [];
   final List<Function(DamageInstance instance)> onKillOtherEntity = [];
+  final List<Function(DamageInstance instance)> onHeal = [];
+  final List<Function(double stamina)> onStaminaModified = [];
+
+  final List<Function(Expendable item)> onItemPickup = [];
+  final List<Function(Expendable item)> onExpendableUsed = [];
+  final List<Function> onLevelUp = [];
 
   final List<Function> onMove = [];
   final List<Function> onDeath = [];
-  final List<Function> onLevelUp = [];
   final List<Function(Weapon weapon)> onAttack = [];
   final List<Function(ReloadFunctionality weapon)> onReloadComplete = [];
   final List<Function(ReloadFunctionality weapon)> onReload = [];
-
+  final List<Function(DamageInstance instance)> onDodge = [];
   final List<Function(HealthFunctionality other)> onTouch = [];
+
   final List<Function(double dt)> onUpdate = [];
 
   @override
@@ -389,6 +397,14 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     for (var element in onTouch) {
       element(other);
     }
+  }
+
+  bool onDamageOtherEntityFunctions(DamageInstance damage) {
+    bool returnVal = false;
+    for (var element in onDamageOtherEntity) {
+      returnVal = element(damage) || returnVal;
+    }
+    return returnVal;
   }
 
   void onHitFunctions(DamageInstance damage) {

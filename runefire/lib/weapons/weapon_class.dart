@@ -141,7 +141,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   Vector2? customOffset;
 
-  Vector2 generateSourcePosition(SourceAttackLocation attackLocation,
+  Vector2 generateGlobalPosition(SourceAttackLocation attackLocation,
       [Vector2? delta, bool melee = false]) {
     Vector2 center = entityAncestor!.center;
 
@@ -234,16 +234,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
             (semi.increaseWhenFullyCharged.parameter * chargeDuration).round();
       }
     }
+    int additionalDurationCountIncrease = countIncreaseWithTime.parameter
+        ? (durationHeld * 2).round().clamp(0, 3)
+        : 0;
     return baseAttackCount.parameter +
         additionalDurationCountIncrease +
         additional;
-  }
-
-  int additionalDurationCountIncrease = 0;
-  void additionalCountCheck() {
-    if (countIncreaseWithTime.parameter) {
-      additionalDurationCountIncrease = durationHeld.round().clamp(0, 6);
-    }
   }
 
   final DoubleParameterManager critChance = DoubleParameterManager(
@@ -309,10 +305,15 @@ abstract class Weapon extends Component with UpgradeFunctions {
   void startAltAttacking();
   void endAltAttacking();
 
-  void startAttacking();
+  void startAttacking() {}
   void endAttacking() {
-    additionalDurationCountIncrease = 0;
     spriteVisibilityCheck();
+    if (this is AttributeWeaponFunctionsFunctionality) {
+      final att = this as AttributeWeaponFunctionsFunctionality;
+      for (var element in att.onAttackingFinish) {
+        element.call(this);
+      }
+    }
   }
 
   void weaponSwappedFrom() {}

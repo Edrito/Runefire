@@ -1,4 +1,5 @@
 import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/player/player_mixin.dart';
 
 import '../../attributes/attributes_permanent.dart';
 import '../../player/player.dart';
@@ -15,27 +16,49 @@ class PlayerDataComponent extends DataComponent {
 }
 
 @HiveType(typeId: 1)
-class PlayerData extends DataClass {
+class PlayerData extends DataClass with PlayerStatistics {
   //XP
   int experiencePoints = 6000;
   int spentExperiencePoints = 0;
-
-  //STATS
-  int totalEnemiesKilled = 0;
-  int totalDamageDealt = 0;
-  int totalAttacksDodged = 0;
-  int totalJumps = 0;
-  int totalDashes = 0;
-  int totalAttributesUnlocked = 0;
-  int totalGamesWon = 0;
-  int totalGamesStarted = 0;
-  int totalDeaths = 0;
 
   ///Update information from player, saving to file
   void updateInformation(Player player) {
     //Parse player data
     experiencePoints += player.experiencePointsGained.round();
 
+    for (var element in DamageType.values) {
+      damageDealt[element] =
+          (damageDealt[element] ?? 0) + (player.damageDealt[element] ?? 0);
+      totalDamageTaken[element] = (totalDamageTaken[element] ?? 0) +
+          (player.totalDamageTaken[element] ?? 0);
+    }
+
+    damageHealed += player.damageHealed;
+    damageDodged += player.damageDodged;
+
+    for (var element in EnemyType.values) {
+      enemiesKilled[element] =
+          (enemiesKilled[element] ?? 0) + (player.enemiesKilled[element] ?? 0);
+      enemiesKilledGuns[element] = (enemiesKilledGuns[element] ?? 0) +
+          (player.enemiesKilledGuns[element] ?? 0);
+      enemiesKilledMagic[element] = (enemiesKilledMagic[element] ?? 0) +
+          (player.enemiesKilledMagic[element] ?? 0);
+      enemiesKilledMelee[element] = (enemiesKilledMelee[element] ?? 0) +
+          (player.enemiesKilledMelee[element] ?? 0);
+    }
+
+    projectilesShot += player.projectilesShot;
+    meleeSwings += player.meleeSwings;
+    magicCast += player.magicCast;
+    timesReloaded += player.timesReloaded;
+
+    jumped += player.jumped;
+    dashed += player.dashed;
+    distanceTraveled += player.distanceTraveled;
+    totalStaminaUsed += player.totalStaminaUsed;
+
+    itemsPickedUp += player.itemsPickedUp;
+    expendableItemsUsed += player.expendableItemsUsed;
     // save();
   }
 
@@ -66,8 +89,8 @@ class PlayerData extends DataClass {
   }
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.crystalPistol,
-    1: WeaponType.energyMagic,
+    0: WeaponType.magicBlast,
+    1: WeaponType.prismaticBeam,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,

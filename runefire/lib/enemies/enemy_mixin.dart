@@ -171,7 +171,7 @@ mixin DumbShoot on AttackFunctionality {
     shooter = TimerComponent(
         period: shootInterval,
         onTick: () {
-          if (entityAimAngle.isZero()) return;
+          if (entityInputsAimAngle.isZero()) return;
           startAttacking();
           setEntityStatus(EntityStatus.attack);
           endAttacking();

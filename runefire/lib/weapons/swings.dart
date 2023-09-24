@@ -258,9 +258,8 @@ class MeleeAttackSprite extends PositionComponent {
     curve = weaponTrailConfig?.curve ?? Curves.easeIn;
     renderTrail = true;
     color = weaponTrailConfig?.color ??
-        (handler.weaponAncestor.baseDamage.damageBase.keys
-                .toList()
-                .getRandomElement() as DamageType)
+        (handler.weaponAncestor.baseDamage.damageBase.keys.toList().random()
+                as DamageType)
             .color;
     topStartFromTipPercent = weaponTrailConfig?.topStartFromTipPercent ?? .95;
     bottomStartFromTipPercent =
@@ -283,16 +282,16 @@ class MeleeAttackSprite extends PositionComponent {
       return;
     }
 
-    final tipPos = newPosition(
+    final tipPos = newPositionRad(
             animationComponent!.position,
             // Vector2.zero(),
-            degrees(-swingAngle),
+            -swingAngle,
             handler.weaponAncestor.tipOffset.y * topStartFromTipPercent)
         .toOffset();
-    final midPos = newPosition(
+    final midPos = newPositionRad(
             animationComponent!.position,
             // swing.swingPosition,
-            degrees(-swingAngle),
+            -swingAngle,
             handler.weaponAncestor.tipOffset.y * bottomStartFromTipPercent)
         .toOffset();
 

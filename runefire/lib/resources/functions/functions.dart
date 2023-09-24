@@ -13,6 +13,11 @@ double randomBetween((double, double) val) {
   return (rng.nextDouble() * (val.$2 - val.$1)) + val.$1;
 }
 
+double roundDouble(double value, int places) {
+  double mod = pow(10.0, places).toDouble();
+  return ((value * mod).round().toDouble() / mod);
+}
+
 Widget buildImageAsset(String asset,
     {BoxFit fit = BoxFit.cover, Color? color}) {
   return Image.asset(

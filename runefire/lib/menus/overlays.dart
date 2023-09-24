@@ -7,6 +7,7 @@ import 'package:runefire/menus/buttons.dart';
 import 'package:runefire/menus/custom_widgets.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
+import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -48,14 +49,16 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                       "Try again",
                       gameRef: gameRouter,
                       onTap: () {
-                        gameRouter.gameStateComponent.gameState.endGame(true);
+                        gameRouter.gameStateComponent.gameState
+                            .endGame(GameEndState.death);
                       },
                     ),
                     CustomButton(
                       "Give up",
                       gameRef: gameRouter,
                       onTap: () {
-                        gameRouter.gameStateComponent.gameState.endGame();
+                        gameRouter.gameStateComponent.gameState
+                            .endGame(GameEndState.death);
                       },
                     )
                   ],

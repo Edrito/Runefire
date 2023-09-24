@@ -418,6 +418,8 @@ class HolySword extends PlayerWeapon
 
     tipOffset = Vector2(0, weaponSize);
 
+    attackOnChargeComplete = true;
+
     meleeAttacks = [
       MeleeAttack(
           attackHitboxSize: Vector2(1, weaponSize),

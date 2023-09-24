@@ -222,7 +222,13 @@ class LongRangeRifle extends PlayerWeapon
 }
 
 class ArcaneBlaster extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        FullAutomatic,
+        SemiAutomatic,
+        ChargeFullAutomatic,
+        ChargeEffect {
   ArcaneBlaster(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -238,6 +244,9 @@ class ArcaneBlaster extends PlayerWeapon
   }
   @override
   WeaponType weaponType = WeaponType.arcaneBlaster;
+
+  @override
+  double get attackRateDelay => 0;
 
   @override
   void mapUpgrade() {
@@ -300,7 +309,12 @@ class LaserRifle extends PlayerWeapon
     attackTickRate.baseParameter = .4;
     weaponRandomnessPercent.baseParameter = .04;
     chainingTargets.baseParameter = 1;
-    baseAttackCount.baseParameter = 5;
+    baseAttackCount.baseParameter = 4;
+
+    projectileVelocity.baseParameter = 7;
+
+    attackOnRelease = false;
+    attackOnChargeComplete = true;
   }
   @override
   WeaponType weaponType = WeaponType.prismaticBeam;
@@ -350,7 +364,7 @@ class LaserRifle extends PlayerWeapon
   double weaponSize = 2;
 
   @override
-  ProjectileType? projectileType = ProjectileType.laser;
+  ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;

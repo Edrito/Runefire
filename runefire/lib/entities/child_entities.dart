@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
@@ -251,7 +252,7 @@ class MarkEnemySentry extends ChildEntity {
                 !(element.userData as HealthFunctionality).isMarked.parameter)
             .toList();
         if (filteredBodies.isNotEmpty) {
-          target = filteredBodies.getRandomElement<Body>().userData as Enemy;
+          target = filteredBodies.random().userData as Enemy;
         }
         break;
       default:
@@ -375,7 +376,7 @@ class GrabItemsSentry extends MovingSentry with ContactCallbacks {
     //         !(element.userData as HealthFunctionality).isMarked.parameter)
     //     .toList();
     if (bodies.isNotEmpty) {
-      target = bodies.getRandomElement<Body>();
+      target = bodies.random();
     } else {
       target = null;
     }
@@ -480,7 +481,7 @@ class ElementalAttackSentry extends MovingSentry
         .toList();
 
     if (filteredBodies.isNotEmpty) {
-      target = filteredBodies.getRandomElement<Body>();
+      target = filteredBodies.random();
 
       shouldFetchNewTarget = false;
     } else {

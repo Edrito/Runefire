@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       Anchor anchor = Anchor.center;
 
       if (damage != null && damage!.isNotEmpty) {
-        final damageType = damage!.keys.toList().getRandomElement();
+        final damageType = damage!.keys.toList().random();
         switch (damageType) {
           case DamageType.fire:
             spawnAnimation = await spriteAnimations.fireExplosionMedium1;

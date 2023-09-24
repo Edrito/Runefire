@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
@@ -6,6 +7,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
@@ -281,9 +283,7 @@ mixin StandardProjectile on Projectile {
   }
 
   void chain(HealthFunctionality other) {
-    if (enableChaining &&
-        !projectileHasExpired &&
-        chainedTargets < weaponAncestor.chainingTargets.parameter) {
+    if (enableChaining && !projectileHasExpired && !chainingComplete) {
       closeSensorBodies.sort((a, b) => rng.nextInt(2));
 
       int index = closeSensorBodies.indexWhere(
@@ -312,7 +312,7 @@ mixin StandardProjectile on Projectile {
 
     closetPosition = other.center;
 
-    setDelta((closetPosition - body.worldCenter).normalized());
+    // setDelta((closetPosition - body.worldCenter).normalized());
     setDelta(((body.worldCenter.clone()..moveToTarget(closetPosition, 2)) -
         body.worldCenter));
 
@@ -337,8 +337,7 @@ mixin StandardProjectile on Projectile {
         !hitIds.contains(other.entityId)) {
       setTarget(other);
       homedTargets++;
-      if (homedTargets > weaponAncestor.maxHomingTargets.parameter) {
-        homingComplete = true;
+      if (homingComplete) {
         homingStopped = true;
       }
     }
@@ -368,27 +367,26 @@ mixin StandardProjectile on Projectile {
 }
 
 mixin LaserProjectile on FadeOutProjectile {
-  int enemiesHit = 0;
-  Set<Vector2> lineThroughEnemies = {};
-  Set<Vector2> boxThroughEnemies = {};
-  late Shape laserShape;
-  double precisionPerDistance = .5;
+  bool allowChainingOrHoming = true;
+  bool followWeapon = false;
 
-  bool startChaining = false;
   abstract final double baseWidth;
-  late double width;
+  List<List<Vector2>> boxes = [];
+  List<(Vector2, Vector2)> linePairs = [];
 
+  int enemiesHit = 0;
+  double precisionPerDistance = .5;
   Color get brightColor => damageType.color.brighten(.7);
   Color get color => damageType.color;
+  late double width;
 
-  @override
-  Body createBody() {
-    debugMode = false;
-    renderBody = true;
+  bool startChaining = false;
 
-    laserShape = ChainShape()..createLoop(boxThroughEnemies.toList());
+  Set<Fixture> savedFixtures = {};
 
+  FixtureDef buildFixture(List<Vector2> element) {
     final bulletFilter = Filter();
+
     if (weaponAncestor.entityAncestor is Enemy) {
       bulletFilter
         ..maskBits = playerCategory
@@ -399,18 +397,39 @@ mixin LaserProjectile on FadeOutProjectile {
         ..maskBits = enemyCategory
         ..categoryBits = projectileCategory;
     }
-    final fixtureDef = FixtureDef(laserShape,
+
+    return FixtureDef(PolygonShape()..set(element),
         userData: {"type": FixtureType.body, "object": this},
         isSensor: true,
         filter: bulletFilter);
+  }
+
+  @override
+  Body createBody() {
+    debugMode = false;
+    renderBody = false;
+
+    // assert(!allowChainingOrHoming || !followWeapon);
+
+    List<FixtureDef> fixtures = [];
+
+    for (var element in boxes) {
+      fixtures.add(buildFixture(element));
+    }
+
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      type: BodyType.dynamic,
+      type: BodyType.static,
+      allowSleep: false,
       bullet: false,
     );
 
-    var returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
+    var returnBody = world.createBody(bodyDef);
+
+    for (var element in fixtures) {
+      savedFixtures.add(returnBody.createFixture(element));
+    }
 
     return returnBody;
   }
@@ -419,69 +438,56 @@ mixin LaserProjectile on FadeOutProjectile {
     if (weaponAncestor.entityAncestor!.isPlayer) {
       return element.userData is Enemy &&
           !(element.userData as Enemy).isDead &&
-          isEntityInfrontOfHandAngle(element.position, originPosition, delta);
+          isEntityInfrontOfHandAngle(
+              element.position, !isMounted ? originPosition : center, delta);
     } else {
       return element.userData is Player &&
           !(element.userData as Player).isDead &&
-          isEntityInfrontOfHandAngle(element.position, originPosition, delta);
+          isEntityInfrontOfHandAngle(
+              element.position, !isMounted ? originPosition : center, delta);
     }
   }
 
-  void homingAndChainCalculations() {
-    double distance = weaponAncestor.projectileVelocity.parameter;
+  void homingAndChainCalculations(List<Vector2> lineThroughEnemies) {
+    double maxDistance = weaponAncestor.projectileVelocity.parameter;
 
-    List<Body> bodies = world.physicsWorld.bodies
-        .where((element) => infrontWeaponCheck(element))
-        .toList();
+    List<Body> bodies = [
+      ...world.physicsWorld.bodies
+          .where((element) => infrontWeaponCheck(element))
+    ];
 
-    homingComplete = !weaponAncestor.weaponCanHome;
+    laserSteps = laserSteps.clamp(2, 30);
 
-    bodies.sort(
-      (a, b) => a.position
-          .distanceTo(originPosition)
-          .compareTo(b.position.distanceTo(originPosition)),
-    );
+    final pointStep = maxDistance / laserSteps;
 
-    var amountOfPoints = precisionPerDistance * distance;
-
-    amountOfPoints = amountOfPoints.clamp(3, 200);
-
-    final pointStep = distance / amountOfPoints;
-
-    amountOfPoints = (amountOfPoints * .666) + (amountOfPoints * .333);
-
-    startChaining =
-        weaponAncestor.weaponCanHome && weaponAncestor.weaponCanChain;
+    startChaining = targetsToChain != 0;
 
     Vector2 previousStep = Vector2.zero();
+    Vector2 tempStep = Vector2.zero();
+    // print(laserSteps);
 
-    for (var i = 0; i < amountOfPoints; i++) {
+    for (var i = 0; i < laserSteps; i++) {
       Body? bodyToJumpTo;
+      homedTargets = 0;
+      chainedTargets = 0;
 
       Vector2 newPointPosition = ((delta * pointStep) + previousStep);
 
-      if (weaponAncestor.weaponCanChain && !startChaining) {
-        for (var element in bodies) {
-          if ((element.position).distanceTo(newPointPosition + originPosition) <
-              closeBodiesSensorRadius) {
-            startChaining = true;
-            break;
-          }
-        }
-      }
-
-      previousStep = newPointPosition.clone();
-
-      bool shouldChain =
-          chainedTargets < weaponAncestor.chainingTargets.parameter &&
-              startChaining;
-
       //if should be bouncing, bounce
-      if (!homingComplete || shouldChain) {
-        for (var element in bodies) {
-          if ((element.position).distanceTo(newPointPosition + originPosition) <
-              closeBodiesSensorRadius) {
-            bodyToJumpTo = element;
+      if (!homingComplete || !chainingComplete) {
+        for (var i = 0; i < laserCheckPointsFrequency; i++) {
+          tempStep = previousStep +
+              (newPointPosition - previousStep) *
+                  (i / laserCheckPointsFrequency);
+          List<Body> closeBodies = bodies
+              .where((element) =>
+                  element.worldCenter.distanceTo(tempStep + originPosition) <
+                  (closeBodiesSensorRadius +
+                      ((element.userData as Entity).height.parameter / 3)))
+              .toList();
+
+          if (closeBodies.isNotEmpty) {
+            bodyToJumpTo = closeBodies.random();
             break;
           }
         }
@@ -490,46 +496,106 @@ mixin LaserProjectile on FadeOutProjectile {
       //if close body detected, jump to it
       if (bodyToJumpTo != null) {
         newPointPosition = bodyToJumpTo.position - originPosition;
-        setDelta((bodyToJumpTo.position - originPosition - previousDelta)
-            .normalized());
+        setDelta((newPointPosition - previousStep).normalized());
         bodies.remove(bodyToJumpTo);
 
-        chainedTargets++;
-        homedTargets++;
-        homingComplete = true;
+        if (!homingComplete) {
+          homedTargets++;
+        } else if (!chainingComplete) {
+          chainedTargets++;
+        }
+      }
+      previousStep = newPointPosition.clone();
+      lineThroughEnemies.add(newPointPosition);
+    }
+    // print(lineThroughEnemies);
+  }
+
+  @override
+  void update(double dt) {
+    createLaserPath();
+
+    super.update(dt);
+  }
+
+  int laserSteps = 0;
+  void generateLine(List<Vector2> lineThroughEnemies) {
+    enableHoming = targetsToHome != 0;
+    enableChaining = targetsToChain != 0;
+    laserSteps = 1 + targetsToChain + targetsToHome;
+
+    if ((enableHoming || enableChaining) && allowChainingOrHoming) {
+      homingAndChainCalculations(lineThroughEnemies);
+    }
+
+    if (lineThroughEnemies.length < 2) {
+      double distance = weaponAncestor.projectileVelocity.parameter;
+      distance = (distance * power);
+      lineThroughEnemies.add(delta * distance);
+    }
+  }
+
+  void convertLine(List<Vector2> lineThroughEnemies) {
+    //todo build off off the line pairs
+
+    linePairs = [...separateIntoAnglePairs(lineThroughEnemies)];
+    boxes = [...turnPairsIntoBoxes(linePairs, width)];
+  }
+
+  Vector2 initDelta = Vector2.zero();
+  double initHandJointRad = 0;
+  double get handJointDifference =>
+      weaponAncestor.entityAncestor!.handJoint.angle - initHandJointRad;
+
+  void createLaserPath() {
+    List<Vector2> lineThroughEnemies = [];
+    lineThroughEnemies.add(Vector2.zero());
+    originPosition = weaponAncestor
+        .generateGlobalPosition(weaponAncestor.sourceAttackLocation!);
+
+    if (isMounted) {
+      body.setTransform(originPosition, angle);
+      setDelta((rotateVector2(initDelta.normalized(), handJointDifference))
+          .normalized());
+    }
+
+    generateLine(lineThroughEnemies);
+
+    convertLine(lineThroughEnemies.toList());
+    if (!isMounted) return;
+    main:
+    for (var i = 0; i < max(boxes.length, savedFixtures.length); i++) {
+      if (boxes.length <= i) {
+        body.destroyFixture(savedFixtures.elementAt(i));
+        savedFixtures.remove(savedFixtures.elementAt(i));
+        continue;
+      }
+      if (savedFixtures.length <= i) {
+        savedFixtures.add(body.createFixture(buildFixture(boxes[i])));
+        continue;
       }
 
-      lineThroughEnemies.add(newPointPosition);
-      // previousDelta = newPointPosition.clone();
+      for (var single in boxes[i]) {
+        for (var check in boxes[i]) {
+          if (single == check) continue;
+          if (single.distanceToSquared(check) < 0.5 * 0.005) {
+            continue main;
+          }
+        }
+      }
+
+      (savedFixtures.elementAt(i).shape as PolygonShape).set(
+        boxes[i],
+      );
     }
   }
 
   @override
   Future<void> onLoad() async {
     width = (power * baseWidth * .4) + baseWidth * .15;
-    lineThroughEnemies.add(previousDelta);
-    enableHoming = weaponAncestor.weaponCanHome;
-    enableChaining = weaponAncestor.weaponCanChain;
-    if ((enableHoming || enableChaining)) {
-      homingAndChainCalculations();
-    }
-
-    if (lineThroughEnemies.length < 3) {
-      if (lineThroughEnemies.length == 2) {
-        lineThroughEnemies = {lineThroughEnemies.first};
-      }
-      double distance = weaponAncestor.projectileVelocity.parameter;
-      distance = (distance * .1 * power) + distance * .333;
-      lineThroughEnemies.add(((delta * distance * .333) + previousDelta));
-      lineThroughEnemies.add(((delta * distance * .666) + previousDelta));
-      lineThroughEnemies.add(((delta * distance) + previousDelta));
-    }
-
-    boxThroughEnemies =
-        expandToBox(lineThroughEnemies.toList(), width / 2).toSet();
-
-    boxThroughEnemies =
-        validateChainDistances(boxThroughEnemies.toList()).toSet();
+    initDelta = delta.clone();
+    initHandJointRad = weaponAncestor.entityAncestor!.handJoint.angle;
+    createLaserPath();
 
     backPaint = colorPalette.buildProjectile(
       color: color,
@@ -546,6 +612,7 @@ mixin LaserProjectile on FadeOutProjectile {
       width: width * .7,
       opacity: opacity,
     )..strokeWidth = width * .7;
+
     return super.onLoad();
   }
 
@@ -555,9 +622,24 @@ mixin LaserProjectile on FadeOutProjectile {
   @override
   void render(Canvas canvas) {
     var path = Path();
-    for (var element in lineThroughEnemies) {
-      path.lineTo(element.x, element.y);
+    for (var element in linePairs) {
+      if (element == linePairs.first) {
+        path.moveTo(element.$1.x, element.$1.y);
+      }
+      path.lineTo(element.$2.x, element.$2.y);
+
+      canvas.drawCircle(element.$1.toOffset(), .3, frontPaint);
+      canvas.drawCircle(element.$2.toOffset(), .3, frontPaint);
     }
+
+    // for (var element in turnPairsIntoBoxes(
+    //         separateIntoAnglePairs(lineThroughEnemies.toList()), 1)
+    //     .toSet()) {
+    //   for (var elementD in element) {
+    //     canvas.drawCircle(elementD.toOffset(), .01, backPaint);
+    //     canvas.drawCircle(elementD.toOffset(), .05, frontPaint);
+    //   }
+    // }
     if (opacity != 1) {
       canvas.drawPath(path, backPaint..strokeWidth = width * opacity);
 
@@ -567,5 +649,6 @@ mixin LaserProjectile on FadeOutProjectile {
 
       canvas.drawPath(path, frontPaint);
     }
+    super.render(canvas);
   }
 }

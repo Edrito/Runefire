@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/visuals.dart';
 
 import '../player/player.dart';
@@ -186,9 +187,11 @@ extension GameStateFunctions on GameState {
     currentRoute = route;
   }
 
-  void endGame([bool restart = false]) {
+  void endGame(GameEndState endGameState, [bool restart = false]) {
     final player = currentPlayer;
     if (player != null) {
+      gameRouter.playerDataComponent.dataObject
+          .modifyGameVariables(endGameState, player.gameEnviroment);
       gameRouter.playerDataComponent.dataObject.updateInformation(player);
     }
 
@@ -201,16 +204,16 @@ extension GameStateFunctions on GameState {
     resumeGame();
   }
 
-  void killPlayer(bool showDeathScreen, Player player) {
+  void killPlayer(GameEndState gameEndState, Player player) {
     player.setEntityStatus(EntityStatus.dead);
     transitionOccuring = true;
     Future.delayed(2.seconds).then(
       (value) {
         transitionOccuring = false;
-        if (showDeathScreen) {
+        if (gameEndState == GameEndState.death) {
           pauseGame(overlays.deathScreen.key, wipeMovement: true);
         } else {
-          endGame(false);
+          endGame(gameEndState, false);
         }
       },
     );

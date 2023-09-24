@@ -43,7 +43,7 @@ class SpriteAnimations {
   late Future<SpriteAnimation> playerCharacterOneHit1 =
       loadSpriteAnimation(3, 'sprites/hit.png', .1, true);
   late Future<SpriteAnimation> playerCharacterOneDead1 =
-      loadSpriteAnimation(6, 'enemy_sprites/death.png', .1, false);
+      loadSpriteAnimation(6, 'sprites/death.png', .2, false);
 
 //Enemies
 //Mushroom Hopper

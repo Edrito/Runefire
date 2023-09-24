@@ -131,6 +131,7 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
       this.customEndAnimation,
       this.customHitAnimation,
       super.power});
+
   @override
   void bodyContact(HealthFunctionality other) {
     applyHitAnimation(other, center);
@@ -206,8 +207,8 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
   ProjectileType projectileType = ProjectileType.spriteBullet;
 }
 
-class Laser extends Projectile with FadeOutProjectile, LaserProjectile {
-  Laser(
+class PaintLaser extends Projectile with FadeOutProjectile, LaserProjectile {
+  PaintLaser(
       {required super.delta,
       required super.originPosition,
       required super.weaponAncestor,
@@ -221,6 +222,30 @@ class Laser extends Projectile with FadeOutProjectile, LaserProjectile {
 
   @override
   double baseWidth = .3;
+
+  @override
+  set ttl(double val) {}
+}
+
+class FollowLaser extends Projectile with FadeOutProjectile, LaserProjectile {
+  FollowLaser(
+      {required super.delta,
+      required super.originPosition,
+      required super.weaponAncestor,
+      super.size = 1.5,
+      super.power}) {
+    followWeapon = false;
+    removeOnEndAttack = true;
+    allowChainingOrHoming = true;
+  }
+  @override
+  ProjectileType projectileType = ProjectileType.laser;
+
+  @override
+  late final double ttl = weaponAncestor.attackTickRate.parameter * 2;
+
+  @override
+  double baseWidth = .2;
 
   @override
   set ttl(double val) {}

@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:ffi';
+import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
@@ -42,9 +43,12 @@ class Player extends Entity
         MovementFunctionality,
         JumpFunctionality,
         ExperienceFunctionality,
+        ExpendableFunctionality,
         DodgeFunctionality,
         DashFunctionality,
-        HealthRegenFunctionality {
+        HealthRegenFunctionality,
+        PlayerStatistics,
+        PlayerStatisticsRecorder {
   Player(this.playerData, this.isDisplay,
       {required super.enviroment, required super.initialPosition}) {
     // if (!isDisplay) {
@@ -91,24 +95,6 @@ class Player extends Entity
         _interactableComponents.first.toggleDisplay(true);
       }
     }
-  }
-
-  Expendable? currentExpendable;
-
-  void pickupExpendable(Expendable groundExpendable) {
-    if (groundExpendable.instantApply) {
-      groundExpendable.applyExpendable();
-      return;
-    }
-
-    currentExpendable = groundExpendable;
-    gameEnviroment.hud.currentExpendable = groundExpendable;
-  }
-
-  void useExpendable() {
-    currentExpendable?.applyExpendable();
-    currentExpendable = null;
-    gameEnviroment.hud.currentExpendable = null;
   }
 
   @override

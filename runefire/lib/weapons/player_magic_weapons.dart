@@ -540,43 +540,31 @@ class PsychicMagic extends PlayerWeapon
 }
 
 class MagicBlast extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        SemiAutomatic,
+        ChargeEffect {
   MagicBlast(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    // chainingTargets.baseParameter = 3;
-    // maxHomingTargets.baseParameter = 1;
     baseDamage.damageBase[DamageType.magic] = (3, 7);
     maxAttacks.baseParameter = 20;
-    attackTickRate.baseParameter = .35;
+    attackTickRate.baseParameter = 1;
     pierce.baseParameter = 5;
     tipOffset = Vector2(0, weaponSize);
 
     primaryDamageType = DamageType.magic;
     projectileSize = 1.25;
 
-    // onProjectileDeath.add((projectile) {
-    //   entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
-    //     sourceEntity: entityAncestor!,
-    //     position: projectile.center,
-    //     durationType: DurationType.instant,
-    //     damage: {DamageType.fire: (10, 25)},
-    //   ));
-    // });
+    attackOnRelease = false;
+    attackOnChargeComplete = true;
+    dragIncreaseOnHoldComplete = .08;
+    movementReductionOnHoldComplete = -.3;
   }
   @override
   WeaponType weaponType = WeaponType.magicBlast;
-
-  // @override
-  // void mapUpgrade() {
-  //   unMapUpgrade();
-
-  //   super.mapUpgrade();
-  // }
-
-  // @override
-  // void unMapUpgrade() {}
 
   @override
   bool get removeSpriteOnAttack => true;
@@ -609,10 +597,13 @@ class MagicBlast extends PlayerWeapon
   ];
 
   @override
-  ProjectileType? projectileType = ProjectileType.magicProjectile;
+  ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
   double weaponSize = .85;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.release;
 }
 
 class MagicMissile extends PlayerWeapon

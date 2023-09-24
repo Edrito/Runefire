@@ -95,12 +95,8 @@ class RapidFire extends SecondaryWeaponAbility {
     }
 
     if (weapon is SemiAutomatic) {
-      (weapon as SemiAutomatic).durationHeld =
-          (weapon?.attackTickRate.parameter ?? 1) / 2;
-      weapon?.attackAttempt();
+      weapon?.attackAttempt(.5);
       attacks++;
-
-      (weapon as SemiAutomatic).durationHeld = 0;
     } else {
       weapon?.attackAttempt();
     }

@@ -10,8 +10,10 @@ import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/damage_values.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/game_state_class.dart';
@@ -281,7 +283,7 @@ mixin AimFunctionality on Entity {
     return returnVal;
   }
 
-  Vector2 get entityAimAngle {
+  Vector2 get entityInputsAimAngle {
     if (isDead) {
       return lastAimingDelta;
     }
@@ -341,7 +343,7 @@ mixin AimFunctionality on Entity {
   void handJointBehindBodyCheck() {
     final deg = degrees(radiansBetweenPoints(
       Vector2(1, 0),
-      entityAimAngle,
+      entityInputsAimAngle,
     ));
 
     if ((deg >= 0 && deg < 180 && !weaponBehind) ||
@@ -364,12 +366,14 @@ mixin AimFunctionality on Entity {
   }
 
   Vector2 handAngleTarget = Vector2.zero();
-  double aimingInterpolationAmount = .915;
+
+  DoubleParameterManager aimingInterpolationAmount =
+      DoubleParameterManager(baseParameter: .9125);
+  double distanceFactor = 1;
 
   void followTarget() {
     final angle = calculateInterpolatedVector(handAngleTarget,
-        handJoint.position.normalized(), aimingInterpolationAmount);
-    double distanceFactor = 1;
+        handJoint.position.normalized(), aimingInterpolationAmount.parameter);
     if (isPlayer) {
       const distance = 7.5;
       distanceFactor = (Curves.easeInOutCubic.transform(
@@ -392,7 +396,7 @@ mixin AimFunctionality on Entity {
   void aimCharacter() {
     if (!enableMovement.parameter) return;
 
-    handAngleTarget = entityAimAngle.clone();
+    handAngleTarget = entityInputsAimAngle.clone();
 
     handJointBehindBodyCheck();
     spriteFlipCheck();
@@ -588,8 +592,7 @@ mixin StaminaFunctionality on Entity {
   double get remainingStamina => stamina.parameter - staminaUsed;
   double staminaUsed = 0;
 
-  ///Requires a positive value to reduce the amount of stamina used
-  ///5 = 5 more stamina, -5 = 5 less stamina
+  ///5 = 5 more stamina, -5 = 5 less stamina, to use
   void modifyStamina(double amount) {
     if (isForbiddenMagic && this is HealthFunctionality && amount < 0) {
       final health = this as HealthFunctionality;
@@ -599,6 +602,16 @@ mixin StaminaFunctionality on Entity {
       }, source: this, victim: health, sourceAttack: this));
     } else {
       staminaUsed = (staminaUsed -= amount).clamp(0, stamina.parameter);
+      staminaModifiedFunctions(amount);
+    }
+  }
+
+  void staminaModifiedFunctions(double stamina) {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onStaminaModified.isNotEmpty) {
+      for (var element in attr.onStaminaModified) {
+        element(stamina);
+      }
     }
   }
 
@@ -882,6 +895,11 @@ mixin HealthFunctionality on Entity {
     if (damage.damageMap.isEmpty || onHitByOtherFunctionsCall(damage)) {
       return false;
     }
+    if (damage.source is AttributeFunctionsFunctionality) {
+      if ((damage.source as AttributeFunctionsFunctionality)
+          .onDamageOtherEntityFunctions
+          .call(damage)) return false;
+    }
 
     MapEntry<DamageType, double> largestEntry = fetchLargestDamageType(damage);
     addFloatingText(largestEntry.key, largestEntry.value, damage.isCrit);
@@ -892,6 +910,7 @@ mixin HealthFunctionality on Entity {
       applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
       essenceStealChecker(damage);
     }
+
     applyDamage(damage);
     applyKnockback(damage);
     deathChecker(damage);
@@ -945,6 +964,15 @@ mixin HealthFunctionality on Entity {
     }
   }
 
+  void onHealFunctions(DamageInstance damage) {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onHeal.isNotEmpty) {
+      for (var element in attr.onHeal) {
+        element(damage);
+      }
+    }
+  }
+
   ///Heal the attacker if they have the essence steal attribute
   void essenceStealChecker(DamageInstance damage) {
     bool isHealth = damage.source is HealthFunctionality;
@@ -956,7 +984,8 @@ mixin HealthFunctionality on Entity {
   void deathChecker(DamageInstance damage) {
     if (remainingHealth <= 0 && !isDead) {
       if (this is Player) {
-        game.gameStateComponent.gameState.killPlayer(true, this as Player);
+        game.gameStateComponent.gameState
+            .killPlayer(GameEndState.death, this as Player);
       } else {
         setEntityStatus(EntityStatus.dead);
       }
@@ -1030,7 +1059,6 @@ mixin HealthFunctionality on Entity {
 }
 
 mixin DodgeFunctionality on HealthFunctionality {
-  double totalDamageDodged = 0;
   int dodges = 0;
 
   @override
@@ -1065,7 +1093,7 @@ mixin DodgeFunctionality on HealthFunctionality {
       color: Colors.grey.shade100,
     ));
     final dodgeText = TextComponent(
-      text: ["~", "foo", "dodge", "swish"].getRandomElement(),
+      text: ["~", "foo", "dodge", "swish"].random(),
       anchor: Anchor.bottomLeft,
       textRenderer: test,
       position: Vector2(
@@ -1087,14 +1115,21 @@ mixin DodgeFunctionality on HealthFunctionality {
   }
 
   void dodge(DamageInstance damage) {
-    totalDamageDodged += damage.damageMap.entries
-        .firstWhere((element) => element.key == DamageType.physical)
-        .value;
+    dodgeFunctions(damage);
 
     dodges++;
     applyIFrameTimer(damage.source.entityId);
 
     addDodgeText();
+  }
+
+  void dodgeFunctions(DamageInstance damage) {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onDodge.isNotEmpty) {
+      for (var element in attr.onDodge) {
+        element(damage);
+      }
+    }
   }
 
   bool dodgeCheck(DamageInstance damage) {
@@ -1348,7 +1383,7 @@ mixin DashFunctionality on StaminaFunctionality {
         dashDelta = (this as MovementFunctionality).moveDelta;
       }
       if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).entityAimAngle;
+        dashDelta = (this as AimFunctionality).entityInputsAimAngle;
       }
     }
 
@@ -1602,5 +1637,45 @@ mixin JumpFunctionality on Entity {
     jump();
 
     return true;
+  }
+}
+
+mixin ExpendableFunctionality on Entity {
+  Expendable? currentExpendable;
+
+  void onExpendable(Expendable expendable) {
+    if (this is AttributeFunctionsFunctionality) {
+      final attr = this as AttributeFunctionsFunctionality;
+      for (var element in attr.onExpendableUsed) {
+        element.call(expendable);
+      }
+    }
+  }
+
+  void pickupExpendable(Expendable groundExpendable) {
+    if (this is AttributeFunctionsFunctionality) {
+      final attr = this as AttributeFunctionsFunctionality;
+      for (var element in attr.onItemPickup) {
+        element.call(groundExpendable);
+      }
+    }
+
+    if (groundExpendable.instantApply) {
+      groundExpendable.applyExpendable();
+      onExpendable(groundExpendable);
+      return;
+    }
+
+    currentExpendable = groundExpendable;
+    gameEnviroment.hud.currentExpendable = groundExpendable;
+  }
+
+  void useExpendable() {
+    if (currentExpendable != null) {
+      currentExpendable?.applyExpendable();
+      onExpendable(currentExpendable!);
+    }
+    currentExpendable = null;
+    gameEnviroment.hud.currentExpendable = null;
   }
 }

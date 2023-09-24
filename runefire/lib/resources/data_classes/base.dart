@@ -388,7 +388,7 @@ DamageInstance damageCalculations(
         weaponTypeIncrease = source.meleeDamagePercentIncrease.parameter;
 
         break;
-      case AttackType.projectile:
+      case AttackType.guns:
         weaponTypeIncrease = source.projectileDamagePercentIncrease.parameter;
 
         break;

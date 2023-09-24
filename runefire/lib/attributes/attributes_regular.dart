@@ -1464,9 +1464,9 @@ class ProjectileSplitExplodeAttribute extends Attribute {
 
     Vector2 position = projectile.center.clone();
     if (projectile.projectileType == ProjectileType.laser) {
-      final list = (projectile as LaserProjectile).lineThroughEnemies.toList();
+      final list = (projectile as LaserProjectile).linePairs.toList();
 
-      position = list[rng.nextInt(list.length.clamp(0, 3))];
+      position = list[rng.nextInt(list.length.clamp(0, 3))].$1;
     }
     List<Vector2> temp =
         splitVector2DeltaIntoArea(projectile.delta, count, 360 - (360 / count));

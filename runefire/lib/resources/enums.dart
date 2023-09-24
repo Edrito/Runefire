@@ -129,7 +129,7 @@ enum StatusEffects {
   empowered
 }
 
-enum AttackType { projectile, melee, magic }
+enum AttackType { guns, melee, magic }
 
 enum MeleeType { slash, stab, crush }
 
@@ -382,6 +382,7 @@ enum ProjectileType {
   spriteBullet,
   paintBullet,
   laser,
+  followLaser,
   magicProjectile,
   holyBullet,
   blackSpriteBullet
@@ -397,7 +398,13 @@ extension ProjectileTypeExtension on ProjectileType {
       double chargeAmount = 1}) {
     switch (this) {
       case ProjectileType.laser:
-        return Laser(
+        return PaintLaser(
+            originPosition: originPositionVar,
+            delta: delta,
+            weaponAncestor: ancestorVar,
+            power: chargeAmount);
+      case ProjectileType.followLaser:
+        return FollowLaser(
             originPosition: originPositionVar,
             delta: delta,
             weaponAncestor: ancestorVar,
@@ -468,27 +475,26 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 }
 
 enum WeaponType {
-  crystalPistol(
-      'assets/images/weapons/pistol.png', 5, AttackType.projectile, 0),
-  scryshot('assets/images/weapons/long_rifle.png', 5, AttackType.projectile, 0),
+  crystalPistol('assets/images/weapons/pistol.png', 5, AttackType.guns, 0),
+  scryshot('assets/images/weapons/long_rifle.png', 5, AttackType.guns, 0),
   arcaneBlaster(
-      'assets/images/weapons/arcane_blaster.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/arcane_blaster.png', 5, AttackType.guns, 0),
   prismaticBeam(
-      'assets/images/weapons/prismatic_beam.png', 5, AttackType.projectile, 0),
-  railspire('assets/images/weapons/railspire.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/prismatic_beam.png', 5, AttackType.guns, 0),
+  railspire('assets/images/weapons/railspire.png', 5, AttackType.guns, 0),
   swordOfJustice(
       'assets/images/weapons/sword_of_justice.png', 5, AttackType.melee, 1250),
   eldritchRunner(
-      'assets/images/weapons/eldritch_runner.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/eldritch_runner.png', 5, AttackType.guns, 0),
   scatterBlast(
-      'assets/images/weapons/scatter_vine.png', 5, AttackType.projectile, 500),
+      'assets/images/weapons/scatter_vine.png', 5, AttackType.guns, 500),
   holySword('assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
   frostKatana(
       'assets/images/weapons/frost_katana.png', 5, AttackType.melee, 500),
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
   phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.melee, 0),
   blankProjectileWeapon(
-      'assets/images/weapons/dagger.png', 5, AttackType.projectile, 0),
+      'assets/images/weapons/dagger.png', 5, AttackType.guns, 0),
   icecicleMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   psychicMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   fireballMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
@@ -759,10 +765,12 @@ class DamageInstance {
   Weapon? sourceWeapon;
   DamageKind damageKind;
   AttackType get attackType =>
-      sourceWeapon?.weaponType.attackType ?? AttackType.projectile;
+      sourceWeapon?.weaponType.attackType ?? AttackType.guns;
   Map<DamageType, double> damageMap;
 
-  double get damage => damageMap.values.reduce((a, b) => a + b);
+  double get damage => damageMap.entries
+      .where((element) => element.key != DamageType.healing)
+      .fold(0, (previousValue, element) => previousValue + element.value);
   bool isCrit;
 
   void increaseByPercent(double percent) {
@@ -796,8 +804,8 @@ class DamageInstance {
 }
 
 enum SecondaryType {
-  reloadAndRapidFire('assets/images/attributes/topSpeed.png', 5,
-      weaponIsReloadFunctionality, 500),
+  reloadAndRapidFire(
+      'assets/images/attributes/topSpeed.png', 5, rapidReload, 500),
   pistol('assets/images/attributes/topSpeed.png', 5, alwaysCompatible, 500),
   explodeProjectiles('assets/images/attributes/topSpeed.png', 5,
       weaponIsProjectileFunctionality, 500);
@@ -820,6 +828,16 @@ bool alwaysCompatible(Weapon weapon) => true;
 bool weaponIsReloadFunctionality(Weapon weapon) {
   bool test = weapon is ReloadFunctionality;
   return test;
+}
+
+bool rapidReload(Weapon weapon) {
+  if (weapon is! ReloadFunctionality) return false;
+
+  if (weapon is SemiAutomatic &&
+      (weapon as SemiAutomatic).semiAutoType != SemiAutoType.regular) {
+    return false;
+  }
+  return true;
 }
 
 bool weaponIsProjectileFunctionality(Weapon weapon) {

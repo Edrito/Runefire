@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
@@ -35,12 +36,6 @@ mixin HasOpacityProvider on Component {
   void renderTree(Canvas canvas) {
     super.renderTree(canvas);
     canvas.drawPaint(_paint..blendMode = BlendMode.color);
-  }
-}
-
-extension RandomGrabber on List {
-  T getRandomElement<T>() {
-    return this[rng.nextInt(length)] as T;
   }
 }
 
@@ -406,7 +401,7 @@ class CustomParticleGenerator extends Component {
                   lighten: false);
             }
             if (sprites != null && sprites!.isNotEmpty) {
-              final sprite = sprites?.getRandomElement<Sprite>();
+              final sprite = sprites?.random();
               return SpriteParticle(
                   sprite: sprite!,
                   position: randomPosition,

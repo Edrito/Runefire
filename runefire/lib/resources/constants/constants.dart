@@ -10,3 +10,7 @@ const closeBodiesSensorRadius = 3.0;
 //Projectiles
 const projectileHomingSpeedIncrease = 7.5;
 const projectileBigSizeThreshold = 2.0;
+
+//Laser Chain
+const laserCheckPointsFrequency = 10;
+const laserLineAngleThreshold = .05;

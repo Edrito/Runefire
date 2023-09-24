@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart' hide RotateEffect;
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/weapons/projectile_class.dart';
@@ -246,7 +248,7 @@ mixin MeleeFunctionality on Weapon {
 
     for (var deltaDirection in temp) {
       final customPosition =
-          generateSourcePosition(sourceAttackLocation!, null, true);
+          generateGlobalPosition(sourceAttackLocation!, null, true);
       returnList.add(MeleeAttackHandler(
         initPosition: customPosition,
         initAngle: deltaDirection,
@@ -421,7 +423,6 @@ mixin ProjectileFunctionality on Weapon {
 
     damage.damageMap.forEach((key, value) {
       damage.damageMap[key] = value * increase;
-      print(increase);
     });
     return true;
   }
@@ -444,14 +445,10 @@ mixin ProjectileFunctionality on Weapon {
 
   @override
   void attackAttempt([double holdDurationPercent = 1]) async {
-    if (this is SemiAutomatic) {
-      holdDurationPercent = (this as SemiAutomatic).holdDurationPercent;
-    }
     attackOnAnimationFinish
         ? await setWeaponStatus(WeaponStatus.attack)
         : setWeaponStatus(WeaponStatus.attack);
 
-    additionalCountCheck();
     super.attackAttempt(holdDurationPercent);
   }
 
@@ -482,7 +479,6 @@ mixin ProjectileFunctionality on Weapon {
   double particleLifespan = .5;
 
   Component generateParticle() {
-    Vector2 moveDelta = entityAncestor?.body.linearVelocity ?? Vector2.zero();
     var particleColor =
         (primaryDamageType ?? baseDamage.damageBase.entries.first.key).color;
 
@@ -494,7 +490,8 @@ mixin ProjectileFunctionality on Weapon {
       generator: (i) => AcceleratedParticle(
         position: getWeaponTipDownBarrel(.9),
         speed: (randomizeVector2Delta(
-                        entityAncestor?.entityAimAngle ?? Vector2.zero(), .3)
+                        entityAncestor?.entityInputsAimAngle ?? Vector2.zero(),
+                        .3)
                     .normalized())
                 .clone() *
             3 *
@@ -518,15 +515,14 @@ mixin ProjectileFunctionality on Weapon {
       [double chargeAmount = 1]) {
     List<Projectile> returnList = [];
 
-    List<Vector2> temp = splitVector2DeltaIntoArea(
-        entityAncestor!.entityAimAngle,
-        getAttackCount(chargeAmount),
-        maxSpreadDegrees.parameter);
+    List<double> temp = splitRadInCone(entityAncestor!.handJoint.angle,
+        getAttackCount(chargeAmount), maxSpreadDegrees.parameter);
 
-    for (var deltaDirection in temp) {
+    for (var radDirection in temp) {
       if (projectileType == null) continue;
-      final delta = (randomizeVector2Delta(
-          deltaDirection, weaponRandomnessPercent.parameter));
+      Vector2 converted = newPositionRad(Vector2(0, 0), -radDirection, 1);
+      final delta =
+          (randomizeVector2Delta(converted, weaponRandomnessPercent.parameter));
 
       returnList.add(buildProjectile(delta, chargeAmount));
     }
@@ -545,7 +541,7 @@ mixin ProjectileFunctionality on Weapon {
         delta: delta,
         size: newSize,
         primaryDamageType: primaryDamageType,
-        originPositionVar: generateSourcePosition(sourceAttackLocation!),
+        originPositionVar: generateGlobalPosition(sourceAttackLocation!),
         ancestorVar: this,
         chargeAmount: chargeAmount);
   }
@@ -574,7 +570,7 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
 
   void buildChargeHandler() {
     final customPosition =
-        generateSourcePosition(SourceAttackLocation.body, null, true);
+        generateGlobalPosition(SourceAttackLocation.body, null, true);
     chargeAttackHandler = MeleeAttackHandler(
       currentAttack: meleeAttacks[currentAttackIndex],
       weaponAncestor: this,
@@ -609,7 +605,7 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
 
     // }
 
-    // damageType = baseDamage.damageBase.keys.toList().getRandomElement();
+    // damageType = baseDamage.damageBase.keys.toList().random();
     // await buildAnimations();
     // spawnAnimation?.stepTime =
     //     attackTickRate.parameter / (spawnAnimation?.frames.length ?? 1);
@@ -651,7 +647,7 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
 
   @override
   void update(double dt) {
-    if (isAttacking) {}
+    if (isStartAttackingActive) {}
     super.update(dt);
   }
 
@@ -695,7 +691,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
 
   @override
   void startAttacking() async {
-    damageType = baseDamage.damageBase.keys.toList().getRandomElement();
+    damageType = baseDamage.damageBase.keys.toList().random();
     await buildAnimations();
     spawnAnimation?.stepTime =
         attackTickRate.parameter / (spawnAnimation?.frames.length ?? 1);
@@ -782,9 +778,13 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
 }
 
 mixin SemiAutomatic on Weapon {
-  bool isAttacking = false;
+  double dragIncreaseOnHoldComplete = .0;
+  double movementReductionOnHoldComplete = 0;
+
+  bool isStartAttackingActive = false;
 
   abstract SemiAutoType semiAutoType;
+
   double get attackRateDelay => attackTickRate.parameter;
 
   double get chargeLength => customChargeDuration ?? attackTickRate.parameter;
@@ -794,11 +794,17 @@ mixin SemiAutomatic on Weapon {
   bool increaseSizeWhenCharged = true;
   bool increaseAttackCountWhenCharged = false;
 
+  bool attackOnChargeComplete = false;
+  bool attackOnRelease = true;
+
   IntParameterManager increaseWhenFullyCharged =
       IntParameterManager(baseParameter: 3);
 
   @override
-  double durationHeld = 0;
+  double get durationHeld =>
+      durationHeldTimer != null ? durationHeldTimer!.timer.current : 0;
+
+  TimerComponent? durationHeldTimer;
 
   TimerComponent? attackTimer;
 
@@ -807,37 +813,73 @@ mixin SemiAutomatic on Weapon {
       : Curves.easeIn
           .transform(ui.clampDouble(durationHeld / chargeLength, 0, 1));
 
-  @override
-  void update(double dt) {
-    if (isAttacking && !isReloading) {
-      durationHeld += dt;
+  void onHoldComplete() {
+    if (attackOnChargeComplete) {
+      attackAttempt(1);
     }
-    super.update(dt);
+    applyAimReductionSpeedReduction(true);
   }
 
   @override
   void endAttacking() {
-    isAttacking = false;
-    // entityAncestor?.entityStatusWrapper.removeHoldDuration();
-    switch (semiAutoType) {
-      case SemiAutoType.release:
-        if (durationHeld > chargeLength) {
-          attackAttempt();
-        }
-        break;
-      case SemiAutoType.charge:
-        attackAttempt();
-        break;
-      default:
+    if (attackOnRelease) {
+      switch (semiAutoType) {
+        case SemiAutoType.release:
+          if (durationHeld >= chargeLength) {
+            attackAttempt(1);
+          }
+          break;
+        case SemiAutoType.charge:
+          attackAttempt(holdDurationPercent);
+          break;
+        default:
+      }
     }
 
-    durationHeld = 0;
+    durationHeldTimer?.removeFromParent();
+    durationHeldTimer = null;
+    isStartAttackingActive = false;
+    applyAimReductionSpeedReduction(false);
+
     super.endAttacking();
+  }
+
+  void applyAimReductionSpeedReduction(bool apply) {
+    if (apply) {
+      if (entityAncestor is AimFunctionality) {
+        final aim = entityAncestor as AimFunctionality;
+        if (dragIncreaseOnHoldComplete != 0) {
+          aim.aimingInterpolationAmount
+              .setParameterPercentValue(weaponId, dragIncreaseOnHoldComplete);
+        }
+      }
+
+      if (entityAncestor is MovementFunctionality) {
+        final move = entityAncestor as MovementFunctionality;
+        if (movementReductionOnHoldComplete != 0) {
+          move.speed
+              .setParameterPercentValue(weaponId, dragIncreaseOnHoldComplete);
+        }
+      }
+    } else {
+      if (entityAncestor is AimFunctionality) {
+        final aim = entityAncestor as AimFunctionality;
+        aim.aimingInterpolationAmount.removeKey(weaponId);
+      }
+
+      if (entityAncestor is MovementFunctionality) {
+        final move = entityAncestor as MovementFunctionality;
+        if (movementReductionOnHoldComplete != 0) {
+          move.speed
+              .setParameterPercentValue(weaponId, dragIncreaseOnHoldComplete);
+        }
+      }
+    }
   }
 
   @override
   void startAttacking() {
-    isAttacking = true;
+    isStartAttackingActive = true;
     switch (semiAutoType) {
       case SemiAutoType.regular:
         attackAttempt();
@@ -845,6 +887,14 @@ mixin SemiAutomatic on Weapon {
       default:
         setWeaponStatus(WeaponStatus.charge);
     }
+    durationHeldTimer = TimerComponent(
+        period: chargeLength,
+        onTick: () {
+          onHoldComplete();
+        })
+      ..addToParent(this);
+
+    super.startAttacking();
   }
 
   @override
@@ -866,6 +916,45 @@ mixin SemiAutomatic on Weapon {
   }
 }
 
+mixin ChargeFullAutomatic on Weapon, FullAutomatic, SemiAutomatic {
+  bool continuousAttackingStarted = false;
+
+  @override
+  SemiAutoType get semiAutoType => SemiAutoType.charge;
+
+  @override
+  set semiAutoType(SemiAutoType semiAutoType) {}
+
+  @override
+  bool get instantAttack => false;
+
+  @override
+  void onHoldComplete() {
+    if (attackOnChargeComplete) {
+      attackTimer?.onTick();
+    }
+    continuousAttackingStarted = true;
+    attackTimer?.timer.reset();
+  }
+
+  @override
+  void endAttacking() {
+    if (attackOnRelease) {
+      attackTimer?.onTick();
+    }
+
+    continuousAttackingStarted = false;
+    super.endAttacking();
+  }
+
+  @override
+  void attackTick() {
+    if (continuousAttackingStarted) {
+      super.attackTick();
+    }
+  }
+}
+
 mixin FullAutomatic on Weapon {
   @override
   double get durationHeld => attackTicks * attackTickRate.parameter;
@@ -878,7 +967,7 @@ mixin FullAutomatic on Weapon {
   TimerComponent? attackTimer;
 
   void attackTick() {
-    attackAttempt();
+    attackAttempt(1);
     attackTicks++;
   }
 
@@ -908,6 +997,11 @@ mixin FullAutomatic on Weapon {
       }
     }
 
+    initTimer();
+    super.startAttacking();
+  }
+
+  void initTimer() {
     attackTimer ??= TimerComponent(
       period: attackTickRate.parameter,
       repeat: true,
@@ -921,7 +1015,9 @@ mixin FullAutomatic on Weapon {
     )..addToParent(this);
   }
 }
+
 typedef OnHitDef = bool Function(DamageInstance damage);
+
 mixin AttributeWeaponFunctionsFunctionality on Weapon {
   //Event functions that are modified from attributes
   List<Function(HealthFunctionality other)> onKill = [];
@@ -933,6 +1029,8 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   List<Function(double holdDuration)> onAttackMelee = [];
   List<Function(double holdDuration)> onAttack = [];
   List<Function()> onReload = [];
+
+  List<Function(Weapon weapon)> onAttackingFinish = [];
 
   @override
   void standardAttack(
@@ -1011,12 +1109,17 @@ String buildWeaponDescription(
           case SemiAutoType.regular:
             returnString = "Semi-Auto";
             break;
+
           case SemiAutoType.release:
             returnString = "Release";
             break;
           case SemiAutoType.charge:
             returnString = "Charge";
             break;
+        }
+
+        if (builtWeapon is ChargeFullAutomatic) {
+          returnString = "Wind-up";
         }
       } else if (builtWeapon is FullAutomatic) {
         returnString = "Full-Auto";

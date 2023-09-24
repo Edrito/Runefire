@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:numerus/numerus.dart';
@@ -14,10 +15,12 @@ import '../resources/visuals.dart';
 import 'buttons.dart';
 
 class AttributeDisplay extends StatefulWidget {
-  const AttributeDisplay(this.gameRef, this.attributes, this.title,
+  const AttributeDisplay(
+      this.gameRef, this.attributes, this.statStrings, this.title,
       {super.key});
   final String title;
-  final List<Attribute> attributes;
+  final List<Attribute>? attributes;
+  final List<(String, String)>? statStrings;
   final GameRouter gameRef;
 
   @override
@@ -80,6 +83,80 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
             shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
       ).animate().fadeIn(),
     );
+
+    Widget displayWidget = const SizedBox();
+    if (widget.attributes != null) {
+      displayWidget = Wrap(
+        children: [
+          for (int i = 0; i < (widget.attributes!.length); i++)
+            Builder(
+              builder: (context) {
+                final currentAttrib = widget.attributes!.elementAt(i);
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    // color: Colors.blue,
+                    height: 100,
+                    width: 60,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset('assets/images/${currentAttrib.icon}',
+                            color: currentAttrib.attributeType.rarity.color),
+                        SizedBox(
+                          width: 55,
+                          child: Text(
+                            currentAttrib.upgradeLevel.toRomanNumeralString() ??
+                                "",
+                            style: defaultStyle.copyWith(
+                                color: currentAttrib.attributeType.rarity.color,
+                                fontSize: 20),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            )
+        ],
+      );
+    } else if (widget.statStrings != null) {
+      displayWidget = Column(
+        children: [
+          for (int i = 0; i < (widget.statStrings!.length); i++)
+            Builder(
+              builder: (context) {
+                final currentStr = widget.statStrings!.elementAt(i);
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    // color: Colors.blue,
+                    // height: 100,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          currentStr.$1,
+                          style: defaultStyle.copyWith(fontSize: 20),
+                        ),
+                        Text(
+                          currentStr.$2,
+                          style: defaultStyle.copyWith(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            )
+        ],
+      );
+    }
     return LayoutBuilder(builder: (context, constraints) {
       final ratio = largeCardSize.aspectRatio;
       final double maxHeightOfAttributes = constraints.maxWidth / ratio;
@@ -95,63 +172,17 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
               child: Center(
                 child: SizedBox(
                   height: maxHeightOfAttributes,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    child: ScrollConfiguration(
-                      behavior: scrollConfiguration(context),
-                      child: SingleChildScrollView(
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: Wrap(
-                            children: [
-                              for (int i = 0;
-                                  i < (widget.attributes.length);
-                                  i++)
-                                Builder(
-                                  builder: (context) {
-                                    final currentAttrib =
-                                        widget.attributes.elementAt(i);
-
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: SizedBox(
-                                        // color: Colors.blue,
-                                        height: 100,
-                                        width: 60,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Image.asset(
-                                                'assets/images/${currentAttrib.icon}',
-                                                color: currentAttrib
-                                                    .attributeType
-                                                    .rarity
-                                                    .color),
-                                            SizedBox(
-                                              width: 55,
-                                              child: Text(
-                                                currentAttrib.upgradeLevel
-                                                        .toRomanNumeralString() ??
-                                                    "",
-                                                style: defaultStyle.copyWith(
-                                                    color: currentAttrib
-                                                        .attributeType
-                                                        .rarity
-                                                        .color,
-                                                    fontSize: 20),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                )
-                            ],
-                          ),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 30, horizontal: 16),
+                      child: ScrollConfiguration(
+                        behavior: scrollConfiguration(context),
+                        child: SingleChildScrollView(
+                          child: Align(
+                              alignment: Alignment.topLeft,
+                              child: displayWidget),
                         ),
                       ),
                     ),
@@ -436,7 +467,10 @@ class _PauseMenuState extends State<PauseMenu> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 12),
                           child: AttributeDisplay(
-                              gameRouter, tempEntries, "Temporary Effects"),
+                              gameRouter,
+                              null,
+                              env.player?.buildStatStrings(false),
+                              "Current Stats"),
                         ),
                       ),
                     ),
@@ -471,7 +505,8 @@ class _PauseMenuState extends State<PauseMenu> {
                               ),
                               onTap: () {
                                 gameState.resumeGame();
-                                gameState.killPlayer(false, env.player!);
+                                gameState.killPlayer(
+                                    GameEndState.quit, env.player!);
                               },
                             )
                           ],
@@ -486,7 +521,7 @@ class _PauseMenuState extends State<PauseMenu> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 12),
                           child: AttributeDisplay(gameRouter, nonTempEntries,
-                              "Unlocked Attributes"),
+                              null, "Unlocked Attributes"),
                         ),
                       ),
                     ),
