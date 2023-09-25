@@ -36,6 +36,7 @@ class CrystalPistol extends PlayerWeapon
 
   @override
   WeaponType weaponType = WeaponType.crystalPistol;
+
   @override
   void mapUpgrade() {
     unMapUpgrade();
@@ -240,6 +241,7 @@ class ArcaneBlaster extends PlayerWeapon
     weaponRandomnessPercent.baseParameter = .025;
     projectileVelocity.baseParameter = 20;
     projectileSize = .5;
+    customChargeDuration = 1.5;
     tipOffset = Vector2(0, weaponSize);
   }
   @override
@@ -294,7 +296,8 @@ class LaserRifle extends PlayerWeapon
         ProjectileFunctionality,
         ReloadFunctionality,
         SemiAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        MuzzleGlow {
   LaserRifle(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,

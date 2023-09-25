@@ -371,7 +371,7 @@ mixin ProjectileFunctionality on Weapon {
   List<Projectile> activeProjectiles = [];
   double projectileSize = .3;
 
-  bool instantHome = true;
+  bool instantHome = false;
 
   final bool originateFromCenter = false;
 
@@ -532,6 +532,7 @@ mixin ProjectileFunctionality on Weapon {
 
   Projectile buildProjectile(Vector2 delta, double chargeAmount) {
     double newSize = projectileSize;
+
     if (this is SemiAutomatic &&
         (this as SemiAutomatic).increaseSizeWhenCharged) {
       newSize *= (1 + chargeAmount);
@@ -667,6 +668,47 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
   }
 }
 
+mixin MuzzleGlow on Weapon, ProjectileFunctionality {
+  @override
+  FutureOr<void> onLoad() {
+    muzzlePaint = Paint()..blendMode = BlendMode.plus;
+
+    return super.onLoad();
+  }
+
+  late Paint muzzlePaint;
+  Paint paint() => muzzlePaint
+    ..shader = ui.Gradient.radial(
+        (weaponAttachmentPoints[WeaponSpritePosition.hand]!
+                .weaponTip!
+                .absolutePosition)
+            .toOffset(),
+        .4,
+        [
+          primaryDamageType?.color ??
+              baseDamage.damageBase.entries.first.key.color,
+          Colors.transparent
+        ],
+        [
+          0.5,
+          1
+        ]);
+
+  @override
+  void render(ui.Canvas canvas) {
+    if (isAttacking) {
+      canvas.drawCircle(
+          (weaponAttachmentPoints[WeaponSpritePosition.hand]!
+                  .weaponTip!
+                  .absolutePosition)
+              .toOffset(),
+          .4,
+          paint());
+    }
+    super.render(canvas);
+  }
+}
+
 mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
   SpriteAnimation? spawnAnimation;
   SpriteAnimation? chargedAnimation;
@@ -694,7 +736,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
     damageType = baseDamage.damageBase.keys.toList().random();
     await buildAnimations();
     spawnAnimation?.stepTime =
-        attackTickRate.parameter / (spawnAnimation?.frames.length ?? 1);
+        chargeLength / (spawnAnimation?.frames.length ?? 1);
 
     if (semiAutoType != SemiAutoType.regular) {
       chargeAnimation = SpriteAnimationComponent(

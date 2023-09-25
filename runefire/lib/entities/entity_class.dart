@@ -6,6 +6,7 @@ import 'package:runefire/attributes/attributes_status_effect.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/weapons/projectile_class.dart';
@@ -25,6 +26,36 @@ abstract class Entity extends BodyComponent<GameRouter>
   Entity({required this.initialPosition, required this.enviroment}) {
     initializeParameterManagers();
     entityId = const Uuid().v4();
+  }
+
+  bool collisionOnDeath = false;
+
+  @override
+  void preSolve(Object other, Contact contact, Manifold oldManifold) {
+    if (other is Bounds ||
+        other is Map && other['object'] is Bounds ||
+        contact.fixtureA.userData is Map &&
+            (contact.fixtureA.userData as Map)['object'] is Bounds ||
+        contact.fixtureB.userData is Map &&
+            (contact.fixtureB.userData as Map)['object'] is Bounds) {
+      contact.setEnabled(true);
+      return super.preSolve(other, contact, oldManifold);
+    }
+
+    if (this is Player) {
+      print('aaa');
+    }
+
+    if (isDead) {
+      contact.setEnabled(collisionOnDeath);
+      return super.preSolve(other, contact, oldManifold);
+    }
+    if (!collision.parameter || isDashing) {
+      contact.setEnabled(false);
+      return super.preSolve(other, contact, oldManifold);
+    }
+
+    super.preSolve(other, contact, oldManifold);
   }
 
   List<Function(bool isFlipped)> onBodyFlip = [];

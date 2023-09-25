@@ -31,19 +31,6 @@ abstract class Enemy extends Entity
     applyUpgrade();
   }
 
-  bool collisionOnDeath = false;
-
-  @override
-  void preSolve(Object other, Contact contact, Manifold oldManifold) {
-    if (isDead) {
-      contact.setEnabled(collisionOnDeath);
-    }
-    if (!collision.parameter) {
-      contact.setEnabled(false);
-    }
-    super.preSolve(other, contact, oldManifold);
-  }
-
   @override
   int? maxLevel;
 

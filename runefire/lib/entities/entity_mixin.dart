@@ -20,6 +20,8 @@ import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
+import 'package:flutter_animate/flutter_animate.dart'
+    show NumDurationExtensions;
 
 import '../resources/data_classes/base.dart';
 import '../resources/functions/functions.dart';
@@ -128,7 +130,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
 
   //Collision
   late final BoolParameterManager collision =
-      BoolParameterManager(baseParameter: true);
+      BoolParameterManager(baseParameter: true, isFoldOfIncreases: false);
 
   //Duration
   late final DoubleParameterManager durationPercentIncrease;
@@ -1409,6 +1411,12 @@ mixin DashFunctionality on StaminaFunctionality {
       }
       dashBeginFunctionsCall();
     }
+
+    // body.applyLinearImpulse(dashDelta! * 1);
+    // collision.setIncrease(entityId, true);
+    // Future.delayed(1.seconds).then(
+    //   (value) => finishDash(),
+    // );
   }
 
   void dashBeginFunctionsCall() {
@@ -1463,6 +1471,7 @@ mixin DashFunctionality on StaminaFunctionality {
     dashDelta = null;
     _isDashing = false;
     dashedDistance = 0;
+    // collision.removeKey(entityId);
   }
 
   void teleport() {

@@ -50,7 +50,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                       gameRef: gameRouter,
                       onTap: () {
                         gameRouter.gameStateComponent.gameState
-                            .endGame(GameEndState.death);
+                            .endGame(GameEndState.death, true);
                       },
                     ),
                     CustomButton(

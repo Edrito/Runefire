@@ -7,6 +7,7 @@ import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/main.dart';
 import 'enums.dart';
 import 'functions/functions.dart';
@@ -138,9 +139,10 @@ class ApolloColorPalette {
     Paint returnPaint = Paint()
       ..maskFilter = maskFilter
       ..filterQuality = filterQuality
+      ..strokeCap = StrokeCap.round
       ..isAntiAlias = true
       ..colorFilter = ColorFilter.mode(
-          (lighten ? color.brighten(.7) : color).withOpacity(opacity),
+          (lighten ? color.brighten(.85) : color).withOpacity(opacity),
           BlendMode.srcATop);
     if (blendMode != null) {
       returnPaint.blendMode = blendMode;

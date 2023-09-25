@@ -1,7 +1,9 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
+import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/functions.dart';
 
 import '../../game/enviroment.dart';
@@ -468,9 +470,9 @@ List<(Vector2, Vector2)> separateIntoAnglePairs(List<Vector2> vectors) {
   return anglePairs;
 }
 
-List<List<Vector2>> turnPairsIntoBoxes(
+List<Set<Vector2>> turnPairsIntoBoxes(
     List<(Vector2, Vector2)> anglePairs, double size) {
-  List<List<Vector2>> boxes = [];
+  List<Set<Vector2>> boxes = [];
 
   for ((Vector2, Vector2) pair in anglePairs) {
     Vector2 vector1 = pair.$1;
@@ -488,8 +490,103 @@ List<List<Vector2>> turnPairsIntoBoxes(
     Vector2 p3 = vector2 - perpendicular2;
     Vector2 p4 = vector2 + perpendicular2;
 
-    boxes.add([p1, p2, p3, p4]);
+    boxes.add({p1, p2, p3, p4});
   }
 
   return boxes;
+}
+
+List<Vector2> generateLightning(
+  Set<Vector2> points, // List of Vector2 points
+  {
+  required double amplitude, // Amplitude of the lightning effect
+  required double frequency, // Frequency of the lightning effect
+  required double currentAngle,
+}) {
+  final List<Vector2> lightningPoints = [];
+  double angleBetweenPoints = 0;
+  double increase = 1;
+
+  // Iterate through the original points
+  for (int i = 0; i < points.length - 1; i++) {
+    final Vector2 start = points.elementAt(i);
+    final Vector2 end = points.elementAt(i + 1);
+    if (i == 0) {}
+    angleBetweenPoints = radiansBetweenPoints(start, end);
+    // Calculate the number of segments between two points
+    final int numSegments = (start.distanceTo(end) / frequency).ceil();
+
+    // Generate intermediate points along the line segment
+    for (int j = 1; j < numSegments; j++) {
+      increase = 1 -
+          pow((((j - 1 - (numSegments / 2)) / numSegments).abs() * .9), .7)
+              .toDouble();
+      final double t = j / numSegments;
+      final double x = lerpDouble(start.x, end.x, t)!;
+      final double y = lerpDouble(start.y, end.y, t)!;
+
+      // Apply a random displacement for the lightning effect
+      // final double offsetX = rng.nextDouble() * amplitude;
+      // final double offsetY = rng.nextDouble() * amplitude;
+      lightningPoints.add(newPositionRad(
+          Vector2(x, y),
+          -(i == 0 ? currentAngle : (angleBetweenPoints + (pi / 2))) +
+              (rng.nextBool() ? pi / 2 : (-pi / 2)),
+          (rng.nextDouble() * amplitude * increase)));
+
+      // Add the point to the lightning list with displacement
+      // lightningPoints.add(Vector2(
+      //     x
+      //     //  + offsetX
+      //     ,
+      //     y
+      //     // + offsetY
+      //     ));
+    }
+  }
+
+  // Add the last point from the original list
+  lightningPoints.add(newPositionRad(
+      points.last,
+      (angleBetweenPoints + (pi / 2)) + (rng.nextBool() ? pi / 2 : (-pi / 2)),
+      rng.nextDouble() * amplitude * increase));
+
+  return lightningPoints;
+}
+
+Set<Vector2> generateCurvePoints(Set<Vector2> points, double percent) {
+  Set<Vector2> result = {};
+
+  for (int i = 0; i < points.length - 1; i++) {
+    final Vector2 start = points.elementAt(i);
+    final Vector2 end = points.elementAt(i + 1);
+
+    Vector2 direction = end - start;
+    // double angle = start.angleTo(end);
+
+    if (i == 0) {
+      // Add the first point to the result list
+      result.add(start);
+    }
+
+    // if (angle >= minAngle) {
+    // Calculate the control point (midpoint)
+    Vector2 point1 = start + (direction * percent);
+    Vector2 point2 = start + (direction * (1 - percent));
+
+    result.add(point1);
+    result.add(point2);
+    result.add(end);
+  }
+
+  return result;
+}
+
+Vector2 bezier(Vector2 controlPoint, Vector2 offset, Vector2 end) {
+  // Calculate the two control points for the quadratic Bezier curve
+  Vector2 controlPoint1 = controlPoint + offset;
+  Vector2 controlPoint2 = controlPoint - offset;
+
+  // Return the quadratic Bezier curve
+  return controlPoint1 * 0.5 + controlPoint2 * 0.5;
 }

@@ -1,7 +1,7 @@
 // ignore_for_file: overridden_fields
 
 import 'dart:async';
-
+import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
@@ -387,21 +387,28 @@ class FireballMagic extends PlayerWeapon
 }
 
 class EnergyMagic extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        // FullAutomatic,
+        SemiAutomatic,
+        // ChargeFullAutomatic,
+        ChargeEffect {
   EnergyMagic(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     chainingTargets.baseParameter = 3;
-    baseDamage.damageBase[DamageType.energy] = (1, 3);
+    baseDamage.damageBase[DamageType.energy] = (1, 2);
     maxAttacks.baseParameter = 20;
-    baseAttackCount.baseParameter = 3;
+    baseAttackCount.baseParameter = 10;
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 4;
     tipOffset = Vector2(0, weaponSize);
-
+    projectileVelocity.baseParameter = 5;
     primaryDamageType = DamageType.energy;
-    projectileSize = .75;
+    projectileSize = .065;
+    maxSpreadDegrees.baseParameter = 75;
 
     // onProjectileDeath.add((projectile) {
     //   entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
@@ -411,6 +418,9 @@ class EnergyMagic extends PlayerWeapon
     //     damage: {DamageType.fire: (10, 25)},
     //   ));
     // });
+    attackOnRelease = false;
+
+    attackOnChargeComplete = true;
   }
   @override
   WeaponType weaponType = WeaponType.energyMagic;
@@ -457,10 +467,13 @@ class EnergyMagic extends PlayerWeapon
   ];
 
   @override
-  ProjectileType? projectileType = ProjectileType.magicProjectile;
+  ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
   double weaponSize = .85;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.charge;
 }
 
 class PsychicMagic extends PlayerWeapon
@@ -489,6 +502,7 @@ class PsychicMagic extends PlayerWeapon
     //   ));
     // });
   }
+
   @override
   WeaponType weaponType = WeaponType.psychicMagic;
 

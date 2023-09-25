@@ -248,7 +248,7 @@ mixin BoundsFunctionality on Enviroment {
   }
 }
 
-class Bounds extends BodyComponent<GameRouter> {
+class Bounds extends BodyComponent<GameRouter> with ContactCallbacks {
   Bounds(
       {required this.boundsSize,
       required this.position,
@@ -256,6 +256,7 @@ class Bounds extends BodyComponent<GameRouter> {
       required this.scope});
   BossBoundsScope scope;
   Vector2 boundsSize;
+  @override
   final Vector2 position;
   final bool isCircle;
   bool hasLoaded = false;
@@ -283,6 +284,12 @@ class Bounds extends BodyComponent<GameRouter> {
     }
 
     return shape;
+  }
+
+  @override
+  void preSolve(Object other, Contact contact, Manifold oldManifold) {
+    contact.setEnabled(true);
+    super.preSolve(other, contact, oldManifold);
   }
 
   @override

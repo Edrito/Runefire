@@ -201,6 +201,8 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   abstract WeaponType weaponType;
   DamageType? primaryDamageType;
+  late Color weaponPrimaryColor =
+      primaryDamageType?.color ?? baseDamage.damageBase.entries.first.key.color;
 
   AimFunctionality? entityAncestor;
 
@@ -302,12 +304,19 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   bool get attacksAreActive => false;
 
+  bool isAttacking = false;
+
   void startAltAttacking();
   void endAltAttacking();
 
-  void startAttacking() {}
+  void startAttacking() {
+    isAttacking = true;
+  }
+
   void endAttacking() {
     spriteVisibilityCheck();
+    isAttacking = false;
+
     if (this is AttributeWeaponFunctionsFunctionality) {
       final att = this as AttributeWeaponFunctionsFunctionality;
       for (var element in att.onAttackingFinish) {

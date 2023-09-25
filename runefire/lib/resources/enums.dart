@@ -400,6 +400,7 @@ extension ProjectileTypeExtension on ProjectileType {
       case ProjectileType.laser:
         return PaintLaser(
             originPosition: originPositionVar,
+            size: size,
             delta: delta,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
@@ -407,6 +408,7 @@ extension ProjectileTypeExtension on ProjectileType {
         return FollowLaser(
             originPosition: originPositionVar,
             delta: delta,
+            size: size,
             weaponAncestor: ancestorVar,
             power: chargeAmount);
       case ProjectileType.spriteBullet:

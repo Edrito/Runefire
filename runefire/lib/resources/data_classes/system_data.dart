@@ -22,6 +22,15 @@ class SystemData extends DataClass {
   @HiveField(1)
   double sfxVolume;
 
+  @HiveField(10)
+  bool showFPS = false;
+
+  @HiveField(11)
+  bool showTimer = false;
+
+  @HiveField(12)
+  bool showStaminaHealthText = false;
+
   set setMusicVolume(double value) {
     musicVolume = value;
     parentComponent?.notifyListeners();

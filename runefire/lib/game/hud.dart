@@ -46,13 +46,13 @@ class GameHud extends PositionComponent {
 
   late TextComponent remainingAmmoText;
 
-  double hudScale = 1;
+  double hudScale = 1.35;
 
-  Expendable? _currentExpendable;
+  // Expendable? _currentExpendable;
   late Sprite blankExpendableSprite;
 
   set currentExpendable(Expendable? expendable) {
-    _currentExpendable = expendable;
+    // _currentExpendable = expendable;
     if (expendable != null) {
       expendable.expendableType
           .buildSprite()
@@ -139,6 +139,7 @@ class GameHud extends PositionComponent {
     //Expendable
     blankExpendableSprite = await Sprite.load('expendables/blank.png');
     expendableIcon = SpriteComponent(
+        scale: Vector2.all(hudScale),
         position: Vector2(15 * hudScale, 85 * hudScale),
         sprite: blankExpendableSprite);
 

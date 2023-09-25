@@ -140,14 +140,6 @@ class Player extends Entity
     super.onRemove();
   }
 
-  @override
-  void preSolve(Object other, Contact contact, Manifold oldManifold) {
-    if (!collision.parameter || isDashing) {
-      contact.setEnabled(false);
-    }
-    super.preSolve(other, contact, oldManifold);
-  }
-
   late MouseKeyboardCallbackWrapper mouseCallbackWrapper;
   late final CircleComponent circleComponent;
 
@@ -196,7 +188,9 @@ class Player extends Entity
           ..categoryBits = playerCategory
           ..maskBits = proximityCategory);
 
-    return super.createBody()..createFixture(xpGrabRadiusFixture);
+    return super.createBody()..createFixture(xpGrabRadiusFixture)
+        // ..setBullet(true)
+        ;
   }
 
   void onKeyEvent(RawKeyEvent event) {
