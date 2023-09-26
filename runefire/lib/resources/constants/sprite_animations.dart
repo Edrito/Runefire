@@ -31,7 +31,7 @@ class SpriteAnimations {
 //Character One
 
   late Future<SpriteAnimation> playerCharacterOneIdle1 =
-      loadSpriteAnimation(6, 'sprites/idle.png', .15, true);
+      loadSpriteAnimation(1, 'sprites/idle.png', .15, true);
   late Future<SpriteAnimation> playerCharacterOneJump1 =
       loadSpriteAnimation(6, 'sprites/jump.png', .1, false);
   late Future<SpriteAnimation> playerCharacterOneDash1 =

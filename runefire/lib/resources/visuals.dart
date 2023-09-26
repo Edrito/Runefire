@@ -12,8 +12,6 @@ import 'package:runefire/main.dart';
 import 'enums.dart';
 import 'functions/functions.dart';
 
-const uiWidthMax = 1700.0;
-
 enum ShadowStyle { light, medium }
 
 class ApolloColorPalette {
@@ -79,20 +77,23 @@ class ApolloColorPalette {
     late final BoxShadow returnShadow;
 
     switch (shadowStyle) {
+      // BoxShadow(
+      //     blurStyle: BlurStyle.solid,
+      //     color: ApolloColorPalette.offWhite.color.darken(.75),
+      //     offset: const Offset(1, 1))
       case ShadowStyle.light:
         returnShadow = BoxShadow(
-            color: Colors.black.withOpacity(.25),
-            offset: const Offset(.05, .05),
-            spreadRadius: .4,
-            blurRadius: .75);
+            color: ApolloColorPalette.darkestGray.color,
+            offset: const Offset(1, 1),
+            blurStyle: BlurStyle.solid);
         break;
       case ShadowStyle.medium:
         returnShadow = BoxShadow(
-            color: Colors.black.withOpacity(.45),
-            offset: const Offset(1, 1),
-            blurStyle: BlurStyle.solid,
+            color: ApolloColorPalette.darkestGray.color,
+            offset: const Offset(2, 2),
+            blurStyle: BlurStyle.normal,
             spreadRadius: 0,
-            blurRadius: 1);
+            blurRadius: 2);
         break;
     }
 
@@ -204,7 +205,9 @@ final defaultStyle = TextStyle(
   // fontWeight: FontWeight.bold,
 
   color: colorPalette.secondaryColor,
-  shadows: const [],
+  shadows: [
+    colorPalette.buildShadow(ShadowStyle.light),
+  ],
 );
 
 ScrollBehavior scrollConfiguration(BuildContext context) =>

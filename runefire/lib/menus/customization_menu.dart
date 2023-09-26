@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/menus/attribute_menu.dart';
 import 'package:runefire/menus/weapon_selector_tile.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/game_state_class.dart';

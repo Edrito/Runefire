@@ -42,10 +42,6 @@ abstract class Entity extends BodyComponent<GameRouter>
       return super.preSolve(other, contact, oldManifold);
     }
 
-    if (this is Player) {
-      print('aaa');
-    }
-
     if (isDead) {
       contact.setEnabled(collisionOnDeath);
       return super.preSolve(other, contact, oldManifold);

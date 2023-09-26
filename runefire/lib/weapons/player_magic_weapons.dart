@@ -401,7 +401,7 @@ class EnergyMagic extends PlayerWeapon
     chainingTargets.baseParameter = 3;
     baseDamage.damageBase[DamageType.energy] = (1, 2);
     maxAttacks.baseParameter = 20;
-    baseAttackCount.baseParameter = 10;
+    baseAttackCount.baseParameter = 1;
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 4;
     tipOffset = Vector2(0, weaponSize);

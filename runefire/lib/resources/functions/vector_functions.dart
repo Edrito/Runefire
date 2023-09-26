@@ -590,3 +590,54 @@ Vector2 bezier(Vector2 controlPoint, Vector2 offset, Vector2 end) {
   // Return the quadratic Bezier curve
   return controlPoint1 * 0.5 + controlPoint2 * 0.5;
 }
+
+List<Vector2> generateBezierPoints(List<Vector2> points, double distance) {
+  List<Vector2> bezierPoints = [];
+
+  for (int i = 0; i < points.length - 1; i++) {
+    Vector2 a = points[i];
+    Vector2 b = points[i + 1];
+    Vector2 c = Vector2((a.x + b.x) / 2, (a.y + b.y) / 2);
+
+    // Calculate the angle between a and c
+    double angle = atan2(c.y - a.y, c.x - a.x);
+
+    // Calculate the normal vector
+    double normalX = cos(angle + (pi / 2));
+    double normalY = sin(angle + (pi / 2));
+
+    // Calculate points on either side of c
+    Vector2 p1 = Vector2(c.x + normalX * distance, c.y + normalY * distance);
+    Vector2 p2 = Vector2(c.x - normalX * distance, c.y - normalY * distance);
+
+    bezierPoints.add(Vector2(a.x, a.y));
+    bezierPoints.add(Vector2(p1.x, p1.y));
+    bezierPoints.add(Vector2(b.x, b.y));
+    bezierPoints.add(Vector2(p2.x, p2.y));
+  }
+
+  return bezierPoints;
+}
+
+double calculateAngle(Vector2 point1, Vector2 point2, Vector2 point3) {
+  // Calculate vectors from point2 to point1 and point2 to point3
+  Vector2 vector1 = point1 - point2;
+  Vector2 vector2 = point3 - point2;
+
+  // Calculate the angle between the two vectors using the dot product
+  double dotProduct = vector1.dot(vector2);
+  double magnitude1 = vector1.length;
+  double magnitude2 = vector2.length;
+
+  // Ensure that the magnitudes are not zero to avoid division by zero
+  if (magnitude1 == 0 || magnitude2 == 0) {
+    return 0.0; // Angle is not defined in this case
+  }
+
+  double cosTheta = dotProduct / (magnitude1 * magnitude2);
+
+  // Calculate the angle in radians using the inverse cosine (arccos)
+  double angleRadians = acos(cosTheta);
+
+  return angleRadians;
+}

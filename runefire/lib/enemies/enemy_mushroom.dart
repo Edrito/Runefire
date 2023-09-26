@@ -83,7 +83,7 @@ class MushroomRunner extends Enemy
   Map<ExperienceAmount, double> experienceRate = {
     ExperienceAmount.large: 0.001,
     ExperienceAmount.medium: 0.01,
-    ExperienceAmount.small: 0.5,
+    ExperienceAmount.small: 0.9,
   };
 
   @override

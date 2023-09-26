@@ -122,7 +122,7 @@ class ForestEnemyManagement extends EventManagement {
       //   maxEnemies: 10,
       //   eventTriggerInterval: (1, 1),
       //   levels: (0, 1),
-      //   eventBeginEnd: (1, 500),
+      //   eventBeginEnd: (1, 30),
       //   spawnLocation: SpawnLocation.outside,
       // ),
       // EnemyEvent(
@@ -138,19 +138,19 @@ class ForestEnemyManagement extends EventManagement {
       //   eventBeginEnd: (1, 500),
       //   spawnLocation: SpawnLocation.outside,
       // ),
-      EnemyEvent(
-        gameEnviroment,
-        this,
-        isBigBoss: false,
-        clusterSpread: 1,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomDummy, 1)],
-        numberOfClusters: 20,
-        maxEnemies: 20,
-        eventTriggerInterval: (0, 0),
-        levels: (0, 1),
-        eventBeginEnd: (1, null),
-        spawnLocation: SpawnLocation.inside,
-      ),
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 1,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomDummy, 1)],
+      //   numberOfClusters: 20,
+      //   maxEnemies: 20,
+      //   eventTriggerInterval: (0, 0),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, null),
+      //   spawnLocation: SpawnLocation.inside,
+      // ),
     ]);
   }
 }

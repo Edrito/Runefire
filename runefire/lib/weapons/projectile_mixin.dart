@@ -672,7 +672,9 @@ mixin LaserProjectile on FadeOutProjectile {
         path.lineTo(element.x, element.y);
       }
     } else {
-      final curveReadyList = generateCurvePoints(getLines, .45);
+      // final curveReadyList = generateBezierPoints(getLines.toList(), .45);
+      // final curveReadyList2 = generateCurvePoints(getLines, .4);
+      final curveReadyList = generateCurvePoints(getLines, .4);
 
       bool skip = false;
       bool flip = false;
@@ -681,68 +683,63 @@ mixin LaserProjectile on FadeOutProjectile {
       bool isEnd = false;
       bool isConic = true;
       Vector2 target;
-      for (var i = 1; i < curveReadyList.length; i++) {
+
+      // for (var element in curveReadyList2) {
+      //   canvas.drawCircle(element.toOffset(), .1, backPaint);
+      // }
+
+      for (var i = 0; i < curveReadyList.length; i++) {
         target = curveReadyList.elementAt(i);
 
-        // if (isConic) {
-        if (skip) {
-          skip = false;
-          continue;
-        }
-        isEnd = i == curveReadyList.length - 1;
-        if (flip) {
-          firstCondition = (i.isOdd);
-          secondCondition = (i.isEven || i == 1);
-        } else {
-          firstCondition = (i.isEven || i == 1);
-          secondCondition = (i.isOdd);
-        }
-
-        if ((firstCondition) || isEnd) {
-          path.lineTo(target.x, target.y);
-        } else if (secondCondition) {
-          final next = curveReadyList.elementAt(i + 1);
-          if (isConic) {
-            path.conicTo(target.x, target.y, next.x, next.y, 1);
-          } else {
-            path.quadraticBezierTo(target.x, target.y, next.x, next.y);
+        if (isConic) {
+          if (skip) {
+            skip = false;
+            continue;
           }
-          skip = true;
-          flip = !flip;
+          isEnd = i == curveReadyList.length - 1;
+          if (flip) {
+            firstCondition = (i.isOdd);
+            secondCondition = (i.isEven || i == 1);
+          } else {
+            firstCondition = (i.isEven || i == 1);
+            secondCondition = (i.isOdd);
+          }
+
+          if ((firstCondition) || isEnd) {
+            path.lineTo(target.x, target.y);
+          } else if (secondCondition) {
+            final next = curveReadyList.elementAt(i + 1);
+            if (isConic) {
+              path.conicTo(target.x, target.y, next.x, next.y, 1);
+            }
+            // else {
+            // path.quadraticBezierTo(target.x, target.y, next.x, next.y);
+            // }
+            skip = true;
+            flip = !flip;
+          }
         }
-        // } else {
-        //   final target2 = curveReadyList.elementAt(i + 1);
-        //   final target3 = curveReadyList.elementAt(i + 2);
-        //   canvas.drawCircle(target.toOffset(), .2, paint);
-        //   canvas.drawCircle(target2.toOffset(), .2, paint);
-        //   canvas.drawCircle(target3.toOffset(), .2, paint);
-        //   // path.(x1, y1, x2, y2)
-
-        //   path.cubicTo(
-        //       target.x, target.y, target2.x, target2.y, target3.x, target3.y);
-        //   i += 2;
-        // }
       }
+      // if (opacity != 1) {
+      //   canvas.drawPath(path, backPaint..strokeWidth = width * opacity);
+
+      //   // canvas.drawPath(path, backGlowPaint..strokeWidth = width * opacity);
+
+      //   canvas.drawPath(path, frontPaint..strokeWidth = width * .85 * opacity);
+      // } else {
+      canvas.drawPath(path, backPaint);
+      // canvas.drawPath(path, backGlowPaint);
+
+      canvas.drawPath(path, frontPaint);
+      // canvas.drawCircle(
+      //     getLines.last.toOffset(),
+      //     width * 1.3,
+      //     Paint()
+      //       ..shader = ui.Gradient.radial(getLines.last.toOffset(), width * 2,
+      //           [color, Colors.transparent], [0.5, 1])
+      //       ..blendMode = BlendMode.plus);
+      // }
+      super.render(canvas);
     }
-    // if (opacity != 1) {
-    //   canvas.drawPath(path, backPaint..strokeWidth = width * opacity);
-
-    //   // canvas.drawPath(path, backGlowPaint..strokeWidth = width * opacity);
-
-    //   canvas.drawPath(path, frontPaint..strokeWidth = width * .85 * opacity);
-    // } else {
-    canvas.drawPath(path, backPaint);
-    // canvas.drawPath(path, backGlowPaint);
-
-    canvas.drawPath(path, frontPaint);
-    canvas.drawCircle(
-        getLines.last.toOffset(),
-        width * 1.3,
-        Paint()
-          ..shader = ui.Gradient.radial(getLines.last.toOffset(), width * 2,
-              [color, Colors.transparent], [0.5, 1])
-          ..blendMode = BlendMode.plus);
-    // }
-    super.render(canvas);
   }
 }

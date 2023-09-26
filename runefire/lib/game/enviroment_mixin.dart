@@ -146,8 +146,8 @@ mixin HudFunctionality on Enviroment {
   @override
   FutureOr<void> onLoad() {
     super.onLoad();
-
-    hud = GameHud(this);
+    assert(this is GameEnviroment);
+    hud = GameHud(this as GameEnviroment);
     gameCamera.viewport.addAll([hud]);
   }
 }
@@ -469,6 +469,24 @@ mixin GameTimerFunctionality on Enviroment {
       return;
     }
     isPaused = false;
+  }
+
+  ///+ [fullCycleDuration] indicates how long this value takes to reset
+  ///+ [backAndForth] indicates if the value should go back and forth or just reset
+  ///+ [maxValue] indicates the max value the value should reach
+  ///+ [curve] indicates the curve the value should follow
+  double getPulsingTime(double fullCycleDuration, bool backAndForth,
+      {Curve? curve, double? maxValue}) {
+    curve = Curves.linear;
+
+    if (backAndForth) {
+      return ((timePassed % fullCycleDuration) - (fullCycleDuration / 2))
+              .abs() *
+          (maxValue ?? fullCycleDuration / (fullCycleDuration / 2));
+    } else {
+      return (timePassed % fullCycleDuration) /
+          (fullCycleDuration / (maxValue ?? fullCycleDuration));
+    }
   }
 
   @override

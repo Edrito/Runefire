@@ -16,10 +16,8 @@ import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) {
   final player = gameEnviroment.player;
-  Future.delayed(1.seconds).then((value) {
-    player?.addAttribute(
-      AttributeType.chainingAttacks,
-    );
+  Future.delayed(.5.seconds).then((value) {
+    player?.gainExperience(25);
   });
 }
 

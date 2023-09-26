@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math';
-
+import 'dart:typed_data';
+import 'dart:ui' as UI;
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 
 import '../../main.dart';
@@ -54,4 +57,13 @@ List<Vector2> getCirclePoints(double radius, int count) {
   }
 
   return points;
+}
+
+Future<UI.Image> loadUiImage(String imageAssetPath) async {
+  final ByteData data = await rootBundle.load(imageAssetPath);
+  final Completer<UI.Image> completer = Completer();
+  UI.decodeImageFromList(Uint8List.view(data.buffer), (UI.Image img) {
+    return completer.complete(img);
+  });
+  return completer.future;
 }
