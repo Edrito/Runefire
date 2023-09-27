@@ -52,8 +52,8 @@ mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
 
     glowPaint = bulletBackPaint;
     glowPaint.blendMode = BlendMode.plus;
-    glowPaint.shader = ui.Gradient.radial(
-        Offset.zero, size * .75, [bulletBackPaint.color, Colors.transparent]);
+    glowPaint.shader = ui.Gradient.radial(Offset.zero, size * .75,
+        [bulletBackPaint.color.withOpacity(.5), Colors.transparent]);
 
     return super.onLoad();
   }
@@ -285,7 +285,7 @@ mixin StandardProjectile on Projectile {
       }
       setTarget(closeSensorBodies[index]);
       chainedTargets++;
-      projectileDeathTimer?.timer.reset();
+      durationPassed = 0;
     }
   }
 

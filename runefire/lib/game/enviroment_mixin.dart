@@ -471,6 +471,8 @@ mixin GameTimerFunctionality on Enviroment {
     isPaused = false;
   }
 
+  Map<String, double> pulsingTimeMap = {};
+
   ///+ [fullCycleDuration] indicates how long this value takes to reset
   ///+ [backAndForth] indicates if the value should go back and forth or just reset
   ///+ [maxValue] indicates the max value the value should reach
@@ -479,14 +481,24 @@ mixin GameTimerFunctionality on Enviroment {
       {Curve? curve, double? maxValue}) {
     curve = Curves.linear;
 
+    //TODO POTENTIAL LAG
+    String key = "pulsingTime$fullCycleDuration$backAndForth$curve$maxValue";
+
+    if (pulsingTimeMap.containsKey(key)) {
+      return pulsingTimeMap[key]!;
+    }
+    double returnVal;
     if (backAndForth) {
-      return ((timePassed % fullCycleDuration) - (fullCycleDuration / 2))
-              .abs() *
-          (maxValue ?? fullCycleDuration / (fullCycleDuration / 2));
+      returnVal =
+          ((timePassed % fullCycleDuration) - (fullCycleDuration / 2)).abs() *
+              (maxValue ?? fullCycleDuration / (fullCycleDuration / 2));
     } else {
-      return (timePassed % fullCycleDuration) /
+      returnVal = (timePassed % fullCycleDuration) /
           (fullCycleDuration / (maxValue ?? fullCycleDuration));
     }
+
+    pulsingTimeMap[key] = returnVal;
+    return returnVal;
   }
 
   @override

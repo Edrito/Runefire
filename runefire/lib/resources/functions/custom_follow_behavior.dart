@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/functions.dart';
 
 class CustomFollowBehavior extends Component {
   CustomFollowBehavior(this.player, this.camera, this.gameEnviroment) {
@@ -35,15 +37,26 @@ class CustomFollowBehavior extends Component {
 
   double distance = 0;
   double distanceIncrease = 0;
+  // static const double maxDistance = 8;
+  static const double distanceStart = 0;
+  static const double increase = 2.5;
   Vector2 shiftCameraPositionBecauseOfMouse() {
     final position = player.inputAimPositions[InputType.mouseMove];
+    final zoom = camera.viewfinder.zoom;
+    final distanceToCorner = hypotenuse(
+      camera.viewport.size.x / zoom,
+      camera.viewport.size.y / zoom,
+    );
+
+    final cutoff = (distanceToCorner / 2);
+
     distance = position?.distanceTo(Vector2.zero()) ?? 0;
-    distanceIncrease = (distance - 4) / 25;
+    distanceIncrease = (distance - distanceStart) / cutoff;
     distanceIncrease = distanceIncrease.clamp(0, 1);
-    distanceIncrease = pow(distanceIncrease, 2).toDouble();
-    distanceIncrease = distanceIncrease.clamp(0, 1);
+    distanceIncrease = Curves.easeIn.transform(distanceIncrease);
+    // distanceIncrease = distanceIncrease.clamp(0, 1);a
     if (position != null) {
-      return (position * distanceIncrease);
+      return (position.normalized() * increase * distanceIncrease);
     }
     return Vector2.zero();
   }

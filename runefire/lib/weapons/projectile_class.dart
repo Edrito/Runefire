@@ -41,15 +41,13 @@ abstract class Bullet extends Projectile with StandardProjectile {
 }
 
 mixin FadeOutProjectile on Projectile {
-  @override
-  void update(double dt) {
-    timePassed += dt;
-    super.update(dt);
-  }
-
-  double timePassed = 0;
-  double fadeOutDuration = .4;
   Curve fadeOutCurve = Curves.easeOut;
+  double fadeOutDuration = .4;
+  double timePassed = 0;
+
+  // @override
+  // void killBullet([bool withEffect = false]) async {}
+
   // @override
   // double get opacity => fadeOutCurve.transform(
   //     (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
@@ -57,8 +55,12 @@ mixin FadeOutProjectile on Projectile {
   //         .toDouble());
   @override
   double get opacity => 1;
-  // @override
-  // void killBullet([bool withEffect = false]) async {}
+
+  @override
+  void update(double dt) {
+    timePassed += dt;
+    super.update(dt);
+  }
 }
 
 abstract class Projectile extends BodyComponent<GameRouter>
@@ -75,59 +77,104 @@ abstract class Projectile extends BodyComponent<GameRouter>
         weaponAncestor.baseDamage.damageBase.keys.toList().random();
   }
 
-  double size;
-
-  bool isPlayer = false;
-
-  bool get isSmallProjectile => size < projectileBigSizeThreshold;
-
-  bool enableChaining = false;
-  bool enableHoming = false;
-  bool removeOnEndAttack = false;
-
   late final int targetsToChain = weaponAncestor.chainingTargets.parameter;
   late final int targetsToHome = weaponAncestor.maxHomingTargets.parameter;
+
   int chainedTargets = 0;
-  int homedTargets = 0;
-  bool get homingComplete => homedTargets > targetsToHome;
-  bool get chainingComplete => chainedTargets > targetsToChain;
-
+  List<HealthFunctionality> closeSensorBodies = [];
   late DamageType damageType;
-
-  late String projectileId;
-  Random rng = Random();
-  double durationPassed = 0;
-  @override
-  void update(double dt) {
-    durationPassed += dt;
-    super.update(dt);
-  }
-
-  //Structure
-  ProjectileFunctionality weaponAncestor;
-  Vector2 originPosition;
-  abstract double ttl;
-  abstract ProjectileType projectileType;
-
   //Status
   final Vector2 delta;
+
+  double durationPassed = 0;
+  bool enableChaining = false;
+  bool enableHoming = false;
+  List<String> hitIds = [];
+  int homedTargets = 0;
+  bool isPlayer = false;
+  Vector2 originPosition;
+  //Attributes
+  double power;
+
   Vector2 previousDelta = Vector2.zero();
+  bool projectileHasExpired = false;
+  late String projectileId;
+  abstract ProjectileType projectileType;
+  bool removeOnEndAttack = false;
+  Random rng = Random();
+  double size;
+  abstract double ttl;
+  //Structure
+  ProjectileFunctionality weaponAncestor;
+
+  // TimerComponent? projectileDeathTimer;
+  FixtureDef? sensorDef;
+
+  bool get chainingComplete => chainedTargets > targetsToChain;
+  bool get homingComplete => homedTargets > targetsToHome;
+  bool get isSmallProjectile => size < projectileBigSizeThreshold;
+
+  void bodyContact(HealthFunctionality other) {
+    hitIds.add(other.entityId);
+    final damageInstance = weaponAncestor.calculateDamage(other, this);
+    onHitFunctions(damageInstance, other);
+    other.hitCheck(projectileId, damageInstance);
+  }
+
+  void callBulletKillFunctions() {
+    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
+      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
+      for (var element in weapon.onProjectileDeath) {
+        element(this);
+      }
+    }
+  }
+
+  void callOnProjectileAttackFunctions() {
+    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
+      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
+      for (var element in weapon.onAttackProjectile) {
+        element(this);
+      }
+    }
+  }
+
+  void killBullet([bool withEffect = false]) async {
+    if (!world.physicsWorld.isLocked) {
+      body.setType(BodyType.static);
+    }
+    removeFromParent();
+    callBulletKillFunctions();
+  }
+
+  void onHitFunctions(
+      DamageInstance damageInstance, HealthFunctionality victim) {
+    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
+      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
+      bool result = false;
+
+      for (var element in weapon.onHitProjectile) {
+        result = result || element(damageInstance);
+      }
+    }
+    weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
+        ?.onHitFunctions(damageInstance);
+  }
+
+  void sensorContact(HealthFunctionality other) {
+    closeSensorBodies.add(other);
+    other.targetsHomingEntity++;
+  }
+
+  void sensorEndContact(HealthFunctionality other) {
+    closeSensorBodies.remove(other);
+    other.targetsHomingEntity--;
+  }
 
   void setDelta(Vector2 newDelta) {
     previousDelta = delta.clone();
     delta.setFrom(newDelta);
   }
-
-  List<HealthFunctionality> closeSensorBodies = [];
-  TimerComponent? projectileDeathTimer;
-  bool projectileHasExpired = false;
-
-  //Attributes
-  double power;
-
-  FixtureDef? sensorDef;
-
-  List<String> hitIds = [];
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -158,32 +205,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
     super.beginContact(other, contact);
   }
 
-  void sensorContact(HealthFunctionality other) {
-    closeSensorBodies.add(other);
-    other.targetsHomingEntity++;
-  }
-
-  void bodyContact(HealthFunctionality other) {
-    hitIds.add(other.entityId);
-    final damageInstance = weaponAncestor.calculateDamage(other, this);
-    onHitFunctions(damageInstance, other);
-    other.hitCheck(projectileId, damageInstance);
-  }
-
-  void onHitFunctions(
-      DamageInstance damageInstance, HealthFunctionality victim) {
-    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
-      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      bool result = false;
-
-      for (var element in weapon.onHitProjectile) {
-        result = result || element(damageInstance);
-      }
-    }
-    weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
-        ?.onHitFunctions(damageInstance);
-  }
-
   @override
   void endContact(Object other, Contact contact) {
     if (other is! HealthFunctionality) return;
@@ -198,11 +219,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
     super.endContact(other, contact);
   }
 
-  void sensorEndContact(HealthFunctionality other) {
-    closeSensorBodies.remove(other);
-    other.targetsHomingEntity--;
-  }
-
   @override
   Future<void> onLoad() async {
     if (removeOnEndAttack &&
@@ -212,15 +228,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
           .add((weapon) {
         killBullet(true);
       });
-    } else {
-      projectileDeathTimer = TimerComponent(
-        period: ttl,
-        onTick: () {
-          projectileHasExpired = true;
-          killBullet(true);
-        },
-      );
-      add(projectileDeathTimer!);
     }
 
     weaponAncestor.activeProjectiles.add(this);
@@ -235,29 +242,13 @@ abstract class Projectile extends BodyComponent<GameRouter>
     super.onRemove();
   }
 
-  void callOnProjectileAttackFunctions() {
-    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
-      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      for (var element in weapon.onAttackProjectile) {
-        element(this);
-      }
+  @override
+  void update(double dt) {
+    durationPassed += dt;
+    if (durationPassed > ttl && !projectileHasExpired) {
+      projectileHasExpired = true;
+      killBullet(true);
     }
-  }
-
-  void callBulletKillFunctions() {
-    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
-      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      for (var element in weapon.onProjectileDeath) {
-        element(this);
-      }
-    }
-  }
-
-  void killBullet([bool withEffect = false]) async {
-    if (!world.physicsWorld.isLocked) {
-      body.setType(BodyType.static);
-    }
-    removeFromParent();
-    callBulletKillFunctions();
+    super.update(dt);
   }
 }

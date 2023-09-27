@@ -157,11 +157,11 @@ class LongRangeRifle extends PlayerWeapon
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.magic] = (50, 100);
-    maxAttacks.baseParameter = 10;
-    attackTickRate.baseParameter = .1;
+    maxAttacks.baseParameter = 30;
+    attackTickRate.baseParameter = .05;
     projectileVelocity.baseParameter = 30;
-    baseAttackCount.baseParameter = 1;
-    pierce.baseParameter = 0;
+    baseAttackCount.baseParameter = 20;
+    pierce.baseParameter = 10;
   }
   @override
   WeaponType weaponType = WeaponType.scryshot;

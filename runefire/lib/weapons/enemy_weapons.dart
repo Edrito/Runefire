@@ -15,7 +15,7 @@ class BlankProjectileWeapon extends EnemyWeapon
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (5, 8);
     attackTickRate.baseParameter = .01;
-    baseAttackCount.baseParameter = 10;
+    baseAttackCount.baseParameter = 0;
     projectileVelocity.baseParameter = 10;
   }
   @override

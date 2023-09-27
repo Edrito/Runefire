@@ -39,6 +39,10 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   void printChildren(var children) {
     for (Component element in children) {
       children2++;
+      if (element is TimerComponent) {
+        print(element.parent);
+      }
+      // print(element);
       printChildren(element.children);
     }
   }
@@ -64,13 +68,13 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   @override
   // ignore: unnecessary_overrides
   void update(double dt) {
-    // time += dt;
-    // if (time > seconds) {
-    //   time = 0;
-    //   printChildren(children);
-    //   print(children2);
-    //   children2 = 0;
-    // }
+    time += dt;
+    if (time > seconds) {
+      time = 0;
+      printChildren(children);
+      print(children2);
+      children2 = 0;
+    }
 
     updateFunction(this, dt);
     super.update(dt);

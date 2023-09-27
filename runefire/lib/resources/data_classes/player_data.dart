@@ -89,7 +89,7 @@ class PlayerData extends DataClass with PlayerStatistics {
   }
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.energyMagic,
+    0: WeaponType.scryshot,
     1: WeaponType.prismaticBeam,
   };
   Map<int, SecondaryType> selectedSecondaries = {

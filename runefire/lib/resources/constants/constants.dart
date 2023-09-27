@@ -19,11 +19,11 @@ const laserLineAngleThreshold = .05;
 
 const uiWidthMax = 1700.0;
 
-const xpBarWidthPadding = 50.0;
+const xpBarWidthPadding = 35.0;
 const xpBarHeigthtPadding = 10.0;
-const xpBarHeight = 36.0;
+const xpBarHeight = 32.0;
 
-const bossBarWidthPadding = 50.0;
+const bossBarWidthPadding = 35.0;
 const bossBarHeightPadding = 10.0;
 const bossBarHeight = 24.0;
 

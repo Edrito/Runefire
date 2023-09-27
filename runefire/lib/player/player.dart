@@ -57,6 +57,7 @@ class Player extends Entity
     // }
     onAttack.add(updateRemainingAmmo);
     onReloadComplete.add(updateRemainingAmmo);
+    onReload.add(updateRemainingAmmo);
 
     if (isDisplay) {
       height.setParameterPercentValue('display', .5);

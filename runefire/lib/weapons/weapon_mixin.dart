@@ -121,7 +121,6 @@ mixin ReloadFunctionality on Weapon {
         attribute();
       }
     }
-    reloadFunctions();
     reloadTimer = TimerComponent(
       period: reloadTime.parameter,
       removeOnFinish: true,
@@ -130,6 +129,7 @@ mixin ReloadFunctionality on Weapon {
         reloadCompleteFunctions();
       },
     )..addToParent(this);
+    reloadFunctions();
     createReloadBar();
   }
 

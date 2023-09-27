@@ -12,7 +12,7 @@ import 'package:runefire/main.dart';
 import 'enums.dart';
 import 'functions/functions.dart';
 
-enum ShadowStyle { light, medium }
+enum ShadowStyle { light, medium, lightGame }
 
 class ApolloColorPalette {
   Color get primaryColor => lightBlue.color;
@@ -85,6 +85,12 @@ class ApolloColorPalette {
         returnShadow = BoxShadow(
             color: ApolloColorPalette.darkestGray.color,
             offset: const Offset(1, 1),
+            blurStyle: BlurStyle.solid);
+        break;
+      case ShadowStyle.lightGame:
+        returnShadow = BoxShadow(
+            color: ApolloColorPalette.darkestGray.color,
+            offset: const Offset(.01, .01),
             blurStyle: BlurStyle.solid);
         break;
       case ShadowStyle.medium:

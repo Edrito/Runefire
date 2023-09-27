@@ -10,6 +10,10 @@ import 'package:runefire/resources/functions/vector_functions.dart';
 
 import '../../main.dart';
 
+double hypotenuse(double x, double y) {
+  return sqrt(pow(x, 2) + pow(y, 2));
+}
+
 ///Takes a double tuple and returns a random value between the two
 
 double randomBetween((double, double) val) {

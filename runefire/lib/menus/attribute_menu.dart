@@ -144,27 +144,24 @@ class AttributeTile extends StatelessWidget {
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          left: -2,
-                          top: 2,
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: Image.asset(
-                              'assets/images/${attribute.icon}',
-                              fit: BoxFit.scaleDown,
-                              filterQuality: FilterQuality.none,
-                              color: (customColor ?? selectedColor).darken(.5),
-                            ),
+                          left: -4,
+                          bottom: 32,
+                          top: 0,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: buildImageAsset(
+                                'assets/images/${attribute.icon}',
+                                color: (customColor ?? selectedColor),
+                                fit: BoxFit.contain),
                           ),
                         ),
                         Positioned.fill(
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: Image.asset(
-                              'assets/images/${attribute.icon}',
-                              fit: BoxFit.scaleDown,
-                              filterQuality: FilterQuality.none,
-                              color: customColor ?? selectedColor,
-                            ),
+                          bottom: 32,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: buildImageAsset(
+                                'assets/images/${attribute.icon}',
+                                fit: BoxFit.contain),
                           ),
                         ),
                         Positioned.fill(

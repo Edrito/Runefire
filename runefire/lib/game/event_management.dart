@@ -147,9 +147,9 @@ class EnemyEvent extends PositionEvent {
               (Vector2.random() * clusterSpread) -
               Vector2.all(clusterSpread / 2);
 
-          final enemy = cluster.enemyType
-              .build(spreadPos, gameEnviroment as GameEnviroment, randomLevel);
-          enemy.onDeath.add(() {
+          final enemy = cluster.enemyType.build(spreadPos,
+              gameEnviroment as GameEnviroment, randomLevel, eventManagement);
+          enemy.onDeath.add((_) {
             incrementEnemyCount([enemy], true);
           });
           incrementEnemyCount([enemy], false);
@@ -241,6 +241,38 @@ abstract class EventManagement extends Component {
   abstract List<GameEvent> eventsToDo;
   List<GameEvent> eventsCurrentlyActive = [];
   List<GameEvent> eventsFinished = [];
+
+  void removeAiTimer(Function function, String id, double time) {
+    activeAiIds[time]?.remove(id);
+    activeAiFunctions[time]?.remove(function);
+
+    if (activeAiIds[time]?.isEmpty ?? false) {
+      activeAiTimers[time]?.removeFromParent();
+      activeAiTimers.remove(time);
+      activeAiFunctions[time]?.clear();
+    }
+  }
+
+  void addAiTimer(Function function, String id, double time) {
+    activeAiTimers[time] ??= TimerComponent(
+      period: time,
+      repeat: true,
+      onTick: () {
+        activeAiFunctions[time]?.forEach((element) {
+          element();
+        });
+      },
+    )..addToParent(this);
+    activeAiIds[time] ??= [];
+    activeAiFunctions[time] ??= [];
+
+    activeAiIds[time]?.add(id);
+    activeAiFunctions[time]?.add(function);
+  }
+
+  Map<double, TimerComponent> activeAiTimers = {};
+  Map<double, List<String>> activeAiIds = {};
+  Map<double, List<Function>> activeAiFunctions = {};
 
   Map<String, TimerComponent> activeEventConfigTimers = {};
 

@@ -236,7 +236,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     return true;
   }
 
-  bool deadStatus() {
+  bool deadStatus(DamageInstance instance) {
     return true;
   }
 
@@ -249,7 +249,9 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   Future<void> setEntityStatus(EntityStatus newEntityStatus,
-      {dynamic customAnimationKey, bool playAnimation = true}) async {
+      {dynamic customAnimationKey,
+      bool playAnimation = true,
+      DamageInstance? instance}) async {
     if (entityStatus == EntityStatus.dead) return;
 
     if (newEntityStatus == entityStatus &&
@@ -273,7 +275,9 @@ abstract class Entity extends BodyComponent<GameRouter>
         break;
 
       case EntityStatus.dead:
-        statusResult = deadStatus();
+        if (instance != null) {
+          statusResult = deadStatus(instance);
+        }
         break;
       case EntityStatus.custom:
         customStatus();
@@ -329,6 +333,16 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   @override
   Body createBody() {
+    //     final verts = <Vector2>[
+    //   Vector2(-(entityAnimationsGroup.size.x / 2) + padding,
+    //       -entityAnimationsGroup.size.y + (padding * 2)),
+    //   Vector2((entityAnimationsGroup.size.x / 2) - padding,
+    //       -entityAnimationsGroup.size.y + (padding * 2)),
+    //   Vector2((entityAnimationsGroup.size.x / 2) - padding,
+    //       entityAnimationsGroup.size.y - (padding * 2)),
+    //   Vector2(-(entityAnimationsGroup.size.x / 2) + padding,
+    //       entityAnimationsGroup.size.y - (padding * 2)),
+    // ];
     late CircleShape shape;
     shape = CircleShape();
     shape.radius = entityAnimationsGroup.size.x / 3;
@@ -349,7 +363,9 @@ abstract class Entity extends BodyComponent<GameRouter>
             density: 0,
             filter: Filter()
               ..categoryBits = sensorCategory
-              ..maskBits = enemyCategory + playerCategory + projectileCategory);
+              ..maskBits =
+                  // enemyCategory + playerCategory +
+                  projectileCategory);
 
     final bodyDef = BodyDef(
       position: initialPosition,
@@ -412,22 +428,13 @@ abstract class Entity extends BodyComponent<GameRouter>
 
     setEntityStatus(EntityStatus.spawn);
     applyHeightToSprite();
-    backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
-        anchor: Anchor.center,
-        size: Vector2.zero(),
-        priority: playerBackPriority);
 
     // spriteWrapper = PositionComponent(
     //     size: spriteAnimationComponent.size, anchor: Anchor.center);
     entityAnimationsGroup.flipHorizontallyAroundCenter();
     add(entityAnimationsGroup);
     entityStatusWrapper = EntityStatusEffectsWrapper(
-        position: Vector2(0, -entityStatusHeight),
-        size: Vector2(entityAnimationsGroup.width * 1.5, 0),
-        entity: this)
-      ..addToParent(this);
-
-    add(backJoint);
+        position: Vector2(0, -entityStatusHeight), entity: this);
 
     return super.onLoad();
   }
@@ -440,7 +447,6 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   void flipSprite() {
-    backJoint.flipHorizontallyAroundCenter();
     entityAnimationsGroup.flipHorizontallyAroundCenter();
 
     isFlipped = !isFlipped;

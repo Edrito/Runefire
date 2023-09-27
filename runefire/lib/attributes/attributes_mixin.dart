@@ -376,7 +376,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<Function> onLevelUp = [];
 
   final List<Function> onMove = [];
-  final List<Function> onDeath = [];
+  final List<Function(DamageInstance deathInstance)> onDeath = [];
   final List<Function(Weapon weapon)> onAttack = [];
   final List<Function(ReloadFunctionality weapon)> onReloadComplete = [];
   final List<Function(ReloadFunctionality weapon)> onReload = [];
@@ -488,13 +488,11 @@ class StatusEffect extends PositionComponent {
 //   }
 // }
 
-class EntityStatusEffectsWrapper extends PositionComponent {
-  EntityStatusEffectsWrapper(
-      {super.position, super.size, required this.entity}) {
-    anchor = Anchor.center;
-  }
-
+class EntityStatusEffectsWrapper {
+  EntityStatusEffectsWrapper({required this.position, required this.entity});
+  Vector2 position;
   Entity entity;
+  late double width = entity.entityAnimationsGroup.width * 1.5;
 
   ///ID, Effect
   Map<StatusEffects, StatusEffect> activeStatusEffects = {};
@@ -528,7 +526,8 @@ class EntityStatusEffectsWrapper extends PositionComponent {
   }
 
   double getXPosition(StatusEffects effect) {
-    return ((effect.index + 1) / StatusEffects.values.length) * (width);
+    return (((effect.index + 1) / StatusEffects.values.length) * (width)) -
+        width;
   }
 
   // void addHoldDuration(double duration) {
@@ -553,7 +552,7 @@ class EntityStatusEffectsWrapper extends PositionComponent {
         anchor: Anchor.center);
     markerAnimation!.position.y = entity.height.parameter * .75;
     markerAnimation!.position.x = width / 2;
-    add(markerAnimation!);
+    entity.add(markerAnimation!);
   }
 
   void addStatusEffect(StatusEffects effect, int level) {
@@ -563,8 +562,8 @@ class EntityStatusEffectsWrapper extends PositionComponent {
     activeStatusEffects[effect] = (StatusEffect(effect, level));
     final posX = getXPosition(effect);
     activeStatusEffects[effect]!.position.x = posX;
-    activeStatusEffects[effect]!.position.y = -.2;
-    activeStatusEffects[effect]?.addToParent(this);
+    activeStatusEffects[effect]!.position.y = -.2 + (entity.height.parameter);
+    activeStatusEffects[effect]?.addToParent(entity);
   }
 
   void removeStatusEffect(StatusEffects statusEffects) {
@@ -585,7 +584,7 @@ class EntityStatusEffectsWrapper extends PositionComponent {
     }
 
     reloadAnimations[key] = ReloadAnimation(duration, isSecondary, timer)
-      ..addToParent(this);
+      ..addToParent(entity);
   }
 
   String generateKey(String sourceId, bool isSecondary) =>
@@ -659,12 +658,12 @@ class ReloadAnimation extends PositionComponent {
 
   @override
   FutureOr<void> onLoad() {
-    final parent = this.parent as EntityStatusEffectsWrapper;
+    final parent = this.parent as Player;
     // final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
-    final width = parent.width * .7;
-    final x = (parent.width - width) / 2;
+    final width = parent.entityStatusWrapper.width * .7;
+    final x = (parent.entityStatusWrapper.width - width) / 2;
     size.y = height;
-    size.x = parent.width * .7;
+    size.x = parent.entityStatusWrapper.width * .7;
     position.y = 0;
     position.x = x;
 

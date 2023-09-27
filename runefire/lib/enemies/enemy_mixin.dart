@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/enviroment_interactables/proximity_item.dart';
@@ -66,6 +67,7 @@ mixin DropItemFunctionality on HealthFunctionality {
   Component? calculateExpendableDrop() {
     double chance = rng.nextDouble();
     final entryList = expendableRate.entries.toList();
+    entryList.sort((a, b) => rng.nextInt(2));
     entryList.sort((a, b) => a.value.compareTo(b.value));
     ExpendableType? expendableType;
     for (var element in entryList) {
@@ -85,11 +87,11 @@ mixin DropItemFunctionality on HealthFunctionality {
   }
 
   @override
-  bool deadStatus() {
+  bool deadStatus(DamageInstance instance) {
     gameEnviroment.physicsComponent.addAll(calculateExperienceDrop());
     calculateExpendableDrop()?.addToParent(gameEnviroment.physicsComponent);
 
-    return super.deadStatus();
+    return super.deadStatus(instance);
   }
 }
 
@@ -142,7 +144,7 @@ mixin AimControlFunctionality on AimFunctionality {
   }
 }
 
-mixin DumbFollowAI on MovementFunctionality {
+mixin DumbFollowAI on Enemy, MovementFunctionality {
   TimerComponent? targetUpdater;
   double targetUpdateFrequency = .3;
 
@@ -154,12 +156,16 @@ mixin DumbFollowAI on MovementFunctionality {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    targetUpdater = TimerComponent(
-      period: targetUpdateFrequency,
-      repeat: true,
-      onTick: _dumbFollowTargetTick,
-    );
-    add(targetUpdater!);
+
+    eventManagement.addAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+  }
+
+  @override
+  void onRemove() {
+    eventManagement.removeAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+    super.onRemove();
   }
 }
 
@@ -308,7 +314,12 @@ mixin FollowThenSuicideAI on MovementFunctionality {
     final newPosition = (gameEnviroment.player!.center - body.position);
     moveVelocities[InputType.ai] = newPosition.normalized();
     if (center.distanceTo(gameEnviroment.player!.center) < distanceThreshold) {
-      await setEntityStatus(EntityStatus.dead);
+      await setEntityStatus(EntityStatus.dead,
+          instance: DamageInstance(
+              damageMap: {},
+              source: this,
+              victim: this as HealthFunctionality,
+              sourceAttack: this));
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:runefire/enemies/enemy_mixin.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/game/event_management.dart';
 
 import '../resources/functions/custom.dart';
 import '../resources/constants/physics_filter.dart';
@@ -23,6 +24,7 @@ abstract class Enemy extends Entity
     required super.initialPosition,
     required super.enviroment,
     required int upgradeLevel,
+    required this.eventManagement,
   }) {
     this.upgradeLevel = upgradeLevel;
 
@@ -30,6 +32,8 @@ abstract class Enemy extends Entity
 
     applyUpgrade();
   }
+
+  EventManagement eventManagement;
 
   @override
   int? maxLevel;
@@ -48,7 +52,10 @@ abstract class Enemy extends Entity
         areaEffectCategory +
         sensorCategory +
         swordCategory;
-
+  // @override
+  // Filter? filter = Filter()
+  //   ..categoryBits = enemyCategory
+  //   ..maskBits = projectileCategory + enemyCategory;
   TimerComponent? shooter;
   double shotFreq = 1;
 

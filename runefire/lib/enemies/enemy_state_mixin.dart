@@ -198,7 +198,9 @@ mixin StateManagedAI
     await super.onLoad();
 
     baseState.onStateStartCall();
-    onDeath.add(baseState.onStateEndCall);
+    onDeath.add((_) {
+      baseState.onStateEndCall();
+    });
 
     stateCheckerTimer = TimerComponent(
       period: period,

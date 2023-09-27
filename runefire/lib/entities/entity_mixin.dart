@@ -319,6 +319,12 @@ mixin AimFunctionality on Entity {
 
   @override
   Future<void> onLoad() {
+    backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
+        anchor: Anchor.center,
+        size: Vector2.zero(),
+        priority: playerBackPriority);
+    add(backJoint);
+
     handJoint = PlayerAttachmentJointComponent(
       WeaponSpritePosition.hand,
       anchor: Anchor.center,
@@ -358,6 +364,7 @@ mixin AimFunctionality on Entity {
   @override
   void flipSprite() {
     handJoint.flipHorizontallyAroundCenter();
+    backJoint.flipHorizontallyAroundCenter();
     super.flipSprite();
   }
 
@@ -435,9 +442,9 @@ mixin AttackFunctionality on AimFunctionality {
   bool isAltAttacking = false;
 
   @override
-  bool deadStatus() {
+  bool deadStatus(DamageInstance instance) {
     endAttacking();
-    return super.deadStatus();
+    return super.deadStatus(instance);
   }
 
   void initializeWeapons() {
@@ -744,7 +751,7 @@ mixin HealthFunctionality on Entity {
   Vector2? baseTextSize;
 
   @override
-  bool deadStatus() {
+  bool deadStatus(DamageInstance instance) {
     isDead = true;
 
     permanentlyDisableEntity();
@@ -759,15 +766,15 @@ mixin HealthFunctionality on Entity {
           curve: Curves.easeIn),
     ));
 
-    deadFunctionsCall();
-    return super.deadStatus();
+    deadFunctionsCall(instance);
+    return super.deadStatus(instance);
   }
 
-  void deadFunctionsCall() {
+  void deadFunctionsCall(DamageInstance instance) {
     final attr = attributeFunctionsFunctionality;
     if (attr != null && attr.onDeath.isNotEmpty) {
       for (var element in attr.onDeath) {
-        element.call();
+        element.call(instance);
       }
     }
   }
@@ -777,8 +784,8 @@ mixin HealthFunctionality on Entity {
     final color = damageType.color;
     final fontSize = .45 * (isCrit ? 1.3 : 1);
 
-    final textRenderer = colorPalette.buildTextPaint(
-        fontSize, ShadowStyle.light, isCrit ? Colors.red : color.brighten(.2));
+    final textRenderer = colorPalette.buildTextPaint(fontSize,
+        ShadowStyle.lightGame, isCrit ? Colors.red : color.brighten(.2));
     String damageString = "";
 
     if (customText != null) {
@@ -801,16 +808,6 @@ mixin HealthFunctionality on Entity {
           Vector2(entityAnimationsGroup.width, 0),
     );
 
-    tempText.add(
-      TimerComponent(
-        period: 1.33,
-        onTick: () {
-          tempText.removeFromParent();
-          damageTexts.remove(tempText);
-        },
-      ),
-    );
-
     final moveBy = ((Vector2.random() * .5) * (isCrit ? 3 : 1));
 
     tempText.add(
@@ -819,13 +816,17 @@ mixin HealthFunctionality on Entity {
         EffectController(
           duration: 1.33,
           curve: Curves.linear,
+          onMax: () {
+            tempText.removeFromParent();
+            damageTexts.remove(tempText);
+          },
         ),
       ),
     );
 
     damageTexts[damageType]?.removeFromParent();
     damageTexts[damageType] = tempText;
-    entityStatusWrapper.add(tempText);
+    add(tempText);
   }
 
   ///Returning true means cancel the damage
@@ -987,9 +988,9 @@ mixin HealthFunctionality on Entity {
     if (remainingHealth <= 0 && !isDead) {
       if (this is Player) {
         game.gameStateComponent.gameState
-            .killPlayer(GameEndState.death, this as Player);
+            .killPlayer(GameEndState.death, this as Player, damage);
       } else {
-        setEntityStatus(EntityStatus.dead);
+        setEntityStatus(EntityStatus.dead, instance: damage);
       }
       callOtherWeaponOnKillFunctions(damage);
     }

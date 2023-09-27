@@ -14,11 +14,25 @@ import 'package:runefire/resources/enums.dart';
 
 import 'entities/child_entities.dart';
 
-void conductTests(GameEnviroment gameEnviroment) {
+void conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
-  Future.delayed(.5.seconds).then((value) {
-    player?.gainExperience(25);
+  Future.delayed(3.seconds).then((value) {
+    for (var element in gameEnviroment.player!.world.physicsWorld.bodies) {
+      if (element.userData is Enemy) {
+        final enemy = element.userData as Enemy;
+        enemy.addAttribute(
+          AttributeType.stun,
+          perpetratorEntity: player,
+        );
+      }
+    }
   });
+
+  while (true) {
+    await Future.delayed(2.seconds).then((value) {
+      gameEnviroment.hud.applyBossHitEffect(DamageType.values.random());
+    });
+  }
 }
 
 void updateFunction(Enviroment enviroment, double dt) {

@@ -21,11 +21,11 @@ class MushroomDummy extends Enemy with JumpFunctionality
 // MovementFunctionality,
 // DumbFollowAI,
 {
-  MushroomDummy({
-    required super.initialPosition,
-    required super.enviroment,
-    required super.upgradeLevel,
-  }) {
+  MushroomDummy(
+      {required super.initialPosition,
+      required super.enviroment,
+      required super.upgradeLevel,
+      required super.eventManagement}) {
     height.baseParameter = mushroomHopperBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
@@ -62,11 +62,11 @@ class MushroomDummy extends Enemy with JumpFunctionality
 
 class MushroomRunner extends Enemy
     with MovementFunctionality, TouchDamageFunctionality, DumbFollowAI {
-  MushroomRunner({
-    required super.initialPosition,
-    required super.enviroment,
-    required super.upgradeLevel,
-  }) {
+  MushroomRunner(
+      {required super.initialPosition,
+      required super.enviroment,
+      required super.upgradeLevel,
+      required super.eventManagement}) {
     height.baseParameter = 1.2;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
@@ -76,8 +76,11 @@ class MushroomRunner extends Enemy
   }
 
   @override
-  Map<ExpendableType, double> get expendableRate =>
-      {ExpendableType.fearEnemiesRunes: 0.005};
+  Map<ExpendableType, double> get expendableRate => {
+        ExpendableType.fearEnemiesRunes: 0.5,
+        ExpendableType.healingRune: 0.5,
+        ExpendableType.experienceAttractRune: 0.5,
+      };
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
@@ -119,11 +122,11 @@ class MushroomHopper extends Enemy
         MovementFunctionality,
         HopFollowAI,
         TouchDamageFunctionality {
-  MushroomHopper({
-    required super.initialPosition,
-    required super.enviroment,
-    required super.upgradeLevel,
-  }) {
+  MushroomHopper(
+      {required super.initialPosition,
+      required super.enviroment,
+      required super.upgradeLevel,
+      required super.eventManagement}) {
     height.baseParameter = mushroomHopperBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
@@ -169,20 +172,24 @@ class MushroomHopper extends Enemy
 
 class MushroomBoomer extends Enemy
     with MovementFunctionality, FollowThenSuicideAI {
-  MushroomBoomer({
-    required super.initialPosition,
-    required super.enviroment,
-    required super.upgradeLevel,
-  }) {
+  MushroomBoomer(
+      {required super.initialPosition,
+      required super.enviroment,
+      required super.upgradeLevel,
+      required super.eventManagement}) {
     height.baseParameter = mushroomBoomerBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomBoomerBaseInvincibilityDuration;
     maxHealth.baseParameter = mushroomBoomerBaseMaxHealth;
     speed.baseParameter = mushroomBoomerBaseSpeed;
 
-    onDeath.add(() async {
-      await entityAnimationsGroup
-          .animationTickers?[EntityStatus.dead]?.completed;
+    onDeath.add((instance) async {
+      if (instance.damageMap.keys.contains(DamageType.fire)) {
+        entityAnimationsGroup.animationTickers?[EntityStatus.dead]?.completed;
+      } else {
+        await entityAnimationsGroup
+            .animationTickers?[EntityStatus.dead]?.completed;
+      }
 
       enviroment.physicsComponent.add(AreaEffect(
           position: body.worldCenter,
@@ -243,11 +250,11 @@ class MushroomShooter extends Enemy
         AttackFunctionality,
         DumbShoot,
         DumbFollowRangeAI {
-  MushroomShooter({
-    required super.initialPosition,
-    required super.enviroment,
-    required super.upgradeLevel,
-  }) {
+  MushroomShooter(
+      {required super.initialPosition,
+      required super.enviroment,
+      required super.upgradeLevel,
+      required super.eventManagement}) {
     height.baseParameter = mushroomShooterBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomShooterBaseInvincibilityDuration;
@@ -310,11 +317,11 @@ class MushroomSpinner extends Enemy
         AttackFunctionality,
         DumbFollowAI,
         StateManagedAI {
-  MushroomSpinner({
-    required super.initialPosition,
-    required super.enviroment,
-    required super.upgradeLevel,
-  }) {
+  MushroomSpinner(
+      {required super.initialPosition,
+      required super.enviroment,
+      required super.upgradeLevel,
+      required super.eventManagement}) {
     height.baseParameter = mushroomShooterBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomShooterBaseInvincibilityDuration;
@@ -454,11 +461,11 @@ class MushroomBurrower extends Enemy
         TouchDamageFunctionality,
         AttackFunctionality,
         StateManagedAI {
-  MushroomBurrower({
-    required super.initialPosition,
-    required super.enviroment,
-    required super.upgradeLevel,
-  }) {
+  MushroomBurrower(
+      {required super.initialPosition,
+      required super.enviroment,
+      required super.upgradeLevel,
+      required super.eventManagement}) {
     height.baseParameter = mushroomShooterBaseHeight;
 
     invincibilityDuration.baseParameter =

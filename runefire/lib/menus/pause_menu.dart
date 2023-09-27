@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/constants.dart';
+import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:numerus/numerus.dart';
 import '../game/enviroment.dart';
@@ -506,7 +507,13 @@ class _PauseMenuState extends State<PauseMenu> {
                               onTap: () {
                                 gameState.resumeGame();
                                 gameState.killPlayer(
-                                    GameEndState.quit, env.player!);
+                                    GameEndState.quit,
+                                    env.player!,
+                                    DamageInstance(
+                                        damageMap: {},
+                                        source: env.player!,
+                                        victim: env.player!,
+                                        sourceAttack: this));
                               },
                             )
                           ],

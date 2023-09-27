@@ -164,7 +164,7 @@ mixin ExperienceFunctionality on Entity {
         preLevelUp();
       }
 
-      gainExperience(remainingExperience);
+      gainExperience(remainingExperience.abs());
     } else {
       experiencePointsGained += experience;
     }

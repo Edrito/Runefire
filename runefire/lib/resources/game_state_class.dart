@@ -204,8 +204,9 @@ extension GameStateFunctions on GameState {
     resumeGame();
   }
 
-  void killPlayer(GameEndState gameEndState, Player player) {
-    player.setEntityStatus(EntityStatus.dead);
+  void killPlayer(
+      GameEndState gameEndState, Player player, DamageInstance instance) {
+    player.setEntityStatus(EntityStatus.dead, instance: instance);
     transitionOccuring = true;
     Future.delayed(2.seconds).then(
       (value) {

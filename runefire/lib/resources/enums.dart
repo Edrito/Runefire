@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/game/event_management.dart';
 import 'package:runefire/player/player_constants.dart' as player_constants;
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -58,41 +59,53 @@ enum EnemyType {
 }
 
 extension EnemyTypeExtension on EnemyType {
-  Enemy build(Vector2 position, GameEnviroment gameEnviroment, int level) {
+  Enemy build(
+    Vector2 position,
+    GameEnviroment gameEnviroment,
+    int level,
+    EventManagement eventManagement,
+  ) {
     switch (this) {
       case EnemyType.mushroomHopper:
         return MushroomHopper(
             initialPosition: position,
             enviroment: gameEnviroment,
+            eventManagement: eventManagement,
             upgradeLevel: level);
       case EnemyType.mushroomBoomer:
         return MushroomBoomer(
             initialPosition: position,
+            eventManagement: eventManagement,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomShooter:
         return MushroomShooter(
+            eventManagement: eventManagement,
             initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomBurrower:
         return MushroomBurrower(
+            eventManagement: eventManagement,
             initialPosition: position,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomSpinner:
         return MushroomSpinner(
             initialPosition: position,
+            eventManagement: eventManagement,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       case EnemyType.mushroomRunner:
         return MushroomRunner(
             initialPosition: position,
+            eventManagement: eventManagement,
             enviroment: gameEnviroment,
             upgradeLevel: level);
       default:
         return MushroomDummy(
             initialPosition: position,
+            eventManagement: eventManagement,
             enviroment: gameEnviroment,
             upgradeLevel: level);
     }
