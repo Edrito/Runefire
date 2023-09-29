@@ -50,7 +50,9 @@ class Player extends Entity
         PlayerStatistics,
         PlayerStatisticsRecorder {
   Player(this.playerData, this.isDisplay,
-      {required super.enviroment, required super.initialPosition}) {
+      {required super.enviroment,
+      required super.eventManagement,
+      required super.initialPosition}) {
     // if (!isDisplay) {
     playerData.selectedPlayer.applyBaseCharacterStats(this);
     initAttributes(playerData.unlockedPermanentAttributes);

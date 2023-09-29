@@ -365,8 +365,7 @@ class MushroomSpinner extends Enemy
         for (var i = 1; i < 4; i++) {
           Future.delayed(((spinDuration / 4) * i).seconds, () {
             final count = 3 + (rng.nextBool() ? 0 : 3);
-            currentWeapon?.baseAttackCount.baseParameter = count;
-            currentWeapon?.maxSpreadDegrees.baseParameter = 270;
+            currentWeapon?.attackCountIncrease.baseParameter = count;
 
             currentWeapon?.startAttacking();
             currentWeapon?.endAttacking();
@@ -507,8 +506,7 @@ class MushroomBurrower extends Enemy
           for (var i = 1; i < 4; i++) {
             Future.delayed(((groundDuration / 4) * i).seconds, () {
               final count = 2 + (rng.nextBool() ? 0 : 2);
-              currentWeapon?.baseAttackCount.baseParameter = count;
-              currentWeapon?.maxSpreadDegrees.baseParameter = 270;
+              currentWeapon?.attackCountIncrease.baseParameter = count;
 
               currentWeapon?.startAttacking();
               currentWeapon?.endAttacking();

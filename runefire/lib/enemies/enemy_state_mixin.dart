@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:runefire/main.dart';
+import 'package:uuid/uuid.dart';
 
 import '../resources/functions/functions.dart';
 import 'enemy.dart';
@@ -25,6 +26,8 @@ class EnemyState {
     this.isBaseState = false,
   });
 
+  late final stateId = const Uuid().v4();
+
   // Properties
   final int priority;
   final StateManagedAI stateManagedAI;
@@ -39,10 +42,12 @@ class EnemyState {
   final bool finalState;
   final bool isBaseState;
 
-  TimerComponent? stateEventTimer;
-  late TimerComponent stateDurationTimer;
+  Timer? stateDurationTimer;
   bool randomFunctionRunning = false;
   FutureFunction? previousFunction;
+
+  late final double eventPeriodDuration =
+      randomBetween(randomEventTimeFrame).roundToDouble();
 
   // Methods
 
@@ -54,27 +59,18 @@ class EnemyState {
 
   /// Initialize the event timer to call random functions periodically.
   void initEventTimer() {
-    double duration = (rng.nextDouble() *
-            (randomEventTimeFrame.$2 - randomEventTimeFrame.$1)) +
-        randomEventTimeFrame.$1;
-    stateEventTimer = TimerComponent(
-      period: duration,
-      onTick: () async {
-        await callRandomFunction(preventDoubleRandomFunction);
-        initEventTimer();
-      },
-      removeOnFinish: true,
-    )..addToParent(stateManagedAI);
+    stateManagedAI.eventManagement
+        .addAiTimer(callRandomFunction, stateId, eventPeriodDuration);
   }
 
   void initDurationTimer() {
-    stateDurationTimer = TimerComponent(
-      period: randomBetween(stateDuration),
+    final timerLimit = randomBetween(stateDuration);
+    stateDurationTimer = Timer(
+      timerLimit,
       onTick: () {
         onStateEndCall();
       },
-      removeOnFinish: true,
-    )..addToParent(stateManagedAI);
+    )..start();
   }
 
   /// Call the onStateStart function and start the event timer.
@@ -87,15 +83,15 @@ class EnemyState {
     onStateStart?.call();
 
     if (stateDuration.$2 == 0 && !isBaseState) {
-      await callRandomFunction(preventDoubleRandomFunction);
+      await callRandomFunction();
       onStateEndCall();
     }
   }
 
   /// Call the onStateEnd function and remove the event timer.
   void onStateEndCall() {
-    stateEventTimer?.timer.stop();
-    stateEventTimer?.removeFromParent();
+    stateManagedAI.eventManagement
+        .removeAiTimer(callRandomFunction, stateId, eventPeriodDuration);
     onStateEnd?.call();
   }
 
@@ -105,12 +101,17 @@ class EnemyState {
       minimumTimePassedBeforeStateChange;
 
   /// Call a random function if it's not already running and prevent duplicates if specified.
-  Future<void> callRandomFunction(bool preventDuplicate) async {
+  Future<void> callRandomFunction() async {
+    //update duration timer using the period of the random event timer
+
+    //wont be accurate but will be close enough
+    stateDurationTimer?.update(eventPeriodDuration);
+
     if (randomFunctions.isEmpty || stateManagedAI.randomFunctionRunning) return;
     try {
       randomFunctionRunning = true;
       FutureFunction randomFunction;
-      if (preventDuplicate) {
+      if (preventDoubleRandomFunction) {
         final tempList =
             randomFunctions.where((element) => element != previousFunction);
         randomFunction = tempList.elementAt(rng.nextInt(tempList.length));
@@ -150,7 +151,6 @@ mixin StateManagedAI
   double aliveDuration = 0;
   double durationSincePreviousStateChange = 0;
   final double period = .1;
-  late TimerComponent stateCheckerTimer;
   final double minimumTimeBeforeStateChange = 3;
   bool firstStateChangeCompleted = false;
 
@@ -158,10 +158,15 @@ mixin StateManagedAI
   ///If the state should be changed, it will change the state
   void stateChecker() {
     final activeState = enemyStates[currentState ?? -1];
-    if (durationSincePreviousStateChange < minimumTimeBeforeStateChange &&
-            firstStateChangeCompleted ||
+
+    //only changes after X seconds
+    bool timeChange =
+        durationSincePreviousStateChange < minimumTimeBeforeStateChange;
+
+    if ((timeChange && firstStateChangeCompleted) ||
+        //if final state, dont change
         (activeState?.finalState ?? false) ||
-        (activeState?.stateDurationTimer.timer.isRunning() ?? false) ||
+        (activeState?.stateDurationTimer?.isRunning() ?? false) ||
         isDead) return;
 
     var enemyStatesList = enemyStates.entries
@@ -202,14 +207,15 @@ mixin StateManagedAI
       baseState.onStateEndCall();
     });
 
-    stateCheckerTimer = TimerComponent(
-      period: period,
-      repeat: true,
-      onTick: () {
-        stateChecker();
-      },
-    )..addToParent(this);
+    eventManagement.addAiTimer(stateChecker, entityId, period);
+
     stateChecker();
+  }
+
+  @override
+  void onRemove() {
+    eventManagement.removeAiTimer(stateChecker, entityId, period);
+    super.onRemove();
   }
 
   @override

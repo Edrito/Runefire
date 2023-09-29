@@ -28,12 +28,13 @@ import '../resources/functions/custom.dart';
 abstract class ChildEntity extends Entity with UpgradeFunctions {
   ChildEntity({
     required super.initialPosition,
-    required super.enviroment,
     required this.parentEntity,
     required int upgradeLevel,
     this.distance = 1,
     this.rotationSpeed,
-  }) {
+  }) : super(
+            eventManagement: parentEntity.eventManagement,
+            enviroment: parentEntity.enviroment) {
     this.upgradeLevel = upgradeLevel;
     applyUpgrade();
   }
@@ -114,7 +115,6 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
 abstract class MovingSentry extends ChildEntity with MovementFunctionality {
   MovingSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required super.upgradeLevel,
       required super.parentEntity});
@@ -178,7 +178,6 @@ class TeslaCrystal extends ChildEntity
         AimControlFunctionality {
   TeslaCrystal(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required super.upgradeLevel,
       required super.parentEntity}) {
@@ -206,7 +205,6 @@ class TeslaCrystal extends ChildEntity
 class MarkEnemySentry extends ChildEntity {
   MarkEnemySentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required super.upgradeLevel,
       required super.parentEntity});
@@ -288,7 +286,6 @@ class RangedAttackSentry extends ChildEntity
         AimControlFunctionality {
   RangedAttackSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required this.damageType,
       required super.upgradeLevel,
@@ -319,7 +316,6 @@ class RangedAttackSentry extends ChildEntity
 class GrabItemsSentry extends MovingSentry with ContactCallbacks {
   GrabItemsSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required super.upgradeLevel,
       required super.parentEntity});
@@ -401,7 +397,6 @@ class ElementalAttackSentry extends MovingSentry
     with ContactCallbacks, TouchDamageFunctionality {
   ElementalAttackSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required this.damageType,
       required super.upgradeLevel,
@@ -507,7 +502,6 @@ class ElementalCaptureBulletSentry extends ChildEntity
         AimControlFunctionality {
   ElementalCaptureBulletSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required super.upgradeLevel,
       required super.parentEntity}) {
@@ -609,7 +603,6 @@ class MirrorOrbSentry extends ChildEntity
     with ContactCallbacks, AimFunctionality, AttackFunctionality {
   MirrorOrbSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2,
       required super.upgradeLevel,
       required super.parentEntity}) {
@@ -710,7 +703,6 @@ class ShieldSentry extends ChildEntity
     with ContactCallbacks, HealthFunctionality {
   ShieldSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 1.25,
       required super.upgradeLevel,
       required super.parentEntity}) {
@@ -757,7 +749,6 @@ class SwordSentry extends ChildEntity
     with ContactCallbacks, HealthFunctionality, TouchDamageFunctionality {
   SwordSentry(
       {required super.initialPosition,
-      required super.enviroment,
       super.distance = 2.5,
       required super.upgradeLevel,
       super.rotationSpeed = .5,

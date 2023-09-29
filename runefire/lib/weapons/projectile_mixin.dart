@@ -211,7 +211,7 @@ mixin StandardProjectile on Projectile {
 
   @override
   Future<void> onLoad() {
-    gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
+    // gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
     enableHoming = weaponAncestor.weaponCanHome;
 
     enableChaining = weaponAncestor.weaponCanChain;

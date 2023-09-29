@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:async' as async;
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -273,14 +274,18 @@ class GameHud extends PositionComponent {
       }
       if (currentWeapon.isReloading) {
         final stepTime = currentWeapon.reloadTime.parameter / maxAmmo;
-        for (var i = 0; i < ammoSprites.length; i++) {
-          Future.delayed((stepTime * i).seconds).then((value) {
-            applyAmmoSizeEffect(ammoSprites[i]!, () {
-              if (i >= ammoSprites.length) return;
-              toggleAmmoSprite(ammoSprites[i]!, true);
-            });
-          });
-        }
+        final tempWeapon = currentWeapon;
+        int steps = 0;
+        async.Timer.periodic(stepTime.seconds, (timer) {
+          if (steps >= maxAmmo ||
+              steps >= ammoSprites.length ||
+              previousWeapon != tempWeapon) {
+            timer.cancel();
+            return;
+          }
+          applyAmmoSizeEffect(ammoSprites[steps]!, true);
+          steps++;
+        });
       }
 
       remainingAmmoText.text = rtr;
@@ -304,10 +309,12 @@ class GameHud extends PositionComponent {
   }
 
   void applyAmmoSizeEffect(SpriteComponent ammoSpriteComponent,
-      [Function? onMax]) {
+      [bool sizeEffect = false]) {
     EffectController bulletUseEffectController = EffectController(
         onMax: () {
-          onMax?.call();
+          if (sizeEffect) {
+            toggleAmmoSprite(ammoSpriteComponent, true);
+          }
         },
         duration: .15,
         reverseDuration: .05,

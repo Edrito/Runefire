@@ -11,7 +11,6 @@ import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/game/background.dart';
-import 'package:flame_forge2d/forge2d_game.dart' as f2d;
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/resources/constants/sprite_animations.dart';
@@ -30,7 +29,7 @@ import '../menus/overlays.dart' as overlay;
 final rng = Random();
 late final GameState gameState;
 
-bool startInGame = true;
+bool startInGame = false;
 
 Map<int, bool> isSecondaryPointer = {};
 

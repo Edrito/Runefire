@@ -909,7 +909,6 @@ class MarkSentryAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = MarkEnemySentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
       sentries.add(temp);
@@ -975,7 +974,6 @@ class RangedAttackSentryAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = RangedAttackSentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           damageType: damageType ?? allowedDamageTypes.first,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
@@ -1041,7 +1039,6 @@ class GrabItemsSentryAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = GrabItemsSentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
       sentries.add(temp);
@@ -1107,7 +1104,6 @@ class ElementalSentryAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = ElementalAttackSentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           damageType: damageType ?? allowedDamageTypes.first,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
@@ -1170,7 +1166,6 @@ class CaptureBulletSentryAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = ElementalCaptureBulletSentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
       sentries.add(temp);
@@ -1233,7 +1228,6 @@ class MirrorOrbAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = MirrorOrbSentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
       sentries.add(temp);
@@ -1296,7 +1290,6 @@ class ShieldSentryAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = ShieldSentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
       sentries.add(temp);
@@ -1359,7 +1352,6 @@ class SwordSentryAttribute extends Attribute {
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = SwordSentry(
           initialPosition: Vector2.zero(),
-          enviroment: attr.enviroment,
           upgradeLevel: upgradeLevel,
           parentEntity: attr);
       sentries.add(temp);
@@ -2069,7 +2061,7 @@ class ReloadSprayAttribute extends Attribute {
     final count = weaponBulletCount[weapon.weaponId] ?? 0;
     if (count == 0) return;
     final position = victimEntity?.center.clone() ?? Vector2.zero();
-    List<double> temp = splitRadInCone(0.0, count, 360 - (360 / count));
+    List<double> temp = splitRadInCone(0.0, count, 360 - (360 / count), false);
     int i = 0;
     for (var element in temp) {
       final newSwing = MeleeAttackHandler(
@@ -2299,13 +2291,13 @@ class FocusAttribute extends Attribute {
       delayCheckers.remove(weapon.weaponId);
       additionalCount.remove(weapon.weaponId);
       successiveCounts.remove(weapon.weaponId);
-      weapon.baseAttackCount.removeKey(attributeId);
+      weapon.attackCountIncrease.removeKey(attributeId);
     } else {
       successiveCounts[weapon.weaponId] =
           (successiveCounts[weapon.weaponId] ?? 0) + 1;
       additionalCount[weapon.weaponId] =
           (successiveCounts[weapon.weaponId]! ~/ 3).clamp(0, max);
-      weapon.baseAttackCount.setParameterFlatValue(
+      weapon.attackCountIncrease.setParameterFlatValue(
           attributeId, additionalCount[weapon.weaponId]!);
     }
   }

@@ -125,7 +125,20 @@ StatusEffectAttribute? statusEffectBuilder(
         );
       }
     default:
-      return null;
+      if (isTemporary) {
+        return TemporaryEmpowered(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+          duration: duration,
+        );
+      } else {
+        return EmpoweredAttribute(
+          level: level,
+          victimEntity: victimEntity,
+          perpetratorEntity: perpetratorEntity,
+        );
+      }
   }
 }
 
@@ -481,7 +494,7 @@ class StunAttribute extends StatusEffectAttribute {
   String title = "Stunned";
 
   @override
-  AttributeType get attributeType => AttributeType.empowered;
+  AttributeType get attributeType => AttributeType.stun;
 
   @override
   String description() {
@@ -490,21 +503,28 @@ class StunAttribute extends StatusEffectAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final attr = victimEntity as AttributeFunctionsFunctionality;
-    victimEntity?.entityStatusWrapper
-        .addStatusEffect(StatusEffects.stun, upgradeLevel);
-    attr.enableMovement.setIncrease(attributeId, false);
-    attr.enableMovement.setIncrease("${attributeId}2", false);
+    if (victimEntity is AttributeFunctionsFunctionality) {
+      final attr = victimEntity as AttributeFunctionsFunctionality;
+      victimEntity?.entityStatusWrapper
+          .addStatusEffect(StatusEffects.stun, upgradeLevel);
+      attr.enableMovement.setIncrease(attributeId, false);
+      attr.enableMovement.setIncrease("${attributeId}2", false);
+    }
+    if (victimEntity is AttackFunctionality) {
+      final attack = victimEntity as AttackFunctionality;
+      attack.endAttacking();
+      attack.endAltAttacking();
+    }
   }
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final attr = victimEntity as AttributeFunctionsFunctionality;
-    victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.stun);
-    attr.enableMovement.removeKey(attributeId);
-    attr.enableMovement.removeKey("${attributeId}2");
+    if (victimEntity is AttributeFunctionsFunctionality) {
+      final attr = victimEntity as AttributeFunctionsFunctionality;
+      victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.stun);
+      attr.enableMovement.removeKey(attributeId);
+      attr.enableMovement.removeKey("${attributeId}2");
+    }
   }
 
   @override

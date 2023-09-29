@@ -191,7 +191,7 @@ mixin AttributeFunctionality on Entity {
 mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   @override
   void update(double dt) {
-    for (var element in onUpdate) {
+    for (var element in [...onUpdate]) {
       element(dt);
     }
     processHeadEntities(_headEntities, .5, dt);
@@ -489,8 +489,7 @@ class StatusEffect extends PositionComponent {
 // }
 
 class EntityStatusEffectsWrapper {
-  EntityStatusEffectsWrapper({required this.position, required this.entity});
-  Vector2 position;
+  EntityStatusEffectsWrapper({required this.entity});
   Entity entity;
   late double width = entity.entityAnimationsGroup.width * 1.5;
 
@@ -526,8 +525,8 @@ class EntityStatusEffectsWrapper {
   }
 
   double getXPosition(StatusEffects effect) {
-    return (((effect.index + 1) / StatusEffects.values.length) * (width)) -
-        width;
+    return (((effect.index) / StatusEffects.values.length) * (width)) -
+        width / 2;
   }
 
   // void addHoldDuration(double duration) {
@@ -550,8 +549,8 @@ class EntityStatusEffectsWrapper {
         animation: await getEffectSprite(StatusEffects.marked),
         size: Vector2.all(1.25),
         anchor: Anchor.center);
-    markerAnimation!.position.y = entity.height.parameter * .75;
-    markerAnimation!.position.x = width / 2;
+    // markerAnimation!.position.y = -entity.height.parameter * .75;
+    // markerAnimation!.position.x = width / -2;
     entity.add(markerAnimation!);
   }
 
@@ -562,7 +561,8 @@ class EntityStatusEffectsWrapper {
     activeStatusEffects[effect] = (StatusEffect(effect, level));
     final posX = getXPosition(effect);
     activeStatusEffects[effect]!.position.x = posX;
-    activeStatusEffects[effect]!.position.y = -.2 + (entity.height.parameter);
+    activeStatusEffects[effect]!.position.y =
+        -.2 - (entity.height.parameter * .8);
     activeStatusEffects[effect]?.addToParent(entity);
   }
 
@@ -627,7 +627,7 @@ class ReloadAnimation extends PositionComponent {
   @override
   final height = .06;
   final barWidth = .05;
-  final sidePadding = .0;
+  final sidePadding = .04;
   bool isOpaque = false;
   void toggleOpacity([bool? value]) =>
       value != null ? isOpaque = value : isOpaque = !isOpaque;
@@ -661,11 +661,11 @@ class ReloadAnimation extends PositionComponent {
     final parent = this.parent as Player;
     // final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
     final width = parent.entityStatusWrapper.width * .7;
-    final x = (parent.entityStatusWrapper.width - width) / 2;
+    // final x = (parent.entityStatusWrapper.width - width) / 2;
     size.y = height;
     size.x = parent.entityStatusWrapper.width * .7;
-    position.y = 0;
-    position.x = x;
+    position.y = -parent.height.parameter * .75;
+    position.x = width / -2;
 
     if (isSecondaryWeapon) {
       position.y += -height * 2;

@@ -67,6 +67,13 @@ class HexedForestBackground extends BackgroundComponent {
   }
 }
 
+class MenuGameEventManagement extends EventManagement {
+  @override
+  List<GameEvent> eventsToDo = [];
+
+  MenuGameEventManagement(super.gameEnviroment);
+}
+
 class ForestEnemyManagement extends EventManagement {
   @override
   List<GameEvent> eventsToDo = [];
@@ -138,19 +145,19 @@ class ForestEnemyManagement extends EventManagement {
         eventBeginEnd: (1, 500),
         spawnLocation: SpawnLocation.outside,
       ),
-      EnemyEvent(
-        gameEnviroment,
-        this,
-        isBigBoss: false,
-        clusterSpread: 1,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomDummy, 1)],
-        numberOfClusters: 20,
-        maxEnemies: 20,
-        eventTriggerInterval: (0, 0),
-        levels: (0, 1),
-        eventBeginEnd: (1, null),
-        spawnLocation: SpawnLocation.inside,
-      ),
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 1,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomDummy, 1)],
+      //   numberOfClusters: 20,
+      //   maxEnemies: 20,
+      //   eventTriggerInterval: (0, 0),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, null),
+      //   spawnLocation: SpawnLocation.inside,
+      // ),
     ]);
   }
 }

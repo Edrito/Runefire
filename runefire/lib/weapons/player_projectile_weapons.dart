@@ -98,7 +98,7 @@ class Shotgun extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (5, 8);
     maxAttacks.baseParameter = 5;
     attackTickRate.baseParameter = .8;
-    baseAttackCount.baseParameter = 4;
+    attackCountIncrease.baseParameter = 4;
     projectileSize = 1.2;
     tipOffset = Vector2(0, 1.65);
 
@@ -160,7 +160,7 @@ class LongRangeRifle extends PlayerWeapon
     maxAttacks.baseParameter = 30;
     attackTickRate.baseParameter = .05;
     projectileVelocity.baseParameter = 30;
-    baseAttackCount.baseParameter = 20;
+    attackCountIncrease.baseParameter = 20;
     pierce.baseParameter = 10;
   }
   @override
@@ -237,7 +237,7 @@ class ArcaneBlaster extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (2, 4);
     maxAttacks.baseParameter = 15;
     attackTickRate.baseParameter = .2;
-    baseAttackCount.baseParameter = 1;
+    attackCountIncrease.baseParameter = 1;
     weaponRandomnessPercent.baseParameter = .025;
     projectileVelocity.baseParameter = 20;
     projectileSize = .5;
@@ -312,7 +312,7 @@ class LaserRifle extends PlayerWeapon
     attackTickRate.baseParameter = .4;
     weaponRandomnessPercent.baseParameter = .04;
     chainingTargets.baseParameter = 1;
-    baseAttackCount.baseParameter = 4;
+    attackCountIncrease.baseParameter = 4;
 
     projectileVelocity.baseParameter = 7;
 

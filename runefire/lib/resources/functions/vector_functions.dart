@@ -177,8 +177,8 @@ List<Vector2> splitVector2DeltaIntoArea(
   return angles;
 }
 
-List<double> splitRadInCone(
-    double angle, int count, double maxAngleVarianceDegrees) {
+List<double> splitRadInCone(double angle, int count,
+    double maxAngleVarianceDegrees, bool removeOriginalAngle) {
   if (count == 1) return [angle];
   List<double> angles = [];
 
@@ -191,10 +191,16 @@ List<double> splitRadInCone(
   // Calculate the starting angle
 
   // Generate the angles
-  angle -= maxAngleVariance / 2;
+  double variance = angle - (maxAngleVariance / 2);
+  bool topOrBottom = rng.nextBool();
 
   for (int i = 0; i < count; i++) {
-    double currentAngle = angle + (stepSize * i);
+    double currentAngle = variance + (stepSize * i);
+
+    if (((topOrBottom && i == count - 1) || (!topOrBottom && i == 0)) &&
+        removeOriginalAngle) {
+      continue;
+    }
 
     angles.add(currentAngle);
   }

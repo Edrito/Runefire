@@ -67,15 +67,22 @@ abstract class GameEvent {
   }) {
     eventId = const Uuid().v4();
   }
-  bool hasCompleted = false;
-  final GameTimerFunctionality gameEnviroment;
-  final EventManagement eventManagement;
+
   late final String eventId;
-  final (double, double?) eventBeginEnd;
-  final (double, double) eventTriggerInterval;
-  void startEvent();
-  Future<void> onGoingEvent();
+  final EventManagement eventManagement;
+  final GameTimerFunctionality gameEnviroment;
+
+  bool hasCompleted = false;
+
   void endEvent();
+
+  final (double, double?) eventBeginEnd;
+
+  final (double, double) eventTriggerInterval;
+
+  Future<void> onGoingEvent();
+
+  void startEvent();
 }
 
 abstract class PositionEvent extends GameEvent {
@@ -112,15 +119,20 @@ class EnemyEvent extends PositionEvent {
   }) {
     bossBoundsSize ??= Vector2.all(6);
   }
+
+  final List<EnemyCluster> enemyClusters;
+  final bool isBigBoss;
+  final int maxEnemies;
+  final int numberOfClusters;
+
   bool bossBoundsIsCircular;
   BossBoundsScope boundsScope;
-  Vector2? bossBoundsSize;
-  final int maxEnemies;
   double clusterSpread;
-  final int numberOfClusters;
-  final bool isBigBoss;
-  final List<EnemyCluster> enemyClusters;
-  final (int, int) levels;
+  List<Enemy> enemies = [];
+
+  Vector2? bossBoundsSize;
+
+  int get enemyCount => enemies.length;
 
   ///Getter that gets a random value between level tuple
   int get randomLevel => rng.nextInt((levels.$2 - levels.$1) + 1) + levels.$1;
@@ -129,8 +141,51 @@ class EnemyEvent extends PositionEvent {
     return enemyCount >= maxEnemies;
   }
 
-  int get enemyCount => enemies.length;
-  List<Enemy> enemies = [];
+  final (int, int) levels;
+
+  void incrementEnemyCount(List<Enemy> amount, bool remove) {
+    if (remove) {
+      for (var element in amount) {
+        enemies.remove(element);
+      }
+    } else {
+      enemies.addAll(amount);
+    }
+
+    if (enemyCount == 0 && hasCompleted) {
+      endEvent();
+    }
+  }
+
+  void onBigBoss(bool isDead) {
+    if (isDead) {
+      eventManagement.eventTimer?.timer.resume();
+      (gameEnviroment as GameEnviroment).customFollow.enable();
+      gameEnviroment.unPauseGameTimer();
+      for (var element in eventManagement.activeEventConfigTimers.entries) {
+        element.value.timer.resume();
+      }
+      if (gameEnviroment is BoundsFunctionality) {
+        (gameEnviroment as BoundsFunctionality).removeBossBounds();
+      }
+    } else {
+      spawnEnemies();
+      eventManagement.eventTimer?.timer.pause();
+      gameEnviroment.pauseGameTimer();
+
+      if (boundsScope == BossBoundsScope.viewportSize) {
+        (gameEnviroment as GameEnviroment).customFollow.disable();
+      }
+
+      for (var element in eventManagement.activeEventConfigTimers.entries) {
+        element.value.timer.pause();
+      }
+      if (gameEnviroment is BoundsFunctionality) {
+        (gameEnviroment as BoundsFunctionality)
+            .createBossBounds(bossBoundsIsCircular, this);
+      }
+    }
+  }
 
   void spawnEnemies() {
     for (var _ = 0; _ < numberOfClusters; _++) {
@@ -156,50 +211,6 @@ class EnemyEvent extends PositionEvent {
 
           gameEnviroment.physicsComponent.add(enemy);
         }
-      }
-    }
-  }
-
-  void incrementEnemyCount(List<Enemy> amount, bool remove) {
-    if (remove) {
-      for (var element in amount) {
-        enemies.remove(element);
-      }
-    } else {
-      enemies.addAll(amount);
-    }
-
-    if (enemyCount == 0 && hasCompleted) {
-      endEvent();
-    }
-  }
-
-  void onBigBoss(bool isDead) {
-    if (isDead) {
-      eventManagement.eventTimer?.timer.resume();
-      (gameEnviroment as GameEnviroment).customFollow.enable();
-      gameEnviroment.unPauseGame();
-      for (var element in eventManagement.activeEventConfigTimers.entries) {
-        element.value.timer.resume();
-      }
-      if (gameEnviroment is BoundsFunctionality) {
-        (gameEnviroment as BoundsFunctionality).removeBossBounds();
-      }
-    } else {
-      spawnEnemies();
-      eventManagement.eventTimer?.timer.pause();
-      gameEnviroment.pauseGame();
-
-      if (boundsScope == BossBoundsScope.viewportSize) {
-        (gameEnviroment as GameEnviroment).customFollow.disable();
-      }
-
-      for (var element in eventManagement.activeEventConfigTimers.entries) {
-        element.value.timer.pause();
-      }
-      if (gameEnviroment is BoundsFunctionality) {
-        (gameEnviroment as BoundsFunctionality)
-            .createBossBounds(bossBoundsIsCircular, this);
       }
     }
   }
@@ -230,75 +241,48 @@ class EnemyEvent extends PositionEvent {
 
 class EnemyCluster {
   EnemyCluster(this.enemyType, this.clusterSize);
-  final EnemyType enemyType;
+
   final int clusterSize;
+  final EnemyType enemyType;
 }
 
 abstract class EventManagement extends Component {
-  EventManagement(this.gameEnviroment);
-  GameTimerFunctionality gameEnviroment;
-  List<double> spawnTimes = [];
-  abstract List<GameEvent> eventsToDo;
+  EventManagement(this.env);
+
+  Map<double, int> activeAiFunctionIndex = {};
+  Map<double, List<Function>> activeAiFunctions = {};
+  List<Function> activeAiFunctionsToCall = [];
+  Map<double, List<String>> activeAiIds = {};
+  Map<double, TimerComponent> activeAiTimers = {};
+  Map<String, TimerComponent> activeEventConfigTimers = {};
   List<GameEvent> eventsCurrentlyActive = [];
   List<GameEvent> eventsFinished = [];
-
-  void removeAiTimer(Function function, String id, double time) {
-    activeAiIds[time]?.remove(id);
-    activeAiFunctions[time]?.remove(function);
-
-    if (activeAiIds[time]?.isEmpty ?? false) {
-      activeAiTimers[time]?.removeFromParent();
-      activeAiTimers.remove(time);
-      activeAiFunctions[time]?.clear();
-    }
-  }
-
-  void addAiTimer(Function function, String id, double time) {
-    activeAiTimers[time] ??= TimerComponent(
-      period: time,
-      repeat: true,
-      onTick: () {
-        activeAiFunctions[time]?.forEach((element) {
-          element();
-        });
-      },
-    )..addToParent(this);
-    activeAiIds[time] ??= [];
-    activeAiFunctions[time] ??= [];
-
-    activeAiIds[time]?.add(id);
-    activeAiFunctions[time]?.add(function);
-  }
-
-  Map<double, TimerComponent> activeAiTimers = {};
-  Map<double, List<String>> activeAiIds = {};
-  Map<double, List<Function>> activeAiFunctions = {};
-
-  Map<String, TimerComponent> activeEventConfigTimers = {};
+  abstract List<GameEvent> eventsToDo;
+  Enviroment env;
+  GameTimerFunctionality get gameEnviroment => env as GameTimerFunctionality;
+  List<double> spawnTimes = [];
 
   TimerComponent? eventTimer;
 
-  ///Grab each interval the enemy management should create/remove timers
-  void initEventTimes() {
-    spawnTimes = [
-      ...eventsToDo.fold<List<double>>(
-          [],
-          (previousValue, element) => [
-                ...previousValue,
-                ...[
-                  element.eventBeginEnd.$1,
-                  if (element.eventBeginEnd.$2 != null)
-                    element.eventBeginEnd.$2!
-                ]
-              ])
-    ];
-    spawnTimes.sort();
+  void addAiTimer(Function function, String id, double time) {
+    activeAiIds[time] ??= [];
+    activeAiFunctions[time] ??= [];
+    activeAiFunctionIndex[time] ??= 0;
+    activeAiIds[time]?.add(id);
+    activeAiFunctions[time]?.add(function);
+    recalculateAiTimer(time);
   }
 
-  ///Get a random value between [(double,double)]
-  double getRandomValue((double, double) values) {
-    final returnVal = values.$1 + rng.nextDouble() * (values.$2 - values.$1);
-    return returnVal;
+  void buildOngoingEventTimer(GameEvent event) {
+    activeEventConfigTimers[event.eventId] ??= TimerComponent(
+        period: getRandomValue(event.eventTriggerInterval),
+        repeat: true,
+        onTick: () async {
+          await event.onGoingEvent();
+          activeEventConfigTimers[event.eventId]?.timer.limit =
+              getRandomValue(event.eventTriggerInterval);
+        })
+      ..addToParent(this);
   }
 
   //Check if any events should be started
@@ -319,16 +303,10 @@ abstract class EventManagement extends Component {
     eventsCurrentlyActive.addAll(eventsToParse);
   }
 
-  void buildOngoingEventTimer(GameEvent event) {
-    activeEventConfigTimers[event.eventId] = (TimerComponent(
-        period: getRandomValue(event.eventTriggerInterval),
-        repeat: true,
-        onTick: () async {
-          await event.onGoingEvent();
-          activeEventConfigTimers[event.eventId]?.timer.limit =
-              getRandomValue(event.eventTriggerInterval);
-        }))
-      ..addToParent(this);
+  void conductEvents() {
+    final currentTime = gameEnviroment.timePassed;
+    checkToDoEvents(currentTime);
+    endActiveEvents(currentTime);
   }
 
   ///Check if any events should be ended
@@ -361,34 +339,94 @@ abstract class EventManagement extends Component {
     eventsFinished.addAll(eventsToParse);
   }
 
-  void conductEvents() {
-    final currentTime = gameEnviroment.timePassed;
-    checkToDoEvents(currentTime);
-    endActiveEvents(currentTime);
+  ///Get a random value between [(double,double)]
+  double getRandomValue((double, double) values) {
+    final returnVal = values.$1 + rng.nextDouble() * (values.$2 - values.$1);
+    return returnVal;
+  }
+
+  ///Grab each interval the enemy management should create/remove timers
+  void initEventTimes() {
+    spawnTimes = [
+      ...eventsToDo.fold<List<double>>(
+          [],
+          (previousValue, element) => [
+                ...previousValue,
+                ...[
+                  element.eventBeginEnd.$1,
+                  if (element.eventBeginEnd.$2 != null)
+                    element.eventBeginEnd.$2!
+                ]
+              ])
+    ];
+    spawnTimes.sort();
+  }
+
+  void initTimer() {
+    // try {
+    final time =
+        spawnTimes.firstWhere((element) => element > gameEnviroment.timePassed);
+    final period = time - gameEnviroment.timePassed;
+    eventTimer?.timer.limit = period;
+
+    eventTimer ??= TimerComponent(
+        period: period,
+        onTick: () {
+          initTimer();
+          conductEvents();
+        },
+        repeat: true,
+        removeOnFinish: false)
+      ..addToParent(this);
+    // } catch (_) {}
+  }
+
+  void recalculateAiTimer(double time) {
+    final functionsAmount = (activeAiFunctions[time]?.length ?? 0);
+    if (functionsAmount == 0) {
+      activeAiTimers[time]?.removeFromParent();
+    }
+
+    final stepTime = time / functionsAmount;
+    activeAiTimers[time]?.timer.limit = stepTime;
+    activeAiTimers[time] ??= TimerComponent(
+      period: stepTime,
+      repeat: true,
+      onTick: () {
+        //Create timer that calls function over the difference between ticks
+        // so there are no lag spikes...
+        if (activeAiFunctionIndex[time]! >= activeAiFunctionsToCall.length) {
+          activeAiFunctionIndex[time] = 0;
+          activeAiFunctionsToCall = [...activeAiFunctions[time]!];
+        }
+        activeAiFunctionsToCall[activeAiFunctionIndex[time]!].call();
+        activeAiFunctionIndex[time] = activeAiFunctionIndex[time]! + 1;
+      },
+    )..addToParent(this);
+  }
+
+  void removeAiTimer(Function function, String id, double time) async {
+    activeAiIds[time]?.remove(id);
+    activeAiFunctions[time]?.remove(function);
+
+    if (activeAiIds[time]?.isEmpty ?? false) {
+      activeAiTimers[time]?.removeFromParent();
+      activeAiTimers.remove(time);
+      activeAiFunctions[time]?.clear();
+    }
+
+    recalculateAiTimer(time);
   }
 
   @override
   FutureOr<void> onLoad() {
     priority = enemyPriority;
-    initEventTimes();
-    conductEvents();
-    initTimer();
-    return super.onLoad();
-  }
+    if (eventsToDo.isNotEmpty) {
+      initEventTimes();
+      conductEvents();
+      initTimer();
+    }
 
-  void initTimer() {
-    try {
-      final time = spawnTimes
-          .firstWhere((element) => element > gameEnviroment.timePassed);
-      eventTimer = TimerComponent(
-          period: time - gameEnviroment.timePassed,
-          onTick: () {
-            conductEvents();
-            initTimer();
-          },
-          repeat: false,
-          removeOnFinish: true)
-        ..addToParent(this);
-    } catch (_) {}
+    return super.onLoad();
   }
 }

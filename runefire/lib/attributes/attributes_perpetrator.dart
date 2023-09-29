@@ -40,33 +40,44 @@ abstract class PerpetratorAttribute extends Attribute {
 ///Removes itself after [duration] seconds.
 mixin TemporaryAttribute on Attribute {
   abstract double duration;
-  TimerComponent? currentTimer;
+  double timePassed = 0;
 
   @override
   void reMapUpgrade() {
-    currentTimer?.timer.reset();
+    resetTimer();
     super.reMapUpgrade();
+  }
+
+  void resetTimer() => timePassed = 0;
+  void incrementTimer(double dt) {
+    timePassed += dt;
+    if (timePassed >= duration) {
+      removeUpgrade();
+      victimEntity!.removeAttribute(attributeType);
+    }
   }
 
   @override
   void applyUpgrade() {
-    if (victimEntity == null) return;
-    currentTimer?.timer.reset();
-    currentTimer ??= TimerComponent(
-        period: duration,
-        onTick: () {
-          removeUpgrade();
-          victimEntity!.removeAttribute(attributeType);
-        },
-        removeOnFinish: true)
-      ..addToParent(victimEntity!);
+    applyTimer(false);
+
     super.applyUpgrade();
+  }
+
+  void applyTimer(bool removeTimer) {
+    if (victimEntity is! AttributeFunctionsFunctionality) return;
+    final func = victimEntity as AttributeFunctionsFunctionality;
+    resetTimer();
+    if (removeTimer) {
+      func.onUpdate.remove(incrementTimer);
+    } else {
+      func.onUpdate.add(incrementTimer);
+    }
   }
 
   @override
   void removeUpgrade() {
-    currentTimer?.removeFromParent();
-    currentTimer = null;
+    applyTimer(true);
     super.removeUpgrade();
   }
 }

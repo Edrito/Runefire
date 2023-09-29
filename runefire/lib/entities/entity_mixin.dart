@@ -307,9 +307,7 @@ mixin AimFunctionality on Entity {
   }
 
   Vector2 get handJointAimDelta {
-    return (handJoint.weaponTipCenter!.absolutePosition -
-            handJoint.weaponBase!.absolutePosition)
-        .normalized();
+    return handJoint.position.normalized();
   }
 
   Map<InputType, Vector2> inputAimAngles = {};
@@ -533,7 +531,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   void startAttacking() async {
-    if (isAttacking || isDead) return;
+    if (isAttacking || isDead || isStunned) return;
     isAttacking = true;
     (currentWeapon)?.startAttacking();
   }

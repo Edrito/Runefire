@@ -60,9 +60,9 @@ enum AttributeCategory {
   projectile,
   melee,
   defence,
-  offense,
+  offence,
   resistance,
-  damage,
+  elemental,
   utility,
   health
 }
@@ -83,15 +83,15 @@ enum AttributeType {
 
   //Permanent
   areaSizePermanent,
-  areaDamageIncreasePermanent(category: AttributeCategory.offense),
-  meleeDamageIncreasePermanent(category: AttributeCategory.offense),
-  projectileDamageIncreasePermanent(category: AttributeCategory.offense),
-  spellDamageIncreasePermanent(category: AttributeCategory.offense),
-  tickDamageIncreasePermanent(category: AttributeCategory.offense),
-  critChancePermanent(category: AttributeCategory.offense),
-  critDamagePermanent(category: AttributeCategory.offense),
-  attackRatePermanent(category: AttributeCategory.offense),
-  damageIncreasePermanent(category: AttributeCategory.offense),
+  areaDamageIncreasePermanent(category: AttributeCategory.offence),
+  meleeDamageIncreasePermanent(category: AttributeCategory.offence),
+  projectileDamageIncreasePermanent(category: AttributeCategory.offence),
+  spellDamageIncreasePermanent(category: AttributeCategory.offence),
+  tickDamageIncreasePermanent(category: AttributeCategory.offence),
+  critChancePermanent(category: AttributeCategory.offence),
+  critDamagePermanent(category: AttributeCategory.offence),
+  attackRatePermanent(category: AttributeCategory.offence),
+  damageIncreasePermanent(category: AttributeCategory.offence),
   healthRegenPermanent(category: AttributeCategory.defence),
   dodgeChanceIncreasePermanent(category: AttributeCategory.defence),
   maxHealthPermanent(category: AttributeCategory.defence),
@@ -104,12 +104,12 @@ enum AttributeType {
   durationPermanent,
   reloadTimePermanent(),
   statusEffectPotencyPermanent(category: AttributeCategory.utility),
-  physicalDamageIncreasePermanent(category: AttributeCategory.damage),
-  magicDamageIncreasePermanent(category: AttributeCategory.damage),
-  fireDamageIncreasePermanent(category: AttributeCategory.damage),
-  psychicDamageIncreasePermanent(category: AttributeCategory.damage),
-  energyDamageIncreasePermanent(category: AttributeCategory.damage),
-  frostDamageIncreasePermanent(category: AttributeCategory.damage),
+  physicalDamageIncreasePermanent(category: AttributeCategory.elemental),
+  magicDamageIncreasePermanent(category: AttributeCategory.elemental),
+  fireDamageIncreasePermanent(category: AttributeCategory.elemental),
+  psychicDamageIncreasePermanent(category: AttributeCategory.elemental),
+  energyDamageIncreasePermanent(category: AttributeCategory.elemental),
+  frostDamageIncreasePermanent(category: AttributeCategory.elemental),
   physicalResistanceIncreasePermanent(category: AttributeCategory.resistance),
   magicResistanceIncreasePermanent(category: AttributeCategory.resistance),
   fireResistanceIncreasePermanent(category: AttributeCategory.resistance),
@@ -125,7 +125,7 @@ enum AttributeType {
 
   explosiveDash(
       rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offense,
+      category: AttributeCategory.offence,
       territory: AttributeTerritory.game),
 
   gravityDash(
@@ -135,7 +135,7 @@ enum AttributeType {
 
   groundSlam(
       rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offense,
+      category: AttributeCategory.offence,
       territory: AttributeTerritory.game),
 
   psychicReach(
@@ -153,18 +153,18 @@ enum AttributeType {
   periodicMagicPulse(
       rarity: AttributeRarity.uncommon,
       attributeEligibilityTest: negativeCombinePulseTest,
-      category: AttributeCategory.offense,
+      category: AttributeCategory.offence,
       territory: AttributeTerritory.game),
 
   periodicStun(
       rarity: AttributeRarity.uncommon,
       attributeEligibilityTest: negativeCombinePulseTest,
-      category: AttributeCategory.offense,
+      category: AttributeCategory.offence,
       territory: AttributeTerritory.game),
 
   combinePeriodicPulse(
     rarity: AttributeRarity.unique,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     priority: 5,
     attributeEligibilityTest: combinePulseTest,
     territory: AttributeTerritory.game,
@@ -214,7 +214,7 @@ enum AttributeType {
 
   mirrorOrb(
     rarity: AttributeRarity.rare,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
     priority: 5,
     attributeEligibilityTest: sentryCombinationTest,
@@ -228,7 +228,7 @@ enum AttributeType {
 
   swordSurround(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -240,7 +240,7 @@ enum AttributeType {
 
   projectileSplitExplode(
     rarity: AttributeRarity.rare,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
     attributeEligibilityTest: playerHasProjectileWeapon,
   ),
@@ -287,7 +287,7 @@ enum AttributeType {
 
   dashAttackEmpower(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -300,7 +300,7 @@ enum AttributeType {
 
   weaponMerge(
     rarity: AttributeRarity.unique,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -314,7 +314,7 @@ enum AttributeType {
   ///(incentivizes using all ammo)
   reloadSpray(
       rarity: AttributeRarity.rare,
-      category: AttributeCategory.offense,
+      category: AttributeCategory.offence,
       territory: AttributeTerritory.game,
       attributeEligibilityTest: playerIsReloadFunctionality),
 
@@ -327,20 +327,20 @@ enum AttributeType {
 
   reloadPush(
       rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offense,
+      category: AttributeCategory.offence,
       territory: AttributeTerritory.game,
       attributeEligibilityTest: playerIsReloadFunctionality),
 
   ///increase attack count over time
   focus(
     rarity: AttributeRarity.rare,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   chainingAttacks(
     rarity: AttributeRarity.rare,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -384,17 +384,17 @@ enum AttributeType {
   ///
   heavyHitter(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   quickShot(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   rapidFire(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   bigPockets(
@@ -409,7 +409,7 @@ enum AttributeType {
   ),
   primalMagic(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   appleADay(
@@ -429,12 +429,12 @@ enum AttributeType {
   // ),
   critChanceDecreaseDamage(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   putYourBackIntoIt(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   agile(
@@ -444,7 +444,7 @@ enum AttributeType {
   ),
   areaSizeDecreaseDamage(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   decreaseMaxAmmoIncreaseReloadSpeed(
@@ -455,7 +455,7 @@ enum AttributeType {
 
   potionSeller(
     rarity: AttributeRarity.standard,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -476,37 +476,37 @@ enum AttributeType {
 
   reduceHealthIncreaseLifeSteal(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   staminaSteal(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   splitDamage(
     rarity: AttributeRarity.unique,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   rollTheDice(
     rarity: AttributeRarity.unique,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   glassWand(
     rarity: AttributeRarity.unique,
-    category: AttributeCategory.offense,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   slugTrail(
       rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offense,
+      category: AttributeCategory.offence,
       territory: AttributeTerritory.game);
 
   ///Constructor

@@ -3,6 +3,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/game/enviroment.dart';
@@ -16,17 +17,20 @@ import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
-  Future.delayed(3.seconds).then((value) {
-    for (var element in gameEnviroment.player!.world.physicsWorld.bodies) {
-      if (element.userData is Enemy) {
-        final enemy = element.userData as Enemy;
-        enemy.addAttribute(
-          AttributeType.stun,
-          perpetratorEntity: player,
-        );
-      }
-    }
-  });
+  // Future.delayed(2.seconds).then((value) async {
+  //   while (true) {
+  //     for (var element in StatusEffects.values) {
+  //       await Future.delayed(.5.seconds);
+  //       player?.addAttribute(
+  //           AttributeType.values
+  //               .where((elementD) => elementD.name == element.name)
+  //               .first,
+  //           perpetratorEntity: player,
+  //           isTemporary: true,
+  //           duration: 1);
+  //     }
+  //   }
+  // });
 
   while (true) {
     await Future.delayed(2.seconds).then((value) {

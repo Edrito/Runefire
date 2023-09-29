@@ -6,6 +6,7 @@ import 'package:runefire/attributes/attributes_status_effect.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/game/event_management.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
@@ -23,10 +24,14 @@ import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter>
     with BaseAttributes, ContactCallbacks {
-  Entity({required this.initialPosition, required this.enviroment}) {
+  Entity(
+      {required this.initialPosition,
+      required this.eventManagement,
+      required this.enviroment}) {
     initializeParameterManagers();
     entityId = const Uuid().v4();
   }
+  EventManagement eventManagement;
 
   bool collisionOnDeath = false;
 
@@ -55,6 +60,13 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   List<Function(bool isFlipped)> onBodyFlip = [];
+
+  bool get isStunned {
+    if (isChildEntity) {
+      return (this as ChildEntity).parentEntity.isStunned;
+    }
+    return statusEffects.contains(StatusEffects.stun);
+  }
 
   AttributeFunctionsFunctionality? get attributeFunctionsFunctionality {
     bool thisIsAttr = this is AttributeFunctionsFunctionality;
@@ -433,8 +445,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     //     size: spriteAnimationComponent.size, anchor: Anchor.center);
     entityAnimationsGroup.flipHorizontallyAroundCenter();
     add(entityAnimationsGroup);
-    entityStatusWrapper = EntityStatusEffectsWrapper(
-        position: Vector2(0, -entityStatusHeight), entity: this);
+    entityStatusWrapper = EntityStatusEffectsWrapper(entity: this);
 
     return super.onLoad();
   }

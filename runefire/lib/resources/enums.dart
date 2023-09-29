@@ -112,7 +112,9 @@ extension EnemyTypeExtension on EnemyType {
   }
 }
 
-enum AudioScopeType { bgm, long, short }
+enum AudioDurationType { bgm, long, short }
+
+enum AudioScope { game, menu, global }
 
 enum EntityType { player, enemy, npc, child }
 

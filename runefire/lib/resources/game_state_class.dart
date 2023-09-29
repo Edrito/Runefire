@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame_audio/audio_pool.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -32,14 +33,40 @@ class GameState {
   late String currentRoute;
   bool transitionOccuring = false;
 
+  //Key and audiopool
+  //Key format is {audioScope}_{audioLocation}
+  Map<(AudioScope, String), AudioPool> audioPools = {};
+
+  void removeAudioPools(AudioScope audioScope, [String? audioLocation]) {
+    List<MapEntry<(AudioScope, String), AudioPool>> listToRemove;
+    if (audioLocation != null) {
+      listToRemove = audioPools.entries
+          .where((element) =>
+              element.key.$1 == audioScope && element.key.$2 == audioLocation)
+          .toList();
+      return;
+    } else {
+      listToRemove = audioPools.entries
+          .where((element) => element.key.$1 == audioScope)
+          .toList();
+    }
+
+    for (var element in listToRemove) {
+      element.value.audioCache.clear(element.key.$2);
+      audioPools.remove(element.key);
+    }
+  }
+
   void playAudio(String audioLocation,
       {AudioType audioType = AudioType.sfx,
-      AudioScopeType audioScopeType = AudioScopeType.short,
-      bool isLooping = false}) {
-    return;
+      AudioDurationType audioScopeType = AudioDurationType.short,
+      AudioScope audioScope = AudioScope.game,
+      bool useAudioPool = false,
+      int maxPlayers = 3,
+      bool isLooping = false}) async {
+    // return;
 
     double volume;
-
     switch (audioType) {
       case AudioType.sfx:
         volume =
@@ -53,12 +80,21 @@ class GameState {
         volume =
             volume = gameRouter.systemDataComponent.dataObject.sfxVolume / 100;
     }
+    volume = volume.clamp(0, 1);
+
+    if (useAudioPool) {
+      (AudioScope, String) key = (audioScope, audioLocation);
+      audioPools[key] ??= await FlameAudio.createPool(audioLocation,
+          minPlayers: 1, maxPlayers: maxPlayers);
+      audioPools[key]?.start(volume: volume);
+      return;
+    }
 
     switch (audioScopeType) {
-      case AudioScopeType.bgm:
+      case AudioDurationType.bgm:
         FlameAudio.bgm.play(audioLocation, volume: volume);
         break;
-      case AudioScopeType.short:
+      case AudioDurationType.short:
         if (isLooping) {
           FlameAudio.loop(audioLocation, volume: volume);
         } else {
@@ -66,7 +102,7 @@ class GameState {
         }
         break;
 
-      case AudioScopeType.long:
+      case AudioDurationType.long:
         if (isLooping) {
           FlameAudio.loopLongAudio(audioLocation, volume: volume);
         } else {

@@ -452,7 +452,7 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Status Effect Potency";
+  String title = "Effect Potency";
 }
 
 class BaseSpeedPermanentAttribute extends PermanentAttribute {
@@ -707,7 +707,7 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Experience Gain";
+  String title = "XP Gained";
 }
 
 class DodgeChancePermanentAttribute extends PermanentAttribute {
@@ -972,7 +972,7 @@ class DamagePermanentAttribute extends PermanentAttribute {
   String icon = "attributes/topSpeed.png";
 
   @override
-  String title = "Damage Increase";
+  String title = "All Damage";
 }
 
 class PhysicalDamagePermanentAttribute extends PermanentAttribute {

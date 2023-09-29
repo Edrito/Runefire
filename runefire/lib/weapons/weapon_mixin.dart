@@ -243,8 +243,13 @@ mixin MeleeFunctionality on Weapon {
     final currentSwingAngle = entityAncestor?.handJoint.angle ?? 0;
     final indexUsed = (index ?? currentAttackIndex);
 
-    List<double> temp = splitRadInCone(currentSwingAngle,
-        getAttackCount(chargeAmount), maxSpreadDegrees.parameter);
+    List<double> temp = attackSplitFunctions.entries.fold(
+        [],
+        (previousValue, element) => [
+              ...previousValue,
+              ...element.value
+                  .call(currentSwingAngle, getAttackCount(chargeAmount))
+            ]);
 
     for (var deltaDirection in temp) {
       final customPosition =
@@ -259,6 +264,7 @@ mixin MeleeFunctionality on Weapon {
         weaponAncestor: this,
       ));
     }
+
     entityAncestor?.enviroment.physicsComponent.addAll(returnList);
     currentAttackIndex++;
   }
@@ -507,7 +513,7 @@ mixin ProjectileFunctionality on Weapon {
   }
 
   Vector2 getWeaponTipDownBarrel(double percentBetweenBaseAndTip) {
-    return ((weaponTipPosition! - entityAncestor!.center) * .9) +
+    return ((weaponTipPosition - entityAncestor!.center) * .9) +
         entityAncestor!.center;
   }
 
@@ -515,9 +521,14 @@ mixin ProjectileFunctionality on Weapon {
       [double chargeAmount = 1]) {
     List<Projectile> returnList = [];
 
-    List<double> temp = splitRadInCone(entityAncestor!.handJoint.angle,
-        getAttackCount(chargeAmount), maxSpreadDegrees.parameter);
-
+    List<double> temp = attackSplitFunctions.entries.fold(
+        [],
+        (previousValue, element) => [
+              ...previousValue,
+              ...element.value.call(
+                  entityAncestor!.handJoint.angle, getAttackCount(chargeAmount))
+            ]);
+    //TODO change angle system
     for (var radDirection in temp) {
       if (projectileType == null) continue;
       Vector2 converted = newPositionRad(Vector2(0, 0), -radDirection, 1);
@@ -678,32 +689,18 @@ mixin MuzzleGlow on Weapon, ProjectileFunctionality {
 
   late Paint muzzlePaint;
   Paint paint() => muzzlePaint
-    ..shader = ui.Gradient.radial(
-        (weaponAttachmentPoints[WeaponSpritePosition.hand]!
-                .weaponTip!
-                .absolutePosition)
-            .toOffset(),
-        .4,
-        [
-          primaryDamageType?.color ??
-              baseDamage.damageBase.entries.first.key.color,
-          Colors.transparent
-        ],
-        [
-          0.5,
-          1
-        ]);
+    ..shader = ui.Gradient.radial(weaponTipPosition.toOffset(), .4, [
+      primaryDamageType?.color ?? baseDamage.damageBase.entries.first.key.color,
+      Colors.transparent
+    ], [
+      0.5,
+      1
+    ]);
 
   @override
   void render(ui.Canvas canvas) {
     if (isAttacking) {
-      canvas.drawCircle(
-          (weaponAttachmentPoints[WeaponSpritePosition.hand]!
-                  .weaponTip!
-                  .absolutePosition)
-              .toOffset(),
-          .4,
-          paint());
+      canvas.drawCircle(weaponTipPosition.toOffset(), .4, paint());
     }
     super.render(canvas);
   }
@@ -737,14 +734,13 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
     await buildAnimations();
     spawnAnimation?.stepTime =
         chargeLength / (spawnAnimation?.frames.length ?? 1);
-
     if (semiAutoType != SemiAutoType.regular) {
       chargeAnimation = SpriteAnimationComponent(
           size: Vector2.all(chargeSize),
           anchor: Anchor.center,
+          position: tipOffset,
           animation: spawnAnimation ?? playAnimation)
-        ..addToParent(
-            weaponAttachmentPoints[WeaponSpritePosition.hand]!.weaponTip!);
+        ..addToParent(entityAncestor!.handJoint);
 
       if (spawnAnimation == null) {
         chargeAnimation?.size = Vector2.zero();
@@ -802,7 +798,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
       lifespan: 2,
       applyLifespanToChildren: false,
       generator: (i) => AcceleratedParticle(
-        position: weaponTipPosition! + Vector2.zero(),
+        position: weaponTipPosition + Vector2.zero(),
         speed: ((Vector2.random() * 4) - Vector2.all(2)) * percent,
         child: FadeOutCircleParticle(
             radius: .04 * ((rng.nextDouble() * .9) + .1),
@@ -1176,4 +1172,33 @@ String buildWeaponDescription(
   }
 
   return returnString;
+}
+
+enum AttackSpreadType { base, regular, cross, back }
+
+// extension AttackSpreadTypeExtension on AttackSpreadType {
+//   List<double> buildAttacks(double angle, int count,
+//       [double spreadDegrees = 60]) {
+//     switch (this) {
+//       case AttackSpreadType.regular:
+//         return regularAttackSpread(angle, count, spreadDegrees);
+//       case AttackSpreadType.cross:
+//         return regularAttackSpread(angle, count, spreadDegrees);
+
+//       case AttackSpreadType.back:
+//         return regularAttackSpread(angle, count, spreadDegrees);
+//     }
+//   }
+// }
+
+List<double> regularAttackSpread(double angle, int count,
+    [double spreadDegrees = 60, bool baseRemoved = false]) {
+  List<double> returnList;
+  if (baseRemoved || count.isEven) {
+    returnList = splitRadInCone(angle, count, spreadDegrees, false);
+  } else {
+    returnList = splitRadInCone(angle, count + 1, spreadDegrees, true);
+  }
+
+  return returnList;
 }

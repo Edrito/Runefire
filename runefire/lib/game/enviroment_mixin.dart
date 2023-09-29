@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:flame/extensions.dart';
+import 'package:flame/game.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/game/hexed_forest_game.dart';
 import 'package:runefire/game/menu_game.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
@@ -369,7 +371,9 @@ mixin PlayerFunctionality on Enviroment {
 
   void addPlayer() {
     player = Player(playerData, this is MenuGame,
-        enviroment: this, initialPosition: Vector2.zero());
+        eventManagement: MenuGameEventManagement(this),
+        enviroment: this,
+        initialPosition: Vector2.zero());
 
     if (this is GameEnviroment) {
       customFollow =
@@ -457,14 +461,14 @@ mixin GameTimerFunctionality on Enviroment {
   double timePassed = 0;
   bool isPaused = false;
 
-  void pauseGame() {
+  void pauseGameTimer() {
     if (isPaused) {
       return;
     }
     isPaused = true;
   }
 
-  void unPauseGame() {
+  void unPauseGameTimer() {
     if (!isPaused) {
       return;
     }

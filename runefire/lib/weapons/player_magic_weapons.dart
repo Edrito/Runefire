@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
+import 'package:flame_audio/audio_pool.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ScaleEffect;
 import 'package:runefire/attributes/attribute_constants.dart';
@@ -111,7 +112,6 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   }
   @override
   WeaponType weaponType = WeaponType.powerWord;
-
   @override
   void weaponSwappedTo() {
     toggleTextComponent(true);
@@ -174,7 +174,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
     toggleTextComponent(true);
   }
 
-  List<String> words = ["die", "stop", "away", "kneel", "forget"];
+  List<String> words = ["die.", "stop.", "away.", "fall.", "forget."];
   String currentWord = "";
   TextComponent? textComponent;
   @override
@@ -188,6 +188,10 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   void standardAttack(
       [double holdDurationPercent = 1, bool callFunctions = true]) {
     toggleTextComponent(false);
+
+    gameState.playAudio('sfx/magic/power_word/fall.wav',
+        useAudioPool: true, maxPlayers: 1);
+
     explodeTextComponent();
     final enemies = entityAncestor!.world.physicsWorld.bodies.where((element) =>
         element.userData is Enemy &&
@@ -196,17 +200,17 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
         !(element.userData as Enemy).isDead);
 
     switch (currentWord) {
-      case "die":
+      case "die.":
         for (final body in enemies) {
           final enemy = body.userData as Enemy;
 
           enemy.takeDamage(
               weaponId, calculateDamage(enemy, this)..checkCrit(true));
-          enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
+          // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
 
         break;
-      case "stop":
+      case "stop.":
         for (final body in enemies) {
           final enemy = body.userData as Enemy;
 
@@ -214,11 +218,11 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
               isTemporary: true,
               duration: 4,
               perpetratorEntity: entityAncestor!);
-          enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
+          // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
 
         break;
-      case "away":
+      case "away.":
         for (final body in enemies) {
           final enemy = body.userData as Enemy;
 
@@ -226,11 +230,11 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
               isTemporary: true,
               duration: 4,
               perpetratorEntity: entityAncestor!);
-          enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
+          // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
 
         break;
-      case "kneel":
+      case "fall.":
         for (final body in enemies) {
           final enemy = body.userData as Enemy;
 
@@ -239,10 +243,10 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
               duration: 2,
               perpetratorEntity: entityAncestor!);
           enemy.takeDamage(weaponId, calculateDamage(enemy, this));
-          enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
+          // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
         break;
-      case "forget":
+      case "forget.":
         for (final body in enemies) {
           final enemy = body.userData as Enemy;
 
@@ -251,7 +255,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
               duration: 6,
               perpetratorEntity: entityAncestor!);
           enemy.takeDamage(weaponId, calculateDamage(enemy, this));
-          enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
+          // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
         break;
       default:
@@ -401,14 +405,13 @@ class EnergyMagic extends PlayerWeapon
     chainingTargets.baseParameter = 3;
     baseDamage.damageBase[DamageType.energy] = (1, 2);
     maxAttacks.baseParameter = 20;
-    baseAttackCount.baseParameter = 1;
+    attackCountIncrease.baseParameter = 1;
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 4;
     tipOffset = Vector2(0, weaponSize);
     projectileVelocity.baseParameter = 5;
     primaryDamageType = DamageType.energy;
     projectileSize = .065;
-    maxSpreadDegrees.baseParameter = 75;
 
     // onProjectileDeath.add((projectile) {
     //   entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
@@ -641,52 +644,12 @@ class MagicMissile extends PlayerWeapon
     increaseAttackCountWhenCharged = true;
     increaseWhenFullyCharged.baseParameter = 3;
     instantHome = false;
-    // onAttackProjectile.add((projectile) {
-    //   final bodyList = entityAncestor?.world.physicsWorld.bodies.where((element) {
-    //     if (entityAncestor!.isPlayer) {
-    //       return element.userData is Enemy &&
-    //           !(element.userData as Entity).isDead;
-    //     } else {
-    //       return element is Player && !(element.userData as Entity).isDead;
-    //     }
-    //   });
 
-    // });
-    // onProjectileDeath.add((projectile) {
-    //   final area = AreaEffect(
-    //     sourceEntity: entityAncestor!,
-    //     position: projectile.center,
-    //     animationRandomlyFlipped: true,
-    //     durationType: DurationType.instant,
-    //     damage: {DamageType.fire: (10, 25)},
-    //   );
-    //   final particleGenerator = CustomParticleGenerator(
-    //     minSize: .05,
-    //     maxSize: .15,
-    //     lifespan: 1,
-    //     frequency: 10,
-    //     particlePosition: Vector2(2, 2),
-    //     velocity: Vector2.all(0.5),
-    //     durationType: DurationType.instant,
-    //     originPosition: projectile.center.clone(),
-    //     color: DamageType.fire.color,
-    //   );
-    //   entityAncestor?.enviroment.physicsComponent
-    //       .addAll([area, particleGenerator]);
-    // });
+    attackSplitFunctions[AttackSpreadType.regular] =
+        (angle, attackCount) => regularAttackSpread(angle, attackCount, 90);
   }
   @override
-  WeaponType weaponType = WeaponType.fireballMagic;
-
-  // @override
-  // void mapUpgrade() {
-  //   unMapUpgrade();
-
-  //   super.mapUpgrade();
-  // }
-
-  // @override
-  // void unMapUpgrade() {}
+  WeaponType weaponType = WeaponType.magicMissile;
 
   @override
   bool get removeSpriteOnAttack => true;
@@ -714,7 +677,6 @@ class MagicMissile extends PlayerWeapon
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
-    // WeaponSpritePosition.back,
     WeaponSpritePosition.hand,
   ];
 

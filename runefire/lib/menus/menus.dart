@@ -4,7 +4,7 @@ import 'package:runefire/main.dart';
 import 'package:runefire/menus/start_menu.dart';
 import 'package:runefire/menus/customization_menu.dart';
 
-import 'level_menu.dart';
+import 'level_select_menu.dart';
 import 'options.dart';
 
 enum MenuPageType { startMenuPage, options, weaponMenu, levelMenu }

@@ -32,8 +32,9 @@ class AttributeTile extends StatelessWidget {
     }
     final yTransform = -(pow((balancedFrac * 5).abs(), 2).toDouble());
     const zTransform = 0.0;
-    final zRotation = -balancedFrac * 1.8;
+    final zRotation = -balancedFrac;
     Color? customColor = attribute.damageType?.color;
+    bool isMaxLevel = attribute.isMaxLevel;
 
     Widget returnWidget = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1),
@@ -44,12 +45,12 @@ class AttributeTile extends StatelessWidget {
           height: 15,
           transformAlignment: Alignment.topCenter,
           transform: Matrix4.rotationZ(zRotation),
-          child: Image.asset(
-            'assets/images/powerups/start.png',
-            color: isUnlocked
-                ? (customColor ?? ApolloColorPalette.offWhite.color)
-                : (customColor ?? colorPalette.primaryColor),
-          ),
+          child: buildImageAsset(
+              'assets/images/ui/permanent_attributes/${isUnlocked ? "rune" : "rune_locked"}.png',
+              fit: BoxFit.contain,
+              color: isMaxLevel
+                  ? (customColor ?? colorPalette.primaryColor).darken(.4)
+                  : null),
         ),
       ),
     );
@@ -63,139 +64,166 @@ class AttributeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    late Function setState;
+    bool isMaxLevel = attribute.isMaxLevel;
     Color? customColor = isSelected
         ? attribute.damageType?.color.brighten(1)
         : attribute.damageType?.color;
-    final selectedColor = isSelected
+    Color selectedColor = isSelected
         ? ApolloColorPalette.offWhite.color
-        : colorPalette.primaryColor;
+        : colorPalette.secondaryColor;
+
+    if (isMaxLevel) {
+      selectedColor = (customColor ?? colorPalette.primaryColor).darken(.4);
+      customColor = selectedColor;
+    }
+
     final style = defaultStyle.copyWith(
         fontSize: 20, color: ApolloColorPalette.offWhite.color);
-    final count = attribute.maxLevel;
+    String icon =
+        'assets/images/ui/permanent_attributes/${attribute.attributeType.category.name}.png';
     final levelCountWidget = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(children: [
         for (var i = 0; i < attribute.maxLevel!; i++)
           buildLevelIndicator(
               i < attribute.upgradeLevel, (i / (attribute.maxLevel! - 1))),
       ]),
     );
-    return SizedBox(
-      height: 250,
-      width: 200,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/ui/book.png',
-              fit: BoxFit.fitHeight,
-              filterQuality: FilterQuality.none,
-            ),
-          ),
-          ShaderMask(
-            shaderCallback: (bounds) {
-              return LinearGradient(colors: [
-                ApolloColorPalette.darkestGray.color.withOpacity(.3),
-                ApolloColorPalette.offWhite.color,
-                ApolloColorPalette.offWhite.color,
-                ApolloColorPalette.darkestGray.color.withOpacity(.3)
-              ], stops: const [
-                0,
-                0.3,
-                .7,
-                1
-              ]).createShader(bounds);
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(
-                  top: 30, bottom: 40, left: 20, right: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    child: Text(
-                      attribute.title,
-                      style: style.copyWith(
-                          color: (customColor ?? selectedColor).brighten(.2),
-                          fontSize: 20),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Builder(builder: (context) {
-                    final desc = attribute.description();
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (desc.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 4),
-                            child: Text(
-                              attribute.description(),
-                              style: style.copyWith(fontSize: 16),
-                            ),
-                          ),
-                      ],
-                    );
-                  }),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          left: -4,
-                          bottom: 32,
-                          top: 0,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: buildImageAsset(
-                                'assets/images/${attribute.icon}',
-                                color: (customColor ?? selectedColor),
-                                fit: BoxFit.contain),
-                          ),
-                        ),
-                        Positioned.fill(
-                          bottom: 32,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: buildImageAsset(
-                                'assets/images/${attribute.icon}',
-                                fit: BoxFit.contain),
-                          ),
-                        ),
-                        Positioned.fill(
-                            top: null,
-                            bottom: -2,
-                            left: -2,
-                            child: ColorFiltered(
-                                colorFilter: ColorFilter.mode(
-                                    Colors.black.withOpacity(.5),
-                                    BlendMode.modulate),
-                                child: levelCountWidget)),
-                        Positioned.fill(
-                            top: null, bottom: 0, child: levelCountWidget),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 3),
-                    child: Text(
-                      attribute.isMaxLevel
-                          ? "MAX"
-                          : attribute.cost().toString(),
-                      style: style.copyWith(
-                          // fontStyle: FontStyle.italic,
-                          fontSize: style.fontSize! * .9,
-                          color: ApolloColorPalette.lightCyan.color),
-                    ),
-                  ),
-                ],
+    bool isHovered = false;
+    return MouseRegion(
+      onEnter: (event) {
+        setState(() {
+          isHovered = true && !isMaxLevel;
+        });
+      },
+      onExit: (event) {
+        setState(() {
+          isHovered = false;
+        });
+      },
+      child: StatefulBuilder(builder: (context, ss) {
+        setState = ss;
+        return SizedBox(
+          height: 250,
+          width: 200,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/ui/book.png',
+                  fit: BoxFit.fitHeight,
+                  filterQuality: FilterQuality.none,
+                ),
               ),
-            ),
+              ShaderMask(
+                shaderCallback: (bounds) {
+                  return LinearGradient(colors: [
+                    ApolloColorPalette.darkestGray.color.withOpacity(.2),
+                    ApolloColorPalette.offWhite.color,
+                    ApolloColorPalette.offWhite.color,
+                    ApolloColorPalette.darkestGray.color.withOpacity(.2)
+                  ], stops: const [
+                    0,
+                    0.25,
+                    .75,
+                    1
+                  ]).createShader(bounds);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      top: 30, bottom: 40, left: 20, right: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        child: Text(
+                          attribute.title,
+                          style: style.copyWith(
+                              color: (customColor ?? selectedColor),
+                              fontSize: 20),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Builder(builder: (context) {
+                        final desc = attribute.description();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (desc.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 4),
+                                child: Text(
+                                  attribute.description(),
+                                  style: style.copyWith(
+                                      fontSize: 16,
+                                      color: (customColor ?? selectedColor)),
+                                ),
+                              ),
+                          ],
+                        );
+                      }),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              left: -4,
+                              bottom: 32,
+                              top: 0,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: buildImageAsset(icon,
+                                    color: (customColor ?? selectedColor),
+                                    fit: BoxFit.contain),
+                              ),
+                            ),
+                            Positioned.fill(
+                              bottom: 32,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child:
+                                    buildImageAsset(icon, fit: BoxFit.contain),
+                              ),
+                            ),
+                            Positioned.fill(
+                                top: null, bottom: 0, child: levelCountWidget),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, bottom: 3),
+                        child: Text(
+                          attribute.isMaxLevel
+                              ? "MAX"
+                              : attribute.cost().toString(),
+                          style: style.copyWith(
+                              // fontStyle: FontStyle.italic,
+                              fontSize: style.fontSize! * .9,
+                              color: (customColor ?? selectedColor)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        )
+            .animate(target: isHovered ? 1 : 0)
+            .scaleXY(
+                begin: 1,
+                end: 1.025,
+                curve: Curves.easeIn,
+                duration: .1.seconds)
+            .rotate(
+                begin: 0,
+                end: .005,
+                curve: Curves.easeIn,
+                duration: .1.seconds);
+      }),
     );
   }
 }
@@ -262,17 +290,20 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
       entries[element] = tempList.map((e) {
         int level =
             playerDataComponent.dataObject.unlockedPermanentAttributes[e] ?? 0;
+
+        final attr = e.buildAttribute(level, null) as PermanentAttribute;
+        bool isMaxLevel = attr.isMaxLevel;
         return InkWell(
-          onTap: () {
-            setState(() {
-              selectedAttribute = e;
-            });
-          },
+          onTap: isMaxLevel
+              ? null
+              : () {
+                  setState(() {
+                    selectedAttribute = e;
+                  });
+                },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: AttributeTile(
-                e.buildAttribute(level, null) as PermanentAttribute,
-                selectedAttribute == e),
+            child: AttributeTile(attr, selectedAttribute == e),
           ),
         );
       }).toList();
@@ -327,8 +358,12 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                                     element.name.titleCase,
                                     style: defaultStyle.copyWith(
                                         fontSize: 36,
-                                        color: const Color.fromARGB(
-                                            255, 202, 199, 164)),
+                                        // shadows: [
+                                        //   colorPalette
+                                        //       .buildShadow(ShadowStyle.medium)
+                                        // ],
+                                        color:
+                                            ApolloColorPalette.offWhite.color),
                                   ),
                                 ),
                               ],

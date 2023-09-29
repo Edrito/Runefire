@@ -145,7 +145,6 @@ mixin AimControlFunctionality on AimFunctionality {
 }
 
 mixin DumbFollowAI on Enemy, MovementFunctionality {
-  TimerComponent? targetUpdater;
   double targetUpdateFrequency = .3;
 
   void _dumbFollowTargetTick() {
@@ -170,27 +169,31 @@ mixin DumbFollowAI on Enemy, MovementFunctionality {
 }
 
 mixin DumbShoot on AttackFunctionality {
-  TimerComponent? shooter;
   double shootInterval = 2;
+
+  void onTick() {
+    if (entityInputsAimAngle.isZero()) return;
+    startAttacking();
+    setEntityStatus(EntityStatus.attack);
+    endAttacking();
+  }
+
   @override
-  Future<void> onLoad() {
-    shooter = TimerComponent(
-        period: shootInterval,
-        onTick: () {
-          if (entityInputsAimAngle.isZero()) return;
-          startAttacking();
-          setEntityStatus(EntityStatus.attack);
-          endAttacking();
-        },
-        repeat: true)
-      ..addToParent(this);
-    return super.onLoad();
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    eventManagement.addAiTimer(onTick, entityId, shootInterval);
+  }
+
+  @override
+  void onRemove() {
+    eventManagement.removeAiTimer(onTick, entityId, shootInterval);
+    super.onRemove();
   }
 }
 
 mixin DumbFollowRangeAI on MovementFunctionality {
-  TimerComponent? targetUpdater;
-  double targetUpdateFrequency = .1;
+  double targetUpdateFrequency = .2;
   double zoningDistance = 6;
 
   void _dumbFollowRangeTargetTick() {
@@ -212,18 +215,19 @@ mixin DumbFollowRangeAI on MovementFunctionality {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    targetUpdater = TimerComponent(
-      period: targetUpdateFrequency,
-      repeat: true,
-      onTick: _dumbFollowRangeTargetTick,
-    );
+    eventManagement.addAiTimer(
+        _dumbFollowRangeTargetTick, entityId, targetUpdateFrequency);
+  }
 
-    add(targetUpdater!);
+  @override
+  void onRemove() {
+    eventManagement.removeAiTimer(
+        _dumbFollowRangeTargetTick, entityId, targetUpdateFrequency);
+    super.onRemove();
   }
 }
 
 mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
-  TimerComponent? targetUpdater;
   double targetUpdateFrequency = .3;
   bool inverse = false;
 
@@ -240,7 +244,7 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
     inverse = true;
-    targetUpdater?.onTick();
+    _dumbFollowTargetTick();
     if (inverseTimer == null) {
       inverseTimer ??= TimerComponent(
         period: 3,
@@ -261,18 +265,19 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    targetUpdater = TimerComponent(
-      period: targetUpdateFrequency,
-      repeat: true,
-      onTick: _dumbFollowTargetTick,
-    );
+    eventManagement.addAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+  }
 
-    add(targetUpdater!);
+  @override
+  void onRemove() {
+    eventManagement.removeAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+    super.onRemove();
   }
 }
 
 mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
-  TimerComponent? targetUpdater;
   double targetUpdateFrequency = 1.5;
 
   void _dumbFollowTargetTick() {
@@ -292,23 +297,27 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    targetUpdater = TimerComponent(
-      period: targetUpdateFrequency,
-      repeat: true,
-      onTick: _dumbFollowTargetTick,
-    );
-    add(targetUpdater!);
+
+    eventManagement.addAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+  }
+
+  @override
+  void onRemove() {
+    eventManagement.removeAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+    super.onRemove();
   }
 }
 
 mixin FollowThenSuicideAI on MovementFunctionality {
-  TimerComponent? targetUpdater;
   double targetUpdateFrequency = .3;
   double distanceThreshold = 2;
 
   void _dumbFollowTargetTick() async {
     if (isDead) {
-      targetUpdater?.removeFromParent();
+      eventManagement.removeAiTimer(
+          _dumbFollowTargetTick, entityId, targetUpdateFrequency);
       return;
     }
     final newPosition = (gameEnviroment.player!.center - body.position);
@@ -326,11 +335,15 @@ mixin FollowThenSuicideAI on MovementFunctionality {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    targetUpdater = TimerComponent(
-      period: targetUpdateFrequency,
-      repeat: true,
-      onTick: _dumbFollowTargetTick,
-    );
-    add(targetUpdater!);
+
+    eventManagement.addAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+  }
+
+  @override
+  void onRemove() {
+    eventManagement.removeAiTimer(
+        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+    super.onRemove();
   }
 }

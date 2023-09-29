@@ -23,8 +23,8 @@ abstract class Enemy extends Entity
   Enemy({
     required super.initialPosition,
     required super.enviroment,
+    required super.eventManagement,
     required int upgradeLevel,
-    required this.eventManagement,
   }) {
     this.upgradeLevel = upgradeLevel;
 
@@ -32,8 +32,6 @@ abstract class Enemy extends Entity
 
     applyUpgrade();
   }
-
-  EventManagement eventManagement;
 
   @override
   int? maxLevel;

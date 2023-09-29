@@ -908,6 +908,7 @@ class SwordOfJustice extends PlayerWeapon
       MeleeAttack(
           attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
           entitySpriteAnimation: null,
+          meleeAttackType: MeleeType.stab,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
                 weapon: this,
@@ -926,6 +927,7 @@ class SwordOfJustice extends PlayerWeapon
           ]),
       MeleeAttack(
           attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
+          meleeAttackType: MeleeType.stab,
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -945,6 +947,7 @@ class SwordOfJustice extends PlayerWeapon
       MeleeAttack(
           attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
           entitySpriteAnimation: null,
+          meleeAttackType: MeleeType.stab,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
                 weapon: this,
