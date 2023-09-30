@@ -2,7 +2,10 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/functions/functions.dart';
 
 import '../main.dart';
 import '../resources/data_classes/player_data.dart';
@@ -23,12 +26,14 @@ class WeaponSelectorTab extends StatefulWidget {
     super.key,
     // required this.onSelect
   });
-  final Function(bool isLeftPress, AttackType? attackType) weaponChange;
+
+  final bool? animateLeft;
   final GameRouter gameRef;
   final bool isPrimary;
-  final bool? animateLeft;
-  final WeaponType? weaponType;
   final SecondaryType? secondaryType;
+  final Function(bool isLeftPress, AttackType? attackType) weaponChange;
+  final WeaponType? weaponType;
+
   // final Function(dynamic) onSelect;
 
   @override
@@ -36,36 +41,14 @@ class WeaponSelectorTab extends StatefulWidget {
 }
 
 class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
+  final borderWidth = 5.0;
+
   bool isLevelHover = false;
   bool isMainHover = false;
-
-  late ComponentsNotifier<PlayerDataComponent> playerDataNotifier;
-  late PlayerDataComponent playerDataComponent;
-  late PlayerData playerData;
-
-  void onPlayerDataNotification() {
-    setState(() {});
-  }
-
-  @override
-  void dispose() {
-    playerDataNotifier.removeListener(onPlayerDataNotification);
-    super.dispose();
-  }
-
   late bool isSecondaryAbility;
-
-  @override
-  void initState() {
-    super.initState();
-    playerDataComponent = widget.gameRef.playerDataComponent;
-    playerDataNotifier =
-        widget.gameRef.componentsNotifier<PlayerDataComponent>();
-
-    playerDataNotifier.addListener(onPlayerDataNotification);
-    playerData = playerDataComponent.dataObject;
-    isSecondaryAbility = widget.secondaryType != null;
-  }
+  late PlayerData playerData;
+  late PlayerDataComponent playerDataComponent;
+  late ComponentsNotifier<PlayerDataComponent> playerDataNotifier;
 
   Widget buildDescriptionText(bool isNext, String string, Color equippedColor) {
     return Padding(
@@ -88,29 +71,67 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     );
   }
 
-  Widget buildLevelIndicator(bool isPointUnlocked, bool isEquipped) {
-    final color = isPointUnlocked
-        ? isEquipped
-            ? ApolloColorPalette.lightRed.color
-            : ApolloColorPalette.lightBlue.color
-        : ApolloColorPalette.darkestBlue.color;
+  Widget buildLevelIndicator(bool isPointUnlocked, bool isEquipped,
+      {SecondaryType? secondaryType, WeaponType? weaponType}) {
+    final color = isPointUnlocked ? null : ApolloColorPalette.deepGray.color;
+
+    String image;
+
+    if (secondaryType != null) {
+      image = isEquipped
+          ? ImagesAssetsUi.levelIndicatorMagicRed
+          : ImagesAssetsUi.levelIndicatorMagicBlue;
+    } else {
+      switch (weaponType!.attackType) {
+        case AttackType.melee:
+          image = isEquipped
+              ? ImagesAssetsUi.levelIndicatorSwordRed
+              : ImagesAssetsUi.levelIndicatorSwordBlue;
+          break;
+        case AttackType.magic:
+          image = isEquipped
+              ? ImagesAssetsUi.levelIndicatorMagicRed
+              : ImagesAssetsUi.levelIndicatorMagicBlue;
+          break;
+        case AttackType.guns:
+          image = isEquipped
+              ? ImagesAssetsUi.levelIndicatorGunRed
+              : ImagesAssetsUi.levelIndicatorGunBlue;
+          break;
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.all(4),
-      child: SizedBox(
-        width: 12,
-        child: Container(
-          decoration: BoxDecoration(
-            color: color.brighten(.2),
-            border: Border.all(color: color.darken(.4), width: 3),
-          ),
-          // width: 10,
-        ),
-      ),
+      child: SizedBox.square(
+          dimension: 32,
+          child: buildImageAsset(image, color: color, fit: BoxFit.contain)),
     );
   }
 
-  final borderWidth = 5.0;
+  void onPlayerDataNotification() {
+    setState(() {});
+  }
 
+  @override
+  void dispose() {
+    playerDataNotifier.removeListener(onPlayerDataNotification);
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    playerDataComponent = widget.gameRef.playerDataComponent;
+    playerDataNotifier =
+        widget.gameRef.componentsNotifier<PlayerDataComponent>();
+
+    playerDataNotifier.addListener(onPlayerDataNotification);
+    playerData = playerDataComponent.dataObject;
+    isSecondaryAbility = widget.secondaryType != null;
+  }
+
+  bool colorPulse = false;
   @override
   Widget build(BuildContext context) {
     final weaponType = widget.weaponType;
@@ -144,6 +165,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
           playerData.unlockedWeapons[weaponType] ??= 0;
         }
         playerDataComponent.notifyListeners();
+        setState(() {
+          colorPulse = true;
+        });
       };
       // onSelect = () => widget.onSelect(weaponType);
       currentCost = weaponType.baseCost;
@@ -164,6 +188,9 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
           playerData.unlockedSecondarys[secondaryType] ??= 0;
         }
 
+        setState(() {
+          colorPulse = true;
+        });
         playerDataComponent.notifyListeners();
       };
       // onSelect = () => widget.onSelect(secondaryType);
@@ -183,7 +210,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     late dynamic secondaryWeapon;
     Color equippedColor = isEquipped
         ? ApolloColorPalette.lightRed.color
-        : ApolloColorPalette.blue.color;
+        : colorPalette.primaryColor;
     if (isWeapon) {
       for (var element in WeaponDescription.values) {
         final currentString = buildWeaponDescription(
@@ -235,11 +262,13 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
             ...[
               ...[
                 for (var i = 0; i < unlockedLevel; i++)
-                  buildLevelIndicator(true, isEquipped)
+                  buildLevelIndicator(true, isEquipped,
+                      weaponType: weaponType, secondaryType: secondaryType)
               ].animate(interval: .1.seconds).fadeIn(begin: .5),
               ...[
                 for (var i = 0; i < (maxLevel - unlockedLevel); i++)
-                  buildLevelIndicator(false, isEquipped)
+                  buildLevelIndicator(false, isEquipped,
+                      weaponType: weaponType, secondaryType: secondaryType)
               ],
             ].animate().fadeIn()
         ],
@@ -281,7 +310,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
             child: Padding(
               padding: const EdgeInsets.all(6),
               child: RotatedBox(
-                  quarterTurns: 1,
+                  quarterTurns: !isWeapon ? 0 : 1,
                   child: Image.asset(
                     icon,
 
@@ -323,11 +352,11 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                             : 100)
                 .fadeIn(),
           ),
-          const Center(
-              child: Icon(
-            Icons.lock,
-            size: 80,
-          )).animate(target: isUnlocked ? 0 : 1).fade(),
+          // Center(
+          //     child: buildImageAsset(
+          //   UiAssets.padlock,
+          //   fit: BoxFit.contain,
+          // )).animate(target: isUnlocked ? 0 : 1).fade(),
           if (isMainHover && !isEquipped)
             Center(
               child: Padding(
@@ -359,46 +388,72 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
           height: unlockButtonWidth,
           width: unlockButtonWidth,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            // borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-                color: !isLevelHover
-                    ? ApolloColorPalette.lightRed.color
-                    : ApolloColorPalette.blue.color,
-                width: borderWidth),
-            color: isLevelHover
-                ? ApolloColorPalette.lightBlue.color
-                : ApolloColorPalette.blue.color,
-          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (!isAvailable)
-                Icon(
-                  Icons.question_mark,
-                  color: ApolloColorPalette.offWhite.color,
-                  size: 24,
-                )
-              else if (!isMaxLevel) ...[
-                Icon(
-                  isUnlocked ? Icons.add : Icons.lock_open,
-                  size: 24,
-                  color: ApolloColorPalette.offWhite.color,
+              if (isAvailable && !isMaxLevel) ...[
+                Expanded(
+                  child: (!isUnlocked
+                          ? buildImageAsset(
+                              ImagesAssetsUi.padlock,
+                              fit: BoxFit.fitWidth,
+                            )
+                          : buildImageAsset(
+                              isEquipped
+                                  ? ImagesAssetsUi.plusRed
+                                  : ImagesAssetsUi.plusBlue,
+                              fit: BoxFit.fitWidth,
+                            ))
+                      .animate(target: isLevelHover ? 1 : 0)
+                      .rotate(
+                          begin: .0,
+                          end: 0.01,
+                          curve: Curves.easeIn,
+                          duration: .1.seconds)
+                      .scaleXY(
+                          begin: 1,
+                          end: 1.05,
+                          curve: Curves.easeIn,
+                          duration: .1.seconds),
+                ),
+                // Icon(
+                //   isUnlocked ? Icons.add : Icons.lock_open,
+                //   size: 24,
+                //   color: ApolloColorPalette.offWhite.color,
+                // ),
+                const SizedBox(
+                  height: 10,
                 ),
                 Text(
                   "$currentCost",
-                  style: defaultStyle.copyWith(fontSize: 20),
+                  style:
+                      defaultStyle.copyWith(fontSize: 24, color: equippedColor),
                 ),
-              ] else
+              ] else if (isAvailable)
                 Text(
                   "MAX",
-                  style: defaultStyle.copyWith(fontSize: 20),
+                  style:
+                      defaultStyle.copyWith(fontSize: 24, color: equippedColor),
                 ).animate().fadeIn()
             ],
           ),
-        ),
+        )
+            .animate(
+              target: colorPulse ? 1 : 0,
+              onComplete: (controller) {
+                // controller.reverse(from: 0);
+                setState(() {
+                  colorPulse = false;
+                });
+              },
+            )
+            .scaleXY(
+                curve: Curves.easeIn, begin: 1, end: 1.1, duration: .1.seconds),
       ),
     );
+
+    bool downArrowHover = false;
+    bool upArrowHover = false;
 
     final informationDisplay = Row(children: [
       SizedBox(
@@ -408,33 +463,70 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
             Expanded(
               child: Column(
                 children: [
-                  InkWell(
-                      onTap: () {
-                        if (isWeapon) {
-                          widget.weaponChange(true, weaponType.attackType);
-                        } else {
-                          widget.weaponChange(true, null);
-                        }
-                      },
-                      child: Icon(
-                        Icons.arrow_drop_up_sharp,
-                        color: equippedColor,
-                        size: 50,
-                      )),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 25,
+                      child: StatefulBuilder(builder: (context, ss) {
+                        return InkWell(
+                            onHover: (value) {
+                              ss(() {
+                                upArrowHover = value;
+                              });
+                            },
+                            onTap: () {
+                              if (isWeapon) {
+                                widget.weaponChange(
+                                    true, weaponType.attackType);
+                              } else {
+                                widget.weaponChange(true, null);
+                              }
+                            },
+                            child: buildImageAsset(ImagesAssetsUi.arrowBlack,
+                                    color: equippedColor)
+                                .animate(target: upArrowHover ? 1 : 0)
+                                .scaleXY(
+                                    begin: 1,
+                                    end: 1.2,
+                                    curve: Curves.easeIn,
+                                    duration: .1.seconds));
+                      }),
+                    ),
+                  ),
                   Expanded(child: imageDisplay),
-                  InkWell(
-                      onTap: () {
-                        if (isWeapon) {
-                          widget.weaponChange(false, weaponType.attackType);
-                        } else {
-                          widget.weaponChange(false, null);
-                        }
-                      },
-                      child: Icon(
-                        Icons.arrow_drop_down_sharp,
-                        color: equippedColor,
-                        size: 50,
-                      )),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 25,
+                      child: StatefulBuilder(builder: (context, ss) {
+                        return InkWell(
+                            onHover: (value) {
+                              ss(() {
+                                downArrowHover = value;
+                              });
+                            },
+                            onTap: () {
+                              if (isWeapon) {
+                                widget.weaponChange(
+                                    false, weaponType.attackType);
+                              } else {
+                                widget.weaponChange(false, null);
+                              }
+                            },
+                            child: RotatedBox(
+                              quarterTurns: 2,
+                              child: buildImageAsset(ImagesAssetsUi.arrowBlack,
+                                      color: equippedColor)
+                                  .animate(target: downArrowHover ? 1 : 0)
+                                  .scaleXY(
+                                      begin: 1,
+                                      end: 1.2,
+                                      curve: Curves.easeIn,
+                                      duration: .1.seconds),
+                            ));
+                      }),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -509,11 +601,10 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     ]);
 
     return Padding(
-      padding: const EdgeInsets.all(5.0),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-        child: SizedBox(height: 250, child: informationDisplay),
-      ),
-    );
+        padding: const EdgeInsets.all(5.0),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+          child: SizedBox(height: 250, child: informationDisplay),
+        ));
   }
 }

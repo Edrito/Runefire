@@ -30,8 +30,6 @@ class CrystalPistol extends PlayerWeapon
     maxHomingTargets.baseParameter = 1;
     pierce.baseParameter = 2;
     projectileSize = .75;
-
-    tipOffset = Vector2(-.035, weaponSize - .1);
   }
 
   @override
@@ -100,14 +98,20 @@ class Shotgun extends PlayerWeapon
     attackTickRate.baseParameter = .8;
     attackCountIncrease.baseParameter = 4;
     projectileSize = 1.2;
-    tipOffset = Vector2(0, 1.65);
 
     increaseCloseDamage.baseParameter = true;
     closeDamageIncreaseDistanceCutoff = 6;
+    attackSplitFunctions.clear();
+    attackSplitFunctions[AttackSpreadType.regular] = (one, two) {
+      return regularAttackSpread(one, two, 60, true);
+    };
   }
 
   @override
   WeaponType weaponType = WeaponType.scatterBlast;
+
+  @override
+  Vector2 get tipOffset => Vector2(.5, 1);
 
   @override
   void mapUpgrade() {
@@ -174,9 +178,6 @@ class LongRangeRifle extends PlayerWeapon
   }
 
   @override
-  Vector2 tipOffset = Vector2(-0.1, 2.225);
-
-  @override
   void unMapUpgrade() {}
 
   @override
@@ -228,8 +229,8 @@ class ArcaneBlaster extends PlayerWeapon
         ReloadFunctionality,
         FullAutomatic,
         SemiAutomatic,
-        ChargeFullAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        ChargeFullAutomatic {
   ArcaneBlaster(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
@@ -242,7 +243,6 @@ class ArcaneBlaster extends PlayerWeapon
     projectileVelocity.baseParameter = 20;
     projectileSize = .5;
     customChargeDuration = 1.5;
-    tipOffset = Vector2(0, weaponSize);
   }
   @override
   WeaponType weaponType = WeaponType.arcaneBlaster;
@@ -382,7 +382,6 @@ class RocketLauncher extends PlayerWeapon
     baseDamage.damageBase[DamageType.fire] = (40, 80);
     maxAttacks.baseParameter = 1;
     attackTickRate.baseParameter = 2;
-    tipOffset = Vector2(0, weaponSize);
   }
   @override
   WeaponType weaponType = WeaponType.eldritchRunner;
@@ -447,7 +446,6 @@ class Railgun extends PlayerWeapon
     baseDamage.damageBase[DamageType.energy] = (30, 40);
     maxAttacks.baseParameter = 2;
     attackTickRate.baseParameter = 2;
-    tipOffset = Vector2(0, weaponSize);
   }
   @override
   WeaponType weaponType = WeaponType.railspire;

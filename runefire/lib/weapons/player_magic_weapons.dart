@@ -40,7 +40,6 @@ class Icecicle extends PlayerWeapon
     pierce.baseParameter = 5;
     primaryDamageType = DamageType.frost;
     projectileSize = .6;
-    tipOffset = Vector2(0, weaponSize);
   }
   @override
   WeaponType weaponType = WeaponType.icecicleMagic;
@@ -312,7 +311,6 @@ class FireballMagic extends PlayerWeapon
     pierce.baseParameter = 0;
     primaryDamageType = DamageType.fire;
     projectileSize = .7;
-    tipOffset = Vector2(0, weaponSize);
 
     onProjectileDeath.add((projectile) {
       final area = AreaEffect(
@@ -408,7 +406,6 @@ class EnergyMagic extends PlayerWeapon
     attackCountIncrease.baseParameter = 1;
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 4;
-    tipOffset = Vector2(0, weaponSize);
     projectileVelocity.baseParameter = 5;
     primaryDamageType = DamageType.energy;
     projectileSize = .065;
@@ -491,7 +488,6 @@ class PsychicMagic extends PlayerWeapon
     maxAttacks.baseParameter = 20;
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 5;
-    tipOffset = Vector2(0, weaponSize);
 
     primaryDamageType = DamageType.psychic;
     projectileSize = 1.25;
@@ -570,7 +566,6 @@ class MagicBlast extends PlayerWeapon
     maxAttacks.baseParameter = 20;
     attackTickRate.baseParameter = 1;
     pierce.baseParameter = 5;
-    tipOffset = Vector2(0, weaponSize);
 
     primaryDamageType = DamageType.magic;
     projectileSize = 1.25;
@@ -640,7 +635,6 @@ class MagicMissile extends PlayerWeapon
     primaryDamageType = DamageType.psychic;
     projectileSize = .2;
     maxHomingTargets.baseParameter = 1;
-    tipOffset = Vector2(0, weaponSize);
     increaseAttackCountWhenCharged = true;
     increaseWhenFullyCharged.baseParameter = 3;
     instantHome = false;

@@ -25,8 +25,7 @@ double roundDouble(double value, int places) {
   return ((value * mod).round().toDouble() / mod);
 }
 
-Widget buildImageAsset(String asset,
-    {BoxFit fit = BoxFit.cover, Color? color}) {
+Image buildImageAsset(String asset, {BoxFit fit = BoxFit.cover, Color? color}) {
   return Image.asset(
     asset,
     color: color,

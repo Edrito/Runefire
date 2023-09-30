@@ -29,6 +29,7 @@ dependencies:
   particle_field: ^1.0.0
   rnd: ^0.2.0
   flame_forge2d: ^0.15.0
+  simple_shadow: ^0.3.1
 
   
 
@@ -46,51 +47,41 @@ flutter:
   uses-material-design: true
 
   assets:
+
+
+    - assets/audio/sfx/magic/power_word/
+    - assets/audio/sfx/projectile/
+    - assets/fonts/
+    - assets/images/attribute_sprites/
+    - assets/images/attributes/
+    - assets/images/background/
+    - assets/images/effects/
     - assets/images/enemy_sprites/
     - assets/images/enemy_sprites/mushroomBoomer/
     - assets/images/enemy_sprites/mushroomBurrower/
     - assets/images/enemy_sprites/mushroomHopper/
-    - assets/images/enemy_sprites/mushroomShooter/
     - assets/images/enemy_sprites/mushroomRunner/
+    - assets/images/enemy_sprites/mushroomShooter/
     - assets/images/enemy_sprites/mushroomSpinner/
-
-
-    - assets/images/attribute_sprites/
+    - assets/images/entity_effects/
     - assets/images/expendables/
-
+    - assets/images/secondary_icons/
+    - assets/images/experience/
+    - assets/images/powerups/
+    - assets/images/sprites/
+    - assets/images/status_effects/
+    - assets/images/ui/
+    - assets/images/ui/ammo/
+    - assets/images/ui/permanent_attributes/
     - assets/images/weapons/
     - assets/images/weapons/charge/
     - assets/images/weapons/melee/
     - assets/images/weapons/projectiles/
-    - assets/images/weapons/projectiles/magic/
-    - assets/images/weapons/projectiles/bullets/
     - assets/images/weapons/projectiles/blasts/
+    - assets/images/weapons/projectiles/bullets/
+    - assets/images/weapons/projectiles/magic/
 
-    - assets/images/entity_effects/
-
-
-
-    - assets/images/powerups/
-    - assets/images/sprites/
-    - assets/images/status_effects/
-    - assets/images/effects/
-    - assets/images/ui/
-    - assets/images/ui/permanent_attributes/
-    - assets/images/background/
-    - assets/images/experience/
-
-    - assets/images/attributes/
-    - assets/tiles/
-    - assets/audio/sfx/
-    - assets/audio/sfx/projectiles/
-    - assets/audio/sfx/magic/
-    - assets/audio/sfx/magic/power_word/
-    - assets/audio/
-
-
-    - assets/images/
-    - assets/fonts/
-    - assets/
+  # assets end
 
 
   fonts:

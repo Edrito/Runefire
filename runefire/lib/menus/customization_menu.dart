@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
@@ -5,11 +7,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/menus/attribute_menu.dart';
 import 'package:runefire/menus/weapon_selector_tile.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
+import 'package:simple_shadow/simple_shadow.dart';
 
 import '../resources/data_classes/player_data.dart';
 import '../resources/functions/functions.dart';
@@ -31,6 +35,82 @@ class WeaponSecondaryTile extends StatelessWidget {
   final int level;
   final radius = 20.0;
   final bool isPrimary;
+
+  Widget buildMainStack(bool animate, bool isHover, bool isWeapon) {
+    final hand = buildImageAsset(
+      isPrimary
+          ? (isWeapon
+              ? ImagesAssetsUi.magicHandL
+              : ImagesAssetsUi.magicHandSmallL)
+          : (isWeapon
+              ? ImagesAssetsUi.magicHandR
+              : ImagesAssetsUi.magicHandSmallR),
+      fit: BoxFit.fitWidth,
+    );
+    final mainStack = Stack(children: [
+      Positioned(
+        top: 0,
+        bottom: -200,
+        left: 0,
+        right: 0,
+        child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: animate
+                ? Animate(
+                    target: isHover ? 1 : 0,
+                  ).custom(
+                    curve: Curves.fastEaseInToSlowEaseOut,
+                    builder: (context, value, child) {
+                      return ShaderMask(
+                        blendMode: BlendMode.modulate,
+                        shaderCallback: (bounds) {
+                          return LinearGradient(
+                                  colors: [
+                                Colors.blue.shade600
+                                    .mergeWith(Colors.white, value),
+                                Colors.white,
+                              ],
+                                  stops: const [
+                                0,
+                                .6
+                              ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter)
+                              .createShader(bounds);
+                        },
+                        child: hand,
+                      );
+                    },
+                  )
+                : hand),
+      ),
+      Positioned(
+        top: -200,
+        bottom: isWeapon ? 100 : -25,
+        // bottom: 100,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: SizedBox(
+            height: isWeapon ? 200 : 150,
+            child: isWeapon
+                ? RotatedBox(
+                    quarterTurns: 1,
+                    child: buildImageAsset(
+                      weaponType!.icon,
+                      fit: BoxFit.contain,
+                    ))
+                : buildImageAsset(
+                    secondaryType!.icon,
+                    fit: BoxFit.contain,
+                  ), // Default: 2
+          ),
+        ),
+      ),
+    ]);
+
+    return mainStack;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,44 +135,20 @@ class WeaponSecondaryTile extends StatelessWidget {
               isHover = value;
             });
           },
-          child: Stack(children: [
-            Positioned(
-              // bottom: -200,
-              top: 0,
-              bottom: -200,
-              left: 0,
-              right: 0,
-              child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Animate(
-                        target: isHover ? 1 : 0,
-                      ).custom(
-                        curve: Curves.fastEaseInToSlowEaseOut,
-                        builder: (context, value, child) {
-                          return ShaderMask(
-                            blendMode: BlendMode.modulate,
-                            shaderCallback: (bounds) {
-                              return LinearGradient(
-                                      colors: [
-                                    Colors.blue.shade600
-                                        .mergeWith(Colors.white, value),
-                                    Colors.white,
-                                  ],
-                                      stops: const [
-                                    0,
-                                    .6
-                                  ],
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter)
-                                  .createShader(bounds);
-                            },
-                            child: buildImageAsset(
-                              'assets/images/ui/magic_hand_${isWeapon ? '' : 'small_'}${isPrimary ? 'L' : 'R'}.png',
-                              fit: BoxFit.fitWidth,
-                            ),
-                          );
-                        },
-                      ))
+          child: Stack(
+            children: [
+              Opacity(
+                opacity: .5,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 500),
+                  child: buildMainStack(false, false, isWeapon),
+                ),
+              ),
+              // ImageFiltered(
+              //   imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 500),
+              //   child: buildMainStack(false, false, isWeapon),
+              // ),
+              buildMainStack(true, isHover, isWeapon)
                   .animate()
                   .moveY(
                       duration: 1.5.seconds,
@@ -112,26 +168,9 @@ class WeaponSecondaryTile extends StatelessWidget {
                       begin: 10,
                       end: -10,
                       duration: 1.4.seconds,
-                      curve: Curves.easeInOut),
-            ),
-            Positioned(
-              top: -200,
-              bottom: isWeapon ? 100 : -25,
-              // bottom: 100,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: SizedBox(
-                    height: isWeapon ? 200 : 150,
-                    child: RotatedBox(
-                        quarterTurns: 1,
-                        child: buildImageAsset(
-                          isWeapon ? weaponType!.icon : secondaryType!.icon,
-                          fit: BoxFit.contain,
-                        ))),
-              ),
-            ),
-          ])
+                      curve: Curves.easeInOut)
+            ],
+          )
               .animate(
                 target: isHover ? 1 : 0,
               )
@@ -305,7 +344,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
     return Center(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.brighten(.1).withOpacity(.95),
+          color: ApolloColorPalette.darkestGray.color.withOpacity(.95),
         ),
         child: Column(
           children: [

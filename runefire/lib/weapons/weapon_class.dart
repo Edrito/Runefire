@@ -145,6 +145,8 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   Map<AttackSpreadType, AttackSplitFunction> attackSplitFunctions = {
     AttackSpreadType.base: (double angle, int attackCount) => [angle],
+    AttackSpreadType.regular: (double angle, int attackCount) =>
+        regularAttackSpread(angle, attackCount, 60, false),
   };
 
   Vector2 baseOffset = Vector2.zero();
@@ -159,7 +161,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
   abstract List<WeaponSpritePosition> spirteComponentPositions;
 
   bool spritesHidden = false;
-  Vector2 tipOffset = Vector2.zero();
+
+  Vector2 get tipOffset => Vector2(.5, 1);
+
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent>
       weaponAttachmentPoints = {};
 
@@ -222,7 +226,8 @@ abstract class Weapon extends Component with UpgradeFunctions {
     //   return weaponTip.absolutePosition + entityAncestor!.center;
     // } else {
     return ((entityAncestor!.handJoint.absolutePosition.normalized() *
-            tipOffset.y) +
+            tipOffset.y *
+            weaponSize) +
         entityAncestor!.center);
     // }
   }
@@ -456,7 +461,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     SpriteAnimation muzzleFlash = weaponAnimations['muzzle_flash']!;
     muzzleFlashComponent = SpriteAnimationComponent(
         animation: muzzleFlash,
-        position: Vector2(width / 2, tipOffset.y),
+        position: Vector2(width * tipOffset.x, tipOffset.y * weapon.weaponSize),
         size: muzzleFlash.frames.first.sprite.srcSize
             .scaled(flashSize / muzzleFlash.frames.first.sprite.srcSize.y),
         anchor: Anchor.topCenter,

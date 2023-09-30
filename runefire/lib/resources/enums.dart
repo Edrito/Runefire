@@ -7,6 +7,7 @@ import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/game/event_management.dart';
 import 'package:runefire/player/player_constants.dart' as player_constants;
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/player_magic_weapons.dart';
@@ -128,7 +129,7 @@ enum WeaponDescription {
   staminaCost,
   semiOrAuto,
   maxAmmo,
-  attackCount,
+  additionalAttackCount,
 }
 
 enum SemiAutoType { regular, release, charge }
@@ -821,10 +822,9 @@ class DamageInstance {
 }
 
 enum SecondaryType {
-  reloadAndRapidFire(
-      'assets/images/attributes/topSpeed.png', 5, rapidReload, 500),
-  pistol('assets/images/attributes/topSpeed.png', 5, alwaysCompatible, 500),
-  explodeProjectiles('assets/images/attributes/topSpeed.png', 5,
+  reloadAndRapidFire(ImagesAssetsSecondaryIcons.rapidFire, 5, rapidReload, 500),
+  pistol(ImagesAssetsSecondaryIcons.blank, 5, alwaysCompatible, 500),
+  explodeProjectiles(ImagesAssetsSecondaryIcons.explodeProjectiles, 5,
       weaponIsProjectileFunctionality, 500);
 
   const SecondaryType(

@@ -164,7 +164,7 @@ class MeleeAttackSprite extends PositionComponent {
     } else {
       disableTrail = weaponTrailConfig?.disableTrail ?? false;
     }
-    animationComponent = swingAnimation;
+    weaponSpriteAnimation = swingAnimation;
   }
   void removeSwing() {
     handler.removeSwing(this);
@@ -172,16 +172,16 @@ class MeleeAttackSprite extends PositionComponent {
 
   late final WeaponTrailConfig? weaponTrailConfig;
   late final bool disableTrail;
-  WeaponSpriteAnimation? animationComponent;
+  WeaponSpriteAnimation? weaponSpriteAnimation;
 
   Entity? target;
   late Vector2 initTargetPosition;
   Vector2 initPosition;
 
   void fadeOut() async {
-    if (animationComponent?.animations?.containsKey(WeaponStatus.dead) ==
+    if (weaponSpriteAnimation?.animations?.containsKey(WeaponStatus.dead) ==
         true) {
-      await animationComponent?.setWeaponStatus(WeaponStatus.dead);
+      await weaponSpriteAnimation?.setWeaponStatus(WeaponStatus.dead);
       removeSwing();
     } else {
       const fadeOutDuration = .3;
@@ -192,12 +192,12 @@ class MeleeAttackSprite extends PositionComponent {
           removeSwing();
         },
       );
-      animationComponent?.add(OpacityEffect.fadeOut(controller));
+      weaponSpriteAnimation?.add(OpacityEffect.fadeOut(controller));
     }
   }
 
-  Vector2 get swingPosition => animationComponent!.position + position;
-  double get swingAngle => animationComponent!.angle;
+  Vector2 get swingPosition => weaponSpriteAnimation!.position + position;
+  double get swingAngle => weaponSpriteAnimation!.angle;
 
   @override
   void update(double dt) {
@@ -233,9 +233,9 @@ class MeleeAttackSprite extends PositionComponent {
       add(swingTimer!);
     }
     if (handler.isCharging) {
-      animationComponent?.weaponCharging();
+      weaponSpriteAnimation?.weaponCharging();
     }
-    add(animationComponent!);
+    add(weaponSpriteAnimation!);
     initSwingTrail();
     return super.onLoad();
   }
@@ -258,14 +258,14 @@ class MeleeAttackSprite extends PositionComponent {
     curve = weaponTrailConfig?.curve ?? Curves.easeIn;
     renderTrail = true;
     color = weaponTrailConfig?.color ??
-        (handler.weaponAncestor.baseDamage.damageBase.keys.toList().random()
-                as DamageType)
+        (handler.weaponAncestor.baseDamage.damageBase.keys.toList().random())
             .color;
     topStartFromTipPercent = weaponTrailConfig?.topStartFromTipPercent ?? .95;
     bottomStartFromTipPercent =
         weaponTrailConfig?.bottomStartFromTipPercent ?? .3;
 
-    widthOfTrail = handler.weaponAncestor.tipOffset.y *
+    widthOfTrail = (handler.weaponAncestor.tipOffset.y *
+            handler.weaponAncestor.weaponSize) *
         (topStartFromTipPercent - bottomStartFromTipPercent);
     drawPaint = Paint()..color = color.withOpacity(1);
     final centerPoint =
@@ -283,16 +283,20 @@ class MeleeAttackSprite extends PositionComponent {
     }
 
     final tipPos = newPositionRad(
-            animationComponent!.position,
+            weaponSpriteAnimation!.position,
             // Vector2.zero(),
             -swingAngle,
-            handler.weaponAncestor.tipOffset.y * topStartFromTipPercent)
+            handler.weaponAncestor.tipOffset.y *
+                handler.weaponAncestor.weaponSize *
+                topStartFromTipPercent)
         .toOffset();
     final midPos = newPositionRad(
-            animationComponent!.position,
+            weaponSpriteAnimation!.position,
             // swing.swingPosition,
             -swingAngle,
-            handler.weaponAncestor.tipOffset.y * bottomStartFromTipPercent)
+            handler.weaponAncestor.tipOffset.y *
+                handler.weaponAncestor.weaponSize *
+                bottomStartFromTipPercent)
         .toOffset();
 
     points.addAll([tipPos, midPos]);
@@ -454,7 +458,7 @@ class MeleeAttackHandler extends Component {
     );
 
     final scaleEffect = SizeEffect.to(
-      swing.animationComponent!.size * newPattern.$3,
+      swing.weaponSpriteAnimation!.size * newPattern.$3,
       effectController,
     );
     final moveEffect = MoveEffect.by(
@@ -462,9 +466,10 @@ class MeleeAttackHandler extends Component {
       effectController,
     );
     if (previousFuture == null) {
-      swing.animationComponent?.addAll([rotateEffect, moveEffect, scaleEffect]);
+      swing.weaponSpriteAnimation
+          ?.addAll([rotateEffect, moveEffect, scaleEffect]);
     } else {
-      previousFuture.then((value) => swing.animationComponent
+      previousFuture.then((value) => swing.weaponSpriteAnimation
           ?.addAll([rotateEffect, moveEffect, scaleEffect]));
     }
 
@@ -511,7 +516,7 @@ class MeleeAttackHandler extends Component {
         swingPosition + rotatedStartPosition, attachmentPoint, this);
 
     final startAngle = radians(startPattern.$2) + swingAngle;
-    newSwing.animationComponent?.angle = startAngle;
+    newSwing.weaponSpriteAnimation?.angle = startAngle;
     addStepToSwing(animationStepIndex, swingAngle, newSwing, null);
     activeSwings.add(newSwing);
     newSwing.addToParent(this);
@@ -547,7 +552,7 @@ class MeleeAttackHandler extends Component {
   void removeSwing([MeleeAttackSprite? attack]) {
     activeSwings.remove(attack);
     currentAttack.latestAttackSpriteAnimation
-        .remove(attack?.animationComponent);
+        .remove(attack?.weaponSpriteAnimation);
     if (activeSwings.isEmpty) {
       weaponAncestor.activeSwings.remove(this);
       weaponAncestor.spriteVisibilityCheck();

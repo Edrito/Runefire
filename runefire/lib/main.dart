@@ -13,6 +13,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/game/background.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:runefire/menus/menus.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/sprite_animations.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
@@ -47,6 +48,7 @@ void main() async {
   ]);
 
   //load goodies from HIVE
+
   Hive.registerAdapter(SystemDataAdapter());
 
   final PlayerData playerData = PlayerData();
@@ -63,17 +65,19 @@ void main() async {
   node.requestFocus();
 
   final toLoad = [
-    'background/mushroom_garden.png',
-    'background/dungeon.png',
-    'background/graveyard.jpg',
-    'ui/attribute_background_mask.png',
-    'ui/attribute_border.png',
+    // Assets.assets_images_background_mushroom_garden_png,
+    // Assets.assets_images_background_dungeon_png,
+    // Assets.assets_images_background_graveyard_jpg,
+    // Assets.assets_images_ui_attribute_background_mask_png,
+    // Assets.assets_images_ui_attribute_background_mask_small_png,
+    // Assets.assets_images_ui_attribute_border_png,
+    // Assets.assets_images_ui_attribute_border_small_png,
   ];
 
   binding.addPostFrameCallback((_) async {
     BuildContext context = binding.rootElement as BuildContext;
     for (var asset in toLoad) {
-      precacheImage(AssetImage("assets/images/$asset"), context);
+      precacheImage(AssetImage(asset), context);
     }
   });
 

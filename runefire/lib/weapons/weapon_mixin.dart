@@ -605,11 +605,13 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
       buildChargeHandler();
       await chargeAttackHandler!.loaded;
       if (chargeAttackHandler != null) {
-        chargeAttackHandler!.activeSwings.first.animationComponent!.opacity = 0;
+        chargeAttackHandler!.activeSwings.first.weaponSpriteAnimation!.opacity =
+            0;
       }
       await activeSwing?.removed;
       if (chargeAttackHandler != null) {
-        chargeAttackHandler!.activeSwings.first.animationComponent!.opacity = 1;
+        chargeAttackHandler!.activeSwings.first.weaponSpriteAnimation!.opacity =
+            1;
       }
     } else {
       buildChargeHandler();
@@ -738,7 +740,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
       chargeAnimation = SpriteAnimationComponent(
           size: Vector2.all(chargeSize),
           anchor: Anchor.center,
-          position: tipOffset,
+          position: Vector2(0, tipOffset.y * weaponSize),
           animation: spawnAnimation ?? playAnimation)
         ..addToParent(entityAncestor!.handJoint);
 
@@ -1165,7 +1167,7 @@ String buildWeaponDescription(
 
       break;
 
-    case WeaponDescription.attackCount:
+    case WeaponDescription.additionalAttackCount:
       returnString = "${builtWeapon.getAttackCount(1)} attack(s)";
 
       break;

@@ -6,6 +6,7 @@ import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -46,7 +47,9 @@ class AttributeTile extends StatelessWidget {
           transformAlignment: Alignment.topCenter,
           transform: Matrix4.rotationZ(zRotation),
           child: buildImageAsset(
-              'assets/images/ui/permanent_attributes/${isUnlocked ? "rune" : "rune_locked"}.png',
+              isUnlocked
+                  ? ImagesAssetsPermanentAttributes.rune
+                  : ImagesAssetsPermanentAttributes.runeLocked,
               fit: BoxFit.contain,
               color: isMaxLevel
                   ? (customColor ?? colorPalette.primaryColor).darken(.4)
@@ -111,7 +114,7 @@ class AttributeTile extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: Image.asset(
-                  'assets/images/ui/book.png',
+                  ImagesAssetsUi.book,
                   fit: BoxFit.fitHeight,
                   filterQuality: FilterQuality.none,
                 ),
@@ -119,10 +122,10 @@ class AttributeTile extends StatelessWidget {
               ShaderMask(
                 shaderCallback: (bounds) {
                   return LinearGradient(colors: [
-                    ApolloColorPalette.darkestGray.color.withOpacity(.2),
+                    ApolloColorPalette.darkestGray.color.withOpacity(.1),
                     ApolloColorPalette.offWhite.color,
                     ApolloColorPalette.offWhite.color,
-                    ApolloColorPalette.darkestGray.color.withOpacity(.2)
+                    ApolloColorPalette.darkestGray.color.withOpacity(.1)
                   ], stops: const [
                     0,
                     0.25,
@@ -347,7 +350,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                                         padding: const EdgeInsets.only(
                                             left: 15, bottom: 5),
                                         child: buildImageAsset(
-                                            'assets/images/ui/banner.png'),
+                                            ImagesAssetsUi.banner),
                                       ),
                                     ),
                                   ),

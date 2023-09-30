@@ -27,8 +27,6 @@ class PhaseDagger extends PlayerWeapon
     pierce.baseParameter = 2;
     chainingTargets.baseParameter = 4;
 
-    tipOffset = Vector2(0, weaponSize);
-
     meleeAttacks = [
       MeleeAttack(
           attackHitboxSize: Vector2(.5, weaponSize),
@@ -143,7 +141,6 @@ class CrystalSword extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (2, 5);
     attackTickRate.baseParameter = .55;
     pierce.baseParameter = 5;
-    tipOffset = Vector2(0, weaponSize);
 
     meleeAttacks = [
       MeleeAttack(
@@ -277,7 +274,6 @@ class AethertideSpear extends PlayerWeapon
   ) : super(newUpgradeLevel, ancestor) {
     baseDamage.damageBase[DamageType.physical] = (8, 16);
     attackTickRate.baseParameter = .8;
-    tipOffset = Vector2(0, weaponSize);
     pierce.baseParameter = 100;
 
     meleeAttacks = [
@@ -415,8 +411,6 @@ class HolySword extends PlayerWeapon
     attackTickRate.baseParameter = .7;
     projectileVelocity.baseParameter = 15;
     pierce.baseParameter = 6;
-
-    tipOffset = Vector2(0, weaponSize);
 
     attackOnChargeComplete = true;
 
@@ -559,7 +553,6 @@ class FlameSword extends PlayerWeapon
     pierce.baseParameter = 5;
     // maxChainingTargets.baseParameter = 6;
     // baseAttackCount.baseParameter = 5;
-    tipOffset = Vector2(0, weaponSize);
     meleeAttacks = [
       MeleeAttack(
           attackHitboxSize: Vector2(1, weaponSize),
@@ -774,8 +767,6 @@ class FrostKatana extends PlayerWeapon
 
     customChargeDuration = 1;
 
-    tipOffset = Vector2(0, weaponSize);
-
     onAttackMelee.add((holdDurationPercent) {
       if (entityAncestor is DashFunctionality) {
         final dash = (entityAncestor as DashFunctionality);
@@ -893,7 +884,6 @@ class SwordOfJustice extends PlayerWeapon
     attackTickRate.baseParameter = .4;
     pierce.baseParameter = 5;
     // maxChainingTargets.baseParameter = 3;
-    tipOffset = Vector2(0, weaponSize);
 
     onHitMelee.add((damage) {
       if (damage.victim.healthPercentage < .2) {
