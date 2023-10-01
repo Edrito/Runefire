@@ -122,7 +122,7 @@ class GameStateComponent extends Component with Notifier {
 }
 
 extension GameStateGetters on GameState {
-  Color get basePortalColor => ApolloColorPalette.lightBlue.color;
+  Color get basePortalColor => ApolloColorPalette.lightCyan.color;
   Color portalColor([bool returnBlueIfNotLevelMenu = false]) {
     if (returnBlueIfNotLevelMenu && !menuPageIsLevel) return basePortalColor;
     if (playerData.selectedDifficulty != GameDifficulty.regular) {

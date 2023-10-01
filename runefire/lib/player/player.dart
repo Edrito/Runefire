@@ -294,7 +294,7 @@ class Player extends Entity
       }
 
       if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
-        preLevelUp();
+        levelUp();
       }
     } finally {
       if (moveAngle.isZero()) {

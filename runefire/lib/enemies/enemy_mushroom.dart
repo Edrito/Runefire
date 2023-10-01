@@ -71,15 +71,15 @@ class MushroomRunner extends Enemy
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
     maxHealth.baseParameter = 5.0 + rng.nextInt(5);
-    speed.baseParameter = .03;
+    speed.baseParameter = .02;
     touchDamage.damageBase[DamageType.physical] = (1, 5);
   }
 
   @override
   Map<ExpendableType, double> get expendableRate => {
-        ExpendableType.fearEnemiesRunes: 0.5,
-        ExpendableType.healingRune: 0.5,
-        ExpendableType.experienceAttractRune: 0.5,
+        // ExpendableType.fearEnemiesRunes: 0.5,
+        ExpendableType.healingRune: 0.001,
+        // ExpendableType.experienceAttractRune: 0.5,
       };
 
   @override

@@ -7,7 +7,7 @@ const mushroomHopperBaseSpeed = .1;
 const mushroomBoomerBaseHeight = 2.0;
 const mushroomBoomerBaseInvincibilityDuration = .0;
 const mushroomBoomerBaseMaxHealth = 25.0;
-const mushroomBoomerBaseSpeed = .065;
+const mushroomBoomerBaseSpeed = .04;
 //Mushroom shooter
 const mushroomShooterBaseHeight = 1.5;
 const mushroomShooterBaseInvincibilityDuration = .0;

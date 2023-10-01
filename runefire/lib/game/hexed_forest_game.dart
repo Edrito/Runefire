@@ -3,6 +3,10 @@ import 'package:flame/components.dart';
 import 'package:flame/parallax.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/resources/visuals.dart';
 import '../test.dart';
 import 'event_management.dart';
 import '../entities/entity_class.dart';
@@ -19,7 +23,7 @@ class ForestGame extends GameEnviroment {
   late EventManagement enemyManagement;
   // late BackgroundComponent forestBackground;
   late SpriteComponent forestBackground;
-
+  late final Component test;
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -32,6 +36,8 @@ class ForestGame extends GameEnviroment {
         anchor: Anchor.center);
 
     enemyManagement = ForestEnemyManagement(this);
+    test = SpriteShadows(this);
+    add(test);
     add(enemyManagement);
     add(forestBackground);
     conductTests(this);

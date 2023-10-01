@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flame/cache.dart';
 import 'package:flame/components.dart' hide World;
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
@@ -64,21 +65,22 @@ void main() async {
   FocusNode node = FocusNode();
   node.requestFocus();
 
-  final toLoad = [
-    // Assets.assets_images_background_mushroom_garden_png,
-    // Assets.assets_images_background_dungeon_png,
-    // Assets.assets_images_background_graveyard_jpg,
-    // Assets.assets_images_ui_attribute_background_mask_png,
-    // Assets.assets_images_ui_attribute_background_mask_small_png,
-    // Assets.assets_images_ui_attribute_border_png,
-    // Assets.assets_images_ui_attribute_border_small_png,
+  final List<String> toLoad = [
+    ...ImagesAssetsUi.allFiles,
+    ...ImagesAssetsBackground.allFiles,
+    ...ImagesAssetsRunes.allFiles,
+    ...ImagesAssetsAttributeSprites.allFiles,
+    ...ImagesAssetsRunes.allFiles
   ];
 
+  Images().loadAllImages();
   binding.addPostFrameCallback((_) async {
     BuildContext context = binding.rootElement as BuildContext;
+    List<Future> futures = [];
     for (var asset in toLoad) {
-      precacheImage(AssetImage(asset), context);
+      futures.add(precacheImage(AssetImage(asset), context));
     }
+    await Future.wait(futures);
   });
 
   final gameRouter = GameRouter(systemData, playerData);

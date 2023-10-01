@@ -66,7 +66,6 @@ class GameHud extends PositionComponent {
   // late CircleComponent levelBackground;
   late PositionComponent levelWrapper;
 
-  late TextComponent remainingAmmoText;
   Color staminaColor = colorPalette.primaryColor;
   late Paint staminaPaint;
   //Timer
@@ -228,70 +227,70 @@ class GameHud extends PositionComponent {
   Weapon? previousWeapon;
   Future<void> buildRemainingAmmoText(Player player) async {
     Weapon? currentWeapon = player.currentWeapon;
-    if (currentWeapon is ReloadFunctionality) {
-      String rtr = "";
-      final remainingAmmo = currentWeapon.remainingAttacks;
-      final maxAmmo = currentWeapon.maxAttacks.parameter;
+    // if (currentWeapon is ReloadFunctionality) {
+    final reload = currentWeapon is ReloadFunctionality ? currentWeapon : null;
+    String rtr = "";
+    final remainingAmmo = reload?.remainingAttacks ?? 0;
+    final maxAmmo = reload?.maxAttacks.parameter ?? 0;
 
-      if (ammoSprites.length > maxAmmo) {
-        final toRemove = ammoSprites.entries
-            .where((element) => element.key >= maxAmmo)
-            .toList();
-        for (var element in toRemove) {
-          element.value.removeFromParent();
-          ammoSprites.remove(element.key);
-        }
+    if (ammoSprites.length > maxAmmo) {
+      final toRemove = ammoSprites.entries
+          .where((element) => element.key >= maxAmmo)
+          .toList();
+      for (var element in toRemove) {
+        element.value.removeFromParent();
+        ammoSprites.remove(element.key);
       }
-      // bool noAmmo = true;
-      for (var i = 0; i < maxAmmo; i++) {
-        if (ammoSprites[i] == null) {
-          ammoSprite ??= await Sprite.load('ui/ammo.png');
-          const maxYSize = 16;
-          Vector2 size =
-              ammoSprite!.srcSize.scaledToDimension(true, maxYSize * hudScale);
-          final spriteComponent = SpriteComponent(
-              sprite: ammoSprite!,
-              anchor: Anchor.center,
-              position: Vector2(
-                  ((i * size.x * .75 * hudScale)) + (132.5 * hudScale),
-                  68 * hudScale),
-              size: size);
-          ammoSprites[i] = spriteComponent;
-          topLeftMarginParent.add(spriteComponent);
-        }
-
-        final currentSpriteComponent = ammoSprites[i]!;
-        if (i >= remainingAmmo!) {
-          if (currentSpriteComponent.sprite != noAmmoSprite) {
-            if (previousWeapon == currentWeapon) {
-              applyAmmoSizeEffect(currentSpriteComponent);
-            }
-            toggleAmmoSprite(currentSpriteComponent, false);
-          }
-        } else {
-          toggleAmmoSprite(currentSpriteComponent, true);
-        }
-      }
-      if (currentWeapon.isReloading) {
-        final stepTime = currentWeapon.reloadTime.parameter / maxAmmo;
-        final tempWeapon = currentWeapon;
-        int steps = 0;
-        async.Timer.periodic(stepTime.seconds, (timer) {
-          if (steps >= maxAmmo ||
-              steps >= ammoSprites.length ||
-              previousWeapon != tempWeapon) {
-            timer.cancel();
-            return;
-          }
-          applyAmmoSizeEffect(ammoSprites[steps]!, true);
-          steps++;
-        });
-      }
-
-      remainingAmmoText.text = rtr;
-    } else {
-      remainingAmmoText.text = "";
     }
+    // bool noAmmo = true;
+    for (var i = 0; i < maxAmmo; i++) {
+      if (ammoSprites[i] == null) {
+        ammoSprite ??= await Sprite.load('ui/ammo.png');
+        const maxYSize = 16;
+        Vector2 size =
+            ammoSprite!.srcSize.scaledToDimension(true, maxYSize * hudScale);
+        final spriteComponent = SpriteComponent(
+            sprite: ammoSprite!,
+            anchor: Anchor.center,
+            position: Vector2(
+                ((i * size.x * .75 * hudScale)) + (132.5 * hudScale),
+                68 * hudScale),
+            size: size);
+        ammoSprites[i] = spriteComponent;
+        topLeftMarginParent.add(spriteComponent);
+      }
+
+      final currentSpriteComponent = ammoSprites[i]!;
+      if (i >= remainingAmmo) {
+        if (currentSpriteComponent.sprite != noAmmoSprite) {
+          if (previousWeapon == currentWeapon) {
+            applyAmmoSizeEffect(currentSpriteComponent);
+          }
+          toggleAmmoSprite(currentSpriteComponent, false);
+        }
+      } else {
+        toggleAmmoSprite(currentSpriteComponent, true);
+      }
+    }
+    if (reload?.isReloading ?? false) {
+      final stepTime = reload!.reloadTime.parameter / maxAmmo;
+      final tempWeapon = currentWeapon;
+      int steps = 0;
+      async.Timer.periodic(stepTime.seconds, (timer) {
+        if (steps >= maxAmmo ||
+            steps >= ammoSprites.length ||
+            previousWeapon != tempWeapon) {
+          timer.cancel();
+          return;
+        }
+        applyAmmoSizeEffect(ammoSprites[steps]!, true);
+        steps++;
+      });
+    }
+
+    // } else {
+
+    // }
     previousWeapon = currentWeapon;
   }
 
@@ -618,16 +617,6 @@ class GameHud extends PositionComponent {
         )),
         text: player!.currentLevel.toString());
 
-    //Remaining Ammo text
-    remainingAmmoText = TextComponent(
-      position: Vector2(125 * hudScale, 57.5 * hudScale),
-      textRenderer: TextPaint(
-          style: defaultStyle.copyWith(
-              fontSize: hudTextSize * .8,
-              color: ApolloColorPalette.offWhite.color,
-              shadows: [colorPalette.buildShadow(ShadowStyle.light)])),
-    );
-
     //Expendable
     blankExpendableSprite = await Sprite.load('expendables/blank.png');
     expendableIcon = SpriteComponent(
@@ -659,7 +648,6 @@ class GameHud extends PositionComponent {
     topLeftMarginParent.add(characterPortrait);
     topLeftMarginParent.add(expendableIcon);
     topLeftMarginParent.add(characterPortraitBacking);
-    topLeftMarginParent.add(remainingAmmoText);
     add(timerParent);
 
     addAll([topLeftMarginParent]);

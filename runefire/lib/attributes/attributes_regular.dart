@@ -1466,6 +1466,7 @@ class ProjectileSplitExplodeAttribute extends Attribute {
     for (var element in temp) {
       final newProjectile = projectile.projectileType.generateProjectile(
           delta: element,
+          size: projectile.size,
           originPositionVar: position,
           ancestorVar: projectile.weaponAncestor,
           chargeAmount: .5);
@@ -1618,7 +1619,7 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
 
   @override
   String description() {
-    return "Projectile explode";
+    return "Dodge increase stand still";
   }
 }
 
@@ -1663,7 +1664,7 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
 
   @override
   String description() {
-    return "Projectile explode";
+    return "Defence increase stand still";
   }
 }
 
@@ -1704,7 +1705,7 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
 
   @override
   String description() {
-    return "Projectile explode";
+    return "Damage increase stand still";
   }
 }
 

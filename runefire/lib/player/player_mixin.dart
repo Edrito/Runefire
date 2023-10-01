@@ -52,67 +52,34 @@ mixin ExperienceFunctionality on Entity {
   final double baseExperiencePerLevel = 50;
 
   int levelUpQueue = 0;
-  bool currentlyLevelingUp = false;
-  TimerComponent? levelUpQueueTimer;
+  TimerComponent? previousLevelUpDelay;
 
   void levelUp() {
+    levelUpFunctionsCall();
     game.gameStateComponent.gameState.pauseGame(attributeSelection.key);
-    currentlyLevelingUp = false;
-
-    if (levelUpQueue == 0) {
-      levelUpQueueTimer?.timer.stop();
-      levelUpQueueTimer?.removeFromParent();
-      levelUpQueueTimer = null;
-    }
   }
 
   void preLevelUp() async {
-    if (currentlyLevelingUp) {
+    if (previousLevelUpDelay != null) {
       levelUpQueue++;
-      levelUpQueueTimer ??= TimerComponent(
-        period: .1,
-        removeOnFinish: true,
-        repeat: true,
-        onTick: () {
-          if (!currentlyLevelingUp && !isDead) {
-            preLevelUp();
-            levelUpQueue--;
-          }
-        },
-      )..addToParent(this);
       return;
     }
-    currentlyLevelingUp = true;
-    const count = 3;
-    for (var i = 0; i < count; i++) {
-      final upArrow = CaTextComponent(
-          position: Vector2(1, -.25),
-          anchor: Anchor.center,
-          priority: menuPriority,
-          textRenderer:
-              TextPaint(style: defaultStyle.copyWith(fontSize: 1 * (i + 1))),
-          text: "^");
-      final effectController = EffectController(
-        duration: .3,
-        curve: Curves.fastLinearToSlowEaseIn,
-        onMax: () {
-          if (i == count - 1) {
-            levelUp();
-            levelUpFunctionsCall();
-          }
-          upArrow.removeFromParent();
-        },
-      );
 
-      upArrow.addAll([
-        MoveEffect.by(
-          Vector2(0, -1),
-          effectController,
-        ),
-      ]);
-      add(upArrow);
-      await Future.delayed(.3.seconds);
-    }
+    previousLevelUpDelay = TimerComponent(
+        period: .3,
+        repeat: true,
+        onTick: () {
+          if (levelUpQueue > 0) {
+            levelUpQueue--;
+            levelUp();
+          } else {
+            previousLevelUpDelay?.removeFromParent();
+            previousLevelUpDelay = null;
+          }
+        })
+      ..addToParent(this);
+
+    levelUp();
   }
 
   void levelUpFunctionsCall() {

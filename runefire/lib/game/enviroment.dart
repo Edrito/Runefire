@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/game_state_class.dart';
@@ -24,6 +25,8 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   SystemData get systemData => gameRef.systemDataComponent.dataObject;
   GameState get gameState => gameRef.gameStateComponent.gameState;
   Player? get getPlayer => (this as GameEnviroment).player;
+
+  List<Entity> activeEntites = [];
 
   GameEnviroment? get gameEnviroment =>
       this is GameEnviroment ? this as GameEnviroment : null;

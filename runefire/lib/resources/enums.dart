@@ -237,7 +237,7 @@ extension GameDifficultyExtension on GameDifficulty {
       case GameDifficulty.regular:
         return Colors.transparent;
       case GameDifficulty.hard:
-        return ApolloColorPalette.mediumRed.color;
+        return ApolloColorPalette.red.color;
       case GameDifficulty.chaos:
         return ApolloColorPalette.purple.color;
     }

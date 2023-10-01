@@ -381,7 +381,7 @@ mixin PlayerFunctionality on Enviroment {
       player?.mounted.then((value) => add(customFollow));
     }
 
-    add(player!);
+    physicsComponent.add(player!);
   }
 
   void transmitDragInfo(int pointerId, PointerMoveEvent info) {

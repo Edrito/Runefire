@@ -1,11 +1,17 @@
 import 'dart:async';
+import 'dart:async' as async;
+import 'dart:math';
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/visuals.dart';
 
 import '../main.dart';
 import '../menus/menus.dart';
@@ -13,6 +19,34 @@ import '../resources/enums.dart';
 import '../resources/functions/functions.dart';
 import '../resources/game_state_class.dart';
 import 'enviroment.dart';
+
+class SpriteShadows extends Component {
+  SpriteShadows(
+    this.env,
+  ) : super(priority: backgroundPriority + 1);
+  late final Paint shadowPaint = colorPalette
+      .buildPaint(ApolloColorPalette.darkestGray.color.withOpacity(.25));
+
+  Enviroment env;
+  @override
+  void render(Canvas canvas) {
+    final viewPortSize = Vector2.zero();
+    final Vector2 temp = Vector2.zero();
+    for (var element in env.activeEntites) {
+      final double heightPar = element.height.parameter;
+      temp.setFrom((((element.center)) + viewPortSize));
+      temp.y += heightPar * .5;
+      canvas.drawOval(
+          Rect.fromCenter(
+              center: temp.toOffset(),
+              width: heightPar * .7,
+              height: heightPar * .25),
+          shadowPaint);
+    }
+
+    super.render(canvas);
+  }
+}
 
 abstract class BackgroundComponent extends ParallaxComponent<GameRouter> {
   BackgroundComponent(this.gameReference);
@@ -66,10 +100,24 @@ class _CaveBackgroundState extends State<CaveBackground> {
   late final PlayerData playerData;
   late final GameState gameState;
 
+  final List<String> runes = [
+    ImagesAssetsRunes.rune1,
+    ImagesAssetsRunes.rune2,
+    ImagesAssetsRunes.rune3,
+    ImagesAssetsRunes.rune4,
+    ImagesAssetsRunes.rune5,
+    ImagesAssetsRunes.rune6,
+    ImagesAssetsRunes.rune7,
+    ImagesAssetsRunes.rune8,
+  ];
+
+  late async.Timer changeRuneTimer;
+
   @override
   void dispose() {
     playerDataNotifer.removeListener(onNotifier);
     gameStateNotifier.removeListener(onNotifier);
+    changeRuneTimer.cancel();
     super.dispose();
   }
 
@@ -91,6 +139,28 @@ class _CaveBackgroundState extends State<CaveBackground> {
     playerData = gameState.playerData;
     widget.gameRef.gameStateComponent.gameState.centerBackgroundKey =
         GlobalKey();
+
+    changeRuneTimer = async.Timer.periodic(3.seconds, (timer) {
+      if (!mounted) return;
+      if (runes.length >= 2) {
+        // Generate two random indices within the range of the list
+        var random = Random();
+        var index1 = random.nextInt(runes.length);
+        var index2 = random.nextInt(runes.length);
+
+        // Ensure that the two indices are not the same
+        while (index1 == index2) {
+          index2 = random.nextInt(runes.length);
+        }
+
+        // Swap the elements at the random indices
+        var temp = runes[index1];
+        runes[index1] = runes[index2];
+        runes[index2] = temp;
+
+        setState(() {});
+      }
+    });
   }
 
   Widget buildPortalImage(MenuPageType menuPage, GameLevel selectedLevel) {
@@ -177,28 +247,69 @@ class _CaveBackgroundState extends State<CaveBackground> {
       final portalSize = (smallestDimension * smallPortalSize) +
           (smallestDimension * (bigPortalSize - smallPortalSize) * value);
 
-      Widget ring = Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-                  child: buildImageAsset(
-            'assets/images/background/innerRingPatterns.png',
-            fit: BoxFit.fill,
-            color: portalColor,
+      // final innerRingWidget = buildImageAsset(
+      //   'assets/images/background/innerRingPatterns.png',
+      //   fit: BoxFit.fill,
+      //   color: portalColor,
+      // );
+
+      List<Widget> runeWidgets = [];
+
+      for (var i = 0; i < runes.length; i++) {
+        final rune = runes[i];
+        final runeSize = (smallestDimension * .1);
+        final runeWidget = Transform.rotate(
+          angle: (2 * pi) * (i / runes.length),
+          origin: Offset(0, portalSize / 4),
+          child: SizedBox(
+            width: runeSize,
+            height: portalSize / 2,
+            child: Align(
+              alignment: const Alignment(0, .15),
+              child: SizedBox.square(
+                  dimension: runeSize,
+                  child: ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                          portalColor.withOpacity(value), BlendMode.srcATop),
+                      child: buildImageAsset(
+                        rune,
+                        fit: BoxFit.contain,
+                        // color: portalColor,
+                      ))
+                  // .animate().rotate(
+                  //     begin: 0,
+                  //     end: 1,
+                  //     duration: menuPageIsLevel ? 4.seconds : 180.seconds),
+                  ),
+            ),
+          ),
+        );
+
+        runeWidgets.add(runeWidget);
+      }
+
+      final innerRingWidget = Positioned(
+          top: 0,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              for (Widget ringPiece in runeWidgets) ringPiece,
+            ],
           ).animate(
             onComplete: (controller) {
               controller.forward(from: 0);
             },
-          ).rotate(begin: 0, end: -1, duration: 180.seconds))
-              .animate(
-                target: menuPageIsLevel ? 1 : 0,
-              )
-              .blurXY(
-                end: 20,
-                curve: Curves.easeInCirc,
-                duration: 1.seconds,
-              )
-              .rotate(curve: Curves.easeInCirc, duration: 1.seconds, end: 1),
+          ).rotate(
+            begin: 0,
+            end: -1,
+            alignment: Alignment.bottomCenter,
+            duration: 180.seconds,
+          ));
+
+      Widget ring = Stack(
+        alignment: Alignment.center,
+        children: [
+          innerRingWidget,
           Animate(
             // key: UniqueKey(),
             effects: const [
@@ -211,33 +322,30 @@ class _CaveBackgroundState extends State<CaveBackground> {
                         dimension: portalSize * .675, child: portalImage))),
           ),
           Positioned.fill(
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                  portalColor.withOpacity(value), BlendMode.srcATop),
               child: buildImageAsset(
-            'assets/images/background/outerRing.png',
-            fit: BoxFit.fill,
-            color: portalColor,
-          )
-              // .animate(
-              //   onComplete: (controller) {
-              //     controller.forward(from: 0);
-              //   },
-              // ).rotate(
-              //     begin: 0,
-              //     end: 1,
-              //     duration: menuPageIsLevel ? 4.seconds : 180.seconds),
+                'assets/images/background/outerRing.png',
+                fit: BoxFit.fill,
               ),
+            ),
+          ),
           Positioned.fill(
-            child: buildImageAsset(
-              'assets/images/background/outerRingPatterns.png',
-              color: portalColor,
-              fit: BoxFit.fill,
-            ).animate(
+            child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                    portalColor.withOpacity(value), BlendMode.srcATop),
+                child: buildImageAsset(
+                  'assets/images/background/outerRingPatterns.png',
+                  fit: BoxFit.fill,
+                )).animate(
               onComplete: (controller) {
                 controller.forward(from: 0);
               },
             ).rotate(
                 begin: 0,
                 end: -1,
-                duration: menuPageIsLevel ? 18.seconds : 360.seconds),
+                duration: menuPageIsLevel ? 18.seconds : 320.seconds),
           ),
         ],
       )
@@ -255,41 +363,17 @@ class _CaveBackgroundState extends State<CaveBackground> {
           ),
         ),
         Positioned(
-          bottom: (size.height / 2 - portalSize / 2) - 5,
+          bottom: (size.height / 2 - portalSize / 2) - 10,
           child: Padding(
-            padding: const EdgeInsets.only(right: 5),
+            padding: const EdgeInsets.only(right: 10),
             child: ColorFiltered(
               colorFilter: ColorFilter.mode(
-                  portalColor.withOpacity(.8), BlendMode.modulate),
+                  ApolloColorPalette.darkestBlue.color.withOpacity(.2),
+                  BlendMode.srcIn),
               child: Center(
                   child: SizedBox.square(dimension: portalSize, child: ring)),
             ),
           ),
-        ),
-        // Align(
-        //   alignment: Alignment.center,
-        //   child: ColorFiltered(
-        //     colorFilter: ColorFilter.mode(
-        //         portalColor.darken(.6).withOpacity(.5), BlendMode.modulate),
-        //     child: Center(
-        //         child: SizedBox.square(dimension: portalSize, child: ring)),
-        //   ),
-        // ),
-        Positioned(
-          bottom: size.height / 2 - portalSize / 2,
-          // child: ShaderMask(
-          //   blendMode: BlendMode.modulate,
-          //   shaderCallback: (bounds) {
-          //     return LinearGradient(colors: [
-          //       ApolloColorPalette.lightBlue.color.brighten(.6),
-          //       Colors.white
-          //     ], begin: Alignment.bottomCenter, end: Alignment.topCenter)
-          //         .createShader(bounds);
-          //   },
-          child: Center(
-              key: gameState.centerBackgroundKey,
-              child: SizedBox.square(dimension: portalSize, child: ring)),
-          // )
         ),
         Positioned(
             bottom: size.height / 2 - portalSize / 2,
@@ -300,7 +384,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
                       .animate()
                       .blur(
                           begin: const Offset(0, 0),
-                          end: const Offset(80, .1))),
+                          end: const Offset(.1, 80))),
             )),
         Positioned(
             bottom: size.height / 2 - portalSize / 2,
@@ -309,10 +393,14 @@ class _CaveBackgroundState extends State<CaveBackground> {
               child: Center(
                   child: SizedBox.square(dimension: portalSize, child: ring)
                       .animate()
-                      .blur(
-                          begin: const Offset(0, 0),
-                          end: const Offset(40, 40))),
+                      .blur(begin: Offset.zero, end: const Offset(40, 40))),
             )),
+        Positioned(
+          bottom: size.height / 2 - portalSize / 2,
+          child: Center(
+              key: gameState.centerBackgroundKey,
+              child: SizedBox.square(dimension: portalSize, child: ring)),
+        ),
       ]);
     }
 
@@ -322,6 +410,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
         CustomEffect(
           duration: menuPageIsLevel ? 1.5.seconds : .75.seconds,
           curve: Curves.easeInOutCirc,
+          end: 1,
           builder: (context, value, child) {
             return buildWidget(context, value, child);
           },

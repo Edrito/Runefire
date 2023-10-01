@@ -232,7 +232,7 @@ class CrystalSword extends PlayerWeapon
             weaponAnimations: {
               WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
             })
-          ..position = Vector2(.75, -1.75)
+          ..position = Vector2(.75, -.75)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(Vector2.zero(),
@@ -629,7 +629,7 @@ class FlameSword extends PlayerWeapon
             weaponAnimations: {
               WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
             })
-          ..position = Vector2(-.5, .3)
+          ..position = Vector2(-.6, .6)
           ..angle = radians(-145);
       default:
         return WeaponSpriteAnimation(Vector2.zero(),

@@ -206,7 +206,7 @@ class LongRangeRifle extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = -.5;
+  double distanceFromPlayer = .45;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [

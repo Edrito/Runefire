@@ -124,6 +124,16 @@ class ApolloColorPalette {
     return returnPaint;
   }
 
+  Paint buildPaint(Color color) {
+    String key = color.value.toString();
+    if (cachedPaints.containsKey(key)) return cachedPaints[key]!;
+    Paint returnPaint = Paint()
+      ..color = color
+      ..isAntiAlias = true;
+    cachedPaints[key] = returnPaint;
+    return returnPaint;
+  }
+
   Paint buildProjectile({
     required Color color,
     required ProjectileType projectileType,

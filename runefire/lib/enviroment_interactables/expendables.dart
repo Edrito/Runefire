@@ -93,7 +93,9 @@ class InteractablePickup extends InteractableComponent {
     required this.expendableType,
     required super.initialPosition,
     required super.gameEnviroment,
-  });
+  }) {
+    radius = .75;
+  }
 
   Future<Sprite> buildSprite() async {
     return await expendableType.buildSprite();

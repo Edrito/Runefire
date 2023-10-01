@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:particle_field/particle_field.dart';
 import 'package:rnd/rnd.dart';
@@ -87,5 +89,49 @@ class _StarBackstripeState extends State<StarBackstripe> {
         Positioned.fill(child: ClipRect(child: field))
       ],
     );
+  }
+}
+
+class ArrowButtonCustom extends StatefulWidget {
+  const ArrowButtonCustom(
+      {required this.quaterTurns,
+      required this.onHoverColor,
+      required this.offHoverColor,
+      required this.onTap,
+      super.key});
+  final int quaterTurns;
+  final Function onTap;
+  final Color onHoverColor;
+  final Color offHoverColor;
+  @override
+  State<ArrowButtonCustom> createState() => _ArrowButtonCustomState();
+}
+
+class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
+  bool hovered = false;
+  @override
+  Widget build(BuildContext context) {
+    Color color = hovered ? widget.onHoverColor : widget.offHoverColor;
+    return InkWell(
+            splashFactory: NoSplash.splashFactory,
+            onHover: (value) => setState(() {
+                  hovered = value;
+                }),
+            onTap: () {
+              widget.onTap();
+            },
+            child: RotatedBox(
+              quarterTurns: widget.quaterTurns,
+              child: buildImageAsset(
+                ImagesAssetsUi.arrowBlack,
+                fit: BoxFit.contain,
+                color: color,
+              ),
+            ))
+        .animate(
+          target: hovered ? 1 : 0,
+        )
+        .scaleXY(
+            begin: 1, end: 1.1, curve: Curves.easeIn, duration: .1.seconds);
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/menus/custom_widgets.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/functions.dart';
 
@@ -405,11 +406,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                               fit: BoxFit.fitWidth,
                             ))
                       .animate(target: isLevelHover ? 1 : 0)
-                      .rotate(
-                          begin: .0,
-                          end: 0.01,
-                          curve: Curves.easeIn,
-                          duration: .1.seconds)
                       .scaleXY(
                           begin: 1,
                           end: 1.05,
@@ -452,9 +448,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
       ),
     );
 
-    bool downArrowHover = false;
-    bool upArrowHover = false;
-
     final informationDisplay = Row(children: [
       SizedBox(
         width: 350,
@@ -466,66 +459,37 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: SizedBox(
-                      height: 25,
-                      child: StatefulBuilder(builder: (context, ss) {
-                        return InkWell(
-                            onHover: (value) {
-                              ss(() {
-                                upArrowHover = value;
-                              });
-                            },
-                            onTap: () {
-                              if (isWeapon) {
-                                widget.weaponChange(
-                                    true, weaponType.attackType);
-                              } else {
-                                widget.weaponChange(true, null);
-                              }
-                            },
-                            child: buildImageAsset(ImagesAssetsUi.arrowBlack,
-                                    color: equippedColor)
-                                .animate(target: upArrowHover ? 1 : 0)
-                                .scaleXY(
-                                    begin: 1,
-                                    end: 1.2,
-                                    curve: Curves.easeIn,
-                                    duration: .1.seconds));
-                      }),
-                    ),
+                        height: 25,
+                        child: ArrowButtonCustom(
+                          quaterTurns: 0,
+                          onHoverColor: equippedColor.brighten(.4),
+                          offHoverColor: equippedColor,
+                          onTap: () {
+                            if (isWeapon) {
+                              widget.weaponChange(true, weaponType.attackType);
+                            } else {
+                              widget.weaponChange(true, null);
+                            }
+                          },
+                        )),
                   ),
                   Expanded(child: imageDisplay),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: SizedBox(
-                      height: 25,
-                      child: StatefulBuilder(builder: (context, ss) {
-                        return InkWell(
-                            onHover: (value) {
-                              ss(() {
-                                downArrowHover = value;
-                              });
-                            },
-                            onTap: () {
-                              if (isWeapon) {
-                                widget.weaponChange(
-                                    false, weaponType.attackType);
-                              } else {
-                                widget.weaponChange(false, null);
-                              }
-                            },
-                            child: RotatedBox(
-                              quarterTurns: 2,
-                              child: buildImageAsset(ImagesAssetsUi.arrowBlack,
-                                      color: equippedColor)
-                                  .animate(target: downArrowHover ? 1 : 0)
-                                  .scaleXY(
-                                      begin: 1,
-                                      end: 1.2,
-                                      curve: Curves.easeIn,
-                                      duration: .1.seconds),
-                            ));
-                      }),
-                    ),
+                        height: 25,
+                        child: ArrowButtonCustom(
+                          quaterTurns: 2,
+                          onHoverColor: equippedColor.brighten(.4),
+                          offHoverColor: equippedColor,
+                          onTap: () {
+                            if (isWeapon) {
+                              widget.weaponChange(false, weaponType.attackType);
+                            } else {
+                              widget.weaponChange(false, null);
+                            }
+                          },
+                        )),
                   ),
                 ],
               ),

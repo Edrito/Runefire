@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/material.dart';
 import 'package:runefire/attributes/attributes_status_effect.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
@@ -10,6 +11,7 @@ import 'package:runefire/game/event_management.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
+import 'package:runefire/resources/constants/routes.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/main.dart';
@@ -31,42 +33,38 @@ abstract class Entity extends BodyComponent<GameRouter>
     initializeParameterManagers();
     entityId = const Uuid().v4();
   }
-  EventManagement eventManagement;
-
-  bool collisionOnDeath = false;
-
-  @override
-  void preSolve(Object other, Contact contact, Manifold oldManifold) {
-    if (other is Bounds ||
-        other is Map && other['object'] is Bounds ||
-        contact.fixtureA.userData is Map &&
-            (contact.fixtureA.userData as Map)['object'] is Bounds ||
-        contact.fixtureB.userData is Map &&
-            (contact.fixtureB.userData as Map)['object'] is Bounds) {
-      contact.setEnabled(true);
-      return super.preSolve(other, contact, oldManifold);
-    }
-
-    if (isDead) {
-      contact.setEnabled(collisionOnDeath);
-      return super.preSolve(other, contact, oldManifold);
-    }
-    if (!collision.parameter || isDashing) {
-      contact.setEnabled(false);
-      return super.preSolve(other, contact, oldManifold);
-    }
-
-    super.preSolve(other, contact, oldManifold);
-  }
 
   List<Function(bool isFlipped)> onBodyFlip = [];
+  //POSITIONING
 
-  bool get isStunned {
-    if (isChildEntity) {
-      return (this as ChildEntity).parentEntity.isStunned;
-    }
-    return statusEffects.contains(StatusEffects.stun);
-  }
+  late PlayerAttachmentJointComponent backJoint;
+
+  Map<dynamic, ChildEntity> childrenEntities = {};
+  Set<Projectile> closeProjectiles = {};
+  Set<Entity> closeSensorBodies = {};
+  bool collisionOnDeath = false;
+  int currentHitAnimations = 0;
+  Map<dynamic, SpriteAnimation> entityAnimations = {};
+  late SpriteAnimationGroupComponent entityAnimationsGroup;
+  late String entityId;
+  dynamic entityStatus = EntityStatus.spawn;
+  late EntityStatusEffectsWrapper entityStatusWrapper;
+  abstract EntityType entityType;
+  Enviroment enviroment;
+  EventManagement eventManagement;
+  //STATUS
+  Vector2 initialPosition;
+
+  // late PositionComponent spriteWrapper;
+  // late Shadow3DDecorator shadow3DDecorator;
+
+  bool isFlipped = false;
+
+  dynamic statusPrevious;
+  dynamic statusQueue;
+  bool temporaryAnimationPlaying = false;
+
+  abstract Filter? filter;
 
   AttributeFunctionsFunctionality? get attributeFunctionsFunctionality {
     bool thisIsAttr = this is AttributeFunctionsFunctionality;
@@ -81,6 +79,24 @@ abstract class Entity extends BodyComponent<GameRouter>
     }
     return null;
   }
+
+  double get entityStatusHeight =>
+      (height.parameter / 2) + (height.parameter / 4);
+
+  GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
+  bool get isPlayer =>
+      EntityType.player == entityType ||
+      (isChildEntity && (this as ChildEntity).parentEntity.isPlayer);
+
+  bool get isStunned {
+    if (isChildEntity) {
+      return (this as ChildEntity).parentEntity.isStunned;
+    }
+    return statusEffects.contains(StatusEffects.stun);
+  }
+
+  PlayerFunctionality get playerFunctionality =>
+      enviroment as PlayerFunctionality;
 
   Set<StatusEffects> get statusEffects {
     if (isChildEntity) {
@@ -98,34 +114,6 @@ abstract class Entity extends BodyComponent<GameRouter>
     }
 
     return {};
-  }
-
-  Map<dynamic, ChildEntity> childrenEntities = {};
-
-  late String entityId;
-
-  Iterable<Weapon> getAllWeaponItems(
-      bool includeSecondaries, bool includeAdditionalPrimaries) {
-    Iterable<Weapon> returnList = [];
-    // await loaded;
-    if (this is! AttackFunctionality) return returnList;
-
-    final attackFunctionality = this as AttackFunctionality;
-    for (var element in attackFunctionality.carriedWeapons.values) {
-      returnList = [...returnList, element];
-      if (includeSecondaries) {
-        final secondary = element.getSecondaryWeapon;
-        if (secondary != null) {
-          returnList = [...returnList, secondary];
-        }
-      }
-      if (includeAdditionalPrimaries) {
-        for (var element in element.additionalWeapons.entries) {
-          returnList = [...returnList, element.value];
-        }
-      }
-    }
-    return returnList;
   }
 
   Future<void> applyGroundAnimation(
@@ -148,7 +136,10 @@ abstract class Entity extends BodyComponent<GameRouter>
         .then((value) => sprite.removeFromParent());
   }
 
-  int currentHitAnimations = 0;
+  void applyHeightToSprite() {
+    entityAnimationsGroup.size = Vector2.all(height.parameter);
+  }
+
   Future<void> applyHitAnimation(
       SpriteAnimation animation, Vector2 sourcePosition, double size,
       [Color? color]) async {
@@ -177,61 +168,6 @@ abstract class Entity extends BodyComponent<GameRouter>
     });
   }
 
-  abstract EntityType entityType;
-  Enviroment enviroment;
-  GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
-  PlayerFunctionality get playerFunctionality =>
-      enviroment as PlayerFunctionality;
-
-  bool get isPlayer =>
-      EntityType.player == entityType ||
-      (isChildEntity && (this as ChildEntity).parentEntity.isPlayer);
-
-  void permanentlyDisableEntity() {}
-
-  double get entityStatusHeight =>
-      (height.parameter / 2) + (height.parameter / 4);
-
-  late EntityStatusEffectsWrapper entityStatusWrapper;
-
-  //STATUS
-  Vector2 initialPosition;
-
-  dynamic statusQueue;
-  dynamic statusPrevious;
-  dynamic entityStatus = EntityStatus.spawn;
-
-  Map<dynamic, SpriteAnimation> entityAnimations = {};
-
-  bool temporaryAnimationPlaying = false;
-
-  late SpriteAnimationGroupComponent entityAnimationsGroup;
-  // late PositionComponent spriteWrapper;
-  // late Shadow3DDecorator shadow3DDecorator;
-
-  bool isFlipped = false;
-
-  //POSITIONING
-
-  late PlayerAttachmentJointComponent backJoint;
-  abstract Filter? filter;
-
-  Future<void> loadAnimationSprites();
-
-  void tickerComplete() {
-    temporaryAnimationPlaying = false;
-    entityStatus = statusQueue ?? statusPrevious ?? EntityStatus.idle;
-    entityAnimationsGroup.current = entityStatus;
-
-    statusPrevious = null;
-    statusQueue = null;
-  }
-
-  void spawnStatus() {
-    // applyTempAnimation(entityAnimations[EntityStatus.spawn]);
-    statusQueue = EntityStatus.idle;
-  }
-
   void attackStatus() {
     // applyTempAnimation();
   }
@@ -240,7 +176,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     // applyTempAnimation(customAnimation);
   }
 
-  bool jumpStatus() {
+  bool damageStatus() {
     return true;
   }
 
@@ -252,13 +188,50 @@ abstract class Entity extends BodyComponent<GameRouter>
     return true;
   }
 
-  bool damageStatus() {
-    return true;
-  }
-
   bool dodgeStatus() {
     return true;
   }
+
+  void flipSprite() {
+    entityAnimationsGroup.flipHorizontallyAroundCenter();
+
+    isFlipped = !isFlipped;
+    for (var element in onBodyFlip) {
+      element.call(isFlipped);
+    }
+  }
+
+  Iterable<Weapon> getAllWeaponItems(
+      bool includeSecondaries, bool includeAdditionalPrimaries) {
+    Iterable<Weapon> returnList = [];
+    // await loaded;
+    if (this is! AttackFunctionality) return returnList;
+
+    final attackFunctionality = this as AttackFunctionality;
+    for (var element in attackFunctionality.carriedWeapons.values) {
+      returnList = [...returnList, element];
+      if (includeSecondaries) {
+        final secondary = element.getSecondaryWeapon;
+        if (secondary != null) {
+          returnList = [...returnList, secondary];
+        }
+      }
+      if (includeAdditionalPrimaries) {
+        for (var element in element.additionalWeapons.entries) {
+          returnList = [...returnList, element.value];
+        }
+      }
+    }
+    return returnList;
+  }
+
+  bool jumpStatus() {
+    return true;
+  }
+
+  Future<void> loadAnimationSprites();
+
+  void permanentlyDisableEntity() {}
 
   Future<void> setEntityStatus(EntityStatus newEntityStatus,
       {dynamic customAnimationKey,
@@ -336,11 +309,41 @@ abstract class Entity extends BodyComponent<GameRouter>
     }
   }
 
-  @override
-  void onRemove() {
-    if (!game.router.currentRoute.maintainState) {
-      super.onRemove();
+  void spawnStatus() {
+    // applyTempAnimation(entityAnimations[EntityStatus.spawn]);
+    statusQueue = EntityStatus.idle;
+  }
+
+  void spriteFlipCheck() {
+    final movement = body.linearVelocity.x;
+    if ((movement > 0 && !isFlipped) || (movement <= 0 && isFlipped)) {
+      flipSprite();
     }
+  }
+
+  void tickerComplete() {
+    temporaryAnimationPlaying = false;
+    entityStatus = statusQueue ?? statusPrevious ?? EntityStatus.idle;
+    entityAnimationsGroup.current = entityStatus;
+
+    statusPrevious = null;
+    statusQueue = null;
+  }
+
+  @override
+  void beginContact(Object other, Contact contact) {
+    if (other is Entity) {
+      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+        closeSensorBodies.add(other);
+      }
+    } else if (other is Projectile) {
+      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+        closeProjectiles.add(other);
+      }
+    }
+    super.beginContact(other, contact);
   }
 
   @override
@@ -393,25 +396,6 @@ abstract class Entity extends BodyComponent<GameRouter>
       ..createFixture(closeBodySensor);
   }
 
-  Set<Entity> closeSensorBodies = {};
-  Set<Projectile> closeProjectiles = {};
-
-  @override
-  void beginContact(Object other, Contact contact) {
-    if (other is Entity) {
-      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
-        closeSensorBodies.add(other);
-      }
-    } else if (other is Projectile) {
-      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
-        closeProjectiles.add(other);
-      }
-    }
-    super.beginContact(other, contact);
-  }
-
   @override
   void endContact(Object other, Contact contact) {
     if (other is Entity) {
@@ -429,10 +413,6 @@ abstract class Entity extends BodyComponent<GameRouter>
     super.endContact(other, contact);
   }
 
-  void applyHeightToSprite() {
-    entityAnimationsGroup.size = Vector2.all(height.parameter);
-  }
-
   @override
   Future<void> onLoad() async {
     entityAnimationsGroup = SpriteAnimationGroupComponent(
@@ -445,24 +425,41 @@ abstract class Entity extends BodyComponent<GameRouter>
     //     size: spriteAnimationComponent.size, anchor: Anchor.center);
     entityAnimationsGroup.flipHorizontallyAroundCenter();
     add(entityAnimationsGroup);
+    enviroment.activeEntites.add(this);
     entityStatusWrapper = EntityStatusEffectsWrapper(entity: this);
 
     return super.onLoad();
   }
 
-  void spriteFlipCheck() {
-    final movement = body.linearVelocity.x;
-    if ((movement > 0 && !isFlipped) || (movement <= 0 && isFlipped)) {
-      flipSprite();
+  @override
+  void onRemove() {
+    enviroment.activeEntites.remove(this);
+    if (!game.router.currentRoute.maintainState) {
+      super.onRemove();
     }
   }
 
-  void flipSprite() {
-    entityAnimationsGroup.flipHorizontallyAroundCenter();
-
-    isFlipped = !isFlipped;
-    for (var element in onBodyFlip) {
-      element.call(isFlipped);
+  @override
+  void preSolve(Object other, Contact contact, Manifold oldManifold) {
+    if (other is Bounds ||
+        other is Map && other['object'] is Bounds ||
+        contact.fixtureA.userData is Map &&
+            (contact.fixtureA.userData as Map)['object'] is Bounds ||
+        contact.fixtureB.userData is Map &&
+            (contact.fixtureB.userData as Map)['object'] is Bounds) {
+      contact.setEnabled(true);
+      return super.preSolve(other, contact, oldManifold);
     }
+
+    if (isDead) {
+      contact.setEnabled(collisionOnDeath);
+      return super.preSolve(other, contact, oldManifold);
+    }
+    if (!collision.parameter || isDashing) {
+      contact.setEnabled(false);
+      return super.preSolve(other, contact, oldManifold);
+    }
+
+    super.preSolve(other, contact, oldManifold);
   }
 }

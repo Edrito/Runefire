@@ -45,9 +45,11 @@ Future<void> parseFolder(Directory directory, String? leading) async {
   final fileList = await directory.list(recursive: false).toList();
   bool containsFile = fileList.any((element) => element is File);
 
+  List<String> stringNames = [];
+
   for (var element in fileList) {
     if (element is Directory) {
-      print(element.path);
+      print("    - ${element.path.replaceAll("\\", "/")}/");
       if (createLeading) {
         leading = element.path.split('\\').last;
       }
@@ -60,8 +62,15 @@ Future<void> parseFolder(Directory directory, String? leading) async {
       final fileNameWithoutExtension = fileName.split('.').first;
       dartFile +=
           "static const String ${fileNameWithoutExtension.camelCase} = \"${element.path.replaceAll('\\', '/')}\";\n";
+      stringNames.add(fileNameWithoutExtension.camelCase);
     }
   }
+
+  dartFile += "static const List<String> allFiles = [";
+  for (var element in stringNames) {
+    dartFile += "$element,\n";
+  }
+  dartFile += "];\n";
 
   dartFile += "}\n";
   if (containsFile) {

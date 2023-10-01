@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/image_composition.dart';
 import 'package:flame/sprite.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/visuals.dart';
 
 Future<SpriteAnimation> loadSpriteAnimation(
@@ -30,20 +31,20 @@ class SpriteAnimations {
 
 //Character One
 
-  late Future<SpriteAnimation> playerCharacterOneIdle1 =
-      loadSpriteAnimation(1, 'sprites/idle.png', .15, true);
-  late Future<SpriteAnimation> playerCharacterOneJump1 =
-      loadSpriteAnimation(6, 'sprites/jump.png', .1, false);
-  late Future<SpriteAnimation> playerCharacterOneDash1 =
-      loadSpriteAnimation(5, 'sprites/roll.png', .075, false);
+  late Future<SpriteAnimation> playerCharacterOneIdle1 = loadSpriteAnimation(
+      6, ImagesAssetsRuneknight.runeknightIdle1.flamePath, .15, true);
+  late Future<SpriteAnimation> playerCharacterOneJump1 = loadSpriteAnimation(
+      3, ImagesAssetsRuneknight.runeknightJump1.flamePath, .2, false);
+  late Future<SpriteAnimation> playerCharacterOneDash1 = loadSpriteAnimation(
+      7, ImagesAssetsRuneknight.runeknightDash1.flamePath, .075, false);
   // late Future<SpriteAnimation> playerCharacterOneWalk1 =
   //     loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
-  late Future<SpriteAnimation> playerCharacterOneRun1 =
-      loadSpriteAnimation(6, 'sprites/run.png', .13, true);
-  late Future<SpriteAnimation> playerCharacterOneHit1 =
-      loadSpriteAnimation(3, 'sprites/hit.png', .1, true);
-  late Future<SpriteAnimation> playerCharacterOneDead1 =
-      loadSpriteAnimation(6, 'sprites/death.png', .2, false);
+  late Future<SpriteAnimation> playerCharacterOneRun1 = loadSpriteAnimation(
+      8, ImagesAssetsRuneknight.runeknightRun1.flamePath, .13, true);
+  late Future<SpriteAnimation> playerCharacterOneHit1 = loadSpriteAnimation(
+      4, ImagesAssetsRuneknight.runeknightHit1.flamePath, .1, true);
+  late Future<SpriteAnimation> playerCharacterOneDead1 = loadSpriteAnimation(
+      8, ImagesAssetsRuneknight.runeknightDeath1.flamePath, .2, false);
 
 //Enemies
 //Mushroom Hopper

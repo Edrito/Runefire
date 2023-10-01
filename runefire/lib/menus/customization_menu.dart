@@ -138,7 +138,7 @@ class WeaponSecondaryTile extends StatelessWidget {
           child: Stack(
             children: [
               Opacity(
-                opacity: .5,
+                opacity: .3,
                 child: ImageFiltered(
                   imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 500),
                   child: buildMainStack(false, false, isWeapon),
@@ -367,7 +367,10 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                       alignment: Alignment.center,
                       child: ListView(
                         shrinkWrap: true,
-                        children: entries,
+                        children: entries
+                            .animate(interval: .15.seconds)
+                            .fadeIn()
+                            .moveX(begin: -200, curve: Curves.easeOutCirc),
                       ),
                     ),
                   ),
@@ -404,7 +407,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
             )
           ],
         ),
-      ),
+      ).animate().fadeIn(),
     );
   }
 }
@@ -665,10 +668,13 @@ class _WeaponMenuState extends State<WeaponMenu> {
                   ),
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: CharacterSwitcher(
-                  gameRef: widget.gameRef,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: 500,
+                  child: CharacterSwitcher(
+                    gameRef: widget.gameRef,
+                  ),
                 ),
               ),
               Expanded(

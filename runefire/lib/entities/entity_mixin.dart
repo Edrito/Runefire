@@ -1567,41 +1567,47 @@ mixin JumpFunctionality on Entity {
     if (this is StaminaFunctionality) {
       (this as StaminaFunctionality).modifyStamina(-jumpStaminaCost.parameter);
     }
+    final jumpDurationPar = jumpDuration.parameter;
+
+    entityAnimationsGroup.animations?[EntityStatus.jump]?.stepTime =
+        jumpDurationPar /
+            (entityAnimationsGroup
+                    .animations![EntityStatus.jump]!.frames.length +
+                1);
 
     applyGroundAnimation(
         await spriteAnimations.jumpEffect1, false, height.parameter * .2);
 
     _isJumping = true;
     double elapsed = 0;
-    double min = (jumpDuration.parameter / 2) -
-        jumpDuration.parameter * (jumpingInvinciblePercent.parameter / 2);
-    double max = (jumpDuration.parameter / 2) +
-        jumpDuration.parameter * (jumpingInvinciblePercent.parameter / 2);
+    double min = (jumpDurationPar / 2) -
+        jumpDurationPar * (jumpingInvinciblePercent.parameter / 2);
+    double max = (jumpDurationPar / 2) +
+        jumpDurationPar * (jumpingInvinciblePercent.parameter / 2);
 
     final controller = EffectController(
-      duration: jumpDuration.parameter,
-      curve: Curves.ease,
-      reverseDuration: jumpDuration.parameter,
+      duration: jumpDurationPar * 1.5,
+      curve: Curves.easeOut,
+      reverseDuration: jumpDurationPar * 1,
       reverseCurve: Curves.ease,
     );
-    final controllerD = EffectController(
-      duration: jumpDuration.parameter,
-      curve: Curves.ease,
-      startDelay: .1,
-      reverseDuration: jumpDuration.parameter,
-      reverseCurve: Curves.ease,
-    );
+    // final controllerD = EffectController(
+    //   duration: jumpDurationPar * 1.25,
+    //   curve: Curves.easeOut,
+    //   reverseDuration: jumpDurationPar * .75,
+    //   reverseCurve: Curves.ease,
+    // );
 
     if (allowJumpingInvincible) {
-      Future.doWhile(() =>
-          Future.delayed(const Duration(milliseconds: 25)).then((value) {
-            elapsed += .025;
+      Future.doWhile(
+          () => Future.delayed(const Duration(milliseconds: 25)).then((value) {
+                elapsed += .025;
 
-            isJumpingInvincible = elapsed > min && elapsed < max;
-            jumpOngoingFunctionsCall();
+                isJumpingInvincible = elapsed > min && elapsed < max;
+                jumpOngoingFunctionsCall();
 
-            return !(elapsed >= jumpDuration.parameter || controller.completed);
-          })).then((_) {
+                return !(elapsed >= jumpDurationPar || controller.completed);
+              })).then((_) {
         _isJumping = false;
         jumpEndFunctionsCall();
       });
@@ -1617,7 +1623,7 @@ mixin JumpFunctionality on Entity {
     ));
     backJoint.add(MoveEffect.by(
       Vector2(0, -jumpHeight),
-      controllerD,
+      controller,
     ));
 
     // if (this is AimFunctionality) {
