@@ -247,6 +247,8 @@ mixin MovementFunctionality on Entity {
     } else {
       body.applyForce(pulse * speed.parameter);
     }
+
+    // body.linearVelocity = pulse;
     // gameEnviroment.test.position += pulse * speed.parameter;
     moveFunctionsCall();
 
@@ -263,9 +265,7 @@ mixin AimFunctionality on Entity {
 
   void buildDeltaFromMousePosition() {
     inputAimAngles[InputType.mouseMove] =
-        (inputAimPositions[InputType.mouseMove]! -
-                (playerFunctionality.player!.center -
-                    enviroment.gameCamera.viewfinder.position))
+        (inputAimPositions[InputType.mouseMove]! - (handJoint.absolutePosition))
             .normalized();
   }
 
@@ -314,10 +314,13 @@ mixin AimFunctionality on Entity {
   Map<InputType, Vector2> inputAimPositions = {};
   late PlayerAttachmentJointComponent mouseJoint;
   late PlayerAttachmentJointComponent handJoint;
+  Vector2 get handJointOffset => Vector2.zero();
+  Vector2 get backJointOffset => Vector2.zero();
 
   @override
   Future<void> onLoad() {
     backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
+        position: backJointOffset,
         anchor: Anchor.center,
         size: Vector2.zero(),
         priority: playerBackPriority);
@@ -326,6 +329,7 @@ mixin AimFunctionality on Entity {
     handJoint = PlayerAttachmentJointComponent(
       WeaponSpritePosition.hand,
       anchor: Anchor.center,
+      position: handJointOffset,
       size: Vector2.zero(),
     );
     mouseJoint = PlayerAttachmentJointComponent(
@@ -378,9 +382,13 @@ mixin AimFunctionality on Entity {
       DoubleParameterManager(baseParameter: .9125);
   double distanceFactor = 1;
 
+  Vector2 previousHandJointPosWithoutOffset = Vector2.zero();
+
   void followTarget() {
-    final angle = calculateInterpolatedVector(handAngleTarget,
-        handJoint.position.normalized(), aimingInterpolationAmount.parameter);
+    final angle = calculateInterpolatedVector(
+        handAngleTarget,
+        previousHandJointPosWithoutOffset.normalized(),
+        aimingInterpolationAmount.parameter);
     if (isPlayer) {
       const distance = 7.5;
       distanceFactor = (Curves.easeInOutCubic.transform(
@@ -392,12 +400,16 @@ mixin AimFunctionality on Entity {
     }
 
     handJoint.position =
-        angle.normalized() * handPositionFromBody * distanceFactor;
+        (angle.normalized() * handPositionFromBody * distanceFactor);
+    // handJoint.position = newPosition(handJsaointOffset,
+    //     angle.angleTo(Vector2(0, -1)), handPositionFromBody * distanceFactor);
 
     handJoint.angle = -radiansBetweenPoints(
       Vector2(0, 1),
       handJoint.position,
     );
+    previousHandJointPosWithoutOffset.setFrom(handJoint.position);
+    handJoint.position += handJointOffset;
   }
 
   void aimCharacter() {
@@ -526,6 +538,7 @@ mixin AttackFunctionality on AimFunctionality {
         .whenComplete(() => mouseJoint.addWeaponClass(weapon));
     await backJoint.loaded.whenComplete(() => backJoint.addWeaponClass(weapon));
     if (enviroment is GameEnviroment && isPlayer) {
+      await enviroment.loaded;
       gameEnviroment.hud.toggleStaminaColor(weapon.weaponType.attackType);
     }
   }
@@ -726,13 +739,18 @@ mixin HealthFunctionality on Entity {
     } else {
       damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
     }
-    addFloatingText(DamageType.healing, amount, false);
+    addFloatingText(
+        instance..copyWith(damageMap: {DamageType.healing: amount}));
     addDamageEffects(DamageType.healing.color);
   }
 
   void heal(double amount) {
     damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
-    addFloatingText(DamageType.healing, amount, false);
+    addFloatingText(DamageInstance(
+        damageMap: {DamageType.healing: amount},
+        source: this,
+        victim: this,
+        sourceAttack: this));
     addDamageEffects(DamageType.healing.color);
   }
 
@@ -777,54 +795,65 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void addFloatingText(DamageType damageType, double amount, bool isCrit,
-      [String? customText]) {
-    final color = damageType.color;
-    final fontSize = .45 * (isCrit ? 1.3 : 1);
+  void addFloatingText(DamageInstance damage, [String? customText]) {
+    List<Component> newTexts = [];
+    for (var element in damage.damageMap.entries) {
+      final color = element.key.color;
+      final fontSize = .45 * (damage.isCrit ? 1.3 : 1);
 
-    final textRenderer = colorPalette.buildTextPaint(fontSize,
-        ShadowStyle.lightGame, isCrit ? Colors.red : color.brighten(.2));
-    String damageString = "";
+      final textRenderer = colorPalette.buildTextPaint(
+          fontSize,
+          ShadowStyle.lightGame,
+          damage.isCrit ? Colors.red : color.brighten(.2));
+      String damageString = "";
 
-    if (customText != null) {
-      damageString = customText;
-    } else {
-      damageString = !amount.isFinite ? "X" : amount.ceil().toString();
+      if (customText != null) {
+        damageString = customText;
+      } else {
+        damageString =
+            !element.value.isFinite ? "X" : element.value.ceil().toString();
 
-      if (damageType == DamageType.healing) {
-        damageString = "+ $damageString";
+        if (element.key == DamageType.healing) {
+          damageString = "+ $damageString";
+        }
       }
+      Vector2 pos = Vector2(entityAnimationsGroup.width / 3, 0);
+      if (!isPlayer) {
+        pos += center;
+      }
+      final tempText = TextComponent(
+          text: damageString,
+          // anchor: Anchor.center,
+          textRenderer: textRenderer,
+          priority: foregroundPriority,
+          position: pos);
+
+      final moveBy = ((Vector2.random() * .5) * (damage.isCrit ? 3 : 1));
+
+      tempText.add(
+        MoveEffect.by(
+          Vector2(moveBy.x, -moveBy.y),
+          EffectController(
+            duration: 1.33,
+            curve: Curves.linear,
+            onMax: () {
+              tempText.removeFromParent();
+              damageTexts.remove(tempText);
+            },
+          ),
+        ),
+      );
+
+      damageTexts[element.key]?.removeFromParent();
+      damageTexts[element.key] = tempText;
+      newTexts.add(tempText);
     }
 
-    final tempText = TextComponent(
-      text: damageString,
-      // anchor: Anchor.center,
-      textRenderer: textRenderer,
-      priority: foregroundPriority,
-      position:
-          // (Vector2.random() * .25) +
-          Vector2(entityAnimationsGroup.width, 0),
-    );
-
-    final moveBy = ((Vector2.random() * .5) * (isCrit ? 3 : 1));
-
-    tempText.add(
-      MoveEffect.by(
-        Vector2(moveBy.x, -moveBy.y),
-        EffectController(
-          duration: 1.33,
-          curve: Curves.linear,
-          onMax: () {
-            tempText.removeFromParent();
-            damageTexts.remove(tempText);
-          },
-        ),
-      ),
-    );
-
-    damageTexts[damageType]?.removeFromParent();
-    damageTexts[damageType] = tempText;
-    add(tempText);
+    if (isPlayer) {
+      addAll(newTexts);
+    } else {
+      gameEnviroment.addPhysicsComponent(newTexts, duration: .1);
+    }
   }
 
   ///Returning true means cancel the damage
@@ -903,7 +932,8 @@ mixin HealthFunctionality on Entity {
     }
 
     MapEntry<DamageType, double> largestEntry = fetchLargestDamageType(damage);
-    addFloatingText(largestEntry.key, largestEntry.value, damage.isCrit);
+
+    addFloatingText(damage);
     addDamageEffects(largestEntry.key.color);
 
     if (largestEntry.value.isFinite) {
@@ -911,11 +941,19 @@ mixin HealthFunctionality on Entity {
       applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
       essenceStealChecker(damage);
     }
-
+    applyCameraShake(damage);
     applyDamage(damage);
     applyKnockback(damage);
     deathChecker(damage);
     return true;
+  }
+
+  void applyCameraShake(DamageInstance instance) {
+    if (isPlayer) {
+      gameEnviroment.gameCamera.viewport.add(ShakeEffect(
+          EffectController(duration: .1),
+          intensity: (instance.isCrit ? 8 : 2)));
+    }
   }
 
   void applyIFrameTimer(String id) {

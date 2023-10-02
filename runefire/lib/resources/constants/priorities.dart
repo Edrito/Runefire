@@ -1,4 +1,6 @@
 const backgroundPriority = -500;
+const backgroundObjectPriority = -400;
+const backgroundPickupPriority = -300;
 const worldPriority = -100;
 const cameraPriority = -90;
 const enemyPriority = -50;
@@ -7,5 +9,4 @@ const playerBackPriority = -5;
 const playerPriority = 0;
 const playerOverlayPriority = 20;
 const menuPriority = 100;
-const backgroundObjectPriority = -400;
 const foregroundPriority = 500;

@@ -31,6 +31,7 @@ Image buildImageAsset(String asset, {BoxFit fit = BoxFit.cover, Color? color}) {
     color: color,
     filterQuality: FilterQuality.none,
     fit: fit,
+    isAntiAlias: true,
   );
 }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flame/extensions.dart';
+import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/game/hexed_forest_game.dart';
 import 'package:runefire/game/menu_game.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 
 import '../resources/functions/custom.dart';
@@ -146,8 +148,12 @@ mixin HudFunctionality on Enviroment {
   late final GameHud hud;
 
   @override
-  FutureOr<void> onLoad() {
+  FutureOr<void> onLoad() async {
     super.onLoad();
+    await Flame.images.loadAll([
+      ...ImagesAssetsUi.allFilesFlame,
+      ...ImagesAssetsAmmo.allFilesFlame,
+    ]);
     assert(this is GameEnviroment);
     hud = GameHud(this as GameEnviroment);
     gameCamera.viewport.addAll([hud]);
@@ -213,7 +219,7 @@ mixin BoundsFunctionality on Enviroment {
         isCircle: isCircle,
         scope: boss.boundsScope);
     this.boss = boss;
-    physicsComponent.add(bossBounds!);
+    addPhysicsComponent([bossBounds!], instant: true);
   }
 
   void removeBossBounds() {
@@ -246,7 +252,7 @@ mixin BoundsFunctionality on Enviroment {
         position: Vector2.zero(),
         isCircle: false,
         scope: BossBoundsScope.customSize);
-    physicsComponent.add(mainGameBorder);
+    addPhysicsComponent([mainGameBorder], instant: true);
   }
 }
 
@@ -380,8 +386,7 @@ mixin PlayerFunctionality on Enviroment {
           CustomFollowBehavior(player!, gameCamera, this as GameEnviroment);
       player?.mounted.then((value) => add(customFollow));
     }
-
-    physicsComponent.add(player!);
+    addPhysicsComponent([player!], instant: true);
   }
 
   void transmitDragInfo(int pointerId, PointerMoveEvent info) {

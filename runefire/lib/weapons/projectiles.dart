@@ -91,8 +91,9 @@ class MagicalProjectile extends SpriteBullet {
 
   @override
   void onMount() {
-    weaponAncestor.entityAncestor?.enviroment.physicsComponent
-        .add(particleGenerator);
+    weaponAncestor.entityAncestor?.enviroment
+        .addPhysicsComponent([particleGenerator]);
+
     super.onMount();
   }
 }

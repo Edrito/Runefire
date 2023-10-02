@@ -331,8 +331,8 @@ class FireballMagic extends PlayerWeapon
         originPosition: projectile.center.clone(),
         color: DamageType.fire.color,
       );
-      entityAncestor?.enviroment.physicsComponent
-          .addAll([area, particleGenerator]);
+
+      entityAncestor?.enviroment.addPhysicsComponent([area, particleGenerator]);
     });
   }
   @override

@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:image_size_getter/file_input.dart';
 import 'package:recase/recase.dart';
+import 'package:image_size_getter/image_size_getter.dart';
 
 main(List<String> params) async {
   final Directory assetsFolder = Directory('assets');
@@ -13,7 +15,7 @@ main(List<String> params) async {
       "// ignore_for_file: library_private_types_in_public_api, unused_field \n";
 
   gigaFile +=
-      "extension StringExtension on String {String get flamePath => (split('/')..removeAt(0)..removeAt(0)) .fold(\"\", (previousValue, element) => \"\$previousValue/\$element\").substring(1);}";
+      "extension StringExtension on String {String get flamePath => split('/').skip(2).join('/');}";
   gigaFile += "\n";
 
   for (var element in filesToSave.values) {
@@ -60,6 +62,13 @@ Future<void> parseFolder(Directory directory, String? leading) async {
     } else if (element is File) {
       final fileName = element.path.split('\\').last;
       final fileNameWithoutExtension = fileName.split('.').first;
+
+      dartFile += "///$fileName\n";
+      if (element.path.split('.').last == "png") {
+        final pngSize = ImageSizeGetter.getSize(FileInput(element));
+
+        dartFile += "/// ${pngSize.width}x${pngSize.height} \n";
+      }
       dartFile +=
           "static const String ${fileNameWithoutExtension.camelCase} = \"${element.path.replaceAll('\\', '/')}\";\n";
       stringNames.add(fileNameWithoutExtension.camelCase);
@@ -69,6 +78,12 @@ Future<void> parseFolder(Directory directory, String? leading) async {
   dartFile += "static const List<String> allFiles = [";
   for (var element in stringNames) {
     dartFile += "$element,\n";
+  }
+  dartFile += "];\n";
+
+  dartFile += "static  List<String> allFilesFlame = [";
+  for (var element in stringNames) {
+    dartFile += "$element.flamePath,\n";
   }
   dartFile += "];\n";
 

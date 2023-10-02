@@ -62,18 +62,26 @@ class _StartMenuState extends State<StartMenu> {
                   Stack(
                     children: [
                       Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text("RuneFire",
+                            style: defaultStyle.copyWith(
+                                fontSize: size.shortestSide / 7,
+                                color: ApolloColorPalette.blue.color,
+                                shadows: [])),
+                      ),
+                      Padding(
                         padding: const EdgeInsets.all(3),
                         child: Text("RuneFire",
                             style: defaultStyle.copyWith(
-                              fontSize: size.shortestSide / 7,
-                              color: colorPalette.primaryColor,
-                            )),
+                                fontSize: size.shortestSide / 7,
+                                color: ApolloColorPalette.lightBlue.color,
+                                shadows: [])),
                       ),
                       Text("RuneFire",
                           style: defaultStyle.copyWith(
-                            fontSize: size.shortestSide / 7,
-                            color: colorPalette.secondaryColor,
-                          )),
+                              fontSize: size.shortestSide / 7,
+                              color: ApolloColorPalette.lightCyan.color,
+                              shadows: [])),
                     ],
                   ),
                 ],

@@ -22,7 +22,7 @@ class EnemyState {
     this.preventDoubleRandomFunction = true,
     this.minimumTimePassedBeforeStateChange = 3,
     this.randomEventTimeFrame = (5, 8),
-    this.finalState = false,
+    this.isFinalState = false,
     this.isBaseState = false,
   });
 
@@ -39,7 +39,7 @@ class EnemyState {
   final double minimumTimePassedBeforeStateChange;
   final Function? onStateStart;
   final Function? onStateEnd;
-  final bool finalState;
+  final bool isFinalState;
   final bool isBaseState;
 
   Timer? stateDurationTimer;
@@ -165,7 +165,7 @@ mixin StateManagedAI
 
     if ((timeChange && firstStateChangeCompleted) ||
         //if final state, dont change
-        (activeState?.finalState ?? false) ||
+        (activeState?.isFinalState ?? false) ||
         (activeState?.stateDurationTimer?.isRunning() ?? false) ||
         isDead) return;
 

@@ -231,7 +231,7 @@ class ExplosionOnKillAttribute extends Attribute {
             increase(true, 10)
           )
         });
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -298,7 +298,7 @@ class ExplosiveDashAttribute extends Attribute {
             increase(true, 10)
           )
         });
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -360,7 +360,7 @@ class GravityDashAttribute extends Attribute {
         entity.body.applyForce((playerPos - entity.center).normalized() / 5);
       },
     );
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -426,7 +426,7 @@ class GroundSlamAttribute extends Attribute {
             increase(true, 10)
           )
         });
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -562,7 +562,7 @@ class PeriodicPushAttribute extends Attribute {
             (1 - distanceScaled));
       },
     );
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -624,7 +624,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
         durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
         damage: {DamageType.magic: (increase(true, 5), increase(true, 10))});
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -695,7 +695,7 @@ class PeriodicStunAttribute extends Attribute {
         }
       },
     );
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -773,7 +773,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
             (entity.center - playerPos).normalized() * (3 + increaseRes));
       },
     );
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -1462,7 +1462,7 @@ class ProjectileSplitExplodeAttribute extends Attribute {
     }
     List<Vector2> temp =
         splitVector2DeltaIntoArea(projectile.delta, count, 360 - (360 / count));
-
+    final List<Projectile> newProjectiles = [];
     for (var element in temp) {
       final newProjectile = projectile.projectileType.generateProjectile(
           delta: element,
@@ -1472,9 +1472,9 @@ class ProjectileSplitExplodeAttribute extends Attribute {
           chargeAmount: .5);
 
       newProjectile.hitIds.addAll(projectile.hitIds);
-
-      victimEntity?.gameEnviroment.physicsComponent.add(newProjectile);
+      newProjectiles.add(newProjectile);
     }
+    victimEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
   }
 
   @override
@@ -2047,6 +2047,7 @@ class ReloadSprayAttribute extends Attribute {
     final position = victimEntity?.center.clone() ?? Vector2.zero();
     List<Vector2> temp =
         splitVector2DeltaIntoArea(Vector2.zero(), count, 360 - (360 / count));
+    final List<Projectile> newProjectiles = [];
     for (var element in temp) {
       final newProjectile = weapon.projectileType!.generateProjectile(
           delta: element,
@@ -2054,8 +2055,9 @@ class ReloadSprayAttribute extends Attribute {
           ancestorVar: weapon,
           chargeAmount: .5);
 
-      victimEntity?.gameEnviroment.physicsComponent.add(newProjectile);
+      newProjectiles.add(newProjectile);
     }
+    victimEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
   }
 
   void meleeExplode(MeleeFunctionality weapon) {
@@ -2064,6 +2066,7 @@ class ReloadSprayAttribute extends Attribute {
     final position = victimEntity?.center.clone() ?? Vector2.zero();
     List<double> temp = splitRadInCone(0.0, count, 360 - (360 / count), false);
     int i = 0;
+    final List<MeleeAttackHandler> newSwings = [];
     for (var element in temp) {
       final newSwing = MeleeAttackHandler(
           initPosition: position,
@@ -2072,9 +2075,11 @@ class ReloadSprayAttribute extends Attribute {
           currentAttack: weapon.meleeAttacks[i % weapon.getAttackCount(0)],
           weaponAncestor: weapon);
 
-      victimEntity?.gameEnviroment.physicsComponent.add(newSwing);
+      newSwings.add(newSwing);
       i++;
     }
+
+    victimEntity?.gameEnviroment.addPhysicsComponent(newSwings);
   }
 
   void incrementCounter(Weapon weapon) {
@@ -2170,7 +2175,7 @@ class ReloadPushAttribute extends Attribute {
             (1 - distanceScaled));
       },
     );
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -3396,7 +3401,8 @@ class SplitDamageAttribute extends Attribute {
 
     instance.damageMap.clear();
 
-    for (var element in DamageType.values) {
+    for (var element in DamageType.values
+        .where((element) => element != DamageType.healing)) {
       instance.damageMap[element] = splitDamage;
     }
 
@@ -3553,7 +3559,7 @@ class SlugTrailAttribute extends Attribute {
             increase(true, 5)
           )
         });
-    victimEntity?.gameEnviroment.physicsComponent.add(explosion);
+    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   TimerComponent? timer;

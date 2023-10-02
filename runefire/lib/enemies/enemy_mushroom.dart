@@ -70,8 +70,9 @@ class MushroomRunner extends Enemy
     height.baseParameter = 1.2;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
+    critChance.baseParameter = .5;
     maxHealth.baseParameter = 5.0 + rng.nextInt(5);
-    speed.baseParameter = .02;
+    speed.baseParameter = 1000.0 + rng.nextInt(500);
     touchDamage.damageBase[DamageType.physical] = (1, 5);
   }
 
@@ -191,12 +192,13 @@ class MushroomBoomer extends Enemy
             .animationTickers?[EntityStatus.dead]?.completed;
       }
 
-      enviroment.physicsComponent.add(AreaEffect(
+      final temp = AreaEffect(
           position: body.worldCenter,
           sourceEntity: this,
           radius: 4 * ((upgradeLevel / 2)) + 2,
           durationType: DurationType.instant,
-          damage: {DamageType.fire: (2, 15)}));
+          damage: {DamageType.fire: (2, 15)});
+      gameEnviroment.addPhysicsComponent([temp]);
     });
   }
 
@@ -211,10 +213,16 @@ class MushroomBoomer extends Enemy
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
-    ExperienceAmount.large: 0.001,
-    ExperienceAmount.medium: 0.01,
-    ExperienceAmount.small: 0.4,
+    // ExperienceAmount.large: 0.001,
+    // ExperienceAmount.medium: 0.01,
+    // ExperienceAmount.small: 0.4,
   };
+
+  @override
+  // TODO: implement expendableRate
+  Map<ExpendableType, double> get expendableRate => {
+        ExpendableType.fearEnemiesRunes: 0.001,
+      };
 
   @override
   Future<void> loadAnimationSprites() async {

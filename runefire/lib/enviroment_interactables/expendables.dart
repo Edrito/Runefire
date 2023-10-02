@@ -131,10 +131,9 @@ class InteractablePickup extends InteractableComponent {
     final previousExpendable = player.currentExpendable;
 
     if (previousExpendable != null) {
-      gameEnviroment.physicsComponent.add(previousExpendable.expendableType
-          .buildInteractable(
-              initialPosition: initialPosition,
-              gameEnviroment: gameEnviroment));
+      final temp = previousExpendable.expendableType.buildInteractable(
+          initialPosition: initialPosition, gameEnviroment: gameEnviroment);
+      gameEnviroment.addPhysicsComponent([temp]);
     }
 
     if (this is InteractableWeaponPickup) {

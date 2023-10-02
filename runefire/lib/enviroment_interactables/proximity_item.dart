@@ -7,6 +7,7 @@ import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
 import 'package:flutter/animation.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
+import 'package:runefire/resources/constants/priorities.dart';
 
 import '../player/player.dart';
 import '../resources/functions/custom.dart';
@@ -16,7 +17,9 @@ import '../resources/enums.dart';
 
 abstract class ProximityItem extends BodyComponent<GameRouter>
     with ContactCallbacks {
-  ProximityItem({required this.originPosition});
+  ProximityItem({required this.originPosition}) {
+    priority = backgroundPickupPriority;
+  }
 
   Vector2 originPosition;
 

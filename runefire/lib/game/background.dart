@@ -140,25 +140,35 @@ class _CaveBackgroundState extends State<CaveBackground> {
     widget.gameRef.gameStateComponent.gameState.centerBackgroundKey =
         GlobalKey();
 
-    changeRuneTimer = async.Timer.periodic(3.seconds, (timer) {
+    const flickerFreq = .5;
+    changeRuneTimer = async.Timer.periodic(3.seconds, (timer) async {
       if (!mounted) return;
       if (runes.length >= 2) {
-        // Generate two random indices within the range of the list
-        var random = Random();
-        var index1 = random.nextInt(runes.length);
-        var index2 = random.nextInt(runes.length);
+        List<Future> futures = [];
 
-        // Ensure that the two indices are not the same
-        while (index1 == index2) {
-          index2 = random.nextInt(runes.length);
+        while (flickerFreq > rng.nextDouble()) {
+          futures.add(//
+              Future.delayed(rng.nextDouble().seconds).then((value) {
+            //
+            var index1 = rng.nextInt(runes.length);
+            var index2 = rng.nextInt(runes.length);
+
+            // Ensure that the two indices are not the same
+            while (index1 == index2) {
+              index2 = rng.nextInt(runes.length);
+            }
+
+            // Swap the elements at the random indices
+            var temp = runes[index1];
+            runes[index1] = runes[index2];
+            runes[index2] = temp;
+            if (mounted) {
+              setState(() {});
+            }
+          }));
         }
 
-        // Swap the elements at the random indices
-        var temp = runes[index1];
-        runes[index1] = runes[index2];
-        runes[index2] = temp;
-
-        setState(() {});
+        await Future.wait(futures);
       }
     });
   }
@@ -169,10 +179,9 @@ class _CaveBackgroundState extends State<CaveBackground> {
       child: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
+            child: buildImageAsset(
               selectedLevel.levelImage,
               fit: BoxFit.cover,
-              filterQuality: FilterQuality.none,
             ),
           ),
           Positioned.fill(

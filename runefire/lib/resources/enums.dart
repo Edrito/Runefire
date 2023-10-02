@@ -40,9 +40,9 @@ enum SourceAttackLocation {
   body,
   weaponTip,
   weaponMid,
-  distanceFromPlayer,
   mouse,
   closestEnemyToMouse,
+  distanceFromPlayer,
   closestEnemyToPlayer,
   customOffset,
 }

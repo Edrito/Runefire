@@ -17,6 +17,7 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
   InteractableComponent(
       {required this.initialPosition, required this.gameEnviroment}) {
     id = const Uuid().v4();
+    priority = backgroundPickupPriority;
   }
   late String id;
   final GameEnviroment gameEnviroment;

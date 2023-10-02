@@ -261,7 +261,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     bodyEntityWrapper ??= PositionComponent()..addToParent(this);
 
     _bodyComponents.add(entity);
-    if (entity.parent == null) enviroment.physicsComponent.add(entity);
+    if (entity.parent == null) enviroment.addPhysicsComponent([entity]);
   }
 
   void processHeadEntities(
@@ -313,7 +313,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     )..addToParent(this);
 
     _headEntities.add(entity);
-    if (entity.parent == null) enviroment.physicsComponent.add(entity);
+    if (entity.parent == null) enviroment.addPhysicsComponent([entity]);
   }
 
   final List<Function> _pulseFunctions = [];

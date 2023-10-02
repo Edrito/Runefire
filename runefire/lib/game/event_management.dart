@@ -137,7 +137,7 @@ class EnemyEvent extends PositionEvent {
   ///Getter that gets a random value between level tuple
   int get randomLevel => rng.nextInt((levels.$2 - levels.$1) + 1) + levels.$1;
 
-  bool enemyLimitReached() {
+  bool get enemyLimitReached {
     return enemyCount >= maxEnemies;
   }
 
@@ -193,9 +193,10 @@ class EnemyEvent extends PositionEvent {
           spawnLocation?.grabNewPosition(gameEnviroment as GameEnviroment) ??
               spawnPosition;
       for (var cluster in enemyClusters) {
+        List<Enemy> enemyCluster = [];
         for (var i = 0; i < cluster.clusterSize; i++) {
-          if (enemyLimitReached()) {
-            return;
+          if (enemyLimitReached) {
+            break;
           }
 
           final spreadPos = (position ?? Vector2.zero()) +
@@ -207,10 +208,12 @@ class EnemyEvent extends PositionEvent {
           enemy.onDeath.add((_) {
             incrementEnemyCount([enemy], true);
           });
-          incrementEnemyCount([enemy], false);
-
-          gameEnviroment.physicsComponent.add(enemy);
+          enemyCluster.add(enemy);
         }
+
+        incrementEnemyCount(enemyCluster, false);
+
+        gameEnviroment.addPhysicsComponent(enemyCluster, duration: .5);
       }
     }
   }

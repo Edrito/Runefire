@@ -264,8 +264,8 @@ mixin MeleeFunctionality on Weapon {
         weaponAncestor: this,
       ));
     }
+    entityAncestor?.enviroment.addPhysicsComponent(returnList, priority: 5);
 
-    entityAncestor?.enviroment.physicsComponent.addAll(returnList);
     currentAttackIndex++;
   }
 
@@ -465,8 +465,11 @@ mixin ProjectileFunctionality on Weapon {
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
 
   void shootProjectile([double chargeAmount = 1]) async {
-    entityAncestor?.enviroment.physicsComponent
-        .addAll(generateMultipleProjectileFunction(chargeAmount));
+    entityAncestor?.enviroment.addPhysicsComponent(
+        generateMultipleProjectileFunction(chargeAmount),
+        priority: 5,
+        duration: .03);
+
     entityAncestor?.enviroment.add(generateParticle());
 
     entityAncestor?.handJoint.weaponSpriteAnimation?.add(RotateEffect.to(
@@ -494,7 +497,7 @@ mixin ProjectileFunctionality on Weapon {
       lifespan: 2,
       applyLifespanToChildren: false,
       generator: (i) => AcceleratedParticle(
-        position: getWeaponTipDownBarrel(.9),
+        position: weaponTipPosition(.9),
         speed: (randomizeVector2Delta(
                         entityAncestor?.entityInputsAimAngle ?? Vector2.zero(),
                         .3)
@@ -512,11 +515,6 @@ mixin ProjectileFunctionality on Weapon {
     return ParticleSystemComponent(particle: particle);
   }
 
-  Vector2 getWeaponTipDownBarrel(double percentBetweenBaseAndTip) {
-    return ((weaponTipPosition - entityAncestor!.center) * .9) +
-        entityAncestor!.center;
-  }
-
   List<Projectile> generateMultipleProjectileFunction(
       [double chargeAmount = 1]) {
     List<Projectile> returnList = [];
@@ -528,6 +526,7 @@ mixin ProjectileFunctionality on Weapon {
               ...element.value.call(
                   entityAncestor!.handJoint.angle, getAttackCount(chargeAmount))
             ]);
+    temp.shuffle();
     //TODO change angle system
     for (var radDirection in temp) {
       if (projectileType == null) continue;
@@ -591,7 +590,7 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
       initAngle: 0,
       initPosition: customPosition,
     )..priority = foregroundPriority;
-    entityAncestor!.enviroment.physicsComponent.add(chargeAttackHandler!);
+    entityAncestor?.enviroment.addPhysicsComponent([chargeAttackHandler!]);
   }
 
   @override
@@ -691,7 +690,7 @@ mixin MuzzleGlow on Weapon, ProjectileFunctionality {
 
   late Paint muzzlePaint;
   Paint paint() => muzzlePaint
-    ..shader = ui.Gradient.radial(weaponTipPosition.toOffset(), .4, [
+    ..shader = ui.Gradient.radial(weaponTipPosition(1).toOffset(), .4, [
       primaryDamageType?.color ?? baseDamage.damageBase.entries.first.key.color,
       Colors.transparent
     ], [
@@ -702,7 +701,7 @@ mixin MuzzleGlow on Weapon, ProjectileFunctionality {
   @override
   void render(ui.Canvas canvas) {
     if (isAttacking) {
-      canvas.drawCircle(weaponTipPosition.toOffset(), .4, paint());
+      canvas.drawCircle(weaponTipPosition(1).toOffset(), .4, paint());
     }
     super.render(canvas);
   }
@@ -800,7 +799,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
       lifespan: 2,
       applyLifespanToChildren: false,
       generator: (i) => AcceleratedParticle(
-        position: weaponTipPosition + Vector2.zero(),
+        position: weaponTipPosition(1) + Vector2.zero(),
         speed: ((Vector2.random() * 4) - Vector2.all(2)) * percent,
         child: FadeOutCircleParticle(
             radius: .04 * ((rng.nextDouble() * .9) + .1),

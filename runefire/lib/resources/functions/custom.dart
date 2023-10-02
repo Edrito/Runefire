@@ -7,14 +7,16 @@ import 'package:flame/palette.dart';
 import 'package:flame/particles.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide Effect;
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
-
+import 'package:flame/effects.dart';
+import 'package:flame/extensions.dart';
+import 'dart:math' as math;
 import '../../entities/entity_class.dart';
 import '../../weapons/projectile_mixin.dart';
 
@@ -453,5 +455,34 @@ class CustomParticleGenerator extends Component {
     }
 
     return super.onLoad();
+  }
+}
+
+class ShakeEffect extends Effect with EffectTarget<PositionProvider> {
+  final Vector2 _shakeBuffer;
+  final double _shakeIntensity;
+
+  double _shakeValue() => (rng.nextDouble() - 0.5) * 2 * _shakeIntensity;
+
+  ShakeEffect(
+    super.controller, {
+    super.onComplete,
+    required double intensity,
+  })  : _shakeBuffer = Vector2.zero(),
+        _shakeIntensity = intensity;
+
+  @override
+  void apply(double progress) {
+    if (!_shakeBuffer.isZero()) {
+      target.position -= _shakeBuffer;
+    }
+    _shakeBuffer.setValues(_shakeValue(), _shakeValue());
+    target.position += _shakeBuffer;
+  }
+
+  @override
+  void onFinish() {
+    target.position -= _shakeBuffer;
+    super.onFinish();
   }
 }

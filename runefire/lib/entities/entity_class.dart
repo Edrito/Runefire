@@ -54,6 +54,7 @@ abstract class Entity extends BodyComponent<GameRouter>
   EventManagement eventManagement;
   //STATUS
   Vector2 initialPosition;
+  Vector2 get spriteOffset => Vector2.zero();
 
   // late PositionComponent spriteWrapper;
   // late Shadow3DDecorator shadow3DDecorator;
@@ -360,13 +361,13 @@ abstract class Entity extends BodyComponent<GameRouter>
     // ];
     late CircleShape shape;
     shape = CircleShape();
-    shape.radius = entityAnimationsGroup.size.x / 3;
+    shape.radius = entityAnimationsGroup.size.x / 2.5;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
-        density: 0.001,
+        density: 0,
         filter: filter);
 
     final closeBodySensor =
@@ -375,7 +376,7 @@ abstract class Entity extends BodyComponent<GameRouter>
             restitution: 0,
             friction: 0,
             isSensor: true,
-            density: 0,
+            density: .8,
             filter: Filter()
               ..categoryBits = sensorCategory
               ..maskBits =
@@ -387,6 +388,7 @@ abstract class Entity extends BodyComponent<GameRouter>
       userData: this,
       type: BodyType.dynamic,
       allowSleep: false,
+      active: true,
       linearDamping: 12,
       fixedRotation: true,
     );
@@ -416,7 +418,9 @@ abstract class Entity extends BodyComponent<GameRouter>
   @override
   Future<void> onLoad() async {
     entityAnimationsGroup = SpriteAnimationGroupComponent(
-        anchor: Anchor.center, animations: entityAnimations);
+        anchor: Anchor.center,
+        position: spriteOffset,
+        animations: entityAnimations);
 
     setEntityStatus(EntityStatus.spawn);
     applyHeightToSprite();

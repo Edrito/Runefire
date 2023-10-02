@@ -101,6 +101,10 @@ class Player extends Entity
   }
 
   @override
+  // TODO: implement handJointOffset
+  Vector2 get handJointOffset => Vector2(0, .1);
+
+  @override
   Future<void> loadAnimationSprites() async {
     entityAnimations[EntityStatus.idle] =
         await spriteAnimations.playerCharacterOneIdle1;

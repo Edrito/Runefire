@@ -5,6 +5,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/functions/custom.dart';
@@ -26,7 +27,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.radius = 3,
     this.duration = 5,
     this.durationType = DurationType.instant,
-    this.collisionDelay,
+    this.collisionDelay = .3,
     String? areaId,
     this.tickRate = 1,
     this.damage,
@@ -38,6 +39,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   }) {
     assert(onTick != null || damage != null);
     radius *= sourceEntity.areaSizePercentIncrease.parameter;
+    priority = attackPriority;
 
     animationComponent?.size = Vector2.all(radius * 2);
     animationComponent?.durationType = durationType;

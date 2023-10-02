@@ -30,6 +30,7 @@ dependencies:
   rnd: ^0.2.0
   flame_forge2d: ^0.15.0
   simple_shadow: ^0.3.1
+  image_size_getter: ^2.1.2
 
   
 

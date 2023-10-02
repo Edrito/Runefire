@@ -1,7 +1,9 @@
+import 'package:flame/flame.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/test.dart';
@@ -19,7 +21,78 @@ import '../resources/constants/priorities.dart';
 
 abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   abstract final GameLevel level;
-  late final Forge2DComponent physicsComponent;
+  late final Forge2DComponent _physicsComponent;
+
+  //(int, double) is (priority, duration)
+  Map<(int, double), List<dynamic>> physicsEntitiesToAddQueue = {};
+  List<Component> tempAddingEntities = [];
+  double durationNoAdd = 0;
+  late final TimerComponent physicsEntityAdding = TimerComponent(
+    period: 1,
+    repeat: true,
+    onTick: () {
+      addPhysicsComponentTick();
+    },
+  )..addToParent(this);
+
+  void addTempComponent() {
+    tempAddingEntities.first.addToParent(_physicsComponent);
+    tempAddingEntities.removeAt(0);
+    durationNoAdd = 0;
+  }
+
+  int currentPriority = 0;
+  int newestPriority = 0;
+
+  void addPhysicsComponentTick() {
+    if (tempAddingEntities.isNotEmpty && newestPriority <= currentPriority) {
+      addTempComponent();
+    } else if (physicsEntitiesToAddQueue.isNotEmpty) {
+      final highestPri = physicsEntitiesToAddQueue.keys.toList();
+      highestPri.sort((b, a) => a.$1.compareTo(b.$1));
+      final key = highestPri.first;
+      final highestPriList = physicsEntitiesToAddQueue[key];
+
+      if (highestPriList != null && highestPriList.isNotEmpty) {
+        tempAddingEntities.addAll(highestPriList as List<Component>);
+        tempAddingEntities = [...tempAddingEntities.reversed];
+        physicsEntityAdding.timer.limit = key.$2 / tempAddingEntities.length;
+        addTempComponent();
+        currentPriority = key.$1;
+        if (highestPriList.length >= 2) {
+          newestPriority = key.$1;
+        }
+      }
+      physicsEntitiesToAddQueue.remove(key);
+    } else {
+      durationNoAdd += physicsEntityAdding.timer.limit;
+      if (durationNoAdd > 1) {
+        physicsEntityAdding.timer.stop();
+        durationNoAdd = 0;
+      }
+    }
+  }
+
+  bool firstTick = false;
+  void addPhysicsComponent(List<Component> components,
+      {bool instant = false, double duration = .2, int priority = 0}) {
+    if (instant || components.length < 2) {
+      _physicsComponent.addAll(components);
+    } else {
+      if (priority > newestPriority) {
+        newestPriority = priority;
+      }
+      physicsEntitiesToAddQueue[(priority, duration)]?.addAll(components);
+
+      physicsEntitiesToAddQueue[(priority, duration)] ??= components;
+
+      if (!physicsEntityAdding.timer.isRunning() || !firstTick) {
+        physicsEntityAdding.timer.start();
+        physicsEntityAdding.timer.onTick?.call();
+        firstTick = true;
+      }
+    }
+  }
 
   PlayerData get playerData => gameRef.playerDataComponent.dataObject;
   SystemData get systemData => gameRef.systemDataComponent.dataObject;
@@ -71,13 +144,13 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   @override
   // ignore: unnecessary_overrides
   void update(double dt) {
-    time += dt;
-    if (time > seconds) {
-      time = 0;
-      printChildren(children);
-      print(children2);
-      children2 = 0;
-    }
+    // time += dt;
+    // if (time > seconds) {
+    //   time = 0;
+    //   printChildren(children);
+    //   print(children2);
+    //   children2 = 0;
+    // }
 
     updateFunction(this, dt);
     super.update(dt);
@@ -138,9 +211,9 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     super.add(gameCamera);
 
     //Physics
-    physicsComponent = Forge2DComponent();
-    physicsComponent.priority = enemyPriority;
-    add(physicsComponent);
+    _physicsComponent = Forge2DComponent();
+    _physicsComponent.priority = enemyPriority;
+    add(_physicsComponent);
 
     return super.onLoad();
   }
@@ -168,7 +241,12 @@ abstract class GameEnviroment extends Enviroment
   @override
   Future<void> onLoad() async {
     difficulty = playerData.selectedDifficulty;
-
+    await Flame.images.loadAll([
+      ...ImagesAssetsMagic.allFilesFlame,
+      ...ImagesAssetsProjectiles.allFilesFlame,
+      ...ImagesAssetsEffects.allFilesFlame,
+      ...ImagesAssetsWeapons.allFilesFlame
+    ]);
     super.onLoad();
   }
 

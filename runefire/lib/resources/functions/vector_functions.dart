@@ -14,14 +14,15 @@ Vector2 shiftCoordinatesToCenter(Vector2 v1, Vector2 size) {
 }
 
 extension ScaledToDimensionVector2 on Vector2 {
-  Vector2 scaledToDimension(bool scaleY, double maxLength) {
+  void scaledToDimension(bool scaleY, double maxLength) {
     double ratio = 1;
     if (scaleY) {
       ratio = maxLength / y;
     } else {
       ratio = maxLength / x;
     }
-    return Vector2(x * ratio, y * ratio);
+    y = (y * ratio);
+    (x = x * ratio);
   }
 }
 

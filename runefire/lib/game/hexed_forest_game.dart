@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flame/components.dart';
+import 'package:flame/flame.dart';
 import 'package:flame/parallax.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import '../test.dart';
@@ -23,11 +25,17 @@ class ForestGame extends GameEnviroment {
   late EventManagement enemyManagement;
   // late BackgroundComponent forestBackground;
   late SpriteComponent forestBackground;
-  late final Component test;
+  late final Component entityShadow;
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-
+    await Flame.images.loadAll([
+      ...ImagesAssetsMushroomBoomer.allFilesFlame,
+      ...ImagesAssetsMushroomBurrower.allFilesFlame,
+      ...ImagesAssetsMushroomRunner.allFilesFlame,
+      ...ImagesAssetsMushroomSpinner.allFilesFlame,
+      ...ImagesAssetsMushroomHopper.allFilesFlame,
+    ]);
     // forestBackground = level.buildBackground(this);
     forestBackground = SpriteComponent(
         sprite: await Sprite.load('background/mushroom_garden.png'),
@@ -36,8 +44,8 @@ class ForestGame extends GameEnviroment {
         anchor: Anchor.center);
 
     enemyManagement = ForestEnemyManagement(this);
-    test = SpriteShadows(this);
-    add(test);
+    entityShadow = SpriteShadows(this);
+    add(entityShadow);
     add(enemyManagement);
     add(forestBackground);
     conductTests(this);
@@ -91,12 +99,12 @@ class ForestEnemyManagement extends EventManagement {
         this,
         isBigBoss: false,
         clusterSpread: 4,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 10)],
+        enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 1)],
         numberOfClusters: 3,
-        maxEnemies: 50,
-        eventTriggerInterval: (1, 1),
+        maxEnemies: 10,
+        eventTriggerInterval: (1, 5),
         levels: (0, 1),
-        eventBeginEnd: (1, 500),
+        eventBeginEnd: (2, 30),
         spawnLocation: SpawnLocation.outside,
       ),
       EnemyEvent(
@@ -104,12 +112,12 @@ class ForestEnemyManagement extends EventManagement {
         this,
         isBigBoss: false,
         clusterSpread: 4,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomBurrower, 1)],
-        numberOfClusters: 1,
-        maxEnemies: 2,
-        eventTriggerInterval: (1, 1),
+        enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 1)],
+        numberOfClusters: 2,
+        maxEnemies: 15,
+        eventTriggerInterval: (1, 5),
         levels: (0, 1),
-        eventBeginEnd: (1, 500),
+        eventBeginEnd: (30, 120),
         spawnLocation: SpawnLocation.outside,
       ),
       EnemyEvent(
@@ -119,38 +127,78 @@ class ForestEnemyManagement extends EventManagement {
         clusterSpread: 4,
         enemyClusters: [EnemyCluster(EnemyType.mushroomBoomer, 1)],
         numberOfClusters: 1,
-        maxEnemies: 2,
-        eventTriggerInterval: (1, 1),
+        maxEnemies: 8,
+        eventTriggerInterval: (2, 10),
         levels: (0, 1),
-        eventBeginEnd: (1, 500),
+        eventBeginEnd: (60, 600),
         spawnLocation: SpawnLocation.outside,
       ),
       EnemyEvent(
         gameEnviroment,
         this,
         isBigBoss: false,
-        clusterSpread: 10,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 2)],
-        numberOfClusters: 2,
-        maxEnemies: 10,
-        eventTriggerInterval: (1, 1),
-        levels: (0, 1),
-        eventBeginEnd: (1, 30),
-        spawnLocation: SpawnLocation.outside,
-      ),
-      EnemyEvent(
-        gameEnviroment,
-        this,
-        isBigBoss: false,
-        clusterSpread: 2,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomSpinner, 1)],
+        clusterSpread: 4,
+        enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 1)],
         numberOfClusters: 3,
-        maxEnemies: 2,
-        eventTriggerInterval: (1, 1),
+        maxEnemies: 20,
+        eventTriggerInterval: (1, 5),
         levels: (0, 1),
-        eventBeginEnd: (1, 500),
+        eventBeginEnd: (75, 240),
         spawnLocation: SpawnLocation.outside,
       ),
+
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 4,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomBurrower, 1)],
+      //   numberOfClusters: 1,
+      //   maxEnemies: 2,
+      //   eventTriggerInterval: (1, 1),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, 500),
+      //   spawnLocation: SpawnLocation.outside,
+      // ),
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 4,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomBoomer, 1)],
+      //   numberOfClusters: 1,
+      //   maxEnemies: 2,
+      //   eventTriggerInterval: (1, 1),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, 500),
+      //   spawnLocation: SpawnLocation.outside,
+      // ),
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 10,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 2)],
+      //   numberOfClusters: 2,
+      //   maxEnemies: 10,
+      //   eventTriggerInterval: (1, 1),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, 30),
+      //   spawnLocation: SpawnLocation.outside,
+      // ),
+      // EnemyEvent(
+      //   gameEnviroment,
+      //   this,
+      //   isBigBoss: false,
+      //   clusterSpread: 2,
+      //   enemyClusters: [EnemyCluster(EnemyType.mushroomSpinner, 1)],
+      //   numberOfClusters: 3,
+      //   maxEnemies: 2,
+      //   eventTriggerInterval: (1, 1),
+      //   levels: (0, 1),
+      //   eventBeginEnd: (1, 500),
+      //   spawnLocation: SpawnLocation.outside,
+      // ),
       // EnemyEvent(
       //   gameEnviroment,
       //   this,

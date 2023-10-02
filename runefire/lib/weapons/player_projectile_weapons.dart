@@ -48,7 +48,7 @@ class CrystalPistol extends PlayerWeapon
   late CircleComponent circle;
 
   @override
-  double distanceFromPlayer = .0;
+  double distanceFromPlayer = .5;
 
   @override
   FutureOr<void> onLoad() async {
@@ -140,7 +140,7 @@ class Shotgun extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 0;
+  double distanceFromPlayer = .25;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [

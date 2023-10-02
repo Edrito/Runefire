@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/resources/data_classes/base.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/secondary_abilities.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
@@ -52,7 +53,9 @@ class PlayerAttachmentJointComponent extends PositionComponent
       weaponSpriteAnimation =
           await newWeapon.buildJointSpriteAnimationComponent(this);
       add(weaponSpriteAnimation!);
-
+      if (jointPosition == WeaponSpritePosition.hand) {
+        weaponSpriteAnimation?.position.y += weapon!.distanceFromPlayer;
+      }
       // weaponTip = PositionComponent(
       //     anchor: Anchor.center, position: weaponSpriteAnimation!.tipOffset);
       // weaponTipCenter = PositionComponent(
@@ -79,12 +82,6 @@ class PlayerAttachmentJointComponent extends PositionComponent
     // weaponTip = null;
     // weaponTipCenter = null;
     weaponSpriteAnimation = null;
-  }
-
-  @override
-  void update(double dt) {
-    this;
-    super.update(dt);
   }
 }
 
@@ -219,17 +216,15 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   bool get weaponCanChain => chainingTargets.parameter > 0;
   bool get weaponCanHome => maxHomingTargets.parameter > 0;
-  Vector2 get weaponTipPosition {
-    // final weaponTip =
-    //     weaponAttachmentPoints[WeaponSpritePosition.hand]?.weaponTip;
-    // if (weaponTip != null) {
-    //   return weaponTip.absolutePosition + entityAncestor!.center;
-    // } else {
-    return ((entityAncestor!.handJoint.absolutePosition.normalized() *
-            tipOffset.y *
-            weaponSize) +
-        entityAncestor!.center);
-    // }
+  Vector2 weaponTipPosition(double percent, [bool distanceFromPlayer = false]) {
+    return newPositionRad(
+            entityAncestor!.handJoint.absolutePosition,
+            -entityAncestor!.handJoint.angle,
+            distanceFromPlayer
+                ? this.distanceFromPlayer
+                : (tipOffset.y * weaponSize * percent) +
+                    this.distanceFromPlayer) +
+        entityAncestor!.center;
   }
 
   void addAdditionalWeapon(Weapon newWeapon) {
@@ -276,19 +271,19 @@ abstract class Weapon extends Component with UpgradeFunctions {
         center += entityAncestor!.mouseJoint.position;
         break;
       case SourceAttackLocation.weaponTip:
-        center = weaponTipPosition;
+        center = weaponTipPosition(1);
         break;
       case SourceAttackLocation.weaponMid:
-        center +=
-            (delta!.normalized() * (distanceFromPlayer + (weaponSize / 2)));
+        center = weaponTipPosition(0.5);
+      // center +=
+
+      //     (delta!.normalized() * (distanceFromPlayer + (weaponSize / 2)));
       case SourceAttackLocation.distanceFromPlayer:
-        center += entityAncestor!.handJoint.position.normalized() *
-            distanceFromPlayer;
+        center = weaponTipPosition(0, true);
         break;
       case SourceAttackLocation.customOffset:
         if (melee) {
-          center += (entityAncestor!.handJoint.position.normalized() *
-              distanceFromPlayer);
+          center = weaponTipPosition(0);
         }
 
         center += (customOffset ?? Vector2.zero());
