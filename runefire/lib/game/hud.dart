@@ -36,12 +36,12 @@ const smallBossBarWidthPercentOfMain = .5;
 
 double xpBarWidthPadding(HudScale scale) => 64;
 double xpBarHeigthtPadding(HudScale scale) => 8.0 * scale.scale;
-double xpBarHeight(HudScale scale) => 16 * scale.scale;
+double xpBarHeight(HudScale scale) => 8 * scale.scale;
 
 double bossBarHeightPadding(HudScale scale) => 8.0 * scale.scale;
 double bossBarWidthPadding(HudScale scale) => 64;
 
-double bossBarHeight(HudScale scale) => 16 * scale.scale;
+double bossBarHeight(HudScale scale) => 8 * scale.scale;
 
 double smallBossBarHeightPadding(HudScale scale) => 16 * scale.scale;
 
@@ -549,11 +549,10 @@ class GameHud extends PositionComponent {
     //     final heightPadding = xpBarHeigthtPadding(hudScale);
     // final widthPadding = xpBarWidthPadding(hudScale);
     final height = xpBarHeight(hudScale);
-    final baseSize = Vector2.all(height);
+    // final baseSize = Vector2.all(height);
     xpBarLeftSprite = SpriteComponent(
-      sprite: await Sprite.load('ui/xp_bar_left.png'),
+      sprite: await Sprite.load(ImagesAssetsUi.xpBarLeft.flamePath),
       anchor: Anchor.topLeft,
-      size: baseSize,
     );
 
     xpBarBorder = SpriteComponent(
@@ -564,13 +563,19 @@ class GameHud extends PositionComponent {
     xpBarRightSprite = SpriteComponent(
       sprite: await Sprite.load('ui/xp_bar_right.png'),
       anchor: Anchor.topRight,
-      size: baseSize,
     );
     xpBarMidSprite = SpriteComponent(
       sprite: await Sprite.load('ui/xp_bar_center.png'),
-      size: baseSize,
       anchor: Anchor.topCenter,
     );
+
+    xpBarMidSprite.size = xpBarMidSprite.sprite!.srcSize
+      ..scaledToDimension(true, height);
+    xpBarLeftSprite.size = xpBarLeftSprite.sprite!.srcSize
+      ..scaledToDimension(true, height);
+    xpBarRightSprite.size = xpBarRightSprite.sprite!.srcSize
+      ..scaledToDimension(true, height);
+
     applyXpBorderPositions();
     addAll([xpBarLeftSprite, xpBarRightSprite, xpBarMidSprite, xpBarBorder]);
   }

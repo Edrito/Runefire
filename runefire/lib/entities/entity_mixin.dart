@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -141,8 +142,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   late final BoolParameterManager enableMovement;
 
   //Height
-  final DoubleParameterManager height =
-      DoubleParameterManager(baseParameter: 1);
+  final IntParameterManager height = IntParameterManager(baseParameter: 1);
 
   ///Multiply this with area effect spells etc
   late final DoubleParameterManager areaSizePercentIncrease;
@@ -263,10 +263,16 @@ mixin AimFunctionality on Entity {
   double handPositionFromBody = .1;
   bool weaponBehind = false;
 
+  Vector2? get mousePositionOffPlayer {
+    final returnVal = inputAimPositions.containsKey(InputType.mouseMove)
+        ? ((inputAimPositions[InputType.mouseMove]! -
+            (entityOffsetFromCameraCenter)))
+        : null;
+    return returnVal;
+  }
+
   void buildDeltaFromMousePosition() {
-    inputAimAngles[InputType.mouseMove] =
-        (inputAimPositions[InputType.mouseMove]! - (handJoint.absolutePosition))
-            .normalized();
+    inputAimAngles[InputType.mouseMove] = mousePositionOffPlayer!.normalized();
   }
 
   Vector2? get entityAimPosition {
@@ -324,7 +330,6 @@ mixin AimFunctionality on Entity {
         anchor: Anchor.center,
         size: Vector2.zero(),
         priority: playerBackPriority);
-    add(backJoint);
 
     handJoint = PlayerAttachmentJointComponent(
       WeaponSpritePosition.hand,
@@ -338,6 +343,7 @@ mixin AimFunctionality on Entity {
       size: Vector2.zero(),
     );
     add(handJoint);
+    add(backJoint);
     add(mouseJoint);
     return super.onLoad();
   }
@@ -379,35 +385,40 @@ mixin AimFunctionality on Entity {
   Vector2 handAngleTarget = Vector2.zero();
 
   DoubleParameterManager aimingInterpolationAmount =
-      DoubleParameterManager(baseParameter: .9125);
-  double distanceFactor = 1;
+      DoubleParameterManager(baseParameter: .065);
+  double distanceIncrease = 1;
 
   Vector2 previousHandJointPosWithoutOffset = Vector2.zero();
 
   void followTarget() {
-    final angle = calculateInterpolatedVector(
-        handAngleTarget,
-        previousHandJointPosWithoutOffset.normalized(),
-        aimingInterpolationAmount.parameter);
-    if (isPlayer) {
-      const distance = 7.5;
-      distanceFactor = (Curves.easeInOutCubic.transform(
-                  (mouseJoint.position.clone().normalize() / distance)
+    final previousNormal = previousHandJointPosWithoutOffset.normalized();
+    final handAngleTarget = entityInputsAimAngle.normalized();
+    final interpAmount = aimingInterpolationAmount.parameter;
+    final angle = (previousNormal
+          ..moveToTarget(handAngleTarget,
+              interpAmount * previousNormal.distanceTo(handAngleTarget)))
+        .normalized();
+
+    final mousePositionWithPlayerCenterOffset = mousePositionOffPlayer;
+
+    if (isPlayer && mousePositionWithPlayerCenterOffset != null) {
+      const distance = 5.0;
+      final newDistance = (Curves.easeInOutCubic.transform(
+                  (mousePositionWithPlayerCenterOffset.length / distance)
                       .clamp(0, 1)) *
               distance)
-          .clamp(0, distance)
-          .toDouble();
+          .clamp(0, distance);
+      distanceIncrease =
+          lerpDouble(distanceIncrease, newDistance, interpAmount)!;
     }
 
-    handJoint.position =
-        (angle.normalized() * handPositionFromBody * distanceFactor);
-    // handJoint.position = newPosition(handJsaointOffset,
-    //     angle.angleTo(Vector2(0, -1)), handPositionFromBody * distanceFactor);
+    handJoint.position = (angle * handPositionFromBody * distanceIncrease);
 
     handJoint.angle = -radiansBetweenPoints(
       Vector2(0, 1),
-      handJoint.position,
+      angle,
     );
+
     previousHandJointPosWithoutOffset.setFrom(handJoint.position);
     handJoint.position += handJointOffset;
   }
@@ -848,7 +859,7 @@ mixin HealthFunctionality on Entity {
       damageTexts[element.key] = tempText;
       newTexts.add(tempText);
     }
-
+    newTexts.shuffle();
     if (isPlayer) {
       addAll(newTexts);
     } else {
@@ -920,7 +931,6 @@ mixin HealthFunctionality on Entity {
       [bool applyStatusEffect = true]) {
     applyHealing(damage);
     applyIFrameTimer(id);
-    setEntityStatus(EntityStatus.damage);
 
     if (damage.damageMap.isEmpty || onHitByOtherFunctionsCall(damage)) {
       return false;
@@ -943,6 +953,7 @@ mixin HealthFunctionality on Entity {
     }
     applyCameraShake(damage);
     applyDamage(damage);
+    setEntityStatus(EntityStatus.damage);
     applyKnockback(damage);
     deathChecker(damage);
     return true;
@@ -1384,7 +1395,7 @@ mixin DashFunctionality on StaminaFunctionality {
     if (!shouldApplyGroundAnimation) return;
 
     applyGroundAnimation(
-        await spriteAnimations.dashEffect1, false, height.parameter * .1);
+        await spriteAnimations.dashEffect1, false, entityHeight * .1, true);
   }
 
   bool triggerFunctions = true;
@@ -1614,7 +1625,7 @@ mixin JumpFunctionality on Entity {
                 1);
 
     applyGroundAnimation(
-        await spriteAnimations.jumpEffect1, false, height.parameter * .2);
+        await spriteAnimations.jumpEffect1, false, entityHeight * .2);
 
     _isJumping = true;
     double elapsed = 0;

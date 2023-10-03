@@ -84,7 +84,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
         break;
     }
     damage.victim.applyHitAnimation(
-        animation, center, 1, damage.damageMap.keys.first.color);
+        animation, center, damage.damageMap.keys.first.color);
   }
 
   void onHitFunctions(DamageInstance instance) {

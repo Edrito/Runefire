@@ -23,6 +23,8 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   abstract final GameLevel level;
   late final Forge2DComponent _physicsComponent;
 
+  double get zoom => gameCamera.viewfinder.zoom;
+
   //(int, double) is (priority, duration)
   Map<(int, double), List<dynamic>> physicsEntitiesToAddQueue = {};
   List<Component> tempAddingEntities = [];

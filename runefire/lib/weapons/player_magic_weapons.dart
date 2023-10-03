@@ -637,7 +637,6 @@ class MagicMissile extends PlayerWeapon
     maxHomingTargets.baseParameter = 1;
     increaseAttackCountWhenCharged = true;
     increaseWhenFullyCharged.baseParameter = 3;
-    instantHome = false;
 
     attackSplitFunctions[AttackSpreadType.regular] =
         (angle, attackCount) => regularAttackSpread(angle, attackCount, 90);

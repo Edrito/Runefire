@@ -189,7 +189,7 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
 
   void applyHitAnimation(Entity other, Vector2 position) {
     if (hitAnimation == null) return;
-    other.applyHitAnimation(hitAnimation!, position, 1);
+    other.applyHitAnimation(hitAnimation!, position);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/functions.dart';
 
@@ -23,6 +24,11 @@ extension ScaledToDimensionVector2 on Vector2 {
     }
     y = (y * ratio);
     (x = x * ratio);
+  }
+
+  void scaledToHeight(Entity entity) {
+    scaledToDimension(
+        true, y / entity.enviroment.zoom * entity.height.parameter);
   }
 }
 

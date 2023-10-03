@@ -4,15 +4,16 @@ import 'package:recase/recase.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 
 main(List<String> params) async {
+  print('eee');
   final Directory assetsFolder = Directory('assets');
-
+  print('eee');
   await parseFolder(assetsFolder, null);
 
   const String newDirectory = "lib\\resources\\assets";
   await Directory(newDirectory).create();
 
   String gigaFile =
-      "// ignore_for_file: library_private_types_in_public_api, unused_field \n";
+      "// ignore_for_file: library_private_types_in_public_api, unused_field \nimport 'package:flame/components.dart';\n";
 
   gigaFile +=
       "extension StringExtension on String {String get flamePath => split('/').skip(2).join('/');}";
@@ -48,7 +49,7 @@ Future<void> parseFolder(Directory directory, String? leading) async {
   bool containsFile = fileList.any((element) => element is File);
 
   List<String> stringNames = [];
-
+  Map<String, (double, double)> pngSizes = {};
   for (var element in fileList) {
     if (element is Directory) {
       print("    - ${element.path.replaceAll("\\", "/")}/");
@@ -62,15 +63,18 @@ Future<void> parseFolder(Directory directory, String? leading) async {
     } else if (element is File) {
       final fileName = element.path.split('\\').last;
       final fileNameWithoutExtension = fileName.split('.').first;
-
+      final stringPath = element.path.replaceAll('\\', '/');
       dartFile += "///$fileName\n";
       if (element.path.split('.').last == "png") {
         final pngSize = ImageSizeGetter.getSize(FileInput(element));
+        // ignore: unnecessary_string_interpolations
+        pngSizes["${fileNameWithoutExtension.camelCase}"] =
+            (pngSize.width.toDouble(), pngSize.height.toDouble());
 
         dartFile += "/// ${pngSize.width}x${pngSize.height} \n";
       }
       dartFile +=
-          "static const String ${fileNameWithoutExtension.camelCase} = \"${element.path.replaceAll('\\', '/')}\";\n";
+          "static const String ${fileNameWithoutExtension.camelCase} = \"$stringPath\";\n";
       stringNames.add(fileNameWithoutExtension.camelCase);
     }
   }
@@ -86,6 +90,13 @@ Future<void> parseFolder(Directory directory, String? leading) async {
     dartFile += "$element.flamePath,\n";
   }
   dartFile += "];\n";
+
+  dartFile += "static  Map<String, Vector2> pngSizes = {";
+  for (var element in pngSizes.entries) {
+    dartFile +=
+        "${element.key}: Vector2(${element.value.$1}, ${element.value.$2}),\n";
+  }
+  dartFile += "};\n";
 
   dartFile += "}\n";
   if (containsFile) {

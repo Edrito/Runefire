@@ -377,8 +377,6 @@ mixin ProjectileFunctionality on Weapon {
   List<Projectile> activeProjectiles = [];
   double projectileSize = .3;
 
-  bool instantHome = false;
-
   final bool originateFromCenter = false;
 
   final BoolParameterManager increaseCloseDamage =

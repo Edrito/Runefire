@@ -112,8 +112,8 @@ class Player extends Entity
         await spriteAnimations.playerCharacterOneJump1;
     entityAnimations[EntityStatus.dash] =
         await spriteAnimations.playerCharacterOneDash1;
-    // entityAnimations[EntityStatus.walk] =
-    //     await spriteAnimations.playerCharacterOneWalk1;
+    entityAnimations[EntityStatus.walk] =
+        await spriteAnimations.playerCharacterOneRun1;
     entityAnimations[EntityStatus.run] =
         await spriteAnimations.playerCharacterOneRun1;
     entityAnimations[EntityStatus.dead] =
@@ -313,15 +313,6 @@ class Player extends Entity
 
   void gestureEventEnd(InputType inputType) async {
     switch (inputType) {
-      // case InputType.mouseMove:
-      //   if (info == null) return;
-      //   await loaded.whenComplete(() => null);
-      //   inputAimPositions[InputType.mouseMove] =
-      //       (info.eventPosition.game - center);
-      //   inputAimAngles[InputType.mouseMove] =
-      //       inputAimPositions[InputType.mouseMove]!.normalized();
-      //   break;
-
       case InputType.aimJoy:
         inputAimAngles.remove(InputType.aimJoy);
         break;
@@ -350,15 +341,13 @@ class Player extends Entity
   }
 
   void gestureEventStart(InputType inputType, Vector2 eventPosition) {
-    // if (isDisplay && inputType != InputType.mouseMove) return;
-
     switch (inputType) {
       case InputType.mouseMove:
         if (!isMounted) return;
         final position = (shiftCoordinatesToCenter(
                 eventPosition, enviroment.gameCamera.viewport.size) /
-            enviroment.gameCamera.viewfinder.zoom);
-
+            enviroment.zoom);
+        // inputAimPositions[InputType.mouseMove]?.setFrom(position);
         inputAimPositions[InputType.mouseMove] = position;
         buildDeltaFromMousePosition();
 
@@ -387,39 +376,12 @@ class Player extends Entity
         inputAimPositions[InputType.tapClick] = shiftCoordinatesToCenter(
                 eventPosition, enviroment.gameCamera.viewport.size) /
             enviroment.gameCamera.viewfinder.zoom;
-        // inputAimAngles[InputType.mouseMove] =
-        //     inputAimPositions[InputType.mouseMove]!.normalized();
-        // inputAimAngles[InputType.tapClick] =
-        //     (info.eventPosition.game - center).normalized();
+
         startAttacking();
         inputAimAngles.remove(InputType.tapClick);
         break;
 
-      // case InputType.mouseDrag:
-      //   print('drag here');
-      //   inputAimPositions[InputType.mouseMove] = shiftCoordinatesToCenter(
-      //           eventPosition, enviroment.gameCamera.viewport.size) /
-      //       enviroment.gameCamera.viewfinder.zoom;
-
-      //   inputAimPositions[InputType.mouseDrag] =
-      //       inputAimPositions[InputType.mouseMove]!;
-
-      //   inputAimAngles[InputType.mouseDrag] =
-      //       inputAimPositions[InputType.mouseDrag]!.normalized();
-      //   inputAimAngles[InputType.mouseMove] =
-      //       inputAimAngles[InputType.mouseDrag]!.clone();
-      //   startAttacking();
-
-      //   break;
-      // case InputType.mouseDragStart:
-      //   if (!inputAimAngles.containsKey(InputType.mouseMove)) return;
-      //   startAttacking();
-      //   break;
-      // case InputType.secondaryClick:
-      //   startAltAttacking();
-      //   break;
       default:
-      // Code to handle unknown or unexpected input type
     }
   }
 

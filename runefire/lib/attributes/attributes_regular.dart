@@ -2762,15 +2762,17 @@ class SecondsPleaseAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! MovementFunctionality) return;
-    final move = victimEntity as MovementFunctionality;
-    move.speed.setParameterPercentValue(attributeId, -.2);
+    if (victimEntity is MovementFunctionality) {
+      final move = victimEntity as MovementFunctionality;
+      move.speed.setParameterPercentValue(attributeId, -.2);
+    }
 
-    if (victimEntity is! HealthFunctionality) return;
-    final health = victimEntity as HealthFunctionality;
-    health.maxHealth.setParameterPercentValue(attributeId, .5);
+    if (victimEntity is HealthFunctionality) {
+      final health = victimEntity as HealthFunctionality;
+      health.maxHealth.setParameterPercentValue(attributeId, .5);
+    }
 
-    victimEntity?.height.setParameterPercentValue(attributeId, .5);
+    victimEntity?.height.setParameterFlatValue(attributeId, 1);
     victimEntity?.applyHeightToSprite();
   }
 

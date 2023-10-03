@@ -33,7 +33,7 @@ class SpriteShadows extends Component {
     final viewPortSize = Vector2.zero();
     final Vector2 temp = Vector2.zero();
     for (var element in env.activeEntites) {
-      final double heightPar = element.height.parameter;
+      final double heightPar = element.spriteSize.y;
       temp.setFrom((((element.center)) + viewPortSize));
       temp.y += heightPar * .5;
       canvas.drawOval(

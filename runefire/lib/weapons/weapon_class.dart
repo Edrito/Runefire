@@ -264,7 +264,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   Vector2 generateGlobalPosition(SourceAttackLocation attackLocation,
       [Vector2? delta, bool melee = false]) {
-    Vector2 center = entityAncestor!.center;
+    Vector2 center = entityAncestor!.entityOffsetFromCameraCenter;
 
     switch (attackLocation) {
       case SourceAttackLocation.mouse:

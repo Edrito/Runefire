@@ -95,7 +95,7 @@ class WeaponSecondaryTile extends StatelessWidget {
             height: isWeapon ? 200 : 150,
             child: isWeapon
                 ? RotatedBox(
-                    quarterTurns: 1,
+                    quarterTurns: 2,
                     child: buildImageAsset(
                       weaponType!.icon,
                       fit: BoxFit.contain,

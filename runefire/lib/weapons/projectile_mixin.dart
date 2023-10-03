@@ -229,9 +229,9 @@ mixin StandardProjectile on Projectile {
 
   HealthFunctionality? target;
   bool targetSet = false;
-  void setTarget(HealthFunctionality? target) {
+  void setTarget(HealthFunctionality? target, [bool isChain = false]) {
     bool instantHome = true;
-    instantHome = (weaponAncestor).instantHome;
+    instantHome = isChain;
     targetSet = true;
 
     this.target = target;
@@ -283,7 +283,7 @@ mixin StandardProjectile on Projectile {
         setTarget(null);
         return;
       }
-      setTarget(closeSensorBodies[index]);
+      setTarget(closeSensorBodies[index], true);
       chainedTargets++;
       durationPassed = 0;
     }

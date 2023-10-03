@@ -67,7 +67,7 @@ class MushroomRunner extends Enemy
       required super.enviroment,
       required super.upgradeLevel,
       required super.eventManagement}) {
-    height.baseParameter = 1.2;
+    height.baseParameter = 3;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
     critChance.baseParameter = .5;

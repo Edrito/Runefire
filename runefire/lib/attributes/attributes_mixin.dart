@@ -547,8 +547,9 @@ class EntityStatusEffectsWrapper {
     if (removedAnimations) return;
     markerAnimation = SpriteAnimationComponent(
         animation: await getEffectSprite(StatusEffects.marked),
-        size: Vector2.all(1.25),
+        size: Vector2.all(16) * entity.height.parameter.toDouble(),
         anchor: Anchor.center);
+
     // markerAnimation!.position.y = -entity.height.parameter * .75;
     // markerAnimation!.position.x = width / -2;
     entity.add(markerAnimation!);
@@ -561,8 +562,7 @@ class EntityStatusEffectsWrapper {
     activeStatusEffects[effect] = (StatusEffect(effect, level));
     final posX = getXPosition(effect);
     activeStatusEffects[effect]!.position.x = posX;
-    activeStatusEffects[effect]!.position.y =
-        -.2 - (entity.height.parameter * .8);
+    activeStatusEffects[effect]!.position.y = -.2 - (entity.entityHeight);
     activeStatusEffects[effect]?.addToParent(entity);
   }
 
@@ -664,7 +664,7 @@ class ReloadAnimation extends PositionComponent {
     // final x = (parent.entityStatusWrapper.width - width) / 2;
     size.y = height;
     size.x = parent.entityStatusWrapper.width * .7;
-    position.y = -parent.height.parameter * .75;
+    position.y = -parent.entityHeight * .75;
     position.x = width / -2;
 
     if (isSecondaryWeapon) {

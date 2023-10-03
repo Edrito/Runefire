@@ -12,6 +12,7 @@ import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/constants/routes.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/main.dart';
@@ -33,7 +34,8 @@ abstract class Entity extends BodyComponent<GameRouter>
     initializeParameterManagers();
     entityId = const Uuid().v4();
   }
-
+  Vector2 get entityOffsetFromCameraCenter =>
+      center - enviroment.gameCamera.viewfinder.position;
   List<Function(bool isFlipped)> onBodyFlip = [];
   //POSITIONING
 
@@ -55,6 +57,11 @@ abstract class Entity extends BodyComponent<GameRouter>
   //STATUS
   Vector2 initialPosition;
   Vector2 get spriteOffset => Vector2.zero();
+  Vector2 get spriteSize =>
+      entityAnimations[EntityStatus.idle]!.frames.first.sprite.srcSize.clone()
+        ..scaledToHeight(this);
+
+  double get entityHeight => spriteSize.y;
 
   // late PositionComponent spriteWrapper;
   // late Shadow3DDecorator shadow3DDecorator;
@@ -118,12 +125,16 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   Future<void> applyGroundAnimation(
-      SpriteAnimation animation, bool followEntity, double yOffset) async {
+      SpriteAnimation animation, bool followEntity, double yOffset,
+      [bool moveDirection = false]) async {
     final size = animation.frames.first.sprite.srcSize;
-    size.scaleTo(height.parameter * 1.35);
+
+    size.scaledToHeight(this);
+
     final sprite = SpriteAnimationComponent(
         anchor: Anchor.center, size: size, animation: animation);
-    if (!isFlipped) {
+    if ((!(isFlipped) && !moveDirection) ||
+        (moveDirection && body.linearVelocity.x < 0)) {
       sprite.flipHorizontallyAroundCenter();
     }
     if (followEntity) {
@@ -138,19 +149,25 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   void applyHeightToSprite() {
-    entityAnimationsGroup.size = Vector2.all(height.parameter);
+    entityAnimationsGroup.size = spriteSize;
+    if (isLoaded) {
+      body.fixtures
+          .firstWhere((element) =>
+              (element.userData! as Map)['type'] == FixtureType.body)
+          .shape = CircleShape()..radius = entityAnimationsGroup.size.x / 2.4;
+    }
   }
 
   Future<void> applyHitAnimation(
-      SpriteAnimation animation, Vector2 sourcePosition, double size,
+      SpriteAnimation animation, Vector2 sourcePosition,
       [Color? color]) async {
     if (animation.loop || currentHitAnimations > hitAnimationLimit) return;
     currentHitAnimations++;
-    final spriteSize = animation.frames.first.sprite.srcSize;
-    spriteSize.scaleTo(size);
-    final thisHeight = height.parameter;
+    final hitSize = animation.frames.first.sprite.srcSize;
+    hitSize.scaledToHeight(this);
+    final thisHeight = entityHeight;
     final sprite = SpriteAnimationComponent(
-        anchor: Anchor.center, size: spriteSize, animation: animation);
+        anchor: Anchor.center, size: hitSize, animation: animation);
     if (color != null) {
       sprite.paint = colorPalette.buildProjectile(
           color: color,
@@ -159,7 +176,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     }
     sprite.position = Vector2(
         (rng.nextDouble() * thisHeight / 3) - thisHeight / 6,
-        ((sourcePosition - center).y).clamp(thisHeight / -2, thisHeight / 2));
+        ((sourcePosition - center).y).clamp(thisHeight * -.5, thisHeight * .5));
 
     add(sprite);
     sprite.animationTicker?.completed.then((value) {
@@ -233,6 +250,11 @@ abstract class Entity extends BodyComponent<GameRouter>
   Future<void> loadAnimationSprites();
 
   void permanentlyDisableEntity() {}
+  static const dupeStatusCheckerList = [
+    EntityStatus.run,
+    EntityStatus.walk,
+    EntityStatus.idle
+  ];
 
   Future<void> setEntityStatus(EntityStatus newEntityStatus,
       {dynamic customAnimationKey,
@@ -242,8 +264,7 @@ abstract class Entity extends BodyComponent<GameRouter>
 
     if (newEntityStatus == entityStatus &&
         entityAnimationsGroup.current == newEntityStatus &&
-        [EntityStatus.run, EntityStatus.walk, EntityStatus.idle]
-            .contains(newEntityStatus)) return;
+        dupeStatusCheckerList.contains(newEntityStatus)) return;
 
     bool statusResult = true;
     switch (newEntityStatus) {
@@ -361,7 +382,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     // ];
     late CircleShape shape;
     shape = CircleShape();
-    shape.radius = entityAnimationsGroup.size.x / 2.5;
+    shape.radius = entityAnimationsGroup.size.x / 2.4;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},
@@ -369,7 +390,6 @@ abstract class Entity extends BodyComponent<GameRouter>
         friction: 0,
         density: 0,
         filter: filter);
-
     final closeBodySensor =
         FixtureDef(CircleShape()..radius = closeBodiesSensorRadius,
             userData: {"type": FixtureType.sensor, "object": this},

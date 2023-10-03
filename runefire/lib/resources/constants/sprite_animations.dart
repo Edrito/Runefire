@@ -5,13 +5,14 @@ import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/visuals.dart';
 
 Future<SpriteAnimation> loadSpriteAnimation(
-    int numberOfSprites, String source, double stepTime, bool loop,
-    [double? scaledToDimension]) async {
+  int numberOfSprites,
+  String source,
+  double stepTime,
+  bool loop,
+) async {
   final sprite = (await Sprite.load(source));
   Vector2 newScale = sprite.srcSize;
-  if (scaledToDimension != null) {
-    newScale.scaleTo(scaledToDimension);
-  }
+
   newScale = Vector2(newScale.x / numberOfSprites, newScale.y);
   return SpriteSheet(image: sprite.image, srcSize: newScale).createAnimation(
       row: 0,
@@ -36,13 +37,13 @@ class SpriteAnimations {
   late Future<SpriteAnimation> playerCharacterOneJump1 = loadSpriteAnimation(
       3, ImagesAssetsRuneknight.runeknightJump1.flamePath, .2, false);
   late Future<SpriteAnimation> playerCharacterOneDash1 = loadSpriteAnimation(
-      7, ImagesAssetsRuneknight.runeknightDash1.flamePath, .075, false);
+      6, ImagesAssetsRuneknight.runeknightDash1.flamePath, .075, false);
   // late Future<SpriteAnimation> playerCharacterOneWalk1 =
   //     loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
   late Future<SpriteAnimation> playerCharacterOneRun1 = loadSpriteAnimation(
       8, ImagesAssetsRuneknight.runeknightRun1.flamePath, .13, true);
   late Future<SpriteAnimation> playerCharacterOneHit1 = loadSpriteAnimation(
-      4, ImagesAssetsRuneknight.runeknightHit1.flamePath, .1, true);
+      4, ImagesAssetsRuneknight.runeknightHit1.flamePath, .08, false);
   late Future<SpriteAnimation> playerCharacterOneDead1 = loadSpriteAnimation(
       8, ImagesAssetsRuneknight.runeknightDeath1.flamePath, .2, false);
 
@@ -146,7 +147,10 @@ class SpriteAnimations {
 //Status Effects
 
   late Future<SpriteAnimation> burnEffect1 = loadSpriteAnimation(
-      4, 'status_effects/fire_effect.png', defaultFrameDuration, true);
+      4,
+      ImagesAssetsStatusEffects.fireEffect.flamePath,
+      defaultFrameDuration,
+      true);
   late Future<SpriteAnimation> markedEffect1 = loadSpriteAnimation(
       4, 'attribute_sprites/mark_enemy_4.png', defaultFrameDuration, true);
 

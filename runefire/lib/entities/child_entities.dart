@@ -131,7 +131,7 @@ abstract class MovingSentry extends ChildEntity with MovementFunctionality {
           ..categoryBits = isPlayer ? playerCategory : enemyCategory,
         isSensor: true,
         userData: {'type': FixtureType.body, "object": this},
-        density: 0.005);
+        density: .9);
     renderBody = false;
     return super.createBody()
       ..createFixture(fixture)

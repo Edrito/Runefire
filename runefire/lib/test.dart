@@ -17,20 +17,9 @@ import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
-  // Future.delayed(2.seconds).then((value) async {
-  //   while (true) {
-  //     for (var element in StatusEffects.values) {
-  //       await Future.delayed(.5.seconds);
-  //       player?.addAttribute(
-  //           AttributeType.values
-  //               .where((elementD) => elementD.name == element.name)
-  //               .first,
-  //           perpetratorEntity: player,
-  //           isTemporary: true,
-  //           duration: 1);
-  //     }
-  //   }
-  // });
+  Future.delayed(2.seconds).then((value) async {
+    player?.addAttribute(AttributeType.chainingAttacks);
+  });
 
   while (true) {
     await Future.delayed(2.seconds).then((value) {
