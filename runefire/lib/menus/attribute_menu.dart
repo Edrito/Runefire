@@ -404,47 +404,65 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                 ),
               ),
             )),
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Center(
-                      child: CustomButton(
-                        "Back",
-                        gameRef: widget.gameRef,
-                        onTap: () => widget.onBack(),
+            SizedBox(
+              height: menuBaseBarHeight,
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: menuBaseBarWidthPadding,
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: CustomButton(
+                          "Back",
+                          gameRef: widget.gameRef,
+                          onTap: () => widget.onBack(),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Center(
-                      child: CustomButton(
-                        "Unlock",
-                        gameRef: widget.gameRef,
-                        onTap: () {
-                          final result = playerData
-                              .unlockPermanentAttribute(selectedAttribute);
-                        },
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(
+                        child: CustomButton(
+                          "Unlock",
+                          gameRef: widget.gameRef,
+                          onTap: () {
+                            final result = playerData
+                                .unlockPermanentAttribute(selectedAttribute);
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Center(
-                      child: Text(
-                        "${playerData.experiencePoints} *icon*",
-                        style: defaultStyle,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Spacer(),
+                          Center(
+                            child: Text(
+                              "${playerData.experiencePoints}",
+                              style: defaultStyle,
+                            ),
+                          ),
+                          buildImageAsset(ImagesAssetsExperience.all,
+                              fit: BoxFit.fitHeight)
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(
+                    width: menuBaseBarWidthPadding,
+                  )
+                ],
+              ),
             )
           ],
         ),

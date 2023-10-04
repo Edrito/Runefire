@@ -1,8 +1,10 @@
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import '../resources/data_classes/player_data.dart';
 import 'enviroment_mixin.dart';
@@ -10,7 +12,7 @@ import '../resources/visuals.dart';
 
 class MenuGame extends Enviroment with PlayerFunctionality {
   bool initAddAttempt = false;
-  List<RectangleComponent> platforms = [];
+  // List<RectangleComponent> platforms = [];
   late CharacterType currentPlayer;
   late String weaponHash;
 
@@ -35,43 +37,52 @@ class MenuGame extends Enviroment with PlayerFunctionality {
     super.onRemove();
   }
 
-  void initPlatforms() async {
-    const platformsLength = 5;
-    for (var i = 0; i < platformsLength; i++) {
-      if (player == null) return;
-      final rectSize = Vector2(1.4 - (1.4 * i / platformsLength), .15);
-      final rectPos =
-          Vector2(0, ((player!.height.parameter / 2) - .25) - (i * -.2));
-      final rect = RectangleComponent(
-        anchor: Anchor.topCenter,
-        size: rectSize,
-        priority: -1,
-        position: Vector2(0, 10),
-        paint: ApolloColorPalette.lightBlue
-            .withAlpha((255 * (1 - (1 * i / platformsLength))).round())
-            .paint(),
-      );
-      platforms.add(rect);
-      if (i != 0) {
-        final infEffect = InfiniteEffectController(EffectController(
-          duration: 1,
-          curve: Curves.easeInOut,
-          reverseDuration: 1,
-          reverseCurve: Curves.easeInOut,
-        ));
-        rect.add(MoveEffect.by(
-            Vector2((.012 * rng.nextDouble()) - .006, -.03), infEffect));
-      }
+  // void initPlatforms() async {
+  //   const platformsLength = 5;
+  //   for (var i = 0; i < platformsLength; i++) {
+  //     if (player == null) return;
+  //     final rectSize = Vector2(1.4 - (1.4 * i / platformsLength), .15);
+  //     final rectPos =
+  //         Vector2(0, ((player!.height.parameter / 2) - .25) - (i * -.2));
+  //     final rect = RectangleComponent(
+  //       anchor: Anchor.topCenter,
+  //       size: rectSize,
+  //       priority: -1,
+  //       position: Vector2(0, 10),
+  //       paint: ApolloColorPalette.lightBlue
+  //           .withAlpha((255 * (1 - (1 * i / platformsLength))).round())
+  //           .paint(),
+  //     );
+  //     platforms.add(rect);
+  //     if (i != 0) {
+  //       final infEffect = InfiniteEffectController(EffectController(
+  //         duration: 1,
+  //         curve: Curves.easeInOut,
+  //         reverseDuration: 1,
+  //         reverseCurve: Curves.easeInOut,
+  //       ));
+  //       rect.add(MoveEffect.by(
+  //           Vector2((.012 * rng.nextDouble()) - .006, -.03), infEffect));
+  //     }
 
-      final effect =
-          EffectController(duration: 1, curve: Curves.fastEaseInToSlowEaseOut);
+  //     final effect =
+  //         EffectController(duration: 1, curve: Curves.fastEaseInToSlowEaseOut);
 
-      rect.add(MoveEffect.to(rectPos, effect));
+  //     rect.add(MoveEffect.to(rectPos, effect));
 
-      await Future.delayed(const Duration(milliseconds: 200));
+  //     await Future.delayed(const Duration(milliseconds: 200));
 
-      player?.add(rect);
-    }
+  //     player?.add(rect);
+  //   }
+  // }
+
+  @override
+  void onGameResize(Vector2 size) {
+    player?.height.baseParameter = getHeightScaleStep(
+      size.y < size.x ? size.y : size.x,
+    );
+    player?.applyHeightToSprite();
+    super.onGameResize(size);
   }
 
   @override
@@ -84,11 +95,13 @@ class MenuGame extends Enviroment with PlayerFunctionality {
     super.addPlayer();
     player?.isDisplay = true;
     // player?.height = 2;
-    gameCamera.viewfinder.zoom = 75;
+    // gameCamera.viewfinder.zoom = 75;
+    await player?.loaded;
+    onGameResize(gameCamera.visibleWorldRect.toVector2() * zoom);
 
-    if (platforms.isNotEmpty) return;
+    // if (platforms.isNotEmpty) return;
 
-    initPlatforms();
+    // initPlatforms();
   }
 
   void reAddPlayer() async {
@@ -115,10 +128,10 @@ class MenuGame extends Enviroment with PlayerFunctionality {
       player?.removeFromParent();
       player = null;
       if (!removePlatforms) return;
-      for (var element in platforms) {
-        element.removeFromParent();
-      }
-      platforms.clear();
+      // for (var element in platforms) {
+      //   element.removeFromParent();
+      // }
+      // platforms.clear();
     }
   }
 

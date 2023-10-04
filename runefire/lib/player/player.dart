@@ -62,7 +62,7 @@ class Player extends Entity
     onReload.add(updateRemainingAmmo);
 
     if (isDisplay) {
-      height.setParameterPercentValue('display', .5);
+      // height.setParameterPercentValue('display', .5);
       add(TimerComponent(
         period: .05,
         repeat: true,
@@ -256,6 +256,21 @@ class Player extends Entity
       if (game.gameStateComponent.gameState.gameIsPaused ||
           event is! RawKeyDownEvent) return;
 
+      if (!isDisplay) {
+        if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
+          swapWeapon();
+        }
+        if (event.physicalKey == (PhysicalKeyboardKey.keyR)) {
+          if (currentWeapon is ReloadFunctionality) {
+            final currentWeaponReload = currentWeapon as ReloadFunctionality;
+            if (currentWeaponReload.isReloading ||
+                currentWeaponReload.spentAttacks == 0) return;
+
+            currentWeaponReload.reload();
+          }
+        }
+      }
+
       if (event.physicalKey == (PhysicalKeyboardKey.space)) {
         setEntityStatus(EntityStatus.jump);
       }
@@ -272,19 +287,6 @@ class Player extends Entity
 
       if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
         setEntityStatus(EntityStatus.dash);
-      }
-      if (event.physicalKey == (PhysicalKeyboardKey.keyR)) {
-        if (currentWeapon is ReloadFunctionality) {
-          final currentWeaponReload = currentWeapon as ReloadFunctionality;
-          if (currentWeaponReload.isReloading ||
-              currentWeaponReload.spentAttacks == 0) return;
-
-          currentWeaponReload.reload();
-        }
-      }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
-        swapWeapon();
       }
 
       // if (event.physicalKey == (PhysicalKeyboardKey.keyM)) {

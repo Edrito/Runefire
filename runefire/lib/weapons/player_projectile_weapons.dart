@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/widgets.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
@@ -51,14 +52,6 @@ class CrystalPistol extends PlayerWeapon
   double distanceFromPlayer = .5;
 
   @override
-  FutureOr<void> onLoad() async {
-    // circle = CircleComponent(
-    //     radius: .2, paint: Paint()..color = Colors.blue, anchor: Anchor.center);
-    // add(circle);
-    return super.onLoad();
-  }
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [
     WeaponSpritePosition.hand
   ];
@@ -81,8 +74,10 @@ class CrystalPistol extends PlayerWeapon
   }
 
   @override
-  double weaponSize = 1.356;
-
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.pistol]!;
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
 }
@@ -148,7 +143,10 @@ class Shotgun extends PlayerWeapon
   ];
 
   @override
-  double weaponSize = 2;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.scatterVine]!;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
@@ -212,9 +210,11 @@ class LongRangeRifle extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [
     WeaponSpritePosition.hand,
   ];
-
   @override
-  double weaponSize = 3.0;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.longRifle]!;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
@@ -286,7 +286,10 @@ class ArcaneBlaster extends PlayerWeapon
   ];
 
   @override
-  double weaponSize = 2;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.arcaneBlaster]!;
   @override
   ProjectileType? projectileType = ProjectileType.blackSpriteBullet;
 }
@@ -362,9 +365,11 @@ class LaserRifle extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [
     WeaponSpritePosition.hand,
   ];
-
   @override
-  double weaponSize = 2;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.prismaticBeam]!;
 
   @override
   ProjectileType? projectileType = ProjectileType.followLaser;
@@ -421,25 +426,25 @@ class RocketLauncher extends PlayerWeapon
   ];
 
   @override
-  double weaponSize = 1.7;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.eldritchRunner]!;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
 
   @override
-  double tipPositionPercent = -.2;
-
-  @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
 }
 
-class Railgun extends PlayerWeapon
+class Railspire extends PlayerWeapon
     with
         ProjectileFunctionality,
         ReloadFunctionality,
         SemiAutomatic,
         ChargeEffect {
-  Railgun(
+  Railspire(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
@@ -486,14 +491,13 @@ class Railgun extends PlayerWeapon
   ];
 
   @override
-  double tipPositionPercent = -.02;
-
-  @override
   ProjectileType? projectileType = ProjectileType.laser;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
-
   @override
-  double weaponSize = 3;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.railspire]!;
 }

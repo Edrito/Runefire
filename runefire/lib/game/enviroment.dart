@@ -21,7 +21,7 @@ import '../resources/constants/priorities.dart';
 
 abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   abstract final GameLevel level;
-  late final Forge2DComponent _physicsComponent;
+  Map<int, Forge2DComponent> priorityPhysicsComponents = {};
 
   double get zoom => gameCamera.viewfinder.zoom;
 
@@ -37,10 +37,19 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     },
   )..addToParent(this);
 
-  void addTempComponent() {
-    tempAddingEntities.first.addToParent(_physicsComponent);
-    tempAddingEntities.removeAt(0);
-    durationNoAdd = 0;
+  void addTempComponent([Component? component]) {
+    final temp = component ?? tempAddingEntities.first;
+    if (!priorityPhysicsComponents.containsKey(temp.priority)) {
+      priorityPhysicsComponents[temp.priority] = Forge2DComponent();
+      priorityPhysicsComponents[temp.priority]!.priority = temp.priority;
+      add(priorityPhysicsComponents[temp.priority]!);
+    }
+
+    temp.addToParent(priorityPhysicsComponents[temp.priority]!);
+    if (component == null) {
+      tempAddingEntities.remove(temp);
+      durationNoAdd = 0;
+    }
   }
 
   int currentPriority = 0;
@@ -71,6 +80,12 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
       if (durationNoAdd > 1) {
         physicsEntityAdding.timer.stop();
         durationNoAdd = 0;
+        for (var element in [
+          ...priorityPhysicsComponents.entries
+              .where((element) => element.value.children.isEmpty)
+        ]) {
+          priorityPhysicsComponents.remove(element.key);
+        }
       }
     }
   }
@@ -78,8 +93,13 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   bool firstTick = false;
   void addPhysicsComponent(List<Component> components,
       {bool instant = false, double duration = .2, int priority = 0}) {
+    if (components.isEmpty) return;
+    // for (var element in components) {
+    //   print(element.runtimeType);
+    //   print(element.priority);
+    // }
     if (instant || components.length < 2) {
-      _physicsComponent.addAll(components);
+      addTempComponent(components.first);
     } else {
       if (priority > newestPriority) {
         newestPriority = priority;
@@ -212,10 +232,10 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     gameCamera.viewfinder.zoom = 75;
     super.add(gameCamera);
 
-    //Physics
-    _physicsComponent = Forge2DComponent();
-    _physicsComponent.priority = enemyPriority;
-    add(_physicsComponent);
+    // //Physics
+    // _physicsComponent = Forge2DComponent();
+    // _physicsComponent.priority = enemyPriority;
+    // add(_physicsComponent);
 
     return super.onLoad();
   }

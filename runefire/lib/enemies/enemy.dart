@@ -39,9 +39,6 @@ abstract class Enemy extends Entity
   abstract EnemyType enemyType;
 
   @override
-  int get priority => enemyPriority;
-
-  @override
   Filter? filter = Filter()
     ..categoryBits = enemyCategory
     ..maskBits = projectileCategory +

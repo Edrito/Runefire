@@ -265,7 +265,7 @@ class MeleeAttackSprite extends PositionComponent {
         weaponTrailConfig?.bottomStartFromTipPercent ?? .3;
 
     widthOfTrail = (handler.weaponAncestor.tipOffset.y *
-            handler.weaponAncestor.weaponSize) *
+            handler.weaponAncestor.weaponLength) *
         (topStartFromTipPercent - bottomStartFromTipPercent);
     drawPaint = Paint()..color = color.withOpacity(1);
     final centerPoint =
@@ -287,7 +287,7 @@ class MeleeAttackSprite extends PositionComponent {
             // Vector2.zero(),
             -swingAngle,
             handler.weaponAncestor.tipOffset.y *
-                handler.weaponAncestor.weaponSize *
+                handler.weaponAncestor.weaponLength *
                 topStartFromTipPercent)
         .toOffset();
     final midPos = newPositionRad(
@@ -295,7 +295,7 @@ class MeleeAttackSprite extends PositionComponent {
             // swing.swingPosition,
             -swingAngle,
             handler.weaponAncestor.tipOffset.y *
-                handler.weaponAncestor.weaponSize *
+                handler.weaponAncestor.weaponLength *
                 bottomStartFromTipPercent)
         .toOffset();
 

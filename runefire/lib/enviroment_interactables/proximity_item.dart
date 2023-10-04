@@ -6,8 +6,10 @@ import 'package:flame/particles.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Particle;
 import 'package:flutter/animation.dart';
 import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/resources/game_state_class.dart';
 
 import '../player/player.dart';
 import '../resources/functions/custom.dart';
@@ -74,7 +76,6 @@ class ExperienceItem extends ProximityItem {
 
   late Color color;
   final int trailCount = 10;
-  late TimerComponent particleTimer;
 
   List<Vector2> trails = [];
   Vector2 previousPoint = Vector2.zero();
@@ -95,23 +96,29 @@ class ExperienceItem extends ProximityItem {
                 [...previousValue, (element - center).toOffset()]),
         paint);
 
-    canvas.drawCircle(Offset.zero, radius, xpPaint);
+    // canvas.drawCircle(Offset.zero, radius, xpPaint);
 
     super.render(canvas);
   }
 
   late final Paint trailPaint;
-  late final Paint xpPaint;
+  // late final Paint xpPaint;
+  late final SpriteComponent spriteComponent;
 
   @override
   Future<void> onLoad() async {
     color = experienceAmount.color;
     trailPaint = Paint()..color = color;
-    xpPaint = colorPalette.buildProjectile(
-        color: color,
-        projectileType: ProjectileType.spriteBullet,
-        lighten: false);
 
+    final sprite = await Sprite.load(experienceAmount.fileName.flamePath);
+    final size = sprite.srcSize
+      ..scaledToHeight(null, env: gameState.currentEnviroment);
+    spriteComponent = SpriteComponent(
+      size: size,
+      anchor: Anchor.center,
+      sprite: sprite,
+      priority: backgroundPickupPriority,
+    )..addToParent(this);
     return super.onLoad();
   }
 

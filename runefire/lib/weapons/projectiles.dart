@@ -235,11 +235,11 @@ class FollowLaser extends Projectile with FadeOutProjectile, LaserProjectile {
       required super.weaponAncestor,
       super.size = 1.5,
       super.power}) {
-    followWeapon = false;
+    followWeapon = true;
     removeOnEndAttack = true;
     allowChainingOrHoming = true;
     rememberTargets = true;
-    lightningEffect = false;
+    lightningEffect = true;
   }
   @override
   ProjectileType projectileType = ProjectileType.laser;

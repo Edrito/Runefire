@@ -402,6 +402,7 @@ abstract class EventManagement extends Component {
           activeAiFunctionIndex[time] = 0;
           activeAiFunctionsToCall = [...activeAiFunctions[time]!];
         }
+        if (activeAiFunctionsToCall.isEmpty) return;
         activeAiFunctionsToCall[activeAiFunctionIndex[time]!].call();
         activeAiFunctionIndex[time] = activeAiFunctionIndex[time]! + 1;
       },

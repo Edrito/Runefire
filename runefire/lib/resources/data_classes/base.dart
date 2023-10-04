@@ -110,6 +110,16 @@ class IntParameterManager {
   int? maxParameter;
 
   int baseParameter;
+  double get doubleParameter {
+    final returnVal =
+        ((baseParameter + parameterFlatIncrease) * parameterPercentIncrease);
+    if (minParameter == null || maxParameter == null) {
+      return returnVal;
+    } else {
+      return returnVal.clamp(minParameter!, maxParameter!).toDouble();
+    }
+  }
+
   int get parameter {
     final returnVal =
         ((baseParameter + parameterFlatIncrease) * parameterPercentIncrease)

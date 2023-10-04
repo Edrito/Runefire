@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/functions/custom.dart';
@@ -236,14 +237,13 @@ class _CaveBackgroundState extends State<CaveBackground> {
   MenuPageType? selectedMenuPage;
   bool get menuPageIsLevel => gameState.menuPageIsLevel;
 
-  final bigPortalSize = 1.0;
-  final smallPortalSize = .7;
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     final smallestDimension =
         size.width < size.height ? size.width : size.height;
+    final scale = getHeightScaleStep(smallestDimension);
 
     selectedMenuPage = gameState.currentMenuPage;
     selectedLevel = gameState.playerData.selectedLevel;
@@ -253,9 +253,9 @@ class _CaveBackgroundState extends State<CaveBackground> {
       final portalColor =
           gameState.basePortalColor.mergeWith(gameState.portalColor(), value);
 
-      final portalSize = (smallestDimension * smallPortalSize) +
-          (smallestDimension * (bigPortalSize - smallPortalSize) * value);
-
+      // final portalSize = (smallestDimension * smallPortalSize) +
+      //     (smallestDimension * (bigPortalSize - smallPortalSize) * value);
+      final double portalSize = portalBaseSize * scale * ((value / 4) + 1);
       // final innerRingWidget = buildImageAsset(
       //   'assets/images/background/innerRingPatterns.png',
       //   fit: BoxFit.fill,

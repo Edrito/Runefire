@@ -25,10 +25,12 @@ double roundDouble(double value, int places) {
   return ((value * mod).round().toDouble() / mod);
 }
 
-Image buildImageAsset(String asset, {BoxFit fit = BoxFit.cover, Color? color}) {
+Image buildImageAsset(String asset,
+    {BoxFit fit = BoxFit.cover, Color? color, double? scale}) {
   return Image.asset(
     asset,
     color: color,
+    scale: scale,
     filterQuality: FilterQuality.none,
     fit: fit,
     isAntiAlias: true,

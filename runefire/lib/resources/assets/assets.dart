@@ -583,26 +583,32 @@ fearEnemies: Vector2(32.0, 32.0),
 };
 }
 class ImagesAssetsExperience {
-///large.png
+///all.png
 /// 16x16 
+static const String all = "assets/images/experience/all.png";
+///large.png
+/// 8x8 
 static const String large = "assets/images/experience/large.png";
 ///medium.png
-/// 16x16 
+/// 8x8 
 static const String medium = "assets/images/experience/medium.png";
 ///small.png
-/// 16x16 
+/// 8x8 
 static const String small = "assets/images/experience/small.png";
-static const List<String> allFiles = [large,
+static const List<String> allFiles = [all,
+large,
 medium,
 small,
 ];
-static  List<String> allFilesFlame = [large.flamePath,
+static  List<String> allFilesFlame = [all.flamePath,
+large.flamePath,
 medium.flamePath,
 small.flamePath,
 ];
-static  Map<String, Vector2> pngSizes = {large: Vector2(16.0, 16.0),
-medium: Vector2(16.0, 16.0),
-small: Vector2(16.0, 16.0),
+static  Map<String, Vector2> pngSizes = {all: Vector2(16.0, 16.0),
+large: Vector2(8.0, 8.0),
+medium: Vector2(8.0, 8.0),
+small: Vector2(8.0, 8.0),
 };
 }
 class ImagesAssetsPowerups {
@@ -700,7 +706,7 @@ walk: Vector2(384.0, 48.0),
 }
 class ImagesAssetsRuneknight {
 ///runeknight_dash_1.png
-/// 336x48 
+/// 288x48 
 static const String runeknightDash1 = "assets/images/sprites/runeknight/runeknight_dash_1.png";
 ///runeknight_death_1.png
 /// 384x48 
@@ -731,7 +737,7 @@ runeknightIdle1.flamePath,
 runeknightJump1.flamePath,
 runeknightRun1.flamePath,
 ];
-static  Map<String, Vector2> pngSizes = {runeknightDash1: Vector2(336.0, 48.0),
+static  Map<String, Vector2> pngSizes = {runeknightDash1: Vector2(288.0, 48.0),
 runeknightDeath1: Vector2(384.0, 48.0),
 runeknightHit1: Vector2(192.0, 48.0),
 runeknightIdle1: Vector2(288.0, 48.0),
@@ -802,6 +808,15 @@ static const String bossBarRight = "assets/images/ui/boss_bar_right.png";
 ///health_bar.png
 /// 128x32 
 static const String healthBar = "assets/images/ui/health_bar.png";
+///health_bar_cap.png
+/// 8x8 
+static const String healthBarCap = "assets/images/ui/health_bar_cap.png";
+///health_bar_mid.png
+/// 8x8 
+static const String healthBarMid = "assets/images/ui/health_bar_mid.png";
+///inf.png
+/// 11x14 
+static const String inf = "assets/images/ui/inf.png";
 ///level_indicator_gun_blue.png
 /// 16x16 
 static const String levelIndicatorGunBlue = "assets/images/ui/level_indicator_gun_blue.png";
@@ -820,6 +835,12 @@ static const String levelIndicatorSwordBlue = "assets/images/ui/level_indicator_
 ///level_indicator_sword_red.png
 /// 16x16 
 static const String levelIndicatorSwordRed = "assets/images/ui/level_indicator_sword_red.png";
+///magic_bar_cap.png
+/// 8x8 
+static const String magicBarCap = "assets/images/ui/magic_bar_cap.png";
+///magic_bar_mid.png
+/// 8x8 
+static const String magicBarMid = "assets/images/ui/magic_bar_mid.png";
 ///magic_hand_L.png
 /// 64x128 
 static const String magicHandL = "assets/images/ui/magic_hand_L.png";
@@ -832,6 +853,12 @@ static const String magicHandSmallL = "assets/images/ui/magic_hand_small_L.png";
 ///magic_hand_small_R.png
 /// 32x64 
 static const String magicHandSmallR = "assets/images/ui/magic_hand_small_R.png";
+///magic_icon_small.png
+/// 48x16 
+static const String magicIconSmall = "assets/images/ui/magic_icon_small.png";
+///melee_icon_small.png
+/// 48x16 
+static const String meleeIconSmall = "assets/images/ui/melee_icon_small.png";
 ///padlock.png
 /// 32x32 
 static const String padlock = "assets/images/ui/padlock.png";
@@ -844,6 +871,15 @@ static const String plusBlue = "assets/images/ui/plus_blue.png";
 ///plus_red.png
 /// 16x16 
 static const String plusRed = "assets/images/ui/plus_red.png";
+///ranged_icon_small.png
+/// 48x16 
+static const String rangedIconSmall = "assets/images/ui/ranged_icon_small.png";
+///stamina_bar_cap.png
+/// 8x8 
+static const String staminaBarCap = "assets/images/ui/stamina_bar_cap.png";
+///stamina_bar_mid.png
+/// 8x8 
+static const String staminaBarMid = "assets/images/ui/stamina_bar_mid.png";
 ///weapon_level_indicator.png
 /// 32x32 
 static const String weaponLevelIndicator = "assets/images/ui/weapon_level_indicator.png";
@@ -876,20 +912,30 @@ bossBarCenter,
 bossBarLeft,
 bossBarRight,
 healthBar,
+healthBarCap,
+healthBarMid,
+inf,
 levelIndicatorGunBlue,
 levelIndicatorGunRed,
 levelIndicatorMagicBlue,
 levelIndicatorMagicRed,
 levelIndicatorSwordBlue,
 levelIndicatorSwordRed,
+magicBarCap,
+magicBarMid,
 magicHandL,
 magicHandR,
 magicHandSmallL,
 magicHandSmallR,
+magicIconSmall,
+meleeIconSmall,
 padlock,
 placeholderFace,
 plusBlue,
 plusRed,
+rangedIconSmall,
+staminaBarCap,
+staminaBarMid,
 weaponLevelIndicator,
 xpBarBorder,
 xpBarCenter,
@@ -913,20 +959,30 @@ bossBarCenter.flamePath,
 bossBarLeft.flamePath,
 bossBarRight.flamePath,
 healthBar.flamePath,
+healthBarCap.flamePath,
+healthBarMid.flamePath,
+inf.flamePath,
 levelIndicatorGunBlue.flamePath,
 levelIndicatorGunRed.flamePath,
 levelIndicatorMagicBlue.flamePath,
 levelIndicatorMagicRed.flamePath,
 levelIndicatorSwordBlue.flamePath,
 levelIndicatorSwordRed.flamePath,
+magicBarCap.flamePath,
+magicBarMid.flamePath,
 magicHandL.flamePath,
 magicHandR.flamePath,
 magicHandSmallL.flamePath,
 magicHandSmallR.flamePath,
+magicIconSmall.flamePath,
+meleeIconSmall.flamePath,
 padlock.flamePath,
 placeholderFace.flamePath,
 plusBlue.flamePath,
 plusRed.flamePath,
+rangedIconSmall.flamePath,
+staminaBarCap.flamePath,
+staminaBarMid.flamePath,
 weaponLevelIndicator.flamePath,
 xpBarBorder.flamePath,
 xpBarCenter.flamePath,
@@ -950,20 +1006,30 @@ bossBarCenter: Vector2(96.0, 8.0),
 bossBarLeft: Vector2(32.0, 8.0),
 bossBarRight: Vector2(32.0, 8.0),
 healthBar: Vector2(128.0, 32.0),
+healthBarCap: Vector2(8.0, 8.0),
+healthBarMid: Vector2(8.0, 8.0),
+inf: Vector2(11.0, 14.0),
 levelIndicatorGunBlue: Vector2(16.0, 16.0),
 levelIndicatorGunRed: Vector2(16.0, 16.0),
 levelIndicatorMagicBlue: Vector2(16.0, 16.0),
 levelIndicatorMagicRed: Vector2(16.0, 16.0),
 levelIndicatorSwordBlue: Vector2(16.0, 16.0),
 levelIndicatorSwordRed: Vector2(16.0, 16.0),
+magicBarCap: Vector2(8.0, 8.0),
+magicBarMid: Vector2(8.0, 8.0),
 magicHandL: Vector2(64.0, 128.0),
 magicHandR: Vector2(64.0, 128.0),
 magicHandSmallL: Vector2(32.0, 64.0),
 magicHandSmallR: Vector2(32.0, 64.0),
+magicIconSmall: Vector2(48.0, 16.0),
+meleeIconSmall: Vector2(48.0, 16.0),
 padlock: Vector2(32.0, 32.0),
 placeholderFace: Vector2(16.0, 20.0),
 plusBlue: Vector2(16.0, 16.0),
 plusRed: Vector2(16.0, 16.0),
+rangedIconSmall: Vector2(48.0, 16.0),
+staminaBarCap: Vector2(8.0, 8.0),
+staminaBarMid: Vector2(8.0, 8.0),
 weaponLevelIndicator: Vector2(32.0, 32.0),
 xpBarBorder: Vector2(16.0, 8.0),
 xpBarCenter: Vector2(16.0, 8.0),

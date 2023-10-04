@@ -57,11 +57,16 @@ abstract class Entity extends BodyComponent<GameRouter>
   //STATUS
   Vector2 initialPosition;
   Vector2 get spriteOffset => Vector2.zero();
-  Vector2 get spriteSize =>
-      entityAnimations[EntityStatus.idle]!.frames.first.sprite.srcSize.clone()
-        ..scaledToHeight(this);
+  Vector2 get spriteSize => (entityAnimations[EntityStatus.idle]
+          ?.frames
+          .first
+          .sprite
+          .srcSize
+          .clone() ??
+      Vector2.zero())
+    ..scaledToHeight(this);
 
-  double get entityHeight => spriteSize.y;
+  double get spriteHeight => spriteSize.y;
 
   // late PositionComponent spriteWrapper;
   // late Shadow3DDecorator shadow3DDecorator;
@@ -165,7 +170,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     currentHitAnimations++;
     final hitSize = animation.frames.first.sprite.srcSize;
     hitSize.scaledToHeight(this);
-    final thisHeight = entityHeight;
+    final thisHeight = spriteHeight;
     final sprite = SpriteAnimationComponent(
         anchor: Anchor.center, size: hitSize, animation: animation);
     if (color != null) {

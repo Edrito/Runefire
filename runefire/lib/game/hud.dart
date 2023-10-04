@@ -6,8 +6,10 @@ import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart' hide ScaleEffect;
+import 'package:flutter_animate/flutter_animate.dart'
+    hide ScaleEffect, ColorEffect, MoveEffect;
 import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/game/hud_mixin.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
@@ -37,6 +39,7 @@ const smallBossBarWidthPercentOfMain = .5;
 double xpBarWidthPadding(HudScale scale) => 64;
 double xpBarHeigthtPadding(HudScale scale) => 8.0 * scale.scale;
 double xpBarHeight(HudScale scale) => 8 * scale.scale;
+double healthStaminaBarHeight(HudScale scale) => 8 * scale.scale;
 
 double bossBarHeightPadding(HudScale scale) => 8.0 * scale.scale;
 double bossBarWidthPadding(HudScale scale) => 64;
@@ -47,13 +50,21 @@ double smallBossBarHeightPadding(HudScale scale) => 16 * scale.scale;
 
 double smallBossBarHeight(HudScale scale) => 16 * scale.scale;
 
-class GameHud extends PositionComponent {
-  GameHud(this.gameEnv);
+enum BarType {
+  xpBar,
+  bossBar,
+  healthBar,
+  staminaBar,
+}
+
+class GameHud extends BaseHud with BossBar, ExperienceBar {
+  GameHud(super.gameEnviroment);
+}
+
+abstract class BaseHud extends PositionComponent {
+  BaseHud(this.gameEnviroment);
 
   late final Paint barBackPaint;
-  late final SpriteComponent bossBarLeftSprite;
-  late final SpriteComponent bossBarMidSprite;
-  late final SpriteComponent bossBarRightSprite;
   late final SpriteComponent characterPortrait;
   late final CircleComponent characterPortraitBacking;
   late final FpsTextComponent fpsCounter = FpsTextComponent(
@@ -62,60 +73,52 @@ class GameHud extends PositionComponent {
       anchor: Anchor.bottomRight)
     ..loaded.then((value) => fpsTextPosition());
 
+  late final SpriteComponent healthBarEnd;
+  late final SpriteComponent healthBarMid;
   late final Paint healthPaint;
   late final TextComponent levelCounter;
   late final Paint magicPaint;
+  late final SpriteComponent staminaBarEnd;
+  late final SpriteComponent staminaBarMid;
+  SpriteComponent? ammoPlaceholder;
   late final CaTextComponent timerText;
-  late final SpriteComponent xpBarLeftSprite;
-  late final SpriteComponent xpBarMidSprite;
-  late final SpriteComponent xpBarRightSprite;
-  late final Paint xpPaint;
-  late final Paint xpPulsePaint;
 
   Map<int, SpriteComponent> ammoSprites = {};
-  // Expendable? _currentExpendable;
   late Sprite blankExpendableSprite;
-
-  late Paint bossBarBackPaint;
-  late Paint bossBarHitPaint;
-  late Paint bossBarPaint;
-  late SpriteComponent bossBorderSprite;
-  List<Entity> currentBosses = [];
-  bool displayBossHit = false;
   late SpriteComponent expendableIcon;
   int fps = 0;
-  GameEnviroment gameEnv;
+  GameEnviroment gameEnviroment;
   late SpriteAnimationComponent healthEnergyFrame;
   HudScale hudScale = HudScale.medium;
+  bool isMagic = false;
   //Level
   // late CircleComponent levelBackground;
   late PositionComponent levelWrapper;
 
-  Color staminaColor = colorPalette.primaryColor;
-  late Paint staminaPaint;
   //Timer
   // late HudMarginComponent timerParent;
 
   //Margin Parent
   late HudMarginComponent topLeftMarginParent;
 
-  late SpriteComponent xpBarBorder;
-
   Sprite? ammoSprite;
-  TextComponent? bossText;
   Sprite? noAmmoSprite;
   Player? player;
   Weapon? previousWeapon;
-  Entity? primaryBoss;
 
   @override
   final double width = 100;
 
-  bool get bossBarActive => primaryBoss != null;
+  double get healthBarWidth =>
+      (player!.maxHealth.parameter * 6 * hudScale.scale)
+          .clamp(0.0, maxBarWidth);
 
-  void addBoss(Entity boss) {
-    currentBosses.add(boss);
-  }
+  double get hudFontSize => (16 * hudScale.scale);
+  double get maxBarWidth => (gameEnviroment.gameCamera.viewport.size.x * .35)
+      .clamp(100, double.infinity);
+
+  double get staminaBarWidth =>
+      (player!.stamina.parameter * 3 * hudScale.scale).clamp(0.0, maxBarWidth);
 
   void applyAmmoSizeEffect(
     SpriteComponent ammoSpriteComponent,
@@ -126,113 +129,26 @@ class GameHud extends PositionComponent {
         .add(ScaleEffect.by(Vector2.all(1.5), bulletUseEffectController));
   }
 
-  void applyBossBorderPositions() {
-    final gameSize = gameEnv.gameCamera.viewport.size;
+  void barFlash(BarType barType) {
+    final controller = EffectController(duration: .1, reverseDuration: .01);
+    switch (barType) {
+      case BarType.healthBar:
+        healthBarEnd.add(ColorEffect(
+            ApolloColorPalette.lightRed.color, const Offset(0, 1), controller));
+        healthBarMid.add(ColorEffect(
+            ApolloColorPalette.lightRed.color, const Offset(0, 1), controller));
 
-    final heightPadding = bossBarHeightPadding(hudScale);
-    final widthPadding = bossBarWidthPadding(hudScale);
-    final height = bossBarHeight(hudScale);
+        break;
 
-    bossBarLeftSprite.position =
-        Vector2(widthPadding, gameSize.y - heightPadding);
-    bossBarRightSprite.position = Vector2(
-        gameEnv.gameCamera.viewport.size.x - widthPadding,
-        gameSize.y - heightPadding);
-
-    bossBarMidSprite.position = Vector2(
-        (gameEnv.gameCamera.viewport.size.x / 2), gameSize.y - heightPadding);
-
-    bossBorderSprite.position = Vector2(
-        (gameEnv.gameCamera.viewport.size.x / 2), gameSize.y - heightPadding);
-    bossBorderSprite.size = Vector2(
-        gameEnv.gameCamera.viewport.size.x -
-            (widthPadding * 2) -
-            bossBarLeftSprite.width,
-        height);
-  }
-
-  void applyBossHitEffect([DamageType? color]) async {
-    displayBossHit = true;
-    if (color != null) {
-      bossBarHitPaint.color = color.color.brighten(.2);
-    } else {
-      bossBarHitPaint.color = ApolloColorPalette.nearlyWhite.color;
+      case BarType.staminaBar:
+        final color = isMagic
+            ? ApolloColorPalette.lightCyan.color
+            : ApolloColorPalette.lightYellowGreen.color;
+        staminaBarEnd.add(ColorEffect(color, const Offset(0, 1), controller));
+        staminaBarMid.add(ColorEffect(color, const Offset(0, 1), controller));
+        break;
+      default:
     }
-    await Future.delayed(.06.seconds).then((value) => displayBossHit = false);
-  }
-
-  void applyXpBorderPositions() {
-    final heightPadding = xpBarHeigthtPadding(hudScale);
-    final widthPadding = xpBarWidthPadding(hudScale);
-    final height = xpBarHeight(hudScale);
-
-    xpBarLeftSprite.position = Vector2(widthPadding, heightPadding);
-    xpBarRightSprite.position = Vector2(
-        gameEnv.gameCamera.viewport.size.x - widthPadding, heightPadding);
-    xpBarMidSprite.position =
-        Vector2((gameEnv.gameCamera.viewport.size.x / 2), heightPadding);
-
-    xpBarBorder.position =
-        Vector2((gameEnv.gameCamera.viewport.size.x / 2), heightPadding);
-    xpBarBorder.size = Vector2(
-        gameEnv.gameCamera.viewport.size.x - (widthPadding * 2) - (height * 2),
-        height);
-  }
-
-  void buildBossPaint() {
-    final heightPadding = bossBarHeightPadding(hudScale);
-    final height = bossBarHeight(hudScale);
-    final viewportSize = gameEnv.gameCamera.viewport.size;
-    bossBarPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = height
-      ..strokeCap = StrokeCap.round
-      ..shader = ui.Gradient.radial(
-          Offset(viewportSize.x / 2,
-              viewportSize.y - heightPadding - (height / 2)),
-          viewportSize.x / 2,
-          [
-            ApolloColorPalette.lightRed.color,
-            ApolloColorPalette.red.color,
-            ApolloColorPalette.red.color,
-            ApolloColorPalette.mediumRed.color,
-            ApolloColorPalette.mediumRed.color,
-            ApolloColorPalette.deepRed.color,
-            ApolloColorPalette.deepRed.color,
-            // ApolloColorPalette.darkestRed.color,
-            // ApolloColorPalette.darkestRed.color,
-          ],
-          [
-            // 0,
-            0.02,
-            0.02001,
-            0.165,
-            0.165001,
-            0.5,
-            0.5001,
-            0.85,
-            // 0.85001,
-            // 1
-          ]);
-
-    bossBarBackPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = height
-      ..strokeCap = StrokeCap.round
-      ..color = barBackPaint.color;
-    bossBarHitPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = height
-      ..strokeCap = StrokeCap.round
-      ..color = ApolloColorPalette.nearlyWhite.color;
-  }
-
-  void buildBossTextPosition() {
-    final heightPadding = bossBarHeightPadding(hudScale);
-    final height = bossBarHeight(hudScale);
-    final gameSize = gameEnv.gameCamera.viewport.size;
-    bossText?.position =
-        Vector2(gameSize.x / 2, gameSize.y - heightPadding - height);
   }
 
   Future<void> buildRemainingAmmoText(Player player) async {
@@ -297,11 +213,50 @@ class GameHud extends PositionComponent {
         steps++;
       });
     }
-
-    // } else {
-
-    // }
     previousWeapon = currentWeapon;
+    checkPlaceholder(previousWeapon!);
+  }
+
+  bool placeholderEngaged = false;
+  void checkPlaceholder(Weapon weapon) async {
+    if (ammoSprites.isEmpty) {
+      if (placeholderEngaged) return;
+      placeholderEngaged = true;
+      Sprite sprite = await Sprite.load(ImagesAssetsUi.inf.flamePath);
+
+      // switch (weapon.weaponType.attackType) {
+      //   case AttackType.magic:
+      //     sprite = await Sprite.load(ImagesAssetsUi.magicIconSmall.flamePath);
+      //     break;
+      //   case AttackType.guns:
+      //     sprite = await Sprite.load(ImagesAssetsUi.rangedIconSmall.flamePath);
+
+      //     break;
+      //   case AttackType.melee:
+      //     sprite = await Sprite.load(ImagesAssetsUi.meleeIconSmall.flamePath);
+
+      //     break;
+      //   default:
+      // }
+
+      final size = sprite.srcSize..scaledToHeight(null, amount: hudScale.scale);
+      final pos = Vector2((58 * hudScale.scale), 27.5 * hudScale.scale);
+
+      ammoPlaceholder?.sprite = sprite;
+
+      ammoPlaceholder ??=
+          SpriteComponent(anchor: Anchor.center, size: size, sprite: sprite)
+            ..addToParent(topLeftMarginParent);
+      ammoPlaceholder?.position = pos + Vector2(50, 0);
+      final controller =
+          EffectController(duration: 1, curve: Curves.easeOutCirc);
+      ammoPlaceholder?.add(OpacityEffect.fadeIn(controller));
+      ammoPlaceholder?.add(MoveEffect.to(pos, controller));
+    } else {
+      placeholderEngaged = false;
+      ammoPlaceholder?.sprite = null;
+      ammoPlaceholder?.opacity = 0;
+    }
   }
 
   Path buildSlantedPath(
@@ -336,46 +291,6 @@ class GameHud extends PositionComponent {
     }
   }
 
-  void drawBossHealthBar(Canvas canvas) {
-    final gameSize = gameEnv.gameCamera.viewport.size;
-    final heightPadding = bossBarHeightPadding(hudScale);
-    final widthPadding = bossBarWidthPadding(hudScale);
-    final height = bossBarHeight(hudScale);
-
-    if (primaryBoss != null || true) {
-      final y = gameSize.y - heightPadding - (height / 2);
-      final xBegin = widthPadding + height / 2;
-      final extraPadding = 1 * hudScale.scale;
-      canvas.drawLine(Offset(xBegin + extraPadding, y),
-          Offset(gameSize.x - xBegin - extraPadding, y), bossBarBackPaint);
-      canvas.drawLine(Offset(xBegin + extraPadding + 250, y),
-          Offset(gameSize.x - xBegin - extraPadding - 250, y), bossBarPaint);
-
-      if (displayBossHit) {
-        canvas.drawLine(Offset(widthPadding + 250, y),
-            Offset(gameSize.x - widthPadding - 250, y), bossBarHitPaint);
-      }
-
-      bossText ??= TextComponent(
-          text: primaryBoss?.entityType.name ?? "Placeholder Demon",
-          anchor: Anchor.bottomCenter,
-          textRenderer: colorPalette.buildTextPaint(hudFontSize * .75,
-              ShadowStyle.light, ApolloColorPalette.red.color))
-        ..addToParent(this)
-        ..loaded.then((value) {
-          buildBossTextPosition();
-        });
-    } else if (currentBosses.isNotEmpty) {
-      primaryBoss = currentBosses.first;
-      drawBossHealthBar(canvas);
-      return;
-    } else {
-      return;
-    }
-    final bossWithoutPrimary =
-        currentBosses.where((element) => element != primaryBoss).toList();
-  }
-
   void drawHealthAndStaminaBar(Canvas canvas) {
     final heightPadding = xpBarHeigthtPadding(hudScale);
     final widthPadding = xpBarWidthPadding(hudScale) + (24 * hudScale.scale);
@@ -385,72 +300,41 @@ class GameHud extends PositionComponent {
     // double leftPadding = widthPadding;
     double heightOfBar = 8 * scale;
     double startOfBars = 5 * scale;
-    final maxWidth = (gameEnv.gameCamera.viewport.size.x / 2) -
-        (widthPadding * 1.75).clamp(100, double.infinity);
 
     final double healthBarStartY = (heightPadding * 2) + height + startOfBars;
-
-    final double healthBarWidth =
-        (player!.maxHealth.parameter * 6 * hudScale.scale).clamp(0.0, maxWidth);
-    final double staminaBarWidth =
-        (player!.stamina.parameter * 3 * hudScale.scale).clamp(0.0, maxWidth);
-
     canvas.drawPath(
         buildSlantedPath(
           1,
           Offset(widthPadding, healthBarStartY),
           heightOfBar,
-          healthBarWidth,
+          healthBarWidth + (6 * scale),
         ),
         barBackPaint);
-    canvas.drawPath(
-        buildSlantedPath(
-          1,
-          Offset(widthPadding, healthBarStartY),
-          heightOfBar,
-          player!.healthPercentage * healthBarWidth,
-        ),
-        healthPaint);
+    // canvas.drawPath(
+    //     buildSlantedPath(
+    //       1,
+    //       Offset(widthPadding, healthBarStartY),
+    //       heightOfBar,
+    //       player!.healthPercentage * healthBarWidth,
+    //     ),
+    //     healthPaint);
     canvas.drawPath(
         buildSlantedPath(
           1,
           Offset((widthPadding + 5.0), healthBarStartY + heightOfBar),
           heightOfBar,
-          staminaBarWidth,
+          staminaBarWidth + (8 * scale),
         ),
         barBackPaint);
-    canvas.drawPath(
-        buildSlantedPath(
-          1,
-          Offset((widthPadding + 5.0), healthBarStartY + heightOfBar),
-          heightOfBar,
-          staminaBarWidth *
-              (player!.remainingStamina / player!.stamina.parameter),
-        ),
-        staminaPaint);
-  }
-
-  void drawXpBar(Canvas canvas) {
-    final heightPadding = xpBarHeigthtPadding(hudScale);
-    final widthPadding = xpBarWidthPadding(hudScale);
-    final height = xpBarHeight(hudScale);
-
-    final viewportSize = gameEnv.gameCamera.viewport.size;
-    final barSize = viewportSize.x - (widthPadding * 2);
-
-    final basePath = buildSlantedPath(
-        1, Offset(widthPadding, heightPadding), height, barSize, true);
-    canvas.drawPath(basePath, barBackPaint);
-
-    canvas.drawPath(
-        buildSlantedPath(
-            (player!.percentOfLevelGained * 2) - 1,
-            Offset(widthPadding, heightPadding),
-            height,
-            barSize * player!.percentOfLevelGained,
-            true,
-            1),
-        xpPaint);
+    // canvas.drawPath(
+    //     buildSlantedPath(
+    //       1,
+    //       Offset((widthPadding + 5.0), healthBarStartY + heightOfBar),
+    //       heightOfBar,
+    //       staminaBarWidth *
+    //           (player!.remainingStamina / player!.stamina.parameter),
+    //     ),
+    //     staminaPaint);
   }
 
   void fpsTextPosition() {
@@ -459,125 +343,14 @@ class GameHud extends PositionComponent {
     final heightBoss = bossBarHeight(hudScale);
 
     fpsCounter.position = Vector2(
-        gameEnv.gameCamera.viewport.size.x - widthPaddingBoss,
-        gameEnv.gameCamera.viewport.size.y - heightBoss - heightPaddingBoss);
+        gameEnviroment.gameCamera.viewport.size.x - widthPaddingBoss,
+        gameEnviroment.gameCamera.viewport.size.y -
+            heightBoss -
+            heightPaddingBoss);
   }
 
-  Future<void> initBossBorder() async {
-    final heightBoss = bossBarHeight(hudScale);
-    bossBarLeftSprite = SpriteComponent(
-      sprite: await Sprite.load(ImagesAssetsUi.bossBarLeft.flamePath),
-      anchor: Anchor.bottomLeft,
-    );
-    bossBarRightSprite = SpriteComponent(
-      sprite: await Sprite.load(ImagesAssetsUi.bossBarRight.flamePath),
-      anchor: Anchor.bottomRight,
-    );
-    bossBarMidSprite = SpriteComponent(
-      // size: Vector2.,
-      sprite: await Sprite.load(ImagesAssetsUi.bossBarCenter.flamePath),
-      anchor: Anchor.bottomCenter,
-    );
-
-    bossBorderSprite = SpriteComponent(
-        sprite: await Sprite.load(ImagesAssetsUi.bossBarBorder.flamePath),
-        anchor: Anchor.bottomCenter,
-        priority: -1);
-
-    bossBarMidSprite.size = bossBarMidSprite.sprite!.srcSize
-      ..scaledToDimension(true, heightBoss);
-    bossBarLeftSprite.size = bossBarLeftSprite.sprite!.srcSize
-      ..scaledToDimension(true, heightBoss);
-    bossBarRightSprite.size = bossBarRightSprite.sprite!.srcSize
-      ..scaledToDimension(true, heightBoss);
-
-    applyBossBorderPositions();
-    addAll([
-      bossBarLeftSprite,
-      bossBorderSprite,
-      bossBarRightSprite,
-      bossBarMidSprite,
-    ]);
-  }
-
-  void initPaints([bool staminaOnly = false]) {
-    if (staminaOnly) {
-      staminaPaint = Paint()
-        ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
-          staminaColor,
-          staminaColor.brighten(.4),
-        ]);
-      return;
-    }
-    final heightPadding = xpBarHeigthtPadding(hudScale);
-    final height = xpBarHeight(hudScale);
-
-    staminaPaint = Paint()
-      ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
-        staminaColor,
-        staminaColor.brighten(.4),
-      ]);
-    healthPaint = Paint()
-      ..isAntiAlias = true
-      ..shader = ui.Gradient.linear(Offset.zero, const Offset(300, 0), [
-        ApolloColorPalette.red.color,
-        ApolloColorPalette.lightRed.color,
-      ]);
-
-    xpPaint = Paint()
-      ..shader = ui.Gradient.linear(
-          Offset(0, heightPadding), Offset(0, heightPadding + height), [
-        colorPalette.primaryColor,
-        // colorPalette.secondaryColor,
-        colorPalette.secondaryColor,
-        colorPalette.primaryColor,
-      ], [
-        // 0.49,
-        0.499,
-        0.501,
-        1
-      ]);
-
+  void initPaints() {
     barBackPaint = ApolloColorPalette.deepGray.paint();
-    buildBossPaint();
-  }
-
-  Future<void> initXpBorder() async {
-    //                 final heightPaddingBoss = bossBarHeightPadding(hudScale);
-    // final widthPaddingBoss = bossBarWidthPadding(hudScale);
-    // final heightBoss = bossBarHeight(hudScale);
-    //     final heightPadding = xpBarHeigthtPadding(hudScale);
-    // final widthPadding = xpBarWidthPadding(hudScale);
-    final height = xpBarHeight(hudScale);
-    // final baseSize = Vector2.all(height);
-    xpBarLeftSprite = SpriteComponent(
-      sprite: await Sprite.load(ImagesAssetsUi.xpBarLeft.flamePath),
-      anchor: Anchor.topLeft,
-    );
-
-    xpBarBorder = SpriteComponent(
-        sprite: await Sprite.load('ui/xp_bar_border.png'),
-        anchor: Anchor.topCenter,
-        priority: -1);
-
-    xpBarRightSprite = SpriteComponent(
-      sprite: await Sprite.load('ui/xp_bar_right.png'),
-      anchor: Anchor.topRight,
-    );
-    xpBarMidSprite = SpriteComponent(
-      sprite: await Sprite.load('ui/xp_bar_center.png'),
-      anchor: Anchor.topCenter,
-    );
-
-    xpBarMidSprite.size = xpBarMidSprite.sprite!.srcSize
-      ..scaledToDimension(true, height);
-    xpBarLeftSprite.size = xpBarLeftSprite.sprite!.srcSize
-      ..scaledToDimension(true, height);
-    xpBarRightSprite.size = xpBarRightSprite.sprite!.srcSize
-      ..scaledToDimension(true, height);
-
-    applyXpBorderPositions();
-    addAll([xpBarLeftSprite, xpBarRightSprite, xpBarMidSprite, xpBarBorder]);
   }
 
   void levelTextPosition() {
@@ -586,13 +359,52 @@ class GameHud extends PositionComponent {
     final widthPadding = xpBarWidthPadding(hudScale);
     final startPointText = height + (heightPadding * 2);
     levelCounter.position =
-        Vector2(gameEnv.gameCamera.viewport.size.x / 2, startPointText);
+        Vector2(gameEnviroment.gameCamera.viewport.size.x / 2, startPointText);
     timerText.position = Vector2(
-        gameEnv.gameCamera.viewport.size.x - widthPadding, startPointText);
+        gameEnviroment.gameCamera.viewport.size.x - widthPadding,
+        startPointText);
   }
 
-  void removeBoss(Entity boss) {
-    currentBosses.remove(boss);
+  double previousHealthWidth = 0;
+  double previousStaminaWidth = 0;
+
+  void repositionHealthStaminaBar() {
+    final double healthWidth =
+        (healthBarWidth * player!.healthPercentage).clamp(0, 600);
+    final double staminaWidth = (staminaBarWidth *
+            (player!.remainingStamina / player!.stamina.parameter))
+        .clamp(0, 600);
+
+    if (healthWidth == previousHealthWidth &&
+        staminaWidth == previousStaminaWidth) {
+      return;
+    }
+
+    final height = healthStaminaBarHeight(hudScale);
+    final widthPadding = (24 * hudScale.scale);
+    final scale = hudScale.scale;
+
+    final shiftLeft = height * .5;
+    double startOfBars = 5 * scale;
+    final staminaMidCircleOffsetRight = (4 * scale);
+
+    final offset = Vector2(
+        widthPadding - shiftLeft + staminaMidCircleOffsetRight / 2,
+        startOfBars);
+
+    healthBarMid.size = Vector2(healthWidth + 2, height);
+    staminaBarMid.size = Vector2(staminaWidth + 2, height);
+
+    healthBarEnd.position = Vector2(healthWidth, 0) + offset;
+    healthBarMid.position = offset;
+
+    staminaBarEnd.position =
+        Vector2(staminaWidth + staminaMidCircleOffsetRight, height) + offset;
+    staminaBarMid.position =
+        Vector2(staminaMidCircleOffsetRight, height) + offset;
+
+    previousHealthWidth = healthWidth;
+    previousStaminaWidth = staminaWidth;
   }
 
   void setLevel(int level) {
@@ -612,25 +424,34 @@ class GameHud extends PositionComponent {
     }
   }
 
-  void toggleStaminaColor(AttackType attackType) {
+  void toggleStaminaColor(AttackType attackType) async {
+    isMagic = attackType == AttackType.magic;
+    await loaded;
     switch (attackType) {
       case AttackType.magic:
-        staminaColor = colorPalette.primaryColor;
-      default:
-        staminaColor = ApolloColorPalette.lightGreen.color;
-    }
-    initPaints(true);
-  }
+        staminaBarEnd.sprite =
+            await Sprite.load(ImagesAssetsUi.magicBarCap.flamePath);
+        staminaBarMid.sprite =
+            await Sprite.load(ImagesAssetsUi.magicBarMid.flamePath);
 
-  double get hudFontSize => (16 * hudScale.scale);
+        break;
+
+      default:
+        staminaBarEnd.sprite =
+            await Sprite.load(ImagesAssetsUi.staminaBarCap.flamePath);
+        staminaBarMid.sprite =
+            await Sprite.load(ImagesAssetsUi.staminaBarMid.flamePath);
+    }
+  }
 
   @override
   FutureOr<void> onLoad() async {
-    player = (gameEnv).player;
+    player = (gameEnviroment).player;
 
     final heightPadding = xpBarHeigthtPadding(hudScale);
     final widthPadding = xpBarWidthPadding(hudScale);
     final height = xpBarHeight(hudScale);
+    final healthStaminaHeight = healthStaminaBarHeight(hudScale);
 
     //Wrappers
     topLeftMarginParent = HudMarginComponent(
@@ -652,6 +473,29 @@ class GameHud extends PositionComponent {
       size: healthBarSize,
     );
 
+    healthBarEnd = SpriteComponent(
+        anchor: Anchor.topLeft,
+        size: Vector2.all(healthStaminaHeight),
+        position: Vector2.zero(),
+        priority: -5,
+        sprite: await Sprite.load(ImagesAssetsUi.healthBarCap.flamePath));
+    healthBarMid = SpriteComponent(
+        anchor: Anchor.topLeft,
+        priority: -10,
+        position: Vector2(healthBarEnd.size.y, 0),
+        sprite: await Sprite.load(ImagesAssetsUi.healthBarMid.flamePath));
+
+    staminaBarEnd = SpriteComponent(
+        anchor: Anchor.topLeft,
+        size: Vector2.all(healthStaminaHeight),
+        priority: -5,
+        position: Vector2.zero(),
+        sprite: await Sprite.load(ImagesAssetsUi.staminaBarCap.flamePath));
+    staminaBarMid = SpriteComponent(
+        anchor: Anchor.topLeft,
+        priority: -10,
+        position: Vector2(staminaBarEnd.size.y, 0),
+        sprite: await Sprite.load(ImagesAssetsUi.staminaBarMid.flamePath));
     //FPS
 
     Future.delayed(1.seconds).then((_) {
@@ -709,54 +553,50 @@ class GameHud extends PositionComponent {
 
     // timerParent.add(timerText);
     topLeftMarginParent.add(healthEnergyFrame);
+
     topLeftMarginParent.add(levelWrapper);
     topLeftMarginParent.add(characterPortrait);
     topLeftMarginParent.add(expendableIcon);
     topLeftMarginParent.add(characterPortraitBacking);
+    topLeftMarginParent.addAll([
+      staminaBarEnd,
+      staminaBarMid,
+      healthBarEnd,
+      healthBarMid,
+    ]);
     add(timerText);
 
     addAll([topLeftMarginParent]);
     add(levelCounter);
 
     initPaints();
-    await initXpBorder();
-    await initBossBorder();
+    repositionHealthStaminaBar();
     return super.onLoad();
   }
 
   @override
   void onParentResize(Vector2 maxSize) {
     if (isLoaded) {
-      final widthPadding = xpBarWidthPadding(hudScale);
-      final height = xpBarHeight(hudScale);
-      fpsCounter.position.x = gameEnv.gameCamera.viewport.size.x - 200;
-      size = gameEnv.gameCamera.viewport.size;
-      if (xpBarRightSprite.isLoaded) {
-        xpBarRightSprite.position.x =
-                gameEnv.gameCamera.viewport.size.x - widthPadding - height
-            // +
-            // 6 +
-            // 3
-            ;
-        applyXpBorderPositions();
-        levelTextPosition();
-        fpsTextPosition();
-        buildBossTextPosition();
-        applyBossBorderPositions();
-      }
-
-      buildBossPaint();
+      fpsCounter.position.x = gameEnviroment.gameCamera.viewport.size.x - 200;
+      size = gameEnviroment.gameCamera.viewport.size;
+      levelTextPosition();
+      fpsTextPosition();
     }
+
     super.onParentResize(maxSize);
   }
 
   @override
   void render(Canvas canvas) {
-    // XP
-    drawXpBar(canvas);
-    drawBossHealthBar(canvas);
     drawHealthAndStaminaBar(canvas);
 
     super.render(canvas);
+  }
+
+  @override
+  void update(double dt) {
+    repositionHealthStaminaBar();
+
+    super.update(dt);
   }
 }

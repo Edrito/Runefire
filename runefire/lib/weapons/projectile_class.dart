@@ -245,7 +245,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   @override
   void update(double dt) {
     durationPassed += dt;
-    if (durationPassed > ttl && !projectileHasExpired) {
+    if (durationPassed > ttl && !projectileHasExpired && !removeOnEndAttack) {
       projectileHasExpired = true;
       killBullet(true);
     }

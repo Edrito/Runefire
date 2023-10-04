@@ -12,6 +12,7 @@ import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
 import '../resources/enums.dart';
@@ -309,7 +310,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
 
   void addHeadEntity(ChildEntity entity) {
     headEntityWrapper ??= PositionComponent(
-      position: Vector2(0, height.parameter * -2),
+      position: Vector2(0, spriteHeight * -2),
     )..addToParent(this);
 
     _headEntities.add(entity);
@@ -545,13 +546,12 @@ class EntityStatusEffectsWrapper {
 
   void addMarkedStatus() async {
     if (removedAnimations) return;
+    final sprite = await getEffectSprite(StatusEffects.marked);
     markerAnimation = SpriteAnimationComponent(
-        animation: await getEffectSprite(StatusEffects.marked),
-        size: Vector2.all(16) * entity.height.parameter.toDouble(),
+        animation: sprite,
+        size: sprite.frames.first.sprite.srcSize..scaledToHeight(entity),
         anchor: Anchor.center);
 
-    // markerAnimation!.position.y = -entity.height.parameter * .75;
-    // markerAnimation!.position.x = width / -2;
     entity.add(markerAnimation!);
   }
 
@@ -562,7 +562,7 @@ class EntityStatusEffectsWrapper {
     activeStatusEffects[effect] = (StatusEffect(effect, level));
     final posX = getXPosition(effect);
     activeStatusEffects[effect]!.position.x = posX;
-    activeStatusEffects[effect]!.position.y = -.2 - (entity.entityHeight);
+    activeStatusEffects[effect]!.position.y = -.2 - (entity.spriteHeight);
     activeStatusEffects[effect]?.addToParent(entity);
   }
 
@@ -664,7 +664,7 @@ class ReloadAnimation extends PositionComponent {
     // final x = (parent.entityStatusWrapper.width - width) / 2;
     size.y = height;
     size.x = parent.entityStatusWrapper.width * .7;
-    position.y = -parent.entityHeight * .75;
+    position.y = -parent.spriteHeight * .75;
     position.x = width / -2;
 
     if (isSecondaryWeapon) {

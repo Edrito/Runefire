@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/secondary_abilities.dart';
@@ -101,6 +102,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
     weaponId = const Uuid().v4();
   }
 
+  abstract Vector2 pngSize;
+
+  late double weaponLength = entityAncestor == null
+      ? 0
+      : (pngSize.clone()..scaledToHeight(entityAncestor!, weapon: this)).y;
+
   final DoubleParameterManager attackTickRate =
       DoubleParameterManager(baseParameter: 1, minParameter: 0.01);
 
@@ -112,6 +119,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   final BoolParameterManager countIncreaseWithTime =
       BoolParameterManager(baseParameter: false);
+
+  final BoolParameterManager reverseHoming =
+      BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
 
   final DoubleParameterManager critChance = DoubleParameterManager(
       baseParameter: 0.05, minParameter: 0, maxParameter: 1);
@@ -168,7 +178,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   late Color weaponPrimaryColor =
       primaryDamageType?.color ?? baseDamage.damageBase.entries.first.key.color;
 
-  abstract double weaponSize;
+  abstract double weaponScale;
   WeaponStatus weaponStatus = WeaponStatus.idle;
   abstract WeaponType weaponType;
 
@@ -222,7 +232,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
             -entityAncestor!.handJoint.angle,
             distanceFromPlayer
                 ? this.distanceFromPlayer
-                : (tipOffset.y * weaponSize * percent) +
+                : (tipOffset.y * weaponLength * percent) +
                     this.distanceFromPlayer) +
         entityAncestor!.center;
   }
@@ -456,7 +466,8 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     SpriteAnimation muzzleFlash = weaponAnimations['muzzle_flash']!;
     muzzleFlashComponent = SpriteAnimationComponent(
         animation: muzzleFlash,
-        position: Vector2(width * tipOffset.x, tipOffset.y * weapon.weaponSize),
+        position:
+            Vector2(width * tipOffset.x, tipOffset.y * weapon.weaponLength),
         size: muzzleFlash.frames.first.sprite.srcSize
             .scaled(flashSize / muzzleFlash.frames.first.sprite.srcSize.y),
         anchor: Anchor.topCenter,
@@ -488,9 +499,9 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   }
 
   void resize(Vector2 sourceSize) {
-    final ratio = weapon.weaponSize / sourceSize.y;
-
-    size = Vector2(sourceSize.x * ratio, weapon.weaponSize);
+    final tempSize = sourceSize;
+    tempSize.scaledToHeight(weapon.entityAncestor!, weapon: weapon);
+    size.setFrom(tempSize);
   }
 
   Future<void> setWeaponStatus(WeaponStatus newWeaponStatus,

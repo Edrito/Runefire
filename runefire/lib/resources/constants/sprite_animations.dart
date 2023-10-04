@@ -152,7 +152,10 @@ class SpriteAnimations {
       defaultFrameDuration,
       true);
   late Future<SpriteAnimation> markedEffect1 = loadSpriteAnimation(
-      4, 'attribute_sprites/mark_enemy_4.png', defaultFrameDuration, true);
+      4,
+      ImagesAssetsAttributeSprites.markEnemy4.flamePath,
+      defaultFrameDuration,
+      true);
 
 //Weapon Effects
   late Future<SpriteAnimation> holyBulletSpawn1 = loadSpriteAnimation(

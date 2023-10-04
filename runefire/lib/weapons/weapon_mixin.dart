@@ -737,7 +737,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
       chargeAnimation = SpriteAnimationComponent(
           size: Vector2.all(chargeSize),
           anchor: Anchor.center,
-          position: Vector2(0, tipOffset.y * weaponSize),
+          position: Vector2(0, tipOffset.y * weaponLength),
           animation: spawnAnimation ?? playAnimation)
         ..addToParent(entityAncestor!.handJoint);
 

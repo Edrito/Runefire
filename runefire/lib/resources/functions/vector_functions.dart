@@ -6,6 +6,7 @@ import 'package:flame_tiled/flame_tiled.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/weapons/weapon_class.dart';
 
 import '../../game/enviroment.dart';
 import 'package:forge2d/src/settings.dart' as settings;
@@ -26,9 +27,16 @@ extension ScaledToDimensionVector2 on Vector2 {
     (x = x * ratio);
   }
 
-  void scaledToHeight(Entity entity) {
+  void scaledToHeight(Entity? entity,
+      {Weapon? weapon, Enviroment? env, double? amount}) {
     scaledToDimension(
-        true, y / entity.enviroment.zoom * entity.height.parameter);
+        true,
+        y /
+            (entity?.enviroment.zoom ?? env?.zoom ?? 1) *
+            (amount ??
+                    ((entity?.height.doubleParameter ?? 3) *
+                        (weapon?.weaponScale ?? 1)))
+                .clamp(1, 20));
   }
 }
 

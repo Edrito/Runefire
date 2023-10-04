@@ -55,7 +55,9 @@ class BlankProjectileWeapon extends EnemyWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponSize = 2;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize = Vector2.all(8);
 
   @override
   ProjectileType? projectileType = ProjectileType.paintBullet;

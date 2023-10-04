@@ -5,6 +5,7 @@ import 'package:flame_forge2d/body_component.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/swings.dart';
@@ -21,15 +22,15 @@ class PhaseDagger extends PlayerWeapon
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.physical] = (2, 3);
-    baseDamage.damageBase[DamageType.psychic] = (2, 3);
+    baseDamage.damageBase[DamageType.physical] = (1, 3);
+    baseDamage.damageBase[DamageType.psychic] = (1, 2);
     attackTickRate.baseParameter = .25;
     pierce.baseParameter = 2;
     chainingTargets.baseParameter = 4;
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(.5, weaponSize),
+          attackHitboxSize: Vector2(.5, weaponLength),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -50,7 +51,7 @@ class PhaseDagger extends PlayerWeapon
             // (Vector2(.25, 0), -35, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(.5, weaponSize),
+          attackHitboxSize: Vector2(.5, weaponLength),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -123,7 +124,10 @@ class PhaseDagger extends PlayerWeapon
   double distanceFromPlayer = 0;
 
   @override
-  double weaponSize = 1.3;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.dagger]!;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
@@ -141,10 +145,9 @@ class CrystalSword extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (2, 5);
     attackTickRate.baseParameter = .55;
     pierce.baseParameter = 5;
-
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
+          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
           flippedDuringAttack: true,
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
@@ -162,7 +165,7 @@ class CrystalSword extends PlayerWeapon
             (Vector2(2, -1), -75, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
+          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -179,7 +182,7 @@ class CrystalSword extends PlayerWeapon
             (Vector2(-2, 0), 45, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
+          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -198,7 +201,7 @@ class CrystalSword extends PlayerWeapon
             (Vector2(0, 2), 0, 1),
           ]),
     ];
-
+    removeSpriteOnAttack = true;
     spirteComponentPositions.add(WeaponSpritePosition.back);
   }
 
@@ -248,10 +251,10 @@ class CrystalSword extends PlayerWeapon
   double distanceFromPlayer = 1;
 
   @override
-  double weaponSize = 2.5;
-
+  double weaponScale = 2 / 3;
   @override
-  bool removeSpriteOnAttack = true;
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.crystalSword]!;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -278,7 +281,7 @@ class AethertideSpear extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponSize),
+          attackHitboxSize: Vector2(1, weaponLength),
           weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
@@ -297,7 +300,7 @@ class AethertideSpear extends PlayerWeapon
             // (Vector2(0, 1.5), -20, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponSize),
+          attackHitboxSize: Vector2(1, weaponLength),
           entitySpriteAnimation: null,
           weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
           attackSpriteAnimationBuild: () async {
@@ -316,7 +319,7 @@ class AethertideSpear extends PlayerWeapon
             // (Vector2(0, 1.5), 20, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(3, weaponSize),
+          attackHitboxSize: Vector2(3, weaponLength),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -368,7 +371,7 @@ class AethertideSpear extends PlayerWeapon
             weaponAnimations: {
               WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
             })
-          ..position = Vector2(weaponSize / 2, -weaponSize / 2)
+          ..position = Vector2(weaponLength / 2, -weaponLength / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(Vector2.zero(),
@@ -390,7 +393,10 @@ class AethertideSpear extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponSize = 3.75;
+  double weaponScale = .5;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.spear]!;
 
   @override
   WeaponType weaponType = WeaponType.spear;
@@ -412,11 +418,11 @@ class HolySword extends PlayerWeapon
     projectileVelocity.baseParameter = 15;
     pierce.baseParameter = 6;
 
-    attackOnChargeComplete = true;
+    // attackOnChargeComplete = true;
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponSize),
+          attackHitboxSize: Vector2(1, weaponLength),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -439,7 +445,7 @@ class HolySword extends PlayerWeapon
             // (Vector2(.2, 1), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponSize),
+          attackHitboxSize: Vector2(1, weaponLength),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -489,7 +495,7 @@ class HolySword extends PlayerWeapon
     if (chargeAmount < .7) return [];
     return super.generateMultipleProjectileFunction(chargeAmount)
       ..forEach((element) {
-        element.size = weaponSize / 2;
+        element.size = weaponLength / 2;
       });
   }
 
@@ -507,7 +513,7 @@ class HolySword extends PlayerWeapon
             weaponAnimations: {
               WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
             })
-          ..position = Vector2(weaponSize / 3, .35)
+          ..position = Vector2(weaponLength / 3, .35)
           ..angle = radians(135);
       default:
         return WeaponSpriteAnimation(baseOffset,
@@ -532,7 +538,10 @@ class HolySword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponSize = 2;
+  double weaponScale = .5;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.energySword]!;
 
   @override
   WeaponType weaponType = WeaponType.holySword;
@@ -555,7 +564,7 @@ class FlameSword extends PlayerWeapon
     // baseAttackCount.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponSize),
+          attackHitboxSize: Vector2(1, weaponLength),
           entitySpriteAnimation: null,
           weaponTrailConfig:
               WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
@@ -573,7 +582,7 @@ class FlameSword extends PlayerWeapon
             (Vector2(.2, 1), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponSize),
+          attackHitboxSize: Vector2(1, weaponLength),
           weaponTrailConfig:
               WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
           entitySpriteAnimation: null,
@@ -651,8 +660,10 @@ class FlameSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponSize = 1.6;
-
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.fireSword]!;
   @override
   WeaponType weaponType = WeaponType.flameSword;
 }
@@ -720,7 +731,7 @@ class LargeSword extends PlayerWeapon
             weaponAnimations: {
               WeaponStatus.idle: await spriteAnimations.largeSwordIdle1,
             })
-          ..position = Vector2(weaponSize / 2, -weaponSize / 2)
+          ..position = Vector2(weaponLength / 2, -weaponLength / 2)
           ..angle = radians(45);
       default:
         return WeaponSpriteAnimation(Vector2.zero(),
@@ -739,7 +750,10 @@ class LargeSword extends PlayerWeapon
   double distanceFromPlayer = .2;
 
   @override
-  double weaponSize = 3;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.largeSword]!;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
@@ -783,7 +797,7 @@ class FrostKatana extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponSize),
+          attackHitboxSize: Vector2(1, weaponLength),
           entitySpriteAnimation: null,
           weaponTrailConfig: WeaponTrailConfig(
             bottomStartFromTipPercent: .25,
@@ -867,7 +881,10 @@ class FrostKatana extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponSize = 3;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.frostKatana]!;
 
   @override
   WeaponType weaponType = WeaponType.frostKatana;
@@ -896,7 +913,7 @@ class SwordOfJustice extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
+          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
           entitySpriteAnimation: null,
           meleeAttackType: MeleeType.stab,
           attackSpriteAnimationBuild: () async {
@@ -916,7 +933,7 @@ class SwordOfJustice extends PlayerWeapon
             (Vector2(0, 1.5), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
+          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
           meleeAttackType: MeleeType.stab,
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
@@ -935,7 +952,7 @@ class SwordOfJustice extends PlayerWeapon
             (Vector2(0, 2), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponSize / 3.5, weaponSize),
+          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
           entitySpriteAnimation: null,
           meleeAttackType: MeleeType.stab,
           attackSpriteAnimationBuild: () async {
@@ -1006,10 +1023,10 @@ class SwordOfJustice extends PlayerWeapon
   double distanceFromPlayer = 0;
 
   @override
-  double weaponSize = 3;
-
+  double weaponScale = 1;
   @override
-  bool removeSpriteOnAttack = true;
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.swordOfJustice]!;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [

@@ -349,23 +349,14 @@ enum InputType {
 }
 
 extension ExperienceAmountExtension on ExperienceAmount {
-  ShapeComponent getShapeComponent(double radius) {
+  String get fileName {
     switch (this) {
       case ExperienceAmount.small:
-        return CircleComponent(radius: radius, anchor: Anchor.center);
+        return ImagesAssetsExperience.small;
       case ExperienceAmount.medium:
-        radius *= 1.5;
-        return RectangleComponent(
-            size: Vector2.all(radius), anchor: Anchor.center);
-
+        return ImagesAssetsExperience.medium;
       case ExperienceAmount.large:
-        radius *= 1.5;
-        return PolygonComponent([
-          Vector2(0, -radius),
-          Vector2(radius, 0),
-          Vector2(0, radius),
-          Vector2(-radius, 0)
-        ], anchor: Anchor.center);
+        return ImagesAssetsExperience.large;
     }
   }
 
@@ -383,13 +374,13 @@ extension ExperienceAmountExtension on ExperienceAmount {
   Color get color {
     switch (this) {
       case ExperienceAmount.small:
-        return ApolloColorPalette.lightBlue.color;
+        return ApolloColorPalette.lightGreen.color;
 
       case ExperienceAmount.medium:
-        return ApolloColorPalette.mediumGreen.color;
+        return ApolloColorPalette.orange.color;
 
       case ExperienceAmount.large:
-        return ApolloColorPalette.purple.color;
+        return ApolloColorPalette.lightRed.color;
     }
   }
 }
@@ -556,7 +547,7 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = Shotgun(upgradeLevel, ancestor);
         break;
       case WeaponType.railspire:
-        returnWeapon = Railgun(upgradeLevel, ancestor);
+        returnWeapon = Railspire(upgradeLevel, ancestor);
         break;
       case WeaponType.magicMissile:
         returnWeapon = MagicMissile(upgradeLevel, ancestor);
@@ -642,7 +633,7 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = Shotgun(upgradeLevel, null);
         break;
       case WeaponType.railspire:
-        returnWeapon = Railgun(upgradeLevel, null);
+        returnWeapon = Railspire(upgradeLevel, null);
         break;
       case WeaponType.blankProjectileWeapon:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, null);

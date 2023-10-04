@@ -212,8 +212,8 @@ mixin StandardProjectile on Projectile {
   @override
   Future<void> onLoad() {
     // gameState.playAudio('sfx/projectiles/laser_sound_1.mp3');
-    enableHoming = weaponAncestor.weaponCanHome;
-
+    isReverseHoming = weaponAncestor.reverseHoming.parameter;
+    enableHoming = weaponAncestor.weaponCanHome || isReverseHoming;
     enableChaining = weaponAncestor.weaponCanChain;
 
     if (enableHoming || enableChaining) {
@@ -226,6 +226,7 @@ mixin StandardProjectile on Projectile {
 
   late Future beginHoming;
   bool futureComplete = false;
+  bool isReverseHoming = false;
 
   HealthFunctionality? target;
   bool targetSet = false;
@@ -310,7 +311,8 @@ mixin StandardProjectile on Projectile {
     body.linearDamping = 6 - distance.clamp(0, 6);
     impulse.setFrom(delta *
         weaponAncestor.projectileVelocity.parameter *
-        projectileHomingSpeedIncrease);
+        projectileHomingSpeedIncrease *
+        (isReverseHoming ? -1 : 1));
 
     body.applyForce(impulse);
 
@@ -323,7 +325,7 @@ mixin StandardProjectile on Projectile {
   void homingCheck(HealthFunctionality other) {
     if (enableHoming &&
         !other.isDead &&
-        !homingComplete &&
+        (!homingComplete || isReverseHoming) &&
         !hitIds.contains(other.entityId)) {
       setTarget(other);
       homedTargets++;
@@ -534,13 +536,6 @@ mixin LaserProjectile on FadeOutProjectile {
     // print(lineThroughEnemies);
   }
 
-  @override
-  void update(double dt) {
-    createLaserPath();
-
-    super.update(dt);
-  }
-
   int laserSteps = 0;
   void generateLine(List<Vector2> lineThroughEnemies) {
     enableHoming = targetsToHome != 0;
@@ -661,14 +656,40 @@ mixin LaserProjectile on FadeOutProjectile {
       (previousValue, element) => {...previousValue, element.$1, element.$2});
 
   @override
+  void update(double dt) {
+    createLaserPath();
+
+    if (lightningEffect) {
+      if (lightningChangeIntervalElapsed > lightningChangeInterval) {
+        lightningEffectVectors = [
+          ...generateLightning(getLines,
+              amplitude: .6,
+              frequency: 1,
+              currentAngle: weaponAncestor.entityAncestor!.handJoint.angle)
+        ];
+        lightningChangeIntervalElapsed = 0;
+      } else {
+        lightningChangeIntervalElapsed += dt;
+      }
+    }
+
+    super.update(dt);
+  }
+
+  double lightningChangeInterval = .025;
+  double lightningChangeIntervalElapsed = 0;
+
+  late List<Vector2> lightningEffectVectors = generateLightning(getLines,
+      amplitude: .9,
+      frequency: 1,
+      currentAngle: weaponAncestor.entityAncestor!.handJoint.angle);
+
+  @override
   void render(Canvas canvas) {
     var path = Path();
     path.moveTo(linePairs.first.$1.x, linePairs.first.$1.y);
     if (lightningEffect) {
-      for (var element in generateLightning(getLines,
-          amplitude: .64,
-          frequency: .3,
-          currentAngle: weaponAncestor.entityAncestor!.handJoint.angle)) {
+      for (var element in lightningEffectVectors) {
         path.lineTo(element.x, element.y);
       }
     } else {
@@ -720,26 +741,26 @@ mixin LaserProjectile on FadeOutProjectile {
           }
         }
       }
-      // if (opacity != 1) {
-      //   canvas.drawPath(path, backPaint..strokeWidth = width * opacity);
-
-      //   // canvas.drawPath(path, backGlowPaint..strokeWidth = width * opacity);
-
-      //   canvas.drawPath(path, frontPaint..strokeWidth = width * .85 * opacity);
-      // } else {
-      canvas.drawPath(path, backPaint);
-      // canvas.drawPath(path, backGlowPaint);
-
-      canvas.drawPath(path, frontPaint);
-      // canvas.drawCircle(
-      //     getLines.last.toOffset(),
-      //     width * 1.3,
-      //     Paint()
-      //       ..shader = ui.Gradient.radial(getLines.last.toOffset(), width * 2,
-      //           [color, Colors.transparent], [0.5, 1])
-      //       ..blendMode = BlendMode.plus);
-      // }
-      super.render(canvas);
     }
+    // if (opacity != 1) {
+    //   canvas.drawPath(path, backPaint..strokeWidth = width * opacity);
+
+    //   // canvas.drawPath(path, backGlowPaint..strokeWidth = width * opacity);
+
+    //   canvas.drawPath(path, frontPaint..strokeWidth = width * .85 * opacity);
+    // } else {
+    canvas.drawPath(path, backPaint);
+    // canvas.drawPath(path, backGlowPaint);
+
+    canvas.drawPath(path, frontPaint);
+    // canvas.drawCircle(
+    //     getLines.last.toOffset(),
+    //     width * 1.3,
+    //     Paint()
+    //       ..shader = ui.Gradient.radial(getLines.last.toOffset(), width * 2,
+    //           [color, Colors.transparent], [0.5, 1])
+    //       ..blendMode = BlendMode.plus);
+    // }
+    super.render(canvas);
   }
 }

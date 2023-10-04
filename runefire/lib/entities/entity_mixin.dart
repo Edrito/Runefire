@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
+import 'package:flame/game.dart';
 import 'package:flame/text.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/game/hud.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/damage_values.dart';
@@ -164,7 +166,7 @@ mixin BaseAttributes on BodyComponent<GameRouter> {
   late final IntParameterManager maxLives;
 
   int deathCount = 0;
-  int get remainingLives => maxLives.parameter - deathCount;
+  int get remainingLives => (maxLives.parameter - deathCount);
 
   late final DoubleParameterManager essenceSteal;
 
@@ -469,6 +471,8 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   void initializeWeapons() {
+    if (isPlayer && !isChildEntity && (this as Player).isDisplay) return;
+
     weaponsInitialized = false;
 
     carriedWeapons.clear();
@@ -602,7 +606,7 @@ mixin StaminaFunctionality on Entity {
   @override
   void initializeParentParameters() {
     stamina = DoubleParameterManager(baseParameter: 100);
-    staminaRegen = DoubleParameterManager(baseParameter: 50);
+    staminaRegen = DoubleParameterManager(baseParameter: 25);
 
     super.initializeParentParameters();
   }
@@ -624,7 +628,7 @@ mixin StaminaFunctionality on Entity {
   double staminaUsed = 0;
 
   ///5 = 5 more stamina, -5 = 5 less stamina, to use
-  void modifyStamina(double amount) {
+  void modifyStamina(double amount, [bool regen = false]) {
     if (isForbiddenMagic && this is HealthFunctionality && amount < 0) {
       final health = this as HealthFunctionality;
 
@@ -634,6 +638,12 @@ mixin StaminaFunctionality on Entity {
     } else {
       staminaUsed = (staminaUsed -= amount).clamp(0, stamina.parameter);
       staminaModifiedFunctions(amount);
+      if (!regen &&
+          isPlayer &&
+          !isChildEntity &&
+          enviroment is GameEnviroment) {
+        gameEnviroment.hud.barFlash(BarType.staminaBar);
+      }
     }
   }
 
@@ -658,7 +668,9 @@ mixin StaminaFunctionality on Entity {
 
   @override
   void update(double dt) {
-    modifyStamina(staminaRegen.parameter * dt * increaseStaminaRegenSpeed);
+    // modifyStamina(staminaRegen.parameter * dt * increaseStaminaRegenSpeed);
+    modifyStamina(
+        staminaRegen.parameter * dt * increaseStaminaRegenSpeed, true);
     super.update(dt);
   }
 }
@@ -672,6 +684,7 @@ mixin HealthRegenFunctionality on HealthFunctionality {
   @override
   void initializeParentParameters() {
     healthRegen = DoubleParameterManager(baseParameter: .35);
+    // healthRegen = DoubleParameterManager(baseParameter: 1);
 
     super.initializeParentParameters();
   }
@@ -1002,6 +1015,9 @@ mixin HealthFunctionality on Entity {
     damageTaken += damage.damage;
     // recentDamage += damage.damage;
     damageTaken.clamp(0, maxHealth.parameter);
+    if (isPlayer && !isChildEntity) {
+      gameEnviroment.hud.barFlash(BarType.healthBar);
+    }
 
     damageInstancesRecieved.add(damage);
   }
@@ -1246,7 +1262,7 @@ mixin TouchDamageFunctionality on Entity, ContactCallbacks {
   ///Time interval between damage ticks
 
   void damageOther(Body other) {
-    if (touchDamage.damageBase.isEmpty) return;
+    if (touchDamage.damageBase.isEmpty || isDead) return;
     final otherReference = other.userData;
     if (otherReference is! HealthFunctionality) return;
     if ((isPlayer && otherReference is Enemy) ||
@@ -1395,7 +1411,7 @@ mixin DashFunctionality on StaminaFunctionality {
     if (!shouldApplyGroundAnimation) return;
 
     applyGroundAnimation(
-        await spriteAnimations.dashEffect1, false, entityHeight * .1, true);
+        await spriteAnimations.dashEffect1, false, spriteHeight * .1, true);
   }
 
   bool triggerFunctions = true;
@@ -1625,7 +1641,7 @@ mixin JumpFunctionality on Entity {
                 1);
 
     applyGroundAnimation(
-        await spriteAnimations.jumpEffect1, false, entityHeight * .2);
+        await spriteAnimations.jumpEffect1, false, spriteHeight * .2);
 
     _isJumping = true;
     double elapsed = 0;
@@ -1739,6 +1755,8 @@ mixin ExpendableFunctionality on Entity {
       onExpendable(currentExpendable!);
     }
     currentExpendable = null;
-    gameEnviroment.hud.currentExpendable = null;
+    if (enviroment is GameEnviroment) {
+      gameEnviroment.hud.currentExpendable = null;
+    }
   }
 }

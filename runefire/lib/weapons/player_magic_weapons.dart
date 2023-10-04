@@ -15,6 +15,7 @@ import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/weapon_class.dart';
@@ -88,7 +89,10 @@ class Icecicle extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  double weaponSize = .85;
+  double weaponScale = .5;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -289,7 +293,10 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   ];
 
   @override
-  double weaponSize = .85;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
@@ -382,7 +389,10 @@ class FireballMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  double weaponSize = .85;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
@@ -410,14 +420,6 @@ class EnergyMagic extends PlayerWeapon
     primaryDamageType = DamageType.energy;
     projectileSize = .065;
 
-    // onProjectileDeath.add((projectile) {
-    //   entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
-    //     sourceEntity: entityAncestor!,
-    //     position: projectile.center,
-    //     durationType: DurationType.instant,
-    //     damage: {DamageType.fire: (10, 25)},
-    //   ));
-    // });
     attackOnRelease = false;
 
     attackOnChargeComplete = true;
@@ -470,7 +472,10 @@ class EnergyMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
-  double weaponSize = .85;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -491,15 +496,6 @@ class PsychicMagic extends PlayerWeapon
 
     primaryDamageType = DamageType.psychic;
     projectileSize = 1.25;
-
-    // onProjectileDeath.add((projectile) {
-    //   entityAncestor?.enviroment.physicsComponent.add(AreaEffect(
-    //     sourceEntity: entityAncestor!,
-    //     position: projectile.center,
-    //     durationType: DurationType.instant,
-    //     damage: {DamageType.fire: (10, 25)},
-    //   ));
-    // });
   }
 
   @override
@@ -549,7 +545,10 @@ class PsychicMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  double weaponSize = .85;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
 }
 
 class MagicBlast extends PlayerWeapon
@@ -612,7 +611,10 @@ class MagicBlast extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
-  double weaponSize = .85;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
@@ -675,9 +677,11 @@ class MagicMissile extends PlayerWeapon
 
   @override
   ProjectileType? projectileType = ProjectileType.paintBullet;
-
   @override
-  double weaponSize = .85;
+  double weaponScale = 1;
+  @override
+  late Vector2 pngSize =
+      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
