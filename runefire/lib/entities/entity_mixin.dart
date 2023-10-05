@@ -392,14 +392,19 @@ mixin AimFunctionality on Entity {
 
   Vector2 previousHandJointPosWithoutOffset = Vector2.zero();
 
-  void followTarget() {
+  void followTarget([bool smoothFollow = true]) {
     final previousNormal = previousHandJointPosWithoutOffset.normalized();
     final handAngleTarget = entityInputsAimAngle.normalized();
     final interpAmount = aimingInterpolationAmount.parameter;
-    final angle = (previousNormal
-          ..moveToTarget(handAngleTarget,
-              interpAmount * previousNormal.distanceTo(handAngleTarget)))
-        .normalized();
+    Vector2 angle;
+    if (smoothFollow) {
+      angle = (previousNormal
+            ..moveToTarget(handAngleTarget,
+                interpAmount * previousNormal.distanceTo(handAngleTarget)))
+          .normalized();
+    } else {
+      angle = handAngleTarget.clone();
+    }
 
     final mousePositionWithPlayerCenterOffset = mousePositionOffPlayer;
 
@@ -1048,7 +1053,7 @@ mixin HealthFunctionality on Entity {
   }
 
   void deathChecker(DamageInstance damage) {
-    if (remainingHealth <= 0 && !isDead) {
+    if ((remainingHealth <= 0 || !remainingHealth.isFinite) && !isDead) {
       if (this is Player) {
         game.gameStateComponent.gameState
             .killPlayer(GameEndState.death, this as Player, damage);

@@ -6,6 +6,8 @@ import 'package:flame/game.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide World;
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/events/event_entity.dart';
+import 'package:runefire/events/event_types.dart';
 import 'package:runefire/game/hexed_forest_game.dart';
 import 'package:runefire/game/menu_game.dart';
 import 'package:runefire/player/player.dart';
@@ -13,7 +15,7 @@ import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 
 import '../resources/functions/custom.dart';
-import 'event_management.dart';
+import '../events/event_management.dart';
 import '../game/hud.dart';
 
 import 'dart:async';
@@ -354,16 +356,25 @@ mixin PauseOnFocusLost on Enviroment {
   }
 }
 
+mixin GodFunctionality on Enviroment {
+  bool get godAdded => god != null;
+
+  GodEntity? god;
+
+  void addGod(EventManagement eventManagement) {
+    god = GodEntity(
+      eventManagement: eventManagement,
+      enviroment: this,
+    );
+    addPhysicsComponent([god!]);
+  }
+}
+
 mixin PlayerFunctionality on Enviroment {
   bool get playerAdded => player != null;
 
   Player? player;
   late CustomFollowBehavior customFollow;
-  @override
-  FutureOr<void> onLoad() {
-    super.onLoad();
-    addPlayer();
-  }
 
   @override
   void onMouseMove(PointerHoverEvent info) {
@@ -375,9 +386,11 @@ mixin PlayerFunctionality on Enviroment {
 
   // final test = PositionComponent();
 
-  void addPlayer() {
-    player = Player(playerData, this is MenuGame,
-        eventManagement: MenuGameEventManagement(this),
+  void addPlayer(EventManagement? eventManagement) {
+    bool isMenuGame = this is MenuGame;
+    player = Player(playerData, isMenuGame,
+        eventManagement:
+            isMenuGame ? MenuGameEventManagement(this) : eventManagement!,
         enviroment: this,
         initialPosition: Vector2.zero());
 
@@ -389,45 +402,9 @@ mixin PlayerFunctionality on Enviroment {
     addPhysicsComponent([player!], instant: true);
   }
 
-  void transmitDragInfo(int pointerId, PointerMoveEvent info) {
-    // switch (inputIdStates[pointerId]) {
-    //   case InputType.mouseDrag:
-    //     player?.gestureEventStart(
-    //         InputType.mouseDrag, info.localPosition.toVector2());
+  void transmitDragInfo(int pointerId, PointerMoveEvent info) {}
 
-    //   default:
-    // }
-  }
-
-  void endIdState(int id) {
-    // if (inputIdStates.containsKey(id)) {
-    //   switch (inputIdStates[id]) {
-    //     case InputType.mouseDrag:
-    //       player?.gestureEventEnd(InputType.mouseDrag);
-
-    //       break;
-    //     default:
-    //   }
-    //   inputIdStates.remove(id);
-    // }
-  }
-
-  // @override
-  // void onDragCancel(DragCancelEvent event) {
-  //   endIdState(event.pointerId);
-  //   super.onDragCancel(event);
-  // }
-
-  // @override
-  // void onDragEnd(DragEndEvent event) {
-  //   endIdState(event.pointerId);
-  //   super.onDragEnd(event);
-  // }
-
-  // @override
-  // void onDragStart(DragStartEvent event) {
-  //   super.onDragStart(event);
-  // }
+  void endIdState(int id) {}
 
   @override
   void onMount() {

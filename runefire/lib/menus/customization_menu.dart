@@ -287,8 +287,8 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
       if (selectedWeapon?.attackType == element) {
         selectedWeapons[element] = (selectedWeapon!);
       } else {
-        selectedWeapons[element] = (WeaponType.values
-            .firstWhere((elementD) => elementD.attackType == element));
+        selectedWeapons[element] = (WeaponType.values.firstWhere(
+            (elementD) => elementD.attackType == element && !elementD.hidden));
       }
     }
 
@@ -307,7 +307,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
     bool isSecondary = attackType == null;
     int currentIndex = -1;
     final attackTypeWeapons = WeaponType.values
-        .where((element) => element.attackType == attackType)
+        .where((element) => element.attackType == attackType && !element.hidden)
         .toList();
     if (isSecondary) {
       currentIndex = SecondaryType.values.indexOf(selectedSecondary!);

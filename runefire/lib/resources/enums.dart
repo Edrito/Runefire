@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/entities/entity_mixin.dart';
-import 'package:runefire/game/event_management.dart';
+import 'package:runefire/events/event_management.dart';
 import 'package:runefire/player/player_constants.dart' as player_constants;
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
@@ -484,6 +484,7 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 }
 
 enum WeaponType {
+  // ghostHand('assets/images/weapons/pistol.png', 5, AttackType.melee, 0,hidden: true),
   crystalPistol('assets/images/weapons/pistol.png', 5, AttackType.guns, 0),
   scryshot('assets/images/weapons/long_rifle.png', 5, AttackType.guns, 0),
   arcaneBlaster(
@@ -503,7 +504,8 @@ enum WeaponType {
   flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
   phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.melee, 0),
   blankProjectileWeapon(
-      'assets/images/weapons/dagger.png', 5, AttackType.guns, 0),
+      'assets/images/weapons/dagger.png', 5, AttackType.guns, 0,
+      hidden: true),
   icecicleMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   psychicMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   fireballMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
@@ -518,11 +520,13 @@ enum WeaponType {
       'assets/images/weapons/crystal_sword.png', 5, AttackType.melee, 100),
   ;
 
-  const WeaponType(this.icon, this.maxLevel, this.attackType, this.baseCost);
+  const WeaponType(this.icon, this.maxLevel, this.attackType, this.baseCost,
+      {this.hidden = false});
   final String icon;
   final int maxLevel;
   final AttackType attackType;
   final int baseCost;
+  final bool hidden;
 
   String get flameImage {
     final split = icon.split('/');

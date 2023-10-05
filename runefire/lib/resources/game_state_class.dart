@@ -1,8 +1,11 @@
+import 'dart:ffi';
+
 import 'package:flame/components.dart';
 import 'package:flame_audio/audio_pool.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/visuals.dart';
 
@@ -18,6 +21,13 @@ import 'enums.dart';
 import 'constants/routes.dart' as routes;
 import '../menus/overlays.dart' as overlays;
 
+class OverlayMessage {
+  OverlayMessage(this.text, {this.duration = 5, this.isImportant = false});
+  final String text;
+  final double duration;
+  final bool isImportant;
+}
+
 class GameState {
   GameState(this.gameRouter, this.playerData, this.systemData,
       {required this.currentMenuPage});
@@ -32,6 +42,32 @@ class GameState {
   String? currentOverlay;
   late String currentRoute;
   bool transitionOccuring = false;
+  OverlayMessage? textToDisplay;
+  bool get textOverlayIsActive => textToDisplay != null;
+  List<OverlayMessage> queuedTextMessages = [];
+
+  void displayText(OverlayMessage message) {
+    if (textOverlayIsActive) {
+      queuedTextMessages.add(message);
+      return;
+    }
+    textToDisplay = message;
+    final String overlayToAdd = message.isImportant
+        ? overlays.textDisplay.key
+        : overlays.textDisplay.key;
+
+    gameRouter.overlays.add(overlayToAdd);
+
+    Future.delayed((message.duration).seconds).then((value) {
+      textToDisplay = null;
+      gameRouter.overlays.remove(overlayToAdd);
+      Future.delayed(.5.seconds).then((value) {
+        if (queuedTextMessages.isNotEmpty) {
+          displayText(queuedTextMessages.removeAt(0));
+        }
+      });
+    });
+  }
 
   //Key and audiopool
   //Key format is {audioScope}_{audioLocation}
@@ -186,7 +222,7 @@ extension GameStateFunctions on GameState {
     }
 
     if (page == MenuPageType.weaponMenu) {
-      menuGame?.addPlayer();
+      menuGame?.addPlayer(null);
     } else {
       menuGame?.removePlayer();
     }

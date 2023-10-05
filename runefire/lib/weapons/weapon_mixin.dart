@@ -529,10 +529,10 @@ mixin ProjectileFunctionality on Weapon {
     for (var radDirection in temp) {
       if (projectileType == null) continue;
       Vector2 converted = newPositionRad(Vector2(0, 0), -radDirection, 1);
-      final delta =
+      converted =
           (randomizeVector2Delta(converted, weaponRandomnessPercent.parameter));
 
-      returnList.add(buildProjectile(delta, chargeAmount));
+      returnList.add(buildProjectile(converted, chargeAmount));
     }
 
     return returnList;
@@ -1165,7 +1165,12 @@ String buildWeaponDescription(
       break;
 
     case WeaponDescription.additionalAttackCount:
-      returnString = "${builtWeapon.getAttackCount(1)} attack(s)";
+      final count = builtWeapon.getAttackCount(1);
+      if (count == 0) {
+        returnString = "";
+      } else {
+        returnString = "$count attack(s)";
+      }
 
       break;
   }

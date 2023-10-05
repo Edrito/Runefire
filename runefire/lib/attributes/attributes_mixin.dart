@@ -196,7 +196,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
       element(dt);
     }
     processHeadEntities(_headEntities, .5, dt);
-    processBodyEntities(_bodyComponents, height.parameter * 1.3, dt);
+    processBodyEntities(_bodyComponents, spriteHeight * 1.3, dt);
     super.update(dt);
   }
 

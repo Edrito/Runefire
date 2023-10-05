@@ -7,18 +7,19 @@ import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/game/enviroment.dart';
-import 'package:runefire/game/event_management.dart';
+import 'package:runefire/events/event_management.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/enviroment_interactables/runes.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/game_state_class.dart';
 
 import 'entities/child_entities.dart';
 
 void conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
   Future.delayed(2.seconds).then((value) async {
-    player?.addAttribute(AttributeType.chainingAttacks);
+    player?.addAttribute(AttributeType.homingProjectiles);
   });
 
   while (true) {

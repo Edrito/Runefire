@@ -125,7 +125,7 @@ abstract class MovingSentry extends ChildEntity with MovementFunctionality {
 
   @override
   Body createBody() {
-    final fixture = FixtureDef(CircleShape()..radius = height.parameter / 2,
+    final fixture = FixtureDef(CircleShape()..radius = spriteHeight / 2,
         filter: Filter()
           ..maskBits = maskBits
           ..categoryBits = isPlayer ? playerCategory : enemyCategory,
@@ -721,7 +721,7 @@ class ShieldSentry extends ChildEntity
 
   @override
   createBody() {
-    final fixture = FixtureDef(CircleShape()..radius = height.parameter / 3,
+    final fixture = FixtureDef(CircleShape()..radius = spriteHeight / 3,
         filter: Filter()
           ..maskBits =
               projectileCategory + (!isPlayer ? playerCategory : enemyCategory)
@@ -770,7 +770,7 @@ class SwordSentry extends ChildEntity
 
   @override
   createBody() {
-    final fixture = FixtureDef(CircleShape()..radius = height.parameter / 3,
+    final fixture = FixtureDef(CircleShape()..radius = spriteHeight / 3,
         filter: Filter()
           ..maskBits = (!isPlayer ? playerCategory : enemyCategory)
           ..categoryBits = swordCategory,

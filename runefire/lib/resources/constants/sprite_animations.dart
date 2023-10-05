@@ -12,7 +12,6 @@ Future<SpriteAnimation> loadSpriteAnimation(
 ) async {
   final sprite = (await Sprite.load(source));
   Vector2 newScale = sprite.srcSize;
-
   newScale = Vector2(newScale.x / numberOfSprites, newScale.y);
   return SpriteSheet(image: sprite.image, srcSize: newScale).createAnimation(
       row: 0,
@@ -113,12 +112,14 @@ class SpriteAnimations {
 
 //WeaponHitEffects
   late Future<SpriteAnimation> slashEffect1 = loadSpriteAnimation(
-      4, 'weapons/melee/small_slash_effect.png', .05, false);
+      4, 'weapons/melee/small_slash_effect.png', .07, false);
   late Future<SpriteAnimation> crustEffect1 = loadSpriteAnimation(
-      4, 'weapons/melee/small_crush_effect.png', .05, false);
+      4, 'weapons/melee/small_crush_effect.png', .07, false);
+  late Future<SpriteAnimation> scratchEffect1 =
+      loadSpriteAnimation(6, ImagesAssetsMelee.scratch1.flamePath, .07, false);
 
   late Future<SpriteAnimation> stabEffect1 =
-      loadSpriteAnimation(4, 'weapons/melee/small_stab_effect.png', .05, false);
+      loadSpriteAnimation(4, 'weapons/melee/small_stab_effect.png', .07, false);
 
 //ChildEntities
   late Future<SpriteAnimation> hoveringCrystalIdle1 = loadSpriteAnimation(
@@ -209,8 +210,8 @@ class SpriteAnimations {
 
   late Future<SpriteAnimation> aethertideSpearIdle1 =
       loadSpriteAnimation(1, 'weapons/spear.png', 1, true);
-  late Future<SpriteAnimation> holySwordIdle1 =
-      loadSpriteAnimation(1, 'weapons/energy_sword.png', 1, true);
+  late Future<SpriteAnimation> holySwordIdle1 = loadSpriteAnimation(
+      3, ImagesAssetsWeapons.holySwordIdle.flamePath, 1, true);
 
   late Future<SpriteAnimation> fireSwordIdle1 =
       loadSpriteAnimation(1, 'weapons/fire_sword.png', 1, true);
@@ -238,4 +239,9 @@ class SpriteAnimations {
 
   late Future<SpriteAnimation> uiHealthBar1 =
       loadSpriteAnimation(1, 'ui/health_bar.png', 1, true);
+  late Future<SpriteAnimation> exitArrow1 = loadSpriteAnimation(
+      8, ImagesAssetsEntityEffects.exitArrow.flamePath, .25, true);
+  //ENV EFFECTS
+  late Future<SpriteAnimation> ghostHandAttack1 = loadSpriteAnimation(
+      20, ImagesAssetsEnemySprites.ghostHandAttackRed.flamePath, .1, false);
 }

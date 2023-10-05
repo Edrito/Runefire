@@ -27,3 +27,13 @@ const double menuBaseBarWidthPadding = 50;
 int getHeightScaleStep(double height) => (height / 200).round().clamp(1, 10);
 
 const double portalBaseSize = 150.0;
+
+List<String> endGameMessages = [
+  "I've found you...",
+  "Hmmm?",
+  "You're not supposed to be here...",
+  "You can't escape.",
+  "You're mine now.",
+  "You're not going anywhere.",
+  "You're not going to make it.",
+];

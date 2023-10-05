@@ -61,7 +61,7 @@ static const String hoveringCrystal6 = "assets/images/attribute_sprites/hovering
 /// 768x128 
 static const String hoveringCrystalAttack6 = "assets/images/attribute_sprites/hovering_crystal_attack_6.png";
 ///mark_enemy_4.png
-/// 512x128 
+/// 192x48 
 static const String markEnemy4 = "assets/images/attribute_sprites/mark_enemy_4.png";
 ///spark_child_1_7.png
 /// 224x32 
@@ -78,7 +78,7 @@ sparkChild17.flamePath,
 ];
 static  Map<String, Vector2> pngSizes = {hoveringCrystal6: Vector2(768.0, 128.0),
 hoveringCrystalAttack6: Vector2(768.0, 128.0),
-markEnemy4: Vector2(512.0, 128.0),
+markEnemy4: Vector2(192.0, 48.0),
 sparkChild17: Vector2(224.0, 32.0),
 };
 }
@@ -247,6 +247,9 @@ class ImagesAssetsEnemySprites {
 ///death.png
 /// 640x64 
 static const String death = "assets/images/enemy_sprites/death.png";
+///ghost_hand_attack_red.png
+/// 960x48 
+static const String ghostHandAttackRed = "assets/images/enemy_sprites/ghost_hand_attack_red.png";
 ///idle.png
 /// 480x48 
 static const String idle = "assets/images/enemy_sprites/idle.png";
@@ -254,14 +257,17 @@ static const String idle = "assets/images/enemy_sprites/idle.png";
 /// 384x48 
 static const String run = "assets/images/enemy_sprites/run.png";
 static const List<String> allFiles = [death,
+ghostHandAttackRed,
 idle,
 run,
 ];
 static  List<String> allFilesFlame = [death.flamePath,
+ghostHandAttackRed.flamePath,
 idle.flamePath,
 run.flamePath,
 ];
 static  Map<String, Vector2> pngSizes = {death: Vector2(640.0, 64.0),
+ghostHandAttackRed: Vector2(960.0, 48.0),
 idle: Vector2(480.0, 48.0),
 run: Vector2(384.0, 48.0),
 };
@@ -540,16 +546,22 @@ class ImagesAssetsEntityEffects {
 ///dash_effect.png
 /// 448x32 
 static const String dashEffect = "assets/images/entity_effects/dash_effect.png";
+///exit_arrow.png
+/// 1024x128 
+static const String exitArrow = "assets/images/entity_effects/exit_arrow.png";
 ///jump_effect.png
 /// 450x23 
 static const String jumpEffect = "assets/images/entity_effects/jump_effect.png";
 static const List<String> allFiles = [dashEffect,
+exitArrow,
 jumpEffect,
 ];
 static  List<String> allFilesFlame = [dashEffect.flamePath,
+exitArrow.flamePath,
 jumpEffect.flamePath,
 ];
 static  Map<String, Vector2> pngSizes = {dashEffect: Vector2(448.0, 32.0),
+exitArrow: Vector2(1024.0, 128.0),
 jumpEffect: Vector2(450.0, 23.0),
 };
 }
@@ -815,7 +827,7 @@ static const String healthBarCap = "assets/images/ui/health_bar_cap.png";
 /// 8x8 
 static const String healthBarMid = "assets/images/ui/health_bar_mid.png";
 ///inf.png
-/// 11x14 
+/// 14x11 
 static const String inf = "assets/images/ui/inf.png";
 ///level_indicator_gun_blue.png
 /// 16x16 
@@ -1008,7 +1020,7 @@ bossBarRight: Vector2(32.0, 8.0),
 healthBar: Vector2(128.0, 32.0),
 healthBarCap: Vector2(8.0, 8.0),
 healthBarMid: Vector2(8.0, 8.0),
-inf: Vector2(11.0, 14.0),
+inf: Vector2(14.0, 11.0),
 levelIndicatorGunBlue: Vector2(16.0, 16.0),
 levelIndicatorGunRed: Vector2(16.0, 16.0),
 levelIndicatorMagicBlue: Vector2(16.0, 16.0),
@@ -1135,6 +1147,9 @@ static const String fireSword = "assets/images/weapons/fire_sword.png";
 ///frost_katana.png
 /// 28x152 
 static const String frostKatana = "assets/images/weapons/frost_katana.png";
+///holy_sword_idle.png
+/// 162x142 
+static const String holySwordIdle = "assets/images/weapons/holy_sword_idle.png";
 ///large_sword.png
 /// 26x90 
 static const String largeSword = "assets/images/weapons/large_sword.png";
@@ -1180,6 +1195,7 @@ eldritchRunner,
 energySword,
 fireSword,
 frostKatana,
+holySwordIdle,
 largeSword,
 longRifle,
 longRifleAttack,
@@ -1202,6 +1218,7 @@ eldritchRunner.flamePath,
 energySword.flamePath,
 fireSword.flamePath,
 frostKatana.flamePath,
+holySwordIdle.flamePath,
 largeSword.flamePath,
 longRifle.flamePath,
 longRifleAttack.flamePath,
@@ -1224,6 +1241,7 @@ eldritchRunner: Vector2(43.0, 86.0),
 energySword: Vector2(54.0, 142.0),
 fireSword: Vector2(42.0, 103.0),
 frostKatana: Vector2(28.0, 152.0),
+holySwordIdle: Vector2(162.0, 142.0),
 largeSword: Vector2(26.0, 90.0),
 longRifle: Vector2(64.0, 128.0),
 longRifleAttack: Vector2(192.0, 64.0),
@@ -1268,6 +1286,9 @@ fireChargeSpawn: Vector2(80.0, 16.0),
 };
 }
 class ImagesAssetsMelee {
+///scratch_1.png
+/// 96x16 
+static const String scratch1 = "assets/images/weapons/melee/scratch_1.png";
 ///small_crush_effect.png
 /// 104x53 
 static const String smallCrushEffect = "assets/images/weapons/melee/small_crush_effect.png";
@@ -1277,15 +1298,18 @@ static const String smallSlashEffect = "assets/images/weapons/melee/small_slash_
 ///small_stab_effect.png
 /// 164x36 
 static const String smallStabEffect = "assets/images/weapons/melee/small_stab_effect.png";
-static const List<String> allFiles = [smallCrushEffect,
+static const List<String> allFiles = [scratch1,
+smallCrushEffect,
 smallSlashEffect,
 smallStabEffect,
 ];
-static  List<String> allFilesFlame = [smallCrushEffect.flamePath,
+static  List<String> allFilesFlame = [scratch1.flamePath,
+smallCrushEffect.flamePath,
 smallSlashEffect.flamePath,
 smallStabEffect.flamePath,
 ];
-static  Map<String, Vector2> pngSizes = {smallCrushEffect: Vector2(104.0, 53.0),
+static  Map<String, Vector2> pngSizes = {scratch1: Vector2(96.0, 16.0),
+smallCrushEffect: Vector2(104.0, 53.0),
 smallSlashEffect: Vector2(154.0, 16.0),
 smallStabEffect: Vector2(164.0, 36.0),
 };

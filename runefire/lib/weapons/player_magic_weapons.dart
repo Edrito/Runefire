@@ -144,7 +144,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   TextComponent buildTextComponent() {
     return TextComponent(
         text: currentWord,
-        position: Vector2(.5, -entityAncestor!.height.parameter / 2),
+        position: Vector2(.5, -entityAncestor!.spriteHeight / 2),
         textRenderer: colorPalette.buildTextPaint(
             .4, ShadowStyle.lightGame, Colors.white));
   }

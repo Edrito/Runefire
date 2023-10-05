@@ -7,7 +7,7 @@ import 'package:runefire/attributes/attributes_status_effect.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/game/enviroment.dart';
-import 'package:runefire/game/event_management.dart';
+import 'package:runefire/events/event_management.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
@@ -57,13 +57,13 @@ abstract class Entity extends BodyComponent<GameRouter>
   //STATUS
   Vector2 initialPosition;
   Vector2 get spriteOffset => Vector2.zero();
-  Vector2 get spriteSize => (entityAnimations[EntityStatus.idle]
+  late Vector2 spriteSize = (entityAnimations[EntityStatus.idle]
           ?.frames
           .first
           .sprite
           .srcSize
           .clone() ??
-      Vector2.zero())
+      Vector2.all(1))
     ..scaledToHeight(this);
 
   double get spriteHeight => spriteSize.y;
@@ -93,8 +93,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     return null;
   }
 
-  double get entityStatusHeight =>
-      (height.parameter / 2) + (height.parameter / 4);
+  double get entityStatusHeight => (spriteHeight / 2) + (spriteHeight / 4);
 
   GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
   bool get isPlayer =>

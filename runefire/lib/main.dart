@@ -180,6 +180,7 @@ void main() async {
                   overlay.pauseMenu,
                   overlay.mainMenu,
                   overlay.caveFront,
+                  overlay.textDisplay,
                   overlay.deathScreen,
                   overlay.attributeSelection,
                 ])),

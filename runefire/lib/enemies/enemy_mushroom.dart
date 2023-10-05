@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:async' as async;
 
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/body.dart';
 import 'package:runefire/enemies/enemy_mixin.dart';
 import 'package:runefire/entities/entity_mixin.dart';
-import 'package:runefire/game/event_management.dart';
+import 'package:runefire/events/event_class.dart';
+import 'package:runefire/events/event_management.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
@@ -493,35 +495,48 @@ class MushroomBurrower extends Enemy
         stateDuration: (0, 0),
         triggerFunctions: []);
 
+    late async.Timer timer;
+
     const groundDuration = 2.0;
     enemyStates = {
       //Out
-      0: EnemyState(this, priority: 0, randomFunctions: [], onStateStart: () {
-        if (initState) {
-          setEntityStatus(EntityStatus.custom, customAnimationKey: "burrow_out")
-              .then((value) => setEntityStatus(EntityStatus.idle));
-          body.setTransform(
-              SpawnLocation.onPlayer.grabNewPosition(gameEnviroment), angle);
-        } else {
-          initState = true;
-        }
+      0: EnemyState(this,
+          priority: 0,
+          randomFunctions: [],
+          onStateStart: () {
+            if (initState) {
+              setEntityStatus(EntityStatus.custom,
+                      customAnimationKey: "burrow_out")
+                  .then((value) => setEntityStatus(EntityStatus.idle));
+              body.setTransform(
+                  SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1),
+                  angle);
+            } else {
+              initState = true;
+            }
 
-        toggleIdleRunAnimations(false);
+            toggleIdleRunAnimations(false);
+            Future.delayed(burrowSpeed.seconds).then((value) {
+              touchDamage.damageBase[DamageType.physical] = (10, 15);
+              collision.removeKey(entityId);
+              timer =
+                  async.Timer.periodic((groundDuration / 2).seconds, (timer) {
+                if (isDead) return;
+                inputAimAngles[InputType.ai] =
+                    (gameEnviroment.player!.center - center).normalized();
+                followTarget(false);
+                final count = 2 + (rng.nextBool() ? 0 : 2);
+                currentWeapon?.attackCountIncrease.baseParameter = count;
 
-        Future.delayed(burrowSpeed.seconds).then((value) {
-          touchDamage.damageBase[DamageType.physical] = (10, 15);
-          collision.removeKey(entityId);
-          for (var i = 1; i < 4; i++) {
-            Future.delayed(((groundDuration / 4) * i).seconds, () {
-              final count = 2 + (rng.nextBool() ? 0 : 2);
-              currentWeapon?.attackCountIncrease.baseParameter = count;
-
-              currentWeapon?.startAttacking();
-              currentWeapon?.endAttacking();
+                currentWeapon?.standardAttack(1, true);
+              });
             });
-          }
-        });
-      }, stateDuration: (4, 5), triggerFunctions: []),
+          },
+          stateDuration: (4, 5),
+          triggerFunctions: [],
+          onStateEnd: () {
+            timer.cancel();
+          }),
       //In
       1: EnemyState(this,
           priority: 5,

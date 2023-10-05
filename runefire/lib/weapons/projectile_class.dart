@@ -48,13 +48,13 @@ mixin FadeOutProjectile on Projectile {
   // @override
   // void killBullet([bool withEffect = false]) async {}
 
-  // @override
-  // double get opacity => fadeOutCurve.transform(
-  //     (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
-  //         .clamp(0, 1)
-  //         .toDouble());
   @override
-  double get opacity => 1;
+  double get opacity => fadeOutCurve.transform(
+      (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
+          .clamp(0, 1)
+          .toDouble());
+  // @override
+  // double get opacity => 1;
 
   @override
   void update(double dt) {

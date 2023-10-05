@@ -228,13 +228,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
   bool get weaponCanHome => maxHomingTargets.parameter > 0;
   Vector2 weaponTipPosition(double percent, [bool distanceFromPlayer = false]) {
     return newPositionRad(
-            entityAncestor!.handJoint.absolutePosition,
-            -entityAncestor!.handJoint.angle,
-            distanceFromPlayer
-                ? this.distanceFromPlayer
-                : (tipOffset.y * weaponLength * percent) +
-                    this.distanceFromPlayer) +
-        entityAncestor!.center;
+        entityAncestor!.handJoint.absolutePosition,
+        -entityAncestor!.handJoint.angle,
+        distanceFromPlayer
+            ? this.distanceFromPlayer
+            : (tipOffset.y * weaponLength * percent) + this.distanceFromPlayer);
   }
 
   void addAdditionalWeapon(Weapon newWeapon) {
@@ -285,7 +283,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
         break;
       case SourceAttackLocation.weaponMid:
         center = weaponTipPosition(0.5);
-      // center +=
 
       //     (delta!.normalized() * (distanceFromPlayer + (weaponSize / 2)));
       case SourceAttackLocation.distanceFromPlayer:
@@ -297,9 +294,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
         }
 
         center += (customOffset ?? Vector2.zero());
-
         break;
       default:
+    }
+    if (attackLocation != SourceAttackLocation.mouse) {
+      center += entityAncestor!.center;
     }
 
     return center;

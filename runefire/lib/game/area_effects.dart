@@ -32,6 +32,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.tickRate = 1,
     this.damage,
     this.onTick,
+    int? overridePriority,
     required this.position,
     required this.sourceEntity,
     this.isSolid = false,
@@ -39,7 +40,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   }) {
     assert(onTick != null || damage != null);
     radius *= sourceEntity.areaSizePercentIncrease.parameter;
-    priority = attackPriority;
+    priority = overridePriority ?? attackPriority;
 
     animationComponent?.size = Vector2.all(radius * 2);
     animationComponent?.durationType = durationType;

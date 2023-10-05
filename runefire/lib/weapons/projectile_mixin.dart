@@ -107,7 +107,7 @@ mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
     //   .1,
     //   1
     // ]);
-
+    // print(opacity);
     canvas.drawCircle(Offset.zero, size * opacity, glowPaint);
     canvas.drawCircle(Offset.zero, size * .5 * opacity, bulletBackPaint);
 
@@ -497,7 +497,7 @@ mixin LaserProjectile on FadeOutProjectile {
           List<Entity> closeBodies = bodies
               .where((element) =>
                   element.center.distanceTo(tempStep + originPosition) <
-                  (closeBodiesSensorRadius + (element.height.parameter / 4)))
+                  (closeBodiesSensorRadius + (element.spriteHeight / 4)))
               .toList();
 
           if (closeBodies.isNotEmpty) {

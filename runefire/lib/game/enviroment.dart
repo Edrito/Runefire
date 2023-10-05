@@ -1,12 +1,17 @@
+import 'package:flame/effects.dart';
 import 'package:flame/flame.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/events/event_management.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
+import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/test.dart';
+import 'package:runefire/weapons/projectile_class.dart';
 
 import '../player/player.dart';
 import '../game/background.dart';
@@ -256,9 +261,19 @@ abstract class GameEnviroment extends Enviroment
         BoundsFunctionality,
         // JoystickFunctionality,
         GameTimerFunctionality,
+        GodFunctionality,
         CollisionEnviroment,
         HudFunctionality {
   late final GameDifficulty difficulty;
+  late final EventManagement _eventManagement;
+  EventManagement get eventManagement => _eventManagement;
+  bool gameHasEnded = false;
+
+  set setEventManagement(EventManagement eventManagement) {
+    _eventManagement = eventManagement;
+    addGod(eventManagement);
+    addPlayer(eventManagement);
+  }
 
   @override
   Future<void> onLoad() async {
@@ -281,4 +296,38 @@ abstract class GameEnviroment extends Enviroment
     }
     super.onKeyEvent(event);
   }
+}
+
+class ExitArrowPainter extends SpriteAnimationComponent {
+  ExitArrowPainter(this.gameEnviroment) {
+    player = gameEnviroment.player!;
+    priority = playerOverlayPriority;
+    exitVector =
+        (Vector2.random() * gameEnviroment.boundsDistanceFromCenter * 2) -
+            Vector2.all(gameEnviroment.boundsDistanceFromCenter);
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    final tempAnim = await spriteAnimations.exitArrow1;
+    animation = tempAnim;
+    size = tempAnim.frames.first.sprite.srcSize..scaledToHeight(player);
+    anchor = Anchor.center;
+    add(OpacityEffect.fadeIn(EffectController(
+      duration: .5,
+    )));
+    return super.onLoad();
+  }
+
+  @override
+  void update(double dt) {
+    angle = -radiansBetweenPoints(Vector2(0, 1),
+        player.center - (player.entityOffsetFromCameraCenter + exitVector));
+
+    super.update(dt);
+  }
+
+  final GameEnviroment gameEnviroment;
+  late final Player player;
+  late final Vector2 exitVector;
 }

@@ -36,7 +36,7 @@ extension ScaledToDimensionVector2 on Vector2 {
             (amount ??
                     ((entity?.height.doubleParameter ?? 3) *
                         (weapon?.weaponScale ?? 1)))
-                .clamp(1, 20));
+                .clamp(.5, 20));
   }
 }
 

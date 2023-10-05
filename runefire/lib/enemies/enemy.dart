@@ -3,7 +3,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:runefire/enemies/enemy_mixin.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
-import 'package:runefire/game/event_management.dart';
+import 'package:runefire/events/event_management.dart';
 
 import '../resources/functions/custom.dart';
 import '../resources/constants/physics_filter.dart';

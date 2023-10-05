@@ -16,6 +16,7 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
+import 'package:runefire/resources/game_state_class.dart';
 import 'dart:math' as math;
 import '../../entities/entity_class.dart';
 import '../../weapons/projectile_mixin.dart';
@@ -228,7 +229,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
       super.anchor = Anchor.center}) {
     assert(playAnimation != null || spawnAnimation != null);
     assert(spawnAnimation != null || durationType != DurationType.instant);
-    desiredWidth ??= 1.0;
+    bool desiredWidthIsNull = desiredWidth == null;
     final bool isSizeZero = size.x == 0 || size.y == 0;
     if (isSizeZero) {
       final spriteSize = playAnimation?.frames.first.sprite.srcSize ??
@@ -236,17 +237,21 @@ class SimpleStartPlayEndSpriteAnimationComponent
 
       size = spriteSize;
     }
-    final widthRatio = desiredWidth! / (size.x);
-    size = Vector2(desiredWidth!, size.y * widthRatio);
+
+    if (desiredWidthIsNull) {
+      size = size
+        ..scaledToHeight(null, amount: .1, env: gameState.currentEnviroment);
+    } else {
+      final widthRatio = desiredWidth! / (size.x);
+      size = Vector2(desiredWidth!, size.y * widthRatio);
+    }
   }
   bool randomizePlay = false;
   late EntityStatus currentStatus;
   double? desiredWidth;
   @override
   FutureOr<void> onLoad() {
-    // autoResize = true;
-    // scale = Vector2.all(1);
-    // size = Vector2.all(1);
+    autoResize = false;
 
     Map<dynamic, SpriteAnimation>? animationsToSet = {
       if (spawnAnimation != null) EntityStatus.spawn: spawnAnimation!,

@@ -19,6 +19,48 @@ import '../resources/functions/functions.dart';
 import 'cards.dart';
 import 'components_notifier_builder.dart';
 
+class DisplayTextWidget extends StatefulWidget {
+  const DisplayTextWidget({super.key});
+
+  @override
+  State<DisplayTextWidget> createState() => _DisplayTextWidgetState();
+}
+
+class _DisplayTextWidgetState extends State<DisplayTextWidget> {
+  late final OverlayMessage message = gameState.textToDisplay!;
+  late final double duration = message.duration;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        Positioned.fill(
+            top: 200,
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Text(
+                gameState.textToDisplay!.text,
+                style: defaultStyle,
+                textAlign: TextAlign.center,
+              ),
+            ))
+      ],
+    )
+        .animate()
+        .fadeIn(duration: .3.seconds)
+        .moveY(duration: .3.seconds)
+        .animate(delay: (duration - .3).seconds)
+        .fadeOut(duration: .3.seconds)
+        .moveY(duration: .3.seconds);
+  }
+}
+
+MapEntry<String, Widget Function(BuildContext, GameRouter)> textDisplay =
+    MapEntry('TextDisplay', (context, gameRouter) {
+  return const DisplayTextWidget();
+});
+
 MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
     MapEntry('PauseMenu', (context, gameRouter) {
   return PauseMenu(gameRouter);
