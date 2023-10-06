@@ -48,8 +48,8 @@ class AttributeTile extends StatelessWidget {
           transform: Matrix4.rotationZ(zRotation),
           child: buildImageAsset(
               isUnlocked
-                  ? ImagesAssetsPermanentAttributes.rune
-                  : ImagesAssetsPermanentAttributes.runeLocked,
+                  ? ImagesAssetsPermanentAttributes.rune.path
+                  : ImagesAssetsPermanentAttributes.runeLocked.path,
               fit: BoxFit.contain,
               color: isMaxLevel
                   ? (customColor ?? colorPalette.primaryColor).darken(.4)
@@ -114,7 +114,7 @@ class AttributeTile extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: Image.asset(
-                  ImagesAssetsUi.book,
+                  ImagesAssetsUi.book.path,
                   fit: BoxFit.fitHeight,
                   filterQuality: FilterQuality.none,
                 ),
@@ -350,7 +350,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                                         padding: const EdgeInsets.only(
                                             left: 15, bottom: 5),
                                         child: buildImageAsset(
-                                            ImagesAssetsUi.banner),
+                                            ImagesAssetsUi.banner.path),
                                       ),
                                     ),
                                   ),
@@ -452,7 +452,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                               style: defaultStyle,
                             ),
                           ),
-                          buildImageAsset(ImagesAssetsExperience.all,
+                          buildImageAsset(ImagesAssetsExperience.all.path,
                               fit: BoxFit.fitHeight)
                         ],
                       ),

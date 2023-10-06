@@ -76,8 +76,7 @@ class CrystalPistol extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.pistol]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.pistol.size.asVector2;
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
 }
@@ -145,8 +144,7 @@ class Shotgun extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.scatterVine]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.scatterVine.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
@@ -213,8 +211,7 @@ class LongRangeRifle extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.longRifle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.longRifle.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
@@ -288,8 +285,7 @@ class ArcaneBlaster extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.arcaneBlaster]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
   @override
   ProjectileType? projectileType = ProjectileType.blackSpriteBullet;
 }
@@ -368,8 +364,7 @@ class LaserRifle extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.prismaticBeam]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.prismaticBeam.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.followLaser;
@@ -428,8 +423,7 @@ class RocketLauncher extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.eldritchRunner]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.eldritchRunner.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
@@ -498,6 +492,5 @@ class Railspire extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.railspire]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.railspire.size.asVector2;
 }

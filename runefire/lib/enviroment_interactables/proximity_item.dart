@@ -110,7 +110,7 @@ class ExperienceItem extends ProximityItem {
     color = experienceAmount.color;
     trailPaint = Paint()..color = color;
 
-    final sprite = await Sprite.load(experienceAmount.fileName.flamePath);
+    final sprite = await Sprite.load(experienceAmount.fileData.flamePath);
     final size = sprite.srcSize
       ..scaledToHeight(null, env: gameState.currentEnviroment);
     spriteComponent = SpriteComponent(

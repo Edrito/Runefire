@@ -272,7 +272,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   Vector2 generateGlobalPosition(SourceAttackLocation attackLocation,
       [Vector2? delta, bool melee = false]) {
-    Vector2 center = entityAncestor!.entityOffsetFromCameraCenter;
+    Vector2 center = Vector2.zero();
 
     switch (attackLocation) {
       case SourceAttackLocation.mouse:
@@ -284,7 +284,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
       case SourceAttackLocation.weaponMid:
         center = weaponTipPosition(0.5);
 
-      //     (delta!.normalized() * (distanceFromPlayer + (weaponSize / 2)));
       case SourceAttackLocation.distanceFromPlayer:
         center = weaponTipPosition(0, true);
         break;

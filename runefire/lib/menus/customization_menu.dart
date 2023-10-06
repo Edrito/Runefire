@@ -42,14 +42,14 @@ class WeaponSecondaryTile extends StatelessWidget {
           ?
           // (isWeapon
           //     ?
-          ImagesAssetsUi.magicHandL
+          ImagesAssetsUi.magicHandL.path
           // :
           // ImagesAssetsUi.magicHandSmallL
           // )
           :
           // (isWeapon
           //     ?
-          ImagesAssetsUi.magicHandR
+          ImagesAssetsUi.magicHandR.path
       // : ImagesAssetsUi.magicHandSmallR
       // )
       ,
@@ -63,7 +63,7 @@ class WeaponSecondaryTile extends StatelessWidget {
               child: buildImageAsset(weaponType!.icon,
                   fit: BoxFit.scaleDown, scale: 1 / 3))
           : buildImageAsset(
-              secondaryType!.icon,
+              secondaryType!.icon.path,
               fit: BoxFit.contain,
             ), // Default: 2
     );
@@ -446,7 +446,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                               style: defaultStyle,
                             ),
                           ),
-                          buildImageAsset(ImagesAssetsExperience.all,
+                          buildImageAsset(ImagesAssetsExperience.all.path,
                               fit: BoxFit.fitHeight)
                         ],
                       ),
@@ -532,6 +532,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
     }
   }
 
+  bool studiesButtonHover = false;
   @override
   Widget build(BuildContext context) {
     Map<int, WeaponType> weaponMap =
@@ -540,6 +541,95 @@ class _WeaponMenuState extends State<WeaponMenu> {
         playerDataComponent.dataObject.selectedSecondaries;
 
     final size = MediaQuery.of(context).size;
+    const studyPanelDropAmount = -menuBaseBarHeight;
+
+    Widget buildStudyPanel(double value) => Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Positioned(
+              // left: 0,
+              right: 0,
+              top: studyPanelDropAmount * (1 - value),
+              height: menuBaseBarHeight * 2,
+              child: InkWell(
+                onHover: (value) {
+                  setState(() {
+                    studiesButtonHover = value;
+                  });
+                },
+                onTap: () {
+                  attributeUpgrader = AttributeUpgrader(
+                      onBack: () {
+                        attributeUpgrader = null;
+                      },
+                      gameRef: widget.gameRef);
+                },
+                child: buildImageAsset(ImagesAssetsUi.studiesHeadBanner.path,
+                    fit: BoxFit.fitHeight),
+              ),
+            ),
+            Positioned(
+              // left: 0,
+              width: 400,
+              right: 0,
+              top: (studyPanelDropAmount * -value) - menuBaseBarHeight,
+              height: menuBaseBarHeight * 2,
+              child: IgnorePointer(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    // crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(
+                              child: Text(
+                                "${playerDataComponent.dataObject.experiencePoints}",
+                                style: defaultStyle.copyWith(
+                                    color: colorPalette.secondaryColor),
+                              ),
+                            ),
+                            buildImageAsset(ImagesAssetsExperience.all.path,
+                                fit: BoxFit.fitHeight),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Expanded(
+                        child: Text(
+                          "Runic Studies",
+                          style: defaultStyle,
+                        ),
+                      ),
+                      // const SizedBox(
+                      //   height: 20,
+                      // )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+
+    final studiesButton = Animate(
+      target: studiesButtonHover ? 1 : 0,
+      effects: [
+        CustomEffect(
+          curve: Curves.easeOut,
+          duration: .2.seconds,
+          builder: (context, value, child) {
+            return buildStudyPanel(value);
+          },
+        )
+      ],
+    );
 
     Widget primaryWeaponTile = WeaponSecondaryTile(
       level: playerDataComponent.dataObject.unlockedWeapons[weaponMap[0]] ?? 0,
@@ -629,54 +719,6 @@ class _WeaponMenuState extends State<WeaponMenu> {
     );
     return Stack(
       children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          top: 0,
-          height: menuBaseBarHeight,
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: Row(
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // const Spacer(),
-                Container(
-                  color: Colors.blue,
-                  child: CustomButton(
-                    "Studies",
-                    gameRef: widget.gameRef,
-                    onTap: () {
-                      attributeUpgrader = AttributeUpgrader(
-                          onBack: () {
-                            attributeUpgrader = null;
-                          },
-                          gameRef: widget.gameRef);
-                    },
-                  ),
-                ),
-                Container(
-                  color: Colors.red,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: Text(
-                          "${playerDataComponent.dataObject.experiencePoints}",
-                          style: defaultStyle,
-                        ),
-                      ),
-                      buildImageAsset(ImagesAssetsExperience.all,
-                          fit: BoxFit.fitHeight)
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         Positioned.fill(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: uiWidthMax),
@@ -777,6 +819,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
             ],
           ),
         ),
+        studiesButton,
+        // Positioned.fill(left: 0, child: ),
         if (_weaponSelector != null) _weaponSelector!,
         if (_attributeUpgrader != null) _attributeUpgrader!,
       ],

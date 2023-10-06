@@ -57,7 +57,8 @@ abstract class Entity extends BodyComponent<GameRouter>
   //STATUS
   Vector2 initialPosition;
   Vector2 get spriteOffset => Vector2.zero();
-  late Vector2 spriteSize = (entityAnimations[EntityStatus.idle]
+  late Vector2 spriteSize = getSpriteSize;
+  Vector2 get getSpriteSize => (entityAnimations[EntityStatus.idle]
           ?.frames
           .first
           .sprite
@@ -153,6 +154,7 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   void applyHeightToSprite() {
+    spriteSize = getSpriteSize;
     entityAnimationsGroup.size = spriteSize;
     if (isLoaded) {
       body.fixtures

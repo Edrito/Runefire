@@ -102,14 +102,14 @@ class _CaveBackgroundState extends State<CaveBackground> {
   late final GameState gameState;
 
   final List<String> runes = [
-    ImagesAssetsRunes.rune1,
-    ImagesAssetsRunes.rune2,
-    ImagesAssetsRunes.rune3,
-    ImagesAssetsRunes.rune4,
-    ImagesAssetsRunes.rune5,
-    ImagesAssetsRunes.rune6,
-    ImagesAssetsRunes.rune7,
-    ImagesAssetsRunes.rune8,
+    ImagesAssetsRunes.rune1.path,
+    ImagesAssetsRunes.rune2.path,
+    ImagesAssetsRunes.rune3.path,
+    ImagesAssetsRunes.rune4.path,
+    ImagesAssetsRunes.rune5.path,
+    ImagesAssetsRunes.rune6.path,
+    ImagesAssetsRunes.rune7.path,
+    ImagesAssetsRunes.rune8.path,
   ];
 
   late async.Timer changeRuneTimer;

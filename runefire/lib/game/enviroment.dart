@@ -3,6 +3,7 @@ import 'package:flame/flame.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/enviroment_interactables/interactable.dart';
 import 'package:runefire/events/event_management.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
 import 'package:runefire/resources/assets/assets.dart';
@@ -299,12 +300,9 @@ abstract class GameEnviroment extends Enviroment
 }
 
 class ExitArrowPainter extends SpriteAnimationComponent {
-  ExitArrowPainter(this.gameEnviroment) {
+  ExitArrowPainter(this.gameEnviroment, this.exitVector) {
     player = gameEnviroment.player!;
     priority = playerOverlayPriority;
-    exitVector =
-        (Vector2.random() * gameEnviroment.boundsDistanceFromCenter * 2) -
-            Vector2.all(gameEnviroment.boundsDistanceFromCenter);
   }
 
   @override
@@ -316,14 +314,23 @@ class ExitArrowPainter extends SpriteAnimationComponent {
     add(OpacityEffect.fadeIn(EffectController(
       duration: .5,
     )));
+
     return super.onLoad();
   }
 
+  bool fadeOut = false;
   @override
   void update(double dt) {
-    angle = -radiansBetweenPoints(Vector2(0, 1),
-        player.center - (player.entityOffsetFromCameraCenter + exitVector));
-
+    angle = -radiansBetweenPoints(Vector2(0, 1), player.center - (exitVector));
+    if (player.center.distanceTo(exitVector) < 4 && !fadeOut) {
+      fadeOut = true;
+      add(OpacityEffect.fadeOut(EffectController(
+        duration: .5,
+        onMax: () {
+          removeFromParent();
+        },
+      )));
+    }
     super.update(dt);
   }
 

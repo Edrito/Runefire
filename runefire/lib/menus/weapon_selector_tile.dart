@@ -80,24 +80,24 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
 
     if (secondaryType != null) {
       image = isEquipped
-          ? ImagesAssetsUi.levelIndicatorMagicRed
-          : ImagesAssetsUi.levelIndicatorMagicBlue;
+          ? ImagesAssetsUi.levelIndicatorMagicRed.path
+          : ImagesAssetsUi.levelIndicatorMagicBlue.path;
     } else {
       switch (weaponType!.attackType) {
         case AttackType.melee:
           image = isEquipped
-              ? ImagesAssetsUi.levelIndicatorSwordRed
-              : ImagesAssetsUi.levelIndicatorSwordBlue;
+              ? ImagesAssetsUi.levelIndicatorSwordRed.path
+              : ImagesAssetsUi.levelIndicatorSwordBlue.path;
           break;
         case AttackType.magic:
           image = isEquipped
-              ? ImagesAssetsUi.levelIndicatorMagicRed
-              : ImagesAssetsUi.levelIndicatorMagicBlue;
+              ? ImagesAssetsUi.levelIndicatorMagicRed.path
+              : ImagesAssetsUi.levelIndicatorMagicBlue.path;
           break;
         case AttackType.guns:
           image = isEquipped
-              ? ImagesAssetsUi.levelIndicatorGunRed
-              : ImagesAssetsUi.levelIndicatorGunBlue;
+              ? ImagesAssetsUi.levelIndicatorGunRed.path
+              : ImagesAssetsUi.levelIndicatorGunBlue.path;
           break;
       }
     }
@@ -179,7 +179,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
       unlockedLevel = (playerData.unlockedSecondarys[secondaryType] ?? 0)
           .clamp(0, secondaryType!.maxLevel);
       maxLevel = secondaryType.maxLevel;
-      icon = secondaryType.icon;
+      icon = secondaryType.icon.path;
       onLevelTap = () {
         if (isMaxLevel) return;
         if (playerData.unlockedSecondarys.containsKey(secondaryType)) {
@@ -396,13 +396,13 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                 Expanded(
                   child: (!isUnlocked
                           ? buildImageAsset(
-                              ImagesAssetsUi.padlock,
+                              ImagesAssetsUi.padlock.path,
                               fit: BoxFit.fitWidth,
                             )
                           : buildImageAsset(
                               isEquipped
-                                  ? ImagesAssetsUi.plusRed
-                                  : ImagesAssetsUi.plusBlue,
+                                  ? ImagesAssetsUi.plusRed.path
+                                  : ImagesAssetsUi.plusBlue.path,
                               fit: BoxFit.fitWidth,
                             ))
                       .animate(target: isLevelHover ? 1 : 0)

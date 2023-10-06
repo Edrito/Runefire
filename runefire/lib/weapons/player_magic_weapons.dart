@@ -91,8 +91,7 @@ class Icecicle extends PlayerWeapon
   @override
   double weaponScale = .5;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -295,8 +294,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
@@ -391,8 +389,7 @@ class FireballMagic extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
@@ -474,8 +471,7 @@ class EnergyMagic extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -547,8 +543,7 @@ class PsychicMagic extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 }
 
 class MagicBlast extends PlayerWeapon
@@ -613,8 +608,7 @@ class MagicBlast extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
@@ -680,8 +674,7 @@ class MagicMissile extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.bookIdle]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;

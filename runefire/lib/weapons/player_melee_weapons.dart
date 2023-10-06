@@ -126,8 +126,7 @@ class PhaseDagger extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.dagger]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.dagger.size.asVector2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
@@ -253,8 +252,7 @@ class CrystalSword extends PlayerWeapon
   @override
   double weaponScale = 2 / 3;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.crystalSword]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.crystalSword.size.asVector2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -395,8 +393,7 @@ class AethertideSpear extends PlayerWeapon
   @override
   double weaponScale = .5;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.spear]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.spear.size.asVector2;
 
   @override
   WeaponType weaponType = WeaponType.spear;
@@ -540,8 +537,7 @@ class HolySword extends PlayerWeapon
   @override
   double weaponScale = .5;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.energySword]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.energySword.size.asVector2;
 
   @override
   WeaponType weaponType = WeaponType.holySword;
@@ -662,8 +658,7 @@ class FlameSword extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.fireSword]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.fireSword.size.asVector2;
   @override
   WeaponType weaponType = WeaponType.flameSword;
 }
@@ -752,8 +747,7 @@ class LargeSword extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.largeSword]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.largeSword.size.asVector2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
@@ -883,8 +877,7 @@ class FrostKatana extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.frostKatana]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.frostKatana.size.asVector2;
 
   @override
   WeaponType weaponType = WeaponType.frostKatana;
@@ -1025,8 +1018,7 @@ class SwordOfJustice extends PlayerWeapon
   @override
   double weaponScale = 1;
   @override
-  late Vector2 pngSize =
-      ImagesAssetsWeapons.pngSizes[ImagesAssetsWeapons.swordOfJustice]!;
+  late Vector2 pngSize = ImagesAssetsWeapons.swordOfJustice.size.asVector2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [

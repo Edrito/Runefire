@@ -2,15 +2,47 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/services/raw_keyboard.dart';
+import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:uuid/uuid.dart';
 
 import '../player/player.dart';
 import '../resources/enums.dart';
 import '../game/enviroment.dart';
+
+class ExitPortal extends InteractableComponent {
+  @override
+  String displayedTextString = "Exit";
+
+  @override
+  late SpriteAnimationComponent spriteComponent;
+  Player player;
+
+  ExitPortal(
+      {required super.initialPosition,
+      required super.gameEnviroment,
+      required this.player});
+
+  @override
+  Future<void> onLoad() async {
+    final animation = await spriteAnimations.exitPortalBlue1;
+    spriteComponent = SpriteAnimationComponent(
+        animation: animation,
+        anchor: Anchor.center,
+        size: animation.frames.first.sprite.srcSize..scaledToHeight(player));
+    return super.onLoad();
+  }
+
+  @override
+  void interact() {
+    print("HA YOU CANT LEAVE LOLOLOLOLOLOL");
+  }
+}
 
 abstract class InteractableComponent extends BodyComponent<GameRouter>
     with ContactCallbacks {
@@ -24,8 +56,6 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
   abstract String displayedTextString;
   abstract SpriteAnimationComponent spriteComponent;
 
-  double radius = 1;
-
   void interact();
 
   Vector2 initialPosition;
@@ -37,7 +67,7 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
 
   @override
   Future<void> onLoad() {
-    spriteComponent.size.scaleTo(radius * 2);
+    // spriteComponent.size.scaleTo(radius * 2);
     add(spriteComponent);
     priority = backgroundObjectPriority;
     return super.onLoad();
@@ -56,22 +86,16 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
     if (isOn) {
       displayedText ??= TextComponent(
         text: "E - $displayedTextString",
-        // anchor: Anchor.center,
+        anchor: Anchor.center,
         // position: Vector2.all(5),
         textRenderer: TextPaint(
             style: defaultStyle.copyWith(
           fontSize: .4,
 
-          shadows: const [
-            BoxShadow(
-                color: Colors.black,
-                offset: Offset(2, 2),
-                spreadRadius: 2,
-                blurRadius: 1)
-          ],
+          shadows: [colorPalette.buildShadow(ShadowStyle.lightGame)],
           // color: Colors.red.shade100,
         )),
-      )..addToParent(spriteComponent);
+      )..addToParent(this);
     } else {
       displayedText?.removeFromParent();
       displayedText = null;
@@ -91,7 +115,7 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
   Body createBody() {
     late CircleShape shape;
     shape = CircleShape();
-    shape.radius = radius;
+    shape.radius = spriteComponent.size.x / 2;
     renderBody = false;
     final fixtureDef = FixtureDef(shape,
         userData: {"type": FixtureType.body, "object": this},

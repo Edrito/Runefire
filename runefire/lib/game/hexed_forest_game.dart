@@ -40,10 +40,11 @@ class ForestGame extends GameEnviroment {
       ...ImagesAssetsMushroomHopper.allFilesFlame,
     ]);
     // forestBackground = level.buildBackground(this);
+    final srcSprite = await Sprite.load('background/mushroom_garden.png');
     forestBackground = SpriteComponent(
-        sprite: await Sprite.load('background/mushroom_garden.png'),
+        sprite: srcSprite,
         priority: backgroundPriority,
-        size: Vector2.all(boundsDistanceFromCenter * 2),
+        size: srcSprite.srcSize..scaledToHeight(null, env: this, amount: 3),
         anchor: Anchor.center);
 
     entityShadow = SpriteShadows(this);
@@ -215,16 +216,9 @@ class ForestEnemyManagement extends EventManagement {
       // DeathHandEvent(
       //   gameEnviroment,
       //   this,
-      //   eventBeginEnd: (60, 90),
-      //   eventTriggerInterval: (1, 5),
-      // ),
-      // DeathHandEvent(
-      //   gameEnviroment,
-      //   this,
       //   fast: true,
-      //   spawnLocation: SpawnLocation.infrontOfPlayer,
-      //   eventBeginEnd: (90, 120),
-      //   eventTriggerInterval: (1, 2),
+      //   eventBeginEnd: (1, 90),
+      //   eventTriggerInterval: (1, 5),
       // ),
 
       EndGameEvent(gameEnviroment, this,

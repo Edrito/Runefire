@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
+import 'package:runefire/enviroment_interactables/interactable.dart';
 import 'package:runefire/events/event_class.dart';
 import 'package:runefire/game/area_effects.dart';
+import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -49,6 +51,9 @@ class DeathHandEvent extends PositionEvent {
         onTick: (entity, areaId) async {
           entity.applyHitAnimation(await spriteAnimations.scratchEffect1,
               entity.center, DamageType.fire.color);
+          if (entity is Player) {
+            entity.applyCameraShake(null, 25, .2);
+          }
         },
         animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
             spawnAnimation: spriteAnimation,
@@ -220,7 +225,15 @@ class EndGameEvent extends GameEvent {
   void startEvent() {
     gameEnviroment.gameHasEnded = true;
     gameState.displayText(OverlayMessage(endGameMessages.random()));
-
-    gameEnviroment.player?.add(ExitArrowPainter(gameEnviroment));
+    final exitVector =
+        (Vector2.random() * gameEnviroment.boundsDistanceFromCenter * 2) -
+            Vector2.all(gameEnviroment.boundsDistanceFromCenter);
+    gameEnviroment.player?.add(ExitArrowPainter(gameEnviroment, exitVector));
+    gameEnviroment.addPhysicsComponent([
+      ExitPortal(
+          initialPosition: exitVector,
+          gameEnviroment: gameEnviroment,
+          player: gameEnviroment.player!)
+    ]);
   }
 }

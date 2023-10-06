@@ -123,7 +123,7 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
             child: RotatedBox(
               quarterTurns: widget.quaterTurns,
               child: buildImageAsset(
-                ImagesAssetsUi.arrowBlack,
+                ImagesAssetsUi.arrowBlack.path,
                 fit: BoxFit.contain,
                 color: color,
               ),

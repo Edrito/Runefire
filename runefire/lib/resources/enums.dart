@@ -349,7 +349,7 @@ enum InputType {
 }
 
 extension ExperienceAmountExtension on ExperienceAmount {
-  String get fileName {
+  FileDataClass get fileData {
     switch (this) {
       case ExperienceAmount.small:
         return ImagesAssetsExperience.small;
@@ -828,7 +828,7 @@ enum SecondaryType {
   ///Based on a input weapon, return true or false to
   ///see if the weapon is compatible with the secondary ability
   final CompatibilityFunction compatibilityCheck;
-  final String icon;
+  final FileDataClass icon;
   final int maxLevel;
   final int baseCost;
 }

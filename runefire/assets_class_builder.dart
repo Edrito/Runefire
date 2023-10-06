@@ -16,7 +16,10 @@ main(List<String> params) async {
       "// ignore_for_file: library_private_types_in_public_api, unused_field \nimport 'package:flame/components.dart';\n";
 
   gigaFile +=
-      "extension StringExtension on String {String get flamePath => split('/').skip(2).join('/');}";
+      "extension Vector2Extension on (double, double)? {Vector2 get asVector2 => this == null ? Vector2.zero() : Vector2(this!.\$1, this!.\$2);}";
+  gigaFile += "\n";
+  gigaFile +=
+      "typedef FileDataClass = ({  String path,  String flamePath,  (double, double)? size,});";
   gigaFile += "\n";
 
   for (var element in filesToSave.values) {
@@ -65,23 +68,30 @@ Future<void> parseFolder(Directory directory, String? leading) async {
       final fileNameWithoutExtension = fileName.split('.').first;
       final stringPath = element.path.replaceAll('\\', '/');
       dartFile += "///$fileName\n";
+      (double, double)? size;
       if (element.path.split('.').last == "png") {
         final pngSize = ImageSizeGetter.getSize(FileInput(element));
         // ignore: unnecessary_string_interpolations
-        pngSizes["${fileNameWithoutExtension.camelCase}"] =
-            (pngSize.width.toDouble(), pngSize.height.toDouble());
-
-        dartFile += "/// ${pngSize.width}x${pngSize.height} \n";
+        // pngSizes["${fileNameWithoutExtension.camelCase}"] =
+        //     (pngSize.width.toDouble(), pngSize.height.toDouble());
+        size = (pngSize.width.toDouble(), pngSize.height.toDouble());
+        // dartFile += "/// ${pngSize.width}x${pngSize.height} \n";
       }
+      // dartFile +=
+      //     "static const String ${fileNameWithoutExtension.camelCase} = \"$stringPath\";\n";
+
       dartFile +=
-          "static const String ${fileNameWithoutExtension.camelCase} = \"$stringPath\";\n";
+          "static const FileDataClass ${fileNameWithoutExtension.camelCase} = \n";
+      dartFile +=
+          "(path:\"$stringPath\",flamePath:\"${stringPath.split('/').skip(2).join('/')}\", size:${size != null ? "(${size.$1},${size.$2})" : "null"}  );";
+
       stringNames.add(fileNameWithoutExtension.camelCase);
     }
   }
 
-  dartFile += "static const List<String> allFiles = [";
+  dartFile += "static  List<String> allFiles = [";
   for (var element in stringNames) {
-    dartFile += "$element,\n";
+    dartFile += "$element.path,\n";
   }
   dartFile += "];\n";
 
@@ -91,12 +101,12 @@ Future<void> parseFolder(Directory directory, String? leading) async {
   }
   dartFile += "];\n";
 
-  dartFile += "static  Map<String, Vector2> pngSizes = {";
-  for (var element in pngSizes.entries) {
-    dartFile +=
-        "${element.key}: Vector2(${element.value.$1}, ${element.value.$2}),\n";
-  }
-  dartFile += "};\n";
+  // dartFile += "static  Map<String, Vector2> pngSizes = {";
+  // for (var element in pngSizes.entries) {
+  //   dartFile +=
+  //       "${element.key}: Vector2(${element.value.$1}, ${element.value.$2}),\n";
+  // }
+  // dartFile += "};\n";
 
   dartFile += "}\n";
   if (containsFile) {

@@ -241,7 +241,11 @@ class SpriteAnimations {
       loadSpriteAnimation(1, 'ui/health_bar.png', 1, true);
   late Future<SpriteAnimation> exitArrow1 = loadSpriteAnimation(
       8, ImagesAssetsEntityEffects.exitArrow.flamePath, .25, true);
+
   //ENV EFFECTS
   late Future<SpriteAnimation> ghostHandAttack1 = loadSpriteAnimation(
       20, ImagesAssetsEnemySprites.ghostHandAttackRed.flamePath, .1, false);
+
+  late Future<SpriteAnimation> exitPortalBlue1 = loadSpriteAnimation(
+      4, ImagesAssetsEntityEffects.exitPortalBlue.flamePath, .2, true);
 }

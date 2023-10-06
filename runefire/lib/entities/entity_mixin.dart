@@ -977,11 +977,12 @@ mixin HealthFunctionality on Entity {
     return true;
   }
 
-  void applyCameraShake(DamageInstance instance) {
+  void applyCameraShake(DamageInstance? instance,
+      [double amount = 2, double? duration]) {
     if (isPlayer) {
       gameEnviroment.gameCamera.viewport.add(ShakeEffect(
-          EffectController(duration: .1),
-          intensity: (instance.isCrit ? 8 : 2)));
+          EffectController(duration: duration ?? .1),
+          intensity: instance != null ? (instance.isCrit ? 8 : 2) : amount));
     }
   }
 
