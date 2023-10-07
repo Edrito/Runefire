@@ -41,7 +41,7 @@ class CustomFollowBehavior extends Component {
   static const double distanceStart = 0;
   static const double increase = 2.5;
   Vector2 shiftCameraPositionBecauseOfMouse() {
-    final position = player.inputAimPositions[InputType.mouseMove];
+    final position = player.inputAimPositions[InputType.mouse];
     final zoom = camera.viewfinder.zoom;
     final distanceToCorner = hypotenuse(
       camera.viewport.size.x / zoom,

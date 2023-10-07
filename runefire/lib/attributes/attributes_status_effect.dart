@@ -512,8 +512,8 @@ class StunAttribute extends StatusEffectAttribute {
     }
     if (victimEntity is AttackFunctionality) {
       final attack = victimEntity as AttackFunctionality;
-      attack.endAttacking();
-      attack.endAltAttacking();
+      attack.endPrimaryAttacking();
+      attack.endSecondaryAttacking();
     }
   }
 

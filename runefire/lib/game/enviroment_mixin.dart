@@ -10,9 +10,11 @@ import 'package:runefire/events/event_entity.dart';
 import 'package:runefire/events/event_types.dart';
 import 'package:runefire/game/hexed_forest_game.dart';
 import 'package:runefire/game/menu_game.dart';
+import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
+import 'package:runefire/resources/game_state_class.dart';
 
 import '../resources/functions/custom.dart';
 import '../events/event_management.dart';
@@ -30,121 +32,121 @@ import '../resources/constants/priorities.dart';
 import '../resources/functions/functions.dart';
 import 'enviroment.dart';
 
-mixin JoystickFunctionality on PlayerFunctionality {
-  CustomJoystickComponent? aimJoystick;
-  CustomJoystickComponent? moveJoystick;
+// mixin JoystickFunctionality on PlayerFunctionality {
+//   CustomJoystickComponent? aimJoystick;
+//   CustomJoystickComponent? moveJoystick;
 
-  void initJoysticks() {
-    moveJoystick = CustomJoystickComponent(
-      knob: CircleComponent(radius: 15),
-      priority: foregroundPriority,
-      knobRadius: 15,
-      position: Vector2(50, gameCamera.viewport.size.y - 50),
-      background:
-          CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
-      // margin: const EdgeInsets.only(left: 30, bottom: 30),
-    );
-    aimJoystick = CustomJoystickComponent(
-      knob: CircleComponent(radius: 15),
-      priority: foregroundPriority,
-      position: Vector2(
-          gameCamera.viewport.size.x - 30, gameCamera.viewport.size.y - 30),
-      knobRadius: 15,
-      background:
-          CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
-      // margin: const EdgeInsets.only(right: 30, bottom: 30),
-    );
-  }
+//   void initJoysticks() {
+//     moveJoystick = CustomJoystickComponent(
+//       knob: CircleComponent(radius: 15),
+//       priority: foregroundPriority,
+//       knobRadius: 15,
+//       position: Vector2(50, gameCamera.viewport.size.y - 50),
+//       background:
+//           CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
+//       // margin: const EdgeInsets.only(left: 30, bottom: 30),
+//     );
+//     aimJoystick = CustomJoystickComponent(
+//       knob: CircleComponent(radius: 15),
+//       priority: foregroundPriority,
+//       position: Vector2(
+//           gameCamera.viewport.size.x - 30, gameCamera.viewport.size.y - 30),
+//       knobRadius: 15,
+//       background:
+//           CircleComponent(radius: 38, paint: Paint()..color = Colors.blue),
+//       // margin: const EdgeInsets.only(right: 30, bottom: 30),
+//     );
+//   }
 
-  bool isMoveJoyClicked(Vector2 pos) {
-    return moveJoystick?.background?.containsPoint(pos) ?? false;
-  }
+//   bool isMoveJoyClicked(Vector2 pos) {
+//     return moveJoystick?.background?.containsPoint(pos) ?? false;
+//   }
 
-  bool isAimJoyClicked(Vector2 pos) {
-    return (aimJoystick?.background?.containsPoint(pos) ?? false);
-  }
+//   bool isAimJoyClicked(Vector2 pos) {
+//     return (aimJoystick?.background?.containsPoint(pos) ?? false);
+//   }
 
-  @override
-  bool discernJoystate(int id, Vector2 eventPosition) {
-    if (inputIdStates[id] == InputType.moveJoy) return true;
-    if (inputIdStates[id] == InputType.aimJoy) return true;
+//   @override
+//   bool discernJoystate(int id, Vector2 eventPosition) {
+//     if (inputIdStates[id] == InputType.moveJoy) return true;
+//     if (inputIdStates[id] == InputType.aimJoy) return true;
 
-    final moveEnabled = isMoveJoyClicked(eventPosition);
-    final aimEnabled = isAimJoyClicked(eventPosition);
+//     final moveEnabled = isMoveJoyClicked(eventPosition);
+//     final aimEnabled = isAimJoyClicked(eventPosition);
 
-    if (moveEnabled) {
-      inputIdStates[id] = InputType.moveJoy;
-    }
-    if (aimEnabled) {
-      inputIdStates[id] = InputType.aimJoy;
-    }
+//     if (moveEnabled) {
+//       inputIdStates[id] = InputType.moveJoy;
+//     }
+//     if (aimEnabled) {
+//       inputIdStates[id] = InputType.aimJoy;
+//     }
 
-    if (!moveEnabled && !aimEnabled) {
-      inputIdStates[id] = InputType.mouseDrag;
-    }
+//     if (!moveEnabled && !aimEnabled) {
+//       inputIdStates[id] = InputType.mouseDrag;
+//     }
 
-    return moveEnabled || aimEnabled;
-  }
+//     return moveEnabled || aimEnabled;
+//   }
 
-  @override
-  FutureOr<void> onLoad() {
-    super.onLoad();
-    initJoysticks();
-    gameCamera.viewport.addAll([moveJoystick!, aimJoystick!]);
-  }
+//   @override
+//   FutureOr<void> onLoad() {
+//     super.onLoad();
+//     initJoysticks();
+//     gameCamera.viewport.addAll([moveJoystick!, aimJoystick!]);
+//   }
 
-  @override
-  void transmitDragInfo(int pointerId, PointerMoveEvent info) {
-    switch (inputIdStates[pointerId]) {
-      case InputType.aimJoy:
-        aimJoystick?.onDragUpdate(info.localDelta.toVector2());
-        player?.gestureEventStart(
-            InputType.aimJoy, info.localPosition.toVector2());
+//   @override
+//   void transmitDragInfo(int pointerId, PointerMoveEvent info) {
+//     switch (inputIdStates[pointerId]) {
+//       case InputType.aimJoy:
+//         aimJoystick?.onDragUpdate(info.localDelta.toVector2());
+//         player?.gestureEventStart(
+//             InputType.aimJoy, info.localPosition.toVector2());
 
-        break;
-      case InputType.moveJoy:
-        moveJoystick?.onDragUpdate(info.localDelta.toVector2());
-        player?.gestureEventStart(
-            InputType.moveJoy, info.localPosition.toVector2());
-        break;
-      // case InputType.mouseDrag:
-      //   player?.gestureEventStart(
-      //       InputType.mouseDrag, info.localPosition.toVector2());
+//         break;
+//       case InputType.moveJoy:
+//         moveJoystick?.onDragUpdate(info.localDelta.toVector2());
+//         player?.gestureEventStart(
+//             InputType.moveJoy, info.localPosition.toVector2());
+//         break;
+//       // case InputType.mouseDrag:
+//       //   player?.gestureEventStart(
+//       //       InputType.mouseDrag, info.localPosition.toVector2());
 
-      default:
-    }
-  }
+//       default:
+//     }
+//   }
 
-  @override
-  void endIdState(int id) {
-    if (inputIdStates.containsKey(id)) {
-      switch (inputIdStates[id]) {
-        case InputType.aimJoy:
-          aimJoystick?.onDragCancel();
-          player?.gestureEventEnd(InputType.aimJoy);
+//   @override
+//   void endIdState(int id) {
+//     if (inputIdStates.containsKey(id)) {
+//       switch (inputIdStates[id]) {
+//         case InputType.aimJoy:
+//           aimJoystick?.onDragCancel();
+//           player?.gestureEventEnd(InputType.aimJoy);
 
-          break;
-        case InputType.moveJoy:
-          moveJoystick?.onDragCancel();
-          player?.gestureEventEnd(InputType.moveJoy);
-          break;
-        // case InputType.mouseDrag:
-        //   player?.gestureEventEnd(InputType.mouseDrag);
+//           break;
+//         case InputType.moveJoy:
+//           moveJoystick?.onDragCancel();
+//           player?.gestureEventEnd(InputType.moveJoy);
+//           break;
+//         // case InputType.mouseDrag:
+//         //   player?.gestureEventEnd(InputType.mouseDrag);
 
-        // break;
-        default:
-      }
-      inputIdStates.remove(id);
-    }
-  }
+//         // break;
+//         default:
+//       }
+//       inputIdStates.remove(id);
+//     }
+//   }
 
-  @override
-  void onGameResize(Vector2 size) {
-    moveJoystick?.position = Vector2(50, size.y - 50);
-    aimJoystick?.position = Vector2(size.x - 50, size.y - 50);
-    super.onGameResize(size);
-  }
-}
+//   @override
+//   void onGameResize(Vector2 size) {
+//     moveJoystick?.position = Vector2(50, size.y - 50);
+//     aimJoystick?.position = Vector2(size.x - 50, size.y - 50);
+//     super.onGameResize(size);
+//   }
+// }
 
 mixin HudFunctionality on Enviroment {
   late final GameHud hud;
@@ -352,7 +354,7 @@ mixin PauseOnFocusLost on Enviroment {
   }
 
   void onWindowBlur() {
-    // gameState.pauseGame(pauseMenu.key, wipeMovement: true);
+    gameState.pauseGame(pauseMenu.key, wipeMovement: true);
   }
 }
 
@@ -376,13 +378,13 @@ mixin PlayerFunctionality on Enviroment {
   Player? player;
   late CustomFollowBehavior customFollow;
 
-  @override
-  void onMouseMove(PointerHoverEvent info) {
-    if (Platform.isWindows) {
-      player?.gestureEventStart(
-          InputType.mouseMove, info.localPosition.toVector2());
-    }
-  }
+  // @override
+  // void onMouseMove(MovementType type, PointerMoveEvent info) {
+  //   if (type == MovementType.mouse) {
+  //     player?.gestureEventStart(
+  //         InputType.mouse, info.localPosition.toVector2());
+  //   }
+  // }
 
   // final test = PositionComponent();
 
@@ -401,42 +403,55 @@ mixin PlayerFunctionality on Enviroment {
     }
     addPhysicsComponent([player!], instant: true);
   }
+//
+  // void transmitDragInfo(int pointerId, PointerMoveEvent info) {}
 
-  void transmitDragInfo(int pointerId, PointerMoveEvent info) {}
+  // void endIdState(int id) {}
 
-  void endIdState(int id) {}
+  // @override
+  // void onRemove() {
+  //   final instance = InputManager();
+  //   instance.onPointerMoveList.remove(onPrimaryMove);
 
-  @override
-  void onMount() {
-    wrapper.onPrimaryMove = onTapMove;
-    super.onMount();
-  }
+  //   super.onRemove();
+  // }
 
-  @override
-  void onTapDown(PointerDownEvent info) {
-    bool check() {
-      final joy = this as JoystickFunctionality;
-      return joy.isAimJoyClicked(info.localPosition.toVector2()) ||
-          joy.isMoveJoyClicked(info.localPosition.toVector2());
-    }
+  // @override
+  // void onMount() {
+  //   final instance = InputManager();
+  // instance.onPointerMoveList.add(onPrimaryMove);
 
-    bool moveOrAimClicked = this is JoystickFunctionality ? check() : false;
-    if (Platform.isWindows && !moveOrAimClicked) {
-      player?.gestureEventStart(
-          InputType.tapClick, info.localPosition.toVector2());
-    }
-  }
+  //   super.onMount();
+  // }
 
-  void onTapMove(PointerMoveEvent event) {
-    transmitDragInfo(event.pointer, event);
-    discernJoystate(event.pointer, event.localPosition.toVector2());
-  }
+  // void onPrimaryDown(
+  //     GameActionEvent gameAction, List<GameActionEvent> activeGameActions) {
+  // final instance = InputManager();
+  // bool check() {
+  //   final joy = this as JoystickFunctionality;
+  //   return joy.isAimJoyClicked(info.localPosition.toVector2()) ||
+  //       joy.isMoveJoyClicked(info.localPosition.toVector2());
+  // }
 
-  @override
-  void onTapUp(PointerUpEvent info) {
-    endIdState(info.pointer);
-    player?.gestureEventEnd(InputType.tapClick);
-  }
+  // bool moveOrAimClicked = this is JoystickFunctionality ? check() : false;
+  // if (Platform.isWindows && !moveOrAimClicked) {
+
+  // }
+
+  // player?.gestureEventStart(
+  //     InputType.primary);
+  // }
+
+  // void onPrimaryMove(MovementType type, PointerMoveEvent event) {
+  //   transmitDragInfo(event.pointer, event);
+  //   discernJoystate(event.pointer, event.localPosition.toVector2());
+  // }
+
+  // @override
+  // void onPrimaryUp(PointerUpEvent info) {
+  //   endIdState(info.pointer);
+  //   player?.gestureEventEnd(InputType.primary);
+  // }
 }
 
 mixin GameTimerFunctionality on Enviroment {

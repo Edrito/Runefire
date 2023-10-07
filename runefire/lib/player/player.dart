@@ -6,6 +6,8 @@ import 'dart:ffi';
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -77,8 +79,6 @@ class Player extends Entity
   }
   final PlayerData playerData;
 
-  Set<PhysicalKeyboardKey> physicalKeysPressed = {};
-
   final ListQueue<InteractableComponent> _interactableComponents = ListQueue();
 
   void addCloseInteractableComponents(InteractableComponent newComponent) {
@@ -137,39 +137,67 @@ class Player extends Entity
   bool isDisplay;
   @override
   void onRemove() {
-    physicalKeysPressed.clear();
     moveVelocities.clear();
     inputAimAngles.clear();
     inputAimPositions.clear();
+    final instance = InputManager();
 
-    game.mouseCallback.remove(mouseCallbackWrapper);
+    instance.removeGameActionListener(GameAction.moveDown, onMoveAction);
+    instance.removeGameActionListener(GameAction.moveUp, onMoveAction);
+    instance.removeGameActionListener(GameAction.moveLeft, onMoveAction);
+    instance.removeGameActionListener(GameAction.moveRight, onMoveAction);
+    instance.removeGameActionListener(GameAction.swapWeapon, swapWeaponAction);
+    instance.removeGameActionListener(GameAction.reload, reloadWeaponAction);
+    instance.removeGameActionListener(GameAction.interact, interactAction);
+    instance.removeGameActionListener(
+        GameAction.useExpendable, expendableAction);
+    instance.removeGameActionListener(GameAction.dash, dashAction);
+    instance.removeGameActionListener(GameAction.jump, jumpAction);
+    instance.removeGameActionListener(GameAction.primary, primaryAction);
+    instance.removeGameActionListener(GameAction.secondary, secondaryAction);
+    instance.keyEventList.remove(onKeyEvent);
+    instance.onPointerMoveList.remove(pointerMoveAction);
 
     super.onRemove();
   }
 
-  late MouseKeyboardCallbackWrapper mouseCallbackWrapper;
   late final CircleComponent circleComponent;
+
+  void pointerMoveAction(MovementType type, PointerMoveEvent event) {
+    if (type == MovementType.mouse && isLoaded) {
+      final position = (shiftCoordinatesToCenter(
+              event.localPosition.toVector2(),
+              enviroment.gameCamera.viewport.size) /
+          enviroment.zoom);
+      inputAimPositions[InputType.mouse] = position;
+      buildDeltaFromMousePosition();
+    }
+  }
 
   @override
   Future<void> onLoad() async {
+    final instance = InputManager();
+    instance.addGameActionListener(GameAction.moveDown, onMoveAction);
+    instance.addGameActionListener(GameAction.moveUp, onMoveAction);
+    instance.addGameActionListener(GameAction.moveLeft, onMoveAction);
+    instance.addGameActionListener(GameAction.moveRight, onMoveAction);
+    instance.addGameActionListener(GameAction.swapWeapon, swapWeaponAction);
+    instance.addGameActionListener(GameAction.reload, reloadWeaponAction);
+    instance.addGameActionListener(GameAction.interact, interactAction);
+    instance.addGameActionListener(GameAction.useExpendable, expendableAction);
+    instance.addGameActionListener(GameAction.dash, dashAction);
+    instance.addGameActionListener(GameAction.jump, jumpAction);
+    instance.addGameActionListener(GameAction.primary, primaryAction);
+    instance.addGameActionListener(GameAction.secondary, secondaryAction);
+    instance.keyEventList.add(onKeyEvent);
+    instance.onPointerMoveList.add(pointerMoveAction);
+
     initialWeapons.addAll(playerData.selectedWeapons.values);
-    // initialWeapons.add(WeaponType.blankMelee);
-    // initialWeapons.add(WeaponType.shiv);
+
     priority = playerPriority;
 
-    // circleComponent = CircleComponent(radius: .1, position: Vector2(0, 0));
-    // add(circleComponent);
-
     await loadAnimationSprites();
-    mouseCallbackWrapper = MouseKeyboardCallbackWrapper();
-    // if (!isDisplay) {
-    mouseCallbackWrapper.onSecondaryDown = (_) => startAltAttacking();
-    mouseCallbackWrapper.onSecondaryUp = (_) => endAltAttacking();
-    mouseCallbackWrapper.onSecondaryCancel = () => endAltAttacking();
-    // }
 
-    mouseCallbackWrapper.keyEvent = (event) => onKeyEvent(event);
-    game.mouseCallback.add(mouseCallbackWrapper);
     cloestEnemyTimer = TimerComponent(
       period: .5,
       onTick: () {
@@ -200,13 +228,11 @@ class Player extends Entity
         ;
   }
 
-  void onKeyEvent(RawKeyEvent event) {
-    if (event is RawKeyUpEvent) {
-      physicalKeysPressed.remove(event.physicalKey);
-    } else {
-      physicalKeysPressed.add(event.physicalKey);
+  void onKeyEvent(KeyEvent event) {
+    if (KeyEvent is KeyUpEvent) return;
+    if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
+      levelUp();
     }
-    parseKeys(event);
   }
 
   @override
@@ -233,159 +259,94 @@ class Player extends Entity
     }
   }
 
-  void parseKeys(RawKeyEvent? event) {
-    Vector2 moveAngle = Vector2.zero();
-    try {
-      if (event == null || isDead) return;
+  Vector2 tempMoveAngle = Vector2.zero();
 
-      if (!isDisplay) {
-        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyD)) {
-          moveAngle.x += 1;
-        }
-        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyA)) {
-          moveAngle.x -= 1;
-        }
-        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyW)) {
-          moveAngle.y -= 1;
-        }
-        if (physicalKeysPressed.contains(PhysicalKeyboardKey.keyS)) {
-          moveAngle.y += 1;
-        }
-      }
+  void onMoveAction(GameActionEvent _, List<GameAction> activeGameActions) {
+    tempMoveAngle.setZero();
 
-      if (game.gameStateComponent.gameState.gameIsPaused ||
-          event is! RawKeyDownEvent) return;
-
-      if (!isDisplay) {
-        if (event.physicalKey == (PhysicalKeyboardKey.tab)) {
-          swapWeapon();
-        }
-        if (event.physicalKey == (PhysicalKeyboardKey.keyR)) {
-          if (currentWeapon is ReloadFunctionality) {
-            final currentWeaponReload = currentWeapon as ReloadFunctionality;
-            if (currentWeaponReload.isReloading ||
-                currentWeaponReload.spentAttacks == 0) return;
-
-            currentWeaponReload.reload();
-          }
-        }
-      }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.space)) {
-        setEntityStatus(EntityStatus.jump);
-      }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.keyQ)) {
-        useExpendable();
-      }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.keyE)) {
-        if (_interactableComponents.isNotEmpty) {
-          _interactableComponents.first.interact();
-        }
-      }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.shiftLeft)) {
-        setEntityStatus(EntityStatus.dash);
-      }
-
-      // if (event.physicalKey == (PhysicalKeyboardKey.keyM)) {
-      //   (carriedWeapons[1] as PlayerWeapon).setSecondaryFunctionality =
-      //       carriedWeapons[0];
-      //   carriedWeapons.remove(0);
-      // }
-
-      if (isDisplay) {
-        return;
-      }
-
-      if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
-        levelUp();
-      }
-    } finally {
-      if (moveAngle.isZero()) {
-        moveVelocities.remove(InputType.keyboard);
-      } else if (!game.gameStateComponent.gameState.gameIsPaused) {
-        moveVelocities[InputType.keyboard] = moveAngle;
-      }
+    if (activeGameActions.contains(GameAction.moveRight)) {
+      tempMoveAngle.x += 1;
     }
+    if (activeGameActions.contains(GameAction.moveLeft)) {
+      tempMoveAngle.x -= 1;
+    }
+    if (activeGameActions.contains(GameAction.moveUp)) {
+      tempMoveAngle.y -= 1;
+    }
+    if (activeGameActions.contains(GameAction.moveDown)) {
+      tempMoveAngle.y += 1;
+    }
+
+    if (tempMoveAngle.isZero() || isDead) {
+      moveVelocities.remove(InputType.general);
+    } else {
+      moveVelocities[InputType.general] = tempMoveAngle.normalized();
+    }
+  }
+
+  void primaryAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (gameActionEvent.isDownEvent) {
+      startPrimaryAttacking();
+    } else {
+      endPrimaryAttacking();
+    }
+  }
+
+  void secondaryAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (gameActionEvent.isDownEvent) {
+      startSecondaryAttacking();
+    } else {
+      endSecondaryAttacking();
+    }
+  }
+
+  void swapWeaponAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (!gameActionEvent.isDownEvent) return;
+    swapWeapon();
+  }
+
+  void reloadWeaponAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (!gameActionEvent.isDownEvent) return;
+    if (currentWeapon is ReloadFunctionality) {
+      final currentWeaponReload = currentWeapon as ReloadFunctionality;
+      if (currentWeaponReload.isReloading ||
+          currentWeaponReload.spentAttacks == 0) return;
+
+      currentWeaponReload.reload();
+    }
+  }
+
+  void jumpAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (!gameActionEvent.isDownEvent) return;
+    setEntityStatus(EntityStatus.jump);
+  }
+
+  void dashAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (!gameActionEvent.isDownEvent) return;
+    setEntityStatus(EntityStatus.dash);
+  }
+
+  void interactAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (!gameActionEvent.isDownEvent) return;
+    if (_interactableComponents.isNotEmpty) {
+      _interactableComponents.first.interact();
+    }
+  }
+
+  void expendableAction(
+      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
+    if (!gameActionEvent.isDownEvent) return;
+    useExpendable();
   }
 
   int debugCount = 0;
-
-  void gestureEventEnd(InputType inputType) async {
-    switch (inputType) {
-      case InputType.aimJoy:
-        inputAimAngles.remove(InputType.aimJoy);
-        break;
-
-      case InputType.moveJoy:
-        moveVelocities.remove(InputType.moveJoy);
-        break;
-      case InputType.tapClick:
-        inputAimAngles.remove(InputType.tapClick);
-        break;
-
-      case InputType.mouseDrag:
-        inputAimAngles.remove(InputType.mouseDrag);
-        break;
-      case InputType.secondaryClick:
-        endAltAttacking();
-        break;
-
-      default:
-      // Code to handle unknown or unexpected input type
-    }
-    if (inputAimAngles.containsKey(InputType.aimJoy) ||
-        inputAimAngles.containsKey(InputType.tapClick) ||
-        inputAimAngles.containsKey(InputType.mouseDrag)) return;
-    endAttacking();
-  }
-
-  void gestureEventStart(InputType inputType, Vector2 eventPosition) {
-    switch (inputType) {
-      case InputType.mouseMove:
-        if (!isMounted) return;
-        final position = (shiftCoordinatesToCenter(
-                eventPosition, enviroment.gameCamera.viewport.size) /
-            enviroment.zoom);
-        // inputAimPositions[InputType.mouseMove]?.setFrom(position);
-        inputAimPositions[InputType.mouseMove] = position;
-        buildDeltaFromMousePosition();
-
-        break;
-
-      case InputType.aimJoy:
-        if (gameEnviroment is! JoystickFunctionality) return;
-
-        final delta =
-            (enviroment as JoystickFunctionality).aimJoystick?.relativeDelta;
-        if (delta == null || delta.isZero()) return;
-        inputAimAngles[InputType.aimJoy] = delta.normalized();
-        startAttacking();
-
-        break;
-
-      case InputType.moveJoy:
-        if (enviroment is! JoystickFunctionality) return;
-        final delta =
-            (enviroment as JoystickFunctionality).moveJoystick?.relativeDelta;
-        moveVelocities[InputType.moveJoy] =
-            (delta ?? Vector2.zero()) * speed.parameter;
-        break;
-
-      case InputType.tapClick:
-        inputAimPositions[InputType.tapClick] = shiftCoordinatesToCenter(
-                eventPosition, enviroment.gameCamera.viewport.size) /
-            enviroment.gameCamera.viewfinder.zoom;
-
-        startAttacking();
-        inputAimAngles.remove(InputType.tapClick);
-        break;
-
-      default:
-    }
-  }
 
   @override
   Filter? filter = Filter()

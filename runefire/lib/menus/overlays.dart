@@ -27,7 +27,7 @@ class DisplayTextWidget extends StatefulWidget {
 }
 
 class _DisplayTextWidgetState extends State<DisplayTextWidget> {
-  late final OverlayMessage message = gameState.textToDisplay!;
+  late final OverlayMessage message = GameState().textToDisplay!;
   late final double duration = message.duration;
 
   @override
@@ -40,7 +40,7 @@ class _DisplayTextWidgetState extends State<DisplayTextWidget> {
             child: Padding(
               padding: const EdgeInsets.all(40),
               child: Text(
-                gameState.textToDisplay!.text,
+                GameState().textToDisplay!.text,
                 style: defaultStyle,
                 textAlign: TextAlign.center,
               ),

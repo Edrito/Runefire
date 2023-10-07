@@ -110,7 +110,7 @@ abstract class BaseHud extends PositionComponent {
   final double width = 100;
 
   double get healthBarWidth =>
-      (player!.maxHealth.parameter * 6 * hudScale.scale)
+      (player!.maxHealth.parameter * 2 * hudScale.scale)
           .clamp(0.0, maxBarWidth);
 
   double get hudFontSize => (16 * hudScale.scale);
@@ -118,7 +118,7 @@ abstract class BaseHud extends PositionComponent {
       .clamp(100, double.infinity);
 
   double get staminaBarWidth =>
-      (player!.stamina.parameter * 3 * hudScale.scale).clamp(0.0, maxBarWidth);
+      (player!.stamina.parameter * 2 * hudScale.scale).clamp(0.0, maxBarWidth);
 
   void applyAmmoSizeEffect(
     SpriteComponent ammoSpriteComponent,

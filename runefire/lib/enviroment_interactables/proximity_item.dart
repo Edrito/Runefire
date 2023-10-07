@@ -112,7 +112,7 @@ class ExperienceItem extends ProximityItem {
 
     final sprite = await Sprite.load(experienceAmount.fileData.flamePath);
     final size = sprite.srcSize
-      ..scaledToHeight(null, env: gameState.currentEnviroment);
+      ..scaledToHeight(null, env: GameState().currentEnviroment);
     spriteComponent = SpriteComponent(
       size: size,
       anchor: Anchor.center,

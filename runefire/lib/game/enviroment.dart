@@ -132,9 +132,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   GameEnviroment? get gameEnviroment =>
       this is GameEnviroment ? this as GameEnviroment : null;
 
-  Enviroment() {
-    wrapper = MouseKeyboardCallbackWrapper();
-  }
+  Enviroment();
   Map<int, InputType> inputIdStates = {};
   late final World gameWorld;
   late CameraComponent gameCamera;
@@ -151,19 +149,9 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     }
   }
 
-  void addWindowEventFunctionToWrapper(Function(String) func) {
-    final previousFunc = wrapper.onWindowEvent;
-    if (previousFunc != null) {
-      wrapper.onWindowEvent = (windowEvent) {
-        func(windowEvent);
-
-        previousFunc(windowEvent);
-      };
-    } else {
-      wrapper.onWindowEvent = (windowEvent) {
-        func(windowEvent);
-      };
-    }
+  void addWindowEventFunctionToWrapper(Function(String) newEventFunction) {
+    final instance = InputManager();
+    instance.onWindowEventList.add(newEventFunction);
   }
 
   double seconds = 5;
@@ -194,21 +182,22 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     return gameWorld.add(component);
   }
 
-  late final MouseKeyboardCallbackWrapper wrapper;
-
   @override
   void onMount() {
-    wrapper.onMouseMove = onMouseMove;
-    wrapper.onPrimaryDown = onTapDown;
-    wrapper.onPrimaryUp = onTapUp;
-    wrapper.keyEvent = (event) => onKeyEvent(event);
-    gameRef.mouseCallback.add(wrapper);
+    final instance = InputManager();
+    instance.onPointerMoveList.add(onMouseMove);
+    instance.addGameActionListener(GameAction.primary, onPrimary);
+    instance.addGameActionListener(GameAction.pause, pauseGameAction);
+
     super.onMount();
   }
 
   @override
   void onRemove() {
-    gameRef.mouseCallback.remove(wrapper);
+    final instance = InputManager();
+    instance.onPointerMoveList.remove(onMouseMove);
+    instance.removeGameActionListener(GameAction.primary, onPrimary);
+    instance.removeGameActionListener(GameAction.pause, pauseGameAction);
 
     super.onRemove();
   }
@@ -218,10 +207,10 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     gameWorld.priority = worldPriority;
   }
 
-  bool discernJoystate(int id, Vector2 eventPosition) {
-    inputIdStates[id] = InputType.mouseDrag;
-    return false;
-  }
+  // bool discernJoystate(int id, Vector2 eventPosition) {
+  //   inputIdStates[id] = InputType.mouseDrag;
+  //   return false;
+  // }
 
   @override
   FutureOr<void> onLoad() {
@@ -246,13 +235,18 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     return super.onLoad();
   }
 
-  void onTapDown(PointerDownEvent info) {}
+  void onPrimary(
+      GameActionEvent gameAction, List<GameAction> activeGameActions) {}
+  void pauseGameAction(
+      GameActionEvent gameAction, List<GameAction> activeGameActions) {
+    if (!gameAction.isDownEvent) return;
+    gameRef.gameStateComponent.gameState.pauseGame(
+      pauseMenu.key,
+      pauseGame: true,
+    );
+  }
 
-  void onMouseMove(PointerHoverEvent info) {}
-
-  void onTapUp(PointerUpEvent info) {}
-
-  void onKeyEvent(RawKeyEvent event) {}
+  void onMouseMove(MovementType type, PointerMoveEvent info) {}
 }
 
 abstract class GameEnviroment extends Enviroment
@@ -286,16 +280,6 @@ abstract class GameEnviroment extends Enviroment
       ...ImagesAssetsWeapons.allFilesFlame
     ]);
     super.onLoad();
-  }
-
-  @override
-  void onKeyEvent(RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) return;
-    if (event.logicalKey == LogicalKeyboardKey.keyP ||
-        event.logicalKey == LogicalKeyboardKey.escape) {
-      gameState.pauseGame(pauseMenu.key);
-    }
-    super.onKeyEvent(event);
   }
 }
 

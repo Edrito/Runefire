@@ -214,6 +214,7 @@ mixin MovementFunctionality on Entity {
     }
 
     return (moveVelocities[InputType.moveJoy] ??
+            moveVelocities[InputType.general] ??
             moveVelocities[InputType.keyboard] ??
             moveVelocities[InputType.attribute] ??
             moveVelocities[InputType.ai] ??
@@ -266,15 +267,15 @@ mixin AimFunctionality on Entity {
   bool weaponBehind = false;
 
   Vector2? get mousePositionOffPlayer {
-    final returnVal = inputAimPositions.containsKey(InputType.mouseMove)
-        ? ((inputAimPositions[InputType.mouseMove]! -
+    final returnVal = inputAimPositions.containsKey(InputType.mouse)
+        ? ((inputAimPositions[InputType.mouse]! -
             (entityOffsetFromCameraCenter)))
         : null;
     return returnVal;
   }
 
   void buildDeltaFromMousePosition() {
-    inputAimAngles[InputType.mouseMove] = mousePositionOffPlayer!.normalized();
+    inputAimAngles[InputType.mouse] = mousePositionOffPlayer!.normalized();
   }
 
   Vector2? get entityAimPosition {
@@ -283,9 +284,9 @@ mixin AimFunctionality on Entity {
     }
 
     final returnVal = inputAimPositions[InputType.aimJoy] ??
-        inputAimPositions[InputType.mouseMove] ??
+        inputAimPositions[InputType.mouse] ??
         // inputAimPositions[InputType.mouseDrag] ??
-        inputAimPositions[InputType.tapClick] ??
+        inputAimPositions[InputType.primary] ??
         inputAimPositions[InputType.ai];
     if (returnVal != null) {
       lastAimingPosition = returnVal;
@@ -297,14 +298,14 @@ mixin AimFunctionality on Entity {
     if (isDead) {
       return lastAimingDelta;
     }
-    if (inputAimPositions.containsKey(InputType.mouseMove)) {
+    if (inputAimPositions.containsKey(InputType.mouse)) {
       buildDeltaFromMousePosition();
     }
 
     final returnVal = inputAimAngles[InputType.aimJoy] ??
-        inputAimAngles[InputType.tapClick] ??
+        inputAimAngles[InputType.primary] ??
         // inputAimAngles[InputType.mouseDrag] ??
-        inputAimAngles[InputType.mouseMove] ??
+        inputAimAngles[InputType.mouse] ??
         inputAimAngles[InputType.ai] ??
         ((this is MovementFunctionality)
                 ? (this as MovementFunctionality).moveDelta
@@ -438,8 +439,8 @@ mixin AimFunctionality on Entity {
     handJointBehindBodyCheck();
     spriteFlipCheck();
 
-    if (inputAimPositions.containsKey(InputType.mouseMove)) {
-      mouseJoint.position = inputAimPositions[InputType.mouseMove]!.clone();
+    if (inputAimPositions.containsKey(InputType.mouse)) {
+      mouseJoint.position = inputAimPositions[InputType.mouse]!.clone();
     }
   }
 }
@@ -471,7 +472,7 @@ mixin AttackFunctionality on AimFunctionality {
 
   @override
   bool deadStatus(DamageInstance instance) {
-    endAttacking();
+    endPrimaryAttacking();
     return super.deadStatus(instance);
   }
 
@@ -505,8 +506,8 @@ mixin AttackFunctionality on AimFunctionality {
 
   @override
   void permanentlyDisableEntity() async {
-    endAttacking();
-    endAltAttacking();
+    endPrimaryAttacking();
+    endSecondaryAttacking();
     final weapon = currentWeapon;
     if (weapon != null) {
       for (var element in weapon.weaponAttachmentPoints.values) {
@@ -524,13 +525,13 @@ mixin AttackFunctionality on AimFunctionality {
     super.onRemove();
   }
 
-  void endAttacking() async {
+  void endPrimaryAttacking() async {
     if (!isAttacking) return;
     isAttacking = false;
     currentWeapon?.endAttacking();
   }
 
-  void endAltAttacking() async {
+  void endSecondaryAttacking() async {
     if (!isAltAttacking) return;
     isAltAttacking = false;
     currentWeapon?.endAltAttacking();
@@ -563,13 +564,13 @@ mixin AttackFunctionality on AimFunctionality {
     }
   }
 
-  void startAttacking() async {
+  void startPrimaryAttacking() async {
     if (isAttacking || isDead || isStunned) return;
     isAttacking = true;
     (currentWeapon)?.startAttacking();
   }
 
-  void startAltAttacking() async {
+  void startSecondaryAttacking() async {
     if (isAltAttacking) return;
     isAltAttacking = true;
     (currentWeapon)?.startAltAttacking();

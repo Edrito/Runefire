@@ -17,6 +17,7 @@ import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
@@ -191,7 +192,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
       [double holdDurationPercent = 1, bool callFunctions = true]) {
     toggleTextComponent(false);
 
-    gameState.playAudio('sfx/magic/power_word/fall.wav',
+    GameState().playAudio('sfx/magic/power_word/fall.wav',
         useAudioPool: true, maxPlayers: 1);
 
     explodeTextComponent();

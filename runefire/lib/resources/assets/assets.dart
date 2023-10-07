@@ -81,11 +81,9 @@ static const FileDataClass dungeon =
 static const FileDataClass graveyard = 
 (path:"assets/images/background/graveyard.jpg",flamePath:"background/graveyard.jpg", size:null  );///hexed_forest_display.png
 static const FileDataClass hexedForestDisplay = 
-(path:"assets/images/background/hexed_forest_display.png",flamePath:"background/hexed_forest_display.png", size:(1920.0,1280.0)  );///innerRingPatterns.png
-static const FileDataClass innerRingPatterns = 
-(path:"assets/images/background/innerRingPatterns.png",flamePath:"background/innerRingPatterns.png", size:(200.0,200.0)  );///mushroom_garden.png
+(path:"assets/images/background/hexed_forest_display.png",flamePath:"background/hexed_forest_display.png", size:(1920.0,1280.0)  );///mushroom_garden.png
 static const FileDataClass mushroomGarden = 
-(path:"assets/images/background/mushroom_garden.png",flamePath:"background/mushroom_garden.png", size:(800.0,800.0)  );///outerRing.png
+(path:"assets/images/background/mushroom_garden.png",flamePath:"background/mushroom_garden.png", size:(3600.0,3600.0)  );///outerRing.png
 static const FileDataClass outerRing = 
 (path:"assets/images/background/outerRing.png",flamePath:"background/outerRing.png", size:(128.0,128.0)  );///outerRingPatterns.png
 static const FileDataClass outerRingPatterns = 
@@ -100,7 +98,6 @@ caveFrontEffectMask.path,
 dungeon.path,
 graveyard.path,
 hexedForestDisplay.path,
-innerRingPatterns.path,
 mushroomGarden.path,
 outerRing.path,
 outerRingPatterns.path,
@@ -114,7 +111,6 @@ caveFrontEffectMask.flamePath,
 dungeon.flamePath,
 graveyard.flamePath,
 hexedForestDisplay.flamePath,
-innerRingPatterns.flamePath,
 mushroomGarden.flamePath,
 outerRing.flamePath,
 outerRingPatterns.flamePath,

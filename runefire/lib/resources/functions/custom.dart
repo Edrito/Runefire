@@ -240,7 +240,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
 
     if (desiredWidthIsNull) {
       size = size
-        ..scaledToHeight(null, amount: .1, env: gameState.currentEnviroment);
+        ..scaledToHeight(null, amount: .1, env: GameState().currentEnviroment);
     } else {
       final widthRatio = desiredWidth! / (size.x);
       size = Vector2(desiredWidth!, size.y * widthRatio);

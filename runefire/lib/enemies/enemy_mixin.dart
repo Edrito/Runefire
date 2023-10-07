@@ -177,9 +177,9 @@ mixin DumbShoot on AttackFunctionality {
 
   void onTick() {
     if (entityInputsAimAngle.isZero()) return;
-    startAttacking();
+    startPrimaryAttacking();
     setEntityStatus(EntityStatus.attack);
-    endAttacking();
+    endPrimaryAttacking();
   }
 
   @override

@@ -29,16 +29,33 @@ class OverlayMessage {
 }
 
 class GameState {
-  GameState(this.gameRouter, this.playerData, this.systemData,
-      {required this.currentMenuPage});
+  GameState._internal();
+
+  static final GameState _instance = GameState._internal();
+
+  factory GameState() {
+    return _instance;
+  }
+
+  void initParameters(
+      {required GameRouter gameRouter,
+      required PlayerData playerData,
+      required SystemData systemData,
+      required MenuPageType currentMenuPage}) {
+    this.gameRouter = gameRouter;
+    this.playerData = playerData;
+    this.systemData = systemData;
+    this.currentMenuPage = currentMenuPage;
+  }
+
   late GameStateComponent parentComponent;
-  final SystemData systemData;
-  final PlayerData playerData;
-  final GameRouter gameRouter;
+  late final SystemData systemData;
+  late final PlayerData playerData;
+  late final GameRouter gameRouter;
+  late MenuPageType currentMenuPage;
 
   late GlobalKey centerBackgroundKey;
 
-  MenuPageType currentMenuPage;
   String? currentOverlay;
   late String currentRoute;
   bool transitionOccuring = false;
@@ -201,8 +218,9 @@ extension GameStateFunctions on GameState {
     if (wipeMovement) {
       final game = currentEnviroment;
       if (game != null && game is PlayerFunctionality) {
-        game.player?.physicalKeysPressed.clear();
-        game.player?.parseKeys(null);
+        game.player?.moveVelocities.remove(InputType.general);
+        game.player?.moveVelocities.remove(InputType.keyboard);
+        InputManager().activeGameActions.clear();
       }
     }
 

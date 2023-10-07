@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
@@ -733,7 +734,7 @@ abstract class Attribute with UpgradeFunctions {
       bool small = false}) {
     return CustomCard(
       this,
-      gameRef: gameState.gameRouter,
+      gameRef: GameState().gameRouter,
       onTap: onTap,
       onTapComplete: onTapComplete,
       smallCard: small,

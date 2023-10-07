@@ -1,3 +1,9 @@
+import 'dart:collection';
+
+import 'package:flutter/services.dart';
+import 'package:runefire/game/hud.dart';
+import 'package:runefire/main.dart';
+
 import '../../game/enviroment.dart';
 import '../enums.dart';
 import 'base.dart';
@@ -30,6 +36,30 @@ class SystemData extends DataClass {
 
   @HiveField(12)
   bool showStaminaHealthText = false;
+
+  @HiveField(20)
+  HudScale hudScale = HudScale.medium;
+
+  @HiveField(100)
+  Map<PhysicalKeyboardKey, GameAction> keyboardMappings = {
+    PhysicalKeyboardKey.keyW: GameAction.moveUp,
+    PhysicalKeyboardKey.keyA: GameAction.moveLeft,
+    PhysicalKeyboardKey.keyS: GameAction.moveDown,
+    PhysicalKeyboardKey.keyD: GameAction.moveRight,
+    PhysicalKeyboardKey.keyR: GameAction.reload,
+    PhysicalKeyboardKey.keyE: GameAction.interact,
+    PhysicalKeyboardKey.keyQ: GameAction.useExpendable,
+    PhysicalKeyboardKey.space: GameAction.jump,
+    PhysicalKeyboardKey.tab: GameAction.swapWeapon,
+    PhysicalKeyboardKey.shiftLeft: GameAction.dash,
+    PhysicalKeyboardKey.keyP: GameAction.pause,
+    PhysicalKeyboardKey.escape: GameAction.pause,
+    // PhysicalKeyboardKey.keyW: GameAction.moveUp,
+    // PhysicalKeyboardKey.keyW: GameAction.moveUp,
+  };
+
+  @HiveField(101)
+  Map<String, GameAction> gamePadMappings = {};
 
   set setMusicVolume(double value) {
     musicVolume = value;

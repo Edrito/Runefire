@@ -337,13 +337,13 @@ enum ExperienceAmount { small, medium, large }
 
 enum InputType {
   keyboard,
-  mouseMove,
+  mouse,
   aimJoy,
   moveJoy,
-  tapClick,
-  secondaryClick,
-  mouseDrag,
+  primary,
+  secondary,
   // mouseDragStart,
+  general,
   ai,
   attribute,
 }
