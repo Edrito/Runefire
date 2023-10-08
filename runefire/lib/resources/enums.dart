@@ -335,18 +335,18 @@ extension GameLevelExtension on GameLevel {
 
 enum ExperienceAmount { small, medium, large }
 
-enum InputType {
-  keyboard,
-  mouse,
-  aimJoy,
-  moveJoy,
-  primary,
-  secondary,
-  // mouseDragStart,
-  general,
-  ai,
-  attribute,
-}
+// enum InputType {
+//   keyboard,
+//   mouse,
+//   aimJoy,
+//   moveJoy,
+//   primary,
+//   secondary,
+//   // mouseDragStart,
+//   general,
+//   ai,
+//   attribute,
+// }
 
 extension ExperienceAmountExtension on ExperienceAmount {
   FileDataClass get fileData {

@@ -276,7 +276,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
     switch (attackLocation) {
       case SourceAttackLocation.mouse:
-        center += entityAncestor!.mouseJoint.position;
+        center += entityAncestor!.mouseJoint?.position ?? Vector2.zero();
         break;
       case SourceAttackLocation.weaponTip:
         center = weaponTipPosition(1);
@@ -351,11 +351,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
     if (!removeSpriteOnAttack || isAdditionalWeapon) return;
 
     if (attacksAreActive && !spritesHidden) {
-      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 0;
+      entityAncestor?.backJoint?.weaponSpriteAnimation?.opacity = 0;
       entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
       spritesHidden = true;
     } else if (!attacksAreActive && spritesHidden) {
-      entityAncestor?.backJoint.weaponSpriteAnimation?.opacity = 1;
+      entityAncestor?.backJoint?.weaponSpriteAnimation?.opacity = 1;
       entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
       spritesHidden = false;
     }

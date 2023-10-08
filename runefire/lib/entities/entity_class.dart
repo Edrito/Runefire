@@ -27,6 +27,12 @@ import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter>
     with BaseAttributes, ContactCallbacks {
+  static const dupeStatusCheckerList = [
+    EntityStatus.run,
+    EntityStatus.walk,
+    EntityStatus.idle
+  ];
+
   Entity(
       {required this.initialPosition,
       required this.eventManagement,
@@ -34,12 +40,9 @@ abstract class Entity extends BodyComponent<GameRouter>
     initializeParameterManagers();
     entityId = const Uuid().v4();
   }
-  Vector2 get entityOffsetFromCameraCenter =>
-      center - enviroment.gameCamera.viewfinder.position;
+
   List<Function(bool isFlipped)> onBodyFlip = [];
   //POSITIONING
-
-  late PlayerAttachmentJointComponent backJoint;
 
   Map<dynamic, ChildEntity> childrenEntities = {};
   Set<Projectile> closeProjectiles = {};
@@ -56,24 +59,13 @@ abstract class Entity extends BodyComponent<GameRouter>
   EventManagement eventManagement;
   //STATUS
   Vector2 initialPosition;
-  Vector2 get spriteOffset => Vector2.zero();
-  late Vector2 spriteSize = getSpriteSize;
-  Vector2 get getSpriteSize => (entityAnimations[EntityStatus.idle]
-          ?.frames
-          .first
-          .sprite
-          .srcSize
-          .clone() ??
-      Vector2.all(1))
-    ..scaledToHeight(this);
-
-  double get spriteHeight => spriteSize.y;
 
   // late PositionComponent spriteWrapper;
   // late Shadow3DDecorator shadow3DDecorator;
 
   bool isFlipped = false;
 
+  late Vector2 spriteSize = getSpriteSize;
   dynamic statusPrevious;
   dynamic statusQueue;
   bool temporaryAnimationPlaying = false;
@@ -94,9 +86,20 @@ abstract class Entity extends BodyComponent<GameRouter>
     return null;
   }
 
-  double get entityStatusHeight => (spriteHeight / 2) + (spriteHeight / 4);
+  Vector2 get entityOffsetFromCameraCenter =>
+      center - enviroment.gameCamera.viewfinder.position;
 
+  double get entityStatusHeight => (spriteHeight / 2) + (spriteHeight / 4);
   GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
+  Vector2 get getSpriteSize => (entityAnimations[EntityStatus.idle]
+          ?.frames
+          .first
+          .sprite
+          .srcSize
+          .clone() ??
+      Vector2.all(1))
+    ..scaledToHeight(this);
+
   bool get isPlayer =>
       EntityType.player == entityType ||
       (isChildEntity && (this as ChildEntity).parentEntity.isPlayer);
@@ -111,6 +114,8 @@ abstract class Entity extends BodyComponent<GameRouter>
   PlayerFunctionality get playerFunctionality =>
       enviroment as PlayerFunctionality;
 
+  double get spriteHeight => spriteSize.y;
+  Vector2 get spriteOffset => Vector2.zero();
   Set<StatusEffects> get statusEffects {
     if (isChildEntity) {
       return (this as ChildEntity).parentEntity.statusEffects;
@@ -256,11 +261,6 @@ abstract class Entity extends BodyComponent<GameRouter>
   Future<void> loadAnimationSprites();
 
   void permanentlyDisableEntity() {}
-  static const dupeStatusCheckerList = [
-    EntityStatus.run,
-    EntityStatus.walk,
-    EntityStatus.idle
-  ];
 
   Future<void> setEntityStatus(EntityStatus newEntityStatus,
       {dynamic customAnimationKey,

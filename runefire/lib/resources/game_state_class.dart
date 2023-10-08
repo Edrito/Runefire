@@ -5,6 +5,7 @@ import 'package:flame_audio/audio_pool.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -218,8 +219,7 @@ extension GameStateFunctions on GameState {
     if (wipeMovement) {
       final game = currentEnviroment;
       if (game != null && game is PlayerFunctionality) {
-        game.player?.moveVelocities.remove(InputType.general);
-        game.player?.moveVelocities.remove(InputType.keyboard);
+        game.player?.removeMoveVelocity(userInputPriority);
         InputManager().activeGameActions.clear();
       }
     }

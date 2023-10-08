@@ -497,8 +497,7 @@ mixin ProjectileFunctionality on Weapon {
       generator: (i) => AcceleratedParticle(
         position: weaponTipPosition(.9),
         speed: (randomizeVector2Delta(
-                        entityAncestor?.entityInputsAimAngle ?? Vector2.zero(),
-                        .3)
+                        entityAncestor?.aimVector ?? Vector2.zero(), .3)
                     .normalized())
                 .clone() *
             3 *

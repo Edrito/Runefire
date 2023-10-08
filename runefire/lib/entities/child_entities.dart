@@ -6,6 +6,7 @@ import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/enviroment_interactables/proximity_item.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
@@ -140,10 +141,9 @@ abstract class MovingSentry extends ChildEntity with MovementFunctionality {
 
   void setTargetMovement() {
     if (target == null) {
-      moveVelocities.remove(InputType.ai);
+      removeMoveVelocity(aiInputPriority);
     } else {
-      moveVelocities[InputType.ai] =
-          (target!.position - body.position).normalized();
+      addMoveVelocity((target!.position - body.position), aiInputPriority);
     }
   }
 
@@ -676,8 +676,11 @@ class MirrorOrbSentry extends ChildEntity
     }
 
     if (parentEntity is AimFunctionality) {
-      inputAimAngles = (parentEntity as AimFunctionality).inputAimAngles;
-      inputAimPositions = (parentEntity as AimFunctionality).inputAimPositions;
+      addAimAngle(aimVector, userInputPriority);
+      final aimPos = aimPosition;
+      if (aimPos != null) {
+        addAimPosition(aimPos, userInputPriority);
+      }
     }
   }
 

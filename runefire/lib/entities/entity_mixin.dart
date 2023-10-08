@@ -192,7 +192,7 @@ mixin MovementFunctionality on Entity {
     super.initializeParentParameters();
   }
 
-  bool get hasMoveVelocities => moveVelocities.isNotEmpty;
+  bool get hasMoveVelocities => _moveVelocities.isNotEmpty;
 
   @override
   void initializeChildEntityParameters(ChildEntity childEntity) {
@@ -205,21 +205,32 @@ mixin MovementFunctionality on Entity {
   //Speed
   late final DoubleParameterManager speed;
 
-  Map<InputType, Vector2?> moveVelocities = {};
-  Vector2 get moveDelta {
+  ///Priority, higher is more important
+  ///Then detla
+  final Map<int, Vector2> _moveVelocities = {};
+  final List<int> _currentMoveVelocityPriorities = [];
+
+  void addMoveVelocity(Vector2 direction, int priority) {
+    _moveVelocities[priority] = direction;
+    _currentMoveVelocityPriorities.add(priority);
+    _currentMoveVelocityPriorities.sort();
+  }
+
+  void removeMoveVelocity(int priority) {
+    _moveVelocities.remove(priority);
+    _currentMoveVelocityPriorities.remove(priority);
+  }
+
+  Vector2 get currentMoveDelta {
     if (entitiesFeared.isNotEmpty) {
       final fearTarget = entitiesFeared.values.fold<Vector2>(Vector2.zero(),
           (previousValue, element) => previousValue + element.center);
       return (center - fearTarget).normalized();
     }
 
-    return (moveVelocities[InputType.moveJoy] ??
-            moveVelocities[InputType.general] ??
-            moveVelocities[InputType.keyboard] ??
-            moveVelocities[InputType.attribute] ??
-            moveVelocities[InputType.ai] ??
-            Vector2.zero())
-        .normalized();
+    return _moveVelocities[_currentMoveVelocityPriorities.firstOrNull]
+            ?.normalized() ??
+        Vector2.zero();
   }
 
   void moveFunctionsCall() {
@@ -232,7 +243,7 @@ mixin MovementFunctionality on Entity {
   }
 
   void moveCharacter() {
-    Vector2 pulse = moveDelta;
+    Vector2 pulse = currentMoveDelta;
 
     if (isDead || !enableMovement.parameter || pulse.isZero()) {
       setEntityStatus(EntityStatus.idle);
@@ -266,51 +277,21 @@ mixin AimFunctionality on Entity {
   double handPositionFromBody = .1;
   bool weaponBehind = false;
 
-  Vector2? get mousePositionOffPlayer {
-    final returnVal = inputAimPositions.containsKey(InputType.mouse)
-        ? ((inputAimPositions[InputType.mouse]! -
-            (entityOffsetFromCameraCenter)))
-        : null;
-    return returnVal;
-  }
-
-  void buildDeltaFromMousePosition() {
-    inputAimAngles[InputType.mouse] = mousePositionOffPlayer!.normalized();
-  }
-
-  Vector2? get entityAimPosition {
+  Vector2? get aimPosition {
     if (isDead) {
       return lastAimingPosition;
     }
 
-    final returnVal = inputAimPositions[InputType.aimJoy] ??
-        inputAimPositions[InputType.mouse] ??
-        // inputAimPositions[InputType.mouseDrag] ??
-        inputAimPositions[InputType.primary] ??
-        inputAimPositions[InputType.ai];
-    if (returnVal != null) {
-      lastAimingPosition = returnVal;
-    }
+    final returnVal = _aimPositions[_currentAimPositionPriorities.firstOrNull];
     return returnVal;
   }
 
-  Vector2 get entityInputsAimAngle {
+  Vector2 get aimVector {
     if (isDead) {
       return lastAimingDelta;
     }
-    if (inputAimPositions.containsKey(InputType.mouse)) {
-      buildDeltaFromMousePosition();
-    }
-
-    final returnVal = inputAimAngles[InputType.aimJoy] ??
-        inputAimAngles[InputType.primary] ??
-        // inputAimAngles[InputType.mouseDrag] ??
-        inputAimAngles[InputType.mouse] ??
-        inputAimAngles[InputType.ai] ??
-        ((this is MovementFunctionality)
-                ? (this as MovementFunctionality).moveDelta
-                : Vector2.zero())
-            .normalized();
+    final returnVal =
+        _aimAngles[_currentAimAnglePriorities.firstOrNull] ?? Vector2.zero();
     lastAimingDelta = returnVal;
     return returnVal;
   }
@@ -319,36 +300,82 @@ mixin AimFunctionality on Entity {
     return handJoint.position.normalized();
   }
 
-  Map<InputType, Vector2> inputAimAngles = {};
-  Map<InputType, Vector2> inputAimPositions = {};
-  late PlayerAttachmentJointComponent mouseJoint;
+  final Map<int, Vector2> _aimAngles = {};
+  final Map<int, Vector2> _aimPositions = {};
+  final List<int> _currentAimAnglePriorities = [];
+  final List<int> _currentAimPositionPriorities = [];
+
+  void addAimPosition(Vector2 direction, int priority) {
+    _aimPositions[priority] = direction;
+    _currentAimPositionPriorities.add(priority);
+    _currentAimPositionPriorities.sort();
+  }
+
+  void removeAimPosition(int priority) {
+    _aimPositions.remove(priority);
+    _currentAimPositionPriorities.remove(priority);
+  }
+
+  void addAimAngle(Vector2 direction, int priority) {
+    _aimAngles[priority] = direction;
+    _currentAimAnglePriorities.add(priority);
+    _currentAimAnglePriorities.sort();
+  }
+
+  void removeAimAngle(int priority) {
+    _aimAngles.remove(priority);
+    _currentAimAnglePriorities.remove(priority);
+  }
+
+  PlayerAttachmentJointComponent? backJoint;
+
+  PlayerAttachmentJointComponent? mouseJoint;
   late PlayerAttachmentJointComponent handJoint;
   Vector2 get handJointOffset => Vector2.zero();
   Vector2 get backJointOffset => Vector2.zero();
 
   @override
   Future<void> onLoad() {
-    backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
-        position: backJointOffset,
-        anchor: Anchor.center,
-        size: Vector2.zero(),
-        priority: playerBackPriority);
-
     handJoint = PlayerAttachmentJointComponent(
       WeaponSpritePosition.hand,
       anchor: Anchor.center,
       position: handJointOffset,
       size: Vector2.zero(),
     );
-    mouseJoint = PlayerAttachmentJointComponent(
-      WeaponSpritePosition.mouse,
-      anchor: Anchor.center,
-      size: Vector2.zero(),
-    );
+    if (isPlayer) {
+      mouseJoint = PlayerAttachmentJointComponent(
+        WeaponSpritePosition.mouse,
+        anchor: Anchor.center,
+        size: Vector2.zero(),
+      );
+
+      backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
+          position: backJointOffset,
+          anchor: Anchor.center,
+          size: Vector2.zero(),
+          priority: playerBackPriority);
+      add(backJoint!);
+      add(mouseJoint!);
+    }
+
+    InputManager().onPointerMoveList.add(updateMousePositionJoint);
+
     add(handJoint);
-    add(backJoint);
-    add(mouseJoint);
+
     return super.onLoad();
+  }
+
+  @override
+  void onRemove() {
+    InputManager().onPointerMoveList.remove(updateMousePositionJoint);
+
+    super.onRemove();
+  }
+
+  void updateMousePositionJoint(MovementType type, PointerMoveEvent info) {
+    if (type == MovementType.tap1) {
+      mouseJoint?.position = info.localPosition.toVector2();
+    }
   }
 
   @override
@@ -362,7 +389,7 @@ mixin AimFunctionality on Entity {
   void handJointBehindBodyCheck() {
     final deg = degrees(radiansBetweenPoints(
       Vector2(1, 0),
-      entityInputsAimAngle,
+      aimVector,
     ));
 
     if ((deg >= 0 && deg < 180 && !weaponBehind) ||
@@ -375,7 +402,7 @@ mixin AimFunctionality on Entity {
   @override
   void flipSprite() {
     handJoint.flipHorizontallyAroundCenter();
-    backJoint.flipHorizontallyAroundCenter();
+    backJoint?.flipHorizontallyAroundCenter();
     super.flipSprite();
   }
 
@@ -395,7 +422,7 @@ mixin AimFunctionality on Entity {
 
   void followTarget([bool smoothFollow = true]) {
     final previousNormal = previousHandJointPosWithoutOffset.normalized();
-    final handAngleTarget = entityInputsAimAngle.normalized();
+    final handAngleTarget = aimVector.normalized();
     final interpAmount = aimingInterpolationAmount.parameter;
     Vector2 angle;
     if (smoothFollow) {
@@ -407,18 +434,16 @@ mixin AimFunctionality on Entity {
       angle = handAngleTarget.clone();
     }
 
-    final mousePositionWithPlayerCenterOffset = mousePositionOffPlayer;
-
-    if (isPlayer && mousePositionWithPlayerCenterOffset != null) {
-      const distance = 5.0;
-      final newDistance = (Curves.easeInOutCubic.transform(
-                  (mousePositionWithPlayerCenterOffset.length / distance)
-                      .clamp(0, 1)) *
-              distance)
-          .clamp(0, distance);
-      distanceIncrease =
-          lerpDouble(distanceIncrease, newDistance, interpAmount)!;
-    }
+    // if (isPlayer) {
+    //   const distance = 5.0;
+    //   final newDistance = (Curves.easeInOutCubic.transform(
+    //               (mousePositionWithPlayerCenterOffset.length / distance)
+    //                   .clamp(0, 1)) *
+    //           distance)
+    //       .clamp(0, distance);
+    //   distanceIncrease =
+    //       lerpDouble(distanceIncrease, newDistance, interpAmount)!;
+    // }
 
     handJoint.position = (angle * handPositionFromBody * distanceIncrease);
 
@@ -434,14 +459,10 @@ mixin AimFunctionality on Entity {
   void aimCharacter() {
     if (!enableMovement.parameter) return;
 
-    handAngleTarget = entityInputsAimAngle.clone();
+    handAngleTarget = aimVector.clone();
 
     handJointBehindBodyCheck();
     spriteFlipCheck();
-
-    if (inputAimPositions.containsKey(InputType.mouse)) {
-      mouseJoint.position = inputAimPositions[InputType.mouse]!.clone();
-    }
   }
 }
 
@@ -555,12 +576,14 @@ mixin AttackFunctionality on AimFunctionality {
 
   Future<void> setWeapon(Weapon weapon) async {
     await handJoint.loaded.whenComplete(() => handJoint.addWeaponClass(weapon));
-    await mouseJoint.loaded
-        .whenComplete(() => mouseJoint.addWeaponClass(weapon));
-    await backJoint.loaded.whenComplete(() => backJoint.addWeaponClass(weapon));
+
     if (enviroment is GameEnviroment && isPlayer) {
       await enviroment.loaded;
       gameEnviroment.hud.toggleStaminaColor(weapon.weaponType.attackType);
+      await mouseJoint?.loaded
+          .whenComplete(() => mouseJoint?.addWeaponClass(weapon));
+      await backJoint?.loaded
+          .whenComplete(() => backJoint?.addWeaponClass(weapon));
     }
   }
 
@@ -1438,25 +1461,25 @@ mixin DashFunctionality on StaminaFunctionality {
         dashDelta = (this as AimFunctionality).lastAimingDelta;
       }
       if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
-        dashDelta =
-            (this as MovementFunctionality).moveDelta * dashDistance.parameter;
+        dashDelta = (this as MovementFunctionality).currentMoveDelta *
+            dashDistance.parameter;
       }
     } else if (teleportDash.parameter) {
       if (this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).entityAimPosition;
+        dashDelta = (this as AimFunctionality).aimPosition;
 
         dashDistanceGoal =
             dashDelta?.length ?? (dashDistance.parameter * power);
       }
       if (dashDelta?.isZero() ?? true && this is MovementFunctionality) {
-        dashDelta = (this as MovementFunctionality).moveDelta;
+        dashDelta = (this as MovementFunctionality).currentMoveDelta;
       }
     } else {
       if (this is MovementFunctionality) {
-        dashDelta = (this as MovementFunctionality).moveDelta;
+        dashDelta = (this as MovementFunctionality).currentMoveDelta;
       }
       if (dashDelta?.isZero() ?? true && this is AimFunctionality) {
-        dashDelta = (this as AimFunctionality).entityInputsAimAngle;
+        dashDelta = (this as AimFunctionality).aimVector;
       }
     }
 
@@ -1693,10 +1716,12 @@ mixin JumpFunctionality on Entity {
       Vector2(0, -jumpHeight),
       controller,
     ));
-    backJoint.add(MoveEffect.by(
-      Vector2(0, -jumpHeight),
-      controller,
-    ));
+    if (this is AimFunctionality && isPlayer) {
+      (this as AimFunctionality).backJoint?.add(MoveEffect.by(
+            Vector2(0, -jumpHeight),
+            controller,
+          ));
+    }
 
     // if (this is AimFunctionality) {
     //   (this as AimFunctionality).handJoint.add(MoveEffect.by(

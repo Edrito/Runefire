@@ -1541,8 +1541,9 @@ abstract class StandStillAttribute extends Attribute {
       period: checkTimerDuration,
       repeat: true,
       onTick: () {
-        final currentSpeed =
-            (victimEntity as MovementFunctionality).moveDelta.normalize();
+        final currentSpeed = (victimEntity as MovementFunctionality)
+            .currentMoveDelta
+            .normalize();
         if (!isMapped && currentSpeed < notMovingSpeed && delayTimer == null) {
           delayTimer = TimerComponent(
               period: delay,
@@ -3575,7 +3576,7 @@ class SlugTrailAttribute extends Attribute {
           period: interval,
           onTick: () {
             final move = victimEntity as MovementFunctionality;
-            final speed = move.moveDelta.clone().normalize();
+            final speed = move.currentMoveDelta.clone().normalize();
 
             if (speed >= notMovingSpeed) {
               action();

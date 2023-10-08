@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/body.dart';
 import 'package:runefire/enemies/enemy_mixin.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/events/event_class.dart';
 import 'package:runefire/events/event_management.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
@@ -522,8 +523,9 @@ class MushroomBurrower extends Enemy
               timer =
                   async.Timer.periodic((groundDuration / 2).seconds, (timer) {
                 if (isDead) return;
-                inputAimAngles[InputType.ai] =
-                    (gameEnviroment.player!.center - center).normalized();
+                addAimAngle(
+                    (gameEnviroment.player!.center - center), aiInputPriority);
+
                 followTarget(false);
                 final count = 2 + (rng.nextBool() ? 0 : 2);
                 currentWeapon?.attackCountIncrease.baseParameter = count;

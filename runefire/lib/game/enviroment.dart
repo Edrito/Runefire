@@ -133,7 +133,6 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
       this is GameEnviroment ? this as GameEnviroment : null;
 
   Enviroment();
-  Map<int, InputType> inputIdStates = {};
   late final World gameWorld;
   late CameraComponent gameCamera;
 

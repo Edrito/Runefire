@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/entities/input_priorities.dart';
 
 import '../entities/entity_class.dart';
 import '../entities/entity_mixin.dart';
@@ -582,7 +583,7 @@ class PsychicAttribute extends StatusEffectAttribute {
   void action() {
     if (victimEntity is MovementFunctionality) {
       final move = victimEntity as MovementFunctionality;
-      move.moveVelocities[InputType.attribute] = Vector2.random();
+      move.addMoveVelocity(Vector2.random(), attributeInputPriority);
     }
   }
 
@@ -608,7 +609,7 @@ class PsychicAttribute extends StatusEffectAttribute {
     confusionTimer = null;
     if (victimEntity is MovementFunctionality) {
       final move = victimEntity as MovementFunctionality;
-      move.moveVelocities.remove(InputType.attribute);
+      move.removeMoveVelocity(attributeInputPriority);
     }
   }
 

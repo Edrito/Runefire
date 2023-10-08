@@ -14,6 +14,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
@@ -72,7 +73,7 @@ class Player extends Entity
           var temp = center.clone();
           temp = Vector2(double.parse(temp.x.toStringAsFixed(2)),
               double.parse(temp.y.toStringAsFixed(2)));
-          moveVelocities[InputType.ai] = -temp.normalized();
+          addMoveVelocity(-temp.normalized(), aiInputPriority);
         },
       ));
     }
@@ -137,9 +138,6 @@ class Player extends Entity
   bool isDisplay;
   @override
   void onRemove() {
-    moveVelocities.clear();
-    inputAimAngles.clear();
-    inputAimPositions.clear();
     final instance = InputManager();
 
     instance.removeGameActionListener(GameAction.moveDown, onMoveAction);
@@ -166,11 +164,14 @@ class Player extends Entity
   void pointerMoveAction(MovementType type, PointerMoveEvent event) {
     if (type == MovementType.mouse && isLoaded) {
       final position = (shiftCoordinatesToCenter(
-              event.localPosition.toVector2(),
-              enviroment.gameCamera.viewport.size) /
-          enviroment.zoom);
-      inputAimPositions[InputType.mouse] = position;
-      buildDeltaFromMousePosition();
+                  event.localPosition.toVector2(),
+                  enviroment.gameCamera.viewport.size) /
+              enviroment.zoom) -
+          entityOffsetFromCameraCenter -
+          handJointOffset;
+
+      addAimPosition(position, userInputPriority);
+      addAimAngle(position.normalized(), userInputPriority);
     }
   }
 
@@ -278,9 +279,9 @@ class Player extends Entity
     }
 
     if (tempMoveAngle.isZero() || isDead) {
-      moveVelocities.remove(InputType.general);
+      removeMoveVelocity(userInputPriority);
     } else {
-      moveVelocities[InputType.general] = tempMoveAngle.normalized();
+      addMoveVelocity(tempMoveAngle, userInputPriority);
     }
   }
 

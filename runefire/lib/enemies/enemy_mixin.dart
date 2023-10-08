@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/enviroment_interactables/proximity_item.dart';
 import 'package:runefire/main.dart';
@@ -112,27 +113,31 @@ mixin AimControlFunctionality on AimFunctionality {
     switch (aimPattern) {
       case AimPattern.player:
         updateFunction = () {
-          inputAimAngles[InputType.ai] =
+          final direction =
               (gameEnviroment.player!.center - body.position).normalized();
+
+          addAimAngle(direction, aiInputPriority);
         };
 
         break;
       case AimPattern.closestEnemyToPlayer:
         updateFunction = () {
-          inputAimAngles[InputType.ai] =
+          final direction =
               ((gameEnviroment.player!.closestEnemy?.center ?? Vector2.zero()) -
                       body.position)
                   .normalized();
+          addAimAngle(direction, aiInputPriority);
         };
 
         break;
       case AimPattern.target:
         updateFunction = () {
-          inputAimAngles[InputType.ai] = ((target?.worldCenter ??
+          final direction = ((target?.worldCenter ??
                       gameEnviroment.player!.closestEnemy?.center ??
                       Vector2.zero()) -
                   body.position)
               .normalized();
+          addAimAngle(direction, aiInputPriority);
         };
 
         break;
@@ -153,7 +158,7 @@ mixin DumbFollowAI on Enemy, MovementFunctionality {
 
   void _dumbFollowTargetTick() {
     final newPosition = (gameEnviroment.player!.center - body.position);
-    moveVelocities[InputType.ai] = newPosition.normalized();
+    addMoveVelocity(newPosition, aiInputPriority);
   }
 
   @override
@@ -176,7 +181,7 @@ mixin DumbShoot on AttackFunctionality {
   double shootInterval = 2;
 
   void onTick() {
-    if (entityInputsAimAngle.isZero()) return;
+    if (aimVector.isZero()) return;
     startPrimaryAttacking();
     setEntityStatus(EntityStatus.attack);
     endPrimaryAttacking();
@@ -208,11 +213,10 @@ mixin DumbFollowRangeAI on MovementFunctionality {
     final dis = center.distanceTo(gameEnviroment.player!.center);
 
     if (dis < zoningDistance * 1.1 && dis > zoningDistance * .9) {
-      moveVelocities[InputType.ai] = Vector2.zero();
+      addMoveVelocity(Vector2.zero(), aiInputPriority);
       return;
     }
-
-    moveVelocities[InputType.ai] = newPosition.normalized();
+    addMoveVelocity(newPosition, aiInputPriority);
   }
 
   @override
@@ -238,8 +242,8 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   void _dumbFollowTargetTick() {
     final newPosition = (gameEnviroment.player!.center - body.position);
 
-    moveVelocities[InputType.ai] =
-        newPosition.normalized() * (inverse ? -1 : 1);
+    addMoveVelocity(
+        newPosition.normalized() * (inverse ? -1 : 1), aiInputPriority);
   }
 
   TimerComponent? inverseTimer;
@@ -286,14 +290,15 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
 
   void _dumbFollowTargetTick() {
     final newPosition = (gameEnviroment.player!.center - body.position);
-    moveVelocities[InputType.ai] = newPosition.normalized();
+    removeMoveVelocity(absoluteOverrideInputPriority);
+    addMoveVelocity(newPosition.normalized(), aiInputPriority);
     setEntityStatus(EntityStatus.jump);
   }
 
   @override
   void moveCharacter() {
     if (!isJumping) {
-      moveVelocities.clear();
+      addMoveVelocity(Vector2.zero(), absoluteOverrideInputPriority);
     }
     super.moveCharacter();
   }
@@ -325,7 +330,7 @@ mixin FollowThenSuicideAI on MovementFunctionality {
       return;
     }
     final newPosition = (gameEnviroment.player!.center - body.position);
-    moveVelocities[InputType.ai] = newPosition.normalized();
+    addMoveVelocity(newPosition.normalized(), aiInputPriority);
     if (center.distanceTo(gameEnviroment.player!.center) < distanceThreshold) {
       await setEntityStatus(EntityStatus.dead,
           instance: DamageInstance(

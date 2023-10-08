@@ -263,6 +263,7 @@ class InputManager with WindowListener {
     if (event.kind == PointerDeviceKind.mouse) {
       if (event.buttons == 2) {
         onSecondaryTapDownCall(event);
+        secondaryPointerId = event.pointer;
       } else {
         onPrimaryDownCall(event);
       }
@@ -274,8 +275,9 @@ class InputManager with WindowListener {
   void onPointerUp(PointerUpEvent event) {
     activePointers.remove(event.pointer);
 
-    if (event.buttons == 2) {
+    if (secondaryPointerId == event.pointer) {
       onSecondaryTapUpCall(event);
+      secondaryPointerId = null;
     } else {
       onPrimaryUpCall(event);
     }
@@ -284,12 +286,15 @@ class InputManager with WindowListener {
   void onPointerCancel(PointerCancelEvent event) {
     activePointers.remove(event.pointer);
 
-    if (event.buttons == 2) {
+    if (secondaryPointerId == event.pointer) {
       onSecondaryCancelCall(event);
+      secondaryPointerId = null;
     } else {
       onPrimaryCancelCall(event);
     }
   }
+
+  int? secondaryPointerId;
 
   void onPointerPanZoomStart(event) {}
   void onPointerPanZoomUpdate(event) {}
