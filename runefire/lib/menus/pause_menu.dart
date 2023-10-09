@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
@@ -273,12 +274,9 @@ class _InGameMenuState extends State<InGameMenu> {
           borderInner,
           border,
           Positioned.fill(
-            // top: 50,
-            // right: 0,
-            // left: 0,
             child: Center(
-              child: DisplayButtons(
-                buttons: List<CustomButton>.from(widget.buttons),
+              child: Column(
+                children: List<CustomButton>.from(widget.buttons),
               ),
             ),
           ),
@@ -288,96 +286,6 @@ class _InGameMenuState extends State<InGameMenu> {
     );
   }
 }
-
-// class InGameMenu extends StatefulWidget {
-//   const InGameMenu(this.gameRef, this.buttons, this.title, {super.key});
-//   final String title;
-//   final List<CustomButton> buttons;
-//   final GameRouter gameRef;
-//   @override
-//   State<InGameMenu> createState() => _InGameMenuState();
-// }
-
-// class _InGameMenuState extends State<InGameMenu> {
-//   @override
-//   Widget build(BuildContext context) {
-//     final size = MediaQuery.of(context).size;
-//     Color backgroundColor = ApolloColorPalette.mediumGray.color;
-//     Color color = colorPalette.secondaryColor;
-
-//     Widget background = Positioned.fill(
-//         // bottom: null,
-//         child: Image.asset(
-//       'assets/images/ui/attribute_background_mask.png',
-//       fit: BoxFit.fitWidth,
-//       color: backgroundColor.withOpacity(1),
-//       filterQuality: FilterQuality.none,
-//     ));
-
-//     Widget border = Positioned.fill(
-//         // bottom: null,
-//         child: Image.asset(
-//       'assets/images/ui/attribute_border.png',
-//       filterQuality: FilterQuality.none,
-//       color: backgroundColor.brighten(.4),
-//       fit: BoxFit.fitWidth,
-//     ));
-//     Widget borderInner = Positioned.fill(
-//         // bottom: null,
-//         child: Padding(
-//       padding: const EdgeInsets.all(3),
-//       child: Image.asset(
-//         'assets/images/ui/attribute_border.png',
-//         filterQuality: FilterQuality.none,
-//         color: backgroundColor.brighten(.1),
-//         fit: BoxFit.fitWidth,
-//       ),
-//     ));
-//     Widget borderInnerInner = Positioned.fill(
-//         // bottom: null,
-//         child: Padding(
-//       padding: const EdgeInsets.all(6),
-//       child: Image.asset(
-//         'assets/images/ui/attribute_border.png',
-//         filterQuality: FilterQuality.none,
-//         color: backgroundColor.darken(.7),
-//         fit: BoxFit.fitWidth,
-//       ),
-//     ));
-
-//     Widget title = Positioned.fill(
-//       bottom: null,
-//       child: Text(
-//         widget.title,
-//         textAlign: TextAlign.center,
-//         style: defaultStyle.copyWith(
-//             color: color,
-//             shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
-//       ).animate().fadeIn(),
-//     );
-//     return SizedBox.expand(
-//       child: Stack(
-//         children: [
-//           background,
-//           borderInnerInner,
-//           borderInner,
-//           border,
-//           Positioned.fill(
-//             // top: 50,
-//             // right: 0,
-//             // left: 0,
-//             child: Center(
-//               child: DisplayButtons(
-//                 buttons: List<CustomButton>.from(widget.buttons),
-//               ),
-//             ),
-//           ),
-//           title
-//         ],
-//       ),
-//     );
-//   }
-// }
 
 class PauseMenu extends StatefulWidget {
   const PauseMenu(this.gameRef, {super.key});
@@ -414,6 +322,7 @@ class _PauseMenuState extends State<PauseMenu> {
   }
 
   final Size cardSize = const Size(128, 96);
+  bool testHoverTest = false;
 
   @override
   Widget build(BuildContext context) {
@@ -453,11 +362,6 @@ class _PauseMenuState extends State<PauseMenu> {
               nonTempEntries
                   .sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
 
-              // final paddingIncrease =
-              //     ((size.width - 1200) / size.width).clamp(0.0, 1.0);
-
-              // print(paddingIncrease);
-
               return Row(
                 children: [
                   Expanded(
@@ -493,7 +397,7 @@ class _PauseMenuState extends State<PauseMenu> {
                                 colorPalette.primaryColor
                               ),
                               gameRef: widget.gameRef,
-                              onTap: () {
+                              onPrimary: () {
                                 gameState.resumeGame();
                               },
                             ),
@@ -504,7 +408,7 @@ class _PauseMenuState extends State<PauseMenu> {
                                 colorPalette.primaryColor.brighten(.5),
                                 colorPalette.primaryColor
                               ),
-                              onTap: () {
+                              onPrimary: () {
                                 gameState.resumeGame();
                                 gameState.killPlayer(
                                     GameEndState.quit,

@@ -15,6 +15,7 @@ import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/game/hud.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/damage_values.dart';

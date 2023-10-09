@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/services.dart';
 import 'package:runefire/game/hud.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 
 import '../../game/enviroment.dart';
@@ -57,8 +58,13 @@ class SystemData extends DataClass {
     // PhysicalKeyboardKey.keyW: GameAction.moveUp,
     // PhysicalKeyboardKey.keyW: GameAction.moveUp,
   };
+  @HiveField(105)
+  Map<int, GameAction> mouseButtonMappings = {
+    1: GameAction.primary,
+    2: GameAction.secondary,
+  };
 
-  @HiveField(101)
+  @HiveField(110)
   Map<String, GameAction> gamePadMappings = {};
 
   set setMusicVolume(double value) {
@@ -71,5 +77,21 @@ class SystemData extends DataClass {
     sfxVolume = value;
     parentComponent?.notifyListeners();
     save();
+  }
+}
+
+enum MouseButtons { primary, scrollClick, secondary, misc }
+
+extension MouseButtonsExtension on MouseButtons {
+  bool isKnown(int listenerButtonId) {
+    if (listenerButtonId == 1 && this == MouseButtons.primary) {
+      return true;
+    } else if (listenerButtonId == 4 && this == MouseButtons.scrollClick) {
+      return true;
+    } else if (listenerButtonId == 2 && this == MouseButtons.secondary) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

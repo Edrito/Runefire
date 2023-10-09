@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/buttons.dart';
 import 'package:runefire/menus/custom_widgets.dart';
 import 'package:runefire/menus/menus.dart';
@@ -90,7 +91,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                     CustomButton(
                       "Try again",
                       gameRef: gameRouter,
-                      onTap: () {
+                      onPrimary: () {
                         gameRouter.gameStateComponent.gameState
                             .endGame(GameEndState.death, true);
                       },
@@ -98,7 +99,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                     CustomButton(
                       "Give up",
                       gameRef: gameRouter,
-                      onTap: () {
+                      onPrimary: () {
                         gameRouter.gameStateComponent.gameState
                             .endGame(GameEndState.death);
                       },
@@ -314,13 +315,15 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
       children: [
         for (var damageType in widget.damageTypes)
           Expanded(
-            child: InkWell(
+            child: CustomInputWatcher(
               onHover: (value) {
                 setState(() {
                   hoveredDamageTypes[damageType] = value;
                 });
               },
-              onTap: () {
+              groupId: 1,
+              groupOrientation: Axis.horizontal,
+              onPrimary: () {
                 widget.selectDamageType(damageType);
               },
               child: Container(

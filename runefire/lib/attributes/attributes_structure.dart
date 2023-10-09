@@ -735,8 +735,8 @@ abstract class Attribute with UpgradeFunctions {
     return CustomCard(
       this,
       gameRef: GameState().gameRouter,
-      onTap: onTap,
-      onTapComplete: onTapComplete,
+      onPrimary: onTap,
+      onPrimaryComplete: onTapComplete,
       smallCard: small,
     );
   }

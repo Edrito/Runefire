@@ -16,6 +16,7 @@ import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -230,7 +231,7 @@ class Player extends Entity
   }
 
   void onKeyEvent(KeyEvent event) {
-    if (KeyEvent is KeyUpEvent) return;
+    if (event is KeyUpEvent) return;
     if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
       levelUp();
     }

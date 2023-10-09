@@ -419,7 +419,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                         child: CustomButton(
                           "Back",
                           gameRef: widget.gameRef,
-                          onTap: () => widget.onBack(),
+                          onPrimary: () => widget.onBack(),
                         ),
                       ),
                     ),
@@ -431,7 +431,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                         child: CustomButton(
                           "Unlock",
                           gameRef: widget.gameRef,
-                          onTap: () {
+                          onPrimary: () {
                             final result = playerData
                                 .unlockPermanentAttribute(selectedAttribute);
                           },

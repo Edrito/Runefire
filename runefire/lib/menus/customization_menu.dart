@@ -427,7 +427,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                         child: CustomButton(
                           "Back",
                           gameRef: widget.gameRef,
-                          onTap: () => widget.onBack(),
+                          onPrimary: () => widget.onBack(),
                         ),
                       ),
                     ),
@@ -771,7 +771,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
                     child: CustomButton(
                       "Back",
                       gameRef: widget.gameRef,
-                      onTap: () {
+                      onPrimary: () {
                         setState(() {
                           exitFunction = () {
                             widget.gameRef.gameStateComponent.gameState
@@ -800,7 +800,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
                     child: CustomButton(
                       "Choose Level",
                       gameRef: widget.gameRef,
-                      onTap: () {
+                      onPrimary: () {
                         if (!playerDataComponent.dataObject
                             .characterUnlocked()) {
                           return;

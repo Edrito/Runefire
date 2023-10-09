@@ -6,6 +6,7 @@ import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/enviroment_interactables/interactable.dart';
 import 'package:runefire/events/event_management.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
@@ -238,7 +239,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
       GameActionEvent gameAction, List<GameAction> activeGameActions) {}
   void pauseGameAction(
       GameActionEvent gameAction, List<GameAction> activeGameActions) {
-    if (!gameAction.isDownEvent) return;
+    if (!gameAction.isDownEvent || this is! GameEnviroment) return;
     gameRef.gameStateComponent.gameState.pauseGame(
       pauseMenu.key,
       pauseGame: true,

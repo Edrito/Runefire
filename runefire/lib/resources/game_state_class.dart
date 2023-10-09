@@ -6,6 +6,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/input_priorities.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/visuals.dart';

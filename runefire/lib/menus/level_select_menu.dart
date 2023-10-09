@@ -257,7 +257,7 @@ class _LevelMenuState extends State<LevelMenu> {
                 child: CustomButton(
                   "Back",
                   gameRef: widget.gameRef,
-                  onTap: () {
+                  onPrimary: () {
                     setState(() {
                       exitFunction = () {
                         widget.gameRef.gameStateComponent.gameState
@@ -272,7 +272,7 @@ class _LevelMenuState extends State<LevelMenu> {
                 child: CustomButton(
                   "Begin",
                   gameRef: widget.gameRef,
-                  onTap: () {
+                  onPrimary: () {
                     setState(() {
                       exitFunction = () {
                         widget.gameRef.gameStateComponent.gameState
