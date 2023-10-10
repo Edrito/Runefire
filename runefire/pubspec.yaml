@@ -24,13 +24,13 @@ dependencies:
   uuid: ^3.0.7
   recase: ^4.1.0
   flame_audio: ^1.4.1
-  infinite_carousel: ^1.0.3
   numerus: ^2.1.2
   particle_field: ^1.0.0
   rnd: ^0.2.0
   flame_forge2d: ^0.15.0
   simple_shadow: ^0.3.1
   image_size_getter: ^2.1.2
+  infinite_carousel: ^1.0.3
 
   
 

@@ -15,21 +15,16 @@ class CustomCard extends StatefulWidget {
   const CustomCard(
     this.attribute, {
     required this.gameRef,
-    this.isHighlightedInitial = false,
     this.onPrimary,
-    this.onPrimaryComplete,
-    this.isEndingInitial = false,
     this.smallCard = false,
+    this.scrollController,
     Key? key,
   }) : super(key: key);
-
+  final ScrollController? scrollController;
   final GameRouter gameRef;
   final Function(DamageType? damageType)? onPrimary;
-  final Function? onPrimaryComplete;
-  final bool isHighlightedInitial;
   final bool smallCard;
   final Attribute attribute;
-  final bool isEndingInitial;
 
   @override
   State<CustomCard> createState() => _CustomCardState();
@@ -38,22 +33,13 @@ class CustomCard extends StatefulWidget {
 class _CustomCardState extends State<CustomCard> {
   final topPadding = 90.0;
 
+  bool isHovered = false;
+  bool showHelp = false;
+  late final Size cardSize = widget.smallCard ? smallCardSize : largeCardSize;
+
   @override
   Widget build(BuildContext context) {
-    bool? isHighlighted;
-    bool? isEnding;
-    bool showHelp = false;
-    Size cardSize;
-
-    if (widget.smallCard) {
-      cardSize = smallCardSize;
-    } else {
-      cardSize = largeCardSize;
-    }
-
-    isEnding ??= widget.isEndingInitial;
-    isHighlighted ??= widget.isHighlightedInitial;
-    final highlightColor = isHighlighted
+    final highlightColor = isHovered
         ? widget.attribute.attributeType.rarity.color.darken(.2)
         : widget.attribute.attributeType.rarity.color.brighten(.1);
     final regularColor = Colors.grey.shade100;
@@ -62,12 +48,11 @@ class _CustomCardState extends State<CustomCard> {
         widget.attribute.allowedDamageTypes.isNotEmpty &&
             widget.attribute.damageType == null;
 
-    isHighlighted = isHighlighted || isEnding;
-
     TextStyle style =
         defaultStyle.copyWith(color: regularColor, fontSize: 30, shadows: []);
 
     List<Widget> levelIndicators = [];
+
     if (widget.attribute.maxLevel != null) {
       for (int i = 0; i < widget.attribute.upgradeLevel; i++) {
         levelIndicators.add(Padding(
@@ -223,22 +208,18 @@ class _CustomCardState extends State<CustomCard> {
         );
 
         return CustomInputWatcher(
+          scrollController: widget.scrollController,
           onHover: (value) {
             setState(() {
-              isHighlighted = value;
+              isHovered = value;
             });
           },
           onPrimary: () {
             if (!hasDamageTypeSelector) {
-              if (isEnding!) return;
-              setState(
-                () {
-                  isEnding = true;
-                },
-              );
               widget.onPrimary?.call(null);
             }
           },
+          groupOrientation: Axis.horizontal,
           child: SizedBox(
             height: cardHeight,
             child: Stack(
@@ -268,15 +249,12 @@ class _CustomCardState extends State<CustomCard> {
                           bottomLeft: Radius.circular(35),
                           bottomRight: Radius.circular(35)),
                       child: DamageTypeSelector(
-                          widget.attribute.allowedDamageTypes, (p0) {
-                        if (isEnding!) return;
-                        setState(
-                          () {
-                            isEnding = true;
-                          },
-                        );
-                        widget.onPrimary?.call(p0);
-                      }),
+                        widget.attribute.allowedDamageTypes,
+                        (p0) {
+                          widget.onPrimary?.call(p0);
+                        },
+                        scrollController: widget.scrollController,
+                      ),
                     ),
                   ),
                 Positioned.fill(
@@ -319,13 +297,7 @@ class _CustomCardState extends State<CustomCard> {
               ],
             )
                 .animate(
-                  target: isHighlighted! ? 1 : 0,
-                  onInit: (controller) {
-                    if (isEnding!) {
-                      controller.forward(from: 1);
-                      controller.stop();
-                    }
-                  },
+                  target: isHovered ? 1 : 0,
                 )
                 .rotate(
                     begin: 0,
@@ -342,93 +314,12 @@ class _CustomCardState extends State<CustomCard> {
         );
       }),
     );
-    return (isEnding!
-            ? Animate(
-                effects: const [
-                    FadeEffect(begin: 1, end: 0, curve: Curves.easeInOut),
-                    MoveEffect(end: Offset(0, -50), curve: Curves.easeInOut),
-                  ],
-                onComplete: (controller) {
-                  if (widget.onPrimaryComplete != null) {
-                    widget.onPrimaryComplete!();
-                  }
-                },
-                child: card)
-            : card)
+    return card
         .animate(
           onPlay: (controller) => controller.forward(from: rng.nextDouble()),
           onComplete: (controller) =>
               controller.reverse().then((value) => controller.forward()),
         )
         .moveY(end: 4, curve: Curves.easeInOut, duration: 1.seconds);
-  }
-}
-
-class DisplayCards extends StatefulWidget {
-  const DisplayCards(
-      {required this.cards,
-      this.ending = false,
-      this.loadInDuration = 1.0,
-      super.key});
-  final List<CustomCard> cards;
-  final bool ending;
-  final double loadInDuration;
-  @override
-  State<DisplayCards> createState() => _DisplayCardsState();
-}
-
-class _DisplayCardsState extends State<DisplayCards>
-    with TickerProviderStateMixin {
-  int selectedIndex = -1;
-  FocusNode focusNode = FocusNode();
-  CustomCard? selectedCard;
-  bool loaded = false;
-  @override
-  void initState() {
-    super.initState();
-    focusNode.requestFocus();
-
-    Future.delayed(
-      widget.loadInDuration.seconds,
-      () {
-        loaded = true;
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> displayedCards = [];
-
-    for (var i = 0; i < displayedCards.length; i++) {
-      displayedCards[i] = Padding(
-        padding: const EdgeInsets.all(10),
-        child: displayedCards[i],
-      );
-    }
-
-    return IgnorePointer(
-      ignoring: selectedCard != null,
-      child: Center(
-        child: Row(
-          children: [
-            Expanded(
-              child: ScrollConfiguration(
-                behavior: scrollConfiguration(context),
-                child: SingleChildScrollView(
-                  child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.center,
-                      children: displayedCards),
-                ),
-              ),
-            ),
-            const SizedBox(
-              width: 5,
-            )
-          ],
-        ),
-      ),
-    );
   }
 }

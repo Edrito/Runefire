@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -97,10 +98,14 @@ class ArrowButtonCustom extends StatefulWidget {
       {required this.quaterTurns,
       required this.onHoverColor,
       required this.offHoverColor,
-      required this.onTap,
+      this.groupId = 0,
+      this.groupOrientation = Axis.vertical,
+      required this.onPrimary,
       super.key});
   final int quaterTurns;
-  final Function onTap;
+  final int groupId;
+  final Axis groupOrientation;
+  final Function onPrimary;
   final Color onHoverColor;
   final Color offHoverColor;
   @override
@@ -109,16 +114,21 @@ class ArrowButtonCustom extends StatefulWidget {
 
 class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
   bool hovered = false;
+  bool pushed = false;
   @override
   Widget build(BuildContext context) {
     Color color = hovered ? widget.onHoverColor : widget.offHoverColor;
-    return InkWell(
-            splashFactory: NoSplash.splashFactory,
+    return CustomInputWatcher(
             onHover: (value) => setState(() {
                   hovered = value;
                 }),
-            onTap: () {
-              widget.onTap();
+            groupId: widget.groupId,
+            groupOrientation: widget.groupOrientation,
+            onPrimary: () {
+              widget.onPrimary();
+              setState(() {
+                pushed = true;
+              });
             },
             child: RotatedBox(
               quarterTurns: widget.quaterTurns,
@@ -130,6 +140,15 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
             ))
         .animate(
           target: hovered ? 1 : 0,
+        )
+        .scaleXY(begin: 1, end: 1.1, curve: Curves.easeIn, duration: .1.seconds)
+        .animate(
+          target: pushed ? 1 : 0,
+          onComplete: (controller) {
+            setState(() {
+              pushed = false;
+            });
+          },
         )
         .scaleXY(
             begin: 1, end: 1.1, curve: Curves.easeIn, duration: .1.seconds);

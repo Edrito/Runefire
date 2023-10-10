@@ -16,7 +16,7 @@ import 'package:recase/recase.dart';
 import '../attributes/attributes_permanent.dart';
 import '../attributes/attributes_structure.dart';
 import '../resources/data_classes/player_data.dart';
-import 'buttons.dart';
+import 'custom_button.dart';
 
 class AttributeTile extends StatelessWidget {
   const AttributeTile(this.attribute, this.isSelected, {super.key});

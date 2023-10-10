@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:runefire/menus/attribute_menu.dart';
+import 'package:runefire/menus/permanent_attribute_menu.dart';
 import 'package:runefire/menus/weapon_selector_tile.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
@@ -17,7 +17,7 @@ import 'package:simple_shadow/simple_shadow.dart';
 
 import '../resources/data_classes/player_data.dart';
 import '../resources/functions/functions.dart';
-import 'buttons.dart';
+import 'custom_button.dart';
 import 'character_switcher.dart';
 import 'menus.dart';
 
@@ -771,6 +771,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
                     child: CustomButton(
                       "Back",
                       gameRef: widget.gameRef,
+                      groupOrientation: Axis.horizontal,
+                      groupId: 5,
                       onPrimary: () {
                         setState(() {
                           exitFunction = () {
@@ -799,6 +801,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
                     alignment: Alignment.centerRight,
                     child: CustomButton(
                       "Choose Level",
+                      groupOrientation: Axis.horizontal,
+                      groupId: 5,
                       gameRef: widget.gameRef,
                       onPrimary: () {
                         if (!playerDataComponent.dataObject

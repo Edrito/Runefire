@@ -108,8 +108,10 @@ mixin AttributeFunctionality on Entity {
     }
   }
 
-  List<Attribute> buildAttributeSelection(Player player) {
+  List<Attribute> buildAttributeSelection() {
+    if (!isPlayer) return [];
     List<Attribute> returnList = [];
+    final player = (this as Player);
 
     int attempts = 0;
 

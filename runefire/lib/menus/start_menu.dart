@@ -5,7 +5,7 @@ import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
-import 'buttons.dart';
+import 'custom_button.dart';
 
 import 'menus.dart';
 

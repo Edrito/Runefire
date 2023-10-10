@@ -16,7 +16,7 @@ import 'attributes_permanent.dart';
 import 'package:uuid/uuid.dart';
 
 import '../main.dart';
-import '../menus/cards.dart';
+import '../menus/attribute_card.dart';
 import '../resources/functions/custom.dart';
 import 'attributes_status_effect.dart';
 
@@ -727,19 +727,6 @@ abstract class Attribute with UpgradeFunctions {
   AttributeType get attributeType;
 
   ///Increase or decrease the level based on the input value
-
-  CustomCard buildWidget(
-      {Function(DamageType? damageType)? onTap,
-      Function? onTapComplete,
-      bool small = false}) {
-    return CustomCard(
-      this,
-      gameRef: GameState().gameRouter,
-      onPrimary: onTap,
-      onPrimaryComplete: onTapComplete,
-      smallCard: small,
-    );
-  }
 
   void genericAttributeIncrease(dynamic parameterManager,
       bool increaseFromBaseParameter, bool increaseParameterPercentage,

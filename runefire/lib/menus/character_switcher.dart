@@ -26,10 +26,11 @@ class _CharacterSwitcherState extends State<CharacterSwitcher> {
       child: SizedBox(
           height: 50,
           child: ArrowButtonCustom(
-            onHoverColor: colorPalette.secondaryColor,
-            offHoverColor: colorPalette.primaryColor,
-            key: UniqueKey(),
-            onTap: () {
+            onHoverColor: colorPalette.primaryColor,
+            offHoverColor: colorPalette.secondaryColor,
+            groupId: 5,
+            groupOrientation: Axis.horizontal,
+            onPrimary: () {
               int currentPlayerIndex = widget
                   .gameRef.playerDataComponent.dataObject.selectedPlayer.index;
               if (isLeft) {
@@ -50,9 +51,6 @@ class _CharacterSwitcherState extends State<CharacterSwitcher> {
           )),
     );
   }
-
-  bool leftArrowHover = false;
-  bool rightArrowHover = false;
 
   @override
   Widget build(BuildContext context) {

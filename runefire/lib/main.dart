@@ -116,6 +116,7 @@ void main() async {
           onPointerDown: inputManagerState.onPointerDown,
           onPointerMove: inputManagerState.onPointerMove,
           onPointerUp: inputManagerState.onPointerUp,
+          onPointerSignal: inputManagerState.onPointerSignal,
           onPointerCancel: inputManagerState.onPointerCancel,
           child: GameWidget(
               backgroundBuilder: (context) {

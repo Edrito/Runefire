@@ -464,7 +464,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                           quaterTurns: 0,
                           onHoverColor: equippedColor.brighten(.4),
                           offHoverColor: equippedColor,
-                          onTap: () {
+                          onPrimary: () {
                             if (isWeapon) {
                               widget.weaponChange(true, weaponType.attackType);
                             } else {
@@ -482,7 +482,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                           quaterTurns: 2,
                           onHoverColor: equippedColor.brighten(.4),
                           offHoverColor: equippedColor,
-                          onTap: () {
+                          onPrimary: () {
                             if (isWeapon) {
                               widget.weaponChange(false, weaponType.attackType);
                             } else {

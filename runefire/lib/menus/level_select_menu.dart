@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
@@ -10,7 +11,7 @@ import 'package:runefire/resources/visuals.dart';
 import 'package:infinite_carousel/infinite_carousel.dart';
 import 'package:recase/recase.dart';
 import '../resources/data_classes/player_data.dart';
-import 'buttons.dart';
+import 'custom_button.dart';
 import '../resources/constants/routes.dart' as routes;
 import 'menus.dart';
 
@@ -78,7 +79,8 @@ class _LevelMenuState extends State<LevelMenu> {
 
   late GameLevel selectedLevel;
 
-  Widget buildTile(GameLevel? level, GameDifficulty? difficulty, int index) {
+  Widget buildTile(GameLevel? level, GameDifficulty? difficulty, int index,
+      ScrollController scrollController) {
     bool isHovering = false;
     bool isLevel = level != null;
 
@@ -86,15 +88,14 @@ class _LevelMenuState extends State<LevelMenu> {
       bool isSelected = (level == selectedLevel) ||
           (difficulty == playerData.selectedDifficulty);
       Color hoverColor = isSelected
-          ? Colors.white
+          ? ApolloColorPalette.offWhite.color
           : isHovering
-              ? colorPalette.secondaryColor
-              : colorPalette.primaryColor;
+              ? colorPalette.primaryColor
+              : colorPalette.secondaryColor;
       return SizedBox(
         height: 200,
         width: 250,
-        child: InkWell(
-          radius: 10,
+        child: CustomInputWatcher(
           onHover: (value) {
             setstate(
               () {
@@ -102,7 +103,10 @@ class _LevelMenuState extends State<LevelMenu> {
               },
             );
           },
-          onTap: () {
+          scrollController: scrollController,
+          groupId: isLevel ? 50 : 100,
+          groupOrientation: Axis.vertical,
+          onPrimary: () {
             if (isLevel) {
               setSelectedLevel(index);
             } else {
@@ -161,19 +165,16 @@ class _LevelMenuState extends State<LevelMenu> {
           child: SizedBox(
             width: 450,
             child: InfiniteCarousel.builder(
-              scrollBehavior:
-                  ScrollConfiguration.of(context).copyWith(dragDevices: {
-                // Allows to swipe in web browsers
-                PointerDeviceKind.touch,
-                PointerDeviceKind.mouse
-              }, scrollbars: false),
+              scrollBehavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: {
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse
+                  },
+                  scrollbars: false),
               itemCount: isLevel ? levels.length : GameDifficulty.values.length,
               itemExtent: 120,
               center: true,
               velocityFactor: 0.2,
-              // onIndexChanged: (index) {
-              //   setSelectedLevel(index);
-              // },
               controller:
                   isLevel ? pageControllerLevel : pageControllerDifficulty,
               axisDirection: Axis.vertical,
@@ -184,14 +185,26 @@ class _LevelMenuState extends State<LevelMenu> {
 
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: buildTile(element, null, itemIndex),
+                    child: buildTile(
+                        element,
+                        null,
+                        itemIndex,
+                        isLevel
+                            ? pageControllerLevel
+                            : pageControllerDifficulty),
                   );
                 } else {
                   final element = GameDifficulty.values.elementAt(itemIndex);
 
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: buildTile(null, element, itemIndex),
+                    child: buildTile(
+                        null,
+                        element,
+                        itemIndex,
+                        isLevel
+                            ? pageControllerLevel
+                            : pageControllerDifficulty),
                   );
                 }
               },
@@ -256,6 +269,7 @@ class _LevelMenuState extends State<LevelMenu> {
                 padding: const EdgeInsets.all(20),
                 child: CustomButton(
                   "Back",
+                  groupOrientation: Axis.horizontal,
                   gameRef: widget.gameRef,
                   onPrimary: () {
                     setState(() {
@@ -271,6 +285,7 @@ class _LevelMenuState extends State<LevelMenu> {
                 padding: const EdgeInsets.all(20),
                 child: CustomButton(
                   "Begin",
+                  groupOrientation: Axis.horizontal,
                   gameRef: widget.gameRef,
                   onPrimary: () {
                     setState(() {

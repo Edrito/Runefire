@@ -14,7 +14,7 @@ import 'package:numerus/numerus.dart';
 import '../game/enviroment.dart';
 import '../main.dart';
 import '../resources/visuals.dart';
-import 'buttons.dart';
+import 'custom_button.dart';
 
 class AttributeDisplay extends StatefulWidget {
   const AttributeDisplay(
@@ -276,6 +276,8 @@ class _InGameMenuState extends State<InGameMenu> {
           Positioned.fill(
             child: Center(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: List<CustomButton>.from(widget.buttons),
               ),
             ),

@@ -354,7 +354,9 @@ mixin PauseOnFocusLost on Enviroment {
   }
 
   void onWindowBlur() {
-    gameState.pauseGame(pauseMenu.key, wipeMovement: true);
+    if (this is GameEnviroment) {
+      gameState.pauseGame(pauseMenu.key, wipeMovement: true);
+    }
   }
 }
 

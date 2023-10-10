@@ -16,10 +16,11 @@ class CustomButton extends StatefulWidget {
       this.onPrimaryUp,
       this.onPrimaryHold,
       this.onSecondary,
-      this.axis = Axis.vertical,
+      this.groupOrientation = Axis.vertical,
       this.onSecondaryUp,
       this.onSecondaryHold,
       this.upDownColor,
+      this.groupId = 0,
       super.key});
   final (Color, Color)? upDownColor;
   final GameRouter gameRef;
@@ -30,7 +31,8 @@ class CustomButton extends StatefulWidget {
   final Function()? onSecondaryUp;
   final Function()? onSecondaryHold;
   final String text;
-  final Axis axis;
+  final int groupId;
+  final Axis groupOrientation;
   @override
   State<CustomButton> createState() => _CustomButtonState();
 }
@@ -56,13 +58,14 @@ class _CustomButtonState extends State<CustomButton> {
           },
         );
       },
-      groupOrientation: widget.axis,
+      groupOrientation: widget.groupOrientation,
       onPrimary: () => widget.onPrimary?.call(),
       onPrimaryUp: () => widget.onPrimaryUp?.call(),
       onPrimaryHold: () => widget.onPrimaryHold?.call(),
       onSecondary: () => widget.onSecondary?.call(),
       onSecondaryUp: () => widget.onSecondaryUp?.call(),
       onSecondaryHold: () => widget.onSecondaryHold?.call(),
+      groupId: widget.groupId,
       child: Padding(
         padding: isHovered
             ? const EdgeInsets.all(3)
