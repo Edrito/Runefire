@@ -63,6 +63,7 @@ class _AttributeSelectionState extends State<AttributeSelection> {
       attribute,
       gameRef: GameState().gameRouter,
       scrollController: scrollController,
+      groupId: small ? 1 : 0,
       onPrimary: onTap,
       smallCard: small,
     );

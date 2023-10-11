@@ -98,16 +98,20 @@ class ArrowButtonCustom extends StatefulWidget {
       {required this.quaterTurns,
       required this.onHoverColor,
       required this.offHoverColor,
+      this.scrollController,
       this.groupId = 0,
+      this.zIndex = 0,
       this.groupOrientation = Axis.vertical,
       required this.onPrimary,
       super.key});
   final int quaterTurns;
   final int groupId;
+  final int zIndex;
   final Axis groupOrientation;
   final Function onPrimary;
   final Color onHoverColor;
   final Color offHoverColor;
+  final ScrollController? scrollController;
   @override
   State<ArrowButtonCustom> createState() => _ArrowButtonCustomState();
 }
@@ -122,8 +126,11 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
             onHover: (value) => setState(() {
                   hovered = value;
                 }),
+            zHeight: 1,
+            scrollController: widget.scrollController,
             groupId: widget.groupId,
             groupOrientation: widget.groupOrientation,
+            zIndex: widget.zIndex,
             onPrimary: () {
               widget.onPrimary();
               setState(() {

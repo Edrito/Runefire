@@ -73,6 +73,12 @@ class SystemData extends DataClass {
     save();
   }
 
+  set setHudScale(HudScale value) {
+    hudScale = value;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
   set setSFXVolume(double value) {
     sfxVolume = value;
     parentComponent?.notifyListeners();

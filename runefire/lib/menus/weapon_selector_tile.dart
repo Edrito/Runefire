@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/custom_widgets.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -22,6 +23,7 @@ class WeaponSelectorTab extends StatefulWidget {
     this.animateLeft,
     this.weaponType,
     this.secondaryType,
+    this.scrollController,
     required this.weaponChange,
     required this.isPrimary,
     super.key,
@@ -30,6 +32,7 @@ class WeaponSelectorTab extends StatefulWidget {
 
   final bool? animateLeft;
   final GameRouter gameRef;
+  final ScrollController? scrollController;
   final bool isPrimary;
   final SecondaryType? secondaryType;
   final Function(bool isLeftPress, AttackType? attackType) weaponChange;
@@ -200,9 +203,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     isMaxLevel = unlockedLevel == maxLevel;
     currentCost = (currentCost * (unlockedLevel + 1))
         .clamp(currentCost, currentCost * maxLevel);
-    // final backgroundColor = (isMainHover
-    //     ? hoverColor
-    //     : (isUnlocked ? unlockedColor : lockedColor).withOpacity(1));
 
     String titleString =
         (isWeapon ? weaponType.name.titleCase : secondaryType!.name.titleCase);
@@ -275,13 +275,17 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
         ],
       ),
     );
-    final imageDisplay = InkWell(
+    final imageDisplay = CustomInputWatcher(
       onHover: (value) {
         setState(() {
           isMainHover = value;
         });
       },
-      onTap: isUnlocked
+      groupId: 15,
+      zIndex: 1,
+      groupOrientation: Axis.vertical,
+      scrollController: widget.scrollController,
+      onPrimary: isUnlocked
           ? () {
               if (isSecondaryAbility) {
                 setState(() {
@@ -314,8 +318,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                   quarterTurns: !isWeapon ? 0 : 1,
                   child: Image.asset(
                     icon,
-
-                    // scale: -1,
                     color: isUnlocked ? null : Colors.black,
                     fit: BoxFit.contain,
                     filterQuality: FilterQuality.none,
@@ -336,14 +338,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                     duration: 3.seconds,
                     curve: Curves.easeInOut)
                 .animate()
-                // .scale(
-                //     begin: Vector2.all(widget.animateLeft == null
-                //             ? 0
-                //             : widget.animateLeft == true
-                //                 ? -.1
-                //                 : .1)
-                //         .toOffset(),
-                //     curve: Curves.fastEaseInToSlowEaseOut)
                 .moveY(
                     curve: Curves.fastEaseInToSlowEaseOut,
                     begin: widget.animateLeft == null
@@ -353,17 +347,12 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                             : 100)
                 .fadeIn(),
           ),
-          // Center(
-          //     child: buildImageAsset(
-          //   UiAssets.padlock,
-          //   fit: BoxFit.contain,
-          // )).animate(target: isUnlocked ? 0 : 1).fade(),
-          if (isMainHover && !isEquipped)
+          if (isMainHover)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  "Equip?",
+                  isUnlocked ? (isEquipped ? "Equipped" : "Equip?") : "Locked",
                   style: defaultStyle,
                 ),
               ).animate().fade(),
@@ -374,13 +363,17 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
 
     Widget unlockWidget = Padding(
       padding: const EdgeInsets.all(8.0),
-      child: InkWell(
+      child: CustomInputWatcher(
         onHover: (value) {
           setState(() {
             isLevelHover = value;
           });
         },
-        onTap: isMaxLevel || !isAvailable
+        zIndex: 1,
+        groupId: 15,
+        groupOrientation: Axis.vertical,
+        scrollController: widget.scrollController,
+        onPrimary: isMaxLevel || !isAvailable
             ? null
             : () {
                 onLevelTap();
@@ -462,7 +455,11 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                         height: 25,
                         child: ArrowButtonCustom(
                           quaterTurns: 0,
+                          groupId: 15,
+                          zIndex: 1,
                           onHoverColor: equippedColor.brighten(.4),
+                          groupOrientation: Axis.vertical,
+                          scrollController: widget.scrollController,
                           offHoverColor: equippedColor,
                           onPrimary: () {
                             if (isWeapon) {
@@ -480,7 +477,11 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                         height: 25,
                         child: ArrowButtonCustom(
                           quaterTurns: 2,
+                          groupId: 15,
+                          zIndex: 1,
                           onHoverColor: equippedColor.brighten(.4),
+                          groupOrientation: Axis.vertical,
+                          scrollController: widget.scrollController,
                           offHoverColor: equippedColor,
                           onPrimary: () {
                             if (isWeapon) {

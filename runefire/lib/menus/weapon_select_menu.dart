@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/permanent_attribute_menu.dart';
 import 'package:runefire/menus/weapon_selector_tile.dart';
 import 'package:runefire/main.dart';
@@ -180,9 +181,10 @@ class WeaponSecondaryTile extends StatelessWidget {
 
       return SizedBox(
         width: isWeapon ? 192 : 144,
-        child: InkWell(
-            radius: radius,
-            onTap: () {
+        child: CustomInputWatcher(
+            groupId: 20,
+            groupOrientation: Axis.horizontal,
+            onPrimary: () {
               onTap();
             },
             onHover: (value) {
@@ -342,6 +344,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
   }
 
   late PlayerData playerData;
+  ScrollController scrollController = ScrollController();
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -351,6 +354,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
         entries.add(WeaponSelectorTab(
             gameRef: widget.gameRef,
             weaponChange: changeWeapon,
+            scrollController: scrollController,
             isPrimary: widget.isPrimary,
             key: Key(entry.value.name),
             animateLeft: previousPressLeft,
@@ -368,6 +372,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
       entries.add(WeaponSelectorTab(
           gameRef: widget.gameRef,
           weaponChange: changeWeapon,
+          scrollController: scrollController,
           key: Key(selectedSecondary?.name ?? ""),
           animateLeft: previousPressLeft,
           isPrimary: widget.isPrimary,
@@ -400,12 +405,16 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                     padding: const EdgeInsets.all(8.0),
                     child: Align(
                       alignment: Alignment.center,
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: entries
-                            .animate(interval: .15.seconds)
-                            .fadeIn()
-                            .moveX(begin: -200, curve: Curves.easeOutCirc),
+                      child: ScrollConfiguration(
+                        behavior: scrollConfiguration(context),
+                        child: ListView(
+                          controller: scrollController,
+                          shrinkWrap: true,
+                          children: entries
+                              .animate(interval: .15.seconds)
+                              .fadeIn()
+                              .moveX(begin: -200, curve: Curves.easeOutCirc),
+                        ),
                       ),
                     ),
                   ),
@@ -426,6 +435,10 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                         alignment: Alignment.centerLeft,
                         child: CustomButton(
                           "Back",
+                          zHeight: 1,
+                          zIndex: 1,
+                          groupId: 15,
+                          groupOrientation: Axis.vertical,
                           gameRef: widget.gameRef,
                           onPrimary: () => widget.onBack(),
                         ),
@@ -772,6 +785,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
                       "Back",
                       gameRef: widget.gameRef,
                       groupOrientation: Axis.horizontal,
+                      zHeight: 1,
                       groupId: 5,
                       onPrimary: () {
                         setState(() {
@@ -803,6 +817,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
                       "Choose Level",
                       groupOrientation: Axis.horizontal,
                       groupId: 5,
+                      zHeight: 1,
                       gameRef: widget.gameRef,
                       onPrimary: () {
                         if (!playerDataComponent.dataObject

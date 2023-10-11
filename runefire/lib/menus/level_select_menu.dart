@@ -269,6 +269,7 @@ class _LevelMenuState extends State<LevelMenu> {
                 padding: const EdgeInsets.all(20),
                 child: CustomButton(
                   "Back",
+                  zHeight: 1,
                   groupOrientation: Axis.horizontal,
                   gameRef: widget.gameRef,
                   onPrimary: () {
@@ -285,6 +286,7 @@ class _LevelMenuState extends State<LevelMenu> {
                 padding: const EdgeInsets.all(20),
                 child: CustomButton(
                   "Begin",
+                  zHeight: 1,
                   groupOrientation: Axis.horizontal,
                   gameRef: widget.gameRef,
                   onPrimary: () {

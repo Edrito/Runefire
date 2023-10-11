@@ -1,6 +1,8 @@
 import 'dart:async' as async;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:recase/recase.dart';
+import 'package:runefire/game/hud.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import '../resources/data_classes/system_data.dart';
@@ -20,7 +22,7 @@ class OptionsMenu extends StatefulWidget {
 }
 
 class _OptionsMenuState extends State<OptionsMenu> {
-  late CustomButton hudScale;
+  late HudScale hudScale;
   late CustomButton exitButton;
 
   late double musicVolume;
@@ -32,25 +34,21 @@ class _OptionsMenuState extends State<OptionsMenu> {
   void incrementMusic(bool increment) {
     if (increment) {
       musicVolume = musicVolume + 1;
-      systemDataComponent?.dataObject.setMusicVolume =
-          (musicVolume).clamp(musicMinMax.$1, musicMinMax.$2);
     } else {
       musicVolume = musicVolume - 1;
-      systemDataComponent?.dataObject.setMusicVolume =
-          (musicVolume).clamp(musicMinMax.$1, musicMinMax.$2);
     }
+    systemDataComponent?.dataObject.setMusicVolume =
+        (musicVolume).clamp(musicMinMax.$1, musicMinMax.$2);
   }
 
   void incrementSfx(bool increment) {
     if (increment) {
       sfxVolume = sfxVolume + 1;
-      systemDataComponent?.dataObject.setSFXVolume =
-          (sfxVolume).clamp(sfxMinMax.$1, sfxMinMax.$2);
     } else {
       sfxVolume = sfxVolume - 1;
-      systemDataComponent?.dataObject.setSFXVolume =
-          (sfxVolume).clamp(sfxMinMax.$1, sfxMinMax.$2);
     }
+    systemDataComponent?.dataObject.setSFXVolume =
+        (sfxVolume).clamp(sfxMinMax.$1, sfxMinMax.$2);
   }
 
   CustomButton buildMusicButton() {
@@ -91,6 +89,31 @@ class _OptionsMenuState extends State<OptionsMenu> {
     );
   }
 
+  void incrementHudScale(bool increment) {
+    int currentIndex = HudScale.values.indexOf(hudScale);
+    if (increment) {
+      currentIndex++;
+    } else {
+      currentIndex--;
+    }
+
+    currentIndex = currentIndex.clamp(0, HudScale.values.length - 1);
+    systemDataComponent?.dataObject.setHudScale = HudScale.values[currentIndex];
+  }
+
+  CustomButton buildHudScaleButton() {
+    return CustomButton(
+      "Hud Scale: ${hudScale.name.titleCase}",
+      gameRef: widget.gameRef,
+      onPrimary: () {
+        incrementHudScale(true);
+      },
+      onSecondary: () {
+        incrementHudScale(false);
+      },
+    );
+  }
+
   late ComponentsNotifier<SystemDataComponent> systemDataNotifier;
 
   @override
@@ -103,6 +126,8 @@ class _OptionsMenuState extends State<OptionsMenu> {
     setState(() {
       musicVolume = systemDataNotifier.single?.dataObject.musicVolume ?? 0.0;
       sfxVolume = systemDataNotifier.single?.dataObject.sfxVolume ?? 0.0;
+      hudScale =
+          systemDataNotifier.single?.dataObject.hudScale ?? HudScale.medium;
     });
   }
 
@@ -135,7 +160,12 @@ class _OptionsMenuState extends State<OptionsMenu> {
       child: Column(
         // alignment: Alignment.center,
         mainAxisSize: MainAxisSize.min,
-        children: [buildSFXButton(), buildMusicButton(), exitButton],
+        children: [
+          buildSFXButton(),
+          buildMusicButton(),
+          buildHudScaleButton(),
+          exitButton
+        ],
       ),
     );
   }

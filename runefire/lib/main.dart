@@ -101,7 +101,7 @@ void main() async {
       systemData: systemData);
 
   final inputManagerState = InputManager();
-  inputManagerState.setGameRouter(gameRouter);
+  inputManagerState.setInitReferences(gameRouter);
   // Gamepads.events.listen(inputManagerState.gamepadEventHandler);
 
   ServicesBinding.instance.keyboard

@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/menus/start_menu.dart';
-import 'package:runefire/menus/customization_menu.dart';
+import 'package:runefire/menus/weapon_select_menu.dart';
 
 import 'level_select_menu.dart';
 import 'options.dart';

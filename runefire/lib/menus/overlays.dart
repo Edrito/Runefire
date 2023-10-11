@@ -184,7 +184,7 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
         for (var damageType in widget.damageTypes)
           Expanded(
             child: CustomInputWatcher(
-              zIndex: 1,
+              zHeight: 1,
               scrollController: widget.scrollController,
               onHover: (value) {
                 setState(() {

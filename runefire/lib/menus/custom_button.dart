@@ -20,6 +20,8 @@ class CustomButton extends StatefulWidget {
       this.onSecondaryUp,
       this.onSecondaryHold,
       this.upDownColor,
+      this.zHeight = 0,
+      this.zIndex = 0,
       this.groupId = 0,
       super.key});
   final (Color, Color)? upDownColor;
@@ -32,6 +34,8 @@ class CustomButton extends StatefulWidget {
   final Function()? onSecondaryHold;
   final String text;
   final int groupId;
+  final int zHeight;
+  final int zIndex;
   final Axis groupOrientation;
   @override
   State<CustomButton> createState() => _CustomButtonState();
@@ -58,6 +62,7 @@ class _CustomButtonState extends State<CustomButton> {
           },
         );
       },
+      zHeight: widget.zHeight,
       groupOrientation: widget.groupOrientation,
       onPrimary: () => widget.onPrimary?.call(),
       onPrimaryUp: () => widget.onPrimaryUp?.call(),
@@ -66,6 +71,7 @@ class _CustomButtonState extends State<CustomButton> {
       onSecondaryUp: () => widget.onSecondaryUp?.call(),
       onSecondaryHold: () => widget.onSecondaryHold?.call(),
       groupId: widget.groupId,
+      zIndex: widget.zIndex,
       child: Padding(
         padding: isHovered
             ? const EdgeInsets.all(3)

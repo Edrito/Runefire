@@ -16,7 +16,9 @@ class CustomCard extends StatefulWidget {
     this.attribute, {
     required this.gameRef,
     this.onPrimary,
+    this.groupId = 0,
     this.smallCard = false,
+    this.groupOrientation = Axis.horizontal,
     this.scrollController,
     Key? key,
   }) : super(key: key);
@@ -25,6 +27,8 @@ class CustomCard extends StatefulWidget {
   final Function(DamageType? damageType)? onPrimary;
   final bool smallCard;
   final Attribute attribute;
+  final Axis groupOrientation;
+  final int groupId;
 
   @override
   State<CustomCard> createState() => _CustomCardState();
@@ -209,6 +213,7 @@ class _CustomCardState extends State<CustomCard> {
 
         return CustomInputWatcher(
           scrollController: widget.scrollController,
+          groupId: widget.groupId,
           onHover: (value) {
             setState(() {
               isHovered = value;
@@ -219,7 +224,7 @@ class _CustomCardState extends State<CustomCard> {
               widget.onPrimary?.call(null);
             }
           },
-          groupOrientation: Axis.horizontal,
+          groupOrientation: widget.groupOrientation,
           child: SizedBox(
             height: cardHeight,
             child: Stack(
@@ -233,12 +238,7 @@ class _CustomCardState extends State<CustomCard> {
                     ),
                   ),
                 ),
-                if (!hasDamageTypeSelector)
-                  Positioned.fill(
-                      child: GestureDetector(
-                    onTap: () async {},
-                  ))
-                else
+                if (hasDamageTypeSelector)
                   Positioned(
                     bottom: 0,
                     left: 0,
