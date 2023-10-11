@@ -34,7 +34,7 @@ import '../menus/overlays.dart' as overlay;
 
 final rng = Random();
 
-bool startInGame = false;
+bool startInGame = true;
 
 // Map<int, bool> isSecondaryPointer = {};
 

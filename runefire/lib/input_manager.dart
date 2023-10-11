@@ -74,6 +74,8 @@ class InputManager with WindowListener {
   //Keyboard
   List<Function(KeyEvent)> keyEventList = [];
 
+  List<Function(PointerDownEvent event)> pointerDownList = [];
+
   // Callbacks for pointer moving
   List<Function(MovementType type, PointerMoveEvent event)> onPointerMoveList =
       [];
@@ -152,13 +154,22 @@ class InputManager with WindowListener {
     if (keyEvent is KeyRepeatEvent) return false;
 
     externalInputType = ExternalInputType.keyboard;
-    GameAction? mappedAction =
-        _systemDataReference.keyboardMappings[keyEvent.physicalKey];
-    if (mappedAction == null) return false;
-    onGameActionCall(
-        (gameAction: mappedAction, isDownEvent: keyEvent is KeyDownEvent));
+    final mappedActions = _systemDataReference.keyboardMappings.entries
+        .where((element) => element.value.any(keyEvent.physicalKey));
+    for (var element in mappedActions) {
+      onGameActionCall(
+          (gameAction: element.key, isDownEvent: keyEvent is KeyDownEvent));
+    }
 
-    return true;
+    final permanentMappedActions = _systemDataReference
+        .constantKeyboardMappings.entries
+        .where((element) => element.value.contains(keyEvent.physicalKey));
+    for (var element in permanentMappedActions) {
+      onGameActionCall(
+          (gameAction: element.key, isDownEvent: keyEvent is KeyDownEvent));
+    }
+
+    return !(permanentMappedActions.isEmpty && mappedActions.isEmpty);
   }
 
   void onGameActionCall(GameActionEvent event) {
@@ -187,6 +198,9 @@ class InputManager with WindowListener {
 
   void onPointerDown(PointerDownEvent event) {
     activePointers.add(event.pointer);
+    for (var element in pointerDownList) {
+      element.call(event);
+    }
     if (event.kind == PointerDeviceKind.mouse) {
       if (event.buttons == 2) {
         onSecondaryDownCall(event);
@@ -535,8 +549,7 @@ class CustomInputWatcherManager {
 
       // bool isNextIndexAfterCurrentIndex =
       //     nextHoveredWidgetIndex >= currentIndex;
-      print(heightOfItem);
-      print(heightOfItem * nextHoveredWidgetIndex * 1.5);
+
       nextHoveredWidget.widget.scrollController?.animateTo(
           heightOfItem * nextHoveredWidgetIndex * 1.5,
           duration: .5.seconds,
@@ -632,32 +645,24 @@ class CustomInputWatcherManager {
     if (keyEvent is KeyUpEvent) return;
 
     if ([
-          PhysicalKeyboardKey.keyW,
-          PhysicalKeyboardKey.arrowUp,
-        ].contains(keyEvent.physicalKey) ||
-        _systemDataReference.keyboardMappings[keyEvent.physicalKey] ==
-            GameAction.moveUp) {
+      PhysicalKeyboardKey.keyW,
+      PhysicalKeyboardKey.arrowUp,
+    ].contains(keyEvent.physicalKey)) {
       changeHoveredState(AxisDirection.up);
     } else if ([
-          PhysicalKeyboardKey.keyS,
-          PhysicalKeyboardKey.arrowDown,
-        ].contains(keyEvent.physicalKey) ||
-        _systemDataReference.keyboardMappings[keyEvent.physicalKey] ==
-            GameAction.moveDown) {
+      PhysicalKeyboardKey.keyS,
+      PhysicalKeyboardKey.arrowDown,
+    ].contains(keyEvent.physicalKey)) {
       changeHoveredState(AxisDirection.down);
     } else if ([
-          PhysicalKeyboardKey.keyA,
-          PhysicalKeyboardKey.arrowLeft,
-        ].contains(keyEvent.physicalKey) ||
-        _systemDataReference.keyboardMappings[keyEvent.physicalKey] ==
-            GameAction.moveLeft) {
+      PhysicalKeyboardKey.keyA,
+      PhysicalKeyboardKey.arrowLeft,
+    ].contains(keyEvent.physicalKey)) {
       changeHoveredState(AxisDirection.left);
     } else if ([
-          PhysicalKeyboardKey.keyD,
-          PhysicalKeyboardKey.arrowRight,
-        ].contains(keyEvent.physicalKey) ||
-        _systemDataReference.keyboardMappings[keyEvent.physicalKey] ==
-            GameAction.moveRight) {
+      PhysicalKeyboardKey.keyD,
+      PhysicalKeyboardKey.arrowRight,
+    ].contains(keyEvent.physicalKey)) {
       changeHoveredState(AxisDirection.right);
     }
   }
@@ -896,6 +901,7 @@ class CustomInputWatcherState<T extends CustomInputWatcher> extends State<T> {
 
   void updateCustomInputWatcher() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       inputManager.customInputWatcherManager.updateCustomInputWatcher(this);
     });
   }

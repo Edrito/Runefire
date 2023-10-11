@@ -776,9 +776,12 @@ class _WeaponMenuState extends State<WeaponMenu> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              const SizedBox(
+                width: menuBaseBarWidthPadding,
+              ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(8),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: CustomButton(
@@ -810,7 +813,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(8),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: CustomButton(
@@ -834,6 +837,9 @@ class _WeaponMenuState extends State<WeaponMenu> {
                     ),
                   ),
                 ),
+              ),
+              const SizedBox(
+                width: menuBaseBarWidthPadding,
               ),
             ],
           ),

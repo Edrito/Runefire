@@ -41,31 +41,34 @@ class SystemData extends DataClass {
   @HiveField(20)
   HudScale hudScale = HudScale.medium;
 
-  @HiveField(100)
-  Map<PhysicalKeyboardKey, GameAction> keyboardMappings = {
-    PhysicalKeyboardKey.keyW: GameAction.moveUp,
-    PhysicalKeyboardKey.keyA: GameAction.moveLeft,
-    PhysicalKeyboardKey.keyS: GameAction.moveDown,
-    PhysicalKeyboardKey.keyD: GameAction.moveRight,
-    PhysicalKeyboardKey.keyR: GameAction.reload,
-    PhysicalKeyboardKey.keyE: GameAction.interact,
-    PhysicalKeyboardKey.keyQ: GameAction.useExpendable,
-    PhysicalKeyboardKey.space: GameAction.jump,
-    PhysicalKeyboardKey.tab: GameAction.swapWeapon,
-    PhysicalKeyboardKey.shiftLeft: GameAction.dash,
-    PhysicalKeyboardKey.keyP: GameAction.pause,
-    PhysicalKeyboardKey.escape: GameAction.pause,
-    // PhysicalKeyboardKey.keyW: GameAction.moveUp,
-    // PhysicalKeyboardKey.keyW: GameAction.moveUp,
+  final Map<GameAction, Set<PhysicalKeyboardKey>> constantKeyboardMappings = {
+    GameAction.pause: {PhysicalKeyboardKey.escape},
   };
+
+  @HiveField(100)
+  Map<GameAction, (PhysicalKeyboardKey?, PhysicalKeyboardKey?)>
+      keyboardMappings = {
+    GameAction.moveUp: (PhysicalKeyboardKey.keyW, null),
+    GameAction.moveLeft: (PhysicalKeyboardKey.keyA, null),
+    GameAction.moveDown: (PhysicalKeyboardKey.keyS, null),
+    GameAction.moveRight: (PhysicalKeyboardKey.keyD, null),
+    GameAction.reload: (PhysicalKeyboardKey.keyR, null),
+    GameAction.interact: (PhysicalKeyboardKey.keyE, null),
+    GameAction.useExpendable: (PhysicalKeyboardKey.keyQ, null),
+    GameAction.jump: (PhysicalKeyboardKey.space, null),
+    GameAction.swapWeapon: (PhysicalKeyboardKey.tab, null),
+    GameAction.dash: (PhysicalKeyboardKey.shiftLeft, null),
+    GameAction.pause: (PhysicalKeyboardKey.keyP, null),
+  };
+
   @HiveField(105)
-  Map<int, GameAction> mouseButtonMappings = {
-    1: GameAction.primary,
-    2: GameAction.secondary,
+  Map<GameAction, (int?, int?)> mouseButtonMappings = {
+    GameAction.primary: (1, null),
+    GameAction.secondary: (2, null)
   };
 
   @HiveField(110)
-  Map<String, GameAction> gamePadMappings = {};
+  Map<GameAction, (String?, String?)> gamePadMappings = {};
 
   set setMusicVolume(double value) {
     musicVolume = value;
@@ -86,18 +89,20 @@ class SystemData extends DataClass {
   }
 }
 
-enum MouseButtons { primary, scrollClick, secondary, misc }
+enum MouseButtons { primaryClick, scrollClick, secondaryClick, misc }
 
-extension MouseButtonsExtension on MouseButtons {
-  bool isKnown(int listenerButtonId) {
-    if (listenerButtonId == 1 && this == MouseButtons.primary) {
-      return true;
-    } else if (listenerButtonId == 4 && this == MouseButtons.scrollClick) {
-      return true;
-    } else if (listenerButtonId == 2 && this == MouseButtons.secondary) {
-      return true;
-    } else {
-      return false;
-    }
+MouseButtons getMouseButton(int listenerButtonId) {
+  if (listenerButtonId == 1) {
+    return MouseButtons.primaryClick;
+  } else if (listenerButtonId == 4) {
+    return MouseButtons.scrollClick;
+  } else if (listenerButtonId == 2) {
+    return MouseButtons.secondaryClick;
+  } else {
+    return MouseButtons.misc;
   }
+}
+
+extension AnyFunctionHelper on (PhysicalKeyboardKey?, PhysicalKeyboardKey?) {
+  bool any(PhysicalKeyboardKey? key) => this.$1 == key || this.$2 == key;
 }

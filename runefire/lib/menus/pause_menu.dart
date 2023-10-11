@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/input_manager.dart';
+import 'package:runefire/menus/options.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
@@ -203,7 +204,7 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
 class InGameMenu extends StatefulWidget {
   const InGameMenu(this.gameRef, this.buttons, this.title, {super.key});
   final String title;
-  final List<CustomButton> buttons;
+  final List<Widget> buttons;
   final GameRouter gameRef;
   @override
   State<InGameMenu> createState() => _InGameMenuState();
@@ -278,7 +279,7 @@ class _InGameMenuState extends State<InGameMenu> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List<CustomButton>.from(widget.buttons),
+                children: widget.buttons,
               ),
             ),
           ),
@@ -325,126 +326,125 @@ class _PauseMenuState extends State<PauseMenu> {
 
   final Size cardSize = const Size(128, 96);
   bool testHoverTest = false;
-
+  bool optionsEnabled = false;
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     Color highlightColor = Colors.grey.shade800;
+    var entries = env.player?.currentAttributes;
+    var tempEntries = entries?.values
+            .where((element) => fetchAttributeLogicChecker(element, true))
+            .toList() ??
+        [];
+    var nonTempEntries = entries?.values
+            .where((element) => fetchAttributeLogicChecker(element, false))
+            .toList() ??
+        [];
 
-    return KeyboardListener(
-      focusNode: node,
-      onKeyEvent: (value) {
-        if (value is! KeyDownEvent) return;
-        if (value.logicalKey == LogicalKeyboardKey.escape ||
-            value.logicalKey == LogicalKeyboardKey.keyP) {
-          gameState.resumeGame();
-        }
-      },
-      child: Container(
-        color: ApolloColorPalette.darkestGray.color.withOpacity(.8),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 900),
-            child: StatefulBuilder(builder: (context, setState) {
-              var entries = env.player?.currentAttributes;
-              var tempEntries = entries?.values
-                      .where((element) =>
-                          fetchAttributeLogicChecker(element, true))
-                      .toList() ??
-                  [];
-              var nonTempEntries = entries?.values
-                      .where((element) =>
-                          fetchAttributeLogicChecker(element, false))
-                      .toList() ??
-                  [];
+    nonTempEntries.sort((a, b) =>
+        a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index));
 
-              nonTempEntries.sort((a, b) => a.attributeType.rarity.index
-                  .compareTo(b.attributeType.rarity.index));
+    nonTempEntries.sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
 
-              nonTempEntries
-                  .sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
-
-              return Row(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 700),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 12),
-                          child: AttributeDisplay(
-                              gameRouter,
-                              null,
-                              env.player?.buildStatStrings(false),
-                              "Current Stats"),
-                        ),
-                      ),
+    return Container(
+      color: ApolloColorPalette.darkestGray.color.withOpacity(.8),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 900),
+          child: Row(
+            children: [
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 700),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      child: AttributeDisplay(gameRouter, null,
+                          env.player?.buildStatStrings(false), "Current Stats"),
                     ),
                   ),
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                          maxWidth: 400,
-                          minHeight: 200,
-                          maxHeight: 500,
-                          minWidth: 250),
-                      child: InGameMenu(
-                          gameRouter,
-                          [
-                            CustomButton(
-                              "Resume",
-                              upDownColor: (
-                                colorPalette.primaryColor.brighten(.5),
-                                colorPalette.primaryColor
+                ),
+              ),
+              Center(
+                child: SizedBox(
+                  width: 500,
+                  child: InGameMenu(
+                      gameRouter,
+                      optionsEnabled
+                          ? [
+                              OptionsMain(
+                                gameRef: gameRouter,
                               ),
-                              gameRef: widget.gameRef,
-                              onPrimary: () {
-                                gameState.resumeGame();
-                              },
-                            ),
-                            CustomButton(
-                              "Give up",
-                              gameRef: gameRouter,
-                              upDownColor: (
-                                colorPalette.primaryColor.brighten(.5),
-                                colorPalette.primaryColor
+                              CustomButton("Back", gameRef: widget.gameRef,
+                                  onPrimary: () {
+                                setState(
+                                  () {
+                                    optionsEnabled = false;
+                                  },
+                                );
+                              }),
+                            ]
+                          : [
+                              CustomButton(
+                                "Resume",
+                                upDownColor: (
+                                  colorPalette.primaryColor.brighten(.5),
+                                  colorPalette.primaryColor
+                                ),
+                                gameRef: widget.gameRef,
+                                onPrimary: () {
+                                  gameState.resumeGame();
+                                },
                               ),
-                              onPrimary: () {
-                                gameState.resumeGame();
-                                gameState.killPlayer(
-                                    GameEndState.quit,
-                                    env.player!,
-                                    DamageInstance(
-                                        damageMap: {},
-                                        source: env.player!,
-                                        victim: env.player!,
-                                        sourceAttack: this));
-                              },
-                            )
-                          ],
-                          "Pause Menu"),
+                              CustomButton("Options", gameRef: widget.gameRef,
+                                  onPrimary: () {
+                                setState(
+                                  () {
+                                    optionsEnabled = true;
+                                  },
+                                );
+                              }),
+                              CustomButton(
+                                "Give up",
+                                gameRef: gameRouter,
+                                upDownColor: (
+                                  colorPalette.primaryColor.brighten(.5),
+                                  colorPalette.primaryColor
+                                ),
+                                onPrimary: () {
+                                  gameState.resumeGame();
+                                  gameState.killPlayer(
+                                      GameEndState.quit,
+                                      env.player!,
+                                      DamageInstance(
+                                          damageMap: {},
+                                          source: env.player!,
+                                          victim: env.player!,
+                                          sourceAttack: this));
+                                },
+                              )
+                            ],
+                      "Pause Menu"),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 700),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      child: AttributeDisplay(gameRouter, nonTempEntries, null,
+                          "Unlocked Attributes"),
                     ),
                   ),
-                  Expanded(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 700),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 12),
-                          child: AttributeDisplay(gameRouter, nonTempEntries,
-                              null, "Unlocked Attributes"),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }),
+                ),
+              ),
+            ],
           ),
         ),
-      ).animate().fadeIn(),
-    );
+      ),
+    ).animate().fadeIn();
   }
 }
