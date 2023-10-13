@@ -16,7 +16,7 @@ class CustomCard extends StatefulWidget {
     this.attribute, {
     required this.gameRef,
     this.onPrimary,
-    this.groupId = 0,
+    this.rowId = 0,
     this.smallCard = false,
     this.groupOrientation = Axis.horizontal,
     this.scrollController,
@@ -28,7 +28,7 @@ class CustomCard extends StatefulWidget {
   final bool smallCard;
   final Attribute attribute;
   final Axis groupOrientation;
-  final int groupId;
+  final int rowId;
 
   @override
   State<CustomCard> createState() => _CustomCardState();
@@ -213,7 +213,7 @@ class _CustomCardState extends State<CustomCard> {
 
         return CustomInputWatcher(
           scrollController: widget.scrollController,
-          groupId: widget.groupId,
+          rowId: widget.rowId,
           onHover: (value) {
             setState(() {
               isHovered = value;
@@ -224,7 +224,6 @@ class _CustomCardState extends State<CustomCard> {
               widget.onPrimary?.call(null);
             }
           },
-          groupOrientation: widget.groupOrientation,
           child: SizedBox(
             height: cardHeight,
             child: Stack(

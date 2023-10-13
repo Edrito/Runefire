@@ -62,8 +62,7 @@ class _AttributeSelectionState extends State<AttributeSelection> {
     return CustomCard(
       attribute,
       gameRef: GameState().gameRouter,
-      scrollController: scrollController,
-      groupId: small ? 1 : 0,
+      rowId: small ? 3 : 1,
       onPrimary: onTap,
       smallCard: small,
     );
@@ -170,7 +169,6 @@ class _AttributeSelectionState extends State<AttributeSelection> {
                     child: ScrollConfiguration(
                       behavior: scrollConfiguration(context),
                       child: SingleChildScrollView(
-                        controller: scrollController,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,

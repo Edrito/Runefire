@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -206,6 +207,7 @@ class Player extends Entity
         findClosestEnemy();
       },
     );
+
     await super.onLoad();
   }
 
@@ -242,8 +244,8 @@ class Player extends Entity
     // if (!isDisplay) {
     moveCharacter();
     // }
-    aimCharacter();
     super.update(dt);
+    aimCharacter();
   }
 
   Enemy? closestEnemy;

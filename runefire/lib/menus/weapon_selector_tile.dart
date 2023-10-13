@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recase/recase.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/custom_widgets.dart';
+import 'package:runefire/menus/options.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/functions.dart';
 
@@ -20,23 +21,17 @@ import '../weapons/weapon_mixin.dart';
 class WeaponSelectorTab extends StatefulWidget {
   const WeaponSelectorTab({
     required this.gameRef,
-    this.animateLeft,
-    this.weaponType,
-    this.secondaryType,
     this.scrollController,
-    required this.weaponChange,
-    required this.isPrimary,
+    this.attackType,
+    required this.isPrimarySlot,
     super.key,
     // required this.onSelect
   });
 
-  final bool? animateLeft;
+  final AttackType? attackType;
   final GameRouter gameRef;
+  final bool isPrimarySlot;
   final ScrollController? scrollController;
-  final bool isPrimary;
-  final SecondaryType? secondaryType;
-  final Function(bool isLeftPress, AttackType? attackType) weaponChange;
-  final WeaponType? weaponType;
 
   // final Function(dynamic) onSelect;
 
@@ -44,36 +39,30 @@ class WeaponSelectorTab extends StatefulWidget {
   State<WeaponSelectorTab> createState() => _WeaponSelectorTabState();
 }
 
-class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
+class _WeaponSelectorTabState extends State<WeaponSelectorTab>
+    with PlayerDataNotifier {
   final borderWidth = 5.0;
+  late final int slotIndex = widget.isPrimarySlot ? 0 : 1;
 
+  bool colorPulse = false;
+  late int currentCost;
+  late List<SecondaryType> goodSecondaries;
+  late List<WeaponType> goodWeapons;
+  late String icon;
+  bool isAvailable = true;
+  bool isEquipped = false;
   bool isLevelHover = false;
   bool isMainHover = false;
+  bool isMaxLevel = false;
   late bool isSecondaryAbility;
-  late PlayerData playerData;
-  late PlayerDataComponent playerDataComponent;
-  late ComponentsNotifier<PlayerDataComponent> playerDataNotifier;
+  bool isUnlocked = false;
+  int maxLevel = 0;
+  int unlockedLevel = 0;
 
-  Widget buildDescriptionText(bool isNext, String string, Color equippedColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            string,
-            style: defaultStyle.copyWith(
-                shadows: [],
-                fontSize: 18,
-                color: isNext ? equippedColor.brighten(.4) : equippedColor),
-          ),
-          const SizedBox(
-            width: 15,
-          )
-        ],
-      ),
-    );
-  }
+  SecondaryType? secondaryType;
+  WeaponType? weaponType;
+
+  bool get isWeapon => weaponType != null;
 
   Widget buildLevelIndicator(bool isPointUnlocked, bool isEquipped,
       {SecondaryType? secondaryType, WeaponType? weaponType}) {
@@ -113,143 +102,120 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
     );
   }
 
-  void onPlayerDataNotification() {
-    setState(() {});
+  void changeWeapon(bool isUp) {
+    if (isSecondaryAbility) {
+      final currentIndex = goodSecondaries.indexOf(secondaryType!);
+      int newIndex = currentIndex + (isUp ? 1 : -1);
+      if (newIndex > goodSecondaries.length - 1) newIndex = 0;
+      if (newIndex < 0) newIndex = goodSecondaries.length - 1;
+      secondaryType = goodSecondaries[newIndex];
+    } else {
+      final currentIndex = goodWeapons.indexOf(weaponType!);
+      int newIndex = currentIndex + (isUp ? 1 : -1);
+      if (newIndex > goodWeapons.length - 1) newIndex = 0;
+      if (newIndex < 0) newIndex = goodWeapons.length - 1;
+      weaponType = goodWeapons[newIndex];
+    }
+    setState(() {
+      rebuildWeapons();
+      doUpAnimation = isUp;
+    });
+  }
+
+  bool doUpAnimation = true;
+
+  void onEquipWeapon() {
+    if (isSecondaryAbility) {
+      playerData.selectSecondary(slotIndex, secondaryType!);
+    } else {
+      playerData.selectWeapon(slotIndex, weaponType!);
+    }
+  }
+
+  void onLevelPress(WeaponType? weaponType, SecondaryType? secondaryType) {
+    if (!playerData.enoughMoney(currentCost)) return;
+    if (weaponType != null) {
+      setState(() {
+        playerData.upgradeWeapon(weaponType);
+        colorPulse = true;
+      });
+    } else if (secondaryType != null) {
+      setState(() {
+        playerData.upgradeSecondary(secondaryType);
+        colorPulse = true;
+      });
+    }
+  }
+
+  void rebuildWeapons() {
+    int baseCost = 0;
+    if (isWeapon) {
+      isEquipped = playerData.selectedWeapons.values.contains(weaponType);
+      isUnlocked = playerData.unlockedWeapons.keys.contains(weaponType);
+      isAvailable = playerData.availableWeapons.contains(weaponType);
+      unlockedLevel = playerData.unlockedWeapons[weaponType] ?? 0;
+      maxLevel = weaponType!.maxLevel;
+      icon = weaponType!.icon;
+      baseCost = weaponType!.baseCost;
+    } else {
+      isEquipped =
+          playerData.selectedSecondaries[widget.isPrimarySlot ? 0 : 1] ==
+              (secondaryType);
+      isUnlocked = playerData.unlockedSecondarys.keys.contains(secondaryType);
+      unlockedLevel = (playerData.unlockedSecondarys[secondaryType] ?? 0)
+          .clamp(0, secondaryType!.maxLevel);
+      maxLevel = secondaryType!.maxLevel;
+      icon = secondaryType!.icon.path;
+      baseCost = secondaryType!.baseCost;
+    }
+    isMaxLevel = unlockedLevel == maxLevel;
+    currentCost =
+        (baseCost * (unlockedLevel + 1)).clamp(baseCost, baseCost * maxLevel);
   }
 
   @override
-  void dispose() {
-    playerDataNotifier.removeListener(onPlayerDataNotification);
-    super.dispose();
-  }
+  GameRouter get gameRef => widget.gameRef;
 
   @override
   void initState() {
     super.initState();
-    playerDataComponent = widget.gameRef.playerDataComponent;
-    playerDataNotifier =
-        widget.gameRef.componentsNotifier<PlayerDataComponent>();
-
-    playerDataNotifier.addListener(onPlayerDataNotification);
-    playerData = playerDataComponent.dataObject;
-    isSecondaryAbility = widget.secondaryType != null;
+    if (widget.attackType == null) {
+      final tempSecondaryType = playerData.selectedSecondaries[slotIndex];
+      goodSecondaries = SecondaryType.values
+          .where((element) => element.isPlayerOnly)
+          .toList();
+      secondaryType = goodSecondaries.contains(tempSecondaryType)
+          ? tempSecondaryType
+          : goodSecondaries.first;
+    } else {
+      final selectedWeapon = playerData.selectedWeapons[slotIndex];
+      goodWeapons = WeaponType.values
+          .where((element) =>
+              element.attackType == widget.attackType && element.isPlayerWeapon)
+          .toList();
+      weaponType = selectedWeapon?.attackType == widget.attackType
+          ? selectedWeapon ?? goodWeapons.first
+          : goodWeapons.first;
+    }
+    isSecondaryAbility = widget.attackType == null;
+    rebuildWeapons();
   }
 
-  bool colorPulse = false;
+  @override
+  void onPlayerDataNotification() {
+    setState(() {
+      rebuildWeapons();
+    });
+  }
+
+  late final rowIdIncrease = (((widget.attackType?.index ?? 0) + 1) * 3);
   @override
   Widget build(BuildContext context) {
-    final weaponType = widget.weaponType;
-    final secondaryType = widget.secondaryType;
-    bool isEquipped = false;
-    bool isUnlocked = false;
-    int unlockedLevel = 0;
-    int maxLevel = 0;
-    bool isWeapon = weaponType != null;
-    Function onLevelTap;
-    // Function onSelect;
-    String icon;
-    int currentCost;
-    bool isMaxLevel = false;
-
-    bool isAvailable = true;
-
-    if (isWeapon) {
-      isEquipped = playerData.selectedWeapons.values.contains(weaponType);
-      isUnlocked = playerData.unlockedWeapons.keys.contains(weaponType);
-      unlockedLevel = playerData.unlockedWeapons[weaponType] ?? 0;
-      maxLevel = weaponType.maxLevel;
-      icon = weaponType.icon;
-      isAvailable = playerData.availableWeapons.contains(weaponType);
-      onLevelTap = () {
-        if (isMaxLevel) return;
-        if (playerData.unlockedWeapons.containsKey(weaponType)) {
-          playerData.unlockedWeapons[weaponType] =
-              playerData.unlockedWeapons[weaponType]! + 1;
-        } else {
-          playerData.unlockedWeapons[weaponType] ??= 0;
-        }
-        playerDataComponent.notifyListeners();
-        setState(() {
-          colorPulse = true;
-        });
-      };
-      // onSelect = () => widget.onSelect(weaponType);
-      currentCost = weaponType.baseCost;
-    } else {
-      isEquipped = playerData.selectedSecondaries[widget.isPrimary ? 0 : 1] ==
-          (secondaryType);
-      isUnlocked = playerData.unlockedSecondarys.keys.contains(secondaryType);
-      unlockedLevel = (playerData.unlockedSecondarys[secondaryType] ?? 0)
-          .clamp(0, secondaryType!.maxLevel);
-      maxLevel = secondaryType.maxLevel;
-      icon = secondaryType.icon.path;
-      onLevelTap = () {
-        if (isMaxLevel) return;
-        if (playerData.unlockedSecondarys.containsKey(secondaryType)) {
-          playerData.unlockedSecondarys[secondaryType] =
-              playerData.unlockedSecondarys[secondaryType]! + 1;
-        } else {
-          playerData.unlockedSecondarys[secondaryType] ??= 0;
-        }
-
-        setState(() {
-          colorPulse = true;
-        });
-        playerDataComponent.notifyListeners();
-      };
-      // onSelect = () => widget.onSelect(secondaryType);
-      currentCost = secondaryType.baseCost;
-    }
-    isMaxLevel = unlockedLevel == maxLevel;
-    currentCost = (currentCost * (unlockedLevel + 1))
-        .clamp(currentCost, currentCost * maxLevel);
-
     String titleString =
-        (isWeapon ? weaponType.name.titleCase : secondaryType!.name.titleCase);
-
-    List<(String, String, String)> weaponDescriptions = [];
-    late dynamic secondaryWeapon;
+        (isWeapon ? weaponType!.name.titleCase : secondaryType!.name.titleCase);
     Color equippedColor = isEquipped
         ? ApolloColorPalette.lightRed.color
         : colorPalette.primaryColor;
-    if (isWeapon) {
-      for (var element in WeaponDescription.values) {
-        final currentString = buildWeaponDescription(
-            element, weaponType, unlockedLevel, isUnlocked);
-
-        final nextString = buildWeaponDescription(
-            element, weaponType, unlockedLevel, !isMaxLevel);
-
-        if (nextString.isEmpty && currentString.isEmpty ||
-            (currentString == " - " && nextString.isEmpty) ||
-            (nextString == " - " && currentString.isEmpty)) continue;
-
-        weaponDescriptions
-            .add((element.name.titleCase, currentString, nextString));
-      }
-    } else if ((secondaryWeapon = secondaryType?.build(null, unlockedLevel))
-        is Weapon) {
-      final secondaryWeaponType = secondaryWeapon.weaponType;
-      for (var element in WeaponDescription.values) {
-        final currentString = buildWeaponDescription(
-            element, secondaryWeaponType!, unlockedLevel, isUnlocked);
-
-        final nextString = buildWeaponDescription(
-            element, secondaryWeaponType!, unlockedLevel, !isMaxLevel);
-
-        if (nextString.isEmpty && currentString.isEmpty ||
-            (currentString == " - " && nextString.isEmpty)) continue;
-
-        weaponDescriptions
-            .add((element.name.titleCase, currentString, nextString));
-      }
-    } else if (secondaryWeapon is SecondaryWeaponAbility) {
-      weaponDescriptions.add((
-        "",
-        secondaryWeapon.abilityDescription,
-        isMaxLevel ? " - " : secondaryWeapon.nextLevelStringDescription
-      ));
-    }
 
     const levelAndUnlockHeight = 50.0;
     const unlockButtonWidth = 100.0;
@@ -281,72 +247,54 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
           isMainHover = value;
         });
       },
-      groupId: 15,
+      rowId: 2 + rowIdIncrease,
       zIndex: 1,
-      groupOrientation: Axis.vertical,
       scrollController: widget.scrollController,
-      onPrimary: isUnlocked
+      onPrimary: isUnlocked && !isEquipped
           ? () {
-              if (isSecondaryAbility) {
-                setState(() {
-                  playerDataComponent.dataObject
-                          .selectedSecondaries[widget.isPrimary ? 0 : 1] =
-                      secondaryType!;
-                  playerDataComponent.notifyListeners();
-                });
-              } else {
-                if (playerDataComponent.dataObject.selectedWeapons.values
-                    .contains(weaponType)) return;
-                setState(() {
-                  playerDataComponent.dataObject
-                      .selectedWeapons[widget.isPrimary ? 0 : 1] = weaponType!;
-                  playerDataComponent.notifyListeners();
-                });
-              }
+              onEquipWeapon();
             }
           : null,
       child: Stack(
         children: [
           Positioned(
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: RotatedBox(
-                  quarterTurns: !isWeapon ? 0 : 1,
-                  child: Image.asset(
-                    icon,
-                    color: isUnlocked ? null : Colors.black,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.none,
-                  )),
-            )
-                .animate(
-                  onPlay: (controller) => rng.nextBool()
-                      ? controller
-                          .reverse(from: rng.nextDouble())
-                          .then((_) => controller.forward())
-                      : controller.forward(from: rng.nextDouble()),
-                  onComplete: (controller) =>
-                      controller.reverse().then((_) => controller.forward()),
-                )
-                .moveY(
-                    begin: 5,
-                    end: -5,
-                    duration: 3.seconds,
-                    curve: Curves.easeInOut)
-                .animate()
-                .moveY(
-                    curve: Curves.fastEaseInToSlowEaseOut,
-                    begin: widget.animateLeft == null
-                        ? 0
-                        : widget.animateLeft == true
-                            ? -100
-                            : 100)
-                .fadeIn(),
-          ),
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: RotatedBox(
+                    quarterTurns: !isWeapon ? 0 : 1,
+                    child: Image.asset(
+                      icon,
+                      color: isUnlocked ? null : Colors.black,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.none,
+                    )),
+              )
+                  .animate(
+                    onPlay: (controller) => rng.nextBool()
+                        ? controller
+                            .reverse(from: rng.nextDouble())
+                            .then((_) => controller.forward())
+                        : controller.forward(from: rng.nextDouble()),
+                    onComplete: (controller) =>
+                        controller.reverse().then((_) => controller.forward()),
+                  )
+                  .moveY(
+                      begin: 5,
+                      end: -5,
+                      duration: 3.seconds,
+                      curve: Curves.easeInOut)
+                  .animate(
+                    key: ValueKey(secondaryType ?? weaponType),
+                  )
+                  .moveY(
+                      curve: Curves.fastEaseInToSlowEaseOut,
+                      begin: !doUpAnimation ? 100 : -100,
+                      end: 0)
+                  .fadeIn()),
           if (isMainHover)
             Center(
               child: Padding(
@@ -370,13 +318,12 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
           });
         },
         zIndex: 1,
-        groupId: 15,
-        groupOrientation: Axis.vertical,
-        scrollController: widget.scrollController,
+        rowId: 2 + rowIdIncrease,
+        // scrollController: widget.scrollController,
         onPrimary: isMaxLevel || !isAvailable
             ? null
             : () {
-                onLevelTap();
+                onLevelPress(weaponType, secondaryType);
               },
         child: Container(
           height: unlockButtonWidth,
@@ -387,24 +334,17 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
             children: [
               if (isAvailable && !isMaxLevel) ...[
                 Expanded(
-                  child: (!isUnlocked
-                          ? buildImageAsset(
-                              ImagesAssetsUi.padlock.path,
-                              fit: BoxFit.fitWidth,
-                            )
-                          : buildImageAsset(
-                              isEquipped
-                                  ? ImagesAssetsUi.plusRed.path
-                                  : ImagesAssetsUi.plusBlue.path,
-                              fit: BoxFit.fitWidth,
-                            ))
-                      .animate(target: isLevelHover ? 1 : 0)
-                      .scaleXY(
-                          begin: 1,
-                          end: 1.05,
-                          curve: Curves.easeIn,
-                          duration: .1.seconds),
-                ),
+                    child: (!isUnlocked
+                        ? buildImageAsset(
+                            ImagesAssetsUi.padlock.path,
+                            fit: BoxFit.fitWidth,
+                          )
+                        : buildImageAsset(
+                            isEquipped
+                                ? ImagesAssetsUi.plusRed.path
+                                : ImagesAssetsUi.plusBlue.path,
+                            fit: BoxFit.fitWidth,
+                          ))),
                 // Icon(
                 //   isUnlocked ? Icons.add : Icons.lock_open,
                 //   size: 24,
@@ -425,7 +365,22 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                       defaultStyle.copyWith(fontSize: 24, color: equippedColor),
                 ).animate().fadeIn()
             ],
-          ),
+          )
+              .animate(target: isLevelHover ? 1 : 0)
+              .color(
+                  begin: Colors.transparent,
+                  end: (isEquipped
+                          ? ApolloColorPalette.lightRed.color
+                          : colorPalette.primaryColor)
+                      .withOpacity(.5),
+                  blendMode: BlendMode.srcATop,
+                  curve: Curves.easeIn,
+                  duration: .1.seconds)
+              .scaleXY(
+                  begin: 1,
+                  end: 1.05,
+                  curve: Curves.easeIn,
+                  duration: .1.seconds),
         )
             .animate(
               target: colorPulse ? 1 : 0,
@@ -455,18 +410,14 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                         height: 25,
                         child: ArrowButtonCustom(
                           quaterTurns: 0,
-                          groupId: 15,
+                          rowId: 1 + rowIdIncrease,
                           zIndex: 1,
                           onHoverColor: equippedColor.brighten(.4),
                           groupOrientation: Axis.vertical,
                           scrollController: widget.scrollController,
                           offHoverColor: equippedColor,
                           onPrimary: () {
-                            if (isWeapon) {
-                              widget.weaponChange(true, weaponType.attackType);
-                            } else {
-                              widget.weaponChange(true, null);
-                            }
+                            changeWeapon(true);
                           },
                         )),
                   ),
@@ -477,18 +428,14 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
                         height: 25,
                         child: ArrowButtonCustom(
                           quaterTurns: 2,
-                          groupId: 15,
+                          rowId: 3 + rowIdIncrease,
                           zIndex: 1,
                           onHoverColor: equippedColor.brighten(.4),
                           groupOrientation: Axis.vertical,
                           scrollController: widget.scrollController,
                           offHoverColor: equippedColor,
                           onPrimary: () {
-                            if (isWeapon) {
-                              widget.weaponChange(false, weaponType.attackType);
-                            } else {
-                              widget.weaponChange(false, null);
-                            }
+                            changeWeapon(false);
                           },
                         )),
                   ),
@@ -500,69 +447,18 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
       ),
       unlockWidget,
       Expanded(
-        flex: 3,
-        child: Container(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        isAvailable
-                            ? titleString
-                            : titleString.split('').fold("",
-                                (previousValue, element) => "$previousValue?"),
-                        style: defaultStyle.copyWith(color: equippedColor),
-                        textAlign: TextAlign.left,
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      levelIndicator,
-                    ],
-                  ),
-                  Expanded(
-                    child: ScrollConfiguration(
-                      behavior: scrollConfiguration(context),
-                      child: SingleChildScrollView(
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: Wrap(children: [
-                            if (weaponDescriptions.isNotEmpty)
-                              for (var i = 0;
-                                  i < weaponDescriptions.length;
-                                  i++)
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    buildDescriptionText(
-                                        false,
-                                        weaponDescriptions[i].$1,
-                                        equippedColor),
-                                    buildDescriptionText(
-                                        false,
-                                        weaponDescriptions[i].$2,
-                                        equippedColor),
-                                    buildDescriptionText(
-                                        true,
-                                        weaponDescriptions[i].$3,
-                                        equippedColor),
-                                  ],
-                                )
-                          ]),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )),
-      )
+          flex: 3,
+          child: WeaponDescriptionWidget(
+            isAvailable: isAvailable,
+            titleString: titleString,
+            equippedColor: equippedColor,
+            levelIndicator: levelIndicator,
+            weaponType: weaponType,
+            secondaryType: secondaryType,
+            unlockedLevel: unlockedLevel,
+            isUnlocked: isUnlocked,
+            isMaxLevel: isMaxLevel,
+          ))
     ]);
 
     return Padding(
@@ -570,6 +466,150 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
           child: SizedBox(height: 250, child: informationDisplay),
+        ));
+  }
+}
+
+class WeaponDescriptionWidget extends StatelessWidget {
+  const WeaponDescriptionWidget({
+    super.key,
+    required this.isAvailable,
+    required this.titleString,
+    required this.equippedColor,
+    required this.levelIndicator,
+    this.weaponType,
+    this.secondaryType,
+    required this.unlockedLevel,
+    required this.isUnlocked,
+    required this.isMaxLevel,
+  });
+
+  final Color equippedColor;
+  final bool isAvailable;
+  final bool isMaxLevel;
+  final bool isUnlocked;
+  final Widget levelIndicator;
+  final SecondaryType? secondaryType;
+  final String titleString;
+  final int unlockedLevel;
+  final WeaponType? weaponType;
+
+  Widget buildDescriptionText(bool isNext, String string, Color equippedColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            string,
+            style: defaultStyle.copyWith(
+                shadows: [],
+                fontSize: 18,
+                color: isNext ? equippedColor.brighten(.4) : equippedColor),
+          ),
+          const SizedBox(
+            width: 15,
+          )
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<(String, String, String)> weaponDescriptions = [];
+    late dynamic secondaryWeapon;
+
+    if (weaponType != null) {
+      for (var element in WeaponDescription.values) {
+        final currentString = buildWeaponDescription(
+            element, weaponType!, unlockedLevel, isUnlocked);
+
+        final nextString = buildWeaponDescription(
+            element, weaponType!, unlockedLevel, !isMaxLevel);
+
+        if (nextString.isEmpty && currentString.isEmpty ||
+            (currentString == " - " && nextString.isEmpty) ||
+            (nextString == " - " && currentString.isEmpty)) continue;
+
+        weaponDescriptions
+            .add((element.name.titleCase, currentString, nextString));
+      }
+    } else if ((secondaryWeapon = secondaryType?.build(null, unlockedLevel))
+        is Weapon) {
+      final secondaryWeaponType = secondaryWeapon.weaponType;
+      for (var element in WeaponDescription.values) {
+        final currentString = buildWeaponDescription(
+            element, secondaryWeaponType!, unlockedLevel, isUnlocked);
+
+        final nextString = buildWeaponDescription(
+            element, secondaryWeaponType!, unlockedLevel, !isMaxLevel);
+
+        if (nextString.isEmpty && currentString.isEmpty ||
+            (currentString == " - " && nextString.isEmpty)) continue;
+
+        weaponDescriptions
+            .add((element.name.titleCase, currentString, nextString));
+      }
+    } else if (secondaryWeapon is SecondaryWeaponAbility) {
+      weaponDescriptions.add((
+        "",
+        secondaryWeapon.abilityDescription,
+        isMaxLevel ? " - " : secondaryWeapon.nextLevelStringDescription
+      ));
+    }
+    return Container(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Wrap(
+                // mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isAvailable
+                        ? titleString
+                        : titleString.split('').fold(
+                            "", (previousValue, element) => "$previousValue?"),
+                    style: defaultStyle.copyWith(color: equippedColor),
+                    textAlign: TextAlign.left,
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  levelIndicator,
+                ],
+              ),
+              Expanded(
+                child: ScrollConfiguration(
+                  behavior: scrollConfiguration(context),
+                  child: SingleChildScrollView(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Wrap(children: [
+                        if (weaponDescriptions.isNotEmpty)
+                          for (var i = 0; i < weaponDescriptions.length; i++)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                buildDescriptionText(false,
+                                    weaponDescriptions[i].$1, equippedColor),
+                                buildDescriptionText(false,
+                                    weaponDescriptions[i].$2, equippedColor),
+                                buildDescriptionText(true,
+                                    weaponDescriptions[i].$3, equippedColor),
+                              ],
+                            )
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ));
   }
 }

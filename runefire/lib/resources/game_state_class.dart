@@ -214,15 +214,17 @@ extension GameStateGetters on GameState {
 extension GameStateFunctions on GameState {
   void pauseGame(String overlay,
       {bool pauseGame = true, bool wipeMovement = false}) {
-    if (currentOverlay != null || transitionOccuring) return;
+    final game = currentEnviroment;
+    if (currentOverlay != null ||
+        transitionOccuring ||
+        game is! GameEnviroment) {
+      return;
+    }
     gameRouter.overlays.add(overlay);
     currentOverlay = overlay;
     if (wipeMovement) {
-      final game = currentEnviroment;
-      if (game != null && game is PlayerFunctionality) {
-        game.player?.removeMoveVelocity(userInputPriority);
-        InputManager().activeGameActions.clear();
-      }
+      game.player?.removeMoveVelocity(userInputPriority);
+      InputManager().activeGameActions.clear();
     }
 
     if (pauseGame) gameRouter.pauseEngine();

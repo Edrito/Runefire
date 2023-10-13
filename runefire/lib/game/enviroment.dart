@@ -101,10 +101,11 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   void addPhysicsComponent(List<Component> components,
       {bool instant = false, double duration = .2, int priority = 0}) {
     if (components.isEmpty) return;
-    // for (var element in components) {
-    //   print(element.runtimeType);
-    //   print(element.priority);
-    // }
+    for (var element in components) {
+      if (element is HasPaint) {
+        element.setOpacity(.05);
+      }
+    }
     if (instant || components.length < 2) {
       addTempComponent(components.first);
     } else {
@@ -187,7 +188,6 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     final instance = InputManager();
     instance.onPointerMoveList.add(onMouseMove);
     instance.addGameActionListener(GameAction.primary, onPrimary);
-    instance.addGameActionListener(GameAction.pause, pauseGameAction);
 
     super.onMount();
   }
@@ -197,7 +197,6 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     final instance = InputManager();
     instance.onPointerMoveList.remove(onMouseMove);
     instance.removeGameActionListener(GameAction.primary, onPrimary);
-    instance.removeGameActionListener(GameAction.pause, pauseGameAction);
 
     super.onRemove();
   }
@@ -216,7 +215,6 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   FutureOr<void> onLoad() {
     children.register<CameraComponent>();
     priority = worldPriority;
-
     //World
     initializeWorld();
     super.add(gameWorld);
@@ -268,6 +266,22 @@ abstract class GameEnviroment extends Enviroment
     _eventManagement = eventManagement;
     addGod(eventManagement);
     addPlayer(eventManagement);
+  }
+
+  @override
+  void onMount() {
+    final instance = InputManager();
+    instance.addGameActionListener(GameAction.pause, pauseGameAction);
+
+    super.onMount();
+  }
+
+  @override
+  void onRemove() {
+    final instance = InputManager();
+    instance.removeGameActionListener(GameAction.pause, pauseGameAction);
+
+    super.onRemove();
   }
 
   @override

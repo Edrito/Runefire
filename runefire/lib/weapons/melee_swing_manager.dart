@@ -143,10 +143,22 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       allowSleep: false,
       position: meleeAttackAncestor.activeSwings.last.swingPosition,
       angle: meleeAttackAncestor.activeSwings.last.swingAngle,
-      type: BodyType.kinematic,
+      type: BodyType.static,
     );
     renderBody = false;
     return world.createBody(bodyDef)..createFixture(fixtureDef);
+  }
+
+  void updatePosition() async {
+    final ref = meleeAttackAncestor.activeSwings;
+    if (ref.isEmpty) return;
+    body.setTransform(ref.last.swingPosition, ref.last.swingAngle);
+  }
+
+  @override
+  void update(double dt) {
+    updatePosition();
+    super.update(dt);
   }
 }
 
@@ -562,21 +574,6 @@ class MeleeAttackHandler extends Component {
   }
 
   MeleeAttackSprite get currentSwing => activeSwings.last;
-
-  void updatePosition() {
-    if (activeSwings.isEmpty) return;
-    hitbox?.body.setTransform(
-        activeSwings.last.swingPosition, activeSwings.last.swingAngle);
-  }
-
-  @override
-  void update(double dt) {
-    if (hitbox?.isLoaded ?? false) {
-      updatePosition();
-    }
-
-    super.update(dt);
-  }
 }
 
 class WeaponTrailConfig {

@@ -99,13 +99,13 @@ class ArrowButtonCustom extends StatefulWidget {
       required this.onHoverColor,
       required this.offHoverColor,
       this.scrollController,
-      this.groupId = 0,
+      this.rowId = 0,
       this.zIndex = 0,
       this.groupOrientation = Axis.vertical,
       required this.onPrimary,
       super.key});
   final int quaterTurns;
-  final int groupId;
+  final int rowId;
   final int zIndex;
   final Axis groupOrientation;
   final Function onPrimary;
@@ -128,8 +128,7 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
                 }),
             zHeight: 1,
             scrollController: widget.scrollController,
-            groupId: widget.groupId,
-            groupOrientation: widget.groupOrientation,
+            rowId: widget.rowId,
             zIndex: widget.zIndex,
             onPrimary: () {
               widget.onPrimary();
@@ -148,7 +147,8 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
         .animate(
           target: hovered ? 1 : 0,
         )
-        .scaleXY(begin: 1, end: 1.1, curve: Curves.easeIn, duration: .1.seconds)
+        .scaleXY(
+            begin: 1, end: 1.25, curve: Curves.easeIn, duration: .1.seconds)
         .animate(
           target: pushed ? 1 : 0,
           onComplete: (controller) {
@@ -158,6 +158,6 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
           },
         )
         .scaleXY(
-            begin: 1, end: 1.1, curve: Curves.easeIn, duration: .1.seconds);
+            begin: 1, end: 1.25, curve: Curves.easeIn, duration: .1.seconds);
   }
 }

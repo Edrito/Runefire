@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
@@ -18,10 +19,20 @@ import '../attributes/attributes_structure.dart';
 import '../resources/data_classes/player_data.dart';
 import 'custom_button.dart';
 
-class AttributeTile extends StatelessWidget {
-  const AttributeTile(this.attribute, this.isSelected, {super.key});
+class AttributeTile extends StatefulWidget {
+  const AttributeTile(this.attribute, this.onSelect, this.scrollController,
+      {super.key});
+
   final PermanentAttribute attribute;
-  final bool isSelected;
+  final Function() onSelect;
+  final ScrollController scrollController;
+
+  @override
+  State<AttributeTile> createState() => _AttributeTileState();
+}
+
+class _AttributeTileState extends State<AttributeTile> {
+  bool isSelected = false;
 
   Widget buildLevelIndicator(bool isUnlocked, double fraction) {
     const fractionIncrease = 2;
@@ -34,8 +45,8 @@ class AttributeTile extends StatelessWidget {
     final yTransform = -(pow((balancedFrac * 5).abs(), 2).toDouble());
     const zTransform = 0.0;
     final zRotation = -balancedFrac;
-    Color? customColor = attribute.damageType?.color;
-    bool isMaxLevel = attribute.isMaxLevel;
+    Color? customColor = widget.attribute.damageType?.color;
+    bool isMaxLevel = widget.attribute.isMaxLevel;
 
     Widget returnWidget = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1),
@@ -65,16 +76,18 @@ class AttributeTile extends StatelessWidget {
     return Expanded(child: returnWidget);
   }
 
+  bool isHovered = false;
+
   @override
   Widget build(BuildContext context) {
-    late Function setState;
-    bool isMaxLevel = attribute.isMaxLevel;
+    bool isMaxLevel = widget.attribute.isMaxLevel;
     Color? customColor = isSelected
-        ? attribute.damageType?.color.brighten(1)
-        : attribute.damageType?.color;
+        ? widget.attribute.damageType?.color.brighten(1)
+        : widget.attribute.damageType?.color;
     Color selectedColor = isSelected
         ? ApolloColorPalette.offWhite.color
         : colorPalette.secondaryColor;
+    int groupId = widget.attribute.attributeType.category.index + 100;
 
     if (isMaxLevel) {
       selectedColor = (customColor ?? colorPalette.primaryColor).darken(.4);
@@ -84,149 +97,142 @@ class AttributeTile extends StatelessWidget {
     final style = defaultStyle.copyWith(
         fontSize: 20, color: ApolloColorPalette.offWhite.color);
     String icon =
-        'assets/images/ui/permanent_attributes/${attribute.attributeType.category.name}.png';
+        'assets/images/ui/permanent_attributes/${widget.attribute.attributeType.category.name}.png';
     final levelCountWidget = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(children: [
-        for (var i = 0; i < attribute.maxLevel!; i++)
-          buildLevelIndicator(
-              i < attribute.upgradeLevel, (i / (attribute.maxLevel! - 1))),
+        for (var i = 0; i < widget.attribute.maxLevel!; i++)
+          buildLevelIndicator(i < widget.attribute.upgradeLevel,
+              (i / (widget.attribute.maxLevel! - 1))),
       ]),
     );
-    bool isHovered = false;
-    return MouseRegion(
-      onEnter: (event) {
+    return CustomInputWatcher(
+      rowId: groupId,
+      scrollController: widget.scrollController,
+      zIndex: 1,
+      onHover: (isHover) {
         setState(() {
-          isHovered = true && !isMaxLevel;
+          isHovered = isHover;
+          if (!isHover) {
+            isSelected = false;
+          }
         });
       },
-      onExit: (event) {
-        setState(() {
-          isHovered = false;
-        });
+      onPrimary: () {
+        widget.onSelect();
       },
-      child: StatefulBuilder(builder: (context, ss) {
-        setState = ss;
-        return SizedBox(
-          height: 250,
-          width: 200,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Image.asset(
-                  ImagesAssetsUi.book.path,
-                  fit: BoxFit.fitHeight,
-                  filterQuality: FilterQuality.none,
-                ),
+      child: SizedBox(
+        height: 250,
+        width: 200,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                ImagesAssetsUi.book.path,
+                fit: BoxFit.fitHeight,
+                filterQuality: FilterQuality.none,
               ),
-              ShaderMask(
-                shaderCallback: (bounds) {
-                  return LinearGradient(colors: [
-                    ApolloColorPalette.darkestGray.color.withOpacity(.1),
-                    ApolloColorPalette.offWhite.color,
-                    ApolloColorPalette.offWhite.color,
-                    ApolloColorPalette.darkestGray.color.withOpacity(.1)
-                  ], stops: const [
-                    0,
-                    0.25,
-                    .75,
-                    1
-                  ]).createShader(bounds);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      top: 30, bottom: 40, left: 20, right: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 2),
-                        child: Text(
-                          attribute.title,
-                          style: style.copyWith(
-                              color: (customColor ?? selectedColor),
-                              fontSize: 20),
-                          textAlign: TextAlign.center,
-                        ),
+            ),
+            ShaderMask(
+              shaderCallback: (bounds) {
+                return LinearGradient(colors: [
+                  ApolloColorPalette.darkestGray.color.withOpacity(.1),
+                  ApolloColorPalette.offWhite.color,
+                  ApolloColorPalette.offWhite.color,
+                  ApolloColorPalette.darkestGray.color.withOpacity(.1)
+                ], stops: const [
+                  0,
+                  0.25,
+                  .75,
+                  1
+                ]).createShader(bounds);
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    top: 30, bottom: 40, left: 20, right: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      child: Text(
+                        widget.attribute.title,
+                        style: style.copyWith(
+                            color: (customColor ?? selectedColor),
+                            fontSize: 20),
+                        textAlign: TextAlign.center,
                       ),
-                      Builder(builder: (context) {
-                        final desc = attribute.description();
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (desc.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 4),
-                                child: Text(
-                                  attribute.description(),
-                                  style: style.copyWith(
-                                      fontSize: 16,
-                                      color: (customColor ?? selectedColor)),
-                                ),
-                              ),
-                          ],
-                        );
-                      }),
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              left: -4,
-                              bottom: 32,
-                              top: 0,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: buildImageAsset(icon,
-                                    color: (customColor ?? selectedColor),
-                                    fit: BoxFit.contain),
+                    ),
+                    Builder(builder: (context) {
+                      final desc = widget.attribute.description();
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (desc.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 4),
+                              child: Text(
+                                widget.attribute.description(),
+                                style: style.copyWith(
+                                    fontSize: 16,
+                                    color: (customColor ?? selectedColor)),
                               ),
                             ),
-                            Positioned.fill(
-                              bottom: 32,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child:
-                                    buildImageAsset(icon, fit: BoxFit.contain),
-                              ),
+                        ],
+                      );
+                    }),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            left: -4,
+                            bottom: 32,
+                            top: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: buildImageAsset(icon,
+                                  color: (customColor ?? selectedColor),
+                                  fit: BoxFit.contain),
                             ),
-                            Positioned.fill(
-                                top: null, bottom: 0, child: levelCountWidget),
-                          ],
-                        ),
+                          ),
+                          Positioned.fill(
+                            bottom: 32,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: buildImageAsset(icon, fit: BoxFit.contain),
+                            ),
+                          ),
+                          Positioned.fill(
+                              top: null, bottom: 0, child: levelCountWidget),
+                        ],
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8, bottom: 3),
-                        child: Text(
-                          attribute.isMaxLevel
-                              ? "MAX"
-                              : attribute.cost().toString(),
-                          style: style.copyWith(
-                              // fontStyle: FontStyle.italic,
-                              fontSize: style.fontSize! * .9,
-                              color: (customColor ?? selectedColor)),
-                        ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 3),
+                      child: Text(
+                        widget.attribute.isMaxLevel
+                            ? "MAX"
+                            : widget.attribute.cost().toString(),
+                        style: style.copyWith(
+                            // fontStyle: FontStyle.italic,
+                            fontSize: style.fontSize! * .9,
+                            color: (customColor ?? selectedColor)),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        )
-            .animate(target: isHovered ? 1 : 0)
-            .scaleXY(
-                begin: 1,
-                end: 1.025,
-                curve: Curves.easeIn,
-                duration: .1.seconds)
-            .rotate(
-                begin: 0,
-                end: .005,
-                curve: Curves.easeIn,
-                duration: .1.seconds);
-      }),
+            ),
+          ],
+        ),
+      )
+          .animate(target: isHovered ? 1 : 0)
+          .scaleXY(
+              begin: 1, end: 1.025, curve: Curves.easeIn, duration: .1.seconds)
+          .rotate(
+              begin: 0, end: .005, curve: Curves.easeIn, duration: .1.seconds),
     );
   }
 }
@@ -235,18 +241,35 @@ class AttributeUpgrader extends StatefulWidget {
   const AttributeUpgrader(
       {required this.onBack, required this.gameRef, super.key});
 
-  final Function onBack;
-
   final GameRouter gameRef;
+  final Function onBack;
 
   @override
   State<AttributeUpgrader> createState() => _AttributeUpgraderState();
 }
 
 class _AttributeUpgraderState extends State<AttributeUpgrader> {
-  late ComponentsNotifier<PlayerDataComponent> playerDataNotifier;
-  late PlayerDataComponent playerDataComponent;
+  final borderColor = ApolloColorPalette.deepBlue.color;
+  final borderWidth = 5.0;
+
   late PlayerData playerData;
+  late PlayerDataComponent playerDataComponent;
+  late ComponentsNotifier<PlayerDataComponent> playerDataNotifier;
+  ScrollController scrollController = ScrollController();
+
+  AttributeType? selectedAttribute;
+
+  void onPlayerDataNotification() {
+    setState(() {});
+  }
+
+  void selectAttribute(AttributeType attributeType) {}
+
+  @override
+  void dispose() {
+    playerDataNotifier.removeListener(onPlayerDataNotification);
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -260,32 +283,13 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
   }
 
   @override
-  void dispose() {
-    playerDataNotifier.removeListener(onPlayerDataNotification);
-    super.dispose();
-  }
-
-  void onPlayerDataNotification() {
-    setState(() {});
-  }
-
-  final borderWidth = 5.0;
-  final borderColor = ApolloColorPalette.deepBlue.color;
-
-  void selectAttribute(AttributeType attributeType) {}
-
-  AttributeType? selectedAttribute;
-
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     Map<AttributeCategory, List<Widget>> entries = {};
     final list = AttributeType.values
         .where((element) => element.territory == AttributeTerritory.permanent)
         .toList();
-    // list.sort((a, b) => a.name.compareTo(b.name));
     final listOfCat = AttributeCategory.values.toList();
-    // listOfCat.sort((a, b) => a.name.compareTo(b.name));
     for (var element in listOfCat) {
       final tempList = list.where((elementD) => elementD.category == element);
       if (tempList.isEmpty) continue;
@@ -296,18 +300,14 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
 
         final attr = e.buildAttribute(level, null) as PermanentAttribute;
         bool isMaxLevel = attr.isMaxLevel;
-        return InkWell(
-          onTap: isMaxLevel
-              ? null
-              : () {
-                  setState(() {
-                    selectedAttribute = e;
-                  });
-                },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: AttributeTile(attr, selectedAttribute == e),
-          ),
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: AttributeTile(attr, () {
+            if (isMaxLevel) return;
+            setState(() {
+              selectedAttribute = e;
+            });
+          }, scrollController),
         );
       }).toList();
     }
@@ -329,6 +329,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                 child: ScrollConfiguration(
               behavior: scrollConfiguration(context),
               child: SingleChildScrollView(
+                controller: scrollController,
                 child: Column(
                   children: [
                     const SizedBox(
@@ -361,10 +362,6 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                                     element.name.titleCase,
                                     style: defaultStyle.copyWith(
                                         fontSize: 36,
-                                        // shadows: [
-                                        //   colorPalette
-                                        //       .buildShadow(ShadowStyle.medium)
-                                        // ],
                                         color:
                                             ApolloColorPalette.offWhite.color),
                                   ),
@@ -418,6 +415,8 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                         alignment: Alignment.centerLeft,
                         child: CustomButton(
                           "Back",
+                          zIndex: 1,
+                          rowId: 5,
                           gameRef: widget.gameRef,
                           onPrimary: () => widget.onBack(),
                         ),
@@ -430,6 +429,8 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                       child: Center(
                         child: CustomButton(
                           "Unlock",
+                          zIndex: 1,
+                          rowId: 5,
                           gameRef: widget.gameRef,
                           onPrimary: () {
                             final result = playerData

@@ -31,18 +31,19 @@ class _StartMenuState extends State<StartMenu> {
     startButtonComponent = CustomButton(
       "Start Game",
       gameRef: widget.gameRef,
+      rowId: 0,
       onPrimary: () {
         widget.gameRef.gameStateComponent.gameState
             .changeMainMenuPage(MenuPageType.weaponMenu);
       },
     );
-    optionsButtonComponent =
-        CustomButton("Options", gameRef: widget.gameRef, onPrimary: () {
+    optionsButtonComponent = CustomButton("Options",
+        gameRef: widget.gameRef, rowId: 1, onPrimary: () {
       widget.gameRef.gameStateComponent.gameState
           .changeMainMenuPage(MenuPageType.options);
     });
     exitButtonComponent =
-        CustomButton("Exit", gameRef: widget.gameRef, onPrimary: () {
+        CustomButton("Exit", gameRef: widget.gameRef, rowId: 2, onPrimary: () {
       exit(0);
     });
   }

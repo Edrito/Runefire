@@ -64,6 +64,19 @@ class ApolloColorPalette {
   static const PaletteEntry lightestGray = PaletteEntry(Color(0xFFA8B5B2));
   static const PaletteEntry nearlyWhite = PaletteEntry(Color(0xFFC7CFCC));
   static const PaletteEntry offWhite = PaletteEntry(Color(0xFFebede9));
+  Color get randomBrightColor {
+    final List<Color> brightColors = [
+      lightBlue.color,
+      lightGreen.color,
+      lightSkin.color,
+      lightOrange.color,
+      lightRed.color,
+      lightPink.color,
+      veryLightGray.color,
+      lightestGray.color,
+    ];
+    return brightColors[rng.nextInt(brightColors.length)];
+  }
 
   Map<String, Paint> cachedPaints = {};
   Map<String, TextPaint> cachedTextPaints = {};

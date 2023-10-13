@@ -28,7 +28,7 @@ class _CharacterSwitcherState extends State<CharacterSwitcher> {
           child: ArrowButtonCustom(
             onHoverColor: colorPalette.primaryColor,
             offHoverColor: colorPalette.secondaryColor,
-            groupId: 5,
+            rowId: 5,
             groupOrientation: Axis.horizontal,
             onPrimary: () {
               int currentPlayerIndex = widget

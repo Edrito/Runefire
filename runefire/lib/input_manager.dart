@@ -6,6 +6,7 @@ import 'dart:ui';
 
 import 'package:flame/cache.dart';
 import 'package:flame/components.dart' hide World;
+import 'package:flame/extensions.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 // import 'package:flame/input.dart';
@@ -15,11 +16,13 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 // import 'package:gamepads/gamepads.dart';
+// import 'package:gamepads/gamepads.dart';
 import 'package:runefire/game/background.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/sprite_animations.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
@@ -33,6 +36,7 @@ import 'package:window_manager/window_manager.dart';
 import 'menus/overlays.dart';
 import 'resources/constants/routes.dart' as routes;
 import '../menus/overlays.dart' as overlay;
+import 'package:win32_gamepad/win32_gamepad.dart';
 
 typedef GameActionEvent = ({
   GameAction gameAction,
@@ -56,6 +60,29 @@ enum CustomInputWatcherEvents {
   onSecondaryUp,
 }
 
+class EventDetectedException implements Exception {}
+
+// class GamepadEvent {
+//   GamepadEvent(this.gamepadId, this.timestamp, this.key, this.value);
+
+//   /// The id of the gamepad controller that fired the event.
+//   final String gamepadId;
+
+//   bool isDownEvent = false;
+
+//   /// The timestamp in which the event was fired, in milliseconds since epoch.
+//   final int timestamp;
+
+//   // /// The [KeyType] of the key that was triggered.
+//   // final KeyType type;
+
+//   /// A platform-dependant identifier for the key that was triggered.
+//   final String key;
+
+//   /// The current value of the key.
+//   final double value;
+// }
+
 class InputManager with WindowListener {
   //Const duration for the primary and secondary hold tick rate
   static const Duration incrementDuration = Duration(milliseconds: 50);
@@ -69,10 +96,169 @@ class InputManager with WindowListener {
     windowManager.addListener(this);
   }
 
+  final gamepad = Gamepad(0); // primary controller
+
   late final CustomInputWatcherManager customInputWatcherManager;
 
   //Keyboard
-  List<Function(KeyEvent)> keyEventList = [];
+  List<Function(KeyEvent event)> keyEventList = [];
+  // Keyboard
+  List<Function(GamepadState event)> gamepadEventList = [];
+  Map<GamepadButtons, bool> eventsProcessed = {};
+
+  bool checkSimpleButton(bool state, GamepadButtons buttonToCheck) {
+    if (eventsProcessed[buttonToCheck] ?? false) return false;
+
+    if (gamepadEvents.containsKey(buttonToCheck)) {
+      if (!state) {
+        gamepadEvents.remove(buttonToCheck);
+        createEvent = true;
+        isPressed = false;
+        button = buttonToCheck;
+        return true;
+      }
+    } else if (state) {
+      createEvent = true;
+      isPressed = true;
+      button = buttonToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  bool checkAnalogStick(int x, int y, GamepadButtons stickToCheck) {
+    if (eventsProcessed[stickToCheck] ?? false) return false;
+    final capabilities = GamepadCapabilities(0);
+    int deadzone;
+    if (stickToCheck == GamepadButtons.leftJoy) {
+      deadzone = capabilities.leftThumbDeadzone;
+    } else {
+      deadzone = capabilities.rightThumbDeadzone;
+    }
+    bool isInDeadZone = x.abs() < deadzone && y.abs() < deadzone;
+
+    if (gamepadEvents.containsKey(stickToCheck) && isInDeadZone) {
+      gamepadEvents.remove(stickToCheck);
+      createEvent = true;
+      xyValue.setZero();
+      isPressed = false;
+      button = stickToCheck;
+      return true;
+    } else if (!isInDeadZone) {
+      final double xClamped = (x / 32777).clamp(-1, 1);
+      final double yClamped = (y / 32777).clamp(-1, 1);
+      createEvent = true;
+      xyValue.setValues(xClamped, yClamped);
+      isPressed = true;
+      button = stickToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  bool checkTrigger(int value, GamepadButtons triggerToCheck) {
+    if (eventsProcessed[triggerToCheck] ?? false) return false;
+    final capabilities = GamepadCapabilities(0);
+
+    bool isInDeadZone = value < capabilities.triggerThreshold;
+
+    if (gamepadEvents.containsKey(triggerToCheck) && isInDeadZone) {
+      gamepadEvents.remove(triggerToCheck);
+      createEvent = true;
+      singleValue = 0;
+      isPressed = false;
+      button = triggerToCheck;
+      return true;
+    } else if (!isInDeadZone) {
+      final double valueClamped = (value / 255).clamp(0, 1);
+      createEvent = true;
+      singleValue = valueClamped;
+      isPressed = true;
+      button = triggerToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  ///
+  Map<GamepadButtons, GamepadEvent> gamepadEvents = {};
+  Vector2 xyValue = Vector2.zero();
+  double singleValue = 0;
+  bool shouldWaitForNextEvent = false;
+  bool createEvent = false;
+  late GamepadButtons button;
+  late bool isPressed;
+  void parseGameState() {
+    GamepadState event = gamepad.state;
+    createEvent = false;
+    xyValue.setZero();
+    singleValue = 0;
+
+    try {
+      if (checkSimpleButton(event.dpadUp, GamepadButtons.dpadUp) ||
+          checkSimpleButton(event.dpadDown, GamepadButtons.dpadDown) ||
+          checkSimpleButton(event.dpadLeft, GamepadButtons.dpadLeft) ||
+          checkSimpleButton(event.dpadRight, GamepadButtons.dpadRight) ||
+          checkSimpleButton(event.buttonA, GamepadButtons.buttonA) ||
+          checkSimpleButton(event.buttonB, GamepadButtons.buttonB) ||
+          checkSimpleButton(event.buttonX, GamepadButtons.buttonX) ||
+          checkSimpleButton(event.buttonY, GamepadButtons.buttonY) ||
+          checkSimpleButton(event.leftShoulder, GamepadButtons.leftShoulder) ||
+          checkSimpleButton(
+              event.rightShoulder, GamepadButtons.rightShoulder) ||
+          checkSimpleButton(event.leftThumb, GamepadButtons.leftThumb) ||
+          checkSimpleButton(event.rightThumb, GamepadButtons.rightThumb) ||
+          checkSimpleButton(event.buttonStart, GamepadButtons.buttonStart) ||
+          checkSimpleButton(event.buttonBack, GamepadButtons.buttonBack) ||
+          checkAnalogStick(event.leftThumbstickX, event.leftThumbstickY,
+              GamepadButtons.leftJoy) ||
+          checkAnalogStick(event.rightThumbstickX, event.rightThumbstickY,
+              GamepadButtons.rightJoy) ||
+          checkTrigger(event.leftTrigger, GamepadButtons.leftTrigger) ||
+          checkTrigger(event.rightTrigger, GamepadButtons.rightTrigger)) {
+        return;
+      }
+
+// checkSimpleButton(event.leftTrigger, GamepadButtons.leftTrigger);
+// checkSimpleButton(event.rightTrigger, GamepadButtons.rightTrigger );
+    } finally {
+      if (createEvent) {
+        final GamepadEvent gamepadEvent =
+            GamepadEvent(button, xyValue, singleValue, isPressed);
+        if (gamepadEvent.isPressed) {
+          gamepadEvents[button] = gamepadEvent;
+        }
+        eventsProcessed[button] = true;
+        onGamepadEvent(gamepadEvent);
+        parseGameState();
+      }
+    }
+  }
+
+  void onGamepadEvent(GamepadEvent event) {
+    print(event);
+    // for (var element in gamepadEventList) {
+    //   element.call(event);
+    // }
+
+    // bool isDownEvent = event.type == KeyType.button
+    //     ? event.value == 1.0
+    //     : (event.value / 32777).clamp(0, 1.0) > .75;
+
+    // externalInputType = ExternalInputType.gamepad;
+    // final mappedActions = _systemDataReference.gamePadMappings.entries
+    //     .where((element) => element.value.any(event.key));
+    // for (var element in mappedActions) {
+    //   onGameActionCall((gameAction: element.key, isDownEvent: isDownEvent));
+    // }
+
+    // final constantMappedActions = _systemDataReference
+    //     .constantGamePadMappings.entries
+    //     .where((element) => element.value == (event.key));
+    // for (var element in constantMappedActions) {
+    //   onGameActionCall((gameAction: element.key, isDownEvent: isDownEvent));
+    // }
+  }
 
   List<Function(PointerDownEvent event)> pointerDownList = [];
 
@@ -150,7 +336,9 @@ class InputManager with WindowListener {
     for (var element in keyEventList) {
       element.call(keyEvent);
     }
+
     customInputWatcherManager.handleWidgetKeyboardInput(keyEvent);
+
     if (keyEvent is KeyRepeatEvent) return false;
 
     externalInputType = ExternalInputType.keyboard;
@@ -337,6 +525,7 @@ class InputManager with WindowListener {
 }
 
 enum ExternalInputType { touch, keyboard, gamepad }
+// enum  GamePadButtons{ touch, keyboard, gamepad }
 
 enum GameAction {
   primary,
@@ -345,13 +534,13 @@ enum GameAction {
   dash,
   reload,
   pause,
-  moveLeft,
-  moveRight,
   moveUp,
   moveDown,
+  moveLeft,
+  moveRight,
+  swapWeapon,
   interact,
   useExpendable,
-  swapWeapon
 }
 
 class CustomInputWatcherManager {
@@ -370,7 +559,7 @@ class CustomInputWatcherManager {
 
   //Grouping all the widgets by their group id, allows for sorting by axis
   final Map<int, Map<int, List<State<CustomInputWatcher>>>>
-      _customInputWatcherGroups = {};
+      _customInputWatcherRows = {};
 
   //to check if pointer is inside widgets, custom hover implementation
   final Map<State<CustomInputWatcher>, Rect> _customInputWatcherRectangles = {};
@@ -391,31 +580,19 @@ class CustomInputWatcherManager {
     final eventController = StreamController<CustomInputWatcherEvents>();
     _customInputWatcherStreams[customInputWatcher] = eventController;
 
-    if (_customInputWatcherGroups.isNotEmpty &&
+    if (_customInputWatcherRows.isNotEmpty &&
         customInputWatcher.widget.zIndex >
-            _customInputWatcherGroups.keys.reduce(max)) {
+            _customInputWatcherRows.keys.reduce(max)) {
       setHoveredState(customInputWatcher);
     }
 
-    ((_customInputWatcherGroups[customInputWatcher.widget.zIndex] ??=
-            {})[customInputWatcher.widget.groupId] ??= [])
+    ((_customInputWatcherRows[customInputWatcher.widget.zIndex] ??=
+            {})[customInputWatcher.widget.rowId] ??= [])
         .add(customInputWatcher);
-
-    final newOrientation = customInputWatcher.widget.groupOrientation;
-
-    //make sure groups are all the same orientation
-    assert(_customInputWatcherGroups[customInputWatcher.widget.zIndex]![
-            customInputWatcher.widget.groupId]!
-        .fold(
-            true,
-            (previousValue, element) =>
-                previousValue &&
-                element.widget.groupOrientation == newOrientation));
 
     // sort all the group lists when a new one is added, inneffecient but not needed to
     //optimize so its just easy :)
-    sortGroupStates(
-        _customInputWatcherGroups[customInputWatcher.widget.zIndex]!);
+    sortRowStates(_customInputWatcherRows[customInputWatcher.widget.zIndex]!);
 
     //scroll controller
     if (customInputWatcher.widget.scrollController != null) {
@@ -426,9 +603,90 @@ class CustomInputWatcherManager {
     return eventController;
   }
 
+  void swapRows(AxisDirection direction, int currentRowId, int highestZIndex) {
+    final listOfAllIds = _customInputWatcherRows[highestZIndex]!.keys.toList()
+      ..sort();
+
+    final indexOfCurrentGroupId = listOfAllIds.indexOf(currentRowId);
+    int indexOfNextGroupId =
+        direction == AxisDirection.up || direction == AxisDirection.left
+            ? indexOfCurrentGroupId - 1
+            : indexOfCurrentGroupId + 1;
+
+    if (indexOfNextGroupId < 0) {
+      indexOfNextGroupId = listOfAllIds.length - 1;
+    } else if (indexOfNextGroupId >= listOfAllIds.length) {
+      indexOfNextGroupId = 0;
+    }
+
+    final nextRowId = listOfAllIds[indexOfNextGroupId];
+    if (nextRowId == currentRowId) return;
+    double closestDistance = (double.maxFinite);
+    State<CustomInputWatcher>? closestWidget;
+    Vector2 goalCenter = _customInputWatcherRectangles[currentlyHoveredWidget!]
+            ?.center
+            .toVector2() ??
+        Vector2.zero();
+
+    for (var element in _customInputWatcherRows[highestZIndex]![nextRowId]!) {
+      final rect = _customInputWatcherRectangles[element];
+      if (rect == null) continue;
+
+      final double distance = rect.center.toVector2().distanceTo(goalCenter);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestWidget = element;
+      }
+    }
+
+    if (closestWidget != null) {
+      setHoveredState(closestWidget);
+    } else {
+      removeHoveredState();
+    }
+  }
+
+  void shiftPositionInRow(
+      AxisDirection directionOfInput, int currentRowId, int highestZIndex) {
+    final listOfCurrentRowStates = _customInputWatcherRows[highestZIndex]![
+            currentRowId]!
+        //     .where((element) {
+        //   return
+        //       // element.widget.scrollController !=
+        //       //         currentlyHoveredWidget!.widget.scrollController ||
+        //       element.widget.scrollController == null;
+        // })
+        .toList();
+
+    if (listOfCurrentRowStates.isEmpty) {
+      swapRows(directionOfInput, currentRowId, highestZIndex);
+      return;
+    }
+
+    final currentHoveredWidgetIndex =
+        listOfCurrentRowStates.indexOf(currentlyHoveredWidget!);
+
+    int nextHoveredWidgetIndex = directionOfInput == AxisDirection.up ||
+            directionOfInput == AxisDirection.left
+        ? currentHoveredWidgetIndex - 1
+        : currentHoveredWidgetIndex + 1;
+    nextHoveredWidgetIndex =
+        nextHoveredWidgetIndex.clamp(0, listOfCurrentRowStates.length - 1);
+    State<CustomInputWatcher> nextHoveredWidget;
+
+    if (nextHoveredWidgetIndex != currentHoveredWidgetIndex) {
+      nextHoveredWidget =
+          listOfCurrentRowStates.elementAt(nextHoveredWidgetIndex);
+    } else {
+      swapRows(directionOfInput, currentRowId, highestZIndex);
+      return;
+    }
+    setHoveredState(nextHoveredWidget);
+  }
+
   //Function that both keyboard and gamepad will call to move the currently hovered widget
   void changeHoveredState(AxisDirection directionOfInput) {
-    final int highestZIndex = _customInputWatcherGroups.keys.reduce(max);
+    final int highestZIndex = _customInputWatcherRows.keys.reduce(max);
 
     if (currentlyHoveredWidget == null) {
       final entries = _customInputWatcherRectangles.entries
@@ -480,87 +738,90 @@ class CustomInputWatcherManager {
       return;
     }
 
-    final axis = currentlyHoveredWidget!.widget.groupOrientation;
-    final currentGroupId = currentlyHoveredWidget!.widget.groupId;
+    final currentRowId = currentlyHoveredWidget!.widget.rowId;
 
-    bool isSwappingGroups = (axis == Axis.horizontal &&
-            (directionOfInput == AxisDirection.up ||
-                directionOfInput == AxisDirection.down)) ||
-        (axis == Axis.vertical &&
-            (directionOfInput == AxisDirection.left ||
-                directionOfInput == AxisDirection.right));
+    bool isSwappingRows = (directionOfInput == AxisDirection.up ||
+        directionOfInput == AxisDirection.down);
+
+    bool isHoveringScrollWidget =
+        currentlyHoveredWidget!.widget.scrollController != null;
 
     //If the direction of the axisinput (up down left right) is against the axis of the
     //currently hovered widget, then we are swapping groups
-    if (isSwappingGroups) {
-      final listOfAllIds =
-          _customInputWatcherGroups[highestZIndex]!.keys.toList()..sort();
+    if (isSwappingRows && !isHoveringScrollWidget) {
+      swapRows(directionOfInput, currentRowId, highestZIndex);
+      return;
+    } else if (isHoveringScrollWidget) {
+      Axis axis =
+          currentlyHoveredWidget!.widget.scrollController!.position.axis;
 
-      final indexOfCurrentGroupId = listOfAllIds.indexOf(currentGroupId);
-      int indexOfNextGroupId = directionOfInput == AxisDirection.up ||
-              directionOfInput == AxisDirection.left
-          ? indexOfCurrentGroupId - 1
-          : indexOfCurrentGroupId + 1;
-
-      if (indexOfNextGroupId < 0) {
-        indexOfNextGroupId = listOfAllIds.length - 1;
-      } else if (indexOfNextGroupId >= listOfAllIds.length) {
-        indexOfNextGroupId = 0;
+      if (axis == Axis.vertical && !isSwappingRows) {
+        shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
+        return;
+      } else if (axis == Axis.horizontal && isSwappingRows) {
+        swapRows(directionOfInput, currentRowId, highestZIndex);
+        return;
       }
 
-      final nextGroupId = listOfAllIds[indexOfNextGroupId];
-      if (nextGroupId == currentGroupId) return;
-      setHoveredState(
-          _customInputWatcherGroups[highestZIndex]![nextGroupId]?.first ??
-              currentlyHoveredWidget!);
+      //If the group we are moving in is inside a scroll widget
+      //we need to take that into account
+      final scrollControllerChildren = _customInputWatcherScrollControllers[
+          currentlyHoveredWidget!.widget.scrollController];
 
-      return;
+      if (scrollControllerChildren != null &&
+          scrollControllerChildren.isNotEmpty) {
+        int currentIndex =
+            scrollControllerChildren.indexOf(currentlyHoveredWidget!);
+        int nextIndex = currentIndex +
+            ((directionOfInput == AxisDirection.up ||
+                    directionOfInput == AxisDirection.left)
+                ? -1
+                : 1);
+
+        bool isEndOfScrollController =
+            nextIndex < 0 || nextIndex >= scrollControllerChildren.length;
+        if (isEndOfScrollController) {
+          if (isSwappingRows) {
+            swapRows(directionOfInput, currentRowId, highestZIndex);
+            // setHoveredState(scrollControllerChildren[nextIndex]);
+            return;
+          } else {
+            shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
+            return;
+          }
+        }
+        setHoveredState(scrollControllerChildren[nextIndex]);
+
+        // Axis  scrollAxis = currentlyHoveredWidget!.widget.scrollController!
+        //     .position.axis;
+
+        // if(scrollAxis == Axis.vertical &&
+        // directionOfInput == AxisDirection.up || directionOfInput == AxisDirection.down){
+        //   final nextHoveredWidget =
+        //   shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
+
+        // }
+        // final heightOfItem = (nextHoveredWidget
+        //             .widget.scrollController?.position.maxScrollExtent ??
+        //         0) /
+        //     scrollControllerChildren.length;
+
+        // bool isNextIndexAfterCurrentIndex =
+        //     nextHoveredWidgetIndex >= currentIndex;
+
+        // nextHoveredWidget.widget.scrollController?.animateTo(
+        //     heightOfItem * nextHoveredWidgetIndex * 1.5,
+        //     duration: .5.seconds,
+        //     curve: Curves.ease);
+      }
+    } else {
+      sortRowStates(_customInputWatcherRows[highestZIndex]!);
+
+      shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
     }
-    sortGroupStates(_customInputWatcherGroups[highestZIndex]!);
-
-    final listOfCurrentGroupStates =
-        _customInputWatcherGroups[highestZIndex]![currentGroupId]!;
-
-    final currentHoveredWidgetIndex =
-        listOfCurrentGroupStates.indexOf(currentlyHoveredWidget!);
-
-    int nextHoveredWidgetIndex = directionOfInput == AxisDirection.up ||
-            directionOfInput == AxisDirection.left
-        ? currentHoveredWidgetIndex - 1
-        : currentHoveredWidgetIndex + 1;
-    nextHoveredWidgetIndex =
-        nextHoveredWidgetIndex.clamp(0, listOfCurrentGroupStates.length - 1);
-    final nextHoveredWidget =
-        listOfCurrentGroupStates.elementAt(nextHoveredWidgetIndex);
-
-    //If the group we are moving in is inside a scroll widget
-    //we need to take that into account
-    final scrollControllerChildren = _customInputWatcherScrollControllers[
-        nextHoveredWidget.widget.scrollController];
-    if (scrollControllerChildren != null &&
-        scrollControllerChildren.isNotEmpty) {
-      final currentIndex =
-          scrollControllerChildren.indexOf(currentlyHoveredWidget!);
-
-      final heightOfItem = (nextHoveredWidget
-                  .widget.scrollController?.position.maxScrollExtent ??
-              0) /
-          scrollControllerChildren.length;
-
-      // bool isNextIndexAfterCurrentIndex =
-      //     nextHoveredWidgetIndex >= currentIndex;
-
-      nextHoveredWidget.widget.scrollController?.animateTo(
-          heightOfItem * nextHoveredWidgetIndex * 1.5,
-          duration: .5.seconds,
-          curve: Curves.ease);
-    }
-
-    setHoveredState(nextHoveredWidget);
   }
 
   bool checkMouseHoverStates(State<CustomInputWatcher> widget) {
-    // print(currentlyHoveredWidget != null);
     if (
         //there is a widget currently being hovered
         currentlyHoveredWidget != null &&
@@ -570,7 +831,8 @@ class CustomInputWatcherManager {
             widget.widget.zHeight <= currentlyHoveredWidget!.widget.zHeight) {
       return false;
     }
-    final Rect rect = _customInputWatcherRectangles[widget]!;
+    final Rect? rect = _customInputWatcherRectangles[widget];
+    if (rect == null) return false;
     final Offset mousePosition =
         parentInputManager.pointerLocalPositions[0] ?? Offset.zero;
     final contains = rect.contains(mousePosition);
@@ -670,7 +932,7 @@ class CustomInputWatcherManager {
   void onPointerMove() {
     for (var element in _customInputWatcherStreams.entries.where((element) =>
         element.key.widget.zIndex ==
-        _customInputWatcherGroups.keys.reduce(max))) {
+        _customInputWatcherRows.keys.reduce(max))) {
       if (checkMouseHoverStates(element.key)) break;
     }
   }
@@ -723,21 +985,21 @@ class CustomInputWatcherManager {
     _customInputWatcherStreams[customInputWatcher]?.close();
     _customInputWatcherStreams.remove(customInputWatcher);
     _customInputWatcherRectangles.remove(customInputWatcher);
-    _customInputWatcherGroups[customInputWatcher.widget.zIndex]
-            ?[customInputWatcher.widget.groupId]
+    _customInputWatcherRows[customInputWatcher.widget.zIndex]
+            ?[customInputWatcher.widget.rowId]
         ?.remove(customInputWatcher);
 
-    if (_customInputWatcherGroups[customInputWatcher.widget.zIndex]
-                ?[customInputWatcher.widget.groupId]
+    if (_customInputWatcherRows[customInputWatcher.widget.zIndex]
+                ?[customInputWatcher.widget.rowId]
             ?.isEmpty ??
         true) {
-      _customInputWatcherGroups[customInputWatcher.widget.zIndex]
-          ?.remove(customInputWatcher.widget.groupId);
+      _customInputWatcherRows[customInputWatcher.widget.zIndex]
+          ?.remove(customInputWatcher.widget.rowId);
     }
 
-    if (_customInputWatcherGroups[customInputWatcher.widget.zIndex]?.isEmpty ??
+    if (_customInputWatcherRows[customInputWatcher.widget.zIndex]?.isEmpty ??
         true) {
-      _customInputWatcherGroups.remove(customInputWatcher.widget.zIndex);
+      _customInputWatcherRows.remove(customInputWatcher.widget.zIndex);
     }
 
     if (customInputWatcher.widget.scrollController != null) {
@@ -783,16 +1045,11 @@ class CustomInputWatcherManager {
     currentlyHoveredWidget = widget;
   }
 
-  void sortGroupStates(Map<int, List<State<CustomInputWatcher>>> groupIdMap) {
-    for (var element in groupIdMap.entries) {
+  void sortRowStates(Map<int, List<State<CustomInputWatcher>>> rowIdMap) {
+    for (var element in rowIdMap.entries) {
       element.value.sort((a, b) {
-        if (a.widget.groupOrientation == Axis.horizontal) {
-          return (_customInputWatcherRectangles[a]?.right ?? 0)
-              .compareTo((_customInputWatcherRectangles[b]?.right ?? 0));
-        } else {
-          return (_customInputWatcherRectangles[a]?.bottom ?? 0)
-              .compareTo((_customInputWatcherRectangles[b]?.bottom ?? 0));
-        }
+        return (_customInputWatcherRectangles[a]?.center.dx ?? 0)
+            .compareTo((_customInputWatcherRectangles[b]?.center.dx ?? 0));
       });
     }
   }
@@ -833,10 +1090,9 @@ class CustomInputWatcher extends StatefulWidget {
       this.onPrimaryHold,
       this.onPrimaryUp,
       this.scrollController,
-      this.groupId = 0,
+      this.rowId = 0,
       this.zHeight = 0,
       this.zIndex = 0,
-      this.groupOrientation = Axis.horizontal,
       this.onSecondary,
       this.onSecondaryHold,
       this.onSecondaryUp,
@@ -850,8 +1106,7 @@ class CustomInputWatcher extends StatefulWidget {
   final Function()? onSecondaryHold;
   final Function()? onSecondaryUp;
   final Widget child;
-  final int groupId;
-  final Axis groupOrientation;
+  final int rowId;
   final ScrollController? scrollController;
   final int zHeight;
   final int zIndex;
@@ -866,7 +1121,6 @@ class CustomInputWatcherState<T extends CustomInputWatcher> extends State<T> {
   late final StreamSubscription<CustomInputWatcherEvents> streamSubscription;
 
   void handleStreamEvents(CustomInputWatcherEvents event) {
-    // print(event);
     switch (event) {
       case CustomInputWatcherEvents.hoverOff:
         widget.onHover?.call(false);
@@ -900,7 +1154,7 @@ class CustomInputWatcherState<T extends CustomInputWatcher> extends State<T> {
   }
 
   void updateCustomInputWatcher() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(Duration.zero, () {
       if (!mounted) return;
       inputManager.customInputWatcherManager.updateCustomInputWatcher(this);
     });

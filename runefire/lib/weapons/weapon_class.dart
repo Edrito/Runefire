@@ -277,6 +277,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
     switch (attackLocation) {
       case SourceAttackLocation.mouse:
         center += entityAncestor!.mouseJoint?.position ?? Vector2.zero();
+        print(center);
         break;
       case SourceAttackLocation.weaponTip:
         center = weaponTipPosition(1);
@@ -296,9 +297,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
         break;
       default:
     }
-    if (attackLocation != SourceAttackLocation.mouse) {
-      center += entityAncestor!.center;
-    }
+    // if (attackLocation != SourceAttackLocation.mouse) {
+    center += entityAncestor!.center;
+    // }
 
     return center;
   }

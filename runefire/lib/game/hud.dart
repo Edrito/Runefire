@@ -62,7 +62,9 @@ class GameHud extends BaseHud with BossBar, ExperienceBar {
 }
 
 abstract class BaseHud extends PositionComponent {
-  BaseHud(this.gameEnviroment);
+  BaseHud(this.gameEnviroment) {
+    hudScale = gameEnviroment.gameRef.systemDataComponent.dataObject.hudScale;
+  }
 
   late final Paint barBackPaint;
   late final SpriteComponent characterPortrait;
@@ -89,7 +91,7 @@ abstract class BaseHud extends PositionComponent {
   int fps = 0;
   GameEnviroment gameEnviroment;
   late SpriteAnimationComponent healthEnergyFrame;
-  HudScale hudScale = HudScale.medium;
+  late HudScale hudScale;
   bool isMagic = false;
   //Level
   // late CircleComponent levelBackground;

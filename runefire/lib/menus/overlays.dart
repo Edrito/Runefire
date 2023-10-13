@@ -191,8 +191,7 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
                   hoveredDamageTypes[damageType] = value;
                 });
               },
-              groupId: 1,
-              groupOrientation: Axis.horizontal,
+              rowId: 2,
               onPrimary: () {
                 widget.selectDamageType(damageType);
               },

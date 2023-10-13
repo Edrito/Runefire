@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:runefire/game/hud.dart';
 import 'package:runefire/input_manager.dart';
@@ -41,6 +42,94 @@ class SystemData extends DataClass {
   @HiveField(20)
   HudScale hudScale = HudScale.medium;
 
+  void setKeyboardMapping(
+      GameAction action, PhysicalKeyboardKey? key, bool isPrimary) {
+    (PhysicalKeyboardKey?, PhysicalKeyboardKey?)? newKeyboardMapping =
+        keyboardMappings[action];
+
+    if (newKeyboardMapping != null) {
+      if (isPrimary) {
+        newKeyboardMapping = (key, newKeyboardMapping.$2);
+      } else {
+        newKeyboardMapping = (newKeyboardMapping.$1, key);
+      }
+    } else {
+      newKeyboardMapping = (isPrimary ? key : null, isPrimary ? null : key);
+    }
+
+    var oldMouseMapping = mouseButtonMappings[action];
+    if (oldMouseMapping != null) {
+      if (newKeyboardMapping.$1 != null) {
+        oldMouseMapping = (null, oldMouseMapping.$2);
+      }
+      if (newKeyboardMapping.$2 != null) {
+        oldMouseMapping = (oldMouseMapping.$1, null);
+      }
+
+      mouseButtonMappings[action] = oldMouseMapping;
+    }
+
+    keyboardMappings[action] = newKeyboardMapping;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
+  void setMouseButtonMapping(
+      GameAction action, int? listenerButtonId, bool isPrimary) {
+    (int?, int?)? newMouseButtonMapping = mouseButtonMappings[action];
+
+    if (newMouseButtonMapping != null) {
+      if (isPrimary) {
+        newMouseButtonMapping = (listenerButtonId, newMouseButtonMapping.$2);
+      } else {
+        newMouseButtonMapping = (newMouseButtonMapping.$1, listenerButtonId);
+      }
+    } else {
+      newMouseButtonMapping = (
+        isPrimary ? listenerButtonId : null,
+        isPrimary ? null : listenerButtonId,
+      );
+    }
+
+    var oldKeyboardMapping = keyboardMappings[action];
+    if (oldKeyboardMapping != null) {
+      if (newMouseButtonMapping.$1 != null) {
+        oldKeyboardMapping = (null, oldKeyboardMapping.$2);
+      }
+      if (newMouseButtonMapping.$2 != null) {
+        oldKeyboardMapping = (oldKeyboardMapping.$1, null);
+      }
+
+      keyboardMappings[action] = oldKeyboardMapping;
+    }
+
+    mouseButtonMappings[action] = newMouseButtonMapping;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
+  void setGamepadMapping(
+      GameAction action, String? buttonName, bool isPrimary) {
+    (String?, String?)? newGamepadMapping = gamePadMappings[action];
+
+    if (newGamepadMapping != null) {
+      if (isPrimary) {
+        newGamepadMapping = (buttonName, newGamepadMapping.$2);
+      } else {
+        newGamepadMapping = (newGamepadMapping.$1, buttonName);
+      }
+    } else {
+      newGamepadMapping = (
+        isPrimary ? buttonName : null,
+        isPrimary ? null : buttonName,
+      );
+    }
+
+    gamePadMappings[action] = newGamepadMapping;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
   final Map<GameAction, Set<PhysicalKeyboardKey>> constantKeyboardMappings = {
     GameAction.pause: {PhysicalKeyboardKey.escape},
   };
@@ -48,10 +137,19 @@ class SystemData extends DataClass {
   @HiveField(100)
   Map<GameAction, (PhysicalKeyboardKey?, PhysicalKeyboardKey?)>
       keyboardMappings = {
-    GameAction.moveUp: (PhysicalKeyboardKey.keyW, null),
-    GameAction.moveLeft: (PhysicalKeyboardKey.keyA, null),
-    GameAction.moveDown: (PhysicalKeyboardKey.keyS, null),
-    GameAction.moveRight: (PhysicalKeyboardKey.keyD, null),
+    GameAction.moveUp: (PhysicalKeyboardKey.keyW, PhysicalKeyboardKey.arrowUp),
+    GameAction.moveLeft: (
+      PhysicalKeyboardKey.keyA,
+      PhysicalKeyboardKey.arrowLeft
+    ),
+    GameAction.moveDown: (
+      PhysicalKeyboardKey.keyS,
+      PhysicalKeyboardKey.arrowDown
+    ),
+    GameAction.moveRight: (
+      PhysicalKeyboardKey.keyD,
+      PhysicalKeyboardKey.arrowRight
+    ),
     GameAction.reload: (PhysicalKeyboardKey.keyR, null),
     GameAction.interact: (PhysicalKeyboardKey.keyE, null),
     GameAction.useExpendable: (PhysicalKeyboardKey.keyQ, null),
@@ -69,6 +167,8 @@ class SystemData extends DataClass {
 
   @HiveField(110)
   Map<GameAction, (String?, String?)> gamePadMappings = {};
+
+  Map<GameAction, String> constantGamePadMappings = {GameAction.pause: "Start"};
 
   set setMusicVolume(double value) {
     musicVolume = value;
@@ -91,6 +191,55 @@ class SystemData extends DataClass {
 
 enum MouseButtons { primaryClick, scrollClick, secondaryClick, misc }
 
+enum GamepadButtons {
+  dpadUp,
+  dpadDown,
+  dpadLeft,
+  dpadRight,
+  buttonStart,
+  buttonBack,
+  leftThumb,
+  rightThumb,
+  leftShoulder,
+  rightShoulder,
+  leftTrigger,
+  rightTrigger,
+  buttonA,
+  buttonB,
+  buttonX,
+  buttonY,
+  leftJoy,
+  rightJoy,
+}
+
+class GamepadEvent {
+  GamepadEvent(this.button, this.xyValue, this.singleValue, this.isPressed);
+  GamepadButtons button;
+  Vector2 xyValue;
+  double singleValue;
+  bool isPressed;
+  bool get isAnalog => !xyValue.isZero();
+
+  @override
+  String toString() =>
+      "GamepadEvent(button: $button, xyValue: $xyValue, value: $singleValue, isPressed: $isPressed)";
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GamepadEvent &&
+          button == other.button &&
+          singleValue == other.singleValue &&
+          xyValue == other.xyValue &&
+          isPressed == other.isPressed;
+
+  @override
+  int get hashCode =>
+      button.hashCode ^
+      xyValue.hashCode ^
+      singleValue.hashCode ^
+      isPressed.hashCode;
+}
+
 MouseButtons getMouseButton(int listenerButtonId) {
   if (listenerButtonId == 1) {
     return MouseButtons.primaryClick;
@@ -103,6 +252,6 @@ MouseButtons getMouseButton(int listenerButtonId) {
   }
 }
 
-extension AnyFunctionHelper on (PhysicalKeyboardKey?, PhysicalKeyboardKey?) {
-  bool any(PhysicalKeyboardKey? key) => this.$1 == key || this.$2 == key;
+extension AnyFunctionHelper on (dynamic, dynamic) {
+  bool any(dynamic key) => this.$1 == key || this.$2 == key;
 }

@@ -31,6 +31,7 @@ dependencies:
   simple_shadow: ^0.3.1
   image_size_getter: ^2.1.2
   infinite_carousel: ^1.0.3
+  win32_gamepad: ^1.0.7
 
   
 

@@ -149,11 +149,28 @@ import 'enviroment.dart';
 // }
 
 mixin HudFunctionality on Enviroment {
-  late final GameHud hud;
+  late GameHud hud;
+
+  void rebuildHud() {
+    hud.removeFromParent();
+    hud = GameHud(this as GameEnviroment);
+    gameCamera.viewport.addAll([hud]);
+  }
+
+  @override
+  void onRemove() {
+    gameRef.onSystemDataChange.remove((data) {
+      rebuildHud();
+    });
+    super.onRemove();
+  }
 
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
+    gameRef.onSystemDataChange.add((data) {
+      rebuildHud();
+    });
     await Flame.images.loadAll([
       ...ImagesAssetsUi.allFilesFlame,
       ...ImagesAssetsAmmo.allFilesFlame,

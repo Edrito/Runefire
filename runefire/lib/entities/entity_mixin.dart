@@ -12,6 +12,7 @@ import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/game/hud.dart';
@@ -374,8 +375,12 @@ mixin AimFunctionality on Entity {
   }
 
   void updateMousePositionJoint(MovementType type, PointerMoveEvent info) {
-    if (type == MovementType.tap1) {
-      mouseJoint?.position = info.localPosition.toVector2();
+    if (type == MovementType.mouse || type == MovementType.tap1) {
+      addAimPosition(
+          (shiftCoordinatesToCenter(info.localPosition.toVector2(),
+                  enviroment.gameCamera.viewport.size) /
+              enviroment.gameCamera.viewfinder.zoom),
+          userInputPriority);
     }
   }
 
@@ -461,7 +466,8 @@ mixin AimFunctionality on Entity {
     if (!enableMovement.parameter) return;
 
     handAngleTarget = aimVector.clone();
-
+    mouseJoint?.position =
+        (aimPosition ?? Vector2.zero()) - entityOffsetFromCameraCenter;
     handJointBehindBodyCheck();
     spriteFlipCheck();
   }
@@ -601,6 +607,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> swapWeapon() async {
+    if (carriedWeapons.isEmpty || carriedWeapons.length == 1) return;
     final previousWeapon = currentWeapon;
     if (isAttacking) {
       previousWeapon?.endAttacking();

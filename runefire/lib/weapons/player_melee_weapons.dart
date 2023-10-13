@@ -8,7 +8,7 @@ import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/projectile_class.dart';
-import 'package:runefire/weapons/swings.dart';
+import 'package:runefire/weapons/melee_swing_manager.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 

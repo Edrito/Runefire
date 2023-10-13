@@ -13,6 +13,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 // import 'package:gamepads/gamepads.dart';
+// import 'package:gamepads/gamepads.dart';
 import 'package:runefire/game/background.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:runefire/input_manager.dart';
@@ -31,10 +32,11 @@ import 'package:window_manager/window_manager.dart';
 import 'menus/overlays.dart';
 import 'resources/constants/routes.dart' as routes;
 import '../menus/overlays.dart' as overlay;
+import 'package:win32_gamepad/win32_gamepad.dart';
 
 final rng = Random();
 
-bool startInGame = true;
+bool startInGame = false;
 
 // Map<int, bool> isSecondaryPointer = {};
 
@@ -107,6 +109,8 @@ void main() async {
   ServicesBinding.instance.keyboard
       .addHandler(inputManagerState.keyboardEventHandler);
 
+  // Gamepads.events.listen(inputManagerState.onGamepadEvent);
+
   runApp(
     Material(
       child: Directionality(
@@ -164,9 +168,27 @@ class GameRouter extends Forge2DGame {
   late PlayerDataComponent playerDataComponent;
   late SystemDataComponent systemDataComponent;
   late GameStateComponent gameStateComponent;
+  late ComponentsNotifier systemDataNotifier =
+      componentsNotifier<SystemDataComponent>();
+
+  List<Function(SystemData data)> onSystemDataChange = [];
+  void callOnSystemDataChange(SystemData data) {
+    for (var function in onSystemDataChange) {
+      function(data);
+    }
+  }
+
+  @override
+  void onRemove() {
+    systemDataNotifier.removeListener(() {
+      callOnSystemDataChange(systemDataComponent.dataObject);
+    });
+    super.onRemove();
+  }
 
   @override
   void onLoad() async {
+    debugMode = true;
     router = RouterComponent(
       routes: {
         routes.blank: Route(MenuGame.new, maintainState: false),
@@ -181,6 +203,11 @@ class GameRouter extends Forge2DGame {
     add(playerDataComponent);
     add(gameStateComponent);
     add(router);
+
+    systemDataNotifier.addListener(() {
+      callOnSystemDataChange(systemDataComponent.dataObject);
+    });
+
     await super.onLoad();
   }
 
@@ -191,6 +218,15 @@ class GameRouter extends Forge2DGame {
       overlays.add(caveFront.key);
       overlays.add(mainMenu.key);
     }
+  }
+
+  late final InputManager inputManagerInstance = InputManager();
+  @override
+  void update(double dt) {
+    inputManagerInstance.gamepad.updateState();
+    inputManagerInstance.parseGameState();
+    inputManagerInstance.eventsProcessed.clear();
+    super.update(dt);
   }
 
   @override

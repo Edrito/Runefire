@@ -505,7 +505,7 @@ enum WeaponType {
   phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.melee, 0),
   blankProjectileWeapon(
       'assets/images/weapons/dagger.png', 5, AttackType.guns, 0,
-      hidden: true),
+      isPlayerWeapon: false),
   icecicleMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   psychicMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   fireballMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
@@ -521,12 +521,12 @@ enum WeaponType {
   ;
 
   const WeaponType(this.icon, this.maxLevel, this.attackType, this.baseCost,
-      {this.hidden = false});
+      {this.isPlayerWeapon = true});
   final String icon;
   final int maxLevel;
   final AttackType attackType;
   final int baseCost;
-  final bool hidden;
+  final bool isPlayerWeapon;
 
   String get flameImage {
     final split = icon.split('/');
@@ -823,13 +823,16 @@ enum SecondaryType {
       weaponIsProjectileFunctionality, 500);
 
   const SecondaryType(
-      this.icon, this.maxLevel, this.compatibilityCheck, this.baseCost);
+      this.icon, this.maxLevel, this.compatibilityCheck, this.baseCost,
+      // ignore: unused_element
+      {this.isPlayerOnly = true});
 
   ///Based on a input weapon, return true or false to
   ///see if the weapon is compatible with the secondary ability
   final CompatibilityFunction compatibilityCheck;
   final FileDataClass icon;
   final int maxLevel;
+  final bool isPlayerOnly;
   final int baseCost;
 }
 

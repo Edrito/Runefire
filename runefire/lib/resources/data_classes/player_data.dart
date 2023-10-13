@@ -150,4 +150,33 @@ class PlayerData extends DataClass with PlayerStatistics {
     parentComponent?.notifyListeners();
     return canAfford;
   }
+
+  void upgradeWeapon(WeaponType weaponType) {
+    if (unlockedWeapons.containsKey(weaponType)) {
+      unlockedWeapons[weaponType] = unlockedWeapons[weaponType]! + 1;
+    } else {
+      unlockedWeapons[weaponType] = 1;
+    }
+    parentComponent?.notifyListeners();
+  }
+
+  void upgradeSecondary(SecondaryType secondaryType) {
+    if (unlockedSecondarys.containsKey(secondaryType)) {
+      unlockedSecondarys[secondaryType] =
+          unlockedSecondarys[secondaryType]! + 1;
+    } else {
+      unlockedSecondarys[secondaryType] ??= 0;
+    }
+    parentComponent?.notifyListeners();
+  }
+
+  void selectWeapon(int index, WeaponType weaponType) {
+    selectedWeapons[index] = weaponType;
+    parentComponent?.notifyListeners();
+  }
+
+  void selectSecondary(int index, SecondaryType secondaryType) {
+    selectedSecondaries[index] = secondaryType;
+    parentComponent?.notifyListeners();
+  }
 }

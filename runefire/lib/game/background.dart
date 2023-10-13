@@ -77,8 +77,6 @@ class BlankBackground extends BackgroundComponent {
     anchor = Anchor.center;
     priority = backgroundPriority;
 
-    positionType = PositionType.viewport;
-
     size = size / 50;
     return super.onLoad();
   }

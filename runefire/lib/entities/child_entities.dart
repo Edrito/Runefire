@@ -14,7 +14,7 @@ import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/weapons/projectile_class.dart';
-import 'package:runefire/weapons/swings.dart';
+import 'package:runefire/weapons/melee_swing_manager.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 

@@ -177,13 +177,11 @@ class WeaponSecondaryTile extends StatelessWidget {
 
     return StatefulBuilder(builder: (context, setState) {
       final size = MediaQuery.of(context).size;
-      // final increase = (size.width / 1500).clamp(.5, 1);
 
       return SizedBox(
         width: isWeapon ? 192 : 144,
         child: CustomInputWatcher(
-            groupId: 20,
-            groupOrientation: Axis.horizontal,
+            rowId: 2,
             onPrimary: () {
               onTap();
             },
@@ -228,7 +226,7 @@ class WeaponSecondaryTile extends StatelessWidget {
                   target: isHover ? 1 : 0,
                 )
                 .scaleXY(
-                    end: 1.05, curve: Curves.linear, duration: .1.seconds)),
+                    end: 1.125, curve: Curves.linear, duration: .1.seconds)),
       );
     });
   }
@@ -250,8 +248,8 @@ class WeaponSecondarySelector extends StatefulWidget {
       {
       // required this.onSelect,
       required this.onBack,
-      required this.isPrimary,
-      required this.isSecondaryAbility,
+      required this.isPrimarySlot,
+      required this.isPrimaryAttack,
       required this.gameRef,
       super.key});
 
@@ -259,8 +257,8 @@ class WeaponSecondarySelector extends StatefulWidget {
   final Function onBack;
 
   final GameRouter gameRef;
-  final bool isPrimary;
-  final bool isSecondaryAbility;
+  final bool isPrimarySlot;
+  final bool isPrimaryAttack;
 
   @override
   State<WeaponSecondarySelector> createState() =>
@@ -282,103 +280,31 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
     // playerDataNotifier.addListener(onPlayerDataNotification);
 
     playerData = playerDataComponent.dataObject;
-
-    WeaponType? selectedWeapon =
-        playerData.selectedWeapons[widget.isPrimary ? 0 : 1];
-    for (var element in AttackType.values) {
-      if (selectedWeapon?.attackType == element) {
-        selectedWeapons[element] = (selectedWeapon!);
-      } else {
-        selectedWeapons[element] = (WeaponType.values.firstWhere(
-            (elementD) => elementD.attackType == element && !elementD.hidden));
-      }
-    }
-
-    selectedSecondary =
-        playerData.selectedSecondaries[widget.isPrimary ? 0 : 1];
   }
 
   final borderWidth = 5.0;
   final borderColor = ApolloColorPalette.deepBlue.color.brighten(.1);
 
-  Map<AttackType, WeaponType> selectedWeapons = {};
-  SecondaryType? selectedSecondary;
-  bool? previousPressLeft;
-
-  void changeWeapon(bool isLeftPress, AttackType? attackType) {
-    bool isSecondary = attackType == null;
-    int currentIndex = -1;
-    final attackTypeWeapons = WeaponType.values
-        .where((element) => element.attackType == attackType && !element.hidden)
-        .toList();
-    if (isSecondary) {
-      currentIndex = SecondaryType.values.indexOf(selectedSecondary!);
-    } else {
-      currentIndex = attackTypeWeapons.indexOf(selectedWeapons[attackType]!);
-    }
-    if (isLeftPress) {
-      currentIndex--;
-    } else {
-      currentIndex++;
-    }
-    if (currentIndex < 0) {
-      currentIndex = (isSecondary
-              ? SecondaryType.values.length
-              : attackTypeWeapons.length) -
-          1;
-    } else if (currentIndex >=
-        (isSecondary
-            ? SecondaryType.values.length
-            : attackTypeWeapons.length)) {
-      currentIndex = 0;
-    }
-
-    setState(() {
-      previousPressLeft = isLeftPress;
-      if (isSecondary) {
-        selectedSecondary = SecondaryType.values[currentIndex];
-      } else {
-        selectedWeapons[attackType] = attackTypeWeapons[currentIndex];
-      }
-    });
-  }
-
   late PlayerData playerData;
   ScrollController scrollController = ScrollController();
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     List<Widget> entries = [];
-    if (!widget.isSecondaryAbility) {
-      for (var entry in selectedWeapons.entries) {
+    if (!widget.isPrimaryAttack) {
+      for (var element in AttackType.values) {
         entries.add(WeaponSelectorTab(
-            gameRef: widget.gameRef,
-            weaponChange: changeWeapon,
-            scrollController: scrollController,
-            isPrimary: widget.isPrimary,
-            key: Key(entry.value.name),
-            animateLeft: previousPressLeft,
-            weaponType: entry.value));
+          gameRef: widget.gameRef,
+          scrollController: scrollController,
+          isPrimarySlot: widget.isPrimarySlot,
+          attackType: element,
+        ));
       }
     } else {
-      // List<SecondaryType> shownSecondaries = SecondaryType.values
-      //     .where((element) => element.compatibilityCheck(playerData
-      //         .selectedWeapons[widget.isPrimary ? 0 : 1]!
-      //         .createFunction(null, null)))
-      //     .toList();
-      // shownSecondaries.sort((a, b) => a.baseCost.compareTo(b.baseCost));
-
-      // for (var secondaryType in shownSecondaries) {
       entries.add(WeaponSelectorTab(
-          gameRef: widget.gameRef,
-          weaponChange: changeWeapon,
-          scrollController: scrollController,
-          key: Key(selectedSecondary?.name ?? ""),
-          animateLeft: previousPressLeft,
-          isPrimary: widget.isPrimary,
-          // onSelect: widget.onSelect,
-          secondaryType: selectedSecondary));
-      // }
+        gameRef: widget.gameRef,
+        scrollController: scrollController,
+        isPrimarySlot: widget.isPrimarySlot,
+      ));
     }
 
     return Center(
@@ -411,7 +337,14 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                           controller: scrollController,
                           shrinkWrap: true,
                           children: entries
-                              .animate(interval: .15.seconds)
+                              .animate(
+                                interval: .15.seconds,
+                                onComplete: (controller) {
+                                  InputManager()
+                                      .customInputWatcherManager
+                                      .updateCustomInputWatcherRectangles();
+                                },
+                              )
                               .fadeIn()
                               .moveX(begin: -200, curve: Curves.easeOutCirc),
                         ),
@@ -437,8 +370,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                           "Back",
                           zHeight: 1,
                           zIndex: 1,
-                          groupId: 15,
-                          groupOrientation: Axis.vertical,
+                          rowId: 666,
                           gameRef: widget.gameRef,
                           onPrimary: () => widget.onBack(),
                         ),
@@ -651,8 +583,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
-          isSecondaryAbility: false,
-          isPrimary: true,
+          isPrimaryAttack: false,
+          isPrimarySlot: true,
           gameRef: widget.gameRef,
           onBack: () {
             setState(() {
@@ -672,8 +604,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
-          isSecondaryAbility: true,
-          isPrimary: true,
+          isPrimaryAttack: true,
+          isPrimarySlot: true,
           gameRef: widget.gameRef,
           onBack: () {
             setState(() {
@@ -690,7 +622,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
-          isSecondaryAbility: false,
+          isPrimaryAttack: false,
           // onSelect: (weaponType) {
           //   if (playerDataComponent.dataObject.selectedWeapons.values
           //       .contains(weaponType)) return;
@@ -699,7 +631,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
           //     playerDataComponent.notifyListeners();
           //   });
           // },
-          isPrimary: false,
+          isPrimarySlot: false,
           gameRef: widget.gameRef,
           onBack: () {
             setState(() {
@@ -719,8 +651,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
       onTap: () {
         weaponSelector = WeaponSecondarySelector(
           key: UniqueKey(),
-          isSecondaryAbility: true,
-          isPrimary: false,
+          isPrimaryAttack: true,
+          isPrimarySlot: false,
           gameRef: widget.gameRef,
           onBack: () {
             setState(() {
@@ -787,9 +719,8 @@ class _WeaponMenuState extends State<WeaponMenu> {
                     child: CustomButton(
                       "Back",
                       gameRef: widget.gameRef,
-                      groupOrientation: Axis.horizontal,
                       zHeight: 1,
-                      groupId: 5,
+                      rowId: 5,
                       onPrimary: () {
                         setState(() {
                           exitFunction = () {
@@ -818,8 +749,7 @@ class _WeaponMenuState extends State<WeaponMenu> {
                     alignment: Alignment.centerRight,
                     child: CustomButton(
                       "Choose Level",
-                      groupOrientation: Axis.horizontal,
-                      groupId: 5,
+                      rowId: 5,
                       zHeight: 1,
                       gameRef: widget.gameRef,
                       onPrimary: () {

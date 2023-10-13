@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -104,8 +105,7 @@ class _LevelMenuState extends State<LevelMenu> {
             );
           },
           scrollController: scrollController,
-          groupId: isLevel ? 50 : 100,
-          groupOrientation: Axis.vertical,
+          rowId: 1,
           onPrimary: () {
             if (isLevel) {
               setSelectedLevel(index);
@@ -263,14 +263,16 @@ class _LevelMenuState extends State<LevelMenu> {
         Positioned.fill(
           top: null,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              const SizedBox(
+                width: menuBaseBarWidthPadding,
+              ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(8),
                 child: CustomButton(
                   "Back",
                   zHeight: 1,
-                  groupOrientation: Axis.horizontal,
+                  rowId: 666,
                   gameRef: widget.gameRef,
                   onPrimary: () {
                     setState(() {
@@ -282,12 +284,13 @@ class _LevelMenuState extends State<LevelMenu> {
                   },
                 ),
               ),
+              const Spacer(),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(8),
                 child: CustomButton(
                   "Begin",
                   zHeight: 1,
-                  groupOrientation: Axis.horizontal,
+                  rowId: 666,
                   gameRef: widget.gameRef,
                   onPrimary: () {
                     setState(() {
@@ -298,6 +301,9 @@ class _LevelMenuState extends State<LevelMenu> {
                     });
                   },
                 ),
+              ),
+              const SizedBox(
+                width: menuBaseBarWidthPadding,
               ),
             ],
           ),

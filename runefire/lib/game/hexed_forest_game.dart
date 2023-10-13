@@ -76,7 +76,6 @@ class HexedForestBackground extends BackgroundComponent {
 
     anchor = Anchor.center;
     priority = backgroundPriority;
-    positionType = PositionType.widget;
     scale = Vector2.all(.02);
     size = Vector2.all(50);
     return super.onLoad();
