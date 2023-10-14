@@ -415,7 +415,7 @@ abstract class Entity extends BodyComponent<GameRouter>
       type: BodyType.dynamic,
       allowSleep: false,
       active: true,
-      linearDamping: 12,
+      linearDamping: 15,
       fixedRotation: true,
     );
 

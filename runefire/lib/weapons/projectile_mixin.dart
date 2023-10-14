@@ -399,7 +399,7 @@ mixin LaserProjectile on FadeOutProjectile {
 
   @override
   Body createBody() {
-    debugMode = false;
+    // debugMode = false;
     renderBody = false;
 
     // assert(!allowChainingOrHoming || !followWeapon);

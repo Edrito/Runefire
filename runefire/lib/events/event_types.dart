@@ -51,9 +51,6 @@ class DeathHandEvent extends PositionEvent {
         onTick: (entity, areaId) async {
           entity.applyHitAnimation(await spriteAnimations.scratchEffect1,
               entity.center, DamageType.fire.color);
-          if (entity is Player) {
-            entity.applyCameraShake(null, 25, .2);
-          }
         },
         animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
             spawnAnimation: spriteAnimation,

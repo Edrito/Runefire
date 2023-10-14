@@ -6,12 +6,13 @@ import 'dart:ffi';
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShakeEffect;
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
@@ -20,6 +21,8 @@ import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/resources/data_classes/system_data.dart';
+import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/constants/priorities.dart';
@@ -104,8 +107,7 @@ class Player extends Entity
   }
 
   @override
-  // TODO: implement handJointOffset
-  Vector2 get handJointOffset => Vector2(0, .1);
+  Vector2 get handJointOffset => Vector2(0, 1);
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -155,6 +157,7 @@ class Player extends Entity
     instance.removeGameActionListener(GameAction.jump, jumpAction);
     instance.removeGameActionListener(GameAction.primary, primaryAction);
     instance.removeGameActionListener(GameAction.secondary, secondaryAction);
+    instance.gamepadEventList.remove(parseGamepadJoy);
     instance.keyEventList.remove(onKeyEvent);
     instance.onPointerMoveList.remove(pointerMoveAction);
 
@@ -163,19 +166,78 @@ class Player extends Entity
 
   late final CircleComponent circleComponent;
 
-  void pointerMoveAction(MovementType type, PointerMoveEvent event) {
-    if (type == MovementType.mouse && isLoaded) {
+  void pointerMoveAction(ExternalInputType type, Offset pos) {
+    if (type == ExternalInputType.mouseKeyboard && isLoaded) {
       final position = (shiftCoordinatesToCenter(
-                  event.localPosition.toVector2(),
-                  enviroment.gameCamera.viewport.size) /
+                  pos.toVector2(), enviroment.gameCamera.viewport.size) /
               enviroment.zoom) -
-          entityOffsetFromCameraCenter -
-          handJointOffset;
+          entityOffsetFromCameraCenter;
 
       addAimPosition(position, userInputPriority);
-      addAimAngle(position.normalized(), userInputPriority);
+      addAimAngle((position - handJointOffset).normalized(), userInputPriority);
     }
   }
+
+  @override
+  void applyDamage(DamageInstance damage) {
+    gameEnviroment.gameCamera.viewport.add(ShakeEffect(
+        EffectController(duration: .1),
+        intensity: (damage.isCrit ? 8 : 2)));
+
+    InputManager().applyVibration(
+        damage.damage == double.infinity ? 1 : .3, damage.isCrit ? .8 : .4);
+
+    super.applyDamage(damage);
+  }
+
+  void parseGamepadJoy(GamepadEvent event) {
+    GamepadButtons buttonToCheck = event.button;
+    bool swapJoys = game.systemDataComponent.dataObject.flipJoystickControl;
+
+    if (swapJoys) {
+      if (buttonToCheck == GamepadButtons.leftJoy) {
+        buttonToCheck = GamepadButtons.rightJoy;
+      } else if (buttonToCheck == GamepadButtons.rightJoy) {
+        buttonToCheck = GamepadButtons.leftJoy;
+      }
+    }
+
+    switch (event.button) {
+      case GamepadButtons.leftJoy:
+        if (event.pressState == PressState.released) {
+          removeMoveVelocity(gamepadUserInputPriority);
+        } else {
+          final eventXY = event.xyValue.toVector2();
+          final normalized = eventXY.normalized();
+          addMoveVelocity(normalized * eventXY.length.clamp(0, 1),
+              gamepadUserInputPriority, false);
+        }
+
+        break;
+      case GamepadButtons.rightJoy:
+        if (event.pressState == PressState.released) {
+          // removeAimAngle(gamepadUserInputPriority);
+          // removeAimPosition(gamepadUserInputPriority);
+        } else {
+          addAimAngle(event.xyValue.toVector2(), userInputPriority);
+          print(event.xyValue);
+          final newPos = InputManager().getGamepadCursorPosition?.toVector2();
+          if (newPos != null) {
+            final position = (shiftCoordinatesToCenter(
+                        newPos, enviroment.gameCamera.viewport.size) /
+                    enviroment.zoom) -
+                entityOffsetFromCameraCenter;
+
+            addAimPosition(position, userInputPriority);
+          }
+        }
+
+        break;
+      default:
+    }
+  }
+
+  Vector2 previousGamepadAimPosition = Vector2.zero();
 
   @override
   Future<void> onLoad() async {
@@ -192,6 +254,7 @@ class Player extends Entity
     instance.addGameActionListener(GameAction.jump, jumpAction);
     instance.addGameActionListener(GameAction.primary, primaryAction);
     instance.addGameActionListener(GameAction.secondary, secondaryAction);
+    instance.gamepadEventList.add(parseGamepadJoy);
     instance.keyEventList.add(onKeyEvent);
     instance.onPointerMoveList.add(pointerMoveAction);
 
@@ -200,13 +263,6 @@ class Player extends Entity
     priority = playerPriority;
 
     await loadAnimationSprites();
-
-    cloestEnemyTimer = TimerComponent(
-      period: .5,
-      onTick: () {
-        findClosestEnemy();
-      },
-    );
 
     await super.onLoad();
   }
@@ -241,31 +297,88 @@ class Player extends Entity
 
   @override
   void update(double dt) {
-    // if (!isDisplay) {
     moveCharacter();
-    // }
+    applyAimAssist();
+    aimHandJoint();
+    aimMouseJoint();
+    if (closeEnemyCheckTimer > closeEnemyCheckInterval) {
+      findClosestEnemy();
+      closeEnemyCheckTimer = 0;
+    } else {
+      closeEnemyCheckTimer += dt;
+    }
+
     super.update(dt);
-    aimCharacter();
   }
 
+  double closeEnemyCheckInterval = .1;
+  double closeEnemyCheckTimer = 0;
+
   Enemy? closestEnemy;
-  late TimerComponent cloestEnemyTimer;
+  Enemy? closestEnemyToMouse;
+  Enemy? aimAssistEnemy;
+
+  void applyAimAssist() {
+    ExternalInputType inputType = InputManager().externalInputType;
+    AimAssistStrength aimAssistStrength =
+        game.systemDataComponent.dataObject.aimAssistStrength;
+    if (aimAssistStrength == AimAssistStrength.none) return;
+
+    switch (inputType) {
+      case ExternalInputType.mouseKeyboard:
+        final aimPos = getAimPosition(userInputPriority);
+        var clostestEnemyToMousePos = closestEnemyToMouse?.center;
+        if (aimPos != null && clostestEnemyToMousePos != null) {
+          clostestEnemyToMousePos -= enviroment.gameCamera.viewfinder.position +
+              entityOffsetFromCameraCenter +
+              handJointOffset;
+          if (aimPos.distanceTo(clostestEnemyToMousePos) <
+              aimAssistStrength.threshold) {
+            addAimAngle(
+                clostestEnemyToMousePos.normalized(), aimAssistInputPriority);
+
+            // addAimPosition(clostestEnemyToMousePos, aimAssistInputPriority);
+          } else {
+            // removeAimPosition(aimAssistInputPriority);
+            removeAimAngle(aimAssistInputPriority);
+          }
+        }
+
+        break;
+      default:
+    }
+  }
 
   void findClosestEnemy() {
     double closestDistance = double.infinity;
+    double closestDistanceMouse = double.infinity;
 
-    for (var otherBody in world.physicsWorld.bodies.where((element) =>
-        element.userData is Enemy && !(element.userData as Enemy).isDead)) {
+    final enemyList = world.physicsWorld.bodies.where((element) =>
+        element.userData is Enemy && !(element.userData as Enemy).isDead);
+    var aimPosition = getAimPosition(userInputPriority);
+
+    if (aimPosition != null) {
+      aimPosition += enviroment.gameCamera.viewfinder.position;
+    }
+
+    for (var otherBody in enemyList) {
       if (otherBody.worldCenter.distanceTo(center) < closestDistance) {
         closestDistance = otherBody.worldCenter.distanceTo(center);
         closestEnemy = otherBody.userData as Enemy;
+      }
+
+      if (aimPosition != null &&
+          otherBody.worldCenter.distanceTo(aimPosition) <
+              closestDistanceMouse) {
+        closestDistanceMouse = otherBody.worldCenter.distanceTo(aimPosition);
+        closestEnemyToMouse = otherBody.userData as Enemy;
       }
     }
   }
 
   Vector2 tempMoveAngle = Vector2.zero();
 
-  void onMoveAction(GameActionEvent _, List<GameAction> activeGameActions) {
+  void onMoveAction(GameActionEvent _, Set<GameAction> activeGameActions) {
     tempMoveAngle.setZero();
 
     if (activeGameActions.contains(GameAction.moveRight)) {
@@ -289,32 +402,42 @@ class Player extends Entity
   }
 
   void primaryAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (gameActionEvent.isDownEvent) {
-      startPrimaryAttacking();
-    } else {
-      endPrimaryAttacking();
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    switch (gameActionEvent.pressState) {
+      case PressState.pressed:
+        startPrimaryAttacking();
+        break;
+      case PressState.released:
+        endPrimaryAttacking();
+
+        break;
+      default:
     }
   }
 
   void secondaryAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (gameActionEvent.isDownEvent) {
-      startSecondaryAttacking();
-    } else {
-      endSecondaryAttacking();
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    switch (gameActionEvent.pressState) {
+      case PressState.pressed:
+        startSecondaryAttacking();
+        break;
+      case PressState.released:
+        endSecondaryAttacking();
+
+        break;
+      default:
     }
   }
 
   void swapWeaponAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (!gameActionEvent.isDownEvent) return;
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (gameActionEvent.pressState != PressState.pressed) return;
     swapWeapon();
   }
 
   void reloadWeaponAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (!gameActionEvent.isDownEvent) return;
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (gameActionEvent.pressState != PressState.pressed) return;
     if (currentWeapon is ReloadFunctionality) {
       final currentWeaponReload = currentWeapon as ReloadFunctionality;
       if (currentWeaponReload.isReloading ||
@@ -325,28 +448,28 @@ class Player extends Entity
   }
 
   void jumpAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (!gameActionEvent.isDownEvent) return;
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (gameActionEvent.pressState != PressState.pressed) return;
     setEntityStatus(EntityStatus.jump);
   }
 
   void dashAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (!gameActionEvent.isDownEvent) return;
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (gameActionEvent.pressState != PressState.pressed) return;
     setEntityStatus(EntityStatus.dash);
   }
 
   void interactAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (!gameActionEvent.isDownEvent) return;
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (gameActionEvent.pressState != PressState.pressed) return;
     if (_interactableComponents.isNotEmpty) {
       _interactableComponents.first.interact();
     }
   }
 
   void expendableAction(
-      GameActionEvent gameActionEvent, List<GameAction> activeGameActions) {
-    if (!gameActionEvent.isDownEvent) return;
+      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (gameActionEvent.pressState != PressState.pressed) return;
     useExpendable();
   }
 

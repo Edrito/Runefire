@@ -283,7 +283,7 @@ class ArcaneBlaster extends PlayerWeapon
   ];
 
   @override
-  double weaponScale = 1;
+  double weaponScale = .5;
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
   @override

@@ -29,6 +29,7 @@ import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
+import 'package:uuid/uuid.dart';
 // import 'package:win32_gamepad/win32_gamepad.dart';
 import 'game/menu_game.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -40,13 +41,11 @@ import 'package:win32_gamepad/win32_gamepad.dart';
 
 typedef GameActionEvent = ({
   GameAction gameAction,
-  bool isDownEvent,
+  PressState pressState,
 });
 
 typedef GameActionCallback = Function(
-    GameActionEvent gameAction, List<GameAction> activeGameActions);
-
-enum MovementType { mouse, tap1, tap2 }
+    GameActionEvent gameAction, Set<GameAction> activeGameActions);
 
 enum CustomInputWatcherEvents {
   hoverOn,
@@ -83,6 +82,268 @@ class EventDetectedException implements Exception {}
 //   final double value;
 // }
 
+class GamepadInputManager {
+  bool _checkAnalogStick(int x, int y, GamepadButtons stickToCheck) {
+    final capabilities = GamepadCapabilities(0);
+    int deadzone;
+    if (stickToCheck == GamepadButtons.leftJoy) {
+      deadzone = capabilities.leftThumbDeadzone;
+    } else {
+      deadzone = capabilities.rightThumbDeadzone;
+    }
+    // deadzone = 20000;
+    bool isInDeadZone = x.abs() < deadzone && y.abs() < deadzone;
+    bool eventActive = _gamepadEvents.containsKey(stickToCheck);
+
+    if (eventActive && isInDeadZone) {
+      _gamepadEvents.remove(stickToCheck);
+      tempPressState = PressState.released;
+      tempGamepadButton = stickToCheck;
+      return true;
+    } else if (!isInDeadZone) {
+      final double xClamped = (x / 32777).clamp(-1, 1);
+      double yClamped = (y / 32777).clamp(-1, 1);
+      if (!parentInputManager._systemDataReference.invertYAxis) {
+        yClamped *= -1;
+      }
+      tempXyValue = Offset(xClamped, yClamped);
+
+      tempPressState = eventActive ? PressState.held : PressState.pressed;
+      tempGamepadButton = stickToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  bool _checkSimpleButton(bool state, GamepadButtons buttonToCheck) {
+    if (_gamepadEvents.containsKey(buttonToCheck)) {
+      if (!state) {
+        _gamepadEvents.remove(buttonToCheck);
+        tempPressState = PressState.released;
+
+        tempGamepadButton = buttonToCheck;
+        return true;
+      } else {
+        tempPressState = PressState.held;
+
+        tempGamepadButton = buttonToCheck;
+        return true;
+      }
+    } else if (state) {
+      tempPressState = PressState.pressed;
+
+      tempGamepadButton = buttonToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  bool _checkTrigger(int value, GamepadButtons triggerToCheck) {
+    final capabilities = GamepadCapabilities(0);
+
+    bool isInDeadZone = value < capabilities.triggerThreshold;
+    bool eventActive = _gamepadEvents.containsKey(triggerToCheck);
+    if (eventActive && isInDeadZone) {
+      _gamepadEvents.remove(triggerToCheck);
+      tempSingleValue = 0;
+      tempPressState = PressState.released;
+
+      tempGamepadButton = triggerToCheck;
+      return true;
+    } else if (!isInDeadZone) {
+      final double valueClamped = (value / 255).clamp(0, 1);
+      tempSingleValue = valueClamped;
+      tempPressState = eventActive ? PressState.held : PressState.pressed;
+
+      tempGamepadButton = triggerToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  void _initCheckGamepadTimer() {
+    _checkGamepadTimer ??=
+        ac.Timer.periodic(_updateGamepadTimerDuration * 20, (timer) {
+      updateState();
+    });
+  }
+
+  void _initGamepadTimer() {
+    _updateGamepadTimer ??=
+        ac.Timer.periodic(_updateGamepadTimerDuration, (timer) {
+      updateState();
+    });
+  }
+
+  GamepadInputManager(
+      this.parentInputManager, this.onGamepadEvent, this._gameRouterReference) {
+    _initCheckGamepadTimer();
+  }
+
+  final gamepad = Gamepad(0); // primary controller
+  final Function(GamepadEvent event) onGamepadEvent;
+  final InputManager parentInputManager;
+
+  GamepadButtons tempGamepadButton = GamepadButtons.buttonBack;
+  PressState tempPressState = PressState.released;
+  double tempSingleValue = 0;
+
+  ///dont need to make new variables each tick
+  Offset tempXyValue = Offset.zero;
+
+  static const Duration _updateGamepadTimerDuration =
+      Duration(milliseconds: 10);
+
+  final GameRouter _gameRouterReference;
+
+  ///
+  final Map<GamepadButtons, GamepadEvent> _gamepadEvents = {};
+
+  ac.Timer? _checkGamepadTimer;
+  ac.Timer? _updateGamepadTimer;
+
+  void createEvent() {
+    late final GamepadEvent gamepadEvent;
+    if (_gamepadEvents.containsKey(tempGamepadButton)) {
+      gamepadEvent = _gamepadEvents[tempGamepadButton]!
+        ..pressState = tempPressState
+        ..singleValue = tempSingleValue
+        ..xyValue = (tempXyValue);
+    } else {
+      gamepadEvent = GamepadEvent(
+          tempGamepadButton, tempXyValue, tempSingleValue, tempPressState);
+      if (tempPressState != PressState.released) {
+        _gamepadEvents[tempGamepadButton] = gamepadEvent;
+      }
+    }
+    //each event should only be processed once per tick
+    onGamepadEvent(gamepadEvent);
+  }
+
+  Offset? fetchJoyState(GamepadButtons joy) {
+    switch (joy) {
+      case GamepadButtons.leftJoy:
+        return _gamepadEvents[GamepadButtons.leftJoy]?.xyValue;
+
+      case GamepadButtons.rightJoy:
+        return _gamepadEvents[GamepadButtons.rightJoy]?.xyValue;
+
+      default:
+        return null;
+    }
+  }
+
+  void parseGameState() {
+    GamepadState event = gamepad.state;
+    if (_gamepadEvents.isEmpty && !event.isConnected) {
+      _updateGamepadTimer?.cancel();
+      _updateGamepadTimer = null;
+      _initCheckGamepadTimer();
+      return;
+    } else {
+      _checkGamepadTimer?.cancel();
+      _checkGamepadTimer = null;
+      _initGamepadTimer();
+    }
+
+    bool shouldCreateEvent = false;
+    for (var element in GamepadButtons.values) {
+      shouldCreateEvent = false; // Initialize to false
+      tempXyValue = Offset.zero;
+      tempSingleValue = 0;
+      tempPressState = PressState.released;
+      tempGamepadButton = element;
+      switch (element) {
+        case GamepadButtons.dpadUp:
+          shouldCreateEvent =
+              _checkSimpleButton(event.dpadUp, GamepadButtons.dpadUp);
+          break;
+        case GamepadButtons.dpadDown:
+          shouldCreateEvent =
+              _checkSimpleButton(event.dpadDown, GamepadButtons.dpadDown);
+          break;
+        case GamepadButtons.dpadLeft:
+          shouldCreateEvent =
+              _checkSimpleButton(event.dpadLeft, GamepadButtons.dpadLeft);
+          break;
+        case GamepadButtons.dpadRight:
+          shouldCreateEvent =
+              _checkSimpleButton(event.dpadRight, GamepadButtons.dpadRight);
+          break;
+        case GamepadButtons.buttonA:
+          shouldCreateEvent =
+              _checkSimpleButton(event.buttonA, GamepadButtons.buttonA);
+          break;
+        case GamepadButtons.buttonB:
+          shouldCreateEvent =
+              _checkSimpleButton(event.buttonB, GamepadButtons.buttonB);
+          break;
+        case GamepadButtons.buttonX:
+          shouldCreateEvent =
+              _checkSimpleButton(event.buttonX, GamepadButtons.buttonX);
+          break;
+        case GamepadButtons.buttonY:
+          shouldCreateEvent =
+              _checkSimpleButton(event.buttonY, GamepadButtons.buttonY);
+          break;
+        case GamepadButtons.leftShoulder:
+          shouldCreateEvent = _checkSimpleButton(
+              event.leftShoulder, GamepadButtons.leftShoulder);
+          break;
+        case GamepadButtons.rightShoulder:
+          shouldCreateEvent = _checkSimpleButton(
+              event.rightShoulder, GamepadButtons.rightShoulder);
+          break;
+        case GamepadButtons.leftThumb:
+          shouldCreateEvent =
+              _checkSimpleButton(event.leftThumb, GamepadButtons.leftThumb);
+          break;
+        case GamepadButtons.rightThumb:
+          shouldCreateEvent =
+              _checkSimpleButton(event.rightThumb, GamepadButtons.rightThumb);
+          break;
+        case GamepadButtons.buttonStart:
+          shouldCreateEvent =
+              _checkSimpleButton(event.buttonStart, GamepadButtons.buttonStart);
+          break;
+        case GamepadButtons.buttonBack:
+          shouldCreateEvent =
+              _checkSimpleButton(event.buttonBack, GamepadButtons.buttonBack);
+          break;
+        case GamepadButtons.leftJoy:
+          shouldCreateEvent = _checkAnalogStick(event.leftThumbstickX,
+              event.leftThumbstickY, GamepadButtons.leftJoy);
+          break;
+        case GamepadButtons.rightJoy:
+          shouldCreateEvent = _checkAnalogStick(event.rightThumbstickX,
+              event.rightThumbstickY, GamepadButtons.rightJoy);
+          break;
+        case GamepadButtons.leftTrigger:
+          shouldCreateEvent =
+              _checkTrigger(event.leftTrigger, GamepadButtons.leftTrigger);
+          break;
+        case GamepadButtons.rightTrigger:
+          shouldCreateEvent =
+              _checkTrigger(event.rightTrigger, GamepadButtons.rightTrigger);
+          break;
+      }
+      if (shouldCreateEvent) {
+        createEvent();
+      }
+    }
+
+// checkSimpleButton(event.leftTrigger, GamepadButtons.leftTrigger);
+// checkSimpleButton(event.rightTrigger, GamepadButtons.rightTrigger );
+  }
+
+  void updateState() {
+    if (_gameRouterReference.paused) {
+      gamepad.updateState();
+      parseGameState();
+    }
+  }
+}
+
 class InputManager with WindowListener {
   //Const duration for the primary and secondary hold tick rate
   static const Duration incrementDuration = Duration(milliseconds: 50);
@@ -96,187 +357,36 @@ class InputManager with WindowListener {
     windowManager.addListener(this);
   }
 
-  final gamepad = Gamepad(0); // primary controller
-
   late final CustomInputWatcherManager customInputWatcherManager;
+  late final GamepadInputManager gamepadInputManager;
 
   //Keyboard
   List<Function(KeyEvent event)> keyEventList = [];
+
   // Keyboard
-  List<Function(GamepadState event)> gamepadEventList = [];
-  Map<GamepadButtons, bool> eventsProcessed = {};
-
-  bool checkSimpleButton(bool state, GamepadButtons buttonToCheck) {
-    if (eventsProcessed[buttonToCheck] ?? false) return false;
-
-    if (gamepadEvents.containsKey(buttonToCheck)) {
-      if (!state) {
-        gamepadEvents.remove(buttonToCheck);
-        createEvent = true;
-        isPressed = false;
-        button = buttonToCheck;
-        return true;
-      }
-    } else if (state) {
-      createEvent = true;
-      isPressed = true;
-      button = buttonToCheck;
-      return true;
-    }
-    return false;
-  }
-
-  bool checkAnalogStick(int x, int y, GamepadButtons stickToCheck) {
-    if (eventsProcessed[stickToCheck] ?? false) return false;
-    final capabilities = GamepadCapabilities(0);
-    int deadzone;
-    if (stickToCheck == GamepadButtons.leftJoy) {
-      deadzone = capabilities.leftThumbDeadzone;
-    } else {
-      deadzone = capabilities.rightThumbDeadzone;
-    }
-    bool isInDeadZone = x.abs() < deadzone && y.abs() < deadzone;
-
-    if (gamepadEvents.containsKey(stickToCheck) && isInDeadZone) {
-      gamepadEvents.remove(stickToCheck);
-      createEvent = true;
-      xyValue.setZero();
-      isPressed = false;
-      button = stickToCheck;
-      return true;
-    } else if (!isInDeadZone) {
-      final double xClamped = (x / 32777).clamp(-1, 1);
-      final double yClamped = (y / 32777).clamp(-1, 1);
-      createEvent = true;
-      xyValue.setValues(xClamped, yClamped);
-      isPressed = true;
-      button = stickToCheck;
-      return true;
-    }
-    return false;
-  }
-
-  bool checkTrigger(int value, GamepadButtons triggerToCheck) {
-    if (eventsProcessed[triggerToCheck] ?? false) return false;
-    final capabilities = GamepadCapabilities(0);
-
-    bool isInDeadZone = value < capabilities.triggerThreshold;
-
-    if (gamepadEvents.containsKey(triggerToCheck) && isInDeadZone) {
-      gamepadEvents.remove(triggerToCheck);
-      createEvent = true;
-      singleValue = 0;
-      isPressed = false;
-      button = triggerToCheck;
-      return true;
-    } else if (!isInDeadZone) {
-      final double valueClamped = (value / 255).clamp(0, 1);
-      createEvent = true;
-      singleValue = valueClamped;
-      isPressed = true;
-      button = triggerToCheck;
-      return true;
-    }
-    return false;
-  }
-
-  ///
-  Map<GamepadButtons, GamepadEvent> gamepadEvents = {};
-  Vector2 xyValue = Vector2.zero();
-  double singleValue = 0;
-  bool shouldWaitForNextEvent = false;
-  bool createEvent = false;
-  late GamepadButtons button;
-  late bool isPressed;
-  void parseGameState() {
-    GamepadState event = gamepad.state;
-    createEvent = false;
-    xyValue.setZero();
-    singleValue = 0;
-
-    try {
-      if (checkSimpleButton(event.dpadUp, GamepadButtons.dpadUp) ||
-          checkSimpleButton(event.dpadDown, GamepadButtons.dpadDown) ||
-          checkSimpleButton(event.dpadLeft, GamepadButtons.dpadLeft) ||
-          checkSimpleButton(event.dpadRight, GamepadButtons.dpadRight) ||
-          checkSimpleButton(event.buttonA, GamepadButtons.buttonA) ||
-          checkSimpleButton(event.buttonB, GamepadButtons.buttonB) ||
-          checkSimpleButton(event.buttonX, GamepadButtons.buttonX) ||
-          checkSimpleButton(event.buttonY, GamepadButtons.buttonY) ||
-          checkSimpleButton(event.leftShoulder, GamepadButtons.leftShoulder) ||
-          checkSimpleButton(
-              event.rightShoulder, GamepadButtons.rightShoulder) ||
-          checkSimpleButton(event.leftThumb, GamepadButtons.leftThumb) ||
-          checkSimpleButton(event.rightThumb, GamepadButtons.rightThumb) ||
-          checkSimpleButton(event.buttonStart, GamepadButtons.buttonStart) ||
-          checkSimpleButton(event.buttonBack, GamepadButtons.buttonBack) ||
-          checkAnalogStick(event.leftThumbstickX, event.leftThumbstickY,
-              GamepadButtons.leftJoy) ||
-          checkAnalogStick(event.rightThumbstickX, event.rightThumbstickY,
-              GamepadButtons.rightJoy) ||
-          checkTrigger(event.leftTrigger, GamepadButtons.leftTrigger) ||
-          checkTrigger(event.rightTrigger, GamepadButtons.rightTrigger)) {
-        return;
-      }
-
-// checkSimpleButton(event.leftTrigger, GamepadButtons.leftTrigger);
-// checkSimpleButton(event.rightTrigger, GamepadButtons.rightTrigger );
-    } finally {
-      if (createEvent) {
-        final GamepadEvent gamepadEvent =
-            GamepadEvent(button, xyValue, singleValue, isPressed);
-        if (gamepadEvent.isPressed) {
-          gamepadEvents[button] = gamepadEvent;
-        }
-        eventsProcessed[button] = true;
-        onGamepadEvent(gamepadEvent);
-        parseGameState();
-      }
-    }
-  }
-
-  void onGamepadEvent(GamepadEvent event) {
-    print(event);
-    // for (var element in gamepadEventList) {
-    //   element.call(event);
-    // }
-
-    // bool isDownEvent = event.type == KeyType.button
-    //     ? event.value == 1.0
-    //     : (event.value / 32777).clamp(0, 1.0) > .75;
-
-    // externalInputType = ExternalInputType.gamepad;
-    // final mappedActions = _systemDataReference.gamePadMappings.entries
-    //     .where((element) => element.value.any(event.key));
-    // for (var element in mappedActions) {
-    //   onGameActionCall((gameAction: element.key, isDownEvent: isDownEvent));
-    // }
-
-    // final constantMappedActions = _systemDataReference
-    //     .constantGamePadMappings.entries
-    //     .where((element) => element.value == (event.key));
-    // for (var element in constantMappedActions) {
-    //   onGameActionCall((gameAction: element.key, isDownEvent: isDownEvent));
-    // }
-  }
+  List<Function(GamepadEvent event)> gamepadEventList = [];
 
   List<Function(PointerDownEvent event)> pointerDownList = [];
-
   // Callbacks for pointer moving
-  List<Function(MovementType type, PointerMoveEvent event)> onPointerMoveList =
+  List<Function(ExternalInputType type, Offset position)> onPointerMoveList =
       [];
 
   //Window events (windows only I think)
   List<Function(String windowEvent)> onWindowEventList = [];
 
   //Currently active game actions, passed into game callbacks
-  List<GameAction> activeGameActions = [];
+  Set<GameAction> activeGameActions = {};
 
   //for secondary pointer if using mobile
   Set<int> activePointers = {};
 
   //for icons
-  ExternalInputType externalInputType = ExternalInputType.touch;
+  ExternalInputType _externalInputType = ExternalInputType.touch;
+
+  ExternalInputType get externalInputType => _externalInputType;
+  set externalInputType(ExternalInputType value) {
+    _externalInputType = value;
+  }
 
   //tick rate faker for primary and secondary mouse/pointer holding
   ac.Timer? holdCallTimer;
@@ -288,9 +398,13 @@ class InputManager with WindowListener {
   //easy access to pointer locations
   Map<int, Offset> pointerLocalPositions = {};
 
+  Offset? latestPointerPosition;
+
   //You can only determine if a input click is a secondary click on the pointer down event
   //so we use this to determine what pointer is the secondary when the various "pointer down" etc functions are called
   int? secondaryPointerId;
+
+  Offset? _gamepadCursorPosition;
 
   //singleton
   static final InputManager _instance = InputManager._internal();
@@ -299,12 +413,12 @@ class InputManager with WindowListener {
   late final SystemData _systemDataReference;
 
   //callbacks
-  final Map<GameAction, List<GameActionCallback>> _onGameActionMap = {};
+  final Map<GameAction, Set<GameActionCallback>> _onGameActionMap = {};
 
   //Game components use this to add new callbacks
   void addGameActionListener(
       GameAction gameAction, GameActionCallback callback) {
-    _onGameActionMap[gameAction] ??= [];
+    _onGameActionMap[gameAction] ??= {};
     _onGameActionMap[gameAction]!.add(callback);
   }
 
@@ -332,29 +446,96 @@ class InputManager with WindowListener {
     });
   }
 
+  void clearGamepadCursorPosition() => _gamepadCursorPosition = null;
+  Offset? get getGamepadCursorPosition => _gamepadCursorPosition;
+
+  void buildGamepadCursor(GamepadEvent event) {
+    GamepadButtons buttonToWatch = _systemDataReference.flipJoystickControl
+        ? GamepadButtons.leftJoy
+        : GamepadButtons.rightJoy;
+    if (event.button != buttonToWatch) return;
+    final gameRouterSizeOffset = _gameRouterReference.size.toOffset();
+    _gamepadCursorPosition ??= gameRouterSizeOffset / 2;
+
+    _gamepadCursorPosition =
+        _gamepadCursorPosition! + (event.xyValue * gamepadCursorSpeed);
+    _gamepadCursorPosition = Offset(
+        _gamepadCursorPosition!.dx.clamp(0, gameRouterSizeOffset.dx),
+        _gamepadCursorPosition!.dy.clamp(0, gameRouterSizeOffset.dy));
+
+    pointerFunnel(_gamepadCursorPosition!, ExternalInputType.gamepad, -1);
+
+    // customInputWatcherManager.onPointerMove();
+  }
+
+  Offset? fetchJoyState(GamepadButtons joy) {
+    return gamepadInputManager.fetchJoyState(joy);
+  }
+
+  String? vibrationId;
+
+  void cancelVibration() {
+    vibrationId = null;
+    _setVibrationZero();
+  }
+
+  void _setVibrationZero() => gamepadInputManager.gamepad
+      .vibrate(leftMotorSpeed: 0, rightMotorSpeed: 0);
+
+  Future<void> applyVibration(double? duration, double intensity,
+      [bool? leftOnly]) async {
+    if (!_systemDataReference.gamepadVibrationEnabled ||
+        !gamepadInputManager.gamepad.isConnected) return;
+
+    final int mappedIntensity = (65535 * intensity).clamp(0, 65535).toInt();
+    final String id = const Uuid().v1();
+    vibrationId = id;
+    gamepadInputManager.gamepad.vibrate(
+      leftMotorSpeed: leftOnly == true ? 0 : mappedIntensity,
+      rightMotorSpeed: leftOnly == false ? 0 : mappedIntensity,
+    );
+    if (duration != null) {
+      await Future.delayed(duration.seconds, () {
+        if (vibrationId != id) return;
+        _setVibrationZero();
+      });
+    }
+  }
+
   bool keyboardEventHandler(KeyEvent keyEvent) {
     for (var element in keyEventList) {
       element.call(keyEvent);
     }
 
     customInputWatcherManager.handleWidgetKeyboardInput(keyEvent);
+    late final PressState pressState;
+    switch (keyEvent.runtimeType) {
+      case KeyDownEvent:
+        pressState = PressState.pressed;
+        break;
+      case KeyUpEvent:
+        pressState = PressState.released;
 
-    if (keyEvent is KeyRepeatEvent) return false;
+        break;
+      case KeyRepeatEvent:
+        pressState = PressState.held;
 
-    externalInputType = ExternalInputType.keyboard;
+        break;
+      default:
+    }
+
+    externalInputType = ExternalInputType.mouseKeyboard;
     final mappedActions = _systemDataReference.keyboardMappings.entries
         .where((element) => element.value.any(keyEvent.physicalKey));
     for (var element in mappedActions) {
-      onGameActionCall(
-          (gameAction: element.key, isDownEvent: keyEvent is KeyDownEvent));
+      onGameActionCall((gameAction: element.key, pressState: pressState));
     }
 
     final permanentMappedActions = _systemDataReference
         .constantKeyboardMappings.entries
         .where((element) => element.value.contains(keyEvent.physicalKey));
     for (var element in permanentMappedActions) {
-      onGameActionCall(
-          (gameAction: element.key, isDownEvent: keyEvent is KeyDownEvent));
+      onGameActionCall((gameAction: element.key, pressState: pressState));
     }
 
     return !(permanentMappedActions.isEmpty && mappedActions.isEmpty);
@@ -362,14 +543,35 @@ class InputManager with WindowListener {
 
   void onGameActionCall(GameActionEvent event) {
     if (_gameRouterReference.paused) return;
-    if (event.isDownEvent) {
+    if (event.pressState != PressState.released) {
       activeGameActions.add(event.gameAction);
     } else {
       activeGameActions.remove(event.gameAction);
     }
     for (GameActionCallback element
-        in _onGameActionMap[event.gameAction] ?? []) {
+        in _onGameActionMap[event.gameAction] ?? {}) {
       element.call(event, activeGameActions);
+    }
+  }
+
+  void onGamepadEvent(GamepadEvent event) {
+    for (var element in gamepadEventList) {
+      element.call(event);
+    }
+    customInputWatcherManager.handleGamepadInput(event);
+    buildGamepadCursor(event);
+    externalInputType = ExternalInputType.gamepad;
+    final mappedActions = _systemDataReference.gamePadMappings.entries
+        .where((element) => element.value.any(event.button));
+    for (var element in mappedActions) {
+      onGameActionCall((gameAction: element.key, pressState: event.pressState));
+    }
+
+    final constantMappedActions = _systemDataReference
+        .constantGamePadMappings.entries
+        .where((element) => element.value == (event.button));
+    for (var element in constantMappedActions) {
+      onGameActionCall((gameAction: element.key, pressState: event.pressState));
     }
   }
 
@@ -401,30 +603,33 @@ class InputManager with WindowListener {
     }
   }
 
-  void onPointerHover(PointerHoverEvent event) {
-    onPointerMove(PointerMoveEvent(
-      buttons: event.buttons,
-      delta: event.delta,
-      device: event.device,
-      kind: event.kind,
-      position: event.position,
-    ));
+  void onPointerMove(PointerMoveEvent event) {
+    pointerFunnel(
+        event.position,
+        event.kind == PointerDeviceKind.mouse
+            ? ExternalInputType.mouseKeyboard
+            : ExternalInputType.touch,
+        event.pointer);
   }
 
-  void onPointerMove(PointerMoveEvent info) {
-    bool isMouse = info.kind == PointerDeviceKind.mouse;
-    bool isSecondary = activePointers.isNotEmpty;
-    MovementType type = isMouse
-        ? MovementType.mouse
-        : isSecondary
-            ? MovementType.tap2
-            : MovementType.tap1;
+  void onPointerHover(PointerHoverEvent event) {
+    pointerFunnel(
+        event.position,
+        event.kind == PointerDeviceKind.mouse
+            ? ExternalInputType.mouseKeyboard
+            : ExternalInputType.touch,
+        event.pointer);
+  }
 
-    pointerLocalPositions[info.pointer] = info.localPosition;
+  void pointerFunnel(Offset position, ExternalInputType inputType, int id) {
+    externalInputType = inputType;
+
+    pointerLocalPositions[id] = position;
+    latestPointerPosition = position;
     for (var element in onPointerMoveList) {
-      element.call(type, info);
+      element.call(inputType, position);
     }
-    customInputWatcherManager.onPointerMove();
+    customInputWatcherManager.checkStatesHovered();
   }
 
   void onPointerPanZoomEnd(event) {}
@@ -448,20 +653,23 @@ class InputManager with WindowListener {
 
   void onPrimaryCancelCall(PointerCancelEvent info) {
     stopHoldCall(true);
-    onGameActionCall((gameAction: GameAction.primary, isDownEvent: false));
+    onGameActionCall(
+        (gameAction: GameAction.primary, pressState: PressState.released));
 
     customInputWatcherManager.onPrimaryUp();
   }
 
   void onPrimaryDownCall(PointerDownEvent info) {
-    onGameActionCall((gameAction: GameAction.primary, isDownEvent: true));
+    onGameActionCall(
+        (gameAction: GameAction.primary, pressState: PressState.pressed));
     customInputWatcherManager.onPrimary();
 
     beginHoldCall(true);
   }
 
   void onPrimaryUpCall(PointerUpEvent info) {
-    onGameActionCall((gameAction: GameAction.primary, isDownEvent: false));
+    onGameActionCall(
+        (gameAction: GameAction.primary, pressState: PressState.released));
     stopHoldCall(true);
     customInputWatcherManager.onPrimaryUp();
   }
@@ -469,7 +677,8 @@ class InputManager with WindowListener {
   void onSecondaryCancelCall(PointerCancelEvent info) {
     // for (var element in onSecondaryCancel) {
     //   element.call(info);
-    onGameActionCall((gameAction: GameAction.secondary, isDownEvent: false));
+    onGameActionCall(
+        (gameAction: GameAction.secondary, pressState: PressState.released));
     customInputWatcherManager.onSecondaryUp();
 
     stopHoldCall(false);
@@ -477,7 +686,8 @@ class InputManager with WindowListener {
 
   void onSecondaryDownCall(PointerDownEvent info) {
     // for (var element in onSecondaryDown) {
-    onGameActionCall((gameAction: GameAction.secondary, isDownEvent: true));
+    onGameActionCall(
+        (gameAction: GameAction.secondary, pressState: PressState.pressed));
     //   element.call(info);
     beginHoldCall(false);
     customInputWatcherManager.onSecondary();
@@ -488,7 +698,8 @@ class InputManager with WindowListener {
   void onSecondaryUpCall(PointerUpEvent info) {
     // for (var element in onSecondaryUp) {
     //   element.call(info);
-    onGameActionCall((gameAction: GameAction.secondary, isDownEvent: false));
+    onGameActionCall(
+        (gameAction: GameAction.secondary, pressState: PressState.released));
     customInputWatcherManager.onSecondaryUp();
     stopHoldCall(false);
     // }
@@ -505,6 +716,8 @@ class InputManager with WindowListener {
     _systemDataReference = _gameRouterReference.systemDataComponent.dataObject;
     customInputWatcherManager =
         CustomInputWatcherManager(this, _systemDataReference);
+
+    gamepadInputManager = GamepadInputManager(this, onGamepadEvent, gameRouter);
   }
 
   void stopHoldCall(bool? isPrimary) {
@@ -524,7 +737,7 @@ class InputManager with WindowListener {
   }
 }
 
-enum ExternalInputType { touch, keyboard, gamepad }
+enum ExternalInputType { touch, mouseKeyboard, gamepad }
 // enum  GamePadButtons{ touch, keyboard, gamepad }
 
 enum GameAction {
@@ -557,12 +770,12 @@ class CustomInputWatcherManager {
 
   late final SystemData _systemDataReference;
 
+  //to check if pointer is inside widgets, custom hover implementation
+  final Map<State<CustomInputWatcher>, Rect> _customInputWatcherRectangles = {};
+
   //Grouping all the widgets by their group id, allows for sorting by axis
   final Map<int, Map<int, List<State<CustomInputWatcher>>>>
       _customInputWatcherRows = {};
-
-  //to check if pointer is inside widgets, custom hover implementation
-  final Map<State<CustomInputWatcher>, Rect> _customInputWatcherRectangles = {};
 
   //If there are buttons in a scroll widget,
   //save the scrollcontroller to modify it when we scroll/use keyboard
@@ -601,87 +814,6 @@ class CustomInputWatcherManager {
     }
 
     return eventController;
-  }
-
-  void swapRows(AxisDirection direction, int currentRowId, int highestZIndex) {
-    final listOfAllIds = _customInputWatcherRows[highestZIndex]!.keys.toList()
-      ..sort();
-
-    final indexOfCurrentGroupId = listOfAllIds.indexOf(currentRowId);
-    int indexOfNextGroupId =
-        direction == AxisDirection.up || direction == AxisDirection.left
-            ? indexOfCurrentGroupId - 1
-            : indexOfCurrentGroupId + 1;
-
-    if (indexOfNextGroupId < 0) {
-      indexOfNextGroupId = listOfAllIds.length - 1;
-    } else if (indexOfNextGroupId >= listOfAllIds.length) {
-      indexOfNextGroupId = 0;
-    }
-
-    final nextRowId = listOfAllIds[indexOfNextGroupId];
-    if (nextRowId == currentRowId) return;
-    double closestDistance = (double.maxFinite);
-    State<CustomInputWatcher>? closestWidget;
-    Vector2 goalCenter = _customInputWatcherRectangles[currentlyHoveredWidget!]
-            ?.center
-            .toVector2() ??
-        Vector2.zero();
-
-    for (var element in _customInputWatcherRows[highestZIndex]![nextRowId]!) {
-      final rect = _customInputWatcherRectangles[element];
-      if (rect == null) continue;
-
-      final double distance = rect.center.toVector2().distanceTo(goalCenter);
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestWidget = element;
-      }
-    }
-
-    if (closestWidget != null) {
-      setHoveredState(closestWidget);
-    } else {
-      removeHoveredState();
-    }
-  }
-
-  void shiftPositionInRow(
-      AxisDirection directionOfInput, int currentRowId, int highestZIndex) {
-    final listOfCurrentRowStates = _customInputWatcherRows[highestZIndex]![
-            currentRowId]!
-        //     .where((element) {
-        //   return
-        //       // element.widget.scrollController !=
-        //       //         currentlyHoveredWidget!.widget.scrollController ||
-        //       element.widget.scrollController == null;
-        // })
-        .toList();
-
-    if (listOfCurrentRowStates.isEmpty) {
-      swapRows(directionOfInput, currentRowId, highestZIndex);
-      return;
-    }
-
-    final currentHoveredWidgetIndex =
-        listOfCurrentRowStates.indexOf(currentlyHoveredWidget!);
-
-    int nextHoveredWidgetIndex = directionOfInput == AxisDirection.up ||
-            directionOfInput == AxisDirection.left
-        ? currentHoveredWidgetIndex - 1
-        : currentHoveredWidgetIndex + 1;
-    nextHoveredWidgetIndex =
-        nextHoveredWidgetIndex.clamp(0, listOfCurrentRowStates.length - 1);
-    State<CustomInputWatcher> nextHoveredWidget;
-
-    if (nextHoveredWidgetIndex != currentHoveredWidgetIndex) {
-      nextHoveredWidget =
-          listOfCurrentRowStates.elementAt(nextHoveredWidgetIndex);
-    } else {
-      swapRows(directionOfInput, currentRowId, highestZIndex);
-      return;
-    }
-    setHoveredState(nextHoveredWidget);
   }
 
   //Function that both keyboard and gamepad will call to move the currently hovered widget
@@ -821,7 +953,7 @@ class CustomInputWatcherManager {
     }
   }
 
-  bool checkMouseHoverStates(State<CustomInputWatcher> widget) {
+  bool _checkIfStateHovered(State<CustomInputWatcher> widget) {
     if (
         //there is a widget currently being hovered
         currentlyHoveredWidget != null &&
@@ -833,8 +965,9 @@ class CustomInputWatcherManager {
     }
     final Rect? rect = _customInputWatcherRectangles[widget];
     if (rect == null) return false;
-    final Offset mousePosition =
-        parentInputManager.pointerLocalPositions[0] ?? Offset.zero;
+    final Offset mousePosition = parentInputManager.latestPointerPosition ??
+        parentInputManager.pointerLocalPositions.values.firstOrNull ??
+        Offset.zero;
     final contains = rect.contains(mousePosition);
 
     if (!contains && currentlyHoveredWidget == null) {
@@ -854,6 +987,71 @@ class CustomInputWatcherManager {
       removeHoveredState();
     }
     return contains;
+  }
+
+  void handleGamepadInput(GamepadEvent event) {
+    if (_customInputWatcherStreams.isEmpty ||
+        event.pressState == PressState.held) return;
+
+    if ([
+      GamepadButtons.buttonA,
+    ].contains(event.button)) {
+      CustomInputWatcherEvents eventType = CustomInputWatcherEvents.onPrimary;
+      switch (event.pressState) {
+        case PressState.pressed:
+          eventType = CustomInputWatcherEvents.onPrimary;
+          break;
+        case PressState.released:
+          eventType = CustomInputWatcherEvents.onPrimaryUp;
+
+          break;
+        case PressState.held:
+          eventType = CustomInputWatcherEvents.onPrimaryHold;
+
+          break;
+        default:
+      }
+      sendStreamEvent(currentlyHoveredWidget, eventType);
+    } else if ([
+      GamepadButtons.buttonX,
+    ].contains(event.button)) {
+      CustomInputWatcherEvents eventType = CustomInputWatcherEvents.onSecondary;
+      switch (event.pressState) {
+        case PressState.pressed:
+          eventType = CustomInputWatcherEvents.onSecondary;
+          break;
+        case PressState.released:
+          eventType = CustomInputWatcherEvents.onSecondaryUp;
+
+          break;
+        case PressState.held:
+          eventType = CustomInputWatcherEvents.onSecondaryHold;
+
+          break;
+        default:
+      }
+      sendStreamEvent(currentlyHoveredWidget, eventType);
+    }
+
+    if (event.pressState == PressState.released) return;
+
+    if ([
+      GamepadButtons.dpadUp,
+    ].contains(event.button)) {
+      changeHoveredState(AxisDirection.up);
+    } else if ([
+      GamepadButtons.dpadDown,
+    ].contains(event.button)) {
+      changeHoveredState(AxisDirection.down);
+    } else if ([
+      GamepadButtons.dpadLeft,
+    ].contains(event.button)) {
+      changeHoveredState(AxisDirection.left);
+    } else if ([
+      GamepadButtons.dpadRight,
+    ].contains(event.button)) {
+      changeHoveredState(AxisDirection.right);
+    }
   }
 
   void handleWidgetKeyboardInput(KeyEvent keyEvent) {
@@ -929,11 +1127,12 @@ class CustomInputWatcherManager {
     }
   }
 
-  void onPointerMove() {
-    for (var element in _customInputWatcherStreams.entries.where((element) =>
-        element.key.widget.zIndex ==
-        _customInputWatcherRows.keys.reduce(max))) {
-      if (checkMouseHoverStates(element.key)) break;
+  void checkStatesHovered() {
+    if (_customInputWatcherRows.isEmpty) return;
+    final maxIndex = _customInputWatcherRows.keys.reduce(max);
+    for (var element in _customInputWatcherStreams.entries
+        .where((element) => element.key.widget.zIndex == maxIndex)) {
+      if (_checkIfStateHovered(element.key)) break;
     }
   }
 
@@ -1045,12 +1244,93 @@ class CustomInputWatcherManager {
     currentlyHoveredWidget = widget;
   }
 
+  void shiftPositionInRow(
+      AxisDirection directionOfInput, int currentRowId, int highestZIndex) {
+    final listOfCurrentRowStates = _customInputWatcherRows[highestZIndex]![
+            currentRowId]!
+        //     .where((element) {
+        //   return
+        //       // element.widget.scrollController !=
+        //       //         currentlyHoveredWidget!.widget.scrollController ||
+        //       element.widget.scrollController == null;
+        // })
+        .toList();
+
+    if (listOfCurrentRowStates.isEmpty) {
+      swapRows(directionOfInput, currentRowId, highestZIndex);
+      return;
+    }
+
+    final currentHoveredWidgetIndex =
+        listOfCurrentRowStates.indexOf(currentlyHoveredWidget!);
+
+    int nextHoveredWidgetIndex = directionOfInput == AxisDirection.up ||
+            directionOfInput == AxisDirection.left
+        ? currentHoveredWidgetIndex - 1
+        : currentHoveredWidgetIndex + 1;
+    nextHoveredWidgetIndex =
+        nextHoveredWidgetIndex.clamp(0, listOfCurrentRowStates.length - 1);
+    State<CustomInputWatcher> nextHoveredWidget;
+
+    if (nextHoveredWidgetIndex != currentHoveredWidgetIndex) {
+      nextHoveredWidget =
+          listOfCurrentRowStates.elementAt(nextHoveredWidgetIndex);
+    } else {
+      swapRows(directionOfInput, currentRowId, highestZIndex);
+      return;
+    }
+    setHoveredState(nextHoveredWidget);
+  }
+
   void sortRowStates(Map<int, List<State<CustomInputWatcher>>> rowIdMap) {
     for (var element in rowIdMap.entries) {
       element.value.sort((a, b) {
         return (_customInputWatcherRectangles[a]?.center.dx ?? 0)
             .compareTo((_customInputWatcherRectangles[b]?.center.dx ?? 0));
       });
+    }
+  }
+
+  void swapRows(AxisDirection direction, int currentRowId, int highestZIndex) {
+    final listOfAllIds = _customInputWatcherRows[highestZIndex]!.keys.toList()
+      ..sort();
+
+    final indexOfCurrentGroupId = listOfAllIds.indexOf(currentRowId);
+    int indexOfNextGroupId =
+        direction == AxisDirection.up || direction == AxisDirection.left
+            ? indexOfCurrentGroupId - 1
+            : indexOfCurrentGroupId + 1;
+
+    if (indexOfNextGroupId < 0) {
+      indexOfNextGroupId = listOfAllIds.length - 1;
+    } else if (indexOfNextGroupId >= listOfAllIds.length) {
+      indexOfNextGroupId = 0;
+    }
+
+    final nextRowId = listOfAllIds[indexOfNextGroupId];
+    if (nextRowId == currentRowId) return;
+    double closestDistance = (double.maxFinite);
+    State<CustomInputWatcher>? closestWidget;
+    Vector2 goalCenter = _customInputWatcherRectangles[currentlyHoveredWidget!]
+            ?.center
+            .toVector2() ??
+        Vector2.zero();
+
+    for (var element in _customInputWatcherRows[highestZIndex]![nextRowId]!) {
+      final rect = _customInputWatcherRectangles[element];
+      if (rect == null) continue;
+
+      final double distance = rect.center.toVector2().distanceTo(goalCenter);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestWidget = element;
+      }
+    }
+
+    if (closestWidget != null) {
+      setHoveredState(closestWidget);
+    } else {
+      removeHoveredState();
     }
   }
 

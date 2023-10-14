@@ -376,8 +376,9 @@ class _PauseMenuState extends State<PauseMenu> {
                               OptionsMain(
                                 gameRef: gameRouter,
                               ),
-                              CustomButton("Back", gameRef: widget.gameRef,
-                                  onPrimary: () {
+                              CustomButton("Back",
+                                  gameRef: widget.gameRef,
+                                  rowId: 100, onPrimary: () {
                                 setState(
                                   () {
                                     optionsEnabled = false;
@@ -392,13 +393,15 @@ class _PauseMenuState extends State<PauseMenu> {
                                   colorPalette.primaryColor.brighten(.5),
                                   colorPalette.primaryColor
                                 ),
+                                rowId: 1,
                                 gameRef: widget.gameRef,
                                 onPrimary: () {
                                   gameState.resumeGame();
                                 },
                               ),
-                              CustomButton("Options", gameRef: widget.gameRef,
-                                  onPrimary: () {
+                              CustomButton("Options",
+                                  gameRef: widget.gameRef,
+                                  rowId: 3, onPrimary: () {
                                 setState(
                                   () {
                                     optionsEnabled = true;
@@ -412,6 +415,7 @@ class _PauseMenuState extends State<PauseMenu> {
                                   colorPalette.primaryColor.brighten(.5),
                                   colorPalette.primaryColor
                                 ),
+                                rowId: 5,
                                 onPrimary: () {
                                   gameState.resumeGame();
                                   gameState.killPlayer(

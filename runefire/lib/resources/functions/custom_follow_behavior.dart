@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/resources/enums.dart';
@@ -72,9 +73,14 @@ class CustomFollowBehavior extends Component {
   double interpolationAmount = 1.0;
   String formatedNumber = "";
 
+  late final InputManager inputManagerInstance = InputManager();
+
   void followTarget() async {
     target.setFrom(player.center);
-    target += shiftCameraPositionBecauseOfMouse();
+    if (inputManagerInstance.externalInputType ==
+        ExternalInputType.mouseKeyboard) {
+      target += shiftCameraPositionBecauseOfMouse();
+    }
 
     interpolationAmount = 1.0;
     if (disableTimer != null) {

@@ -29,6 +29,7 @@ int getHeightScaleStep(double height) => (height / 200).round().clamp(1, 10);
 const double portalBaseSize = 150.0;
 
 const int triggerDeadZone = 30;
+const double gamepadCursorSpeed = 10;
 
 List<String> endGameMessages = [
   "I've found you...",

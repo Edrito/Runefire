@@ -10,6 +10,7 @@ import 'package:runefire/menus/level_up_screen.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/player/player_mixin.dart';
+import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -62,6 +63,67 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> textDisplay =
     MapEntry('TextDisplay', (context, gameRouter) {
   return const DisplayTextWidget();
 });
+
+MapEntry<String, Widget Function(BuildContext, GameRouter)>
+    gamepadCursorDisplay =
+    MapEntry('GamepadCursorDisplay', (context, gameRouter) {
+  return GamepadCursorDisplay(gameRouter);
+});
+
+class GamepadCursorDisplay extends StatefulWidget {
+  const GamepadCursorDisplay(this.gameRef, {super.key});
+  final GameRouter gameRef;
+  @override
+  State<GamepadCursorDisplay> createState() => _GamepadCursorDisplayState();
+}
+
+class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
+  void onGamepadCursorChange(ExternalInputType type, Offset position) {
+    checkOverlayPosition();
+    setState(() {
+      this.position = type != ExternalInputType.gamepad ? null : (position);
+    });
+  }
+
+  Offset? position;
+
+  @override
+  void initState() {
+    InputManager().onPointerMoveList.add(onGamepadCursorChange);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    InputManager().onPointerMoveList.remove(onGamepadCursorChange);
+
+    super.dispose();
+  }
+
+  void checkOverlayPosition() {
+    final overlaysList = widget.gameRef.overlays.activeOverlays;
+    if (overlaysList.indexOf(gamepadCursorDisplay.key) !=
+        overlaysList.length - 1) {
+      widget.gameRef.overlays.remove(gamepadCursorDisplay.key);
+      widget.gameRef.overlays.add(gamepadCursorDisplay.key);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double radius = 10;
+    if (GameState().gameIsPlaying || position == null) {
+      return const SizedBox();
+    }
+
+    return Transform(
+        transform: Matrix4.translationValues(
+            position!.dx - (radius / 2), position!.dy - (radius / 2), 0.0),
+        child: const CircleAvatar(
+          radius: radius,
+        ));
+  }
+}
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
     MapEntry('PauseMenu', (context, gameRouter) {

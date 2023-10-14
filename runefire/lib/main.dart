@@ -147,6 +147,7 @@ void main() async {
                 overlay.mainMenu,
                 overlay.caveFront,
                 overlay.textDisplay,
+                overlay.gamepadCursorDisplay,
                 overlay.deathScreen,
                 overlay.attributeSelection,
               ])),
@@ -188,7 +189,7 @@ class GameRouter extends Forge2DGame {
 
   @override
   void onLoad() async {
-    debugMode = true;
+    // debugMode = true;
     router = RouterComponent(
       routes: {
         routes.blank: Route(MenuGame.new, maintainState: false),
@@ -218,14 +219,16 @@ class GameRouter extends Forge2DGame {
       overlays.add(caveFront.key);
       overlays.add(mainMenu.key);
     }
+    overlays.add(gamepadCursorDisplay.key);
   }
 
-  late final InputManager inputManagerInstance = InputManager();
+  late final GamepadInputManager gamepadInputManager =
+      InputManager().gamepadInputManager;
   @override
   void update(double dt) {
-    inputManagerInstance.gamepad.updateState();
-    inputManagerInstance.parseGameState();
-    inputManagerInstance.eventsProcessed.clear();
+    gamepadInputManager.gamepad.updateState();
+    gamepadInputManager.parseGameState();
+
     super.update(dt);
   }
 

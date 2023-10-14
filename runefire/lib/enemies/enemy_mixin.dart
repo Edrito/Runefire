@@ -148,7 +148,7 @@ mixin AimControlFunctionality on AimFunctionality {
   @override
   void update(double dt) {
     updateFunction();
-    aimCharacter();
+    aimHandJoint(false);
     super.update(dt);
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
@@ -366,6 +367,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   void standardAttack(
       [double holdDurationPercent = 1, bool callFunctions = true]) {
     muzzleFlash();
+
     for (var element in additionalWeapons.entries) {
       element.value.attackAttempt(holdDurationPercent);
     }
@@ -402,6 +404,14 @@ abstract class Weapon extends Component with UpgradeFunctions {
 abstract class PlayerWeapon extends Weapon
     with AttributeWeaponFunctionsFunctionality, SecondaryFunctionality {
   PlayerWeapon(super.newUpgradeLevel, super.entityAncestor);
+
+  @override
+  void standardAttack(
+      [double holdDurationPercent = 1, bool callFunctions = true]) {
+    InputManager().applyVibration(.1, .25);
+
+    super.standardAttack(holdDurationPercent, callFunctions);
+  }
 
   @override
   late int? maxLevel;

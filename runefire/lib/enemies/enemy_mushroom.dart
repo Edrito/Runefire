@@ -526,7 +526,7 @@ class MushroomBurrower extends Enemy
                 addAimAngle(
                     (gameEnviroment.player!.center - center), aiInputPriority);
 
-                followTarget(false);
+                aimHandJoint(false);
                 final count = 2 + (rng.nextBool() ? 0 : 2);
                 currentWeapon?.attackCountIncrease.baseParameter = count;
 

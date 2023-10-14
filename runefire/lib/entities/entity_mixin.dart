@@ -212,10 +212,14 @@ mixin MovementFunctionality on Entity {
   final Map<int, Vector2> _moveVelocities = {};
   final List<int> _currentMoveVelocityPriorities = [];
 
-  void addMoveVelocity(Vector2 direction, int priority) {
+  void addMoveVelocity(Vector2 direction, int priority,
+      [bool normalize = true]) {
+    if (normalize) direction = direction.normalized();
     _moveVelocities[priority] = direction;
-    _currentMoveVelocityPriorities.add(priority);
-    _currentMoveVelocityPriorities.sort();
+    if (!_currentMoveVelocityPriorities.contains(priority)) {
+      _currentMoveVelocityPriorities.add(priority);
+      _currentMoveVelocityPriorities.sort((a, b) => b.compareTo(a));
+    }
   }
 
   void removeMoveVelocity(int priority) {
@@ -230,8 +234,7 @@ mixin MovementFunctionality on Entity {
       return (center - fearTarget).normalized();
     }
 
-    return _moveVelocities[_currentMoveVelocityPriorities.firstOrNull]
-            ?.normalized() ??
+    return _moveVelocities[_currentMoveVelocityPriorities.firstOrNull] ??
         Vector2.zero();
   }
 
@@ -307,10 +310,16 @@ mixin AimFunctionality on Entity {
   final List<int> _currentAimAnglePriorities = [];
   final List<int> _currentAimPositionPriorities = [];
 
+  Vector2? getAimPosition(int priority) {
+    return _aimPositions[priority];
+  }
+
   void addAimPosition(Vector2 direction, int priority) {
     _aimPositions[priority] = direction;
-    _currentAimPositionPriorities.add(priority);
-    _currentAimPositionPriorities.sort();
+    if (!_currentAimPositionPriorities.contains(priority)) {
+      _currentAimPositionPriorities.add(priority);
+      _currentAimPositionPriorities.sort((a, b) => b.compareTo(a));
+    }
   }
 
   void removeAimPosition(int priority) {
@@ -320,8 +329,10 @@ mixin AimFunctionality on Entity {
 
   void addAimAngle(Vector2 direction, int priority) {
     _aimAngles[priority] = direction;
-    _currentAimAnglePriorities.add(priority);
-    _currentAimAnglePriorities.sort();
+    if (!_currentAimAnglePriorities.contains(priority)) {
+      _currentAimAnglePriorities.add(priority);
+      _currentAimAnglePriorities.sort((a, b) => b.compareTo(a));
+    }
   }
 
   void removeAimAngle(int priority) {
@@ -350,7 +361,7 @@ mixin AimFunctionality on Entity {
         anchor: Anchor.center,
         size: Vector2.zero(),
       );
-
+      // mouseJoint?.debugColor = Colors.transparent;
       backJoint = PlayerAttachmentJointComponent(WeaponSpritePosition.back,
           position: backJointOffset,
           anchor: Anchor.center,
@@ -360,28 +371,9 @@ mixin AimFunctionality on Entity {
       add(mouseJoint!);
     }
 
-    InputManager().onPointerMoveList.add(updateMousePositionJoint);
-
     add(handJoint);
 
     return super.onLoad();
-  }
-
-  @override
-  void onRemove() {
-    InputManager().onPointerMoveList.remove(updateMousePositionJoint);
-
-    super.onRemove();
-  }
-
-  void updateMousePositionJoint(MovementType type, PointerMoveEvent info) {
-    if (type == MovementType.mouse || type == MovementType.tap1) {
-      addAimPosition(
-          (shiftCoordinatesToCenter(info.localPosition.toVector2(),
-                  enviroment.gameCamera.viewport.size) /
-              enviroment.gameCamera.viewfinder.zoom),
-          userInputPriority);
-    }
   }
 
   @override
@@ -414,7 +406,7 @@ mixin AimFunctionality on Entity {
 
   @override
   void update(double dt) {
-    followTarget();
+    checkSpriteAngles();
     super.update(dt);
   }
 
@@ -426,9 +418,13 @@ mixin AimFunctionality on Entity {
 
   Vector2 previousHandJointPosWithoutOffset = Vector2.zero();
 
-  void followTarget([bool smoothFollow = true]) {
+  void aimMouseJoint() {
+    mouseJoint?.position = (aimPosition ?? Vector2.zero());
+  }
+
+  void aimHandJoint([bool smoothFollow = true]) {
     final previousNormal = previousHandJointPosWithoutOffset.normalized();
-    final handAngleTarget = aimVector.normalized();
+    Vector2 handAngleTarget = aimVector.normalized();
     final interpAmount = aimingInterpolationAmount.parameter;
     Vector2 angle;
     if (smoothFollow) {
@@ -462,12 +458,9 @@ mixin AimFunctionality on Entity {
     handJoint.position += handJointOffset;
   }
 
-  void aimCharacter() {
+  void checkSpriteAngles() {
     if (!enableMovement.parameter) return;
 
-    handAngleTarget = aimVector.clone();
-    mouseJoint?.position =
-        (aimPosition ?? Vector2.zero()) - entityOffsetFromCameraCenter;
     handJointBehindBodyCheck();
     spriteFlipCheck();
   }
@@ -1001,21 +994,11 @@ mixin HealthFunctionality on Entity {
       applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
       essenceStealChecker(damage);
     }
-    applyCameraShake(damage);
     applyDamage(damage);
     setEntityStatus(EntityStatus.damage);
     applyKnockback(damage);
     deathChecker(damage);
     return true;
-  }
-
-  void applyCameraShake(DamageInstance? instance,
-      [double amount = 2, double? duration]) {
-    if (isPlayer) {
-      gameEnviroment.gameCamera.viewport.add(ShakeEffect(
-          EffectController(duration: duration ?? .1),
-          intensity: instance != null ? (instance.isCrit ? 8 : 2) : amount));
-    }
   }
 
   void applyIFrameTimer(String id) {

@@ -32,9 +32,51 @@ class _OptionsMenuState extends State<OptionsMenu> {
   OptionsMenuPages currentPage = OptionsMenuPages.keyboardBindings;
   late CustomButton exitButton;
   late CustomButton keyboardBindingsButton;
+  late CustomButton gamepadBindingsButton;
   late CustomButton mainOptionsButton;
 
   Function? centerSetState;
+  void onGamepadEvent(GamepadEvent event) {
+    if (event.pressState != PressState.pressed) return;
+
+    switch (event.button) {
+      case GamepadButtons.rightShoulder:
+        incrementOptionsPage(true);
+        break;
+
+      case GamepadButtons.leftShoulder:
+        incrementOptionsPage(false);
+        break;
+      default:
+    }
+  }
+
+  @override
+  void initState() {
+    InputManager().gamepadEventList.add(onGamepadEvent);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    InputManager().gamepadEventList.remove(onGamepadEvent);
+
+    super.dispose();
+  }
+
+  void incrementOptionsPage(bool increment) {
+    int currentIndex = OptionsMenuPages.values.indexOf(currentPage);
+    if (increment) {
+      currentIndex++;
+    } else {
+      currentIndex--;
+    }
+
+    currentIndex = currentIndex.clamp(0, OptionsMenuPages.values.length - 1);
+
+    currentPage = OptionsMenuPages.values[currentIndex];
+    centerSetState?.call(() {});
+  }
 
   Widget buildCurrentPage() {
     return StatefulBuilder(
@@ -48,7 +90,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
           case OptionsMenuPages.keyboardBindings:
             return KeyboardMouseGamepadBindings(
               gameRef: widget.gameRef,
-              configType: ExternalInputType.keyboard,
+              configType: ExternalInputType.mouseKeyboard,
             );
           case OptionsMenuPages.gamepadBindings:
             return KeyboardMouseGamepadBindings(
@@ -71,7 +113,15 @@ class _OptionsMenuState extends State<OptionsMenu> {
         });
       },
     );
-
+    gamepadBindingsButton = CustomButton(
+      "Gamepad Bindings",
+      gameRef: widget.gameRef,
+      onPrimary: () {
+        centerSetState?.call(() {
+          currentPage = OptionsMenuPages.gamepadBindings;
+        });
+      },
+    );
     mainOptionsButton = CustomButton(
       "General",
       gameRef: widget.gameRef,
@@ -92,17 +142,10 @@ class _OptionsMenuState extends State<OptionsMenu> {
     );
     final List<Widget> topBarWidgets = [
       mainOptionsButton,
-      keyboardBindingsButton
+      keyboardBindingsButton,
+      gamepadBindingsButton
     ];
-    // topBarWidgets[currentPage.index] = Container(
-    //   decoration: BoxDecoration(
-    //     border: Border.all(
-    //       color: Colors.white,
-    //       width: 2,
-    //     ),
-    //   ),
-    //   child: topBarWidgets[currentPage.index],
-    // );
+
     return Stack(
       children: [
         Positioned(
@@ -167,7 +210,8 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
   (double, double) sfxMinMax = (0, 100);
   (double, double) musicMinMax = (0, 100);
   late HudScale hudScale;
-  late CustomButton keyboardBindingsButton;
+  late AimAssistStrength aimAssistStrength;
+  // late CustomButton keyboardBindingsButton;
   late double musicVolume;
   late double sfxVolume;
 
@@ -181,6 +225,20 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
       },
       onSecondary: () {
         incrementHudScale(false);
+      },
+    );
+  }
+
+  CustomButton buildAimAssistButton() {
+    return CustomButton(
+      "Aim Assist: ${aimAssistStrength.name.titleCase}",
+      gameRef: widget.gameRef,
+      rowId: 8,
+      onPrimary: () {
+        incrementAimAssist(true);
+      },
+      onSecondary: () {
+        incrementAimAssist(false);
       },
     );
   }
@@ -223,6 +281,18 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
         incrementSfx(false);
       },
     );
+  }
+
+  void incrementAimAssist(bool increment) {
+    int currentIndex = AimAssistStrength.values.indexOf(aimAssistStrength);
+    if (increment) {
+      currentIndex++;
+    } else {
+      currentIndex--;
+    }
+
+    currentIndex = currentIndex.clamp(0, AimAssistStrength.values.length - 1);
+    systemData.setAimAssist = AimAssistStrength.values[currentIndex];
   }
 
   void incrementHudScale(bool increment) {
@@ -271,24 +341,20 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
 
     systemDataNotifier.addListener(onSystemDataNotification);
 
-    musicVolume = systemData.musicVolume ?? 0.0;
-    sfxVolume = systemData.sfxVolume ?? 0.0;
-    hudScale =
-        systemDataNotifier.single?.dataObject.hudScale ?? HudScale.medium;
-    keyboardBindingsButton = CustomButton(
-      "Keyboard Bindings",
-      gameRef: widget.gameRef,
-      onPrimary: () {},
-    );
+    applyValues();
+  }
+
+  void applyValues() {
+    musicVolume = systemData.musicVolume;
+    sfxVolume = systemData.sfxVolume;
+    hudScale = systemData.hudScale;
+    aimAssistStrength = systemData.aimAssistStrength;
   }
 
   @override
   void onSystemDataNotification() {
     setState(() {
-      musicVolume = systemDataNotifier.single?.dataObject.musicVolume ?? 0.0;
-      sfxVolume = systemDataNotifier.single?.dataObject.sfxVolume ?? 0.0;
-      hudScale =
-          systemDataNotifier.single?.dataObject.hudScale ?? HudScale.medium;
+      applyValues();
     });
   }
 
@@ -302,6 +368,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
           buildSFXButton(),
           buildMusicButton(),
           buildHudScaleButton(),
+          buildAimAssistButton(),
         ],
       ),
     );
@@ -337,7 +404,7 @@ class _KeyboardMouseGamepadBindingsState
 
   Function(
     KeyEvent? event,
-    String? gamepadEvent,
+    GamepadButtons? gamepadEvent,
   )? gamepadCallback;
 
   void beginRebindKey(
@@ -347,7 +414,7 @@ class _KeyboardMouseGamepadBindingsState
       isWaitingInput = true;
     });
     switch (source) {
-      case ExternalInputType.keyboard:
+      case ExternalInputType.mouseKeyboard:
         keyboardMouseCallback =
             (KeyEvent? event, PointerDownEvent? pointerEvent) {
           if (event?.logicalKey != LogicalKeyboardKey.abort &&
@@ -359,11 +426,11 @@ class _KeyboardMouseGamepadBindingsState
               systemData.setMouseButtonMapping(
                   gameAction, pointerEvent.buttons, firstIndex);
             }
-            generatedColors.clear();
           } else {
             systemData.setKeyboardMapping(gameAction, null, firstIndex);
             systemData.setMouseButtonMapping(gameAction, null, firstIndex);
           }
+          generatedColors.clear();
           keyboardMouseCallback = null;
           Future.delayed(.1.seconds).then((_) {
             if (!mounted) {
@@ -378,18 +445,18 @@ class _KeyboardMouseGamepadBindingsState
 
         break;
       case ExternalInputType.gamepad:
-        gamepadCallback = (KeyEvent? event, String? gamepadEvent) {
+        gamepadCallback = (KeyEvent? event, GamepadButtons? gamepadEvent) {
           if (event?.logicalKey != LogicalKeyboardKey.abort &&
               event?.logicalKey != LogicalKeyboardKey.escape) {
             if (gamepadEvent != null) {
               systemData.setGamepadMapping(
                   gameAction, gamepadEvent, firstIndex);
             }
-            generatedColors.clear();
           } else {
             systemData.setGamepadMapping(gameAction, null, firstIndex);
           }
-          keyboardMouseCallback = null;
+          generatedColors.clear();
+          gamepadCallback = null;
           Future.delayed(.1.seconds).then((_) {
             if (!mounted) {
               isWaitingInput = false;
@@ -535,7 +602,7 @@ class _KeyboardMouseGamepadBindingsState
 
   String getStringRepresentation(GameAction key, bool firstIndex) {
     switch (widget.configType) {
-      case ExternalInputType.keyboard:
+      case ExternalInputType.mouseKeyboard:
         final keyBoardMappings = systemData.keyboardMappings[key];
         final mouseMappings = systemData.mouseButtonMappings[key];
         PhysicalKeyboardKey? keyBoardResult =
@@ -557,6 +624,16 @@ class _KeyboardMouseGamepadBindingsState
         return "Set binding";
 
       case ExternalInputType.gamepad:
+        final gamepadMappings = systemData.gamePadMappings[key];
+        GamepadButtons? gamepadResult =
+            firstIndex ? gamepadMappings?.$1 : gamepadMappings?.$2;
+
+        if (gamepadResult != null) {
+          return gamepadResult.name.titleCase;
+        }
+
+        return "Set binding";
+
         break;
       default:
     }
@@ -565,18 +642,28 @@ class _KeyboardMouseGamepadBindingsState
 
   void newKeyboardPress(KeyEvent event) {
     if (event is! KeyDownEvent) return;
-
     keyboardMouseCallback?.call(event, null);
+    gamepadCallback?.call(event, null);
   }
 
   void newPointerDownPress(PointerDownEvent event) {
     keyboardMouseCallback?.call(null, event);
   }
 
+  void newGamepadPress(GamepadEvent event) {
+    if (event.pressState != PressState.pressed) return;
+    if (event.button == GamepadButtons.leftJoy ||
+        event.button == GamepadButtons.rightJoy) {
+      return;
+    }
+    gamepadCallback?.call(null, event.button);
+  }
+
   @override
   void dispose() {
     InputManager().keyEventList.remove(newKeyboardPress);
     InputManager().pointerDownList.remove(newPointerDownPress);
+    InputManager().gamepadEventList.remove(newGamepadPress);
     super.dispose();
   }
 
@@ -587,6 +674,7 @@ class _KeyboardMouseGamepadBindingsState
   void initState() {
     super.initState();
     InputManager().keyEventList.add(newKeyboardPress);
+    InputManager().gamepadEventList.add(newGamepadPress);
     InputManager().pointerDownList.add(newPointerDownPress);
   }
 

@@ -2,10 +2,12 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/services/raw_keyboard.dart';
+import 'package:runefire/input_manager.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -84,8 +86,10 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
 
   void toggleDisplay(bool isOn) {
     if (isOn) {
+      String? key = game.systemDataComponent.dataObject
+          .getBinding(GameAction.interact, InputManager());
       displayedText ??= TextComponent(
-        text: "E - $displayedTextString",
+        text: "${key == null ? "" : "$key ~ "}$displayedTextString",
         anchor: Anchor.center,
         // position: Vector2.all(5),
         textRenderer: TextPaint(

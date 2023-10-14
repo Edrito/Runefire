@@ -177,6 +177,10 @@ class GameStateComponent extends Component with Notifier {
 }
 
 extension GameStateGetters on GameState {
+  bool get gameIsPlaying =>
+      gameRouter.router.currentRoute.name == routes.gameplay &&
+      !gameRouter.paused;
+
   Color get basePortalColor => ApolloColorPalette.lightCyan.color;
   Color portalColor([bool returnBlueIfNotLevelMenu = false]) {
     if (returnBlueIfNotLevelMenu && !menuPageIsLevel) return basePortalColor;

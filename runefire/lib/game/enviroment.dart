@@ -234,17 +234,19 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   }
 
   void onPrimary(
-      GameActionEvent gameAction, List<GameAction> activeGameActions) {}
+      GameActionEvent gameAction, Set<GameAction> activeGameActions) {}
   void pauseGameAction(
-      GameActionEvent gameAction, List<GameAction> activeGameActions) {
-    if (!gameAction.isDownEvent || this is! GameEnviroment) return;
+      GameActionEvent gameAction, Set<GameAction> activeGameActions) {
+    if (gameAction.pressState != PressState.pressed) return;
+
+    if (this is! GameEnviroment) return;
     gameRef.gameStateComponent.gameState.pauseGame(
       pauseMenu.key,
       pauseGame: true,
     );
   }
 
-  void onMouseMove(MovementType type, PointerMoveEvent info) {}
+  void onMouseMove(ExternalInputType type, Offset pos) {}
 }
 
 abstract class GameEnviroment extends Enviroment

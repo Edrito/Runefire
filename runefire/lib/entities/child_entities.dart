@@ -697,7 +697,7 @@ class MirrorOrbSentry extends ChildEntity
   @override
   void update(double dt) {
     //
-    aimCharacter();
+    aimHandJoint(false);
     super.update(dt);
   }
 }
