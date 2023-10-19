@@ -9,6 +9,7 @@ import 'package:runefire/weapons/weapon_mixin.dart';
 
 import '../resources/data_classes/base.dart';
 import '../resources/enums.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'attributes_mixin.dart';
 import '../entities/entity_class.dart';
 import 'attributes_regular.dart';
@@ -105,12 +106,14 @@ enum AttributeType {
   durationPermanent,
   reloadTimePermanent(),
   statusEffectPotencyPermanent(category: AttributeCategory.utility),
+
   physicalDamageIncreasePermanent(category: AttributeCategory.elemental),
   magicDamageIncreasePermanent(category: AttributeCategory.elemental),
   fireDamageIncreasePermanent(category: AttributeCategory.elemental),
   psychicDamageIncreasePermanent(category: AttributeCategory.elemental),
   energyDamageIncreasePermanent(category: AttributeCategory.elemental),
   frostDamageIncreasePermanent(category: AttributeCategory.elemental),
+
   physicalResistanceIncreasePermanent(category: AttributeCategory.resistance),
   magicResistanceIncreasePermanent(category: AttributeCategory.resistance),
   fireResistanceIncreasePermanent(category: AttributeCategory.resistance),
@@ -143,7 +146,8 @@ enum AttributeType {
       rarity: AttributeRarity.rare,
       category: AttributeCategory.utility,
       territory: AttributeTerritory.game,
-      attributeEligibilityTest: playerHasMeleeWeapon),
+      attributeEligibilityTest: playerHasMeleeWeapon,
+      elementalRequirement: {DamageType.psychic: .25}),
 
   periodicPush(
       rarity: AttributeRarity.uncommon,
@@ -515,17 +519,53 @@ enum AttributeType {
       {this.rarity = AttributeRarity.standard,
       this.category = AttributeCategory.utility,
       this.territory = AttributeTerritory.permanent,
-      // ignore: unused_element
+
       ///A higher priority means the attribute will be processed last
       this.priority = 0,
+      bool Function(Player) attributeEligibilityTest =
+          defaultAttributeEligibilityTest,
       // ignore: unused_element
-      this.attributeEligibilityTest = defaultAttributeEligibilityTest});
+      Map<DamageType, double>? elementalRequirement})
+      : _elementalRequirement = elementalRequirement,
+        _attributeEligibilityTest = attributeEligibilityTest;
 
   final AttributeRarity rarity;
   final AttributeCategory category;
   final AttributeTerritory territory;
   final int priority;
-  final AttributeEligibilityTest attributeEligibilityTest;
+  final AttributeEligibilityTest _attributeEligibilityTest;
+  final Map<DamageType, double>? _elementalRequirement;
+
+  bool attributeMeetsForcedElementalRequest(
+      Player player, DamageType? damageType) {
+    if (damageType == null) return true;
+    final playerElementalLevel = player.elementalPower[damageType];
+    if (_elementalRequirement == null ||
+        _elementalRequirement![damageType] == null ||
+        playerElementalLevel == null) {
+      return false;
+    }
+
+    return _elementalRequirement![damageType]! <= playerElementalLevel;
+  }
+
+  bool isEligible(Player player) {
+    if (_elementalRequirement != null) {
+      final playerElementalLevel = player.elementalPower;
+      bool elementalRequirementMet = true;
+      for (var element in _elementalRequirement!.entries) {
+        final playerEntry = playerElementalLevel[element.key];
+        if (playerEntry == null || !elementalRequirementMet) {
+          return false;
+        } else {
+          elementalRequirementMet =
+              elementalRequirementMet && playerEntry >= element.value;
+        }
+      }
+    }
+
+    return _attributeEligibilityTest(player);
+  }
 }
 
 bool teleportDashTest(Player player) {
@@ -596,7 +636,7 @@ bool playerHasProjectileWeapon(Player player) {
       .any((element) => element is ProjectileFunctionality);
 }
 
-bool defaultAttributeEligibilityTest(Player player) {
+bool defaultAttributeEligibilityTest(Player _) {
   return true;
 }
 
@@ -647,7 +687,7 @@ extension AllAttributesExtension on AttributeType {
 ///from a level up, a enemy attack, a weapon, a potion etc
 ///The attribute is applied to the victimEntity
 ///The perpetratorEntity may be a source of a negitive attribute
-abstract class Attribute with UpgradeFunctions {
+abstract class Attribute extends UpgradeFunctions {
   Attribute({int level = 0, this.victimEntity, this.damageType}) {
     upgradeLevel = level;
     if (maxLevel != null) {
@@ -658,6 +698,25 @@ abstract class Attribute with UpgradeFunctions {
 
   void removeAttribute() {
     victimEntity?.removeAttribute(attributeType);
+  }
+
+  double get elementalWeighting => .025;
+
+  @override
+  void removeUpgrade() {
+    if (damageType != null) {
+      victimEntity?.modifyElementalPower(damageType!, -elementalWeighting);
+    }
+
+    super.removeUpgrade();
+  }
+
+  @override
+  void applyUpgrade() {
+    if (damageType != null) {
+      victimEntity?.modifyElementalPower(damageType!, elementalWeighting);
+    }
+    super.applyUpgrade();
   }
 
   void action() {}

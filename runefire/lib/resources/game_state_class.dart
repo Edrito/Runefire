@@ -10,6 +10,7 @@ import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/entities/entity_class.dart';
 
 import '../player/player.dart';
 import '../game/enviroment.dart';
@@ -294,7 +295,11 @@ extension GameStateFunctions on GameState {
 
     if (!restart) {
       toggleGameStart(null);
-      changeMainMenuPage(MenuPageType.startMenuPage, false);
+      changeMainMenuPage(
+          endGameState == GameEndState.win
+              ? MenuPageType.weaponMenu
+              : MenuPageType.startMenuPage,
+          false);
     } else {
       toggleGameStart(routes.gameplay);
     }
@@ -303,7 +308,7 @@ extension GameStateFunctions on GameState {
 
   void killPlayer(
       GameEndState gameEndState, Player player, DamageInstance instance) {
-    player.setEntityStatus(EntityStatus.dead, instance: instance);
+    if (transitionOccuring) return;
     transitionOccuring = true;
     Future.delayed(2.seconds).then(
       (value) {

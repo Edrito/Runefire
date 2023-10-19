@@ -7,9 +7,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/options.dart';
+import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:numerus/numerus.dart';
 import '../game/enviroment.dart';
@@ -17,183 +20,36 @@ import '../main.dart';
 import '../resources/visuals.dart';
 import 'custom_button.dart';
 
-class AttributeDisplay extends StatefulWidget {
-  const AttributeDisplay(
-      this.gameRef, this.attributes, this.statStrings, this.title,
-      {super.key});
-  final String title;
-  final List<Attribute>? attributes;
-  final List<(String, String)>? statStrings;
+class OverlayWidgetDisplay extends StatefulWidget {
+  const OverlayWidgetDisplay(this.gameRef, {required this.child, super.key});
   final GameRouter gameRef;
+  final Widget child;
 
   @override
-  State<AttributeDisplay> createState() => _AttributeDisplayState();
+  State<OverlayWidgetDisplay> createState() => _OverlayWidgetDisplayState();
 }
 
-class _AttributeDisplayState extends State<AttributeDisplay> {
+class _OverlayWidgetDisplayState extends State<OverlayWidgetDisplay> {
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    Color backgroundColor = ApolloColorPalette.mediumGray.color;
-    Color color = colorPalette.secondaryColor;
-    Widget background = Positioned.fill(
-        // bottom: null,
-        child: Image.asset(
-      'assets/images/ui/attribute_background_mask.png',
-      fit: BoxFit.fitWidth,
-      color: backgroundColor.withOpacity(1),
-      filterQuality: FilterQuality.none,
-    ));
-
-    Widget border = Positioned.fill(
-        // bottom: null,
-        child: Image.asset(
-      'assets/images/ui/attribute_border.png',
-      filterQuality: FilterQuality.none,
-      color: backgroundColor.brighten(.4),
-      fit: BoxFit.fitWidth,
-    ));
-    Widget borderInner = Positioned.fill(
-        // bottom: null,
-        child: Padding(
-      padding: const EdgeInsets.all(3),
-      child: Image.asset(
-        'assets/images/ui/attribute_border.png',
-        filterQuality: FilterQuality.none,
-        color: backgroundColor.brighten(.1),
-        fit: BoxFit.fitWidth,
-      ),
-    ));
-    Widget borderInnerInner = Positioned.fill(
-        // bottom: null,
-        child: Padding(
-      padding: const EdgeInsets.all(6),
-      child: Image.asset(
-        'assets/images/ui/attribute_border.png',
-        filterQuality: FilterQuality.none,
-        color: backgroundColor.darken(.7),
-        fit: BoxFit.fitWidth,
-      ),
-    ));
-
-    Widget title = Positioned.fill(
-      bottom: null,
-      child: Text(
-        widget.title,
-        textAlign: TextAlign.center,
-        style: defaultStyle.copyWith(
-            color: color,
-            shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
-      ).animate().fadeIn(),
-    );
-
-    Widget displayWidget = const SizedBox();
-    if (widget.attributes != null) {
-      displayWidget = Wrap(
-        children: [
-          for (int i = 0; i < (widget.attributes!.length); i++)
-            Builder(
-              builder: (context) {
-                final currentAttrib = widget.attributes!.elementAt(i);
-
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    // color: Colors.blue,
-                    height: 100,
-                    width: 60,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Image.asset('assets/images/${currentAttrib.icon}',
-                            color: currentAttrib.attributeType.rarity.color),
-                        SizedBox(
-                          width: 55,
-                          child: Text(
-                            currentAttrib.upgradeLevel.toRomanNumeralString() ??
-                                "",
-                            style: defaultStyle.copyWith(
-                                color: currentAttrib.attributeType.rarity.color,
-                                fontSize: 20),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            )
-        ],
-      );
-    } else if (widget.statStrings != null) {
-      displayWidget = Column(
-        children: [
-          for (int i = 0; i < (widget.statStrings!.length); i++)
-            Builder(
-              builder: (context) {
-                final currentStr = widget.statStrings!.elementAt(i);
-
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    // color: Colors.blue,
-                    // height: 100,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          currentStr.$1,
-                          style: defaultStyle.copyWith(fontSize: 20),
-                        ),
-                        Text(
-                          currentStr.$2,
-                          style: defaultStyle.copyWith(fontSize: 20),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            )
-        ],
-      );
-    }
     return LayoutBuilder(builder: (context, constraints) {
       final ratio = largeCardSize.aspectRatio;
       final double maxHeightOfAttributes = constraints.maxWidth / ratio;
 
-      return SizedBox.expand(
+      return SizedBox(
+        height: maxHeightOfAttributes,
         child: Stack(
           children: [
-            background,
-            borderInnerInner,
-            borderInner,
-            border,
+            const CustomBorderBox(),
             Positioned.fill(
               child: Center(
-                child: SizedBox(
-                  height: maxHeightOfAttributes,
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 30, horizontal: 16),
-                      child: ScrollConfiguration(
-                        behavior: scrollConfiguration(context),
-                        child: SingleChildScrollView(
-                          child: Align(
-                              alignment: Alignment.topLeft,
-                              child: displayWidget),
-                        ),
-                      ),
-                    ),
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.all(8.0 * maxHeightOfAttributes / 100),
+                  child: SizedBox(
+                      height: maxHeightOfAttributes, child: widget.child),
                 ),
               ),
             ),
-            title
           ],
         ),
       );
@@ -201,79 +57,111 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
   }
 }
 
-class InGameMenu extends StatefulWidget {
-  const InGameMenu(this.gameRef, this.buttons, this.title, {super.key});
+class CustomBorderBox extends StatelessWidget {
+  const CustomBorderBox(
+      {this.child,
+      this.small = false,
+      this.hideBackground = false,
+      this.hideBaseBorder = false,
+      super.key});
+  final Widget? child;
+  final bool small;
+  final bool hideBackground;
+  final bool hideBaseBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    Color backgroundColor = ApolloColorPalette.mediumGray.color;
+    Color borderColorBase = ApolloColorPalette.darkestGray.color;
+    Color borderColorMid = ApolloColorPalette.lightGray.color;
+    Color borderColorTop = ApolloColorPalette.veryLightGray.color;
+
+    String backgroundImage = small
+        ? ImagesAssetsUi.attributeBackgroundMaskSmall.path
+        : ImagesAssetsUi.attributeBackgroundMask.path;
+    String borderImage = small
+        ? ImagesAssetsUi.attributeBorderSmall.path
+        : ImagesAssetsUi.attributeBorder.path;
+    String borderMidImage = small
+        ? ImagesAssetsUi.attributeBorderMidSmall.path
+        : ImagesAssetsUi.attributeBorderMid.path;
+    String borderBaseImage = small
+        ? ImagesAssetsUi.attributeBorderBaseSmall.path
+        : ImagesAssetsUi.attributeBorderBase.path;
+    Widget background = Positioned.fill(
+        child: Image.asset(
+      backgroundImage,
+      fit: BoxFit.fitWidth,
+      color: backgroundColor,
+      filterQuality: FilterQuality.none,
+    ));
+    Widget border = Positioned.fill(
+        child: buildImageAsset(
+      borderImage,
+      color: borderColorTop,
+      fit: BoxFit.fitWidth,
+    ));
+    Widget borderMid = Positioned.fill(
+        child: buildImageAsset(
+      borderMidImage,
+      color: borderColorMid,
+      fit: BoxFit.fitWidth,
+    ));
+    Widget borderBase = Positioned.fill(
+        child: buildImageAsset(
+      borderBaseImage,
+      color: borderColorBase,
+      fit: BoxFit.fitWidth,
+    ));
+    final Size cardSize = small ? smallCardSize : largeCardSize;
+
+    return SizedBox(
+      // width: cardSize.width,
+      // height: cardSize.height,
+      child: Stack(alignment: Alignment.topCenter, children: [
+        if (!hideBackground) background,
+        if (!hideBaseBorder) borderBase,
+        borderMid,
+        border,
+        if (child != null) Positioned.fill(child: child!)
+      ]),
+    );
+  }
+}
+
+class OverlayWidgetList extends StatefulWidget {
+  const OverlayWidgetList(this.gameRef, this.buttons, this.title, {super.key});
   final String title;
   final List<Widget> buttons;
   final GameRouter gameRef;
   @override
-  State<InGameMenu> createState() => _InGameMenuState();
+  State<OverlayWidgetList> createState() => _OverlayWidgetListState();
 }
 
-class _InGameMenuState extends State<InGameMenu> {
+class _OverlayWidgetListState extends State<OverlayWidgetList> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    Color backgroundColor = ApolloColorPalette.mediumGray.color;
+
     Color color = colorPalette.secondaryColor;
-
-    Widget background = Positioned.fill(
-        // bottom: null,
-        child: Image.asset(
-      'assets/images/ui/attribute_background_mask.png',
-      fit: BoxFit.fitWidth,
-      color: backgroundColor.withOpacity(1),
-      filterQuality: FilterQuality.none,
-    ));
-
-    Widget border = Positioned.fill(
-        // bottom: null,
-        child: Image.asset(
-      'assets/images/ui/attribute_border.png',
-      filterQuality: FilterQuality.none,
-      color: backgroundColor.brighten(.4),
-      fit: BoxFit.fitWidth,
-    ));
-    Widget borderInner = Positioned.fill(
-        // bottom: null,
-        child: Padding(
-      padding: const EdgeInsets.all(3),
-      child: Image.asset(
-        'assets/images/ui/attribute_border.png',
-        filterQuality: FilterQuality.none,
-        color: backgroundColor.brighten(.1),
-        fit: BoxFit.fitWidth,
-      ),
-    ));
-    Widget borderInnerInner = Positioned.fill(
-        // bottom: null,
-        child: Padding(
-      padding: const EdgeInsets.all(6),
-      child: Image.asset(
-        'assets/images/ui/attribute_border.png',
-        filterQuality: FilterQuality.none,
-        color: backgroundColor.darken(.7),
-        fit: BoxFit.fitWidth,
-      ),
-    ));
 
     Widget title = Positioned.fill(
       bottom: null,
-      child: Text(
-        widget.title,
-        textAlign: TextAlign.center,
-        style: defaultStyle.copyWith(
-            color: color,
-            shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
-      ).animate().fadeIn(),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          widget.title,
+          textAlign: TextAlign.center,
+          style: defaultStyle.copyWith(
+              color: color,
+              shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+        ).animate().fadeIn(),
+      ),
     );
     return SizedBox.expand(
       child: Stack(
         children: [
-          background,
-          borderInnerInner,
-          borderInner,
-          border,
+          const CustomBorderBox(),
           Positioned.fill(
             child: Center(
               child: Column(
@@ -348,45 +236,46 @@ class _PauseMenuState extends State<PauseMenu> {
 
     return Container(
       color: ApolloColorPalette.darkestGray.color.withOpacity(.8),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 900),
-          child: Row(
-            children: [
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 700),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 12),
-                      child: AttributeDisplay(gameRouter, null,
-                          env.player?.buildStatStrings(false), "Current Stats"),
+      child: optionsEnabled
+          ? OptionsMenu(
+              gameRef: gameRouter,
+              backFunction: () {
+                setState(
+                  () {
+                    optionsEnabled = false;
+                  },
+                );
+              },
+            )
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 900),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 700),
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
+                              child: OverlayWidgetDisplay(
+                                gameRouter,
+                                child: StatsDisplay(
+                                  gameRef: gameRouter,
+                                  statStrings:
+                                      env.player?.buildStatStrings(false),
+                                ),
+                              )),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Center(
-                child: SizedBox(
-                  width: 500,
-                  child: InGameMenu(
-                      gameRouter,
-                      optionsEnabled
-                          ? [
-                              OptionsMain(
-                                gameRef: gameRouter,
-                              ),
-                              CustomButton("Back",
-                                  gameRef: widget.gameRef,
-                                  rowId: 100, onPrimary: () {
-                                setState(
-                                  () {
-                                    optionsEnabled = false;
-                                  },
-                                );
-                              }),
-                            ]
-                          : [
+                    Center(
+                      child: SizedBox(
+                        width: 500,
+                        child: OverlayWidgetList(
+                            gameRouter,
+                            [
                               CustomButton(
                                 "Resume",
                                 upDownColor: (
@@ -429,26 +318,29 @@ class _PauseMenuState extends State<PauseMenu> {
                                 },
                               )
                             ],
-                      "Pause Menu"),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 700),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 12),
-                      child: AttributeDisplay(gameRouter, nonTempEntries, null,
-                          "Unlocked Attributes"),
+                            "Pause Menu"),
+                      ),
                     ),
-                  ),
+                    Expanded(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 700),
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
+                              child: OverlayWidgetDisplay(
+                                gameRouter,
+                                child: AttributeDisplay(
+                                    gameRef: gameRouter,
+                                    attributes: nonTempEntries),
+                              )),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     ).animate().fadeIn();
   }
 }

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:hive/hive.dart';
 
@@ -359,6 +360,15 @@ DamageInstance damageCalculations(
   StatusEffects? statusEffect,
 }) {
   Map<DamageType, double> returnMap = {};
+  damageBase = {...damageBase, ...source.flatDamageIncrease.damageFlatIncrease};
+
+  for (var element in source.flatDamageIncrease.damageFlatIncrease.entries) {
+    damageBase.update(
+      element.key,
+      (value) => (value.$1 + element.value.$1, value.$2 + element.value.$2),
+      ifAbsent: () => element.value,
+    );
+  }
 
   for (MapEntry<DamageType, (double, double)> element in damageBase.entries) {
     var min = element.value.$1;

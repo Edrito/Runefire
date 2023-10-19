@@ -26,7 +26,7 @@ import '../attributes/attributes_mixin.dart';
 import 'entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter>
-    with BaseAttributes, ContactCallbacks {
+    with BaseAttributes, ContactCallbacks, ElementalPower {
   static const dupeStatusCheckerList = [
     EntityStatus.run,
     EntityStatus.walk,
@@ -42,9 +42,9 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   List<Function(bool isFlipped)> onBodyFlip = [];
-  //POSITIONING
-
+  List<Function(DamageInstance instance)> onDeath = [];
   Map<dynamic, ChildEntity> childrenEntities = {};
+
   Set<Projectile> closeProjectiles = {};
   Set<Entity> closeSensorBodies = {};
   bool collisionOnDeath = false;
@@ -52,87 +52,19 @@ abstract class Entity extends BodyComponent<GameRouter>
   Map<dynamic, SpriteAnimation> entityAnimations = {};
   late SpriteAnimationGroupComponent entityAnimationsGroup;
   late String entityId;
-  dynamic entityStatus = EntityStatus.spawn;
+  dynamic entityAnimationStatus = EntityStatus.spawn;
   late EntityStatusEffectsWrapper entityStatusWrapper;
   abstract EntityType entityType;
   Enviroment enviroment;
   EventManagement eventManagement;
-  //STATUS
   Vector2 initialPosition;
-
-  // late PositionComponent spriteWrapper;
-  // late Shadow3DDecorator shadow3DDecorator;
-
   bool isFlipped = false;
-
   late Vector2 spriteSize = getSpriteSize;
   dynamic statusPrevious;
-  dynamic statusQueue;
+  dynamic entityAnimationStatusQueue;
   bool temporaryAnimationPlaying = false;
 
   abstract Filter? filter;
-
-  AttributeFunctionsFunctionality? get attributeFunctionsFunctionality {
-    bool thisIsAttr = this is AttributeFunctionsFunctionality;
-
-    if (thisIsAttr) {
-      return this as AttributeFunctionsFunctionality;
-    }
-    bool thisIsChildEntity = this is ChildEntity;
-
-    if (thisIsChildEntity) {
-      return (this as ChildEntity).parentEntity.attributeFunctionsFunctionality;
-    }
-    return null;
-  }
-
-  Vector2 get entityOffsetFromCameraCenter =>
-      center - enviroment.gameCamera.viewfinder.position;
-
-  double get entityStatusHeight => (spriteHeight / 2) + (spriteHeight / 4);
-  GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
-  Vector2 get getSpriteSize => (entityAnimations[EntityStatus.idle]
-          ?.frames
-          .first
-          .sprite
-          .srcSize
-          .clone() ??
-      Vector2.all(1))
-    ..scaledToHeight(this);
-
-  bool get isPlayer =>
-      EntityType.player == entityType ||
-      (isChildEntity && (this as ChildEntity).parentEntity.isPlayer);
-
-  bool get isStunned {
-    if (isChildEntity) {
-      return (this as ChildEntity).parentEntity.isStunned;
-    }
-    return statusEffects.contains(StatusEffects.stun);
-  }
-
-  PlayerFunctionality get playerFunctionality =>
-      enviroment as PlayerFunctionality;
-
-  double get spriteHeight => spriteSize.y;
-  Vector2 get spriteOffset => Vector2.zero();
-  Set<StatusEffects> get statusEffects {
-    if (isChildEntity) {
-      return (this as ChildEntity).parentEntity.statusEffects;
-    }
-
-    bool thisIsAttr = this is AttributeFunctionality;
-    if (thisIsAttr) {
-      return (this as AttributeFunctionality)
-          .currentAttributes
-          .values
-          .whereType<StatusEffectAttribute>()
-          .map((e) => e.statusEffect)
-          .toSet();
-    }
-
-    return {};
-  }
 
   Future<void> applyGroundAnimation(
       SpriteAnimation animation, bool followEntity, double yOffset,
@@ -197,30 +129,6 @@ abstract class Entity extends BodyComponent<GameRouter>
     });
   }
 
-  void attackStatus() {
-    // applyTempAnimation();
-  }
-
-  void customStatus() {
-    // applyTempAnimation(customAnimation);
-  }
-
-  bool damageStatus() {
-    return true;
-  }
-
-  bool dashStatus() {
-    return true;
-  }
-
-  bool deadStatus(DamageInstance instance) {
-    return true;
-  }
-
-  bool dodgeStatus() {
-    return true;
-  }
-
   void flipSprite() {
     entityAnimationsGroup.flipHorizontallyAroundCenter();
 
@@ -262,84 +170,35 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   void permanentlyDisableEntity() {}
 
-  Future<void> setEntityStatus(EntityStatus newEntityStatus,
-      {dynamic customAnimationKey,
-      bool playAnimation = true,
-      DamageInstance? instance}) async {
-    if (entityStatus == EntityStatus.dead) return;
-
-    if (newEntityStatus == entityStatus &&
-        entityAnimationsGroup.current == newEntityStatus &&
-        dupeStatusCheckerList.contains(newEntityStatus)) return;
-
-    bool statusResult = true;
-    switch (newEntityStatus) {
-      case EntityStatus.spawn:
-        spawnStatus();
-        break;
-      case EntityStatus.attack:
-        attackStatus();
-        break;
-      case EntityStatus.jump:
-        statusResult = jumpStatus();
-        break;
-      case EntityStatus.dash:
-        statusResult = dashStatus();
-        break;
-
-      case EntityStatus.dead:
-        if (instance != null) {
-          statusResult = deadStatus(instance);
-        }
-        break;
-      case EntityStatus.custom:
-        customStatus();
-        break;
-      case EntityStatus.damage:
-        statusResult = damageStatus();
-
-        break;
-      case EntityStatus.dodge:
-        statusResult = dodgeStatus();
-        break;
-      default:
+  Future<void> setEntityAnimation(dynamic key,
+      {bool finalAnimation = false}) async {
+    //If the new key is contained in the dupe status checker list, and the current animation is the same as the new key, return
+    if (entityAnimationsGroup.current == key &&
+        dupeStatusCheckerList.contains(key)) {
+      return;
     }
+    if (entityAnimationsGroup.animations?.containsKey(key) == false) {
+      return;
+    }
+    bool newAnimationIsLoop =
+        entityAnimationsGroup.animations?[key]?.loop == true;
 
-    if (!statusResult) return;
-
-    ///If a temporary animation is playing, queue the animation
-    if (temporaryAnimationPlaying && newEntityStatus != EntityStatus.dead) {
-      statusQueue = customAnimationKey ?? newEntityStatus;
+    if (!temporaryAnimationPlaying || !newAnimationIsLoop) {
+      entityAnimationsGroup.current = key;
     } else {
-      entityStatus = customAnimationKey ?? newEntityStatus;
-
-      if (entityAnimationsGroup.animations!.containsKey(entityStatus)) {
-        entityAnimationsGroup.current = entityStatus;
-      } else {
-        tickerComplete();
-      }
-
+      entityAnimationStatusQueue = key;
+      return;
+    }
+    if (entityAnimationsGroup.animation?.loop == false) {
+      temporaryAnimationPlaying = true;
       entityAnimationsGroup.animationTicker?.reset();
-
-      if (!(entityAnimationsGroup.animation?.loop ?? true) &&
-          newEntityStatus != EntityStatus.dead) {
-        temporaryAnimationPlaying = true;
-
-        entityAnimationsGroup.animationTicker?.onComplete = () {
-          entityAnimationsGroup.animationTicker?.reset();
-          tickerComplete();
-        };
+      if (!finalAnimation) {
+        entityAnimationsGroup.animationTicker?.onComplete = tickerComplete;
       }
     }
-
     if (temporaryAnimationPlaying) {
       await entityAnimationsGroup.animationTicker?.completed;
     }
-  }
-
-  void spawnStatus() {
-    // applyTempAnimation(entityAnimations[EntityStatus.spawn]);
-    statusQueue = EntityStatus.idle;
   }
 
   void spriteFlipCheck() {
@@ -351,11 +210,12 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   void tickerComplete() {
     temporaryAnimationPlaying = false;
-    entityStatus = statusQueue ?? statusPrevious ?? EntityStatus.idle;
-    entityAnimationsGroup.current = entityStatus;
+
+    setEntityAnimation(
+        entityAnimationStatusQueue ?? statusPrevious ?? EntityStatus.idle);
 
     statusPrevious = null;
-    statusQueue = null;
+    entityAnimationStatusQueue = null;
   }
 
   @override
@@ -376,16 +236,6 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   @override
   Body createBody() {
-    //     final verts = <Vector2>[
-    //   Vector2(-(entityAnimationsGroup.size.x / 2) + padding,
-    //       -entityAnimationsGroup.size.y + (padding * 2)),
-    //   Vector2((entityAnimationsGroup.size.x / 2) - padding,
-    //       -entityAnimationsGroup.size.y + (padding * 2)),
-    //   Vector2((entityAnimationsGroup.size.x / 2) - padding,
-    //       entityAnimationsGroup.size.y - (padding * 2)),
-    //   Vector2(-(entityAnimationsGroup.size.x / 2) + padding,
-    //       entityAnimationsGroup.size.y - (padding * 2)),
-    // ];
     late CircleShape shape;
     shape = CircleShape();
     shape.radius = entityAnimationsGroup.size.x / 2.4;
@@ -448,7 +298,9 @@ abstract class Entity extends BodyComponent<GameRouter>
         position: spriteOffset,
         animations: entityAnimations);
 
-    setEntityStatus(EntityStatus.spawn);
+    setEntityAnimation(entityAnimations.containsKey(EntityStatus.spawn)
+        ? EntityStatus.spawn
+        : EntityStatus.idle);
     applyHeightToSprite();
 
     // spriteWrapper = PositionComponent(
@@ -491,5 +343,69 @@ abstract class Entity extends BodyComponent<GameRouter>
     }
 
     super.preSolve(other, contact, oldManifold);
+  }
+}
+
+extension EntityClassGetterrs on Entity {
+  AttributeFunctionsFunctionality? get attributeFunctionsFunctionality {
+    bool thisIsAttr = this is AttributeFunctionsFunctionality;
+
+    if (thisIsAttr) {
+      return this as AttributeFunctionsFunctionality;
+    }
+    bool thisIsChildEntity = this is ChildEntity;
+
+    if (thisIsChildEntity) {
+      return (this as ChildEntity).parentEntity.attributeFunctionsFunctionality;
+    }
+    return null;
+  }
+
+  Vector2 get entityOffsetFromCameraCenter =>
+      center - enviroment.gameCamera.viewfinder.position;
+
+  double get entityStatusHeight => (spriteHeight / 2) + (spriteHeight / 4);
+  GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
+  Vector2 get getSpriteSize => (entityAnimations[EntityStatus.idle]
+          ?.frames
+          .first
+          .sprite
+          .srcSize
+          .clone() ??
+      Vector2.all(1))
+    ..scaledToHeight(this);
+
+  bool get isPlayer =>
+      EntityType.player == entityType ||
+      (isChildEntity && (this as ChildEntity).parentEntity.isPlayer);
+
+  bool get isStunned {
+    if (isChildEntity) {
+      return (this as ChildEntity).parentEntity.isStunned;
+    }
+    return statusEffects.contains(StatusEffects.stun);
+  }
+
+  PlayerFunctionality get playerFunctionality =>
+      enviroment as PlayerFunctionality;
+
+  double get spriteHeight => spriteSize.y;
+  Vector2 get spriteOffset => Vector2.zero();
+  Set<StatusEffects> get statusEffects {
+    if (isChildEntity) {
+      return (this as ChildEntity).parentEntity.statusEffects;
+    }
+
+    bool thisIsAttr = this is AttributeFunctionality;
+    if (thisIsAttr) {
+      return (this as AttributeFunctionality)
+          .currentAttributes
+          .values
+          .whereType<StatusEffectAttribute>()
+          .map((e) => e.statusEffect)
+          .toSet();
+    }
+
+    return {};
   }
 }

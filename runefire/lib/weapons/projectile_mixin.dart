@@ -10,6 +10,7 @@ import 'package:runefire/entities/child_entities.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/resources/constants/constants.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/projectile_class.dart';

@@ -2,10 +2,12 @@ import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:numerus/numerus.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/custom_button.dart';
 import 'package:runefire/menus/custom_widgets.dart';
+import 'package:runefire/menus/game_win_screen.dart';
 import 'package:runefire/menus/level_up_screen.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
@@ -15,6 +17,7 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../attributes/attributes_structure.dart';
 import '../main.dart';
@@ -68,6 +71,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)>
     gamepadCursorDisplay =
     MapEntry('GamepadCursorDisplay', (context, gameRouter) {
   return GamepadCursorDisplay(gameRouter);
+});
+MapEntry<String, Widget Function(BuildContext, GameRouter)> gameWinDisplay =
+    MapEntry('GameWinDisplay', (context, gameRouter) {
+  return GameWinDisplay(gameRouter);
 });
 
 class GamepadCursorDisplay extends StatefulWidget {
@@ -148,7 +155,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
           return ConstrainedBox(
               constraints: const BoxConstraints(
                   maxWidth: 400, minHeight: 200, maxHeight: 500, minWidth: 250),
-              child: InGameMenu(
+              child: OverlayWidgetList(
                   gameRouter,
                   [
                     CustomButton(
@@ -273,6 +280,151 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
               ),
             ),
           )
+      ],
+    );
+  }
+}
+
+class StatsDisplay extends StatefulWidget {
+  const StatsDisplay(
+      {required this.gameRef, required this.statStrings, super.key});
+  final GameRouter gameRef;
+  final List<(String, String)>? statStrings;
+
+  @override
+  State<StatsDisplay> createState() => _StatsDisplayState();
+}
+
+class _StatsDisplayState extends State<StatsDisplay> {
+  @override
+  Widget build(BuildContext context) {
+    Widget title = Text(
+      "Current Stats",
+      textAlign: TextAlign.center,
+      style: defaultStyle.copyWith(
+          color: colorPalette.secondaryColor,
+          shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+    ).animate().fadeIn();
+
+    return Column(
+      children: [
+        title,
+        Expanded(
+          child: ScrollConfiguration(
+            behavior: scrollConfiguration(context),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  for (int i = 0; i < (widget.statStrings?.length ?? 0); i++)
+                    Builder(
+                      builder: (context) {
+                        final currentStr = widget.statStrings!.elementAt(i);
+
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            // color: Colors.blue,
+                            // height: 100,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  currentStr.$1,
+                                  style: defaultStyle.copyWith(fontSize: 20),
+                                ),
+                                Text(
+                                  currentStr.$2,
+                                  style: defaultStyle.copyWith(fontSize: 20),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class AttributeDisplay extends StatefulWidget {
+  const AttributeDisplay(
+      {required this.gameRef, required this.attributes, super.key});
+  final GameRouter gameRef;
+  final List<Attribute> attributes;
+  @override
+  State<AttributeDisplay> createState() => _AttributeDisplayState();
+}
+
+class _AttributeDisplayState extends State<AttributeDisplay> {
+  @override
+  Widget build(BuildContext context) {
+    Color color = colorPalette.secondaryColor;
+
+    Widget title = Text(
+      "Unlocked Attributes",
+      textAlign: TextAlign.center,
+      style: defaultStyle.copyWith(
+          color: color, shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+    ).animate().fadeIn();
+
+    return Column(
+      children: [
+        title,
+        Expanded(
+          child: ScrollConfiguration(
+            behavior: scrollConfiguration(context),
+            child: SingleChildScrollView(
+              child: Wrap(
+                children: [
+                  for (int i = 0; i < (widget.attributes.length); i++)
+                    Builder(
+                      builder: (context) {
+                        final currentAttrib = widget.attributes.elementAt(i);
+
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            // color: Colors.blue,
+                            height: 100,
+                            width: 60,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                    'assets/images/${currentAttrib.icon}',
+                                    color: currentAttrib
+                                        .attributeType.rarity.color),
+                                SizedBox(
+                                  width: 55,
+                                  child: Text(
+                                    currentAttrib.upgradeLevel
+                                            .toRomanNumeralString() ??
+                                        "",
+                                    style: defaultStyle.copyWith(
+                                        color: currentAttrib
+                                            .attributeType.rarity.color,
+                                        fontSize: 20),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

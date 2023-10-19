@@ -9,6 +9,7 @@ import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../entities/entity_mixin.dart';
 import '../resources/functions/functions.dart';

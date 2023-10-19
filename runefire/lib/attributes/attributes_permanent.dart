@@ -6,6 +6,7 @@ import 'package:runefire/weapons/weapon_mixin.dart';
 import '../resources/enums.dart';
 import 'attribute_constants.dart' as constants;
 import 'attributes_structure.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 abstract class PermanentAttribute extends Attribute {
   PermanentAttribute({required super.level, required super.victimEntity});

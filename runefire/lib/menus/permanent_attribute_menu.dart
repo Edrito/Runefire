@@ -13,6 +13,7 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../attributes/attributes_permanent.dart';
 import '../attributes/attributes_structure.dart';

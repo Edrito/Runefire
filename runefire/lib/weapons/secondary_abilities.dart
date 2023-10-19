@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../entities/entity_mixin.dart';
 import '../game/area_effects.dart';

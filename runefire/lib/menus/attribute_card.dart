@@ -6,10 +6,12 @@ import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/menus/overlays.dart';
+import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import '../resources/visuals.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 class CustomCard extends StatefulWidget {
   const CustomCard(
@@ -35,7 +37,7 @@ class CustomCard extends StatefulWidget {
 }
 
 class _CustomCardState extends State<CustomCard> {
-  final topPadding = 90.0;
+  final topPadding = 100.0;
 
   bool isHovered = false;
   bool showHelp = false;
@@ -85,133 +87,110 @@ class _CustomCardState extends State<CustomCard> {
       }
     }
 
-    final size = MediaQuery.of(context).size;
+    Widget attributeIcon = buildImageAsset(
+      'assets/images/${widget.attribute.icon}',
+      fit: BoxFit.contain,
+      color: widget.attribute.damageType?.color ?? regularColor,
+    );
 
-    Widget card = ConstrainedBox(
-      constraints: BoxConstraints(
-          maxWidth: !widget.smallCard
-              ? (100 * (size.width / 400)).clamp(350, 450)
-              : 400,
-          minWidth: 100),
-      child: LayoutBuilder(builder: (context, constraints) {
-        final cardWidth = constraints.maxWidth;
-        final cardHeight = cardWidth * (cardSize.height / cardSize.width);
-
-        Widget background = Positioned.fill(
-            bottom: null,
-            child: Image.asset(
-              widget.smallCard
-                  ? 'assets/images/ui/attribute_background_mask_small.png'
-                  : 'assets/images/ui/attribute_background_mask.png',
-              fit: BoxFit.fitWidth,
-              color: Colors.grey.shade900.withOpacity(.85),
-              filterQuality: FilterQuality.none,
-            ));
-
-        Widget attributeIcon = buildImageAsset(
-          'assets/images/${widget.attribute.icon}',
-          fit: BoxFit.contain,
-          color: widget.attribute.damageType?.color ?? regularColor,
-        );
-
-        Widget title = Positioned(
-          // top: 10,
-          height: topPadding,
-          left: 0,
-          right: 0,
-          bottom: null,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-            child: Center(
-              child: Text(
-                widget.attribute.title,
-                style: style.copyWith(color: highlightColor.brighten(.3)),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.clip,
-              ),
-            ),
+    Widget title = Positioned(
+      // top: 10,
+      height: topPadding,
+      left: 0,
+      right: 0,
+      bottom: null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+        child: Center(
+          child: Text(
+            widget.attribute.title,
+            style: style.copyWith(color: highlightColor.brighten(.3)),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.clip,
           ),
-        );
+        ),
+      ),
+    );
 
-        Widget content = Positioned(
-          height:
-              cardHeight - (widget.smallCard ? topPadding / 1.15 : topPadding),
-          width: cardWidth,
-          bottom: 0,
-          child: Container(
-            color: highlightColor.withOpacity(.05),
-            child: Padding(
-              padding: widget.smallCard
-                  ? const EdgeInsets.symmetric(horizontal: 20, vertical: 5)
-                  : const EdgeInsets.all(16),
-              child: Column(
+    final size = MediaQuery.of(context).size;
+    final double maxWidth =
+        !widget.smallCard ? (100 * (size.width / 400)).clamp(350, 450) : 400;
+    final double cardWidth = maxWidth;
+    final cardHeight = cardWidth * (cardSize.height / cardSize.width);
+    Widget content = Container(
+      color: highlightColor.withOpacity(.05),
+      child: Padding(
+        padding: widget.smallCard
+            ? const EdgeInsets.symmetric(horizontal: 20, vertical: 5)
+            : const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: widget.smallCard
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: widget.smallCard
-                          ? CrossAxisAlignment.center
-                          : CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            widget.attribute.description(),
-                            style: style.copyWith(
-                              fontSize: (style.fontSize! * .75),
-                              color: style.color!.darken(.1),
-                              fontWeight: FontWeight.w200,
-                            ),
-                            textAlign: widget.smallCard
-                                ? TextAlign.center
-                                : TextAlign.left,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        Flexible(
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: SizedBox.expand(
-                              child: Padding(
-                                padding: widget.smallCard
-                                    ? const EdgeInsets.all(2)
-                                    : const EdgeInsets.all(12.0),
-                                child: attributeIcon,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                    flex: 2,
+                    child: Text(
+                      widget.attribute.description(),
+                      style: style.copyWith(
+                        fontSize: (style.fontSize! * .75),
+                        color: style.color!.darken(.1),
+                        fontWeight: FontWeight.w200,
+                      ),
+                      textAlign:
+                          widget.smallCard ? TextAlign.center : TextAlign.left,
                     ),
                   ),
-                  if (!widget.smallCard)
-                    SizedBox(
-                      height: 50,
-                      child: !hasDamageTypeSelector &&
-                              widget.attribute.maxLevel != 1
-                          ? Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: Wrap(
-                                  alignment: WrapAlignment.center,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: levelIndicators,
-                                ),
-                              ),
-                            )
-                          : null,
-                    )
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Flexible(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: SizedBox.expand(
+                        child: Padding(
+                          padding: widget.smallCard
+                              ? const EdgeInsets.all(2)
+                              : const EdgeInsets.all(12.0),
+                          child: attributeIcon,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        );
-
-        return CustomInputWatcher(
+            if (!widget.smallCard)
+              SizedBox(
+                height: 50,
+                child: !hasDamageTypeSelector && widget.attribute.maxLevel != 1
+                    ? Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: levelIndicators,
+                          ),
+                        ),
+                      )
+                    : null,
+              )
+          ],
+        ),
+      ),
+    );
+    Widget card = ConstrainedBox(
+        constraints: const BoxConstraints(
+          minWidth: 100,
+        ),
+        child: CustomInputWatcher(
           scrollController: widget.scrollController,
           rowId: widget.rowId,
           onHover: (value) {
@@ -226,93 +205,75 @@ class _CustomCardState extends State<CustomCard> {
           },
           child: SizedBox(
             height: cardHeight,
-            child: Stack(
-              children: [
-                background,
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(35),
-                    child: Stack(
-                      children: [title, content],
-                    ),
+            width: cardWidth,
+            child: Center(
+              child: Stack(
+                children: [
+                  CustomBorderBox(
+                    small: widget.smallCard,
+                    hideBaseBorder: widget.smallCard,
                   ),
-                ),
-                if (hasDamageTypeSelector)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 80,
+                  Positioned.fill(
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(35),
-                          bottomRight: Radius.circular(35)),
-                      child: DamageTypeSelector(
-                        widget.attribute.allowedDamageTypes,
-                        (p0) {
-                          widget.onPrimary?.call(p0);
-                        },
-                        scrollController: widget.scrollController,
+                      borderRadius: BorderRadius.circular(35),
+                      child: Stack(
+                        children: [
+                          title,
+                          Positioned(
+                              height: cardHeight -
+                                  (widget.smallCard
+                                      ? topPadding / 1.15
+                                      : topPadding),
+                              width: cardWidth,
+                              bottom: 0,
+                              child: content),
+                        ],
                       ),
                     ),
                   ),
-                Positioned.fill(
-                    bottom: null,
-                    child: IgnorePointer(
-                      child: Padding(
-                          padding: const EdgeInsets.all(5),
-                          child: buildImageAsset(
-                            widget.smallCard
-                                ? 'assets/images/ui/attribute_border_small.png'
-                                : 'assets/images/ui/attribute_border.png',
-                            fit: BoxFit.fitWidth,
-                            color: highlightColor.darken(.85),
-                          )),
-                    )),
-                Positioned.fill(
-                    bottom: null,
-                    child: IgnorePointer(
-                      child: Padding(
-                          padding: const EdgeInsets.all(3),
-                          child: buildImageAsset(
-                            widget.smallCard
-                                ? 'assets/images/ui/attribute_border_small.png'
-                                : 'assets/images/ui/attribute_border.png',
-                            fit: BoxFit.fitWidth,
-                            color: highlightColor.darken(.7),
-                          )),
-                    )),
-                Positioned.fill(
-                    bottom: null,
-                    child: IgnorePointer(
-                      child: buildImageAsset(
-                        widget.smallCard
-                            ? 'assets/images/ui/attribute_border_small.png'
-                            : 'assets/images/ui/attribute_border.png',
-                        fit: BoxFit.fitWidth,
-                        color: highlightColor.darken(.4),
+                  if (hasDamageTypeSelector)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 80,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(35),
+                            bottomRight: Radius.circular(35)),
+                        child: DamageTypeSelector(
+                          widget.attribute.allowedDamageTypes,
+                          (p0) {
+                            widget.onPrimary?.call(p0);
+                          },
+                          scrollController: widget.scrollController,
+                        ),
                       ),
-                    )),
-              ],
-            )
-                .animate(
-                  target: isHovered ? 1 : 0,
-                )
-                .rotate(
-                    begin: 0,
-                    end: .001,
+                    ),
+                  CustomBorderBox(
+                    small: widget.smallCard,
+                    hideBackground: true,
+                    hideBaseBorder: widget.smallCard,
+                  )
+                ],
+              )
+                  .animate(
+                    target: isHovered ? 1 : 0,
+                  )
+                  .rotate(
+                      begin: 0,
+                      end: .001,
+                      curve: Curves.easeInOut,
+                      duration: .1.seconds)
+                  .scale(
                     curve: Curves.easeInOut,
-                    duration: .1.seconds)
-                .scale(
-                  curve: Curves.easeInOut,
-                  duration: .1.seconds,
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.05, 1.05),
-                ),
+                    duration: .1.seconds,
+                    begin: const Offset(1, 1),
+                    end: const Offset(1.05, 1.05),
+                  ),
+            ),
           ),
-        );
-      }),
-    );
+        ));
     return card
         .animate(
           onPlay: (controller) => controller.forward(from: rng.nextDouble()),

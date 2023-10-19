@@ -7,6 +7,7 @@ import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/resources/constants/sprite_animations.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/projectile_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../resources/enums.dart';
 import '../resources/functions/custom.dart';

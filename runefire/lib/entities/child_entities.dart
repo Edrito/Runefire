@@ -17,6 +17,7 @@ import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/melee_swing_manager.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../enemies/enemy_mixin.dart';
 import '../resources/functions/custom.dart';
@@ -261,7 +262,7 @@ class MarkEnemySentry extends ChildEntity {
   void markTarget() {
     if (target == null) return;
     final attr = target as AttributeFunctionality;
-    setEntityStatus(EntityStatus.attack);
+    setEntityAnimation(EntityStatus.attack);
 
     attr.addAttribute(AttributeType.marked,
         perpetratorEntity: parentEntity,
@@ -558,8 +559,7 @@ class ElementalCaptureBulletSentry extends ChildEntity
       return false;
     }
 
-    setEntityStatus(EntityStatus.custom,
-        customAnimationKey: "absorb_projectile");
+    setEntityAnimation("absorb_projectile");
 
     projectile.killBullet(false);
 
@@ -576,7 +576,7 @@ class ElementalCaptureBulletSentry extends ChildEntity
         capturedBullet = null;
         target = null;
         currentWeapon?.standardAttack();
-        setEntityStatus(EntityStatus.attack);
+        setEntityAnimation(EntityStatus.attack);
         addCooldown();
       },
     )..addToParent(this);
@@ -637,7 +637,7 @@ class MirrorOrbSentry extends ChildEntity
     isFlipped = parentAttackFunctionality.isFlipped;
     currentWeapon!.standardAttack(holdDuration);
 
-    setEntityStatus(EntityStatus.attack);
+    setEntityAnimation(EntityStatus.attack);
   }
 
   void buildSentryWeapon(Weapon? previous, Weapon newWeapon) async {
@@ -779,7 +779,7 @@ class SwordSentry extends ChildEntity
           ..categoryBits = swordCategory,
         userData: {'type': FixtureType.body, 'object': this},
         isSensor: true,
-        density: 0.005);
+        density: 0.9);
     renderBody = false;
     return super.createBody()
       ..createFixture(fixture)

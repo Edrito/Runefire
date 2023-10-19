@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
@@ -33,7 +34,7 @@ mixin DropItemFunctionality on HealthFunctionality {
   //Random value between the two ints is chosen
   final (int, int) experiencePerDrop = (1, 1);
 
-  List<Component> calculateExperienceDrop() {
+  List<Component> _calculateExperienceDrop() {
     ExperienceAmount? experienceAmount;
 
     List<ExperienceItem> experienceAmounts = [];
@@ -65,7 +66,7 @@ mixin DropItemFunctionality on HealthFunctionality {
     return experienceAmounts;
   }
 
-  Component? calculateExpendableDrop() {
+  Component? _calculateExpendableDrop() {
     double chance = rng.nextDouble();
     final entryList = expendableRate.entries.toList();
     entryList.sort((a, b) => rng.nextInt(2));
@@ -87,16 +88,21 @@ mixin DropItemFunctionality on HealthFunctionality {
     return null;
   }
 
-  @override
-  bool deadStatus(DamageInstance instance) {
-    final temp = calculateExperienceDrop();
+  void _calculateDeathDrops(DamageInstance instance) {
+    final temp = _calculateExperienceDrop();
     gameEnviroment.addPhysicsComponent(temp);
-    final tempTwo = calculateExpendableDrop();
+    final tempTwo = _calculateExpendableDrop();
     if (tempTwo != null) {
       gameEnviroment.addPhysicsComponent([tempTwo]);
     }
+  }
 
-    return super.deadStatus(instance);
+  @override
+  Future<void> onLoad() {
+    onDeath.add((instance) {
+      _calculateDeathDrops(instance);
+    });
+    return super.onLoad();
   }
 }
 
@@ -183,7 +189,7 @@ mixin DumbShoot on AttackFunctionality {
   void onTick() {
     if (aimVector.isZero()) return;
     startPrimaryAttacking();
-    setEntityStatus(EntityStatus.attack);
+    setEntityAnimation(EntityStatus.attack);
     endPrimaryAttacking();
   }
 
@@ -292,7 +298,7 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
     final newPosition = (gameEnviroment.player!.center - body.position);
     removeMoveVelocity(absoluteOverrideInputPriority);
     addMoveVelocity(newPosition.normalized(), aiInputPriority);
-    setEntityStatus(EntityStatus.jump);
+    jump();
   }
 
   @override
@@ -319,7 +325,7 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
   }
 }
 
-mixin FollowThenSuicideAI on MovementFunctionality {
+mixin FollowThenSuicideAI on MovementFunctionality, HealthFunctionality {
   double targetUpdateFrequency = .3;
   double distanceThreshold = 2;
 
@@ -332,12 +338,8 @@ mixin FollowThenSuicideAI on MovementFunctionality {
     final newPosition = (gameEnviroment.player!.center - body.position);
     addMoveVelocity(newPosition.normalized(), aiInputPriority);
     if (center.distanceTo(gameEnviroment.player!.center) < distanceThreshold) {
-      await setEntityStatus(EntityStatus.dead,
-          instance: DamageInstance(
-              damageMap: {},
-              source: this,
-              victim: this as HealthFunctionality,
-              sourceAttack: this));
+      await die(DamageInstance(
+          damageMap: {}, source: this, victim: this, sourceAttack: this));
     }
   }
 

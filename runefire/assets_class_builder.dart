@@ -4,9 +4,7 @@ import 'package:recase/recase.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 
 main(List<String> params) async {
-  print('eee');
   final Directory assetsFolder = Directory('assets');
-  print('eee');
   await parseFolder(assetsFolder, null);
 
   const String newDirectory = "lib\\resources\\assets";

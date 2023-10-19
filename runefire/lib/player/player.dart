@@ -12,15 +12,19 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:flutter_animate/flutter_animate.dart' hide ShakeEffect;
+import 'package:flutter_animate/flutter_animate.dart'
+    hide ShakeEffect, ScaleEffect;
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/input_manager.dart';
+import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -85,6 +89,9 @@ class Player extends Entity
   }
   final PlayerData playerData;
 
+  BoolParameterManager disableInput =
+      BoolParameterManager(baseParameter: false);
+
   final ListQueue<InteractableComponent> _interactableComponents = ListQueue();
 
   void addCloseInteractableComponents(InteractableComponent newComponent) {
@@ -107,7 +114,7 @@ class Player extends Entity
   }
 
   @override
-  Vector2 get handJointOffset => Vector2(0, 1);
+  Vector2 get handJointOffset => Vector2(0, .1);
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -191,6 +198,7 @@ class Player extends Entity
   }
 
   void parseGamepadJoy(GamepadEvent event) {
+    if (disableInput.parameter) return;
     GamepadButtons buttonToCheck = event.button;
     bool swapJoys = game.systemDataComponent.dataObject.flipJoystickControl;
 
@@ -220,7 +228,6 @@ class Player extends Entity
           // removeAimPosition(gamepadUserInputPriority);
         } else {
           addAimAngle(event.xyValue.toVector2(), userInputPriority);
-          print(event.xyValue);
           final newPos = InputManager().getGamepadCursorPosition?.toVector2();
           if (newPos != null) {
             final position = (shiftCoordinatesToCenter(
@@ -319,6 +326,7 @@ class Player extends Entity
   Enemy? aimAssistEnemy;
 
   void applyAimAssist() {
+    if (disableInput.parameter) return;
     ExternalInputType inputType = InputManager().externalInputType;
     AimAssistStrength aimAssistStrength =
         game.systemDataComponent.dataObject.aimAssistStrength;
@@ -379,6 +387,7 @@ class Player extends Entity
   Vector2 tempMoveAngle = Vector2.zero();
 
   void onMoveAction(GameActionEvent _, Set<GameAction> activeGameActions) {
+    if (disableInput.parameter) return;
     tempMoveAngle.setZero();
 
     if (activeGameActions.contains(GameAction.moveRight)) {
@@ -403,6 +412,7 @@ class Player extends Entity
 
   void primaryAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (disableInput.parameter) return;
     switch (gameActionEvent.pressState) {
       case PressState.pressed:
         startPrimaryAttacking();
@@ -417,6 +427,7 @@ class Player extends Entity
 
   void secondaryAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    if (disableInput.parameter) return;
     switch (gameActionEvent.pressState) {
       case PressState.pressed:
         startSecondaryAttacking();
@@ -432,12 +443,14 @@ class Player extends Entity
   void swapWeaponAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
     if (gameActionEvent.pressState != PressState.pressed) return;
+    if (disableInput.parameter) return;
     swapWeapon();
   }
 
   void reloadWeaponAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
     if (gameActionEvent.pressState != PressState.pressed) return;
+    if (disableInput.parameter) return;
     if (currentWeapon is ReloadFunctionality) {
       final currentWeaponReload = currentWeapon as ReloadFunctionality;
       if (currentWeaponReload.isReloading ||
@@ -450,26 +463,37 @@ class Player extends Entity
   void jumpAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
     if (gameActionEvent.pressState != PressState.pressed) return;
-    setEntityStatus(EntityStatus.jump);
+    if (disableInput.parameter) return;
+
+    jump();
   }
 
   void dashAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
     if (gameActionEvent.pressState != PressState.pressed) return;
-    setEntityStatus(EntityStatus.dash);
+    if (disableInput.parameter) return;
+    dash();
   }
 
   void interactAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
     if (gameActionEvent.pressState != PressState.pressed) return;
+    if (disableInput.parameter) return;
     if (_interactableComponents.isNotEmpty) {
-      _interactableComponents.first.interact();
+      final itemToInteractWith = _interactableComponents.first;
+      itemToInteractWith.interact();
+      for (var element in interactableFunctions) {
+        element(itemToInteractWith);
+      }
     }
   }
+
+  List<Function(InteractableComponent interactable)> interactableFunctions = [];
 
   void expendableAction(
       GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
     if (gameActionEvent.pressState != PressState.pressed) return;
+    if (disableInput.parameter) return;
     useExpendable();
   }
 
@@ -482,4 +506,87 @@ class Player extends Entity
 
   @override
   EntityType entityType = EntityType.player;
+
+  List<EndGameExperienceEntry> buildEndGameEntries() {
+    List<EndGameExperienceEntry> returnList = [
+      (
+        label: "Total XP:",
+        amount: experiencePointsGained + 5555222,
+        damageType: null,
+        isTotal: true,
+        rating: "SS"
+      ),
+      (
+        label: "Tota22:",
+        amount: 53.00,
+        damageType: null,
+        isTotal: false,
+        rating: null
+      ),
+      (
+        label: "Elemental Prowess Bonus:",
+        amount: 1201,
+        damageType: DamageType.fire,
+        isTotal: false,
+        rating: null
+      ),
+      (
+        label: "Weapon Pickup Bonus:",
+        amount: 5555,
+        damageType: null,
+        isTotal: false,
+        rating: null
+      ),
+    ];
+    assert(returnList.where((element) => element.isTotal).length == 1);
+    return returnList;
+  }
+
+  void winGame(
+    ExitPortal portal,
+  ) async {
+    invincible.setIncrease("wingame", true);
+    disableInput.setIncrease("wingame", true);
+
+    removeWeapons();
+    final portalOffset = Vector2(0, portal.spriteComponent.height / 3.65);
+    body.linearDamping = 16;
+    void followPortal(double dt) async {
+      addMoveVelocity(((portal.center + portalOffset) - center).normalized(),
+          absoluteOverrideInputPriority);
+
+      if (center.distanceTo(portal.center + portalOffset) < .25) {
+        onUpdate.remove(followPortal);
+        addMoveVelocity(Vector2.zero(), absoluteOverrideInputPriority);
+
+        await Future.delayed(.5.seconds);
+
+        jump(true);
+
+        collision.baseParameter = false;
+
+        await Future.delayed((jumpDuration.parameter / 2).seconds);
+        final ctr = EffectController(
+            duration: jumpDuration.parameter / 2, curve: Curves.easeIn);
+        entityAnimationsGroup.add(OpacityEffect.fadeOut(ctr));
+        entityAnimationsGroup.add(ScaleEffect.to(Vector2.all(0.2), ctr));
+        await Future.delayed(2.seconds);
+
+        GameState().pauseGame(
+          gameWinDisplay.key,
+          pauseGame: true,
+        );
+      }
+    }
+
+    onUpdate.add(followPortal);
+  }
 }
+
+typedef EndGameExperienceEntry = ({
+  String label,
+  double amount,
+  DamageType? damageType,
+  bool isTotal,
+  String? rating
+});

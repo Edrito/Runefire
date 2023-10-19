@@ -49,7 +49,7 @@ extension ExpendableTypeExtension on ExpendableType {
     }
   }
 
-  InteractablePickup buildInteractable(
+  InteractableRunePickup buildInteractable(
       {required Vector2 initialPosition,
       required GameEnviroment gameEnviroment,
       WeaponType? weaponType}) {
@@ -60,7 +60,7 @@ extension ExpendableTypeExtension on ExpendableType {
           weaponType: weaponType,
           gameEnviroment: gameEnviroment);
     }
-    return InteractablePickup(
+    return InteractableRunePickup(
         expendableType: this,
         initialPosition: initialPosition,
         gameEnviroment: gameEnviroment);
@@ -75,7 +75,7 @@ abstract class Expendable {
   bool instantApply = false;
 }
 
-class InteractableWeaponPickup extends InteractablePickup {
+class InteractableWeaponPickup extends InteractableRunePickup {
   InteractableWeaponPickup(
       {required this.weaponType,
       required super.expendableType,
@@ -88,8 +88,8 @@ class InteractableWeaponPickup extends InteractablePickup {
   }
 }
 
-class InteractablePickup extends InteractableComponent {
-  InteractablePickup({
+class InteractableRunePickup extends InteractableComponent {
+  InteractableRunePickup({
     required this.expendableType,
     required super.initialPosition,
     required super.gameEnviroment,

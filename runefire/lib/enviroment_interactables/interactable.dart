@@ -3,6 +3,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/services/raw_keyboard.dart';
 import 'package:runefire/input_manager.dart';
+import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/main.dart';
@@ -42,7 +43,7 @@ class ExitPortal extends InteractableComponent {
 
   @override
   void interact() {
-    print("HA YOU CANT LEAVE LOLOLOLOLOLOL");
+    player.winGame(this);
   }
 }
 

@@ -11,7 +11,7 @@ import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/visuals.dart';
-import '../test.dart';
+import '../custom_test.dart';
 import '../events/event_management.dart';
 import '../entities/entity_class.dart';
 import '../resources/enums.dart';
@@ -173,19 +173,7 @@ class ForestEnemyManagement extends EventManagement {
         eventBeginEnd: (1, 500),
         spawnLocation: SpawnLocation.outside,
       ),
-      EnemyEvent(
-        gameEnviroment,
-        this,
-        isBigBoss: false,
-        clusterSpread: 10,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomShooter, 2)],
-        numberOfClusters: 2,
-        maxEnemies: 10,
-        eventTriggerInterval: (1, 1),
-        levels: (0, 1),
-        eventBeginEnd: (1, 30),
-        spawnLocation: SpawnLocation.outside,
-      ),
+
       EnemyEvent(
         gameEnviroment,
         this,
@@ -221,7 +209,7 @@ class ForestEnemyManagement extends EventManagement {
       ),
 
       EndGameEvent(gameEnviroment, this,
-          eventBeginEnd: (2, 2), eventTriggerInterval: (0, 0))
+          eventBeginEnd: (10, 10), eventTriggerInterval: (0, 0))
     ]);
   }
 }

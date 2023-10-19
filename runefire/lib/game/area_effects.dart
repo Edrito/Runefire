@@ -15,6 +15,7 @@ import 'package:uuid/uuid.dart';
 import '../entities/entity_class.dart';
 import '../main.dart';
 import '../resources/data_classes/base.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 enum DurationType { instant, temporary, permanent }
 

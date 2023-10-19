@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
@@ -30,7 +31,7 @@ class PhaseDagger extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(.5, weaponLength),
+          attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -51,7 +52,7 @@ class PhaseDagger extends PlayerWeapon
             // (Vector2(.25, 0), -35, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(.5, weaponLength),
+          attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -146,7 +147,10 @@ class CrystalSword extends PlayerWeapon
     pierce.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
+          attackHitboxSize: (
+            Vector2(weaponLength / 3.5, weaponLength),
+            (.1, .9)
+          ),
           flippedDuringAttack: true,
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
@@ -164,7 +168,10 @@ class CrystalSword extends PlayerWeapon
             (Vector2(2, -1), -75, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
+          attackHitboxSize: (
+            Vector2(weaponLength / 3.5, weaponLength),
+            (.1, .9)
+          ),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -181,7 +188,10 @@ class CrystalSword extends PlayerWeapon
             (Vector2(-2, 0), 45, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
+          attackHitboxSize: (
+            Vector2(weaponLength / 3.5, weaponLength),
+            (.1, .9)
+          ),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -279,7 +289,7 @@ class AethertideSpear extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponLength),
+          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
           weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
@@ -298,7 +308,7 @@ class AethertideSpear extends PlayerWeapon
             // (Vector2(0, 1.5), -20, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponLength),
+          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
           attackSpriteAnimationBuild: () async {
@@ -317,7 +327,7 @@ class AethertideSpear extends PlayerWeapon
             // (Vector2(0, 1.5), 20, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(3, weaponLength),
+          attackHitboxSize: (Vector2(3, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -419,7 +429,7 @@ class HolySword extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponLength),
+          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -442,7 +452,7 @@ class HolySword extends PlayerWeapon
             // (Vector2(.2, 1), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponLength),
+          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -560,7 +570,7 @@ class FlameSword extends PlayerWeapon
     // baseAttackCount.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponLength),
+          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           weaponTrailConfig:
               WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
@@ -578,7 +588,7 @@ class FlameSword extends PlayerWeapon
             (Vector2(.2, 1), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponLength),
+          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
           weaponTrailConfig:
               WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
           entitySpriteAnimation: null,
@@ -672,7 +682,7 @@ class LargeSword extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (12, 20);
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2.all(1),
+          attackHitboxSize: (Vector2.all(1), (.1, .9)),
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
             return WeaponSpriteAnimation(Vector2.zero(),
@@ -780,7 +790,7 @@ class FrostKatana extends PlayerWeapon
         final dash = (entityAncestor as DashFunctionality);
         if (holdDurationPercent < .6) return;
         pierce.setParameterFlatValue(weaponId, 999);
-        dash.dashInit(
+        dash.beginDash(
             power: holdDurationPercent * 2.5,
             weaponSource: true,
             triggerFunctions: false);
@@ -791,7 +801,7 @@ class FrostKatana extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(1, weaponLength),
+          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
           entitySpriteAnimation: null,
           weaponTrailConfig: WeaponTrailConfig(
             bottomStartFromTipPercent: .25,
@@ -906,7 +916,10 @@ class SwordOfJustice extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
+          attackHitboxSize: (
+            Vector2(weaponLength / 3.5, weaponLength),
+            (.1, .9)
+          ),
           entitySpriteAnimation: null,
           meleeAttackType: MeleeType.stab,
           attackSpriteAnimationBuild: () async {
@@ -926,7 +939,10 @@ class SwordOfJustice extends PlayerWeapon
             (Vector2(0, 1.5), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
+          attackHitboxSize: (
+            Vector2(weaponLength / 3.5, weaponLength),
+            (.1, .9)
+          ),
           meleeAttackType: MeleeType.stab,
           entitySpriteAnimation: null,
           attackSpriteAnimationBuild: () async {
@@ -945,7 +961,10 @@ class SwordOfJustice extends PlayerWeapon
             (Vector2(0, 2), 0, 1),
           ]),
       MeleeAttack(
-          attackHitboxSize: Vector2(weaponLength / 3.5, weaponLength),
+          attackHitboxSize: (
+            Vector2(weaponLength / 3.5, weaponLength),
+            (.1, .9)
+          ),
           entitySpriteAnimation: null,
           meleeAttackType: MeleeType.stab,
           attackSpriteAnimationBuild: () async {

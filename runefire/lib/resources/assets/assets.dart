@@ -555,7 +555,15 @@ static const FileDataClass attributeBackgroundMaskSmall =
 static const FileDataClass attributeBackgroundSmall = 
 (path:"assets/images/ui/attribute_background_small.png",flamePath:"ui/attribute_background_small.png", size:(128.0,48.0)  );///attribute_border.png
 static const FileDataClass attributeBorder = 
-(path:"assets/images/ui/attribute_border.png",flamePath:"ui/attribute_border.png", size:(128.0,96.0)  );///attribute_border_small.png
+(path:"assets/images/ui/attribute_border.png",flamePath:"ui/attribute_border.png", size:(128.0,96.0)  );///attribute_border_base.png
+static const FileDataClass attributeBorderBase = 
+(path:"assets/images/ui/attribute_border_base.png",flamePath:"ui/attribute_border_base.png", size:(128.0,96.0)  );///attribute_border_base_small.png
+static const FileDataClass attributeBorderBaseSmall = 
+(path:"assets/images/ui/attribute_border_base_small.png",flamePath:"ui/attribute_border_base_small.png", size:(128.0,96.0)  );///attribute_border_mid.png
+static const FileDataClass attributeBorderMid = 
+(path:"assets/images/ui/attribute_border_mid.png",flamePath:"ui/attribute_border_mid.png", size:(128.0,96.0)  );///attribute_border_mid_small.png
+static const FileDataClass attributeBorderMidSmall = 
+(path:"assets/images/ui/attribute_border_mid_small.png",flamePath:"ui/attribute_border_mid_small.png", size:(128.0,96.0)  );///attribute_border_small.png
 static const FileDataClass attributeBorderSmall = 
 (path:"assets/images/ui/attribute_border_small.png",flamePath:"ui/attribute_border_small.png", size:(128.0,48.0)  );///bag.png
 static const FileDataClass bag = 
@@ -641,6 +649,10 @@ attributeBackgroundMask.path,
 attributeBackgroundMaskSmall.path,
 attributeBackgroundSmall.path,
 attributeBorder.path,
+attributeBorderBase.path,
+attributeBorderBaseSmall.path,
+attributeBorderMid.path,
+attributeBorderMidSmall.path,
 attributeBorderSmall.path,
 bag.path,
 banner.path,
@@ -689,6 +701,10 @@ attributeBackgroundMask.flamePath,
 attributeBackgroundMaskSmall.flamePath,
 attributeBackgroundSmall.flamePath,
 attributeBorder.flamePath,
+attributeBorderBase.flamePath,
+attributeBorderBaseSmall.flamePath,
+attributeBorderMid.flamePath,
+attributeBorderMidSmall.flamePath,
 attributeBorderSmall.flamePath,
 bag.flamePath,
 banner.flamePath,

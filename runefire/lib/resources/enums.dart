@@ -8,6 +8,7 @@ import 'package:runefire/events/event_management.dart';
 import 'package:runefire/player/player_constants.dart' as player_constants;
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/player_magic_weapons.dart';
@@ -148,8 +149,6 @@ enum StatusEffects {
 enum AttackType { guns, melee, magic }
 
 enum MeleeType { slash, stab, crush }
-
-enum DamageType { physical, magic, fire, psychic, energy, frost, healing }
 
 enum DamageKind { dot, area, regular }
 
@@ -704,27 +703,6 @@ extension WeaponTypeFilename on WeaponType {
     }
 
     return returnWeapon;
-  }
-}
-
-extension DamageTypeExtension on DamageType {
-  Color get color {
-    switch (this) {
-      case DamageType.physical:
-        return Colors.white;
-      case DamageType.energy:
-        return ApolloColorPalette.yellow.color;
-      case DamageType.psychic:
-        return ApolloColorPalette.purple.color;
-      case DamageType.magic:
-        return ApolloColorPalette.lightBlue.color;
-      case DamageType.fire:
-        return ApolloColorPalette.orange.color;
-      case DamageType.frost:
-        return ApolloColorPalette.lightCyan.color;
-      case DamageType.healing:
-        return ApolloColorPalette.lightGreen.color;
-    }
   }
 }
 

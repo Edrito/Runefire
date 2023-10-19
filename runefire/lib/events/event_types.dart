@@ -19,6 +19,7 @@ import '../game/enviroment.dart';
 import '../main.dart';
 import '../resources/constants/priorities.dart';
 import '../enemies/enemy.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 class DeathHandEvent extends PositionEvent {
   DeathHandEvent(super.gameEnviroment, super.eventManagement,

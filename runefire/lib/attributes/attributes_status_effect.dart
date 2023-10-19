@@ -4,6 +4,7 @@ import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/input_priorities.dart';
 
 import '../entities/entity_class.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import '../entities/entity_mixin.dart';
 import '../resources/data_classes/base.dart';
 import '../resources/enums.dart';

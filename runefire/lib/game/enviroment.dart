@@ -12,7 +12,7 @@ import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
-import 'package:runefire/test.dart';
+import 'package:runefire/custom_test.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 
 import '../player/player.dart';

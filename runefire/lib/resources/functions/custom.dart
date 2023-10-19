@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -116,7 +117,7 @@ class FadeOutCircleParticle extends CircleParticle {
   }
 }
 
-mixin UpgradeFunctions {
+abstract mixin class UpgradeFunctions {
   int upgradeLevel = 0;
   abstract int? maxLevel;
   bool get isMaxLevel => upgradeLevel == maxLevel;

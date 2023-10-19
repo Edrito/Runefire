@@ -14,6 +14,7 @@ import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../resources/enums.dart';
 import '../entities/child_entities.dart';
@@ -23,27 +24,8 @@ import '../resources/visuals.dart';
 
 mixin AttributeFunctionality on Entity {
   Map<AttributeType, Attribute> currentAttributes = {};
-
-  Random rng = Random();
-
-  void loadPlayerConfig(Map<String, dynamic> config) {}
   bool initalized = false;
-
-  ///Initial Attribtes and their initial level
-  ///i.e. Max Speed : Level 3
-  void initAttributes(Map<AttributeType, int> attributesToAdd) {
-    if (initalized) return;
-    List<AttributeType> attributeTypes = attributesToAdd.keys.toList();
-    attributeTypes.sort((a, b) => a.priority.compareTo(b.priority));
-    for (var element in attributeTypes) {
-      currentAttributes[element] = element.buildAttribute(
-          attributesToAdd[element]!, this,
-          perpetratorEntity: this)
-        ..applyUpgrade();
-    }
-
-    initalized = true;
-  }
+  Random rng = Random();
 
   void addAttribute(
     AttributeType attribute, {
@@ -71,48 +53,12 @@ mixin AttributeFunctionality on Entity {
     }
   }
 
-  void clearAttributes() {
-    for (var element in currentAttributes.entries) {
-      element.value.removeUpgrade();
-    }
-    currentAttributes.clear();
-    initalized = false;
-  }
-
-  void removeAttribute(AttributeType attributeType) {
-    currentAttributes[attributeType]?.removeUpgrade();
-    currentAttributes.remove(attributeType);
-  }
-
-  void remapAttributes() {
-    List<Attribute> tempList = [];
-    for (var element in currentAttributes.values) {
-      if (element.upgradeApplied) {
-        element.unMapUpgrade();
-        tempList.add(element);
-      }
-    }
-
-    tempList.sort(
-        (a, b) => a.attributeType.priority.compareTo(b.attributeType.priority));
-
-    for (var element in tempList) {
-      element.mapUpgrade();
-    }
-  }
-
-  void modifyLevel(AttributeType attributeEnum, [int amount = 0]) {
-    if (currentAttributes.containsKey(attributeEnum)) {
-      var attr = currentAttributes[attributeEnum]!;
-      attr.changeLevel(amount);
-    }
-  }
-
   List<Attribute> buildAttributeSelection() {
     if (!isPlayer) return [];
     List<Attribute> returnList = [];
     final player = (this as Player);
-
+    DamageType? elementalDamageTypeForced =
+        player.shouldForceElementalAttribute();
     int attempts = 0;
 
     while (returnList.length < 3 && attempts < 1000) {
@@ -120,12 +66,25 @@ mixin AttributeFunctionality on Entity {
 
       final potentialCandidates = AttributeType.values
           .where((element) =>
+              //Attribute is game attribute and not permanenet
               element.territory == AttributeTerritory.game &&
+              //Player is not max level
+
               player.currentAttributes[element]?.isMaxLevel != true &&
+              //if forced selection is active, only show those attributes
+              element.attributeMeetsForcedElementalRequest(
+                  player, elementalDamageTypeForced) &&
+              //we dont already have this attribute
               !returnList
                   .any((elementD) => elementD.attributeType == element) &&
-              element.attributeEligibilityTest(player))
+              //
+              element.isEligible(player))
           .toList();
+
+      if (elementalDamageTypeForced != null && potentialCandidates.isEmpty) {
+        elementalDamageTypeForced = null;
+        continue;
+      }
 
       Map<AttributeRarity, double> weightings = {};
       Map<AttributeRarity, int> rarityAmounts = {
@@ -189,37 +148,73 @@ mixin AttributeFunctionality on Entity {
 
     return returnAttrib;
   }
+
+  void clearAttributes() {
+    for (var element in currentAttributes.entries) {
+      element.value.removeUpgrade();
+    }
+    currentAttributes.clear();
+    initalized = false;
+  }
+
+  ///Initial Attribtes and their initial level
+  ///i.e. Max Speed : Level 3
+  void initAttributes(Map<AttributeType, int> attributesToAdd) {
+    if (initalized) return;
+    List<AttributeType> attributeTypes = attributesToAdd.keys.toList();
+    attributeTypes.sort((a, b) => a.priority.compareTo(b.priority));
+    for (var element in attributeTypes) {
+      currentAttributes[element] = element.buildAttribute(
+          attributesToAdd[element]!, this,
+          perpetratorEntity: this)
+        ..applyUpgrade();
+    }
+
+    initalized = true;
+  }
+
+  void loadPlayerConfig(Map<String, dynamic> config) {}
+
+  void modifyLevel(AttributeType attributeEnum, [int amount = 0]) {
+    if (currentAttributes.containsKey(attributeEnum)) {
+      var attr = currentAttributes[attributeEnum]!;
+      attr.changeLevel(amount);
+    }
+  }
+
+  void remapAttributes() {
+    List<Attribute> tempList = [];
+    for (var element in currentAttributes.values) {
+      if (element.upgradeApplied) {
+        element.unMapUpgrade();
+        tempList.add(element);
+      }
+    }
+
+    tempList.sort(
+        (a, b) => a.attributeType.priority.compareTo(b.attributeType.priority));
+
+    for (var element in tempList) {
+      element.mapUpgrade();
+    }
+  }
+
+  void removeAttribute(AttributeType attributeType) {
+    currentAttributes[attributeType]?.removeUpgrade();
+    currentAttributes.remove(attributeType);
+  }
 }
 
 mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
-  @override
-  void update(double dt) {
-    for (var element in [...onUpdate]) {
-      element(dt);
+  void _checkFinishTimer() {
+    if (finishPulseTimer) {
+      pulseTimer?.removeFromParent();
+      pulseTimer = null;
+      finishPulseTimer = false;
     }
-    processHeadEntities(_headEntities, .5, dt);
-    processBodyEntities(_bodyComponents, spriteHeight * 1.3, dt);
-    super.update(dt);
   }
 
-  final List<Function> dashBeginFunctions = [];
-  final List<Function> dashOngoingFunctions = [];
-  final List<Function> dashEndFunctions = [];
-  final List<ChildEntity> _headEntities = [];
-
-  int get numHeadEntities => _headEntities.length;
-
-  final List<ChildEntity> _bodyComponents = [];
-
-  PositionComponent? headEntityWrapper;
-  double speedHead = .5;
-  double previousHeadAngle = 0;
-
-  PositionComponent? bodyEntityWrapper;
-  double speedBody = .25;
-  Map<double, double> previousBodyAngle = {1: 0};
-
-  void processBodyEntities(
+  void _processBodyEntities(
       List<ChildEntity> bodyEntities, double distance, double dt) {
     if (bodyEntities.isEmpty) return; // Avoid division by zero
 
@@ -251,23 +246,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     }
   }
 
-  void removeBodyEntity(String entityId) {
-    final index =
-        _bodyComponents.indexWhere((element) => element.entityId == entityId);
-    if (index == -1) return;
-    final entityToRemove = _bodyComponents[index];
-    entityToRemove.removeFromParent();
-    _bodyComponents.removeAt(index);
-  }
-
-  void addBodyEntity(ChildEntity entity) {
-    bodyEntityWrapper ??= PositionComponent()..addToParent(this);
-
-    _bodyComponents.add(entity);
-    if (entity.parent == null) enviroment.addPhysicsComponent([entity]);
-  }
-
-  void processHeadEntities(
+  void _processHeadEntities(
       List<ChildEntity> entities, double distance, double dt) {
     if (entities.isEmpty) return; // Avoid division by zero
 
@@ -294,20 +273,59 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     previousHeadAngle = currentAngle;
   }
 
-  void removeAllHeadEntities() {
-    for (var element in _headEntities) {
-      element.removeFromParent();
-    }
-    _headEntities.clear();
-  }
+  final List<Function(DamageInstance instance)> onKillOtherEntity = [];
+  final List<Function(DamageInstance instance)> onHeal = [];
+  final List<Function(double stamina)> onStaminaModified = [];
+  final List<Function(Expendable item)> onItemPickup = [];
+  final List<Function(Expendable item)> onExpendableUsed = [];
+  final List<Function(Weapon weapon)> onAttack = [];
+  final List<Function(ReloadFunctionality weapon)> onReloadComplete = [];
+  final List<Function(ReloadFunctionality weapon)> onReload = [];
+  final List<Function(DamageInstance instance)> onDodge = [];
+  final List<Function(HealthFunctionality other)> onTouch = [];
+  final List<Function(double dt)> onUpdate = [];
+  final List<Function> dashBeginFunctions = [];
+  final List<Function> dashEndFunctions = [];
+  final List<Function> dashOngoingFunctions = [];
+  final List<Function> jumpBeginFunctions = [];
+  final List<Function> jumpEndFunctions = [];
+  final List<Function> jumpOngoingFunctions = [];
+  final List<OnHitDef> onHitByOtherEntity = [];
+  final List<OnHitDef> onHitByProjectile = [];
+  final List<OnHitDef> onHitOtherEntity = [];
+  final List<Function> onLevelUp = [];
+  final List<Function> onMove = [];
 
-  void removeHeadEntity(String entityId) {
-    final index =
-        _headEntities.indexWhere((element) => element.entityId == entityId);
-    if (index == -1) return;
-    final entityToRemove = _headEntities[index];
-    entityToRemove.removeFromParent();
-    _headEntities.removeAt(index);
+  bool finishPulseTimer = false;
+  //Only called when damage is 100% going to be applied
+  final List<OnHitDef> onPostDamageOtherEntity = [];
+
+  ///If return true, then damage is cancelled
+  final List<OnHitDef> onPreDamageOtherEntity = [];
+
+  Map<double, double> previousBodyAngle = {1: 0};
+  double previousHeadAngle = 0;
+  DoubleParameterManager pulsePeriod =
+      DoubleParameterManager(baseParameter: 3, minParameter: 0.5);
+
+  double speedBody = .25;
+  double speedHead = .5;
+
+  PositionComponent? bodyEntityWrapper;
+  PositionComponent? headEntityWrapper;
+  TimerComponent? pulseTimer;
+
+  final List<ChildEntity> _bodyComponents = [];
+  final List<ChildEntity> _headEntities = [];
+  final List<Function> _pulseFunctions = [];
+
+  int get numHeadEntities => _headEntities.length;
+
+  void addBodyEntity(ChildEntity entity) {
+    bodyEntityWrapper ??= PositionComponent()..addToParent(this);
+
+    _bodyComponents.add(entity);
+    if (entity.parent == null) enviroment.addPhysicsComponent([entity]);
   }
 
   void addHeadEntity(ChildEntity entity) {
@@ -317,21 +335,6 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
 
     _headEntities.add(entity);
     if (entity.parent == null) enviroment.addPhysicsComponent([entity]);
-  }
-
-  final List<Function> _pulseFunctions = [];
-  TimerComponent? pulseTimer;
-
-  DoubleParameterManager pulsePeriod =
-      DoubleParameterManager(baseParameter: 3, minParameter: 0.5);
-  bool finishPulseTimer = false;
-
-  void _checkFinishTimer() {
-    if (finishPulseTimer) {
-      pulseTimer?.removeFromParent();
-      pulseTimer = null;
-      finishPulseTimer = false;
-    }
   }
 
   void addPulseFunction(Function function) {
@@ -353,6 +356,53 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     finishPulseTimer = false;
   }
 
+  void onHitFunctions(DamageInstance damage) {
+    for (var element in onHitOtherEntity) {
+      element(damage);
+    }
+  }
+
+  bool onPostDamageOtherEntityFunctions(DamageInstance damage) {
+    bool returnVal = false;
+    for (var element in onPostDamageOtherEntity) {
+      returnVal = element(damage) || returnVal;
+    }
+    return returnVal;
+  }
+
+  bool onPreDamageOtherEntityFunctions(DamageInstance damage) {
+    bool returnVal = false;
+    for (var element in onPreDamageOtherEntity) {
+      returnVal = element(damage) || returnVal;
+    }
+    return returnVal;
+  }
+
+  void removeAllHeadEntities() {
+    for (var element in _headEntities) {
+      element.removeFromParent();
+    }
+    _headEntities.clear();
+  }
+
+  void removeBodyEntity(String entityId) {
+    final index =
+        _bodyComponents.indexWhere((element) => element.entityId == entityId);
+    if (index == -1) return;
+    final entityToRemove = _bodyComponents[index];
+    entityToRemove.removeFromParent();
+    _bodyComponents.removeAt(index);
+  }
+
+  void removeHeadEntity(String entityId) {
+    final index =
+        _headEntities.indexWhere((element) => element.entityId == entityId);
+    if (index == -1) return;
+    final entityToRemove = _headEntities[index];
+    entityToRemove.removeFromParent();
+    _headEntities.removeAt(index);
+  }
+
   void removePulseFunction(Function function) {
     _pulseFunctions.remove(function);
     if (_pulseFunctions.isEmpty) {
@@ -360,33 +410,11 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     }
   }
 
-  final List<Function> jumpBeginFunctions = [];
-  final List<Function> jumpOngoingFunctions = [];
-  final List<Function> jumpEndFunctions = [];
-
-  final List<OnHitDef> onHitByProjectile = [];
-  // final List<OnHitProjectileDef> onHitByMelee = [];
-  final List<OnHitDef> onHitByOtherEntity = [];
-
-  final List<OnHitDef> onHitOtherEntity = [];
-  final List<OnHitDef> onDamageOtherEntity = [];
-  final List<Function(DamageInstance instance)> onKillOtherEntity = [];
-  final List<Function(DamageInstance instance)> onHeal = [];
-  final List<Function(double stamina)> onStaminaModified = [];
-
-  final List<Function(Expendable item)> onItemPickup = [];
-  final List<Function(Expendable item)> onExpendableUsed = [];
-  final List<Function> onLevelUp = [];
-
-  final List<Function> onMove = [];
-  final List<Function(DamageInstance deathInstance)> onDeath = [];
-  final List<Function(Weapon weapon)> onAttack = [];
-  final List<Function(ReloadFunctionality weapon)> onReloadComplete = [];
-  final List<Function(ReloadFunctionality weapon)> onReload = [];
-  final List<Function(DamageInstance instance)> onDodge = [];
-  final List<Function(HealthFunctionality other)> onTouch = [];
-
-  final List<Function(double dt)> onUpdate = [];
+  void touchFunctions(HealthFunctionality other) {
+    for (var element in onTouch) {
+      element(other);
+    }
+  }
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -396,24 +424,14 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     super.beginContact(other, contact);
   }
 
-  void touchFunctions(HealthFunctionality other) {
-    for (var element in onTouch) {
-      element(other);
+  @override
+  void update(double dt) {
+    for (var element in [...onUpdate]) {
+      element(dt);
     }
-  }
-
-  bool onDamageOtherEntityFunctions(DamageInstance damage) {
-    bool returnVal = false;
-    for (var element in onDamageOtherEntity) {
-      returnVal = element(damage) || returnVal;
-    }
-    return returnVal;
-  }
-
-  void onHitFunctions(DamageInstance damage) {
-    for (var element in onHitOtherEntity) {
-      element(damage);
-    }
+    _processHeadEntities(_headEntities, .5, dt);
+    _processBodyEntities(_bodyComponents, spriteHeight * 1.3, dt);
+    super.update(dt);
   }
 }
 
@@ -493,44 +511,19 @@ class StatusEffect extends PositionComponent {
 
 class EntityStatusEffectsWrapper {
   EntityStatusEffectsWrapper({required this.entity});
-  Entity entity;
-  late double width = entity.entityAnimationsGroup.width * 1.5;
 
   ///ID, Effect
   Map<StatusEffects, StatusEffect> activeStatusEffects = {};
 
+  Entity entity;
+
   ///ID, Animation
   Map<String, ReloadAnimation> reloadAnimations = {};
 
-  SpriteAnimationComponent? markerAnimation;
-
   bool removedAnimations = false;
+  late double width = entity.entityAnimationsGroup.width * 1.5;
 
-  void removeAllAnimations() {
-    removedAnimations = true;
-    for (var element in activeStatusEffects.values) {
-      element.removeFromParent();
-    }
-    activeStatusEffects.clear();
-
-    for (var element in reloadAnimations.values) {
-      element.removeFromParent();
-    }
-    reloadAnimations.clear();
-    removeMarked();
-    // holdDuration?.removeFromParent();
-    // holdDuration = null;
-  }
-
-  void removeMarked() {
-    markerAnimation?.removeFromParent();
-    markerAnimation = null;
-  }
-
-  double getXPosition(StatusEffects effect) {
-    return (((effect.index) / StatusEffects.values.length) * (width)) -
-        width / 2;
-  }
+  SpriteAnimationComponent? markerAnimation;
 
   // void addHoldDuration(double duration) {
   //   if (removedAnimations) return;
@@ -557,22 +550,6 @@ class EntityStatusEffectsWrapper {
     entity.add(markerAnimation!);
   }
 
-  void addStatusEffect(StatusEffects effect, int level) {
-    if (removedAnimations) return;
-    activeStatusEffects[effect]?.removeFromParent();
-
-    activeStatusEffects[effect] = (StatusEffect(effect, level));
-    final posX = getXPosition(effect);
-    activeStatusEffects[effect]!.position.x = posX;
-    activeStatusEffects[effect]!.position.y = -.2 - (entity.spriteHeight);
-    activeStatusEffects[effect]?.addToParent(entity);
-  }
-
-  void removeStatusEffect(StatusEffects statusEffects) {
-    activeStatusEffects[statusEffects]?.removeFromParent();
-    activeStatusEffects.remove(statusEffects);
-  }
-
   void addReloadAnimation(
       String sourceId, double duration, TimerComponent timer,
       [bool isSecondary = false]) {
@@ -589,13 +566,23 @@ class EntityStatusEffectsWrapper {
       ..addToParent(entity);
   }
 
+  void addStatusEffect(StatusEffects effect, int level) {
+    if (removedAnimations) return;
+    activeStatusEffects[effect]?.removeFromParent();
+
+    activeStatusEffects[effect] = (StatusEffect(effect, level));
+    final posX = getXPosition(effect);
+    activeStatusEffects[effect]!.position.x = posX;
+    activeStatusEffects[effect]!.position.y = -.2 - (entity.spriteHeight);
+    activeStatusEffects[effect]?.addToParent(entity);
+  }
+
   String generateKey(String sourceId, bool isSecondary) =>
       "${sourceId}_$isSecondary";
 
-  void removeReloadAnimation(String sourceId, bool isSecondary) {
-    String key = generateKey(sourceId, isSecondary);
-    reloadAnimations[key]?.removeFromParent();
-    reloadAnimations.remove(key);
+  double getXPosition(StatusEffects effect) {
+    return (((effect.index) / StatusEffects.values.length) * (width)) -
+        width / 2;
   }
 
   void hideReloadAnimations(String sourceId) {
@@ -605,12 +592,20 @@ class EntityStatusEffectsWrapper {
     }
   }
 
-  void showReloadAnimations(String sourceId) {
-    if (removedAnimations) return;
-    for (bool isSecondary in [true, false]) {
-      final key = generateKey(sourceId, isSecondary);
-      reloadAnimations[key]?.toggleOpacity(false);
+  void removeAllAnimations() {
+    removedAnimations = true;
+    for (var element in activeStatusEffects.values) {
+      element.removeFromParent();
     }
+    activeStatusEffects.clear();
+
+    for (var element in reloadAnimations.values) {
+      element.removeFromParent();
+    }
+    reloadAnimations.clear();
+    removeMarked();
+    // holdDuration?.removeFromParent();
+    // holdDuration = null;
   }
 
   void removeAllReloads() {
@@ -619,20 +614,45 @@ class EntityStatusEffectsWrapper {
     }
     reloadAnimations.clear();
   }
+
+  void removeMarked() {
+    markerAnimation?.removeFromParent();
+    markerAnimation = null;
+  }
+
+  void removeReloadAnimation(String sourceId, bool isSecondary) {
+    String key = generateKey(sourceId, isSecondary);
+    reloadAnimations[key]?.removeFromParent();
+    reloadAnimations.remove(key);
+  }
+
+  void removeStatusEffect(StatusEffects statusEffects) {
+    activeStatusEffects[statusEffects]?.removeFromParent();
+    activeStatusEffects.remove(statusEffects);
+  }
+
+  void showReloadAnimations(String sourceId) {
+    if (removedAnimations) return;
+    for (bool isSecondary in [true, false]) {
+      final key = generateKey(sourceId, isSecondary);
+      reloadAnimations[key]?.toggleOpacity(false);
+    }
+  }
 }
 
 class ReloadAnimation extends PositionComponent {
   ReloadAnimation(this.duration, this.isSecondaryWeapon, this.timer);
-  late final TimerComponent timer;
-  double duration;
-  bool isSecondaryWeapon;
-  @override
-  final height = .06;
+
   final barWidth = .05;
   final sidePadding = .04;
+  late final TimerComponent timer;
+
+  double duration;
   bool isOpaque = false;
-  void toggleOpacity([bool? value]) =>
-      value != null ? isOpaque = value : isOpaque = !isOpaque;
+  bool isSecondaryWeapon;
+
+  @override
+  final height = .06;
 
   Color get color => isSecondaryWeapon
       ? colorPalette.secondaryColor
@@ -640,23 +660,8 @@ class ReloadAnimation extends PositionComponent {
 
   double get percentReloaded => (timer.timer.current) / duration;
 
-  @override
-  render(Canvas canvas) {
-    if (!isOpaque) {
-      buildProgressBar(
-          canvas: canvas,
-          percentProgress: percentReloaded,
-          color: color,
-          size: size,
-          heightOfBar: height,
-          widthOfBar: barWidth,
-          padding: sidePadding,
-          peak: 1,
-          growth: 0);
-    }
-
-    super.render(canvas);
-  }
+  void toggleOpacity([bool? value]) =>
+      value != null ? isOpaque = value : isOpaque = !isOpaque;
 
   @override
   FutureOr<void> onLoad() {
@@ -674,5 +679,23 @@ class ReloadAnimation extends PositionComponent {
     }
 
     return super.onLoad();
+  }
+
+  @override
+  render(Canvas canvas) {
+    if (!isOpaque) {
+      buildProgressBar(
+          canvas: canvas,
+          percentProgress: percentReloaded,
+          color: color,
+          size: size,
+          heightOfBar: height,
+          widthOfBar: barWidth,
+          padding: sidePadding,
+          peak: 1,
+          growth: 0);
+    }
+
+    super.render(canvas);
   }
 }

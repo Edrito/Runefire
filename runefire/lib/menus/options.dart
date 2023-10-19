@@ -1,4 +1,5 @@
 import 'dart:async' as async;
+import 'dart:ffi';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,12 +18,10 @@ import 'custom_button.dart';
 import 'menus.dart';
 
 class OptionsMenu extends StatefulWidget {
-  const OptionsMenu({
-    super.key,
-    required this.gameRef,
-  });
+  const OptionsMenu({super.key, required this.gameRef, this.backFunction});
 
   final GameRouter gameRef;
+  final Function? backFunction;
 
   @override
   State<OptionsMenu> createState() => _OptionsMenuState();
@@ -136,6 +135,10 @@ class _OptionsMenuState extends State<OptionsMenu> {
       "Back",
       gameRef: widget.gameRef,
       onPrimary: () {
+        if (widget.backFunction != null) {
+          widget.backFunction?.call();
+          return;
+        }
         widget.gameRef.gameStateComponent.gameState
             .changeMainMenuPage(MenuPageType.startMenuPage);
       },
@@ -154,7 +157,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
           right: 0,
           child: Center(
             child: Wrap(
-                children: [
+                children: ([
               for (var element in topBarWidgets) ...[
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -165,14 +168,17 @@ class _OptionsMenuState extends State<OptionsMenu> {
                   style: defaultStyle,
                 )
               ]
-            ]..removeLast()),
+            ]..removeLast())
+                    .animate(interval: .05.seconds)
+                    .fadeIn()
+                    .moveY()),
           ),
         ),
         Positioned.fill(
           top: menuBaseBarHeight,
           bottom: menuBaseBarHeight,
           child: Center(
-            child: buildCurrentPage(),
+            child: buildCurrentPage().animate().fadeIn(),
           ),
         ),
         Positioned(

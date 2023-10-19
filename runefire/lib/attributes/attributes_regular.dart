@@ -11,6 +11,8 @@ import 'package:runefire/weapons/projectile_mixin.dart';
 import 'package:runefire/weapons/melee_swing_manager.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
+import 'package:runefire/entities/entity_class.dart';
 
 import '../game/area_effects.dart';
 import '../resources/functions/functions.dart';
@@ -223,8 +225,6 @@ class ExplosionOnKillAttribute extends Attribute {
         radius: baseSize + increasePercentOfBase(baseSize),
         durationType: DurationType.instant,
         duration: victimEntity!.durationPercentIncrease.parameter,
-
-        ///Map<DamageType, (double, double)>>>>
         damage: {
           damageType ?? allowedDamageTypes.first: (
             increase(true, 5),

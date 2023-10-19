@@ -10,6 +10,7 @@ import 'package:runefire/enviroment_interactables/proximity_item.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/entities/entity_class.dart';
 
 import '../player/player.dart';
 import '../game/enviroment.dart';

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -278,7 +279,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
     switch (attackLocation) {
       case SourceAttackLocation.mouse:
         center += entityAncestor!.mouseJoint?.position ?? Vector2.zero();
-        print(center);
         break;
       case SourceAttackLocation.weaponTip:
         center = weaponTipPosition(1);

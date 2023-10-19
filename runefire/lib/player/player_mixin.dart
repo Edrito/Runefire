@@ -9,10 +9,12 @@ import 'package:hive/hive.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../entities/child_entities.dart';
 import '../resources/data_classes/base.dart';
@@ -165,7 +167,7 @@ mixin PlayerStatisticsRecorder
         PlayerStatistics {
   @override
   Future<void> onLoad() {
-    onDamageOtherEntity.add((damage) {
+    onPreDamageOtherEntity.add((damage) {
       for (var element in damage.damageMap.entries) {
         damageDealt.update(
           element.key,
@@ -259,6 +261,19 @@ mixin PlayerStatisticsRecorder
     onExpendableUsed.add((item) {
       expendableItemsUsed++;
     });
+
+    if (this is Player) {
+      final player = this as Player;
+      player.interactableFunctions.add((interactable) {
+        interactablesInteractedWith++;
+        if (interactable is InteractableWeaponPickup) {
+          weaponsFound++;
+        } else if (interactable is InteractableRunePickup) {
+          runesFound++;
+        }
+      });
+    }
+
     return super.onLoad();
   }
 }
@@ -313,7 +328,12 @@ mixin PlayerStatistics {
   int itemsPickedUp = 0;
   @HiveField(301)
   int expendableItemsUsed = 0;
-
+  @HiveField(302)
+  int interactablesInteractedWith = 0;
+  @HiveField(303)
+  int weaponsFound = 0;
+  @HiveField(304)
+  int runesFound = 0;
   List<(String, String)> buildStatStrings(bool includeGameStats) {
     List<(String, String)> returnList = [];
     if (includeGameStats) {
@@ -407,6 +427,9 @@ mixin PlayerStatistics {
 
     itemsPickedUp = 0;
     expendableItemsUsed = 0;
+    runesFound = 0;
+    weaponsFound = 0;
+    interactablesInteractedWith = 0;
   }
 
   void modifyGameVariables(GameEndState gameState, GameEnviroment enviroment) {

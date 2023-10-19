@@ -17,6 +17,7 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../attributes/attributes_structure.dart';
 import '../main.dart';

@@ -3,11 +3,13 @@ import 'dart:math';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/weapons/projectile_mixin.dart';
 import 'package:uuid/uuid.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';

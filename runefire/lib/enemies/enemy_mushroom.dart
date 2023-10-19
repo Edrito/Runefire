@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:async' as async;
+import 'package:runefire/entities/entity_class.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:forge2d/src/dynamics/body.dart';
@@ -12,6 +13,7 @@ import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import '../resources/functions/functions.dart';
 import '../resources/enums.dart';
@@ -356,7 +358,7 @@ class MushroomSpinner extends Enemy
         await toggleIdleRunAnimations(false);
 
         if (initState) {
-          setEntityStatus(EntityStatus.custom, customAnimationKey: "spin_end");
+          setEntityAnimation("spin_end");
         } else {
           initState = true;
         }
@@ -371,7 +373,7 @@ class MushroomSpinner extends Enemy
           onStateStart: () async {
         await toggleIdleRunAnimations(true);
 
-        setEntityStatus(EntityStatus.custom, customAnimationKey: "spin_start");
+        setEntityAnimation("spin_start");
         speed.baseParameter = .05;
         for (var i = 1; i < 4; i++) {
           Future.delayed(((spinDuration / 4) * i).seconds, () {
@@ -506,9 +508,8 @@ class MushroomBurrower extends Enemy
           randomFunctions: [],
           onStateStart: () {
             if (initState) {
-              setEntityStatus(EntityStatus.custom,
-                      customAnimationKey: "burrow_out")
-                  .then((value) => setEntityStatus(EntityStatus.idle));
+              setEntityAnimation("burrow_out")
+                  .then((value) => setEntityAnimation(EntityStatus.idle));
               body.setTransform(
                   SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1),
                   angle);
@@ -545,8 +546,8 @@ class MushroomBurrower extends Enemy
           randomFunctions: [],
           stateDuration: (groundDuration, groundDuration * 1.5),
           onStateStart: () {
-        setEntityStatus(EntityStatus.custom, customAnimationKey: "burrow_in")
-            .then((value) => setEntityStatus(EntityStatus.idle));
+        setEntityAnimation("burrow_in")
+            .then((value) => setEntityAnimation(EntityStatus.idle));
         toggleIdleRunAnimations(true);
         touchDamage.damageBase.clear();
         collision.setIncrease(entityId, false);

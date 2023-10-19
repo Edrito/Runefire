@@ -23,6 +23,7 @@ import '../resources/visuals.dart';
 import '../weapons/weapon_class.dart';
 import 'enviroment.dart';
 import '../enviroment_interactables/expendables.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 mixin BossBar on BaseHud {
   late final SpriteComponent bossBarLeftSprite;

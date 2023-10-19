@@ -32,11 +32,10 @@ import 'package:window_manager/window_manager.dart';
 import 'menus/overlays.dart';
 import 'resources/constants/routes.dart' as routes;
 import '../menus/overlays.dart' as overlay;
-import 'package:win32_gamepad/win32_gamepad.dart';
 
 final rng = Random();
 
-bool startInGame = false;
+bool startInGame = true;
 
 // Map<int, bool> isSecondaryPointer = {};
 
@@ -146,6 +145,7 @@ void main() async {
                 overlay.pauseMenu,
                 overlay.mainMenu,
                 overlay.caveFront,
+                overlay.gameWinDisplay,
                 overlay.textDisplay,
                 overlay.gamepadCursorDisplay,
                 overlay.deathScreen,

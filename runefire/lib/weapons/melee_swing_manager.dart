@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:ui';
 import 'dart:ui' as ui;
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -30,9 +32,16 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
   MeleeAttackHandler meleeAttackAncestor;
   Function(DamageInstance damage) onHit;
   List<String> hitEnemiesId = [];
-  final Vector2 size;
+  final (Vector2, (double, double)) size;
   late PolygonShape shape;
   int hitEnemies = 0;
+
+  void enableHitbox(bool enable) {
+    isEnabled = enable;
+    body.setActive(isEnabled);
+  }
+
+  bool isEnabled = false;
 
   bool hitboxIsDead = false;
 
@@ -109,10 +118,10 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     shape = PolygonShape();
 
     final verts = [
-      Vector2(-size.x / 2, 0),
-      Vector2(size.x / 2, 0),
-      Vector2(size.x / 2, size.y),
-      Vector2(-size.x / 2, size.y),
+      Vector2(-size.$1.x / 2, 0),
+      Vector2(size.$1.x / 2, 0),
+      Vector2(size.$1.x / 2, size.$1.y),
+      Vector2(-size.$1.x / 2, size.$1.y),
     ];
 
     shape.set(verts);
@@ -140,6 +149,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     final bodyDef = BodyDef(
       userData: this,
       bullet: true,
+      active: false,
       allowSleep: false,
       position: meleeAttackAncestor.activeSwings.last.swingPosition,
       angle: meleeAttackAncestor.activeSwings.last.swingAngle,
@@ -358,6 +368,10 @@ class MeleeAttackHandler extends Component {
     duration = tempStepDuration ?? weaponAncestor.attackTickRate.parameter;
     meleeId = const Uuid().v4();
     if (!currentAttack.customStartAngle) initAngle = 0;
+    hitboxBeginEnd = (
+      currentAttack.attackHitboxSize.$2.$1 * duration,
+      currentAttack.attackHitboxSize.$2.$2 * duration
+    );
   }
 
   bool isCharging;
@@ -377,6 +391,8 @@ class MeleeAttackHandler extends Component {
   late double duration;
   late double attackStepDuration;
   late String meleeId;
+  double durationTimer = 0;
+  late final (double, double) hitboxBeginEnd;
 
   MeleeFunctionality weaponAncestor;
   MeleeAttackHitbox? hitbox;
@@ -427,8 +443,8 @@ class MeleeAttackHandler extends Component {
     }
   }
 
-  void addStepToSwing(int previousIndex, double currentAngle,
-      MeleeAttackSprite swing, Future? previousFuture) {
+  void addStepToSwing(
+      int previousIndex, double currentAngle, MeleeAttackSprite swing) {
     (Vector2, double, double) previousPattern;
     (Vector2, double, double) newPattern;
     if (isCharging) {
@@ -477,18 +493,16 @@ class MeleeAttackHandler extends Component {
       rotatedEndPosition,
       effectController,
     );
-    if (previousFuture == null) {
+
+    meleeSteps[swing] ??= Queue();
+    attackStepTimer[swing] ??= attackStepDuration;
+
+    meleeSteps[swing]?.add(() {
       swing.weaponSpriteAnimation
           ?.addAll([rotateEffect, moveEffect, scaleEffect]);
-    } else {
-      previousFuture.then((value) => swing.weaponSpriteAnimation
-          ?.addAll([rotateEffect, moveEffect, scaleEffect]));
-    }
+    });
 
-    final newFuture = (previousFuture
-            ?.then((value) => Future.delayed(attackStepDuration.seconds))) ??
-        Future.delayed(attackStepDuration.seconds);
-    addStepToSwing(previousIndex, currentAngle += totalAngle, swing, newFuture);
+    addStepToSwing(previousIndex, currentAngle += totalAngle, swing);
   }
 
   Future<void> initSwing(double swingAngle, Vector2 swingPosition) async {
@@ -529,7 +543,9 @@ class MeleeAttackHandler extends Component {
 
     final startAngle = radians(startPattern.$2) + swingAngle;
     newSwing.weaponSpriteAnimation?.angle = startAngle;
-    addStepToSwing(animationStepIndex, swingAngle, newSwing, null);
+
+    addStepToSwing(animationStepIndex, swingAngle, newSwing);
+
     activeSwings.add(newSwing);
     newSwing.addToParent(this);
   }
@@ -549,13 +565,6 @@ class MeleeAttackHandler extends Component {
   }
 
   void kill() {
-    // for (var element in activeSwings) {
-    //   // if (isCharging) {
-    //   // element.removeFromParent();
-    //   // } else {
-    //   element.fadeOut();
-    //   // }
-    // }
     activeSwings.clear();
     removeSwing();
     isDead = true;
@@ -571,6 +580,38 @@ class MeleeAttackHandler extends Component {
       hitbox?.removeFromParent();
       removeFromParent();
     }
+  }
+
+  Map<MeleeAttackSprite, Queue<Function>> meleeSteps = {};
+  Map<MeleeAttackSprite, double> attackStepTimer = {};
+
+  @override
+  void update(double dt) {
+    attackStepTimer.forEach((key, value) {
+      attackStepTimer[key] = attackStepTimer[key]! + dt;
+      if (attackStepTimer[key]! >= attackStepDuration) {
+        attackStepTimer[key] = 0;
+        if (meleeSteps.isNotEmpty) {
+          if (meleeSteps[key]?.isEmpty == true) {
+            meleeSteps.remove(key);
+            return;
+          }
+          meleeSteps[key]?.removeFirst().call();
+        } else {}
+      }
+    });
+    durationTimer += dt;
+
+    if (durationTimer > hitboxBeginEnd.$1 &&
+        durationTimer < hitboxBeginEnd.$2 &&
+        hitbox?.isEnabled == false) {
+      hitbox?.enableHitbox(true);
+    } else if (durationTimer >= hitboxBeginEnd.$2 &&
+        hitbox?.isEnabled == true) {
+      hitbox?.enableHitbox(false);
+    }
+
+    super.update(dt);
   }
 
   MeleeAttackSprite get currentSwing => activeSwings.last;

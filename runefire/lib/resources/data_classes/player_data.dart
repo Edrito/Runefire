@@ -7,6 +7,7 @@ import '../enums.dart';
 import 'package:hive/hive.dart';
 
 import 'base.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 class PlayerDataComponent extends DataComponent {
   PlayerDataComponent(super.dataObject);

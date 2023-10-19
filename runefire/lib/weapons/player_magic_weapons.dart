@@ -1,4 +1,5 @@
 // ignore_for_file: overridden_fields
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'dart:async';
 import 'dart:ui' as ui;
