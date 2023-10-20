@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:particle_field/particle_field.dart';
@@ -159,5 +161,109 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
         )
         .scaleXY(
             begin: 1, end: 1.25, curve: Curves.easeIn, duration: .1.seconds);
+  }
+}
+
+class ElementalPowerBack extends StatefulWidget {
+  const ElementalPowerBack(this.damageType, {super.key});
+  final DamageType damageType;
+
+  @override
+  State<ElementalPowerBack> createState() => _ElementalPowerBackState();
+}
+
+class _ElementalPowerBackState extends State<ElementalPowerBack> {
+  late Size screenSize;
+  late ParticleField field;
+
+  bool firstTick = true;
+
+  double rate = 0.1;
+
+  Duration totalElapsed = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+
+    field = ParticleField(
+      spriteSheet: SpriteSheet(
+          image: const AssetImage('assets/images/effects/star_5.png'),
+          frameWidth: 16,
+          frameHeight: 16,
+          scale: .4,
+          length: 5),
+      // top left will be 0,0:
+      origin: Alignment.bottomLeft,
+
+      // onTick is where all the magic happens:
+      onTick: (controller, elapsed, size) {
+        List<Particle> particles = controller.particles;
+        if (firstTick) {
+          controller.particles.addAll([
+            for (int i = 0; i < 100 * rate; i++)
+              Particle(
+                  x: rnd(size.width), y: -rnd(size.height), vy: -rnd(0.1, 1))
+          ]);
+          firstTick = false;
+        }
+
+        // add a new particle each frame:
+        if (rate > rng.nextDouble()) {
+          particles.add(Particle(x: rnd(size.width), y: 0, vy: -rnd(0.1, 1)));
+        }
+        totalElapsed += elapsed;
+        bool increase = totalElapsed.inSeconds % 500 == 0;
+
+        // update existing particles:
+        for (int i = particles.length - 1; i >= 0; i--) {
+          Particle particle = particles[i];
+          // call update, which automatically adds vx/vy to x/y
+          // add some gravity (ie. increase vertical velocity)
+          // and increment the frame
+          particle.update(frame: particle.frame + (increase ? 1 : 0));
+
+          // remove particle if it's out of bounds:
+          if (particle.y.abs() > size.height) {
+            particles.removeAt(i);
+          }
+        }
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    screenSize = MediaQuery.of(context).size;
+
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 3,
+                child: ColoredBox(
+                  color: widget.damageType.color.brighten(.3),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: ColoredBox(
+                  color: widget.damageType.color,
+                ),
+              ),
+              Expanded(
+                child: ColoredBox(
+                  color: widget.damageType.color.darken(.3),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned.fill(child: ClipRect(child: field))
+      ],
+    );
   }
 }

@@ -1210,7 +1210,7 @@ class CustomInputWatcherManager {
 
   void removeHoveredState() {
     sendStreamEvent(currentlyHoveredWidget, CustomInputWatcherEvents.hoverOff);
-
+    updateOverlayHoverWidget(null, Offset.zero);
     currentlyHoveredWidget = null;
   }
 
@@ -1234,12 +1234,50 @@ class CustomInputWatcherManager {
   void sendStreamEvent(State<CustomInputWatcher>? customInputWatcher,
       CustomInputWatcherEvents event) {
     _customInputWatcherStreams[customInputWatcher]?.add(event);
+
+    hoverOverlayWidget?.$2.add(event);
   }
+
+  (
+    StreamController<CustomInputWatcherEvents>,
+    StreamController<(Offset, Widget)?>
+  ) addHoverOverlay(State<GamepadCursorDisplay> hoverOverlayState) {
+    final eventController = StreamController<CustomInputWatcherEvents>();
+    final hoveredWidgetEventController = StreamController<(Offset, Widget)?>();
+    hoverOverlayWidget =
+        (hoverOverlayState, eventController, hoveredWidgetEventController);
+    return (eventController, hoveredWidgetEventController);
+  }
+
+  void updateOverlayHoverWidget(Widget? widget, Offset? position) {
+    if (widget == null || position == null) {
+      hoverOverlayWidget?.$3.add(null);
+    } else {
+      hoverOverlayWidget?.$3.add((position, widget));
+    }
+  }
+
+  void removeHoverOverlay() {
+    hoverOverlayWidget?.$2.close();
+    hoverOverlayWidget?.$3.close();
+    hoverOverlayWidget = null;
+  }
+
+  (
+    State<GamepadCursorDisplay>,
+    StreamController<CustomInputWatcherEvents>,
+    StreamController<(Offset, Widget)?>,
+  )? hoverOverlayWidget;
 
   void setHoveredState(State<CustomInputWatcher> widget) {
     removeHoveredState();
 
     sendStreamEvent(widget, CustomInputWatcherEvents.hoverOn);
+
+    if (widget.widget.hoverWidget != null) {
+      updateOverlayHoverWidget(widget.widget.hoverWidget!,
+          _customInputWatcherRectangles[widget]?.center ?? Offset.zero);
+    }
 
     currentlyHoveredWidget = widget;
   }
@@ -1363,6 +1401,8 @@ class CustomInputWatcherManager {
 }
 
 class CustomInputWatcher extends StatefulWidget {
+  ///Add a globalkey to [hoverWidget] to enable the prevention of window clipping
+  ///aka prevent the content from going outside the window
   const CustomInputWatcher(
       {this.onHover,
       required this.child,
@@ -1371,6 +1411,7 @@ class CustomInputWatcher extends StatefulWidget {
       this.onPrimaryUp,
       this.scrollController,
       this.rowId = 0,
+      this.hoverWidget,
       this.zHeight = 0,
       this.zIndex = 0,
       this.onSecondary,
@@ -1386,6 +1427,7 @@ class CustomInputWatcher extends StatefulWidget {
   final Function()? onSecondaryHold;
   final Function()? onSecondaryUp;
   final Widget child;
+  final Widget? hoverWidget;
   final int rowId;
   final ScrollController? scrollController;
   final int zHeight;

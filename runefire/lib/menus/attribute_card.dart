@@ -20,6 +20,7 @@ class CustomCard extends StatefulWidget {
     this.onPrimary,
     this.rowId = 0,
     this.smallCard = false,
+    this.disableTouch = false,
     this.groupOrientation = Axis.horizontal,
     this.scrollController,
     Key? key,
@@ -31,6 +32,7 @@ class CustomCard extends StatefulWidget {
   final Attribute attribute;
   final Axis groupOrientation;
   final int rowId;
+  final bool disableTouch;
 
   @override
   State<CustomCard> createState() => _CustomCardState();
@@ -186,95 +188,97 @@ class _CustomCardState extends State<CustomCard> {
         ),
       ),
     );
-    Widget card = ConstrainedBox(
+
+    Widget card = SizedBox(
+      height: cardHeight,
+      width: cardWidth,
+      child: Center(
+        child: Stack(
+          children: [
+            CustomBorderBox(
+              small: widget.smallCard,
+              hideBaseBorder: widget.smallCard,
+            ),
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(35),
+                child: Stack(
+                  children: [
+                    title,
+                    Positioned(
+                        height: cardHeight -
+                            (widget.smallCard ? topPadding / 1.15 : topPadding),
+                        width: cardWidth,
+                        bottom: 0,
+                        child: content),
+                  ],
+                ),
+              ),
+            ),
+            if (hasDamageTypeSelector && !widget.disableTouch)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 80,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(35),
+                      bottomRight: Radius.circular(35)),
+                  child: DamageTypeSelector(
+                    widget.attribute.allowedDamageTypes,
+                    (p0) {
+                      if (widget.disableTouch) return;
+                      widget.onPrimary?.call(p0);
+                    },
+                    scrollController: widget.scrollController,
+                  ),
+                ),
+              ),
+            CustomBorderBox(
+              small: widget.smallCard,
+              hideBackground: true,
+              hideBaseBorder: widget.smallCard,
+            )
+          ],
+        )
+            .animate(
+              target: isHovered ? 1 : 0,
+            )
+            .rotate(
+                begin: 0,
+                end: .001,
+                curve: Curves.easeInOut,
+                duration: .1.seconds)
+            .scale(
+              curve: Curves.easeInOut,
+              duration: .1.seconds,
+              begin: const Offset(1, 1),
+              end: const Offset(1.05, 1.05),
+            ),
+      ),
+    );
+    Widget cardBase = ConstrainedBox(
         constraints: const BoxConstraints(
           minWidth: 100,
         ),
-        child: CustomInputWatcher(
-          scrollController: widget.scrollController,
-          rowId: widget.rowId,
-          onHover: (value) {
-            setState(() {
-              isHovered = value;
-            });
-          },
-          onPrimary: () {
-            if (!hasDamageTypeSelector) {
-              widget.onPrimary?.call(null);
-            }
-          },
-          child: SizedBox(
-            height: cardHeight,
-            width: cardWidth,
-            child: Center(
-              child: Stack(
-                children: [
-                  CustomBorderBox(
-                    small: widget.smallCard,
-                    hideBaseBorder: widget.smallCard,
-                  ),
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(35),
-                      child: Stack(
-                        children: [
-                          title,
-                          Positioned(
-                              height: cardHeight -
-                                  (widget.smallCard
-                                      ? topPadding / 1.15
-                                      : topPadding),
-                              width: cardWidth,
-                              bottom: 0,
-                              child: content),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (hasDamageTypeSelector)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 80,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(35),
-                            bottomRight: Radius.circular(35)),
-                        child: DamageTypeSelector(
-                          widget.attribute.allowedDamageTypes,
-                          (p0) {
-                            widget.onPrimary?.call(p0);
-                          },
-                          scrollController: widget.scrollController,
-                        ),
-                      ),
-                    ),
-                  CustomBorderBox(
-                    small: widget.smallCard,
-                    hideBackground: true,
-                    hideBaseBorder: widget.smallCard,
-                  )
-                ],
-              )
-                  .animate(
-                    target: isHovered ? 1 : 0,
-                  )
-                  .rotate(
-                      begin: 0,
-                      end: .001,
-                      curve: Curves.easeInOut,
-                      duration: .1.seconds)
-                  .scale(
-                    curve: Curves.easeInOut,
-                    duration: .1.seconds,
-                    begin: const Offset(1, 1),
-                    end: const Offset(1.05, 1.05),
-                  ),
-            ),
-          ),
-        ));
-    return card
+        child: widget.disableTouch
+            ? card
+            : CustomInputWatcher(
+                scrollController: widget.scrollController,
+                rowId: widget.rowId,
+                onHover: (value) {
+                  setState(() {
+                    isHovered = value;
+                  });
+                },
+                onPrimary: () {
+                  if (!hasDamageTypeSelector) {
+                    widget.onPrimary?.call(null);
+                  }
+                },
+                child: card));
+    return cardBase
         .animate(
           onPlay: (controller) => controller.forward(from: rng.nextDouble()),
           onComplete: (controller) =>

@@ -969,16 +969,17 @@ class RangedAttackSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final attr = victimEntity as AttributeFunctionsFunctionality;
-    for (var i = 0; i < upgradeLevel; i++) {
-      final temp = RangedAttackSentry(
-          initialPosition: Vector2.zero(),
-          damageType: damageType ?? allowedDamageTypes.first,
-          upgradeLevel: upgradeLevel,
-          parentEntity: attr);
-      sentries.add(temp);
-      attr.addHeadEntity(temp);
+    if (victimEntity is AttributeFunctionsFunctionality) {
+      final attr = victimEntity as AttributeFunctionsFunctionality;
+      for (var i = 0; i < upgradeLevel; i++) {
+        final temp = RangedAttackSentry(
+            initialPosition: Vector2.zero(),
+            damageType: damageType ?? allowedDamageTypes.first,
+            upgradeLevel: upgradeLevel,
+            parentEntity: attr);
+        sentries.add(temp);
+        attr.addHeadEntity(temp);
+      }
     }
   }
 

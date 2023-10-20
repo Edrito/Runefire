@@ -1032,7 +1032,8 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  Future<void> die(DamageInstance damage) async {
+  Future<void> die(DamageInstance damage,
+      [EndGameState endGameState = EndGameState.playerDeath]) async {
     isDead = true;
 
     permanentlyDisableEntity();
@@ -1049,7 +1050,7 @@ mixin HealthFunctionality on Entity {
     _deadFunctionsCall(damage);
     if (this is Player) {
       game.gameStateComponent.gameState
-          .killPlayer(GameEndState.death, this as Player, damage);
+          .killPlayer(endGameState, this as Player, damage);
     }
     callOtherWeaponOnKillFunctions(damage);
   }
@@ -1084,12 +1085,23 @@ mixin HealthFunctionality on Entity {
 
   bool hitCheck(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
+    applyHealing(damage);
+
     if (hitSourceInvincibility.containsKey(id) || damage.damage == 0) {
       return false;
     }
 
     if (!canBeHit) {
       return false;
+    }
+
+    if (damage.damageMap.isEmpty || onHitByOtherFunctionsCall(damage)) {
+      return false;
+    }
+    if (damage.source is AttributeFunctionsFunctionality) {
+      if ((damage.source as AttributeFunctionsFunctionality)
+          .onPreDamageOtherEntityFunctions
+          .call(damage)) return false;
     }
 
     return takeDamage(id, damage, applyStatusEffect);
@@ -1126,17 +1138,7 @@ mixin HealthFunctionality on Entity {
 
   bool takeDamage(String id, DamageInstance damage,
       [bool applyStatusEffect = true]) {
-    applyHealing(damage);
     applyIFrameTimer(id);
-
-    if (damage.damageMap.isEmpty || onHitByOtherFunctionsCall(damage)) {
-      return false;
-    }
-    if (damage.source is AttributeFunctionsFunctionality) {
-      if ((damage.source as AttributeFunctionsFunctionality)
-          .onPreDamageOtherEntityFunctions
-          .call(damage)) return false;
-    }
 
     MapEntry<DamageType, double> largestEntry = fetchLargestDamageType(damage);
 

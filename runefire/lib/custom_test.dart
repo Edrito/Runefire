@@ -20,15 +20,12 @@ import 'package:runefire/resources/damage_type_enum.dart';
 
 void conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
-  // Future.delayed(2.seconds).then((value) async {
-  //   GameState().pauseGame(
-  //     gameWinDisplay.key,
-  //     pauseGame: true,
-  //   );
-  // });
+  Future.delayed(2.seconds).then((value) async {});
 
   while (true) {
     await Future.delayed(2.seconds).then((value) {
+      final type = DamageType.values.random();
+      player?.modifyElementalPower(type, .1);
       if (gameEnviroment.hud.isLoaded) {
         gameEnviroment.hud.applyBossHitEffect(DamageType.values.random());
       }

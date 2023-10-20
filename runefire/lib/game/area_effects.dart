@@ -161,7 +161,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   void doOnTick(Entity other) {
     if (isKilled) return;
     if (damage != null && other is HealthFunctionality) {
-      other.takeDamage(
+      other.hitCheck(
           areaId,
           damageCalculations(sourceEntity, other, damage!,
               sourceAttack: this, damageKind: DamageKind.area));

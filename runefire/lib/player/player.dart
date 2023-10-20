@@ -89,6 +89,16 @@ class Player extends Entity
   }
   final PlayerData playerData;
 
+  @override
+  Future<void> die(DamageInstance damage,
+      [EndGameState endGameState = EndGameState.playerDeath]) {
+    invincible.setIncrease("wingame", true);
+    disableInput.setIncrease("wingame", true);
+
+    removeWeapons();
+    return super.die(damage, endGameState);
+  }
+
   BoolParameterManager disableInput =
       BoolParameterManager(baseParameter: false);
 

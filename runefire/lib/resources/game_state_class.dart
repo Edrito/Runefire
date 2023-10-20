@@ -285,7 +285,7 @@ extension GameStateFunctions on GameState {
     currentRoute = route;
   }
 
-  void endGame(GameEndState endGameState, [bool restart = false]) {
+  void endGame(EndGameState endGameState, [bool restart = false]) {
     final player = currentPlayer;
     if (player != null) {
       gameRouter.playerDataComponent.dataObject
@@ -296,7 +296,7 @@ extension GameStateFunctions on GameState {
     if (!restart) {
       toggleGameStart(null);
       changeMainMenuPage(
-          endGameState == GameEndState.win
+          endGameState == EndGameState.win
               ? MenuPageType.weaponMenu
               : MenuPageType.startMenuPage,
           false);
@@ -307,13 +307,14 @@ extension GameStateFunctions on GameState {
   }
 
   void killPlayer(
-      GameEndState gameEndState, Player player, DamageInstance instance) {
+      EndGameState gameEndState, Player player, DamageInstance instance) {
     if (transitionOccuring) return;
+
     transitionOccuring = true;
     Future.delayed(2.seconds).then(
       (value) {
         transitionOccuring = false;
-        if (gameEndState == GameEndState.death) {
+        if (gameEndState == EndGameState.playerDeath) {
           pauseGame(overlays.deathScreen.key, wipeMovement: true);
         } else {
           endGame(gameEndState, false);

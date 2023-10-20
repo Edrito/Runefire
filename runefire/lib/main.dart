@@ -111,46 +111,56 @@ void main() async {
   // Gamepads.events.listen(inputManagerState.onGamepadEvent);
 
   runApp(
-    Material(
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Listener(
-          onPointerHover: inputManagerState.onPointerHover,
-          onPointerDown: inputManagerState.onPointerDown,
-          onPointerMove: inputManagerState.onPointerMove,
-          onPointerUp: inputManagerState.onPointerUp,
-          onPointerSignal: inputManagerState.onPointerSignal,
-          onPointerCancel: inputManagerState.onPointerCancel,
-          child: GameWidget(
-              backgroundBuilder: (context) {
-                if (GameState().currentRoute == routes.gameplay) {
-                  return const SizedBox();
-                }
-                return CaveBackground(
-                  gameRef: gameRouter,
-                );
-              },
-              loadingBuilder: (p0) {
-                return Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: Text(
-                    "LOADING",
-                    style: defaultStyle,
-                  ).animate().fadeIn(),
-                );
-              },
-              game: gameRouter,
-              overlayBuilderMap: Map<String,
-                  Widget Function(BuildContext, GameRouter)>.fromEntries([
-                overlay.pauseMenu,
-                overlay.mainMenu,
-                overlay.caveFront,
-                overlay.gameWinDisplay,
-                overlay.textDisplay,
-                overlay.gamepadCursorDisplay,
-                overlay.deathScreen,
-                overlay.attributeSelection,
-              ])),
+    MouseRegion(
+      cursor: SystemMouseCursors.none,
+      child: Material(
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Listener(
+            onPointerHover: inputManagerState.onPointerHover,
+            onPointerDown: inputManagerState.onPointerDown,
+            onPointerMove: inputManagerState.onPointerMove,
+            onPointerUp: inputManagerState.onPointerUp,
+            onPointerSignal: inputManagerState.onPointerSignal,
+            onPointerCancel: inputManagerState.onPointerCancel,
+            child: Stack(children: [
+              Positioned.fill(
+                child: GameWidget(
+                    backgroundBuilder: (context) {
+                      if (GameState().currentRoute == routes.gameplay) {
+                        return const SizedBox();
+                      }
+                      return CaveBackground(
+                        gameRef: gameRouter,
+                      );
+                    },
+                    loadingBuilder: (p0) {
+                      return Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Text(
+                          "LOADING",
+                          style: defaultStyle,
+                        ).animate().fadeIn(),
+                      );
+                    },
+                    game: gameRouter,
+                    initialActiveOverlays: [
+                      if (!startInGame) ...[caveFront.key, mainMenu.key],
+                    ],
+                    overlayBuilderMap: Map<String,
+                        Widget Function(BuildContext, GameRouter)>.fromEntries([
+                      overlay.pauseMenu,
+                      overlay.mainMenu,
+                      overlay.caveFront,
+                      overlay.gameWinDisplay,
+                      overlay.textDisplay,
+                      overlay.deathScreen,
+                      overlay.attributeSelection,
+                    ])),
+              ),
+              GamepadCursorDisplay(gameRouter)
+            ]),
+          ),
         ),
       ),
     ),
@@ -210,16 +220,6 @@ class GameRouter extends Forge2DGame {
     });
 
     await super.onLoad();
-  }
-
-  @override
-  void onMount() {
-    super.onMount();
-    if (!startInGame) {
-      overlays.add(caveFront.key);
-      overlays.add(mainMenu.key);
-    }
-    overlays.add(gamepadCursorDisplay.key);
   }
 
   late final GamepadInputManager gamepadInputManager =

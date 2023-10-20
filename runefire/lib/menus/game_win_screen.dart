@@ -151,7 +151,7 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
                 rowId: 5,
                 onPrimary: () {
                   gameState.resumeGame();
-                  gameState.endGame(GameEndState.win);
+                  gameState.endGame(EndGameState.win);
                 },
               )
             ],

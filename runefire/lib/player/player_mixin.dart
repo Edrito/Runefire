@@ -278,9 +278,9 @@ mixin PlayerStatisticsRecorder
   }
 }
 
-enum GameEndState {
+enum EndGameState {
   win,
-  death,
+  playerDeath,
   quit,
 }
 
@@ -432,17 +432,17 @@ mixin PlayerStatistics {
     interactablesInteractedWith = 0;
   }
 
-  void modifyGameVariables(GameEndState gameState, GameEnviroment enviroment) {
+  void modifyGameVariables(EndGameState gameState, GameEnviroment enviroment) {
     switch (gameState) {
-      case GameEndState.win:
+      case EndGameState.win:
         gamesWon.update(enviroment.level, (value) => value + 1,
             ifAbsent: () => 1);
         break;
-      case GameEndState.death:
+      case EndGameState.playerDeath:
         gamesLost.update(enviroment.level, (value) => value + 1,
             ifAbsent: () => 1);
         break;
-      case GameEndState.quit:
+      case EndGameState.quit:
         gamesQuit.update(enviroment.level, (value) => value + 1,
             ifAbsent: () => 1);
         break;

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/input_manager.dart';
+import 'package:runefire/menus/elemental_power_level.dart';
 import 'package:runefire/menus/options.dart';
 import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
@@ -63,11 +64,13 @@ class CustomBorderBox extends StatelessWidget {
       this.small = false,
       this.hideBackground = false,
       this.hideBaseBorder = false,
+      this.lightColor = false,
       super.key});
   final Widget? child;
   final bool small;
   final bool hideBackground;
   final bool hideBaseBorder;
+  final bool lightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -217,13 +220,9 @@ class _PauseMenuState extends State<PauseMenu> {
   bool optionsEnabled = false;
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    Color highlightColor = Colors.grey.shade800;
+    Size size = MediaQuery.of(context).size;
     var entries = env.player?.currentAttributes;
-    var tempEntries = entries?.values
-            .where((element) => fetchAttributeLogicChecker(element, true))
-            .toList() ??
-        [];
+
     var nonTempEntries = entries?.values
             .where((element) => fetchAttributeLogicChecker(element, false))
             .toList() ??
@@ -234,6 +233,7 @@ class _PauseMenuState extends State<PauseMenu> {
 
     nonTempEntries.sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
 
+    double bottomPaddingAmount = 200 * ((size.height - 300) / 900).clamp(0, 1);
     return Container(
       color: ApolloColorPalette.darkestGray.color.withOpacity(.8),
       child: optionsEnabled
@@ -247,99 +247,114 @@ class _PauseMenuState extends State<PauseMenu> {
                 );
               },
             )
-          : Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 900),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 700),
-                          child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                              child: OverlayWidgetDisplay(
-                                gameRouter,
-                                child: StatsDisplay(
-                                  gameRef: gameRouter,
-                                  statStrings:
-                                      env.player?.buildStatStrings(false),
-                                ),
-                              )),
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: SizedBox(
-                        width: 500,
-                        child: OverlayWidgetList(
-                            gameRouter,
-                            [
-                              CustomButton(
-                                "Resume",
-                                upDownColor: (
-                                  colorPalette.primaryColor.brighten(.5),
-                                  colorPalette.primaryColor
-                                ),
-                                rowId: 1,
-                                gameRef: widget.gameRef,
-                                onPrimary: () {
-                                  gameState.resumeGame();
-                                },
+          : Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned.fill(
+                  bottom: bottomPaddingAmount,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 900),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxWidth: 700),
+                                child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 12),
+                                    child: OverlayWidgetDisplay(
+                                      gameRouter,
+                                      child: StatsDisplay(
+                                        gameRef: gameRouter,
+                                        statStrings:
+                                            env.player?.buildStatStrings(false),
+                                      ),
+                                    )),
                               ),
-                              CustomButton("Options",
-                                  gameRef: widget.gameRef,
-                                  rowId: 3, onPrimary: () {
-                                setState(
-                                  () {
-                                    optionsEnabled = true;
-                                  },
-                                );
-                              }),
-                              CustomButton(
-                                "Give up",
-                                gameRef: gameRouter,
-                                upDownColor: (
-                                  colorPalette.primaryColor.brighten(.5),
-                                  colorPalette.primaryColor
-                                ),
-                                rowId: 5,
-                                onPrimary: () {
-                                  gameState.resumeGame();
-                                  gameState.killPlayer(
-                                      GameEndState.quit,
-                                      env.player!,
-                                      DamageInstance(
-                                          damageMap: {},
-                                          source: env.player!,
-                                          victim: env.player!,
-                                          sourceAttack: this));
-                                },
-                              )
-                            ],
-                            "Pause Menu"),
+                            ),
+                          ),
+                          Center(
+                            child: SizedBox(
+                              width: 450,
+                              child: OverlayWidgetList(
+                                  gameRouter,
+                                  [
+                                    CustomButton(
+                                      "Resume",
+                                      upDownColor: (
+                                        colorPalette.primaryColor.brighten(.5),
+                                        colorPalette.primaryColor
+                                      ),
+                                      rowId: 1,
+                                      gameRef: widget.gameRef,
+                                      onPrimary: () {
+                                        gameState.resumeGame();
+                                      },
+                                    ),
+                                    CustomButton("Options",
+                                        gameRef: widget.gameRef,
+                                        rowId: 3, onPrimary: () {
+                                      setState(
+                                        () {
+                                          optionsEnabled = true;
+                                        },
+                                      );
+                                    }),
+                                    CustomButton(
+                                      "Give up",
+                                      gameRef: gameRouter,
+                                      upDownColor: (
+                                        colorPalette.primaryColor.brighten(.5),
+                                        colorPalette.primaryColor
+                                      ),
+                                      rowId: 5,
+                                      onPrimary: () {
+                                        gameState.resumeGame();
+                                        gameState.currentPlayer?.die(
+                                            DamageInstance(
+                                                damageMap: {},
+                                                source: env.player!,
+                                                victim: env.player!,
+                                                sourceAttack: this),
+                                            EndGameState.quit);
+                                      },
+                                    )
+                                  ],
+                                  "Pause Menu"),
+                            ),
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxWidth: 700),
+                                child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 12),
+                                    child: OverlayWidgetDisplay(
+                                      gameRouter,
+                                      child: AttributeDisplay(
+                                          gameRef: gameRouter,
+                                          attributes: nonTempEntries),
+                                    )),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 700),
-                          child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                              child: OverlayWidgetDisplay(
-                                gameRouter,
-                                child: AttributeDisplay(
-                                    gameRef: gameRouter,
-                                    attributes: nonTempEntries),
-                              )),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                Positioned(
+                  bottom: 0,
+                  child: TotalPowerGraph(
+                    player: env.player!,
+                  ),
+                )
+              ],
             ),
     ).animate().fadeIn();
   }

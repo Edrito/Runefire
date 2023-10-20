@@ -208,7 +208,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
         for (final body in enemies) {
           final enemy = body.userData as Enemy;
 
-          enemy.takeDamage(
+          enemy.hitCheck(
               weaponId, calculateDamage(enemy, this)..checkCrit(true));
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
@@ -246,7 +246,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
               isTemporary: true,
               duration: 2,
               perpetratorEntity: entityAncestor!);
-          enemy.takeDamage(weaponId, calculateDamage(enemy, this));
+          enemy.hitCheck(weaponId, calculateDamage(enemy, this));
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
         break;
@@ -258,7 +258,7 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
               isTemporary: true,
               duration: 6,
               perpetratorEntity: entityAncestor!);
-          enemy.takeDamage(weaponId, calculateDamage(enemy, this));
+          enemy.hitCheck(weaponId, calculateDamage(enemy, this));
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
         break;

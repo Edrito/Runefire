@@ -496,13 +496,16 @@ class _WeaponMenuState extends State<WeaponMenu> {
               right: 0,
               top: studyPanelDropAmount * (1 - value),
               height: menuBaseBarHeight * 2,
-              child: InkWell(
+
+              child: CustomInputWatcher(
+                rowId: -5,
+                zHeight: 1,
                 onHover: (value) {
                   setState(() {
                     studiesButtonHover = value;
                   });
                 },
-                onTap: () {
+                onPrimary: () {
                   attributeUpgrader = AttributeUpgrader(
                       onBack: () {
                         attributeUpgrader = null;

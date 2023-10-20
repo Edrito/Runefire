@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -67,70 +69,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> textDisplay =
   return const DisplayTextWidget();
 });
 
-MapEntry<String, Widget Function(BuildContext, GameRouter)>
-    gamepadCursorDisplay =
-    MapEntry('GamepadCursorDisplay', (context, gameRouter) {
-  return GamepadCursorDisplay(gameRouter);
-});
 MapEntry<String, Widget Function(BuildContext, GameRouter)> gameWinDisplay =
     MapEntry('GameWinDisplay', (context, gameRouter) {
   return GameWinDisplay(gameRouter);
 });
-
-class GamepadCursorDisplay extends StatefulWidget {
-  const GamepadCursorDisplay(this.gameRef, {super.key});
-  final GameRouter gameRef;
-  @override
-  State<GamepadCursorDisplay> createState() => _GamepadCursorDisplayState();
-}
-
-class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
-  void onGamepadCursorChange(ExternalInputType type, Offset position) {
-    checkOverlayPosition();
-    setState(() {
-      this.position = type != ExternalInputType.gamepad ? null : (position);
-    });
-  }
-
-  Offset? position;
-
-  @override
-  void initState() {
-    InputManager().onPointerMoveList.add(onGamepadCursorChange);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    InputManager().onPointerMoveList.remove(onGamepadCursorChange);
-
-    super.dispose();
-  }
-
-  void checkOverlayPosition() {
-    final overlaysList = widget.gameRef.overlays.activeOverlays;
-    if (overlaysList.indexOf(gamepadCursorDisplay.key) !=
-        overlaysList.length - 1) {
-      widget.gameRef.overlays.remove(gamepadCursorDisplay.key);
-      widget.gameRef.overlays.add(gamepadCursorDisplay.key);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const double radius = 10;
-    if (GameState().gameIsPlaying || position == null) {
-      return const SizedBox();
-    }
-
-    return Transform(
-        transform: Matrix4.translationValues(
-            position!.dx - (radius / 2), position!.dy - (radius / 2), 0.0),
-        child: const CircleAvatar(
-          radius: radius,
-        ));
-  }
-}
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
     MapEntry('PauseMenu', (context, gameRouter) {
@@ -163,7 +105,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                       gameRef: gameRouter,
                       onPrimary: () {
                         gameRouter.gameStateComponent.gameState
-                            .endGame(GameEndState.death, true);
+                            .endGame(EndGameState.playerDeath, true);
                       },
                     ),
                     CustomButton(
@@ -171,7 +113,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                       gameRef: gameRouter,
                       onPrimary: () {
                         gameRouter.gameStateComponent.gameState
-                            .endGame(GameEndState.death);
+                            .endGame(EndGameState.playerDeath);
                       },
                     )
                   ],
@@ -363,6 +305,17 @@ class AttributeDisplay extends StatefulWidget {
 }
 
 class _AttributeDisplayState extends State<AttributeDisplay> {
+  Map<AttributeType, GlobalKey> builtKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    widget.attributes
+        .sort(((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel)));
+    widget.attributes.sort(((a, b) =>
+        a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index)));
+  }
+
   @override
   Widget build(BuildContext context) {
     Color color = colorPalette.secondaryColor;
@@ -375,6 +328,7 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
     ).animate().fadeIn();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         title,
         Expanded(
@@ -382,42 +336,59 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
             behavior: scrollConfiguration(context),
             child: SingleChildScrollView(
               child: Wrap(
+                runAlignment: WrapAlignment.start,
                 children: [
                   for (int i = 0; i < (widget.attributes.length); i++)
                     Builder(
                       builder: (context) {
                         final currentAttrib = widget.attributes.elementAt(i);
-
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            // color: Colors.blue,
-                            height: 100,
-                            width: 60,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                    'assets/images/${currentAttrib.icon}',
-                                    color: currentAttrib
-                                        .attributeType.rarity.color),
-                                SizedBox(
-                                  width: 55,
-                                  child: Text(
-                                    currentAttrib.upgradeLevel
-                                            .toRomanNumeralString() ??
-                                        "",
-                                    style: defaultStyle.copyWith(
-                                        color: currentAttrib
-                                            .attributeType.rarity.color,
-                                        fontSize: 20),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ],
+                        bool isHovered = false;
+                        return StatefulBuilder(builder: (context, ss) {
+                          builtKeys[currentAttrib.attributeType] ??=
+                              GlobalKey<CustomInputWatcherState>();
+                          return CustomInputWatcher(
+                            onHover: (isHover) => ss(() {
+                              isHovered = isHover;
+                            }),
+                            hoverWidget: CustomCard(
+                              currentAttrib,
+                              gameRef: widget.gameRef,
+                              key: builtKeys[currentAttrib.attributeType],
+                              disableTouch: true,
                             ),
-                          ),
-                        );
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SizedBox(
+                                height: 96,
+                                width: 60,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: buildImageAsset(
+                                          'assets/images/${currentAttrib.icon}',
+                                          fit: BoxFit.fitHeight,
+                                          color: isHovered
+                                              ? currentAttrib
+                                                  .attributeType.rarity.color
+                                              : null),
+                                    ),
+                                    Text(
+                                      currentAttrib.upgradeLevel
+                                              .toRomanNumeralString() ??
+                                          "",
+                                      style: defaultStyle.copyWith(
+                                          color: currentAttrib
+                                              .attributeType.rarity.color,
+                                          fontSize: 32),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        });
                       },
                     )
                 ],
@@ -425,6 +396,171 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class GamepadCursorDisplay extends StatefulWidget {
+  const GamepadCursorDisplay(this.gameRef, {super.key});
+  final GameRouter gameRef;
+  @override
+  State<GamepadCursorDisplay> createState() => _GamepadCursorDisplayState();
+}
+
+class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
+  late final StreamSubscription<CustomInputWatcherEvents>
+      eventStreamSubscription;
+  late final StreamSubscription<(Offset, Widget)?>
+      widgetOverlayStreamSubscription;
+
+  void _updateHoverWidgetSize() {
+    final RenderBox? renderBoxRed =
+        hoveredWidgetKey?.currentContext?.findRenderObject() as RenderBox?;
+    final newSize = renderBoxRed?.size;
+
+    sizeOfHoveredWidget = newSize;
+  }
+
+  void onGamepadCursorChange(ExternalInputType type, Offset position) {
+    setState(() {
+      this.position = (position);
+      latestEventWasKeyboard = false;
+      _updateHoverWidgetSize();
+    });
+  }
+
+  void onPrimary(_) {
+    setState(() {
+      targetClick = true;
+    });
+  }
+
+  Offset? position;
+
+  void gameWidgetEvents(CustomInputWatcherEvents event) {
+    switch (event) {
+      case CustomInputWatcherEvents.onPrimary:
+        setState(() {
+          targetClick = true;
+        });
+        break;
+      case CustomInputWatcherEvents.onPrimaryUp:
+        setState(() {
+          targetClick = false;
+        });
+        break;
+      default:
+    }
+  }
+
+  void newHoveredWidget((Offset, Widget)? event) {
+    hoveredWidgetKey = event?.$2.key as GlobalKey<CustomInputWatcherState>?;
+    setState(() {
+      hoveredWidget = event;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _updateHoverWidgetSize();
+      setState(() {});
+    });
+  }
+
+  GlobalKey<CustomInputWatcherState>? hoveredWidgetKey;
+  Size? sizeOfHoveredWidget;
+
+  (Offset, Widget)? hoveredWidget;
+
+  void onKeyEvent(_) {
+    setState(() {
+      latestEventWasKeyboard = true;
+    });
+  }
+
+  bool latestEventWasKeyboard = false;
+  @override
+  void initState() {
+    InputManager().onPointerMoveList.add(onGamepadCursorChange);
+    InputManager().keyEventList.add(onKeyEvent);
+    final controllerTuple =
+        InputManager().customInputWatcherManager.addHoverOverlay(this);
+    eventStreamSubscription =
+        controllerTuple.$1.stream.listen(gameWidgetEvents);
+    widgetOverlayStreamSubscription =
+        controllerTuple.$2.stream.listen(newHoveredWidget);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    InputManager().onPointerMoveList.remove(onGamepadCursorChange);
+    InputManager().customInputWatcherManager.removeHoverOverlay();
+    InputManager().keyEventList.remove(onKeyEvent);
+    eventStreamSubscription.cancel();
+    widgetOverlayStreamSubscription.cancel();
+
+    super.dispose();
+  }
+
+  static const double radius = 10;
+
+  bool targetClick = false;
+  late final Widget cachedCursor = Container(
+    decoration: BoxDecoration(
+      color: colorPalette.randomBrightColor,
+      shape: BoxShape.circle,
+    ),
+    height: radius,
+    width: radius,
+  );
+  @override
+  Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    if (position == null) {
+      return const SizedBox();
+    }
+    return Stack(
+      children: [
+        Transform(
+            transform: Matrix4.translationValues(
+                position!.dx - (radius / 2), position!.dy - (radius / 2), 0.0),
+            child: cachedCursor
+            // .animate(
+            //   target: targetClick ? 1 : 0,
+            // )
+            // .scaleXY(
+            //     duration: .05.seconds,
+            //     begin: 1,
+            //     end: 1.2,
+            //     curve: Curves.easeIn)
+            ),
+        if (hoveredWidget != null)
+          Builder(builder: (context) {
+            double xPositionOfHover = latestEventWasKeyboard
+                ? hoveredWidget!.$1.dx
+                : position?.dx ?? hoveredWidget!.$1.dx;
+
+            double yPositionOfHover = latestEventWasKeyboard
+                ? hoveredWidget!.$1.dy
+                : position?.dy ?? hoveredWidget!.$1.dy;
+            if (xPositionOfHover + (sizeOfHoveredWidget?.width ?? 0) >
+                screenSize.width) {
+              xPositionOfHover =
+                  screenSize.width - (sizeOfHoveredWidget?.width ?? 0);
+            }
+            if (yPositionOfHover + (sizeOfHoveredWidget?.height ?? 0) >
+                screenSize.height) {
+              yPositionOfHover =
+                  screenSize.height - (sizeOfHoveredWidget?.height ?? 0);
+            }
+
+            return Transform(
+                    transform: Matrix4.translationValues(
+                        xPositionOfHover, yPositionOfHover, 0.0),
+                    child: hoveredWidget!.$2)
+                .animate(key: ValueKey(hoveredWidget?.$1))
+                .fadeIn(duration: .15.seconds);
+          })
       ],
     );
   }
