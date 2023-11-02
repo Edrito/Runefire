@@ -9,15 +9,16 @@ import '../entities/entity_mixin.dart';
 import '../resources/enums.dart';
 
 class BlankProjectileWeapon extends EnemyWeapon
-    with ProjectileFunctionality, SemiAutomatic {
+    with ProjectileFunctionality, FullAutomatic {
   BlankProjectileWeapon(
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    baseDamage.damageBase[DamageType.physical] = (5, 8);
-    attackTickRate.baseParameter = .01;
+    baseDamage.damageBase[DamageType.frost] = (5, 8);
+    attackTickRate.baseParameter = 2;
     attackCountIncrease.baseParameter = 0;
     projectileVelocity.baseParameter = 10;
+    projectileSize = .5;
   }
   @override
   WeaponType weaponType = WeaponType.blankProjectileWeapon;

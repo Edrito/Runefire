@@ -37,8 +37,8 @@ class EnemyState {
   final (double, double) stateDuration;
   final bool preventDoubleRandomFunction;
   final double minimumTimePassedBeforeStateChange;
-  final Function? onStateStart;
-  final Function? onStateEnd;
+  final Function()? onStateStart;
+  final Function()? onStateEnd;
   final bool isFinalState;
   final bool isBaseState;
 

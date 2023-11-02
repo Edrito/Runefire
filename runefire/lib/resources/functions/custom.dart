@@ -492,3 +492,23 @@ class ShakeEffect extends Effect with EffectTarget<PositionProvider> {
     super.onFinish();
   }
 }
+
+class CustomRectClipper extends CustomClipper<Rect> {
+  CustomRectClipper(this.startPercent, this.endPercent) {
+    assert(startPercent < endPercent);
+  }
+  double startPercent;
+  double endPercent;
+
+  @override
+  Rect getClip(Size size) {
+    print(endPercent);
+    return Rect.fromPoints(Offset(size.width * startPercent, 0),
+        Offset(size.width * endPercent, size.height));
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Rect> oldClipper) {
+    return false;
+  }
+}

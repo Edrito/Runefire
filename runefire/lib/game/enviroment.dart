@@ -15,16 +15,16 @@ import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/custom_test.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 
-import '../player/player.dart';
-import '../game/background.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/game/background.dart';
 
 import 'dart:async';
 import 'package:flame/components.dart';
-import '../main.dart';
-import '../resources/data_classes/system_data.dart';
-import '../resources/enums.dart';
-import '../menus/overlays.dart';
-import '../resources/constants/priorities.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/data_classes/system_data.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/menus/overlays.dart';
+import 'package:runefire/resources/constants/priorities.dart';
 
 abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   abstract final GameLevel level;
@@ -39,9 +39,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   late final TimerComponent physicsEntityAdding = TimerComponent(
     period: 1,
     repeat: true,
-    onTick: () {
-      addPhysicsComponentTick();
-    },
+    onTick: addPhysicsComponentTick,
   )..addToParent(this);
 
   void addTempComponent([Component? component]) {
@@ -87,9 +85,9 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
       if (durationNoAdd > 1) {
         physicsEntityAdding.timer.stop();
         durationNoAdd = 0;
-        for (var element in [
+        for (final element in [
           ...priorityPhysicsComponents.entries
-              .where((element) => element.value.children.isEmpty)
+              .where((element) => element.value.children.isEmpty),
         ]) {
           priorityPhysicsComponents.remove(element.key);
         }
@@ -98,10 +96,14 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   }
 
   bool firstTick = false;
-  void addPhysicsComponent(List<Component> components,
-      {bool instant = false, double duration = .2, int priority = 0}) {
+  void addPhysicsComponent(
+    List<Component> components, {
+    bool instant = false,
+    double duration = .2,
+    int priority = 0,
+  }) {
     if (components.isEmpty) return;
-    for (var element in components) {
+    for (final element in components) {
       if (element is HasPaint) {
         element.setOpacity(.05);
       }
@@ -139,8 +141,8 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   late CameraComponent gameCamera;
 
   int children2 = 0;
-  void printChildren(var children) {
-    for (Component element in children) {
+  void printChildren(Iterable<Component> children) {
+    for (final element in children) {
       children2++;
       if (element is TimerComponent) {
         print(element.parent);
@@ -234,15 +236,18 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   }
 
   void onPrimary(
-      GameActionEvent gameAction, Set<GameAction> activeGameActions) {}
+    GameActionEvent gameAction,
+    Set<GameAction> activeGameActions,
+  ) {}
   void pauseGameAction(
-      GameActionEvent gameAction, Set<GameAction> activeGameActions) {
+    GameActionEvent gameAction,
+    Set<GameAction> activeGameActions,
+  ) {
     if (gameAction.pressState != PressState.pressed) return;
 
     if (this is! GameEnviroment) return;
     gameRef.gameStateComponent.gameState.pauseGame(
       pauseMenu.key,
-      pauseGame: true,
     );
   }
 
@@ -293,7 +298,7 @@ abstract class GameEnviroment extends Enviroment
       ...ImagesAssetsMagic.allFilesFlame,
       ...ImagesAssetsProjectiles.allFilesFlame,
       ...ImagesAssetsEffects.allFilesFlame,
-      ...ImagesAssetsWeapons.allFilesFlame
+      ...ImagesAssetsWeapons.allFilesFlame,
     ]);
     super.onLoad();
   }
@@ -311,9 +316,13 @@ class ExitArrowPainter extends SpriteAnimationComponent {
     animation = tempAnim;
     size = tempAnim.frames.first.sprite.srcSize..scaledToHeight(player);
     anchor = Anchor.center;
-    add(OpacityEffect.fadeIn(EffectController(
-      duration: .5,
-    )));
+    add(
+      OpacityEffect.fadeIn(
+        EffectController(
+          duration: .5,
+        ),
+      ),
+    );
 
     return super.onLoad();
   }
@@ -321,15 +330,17 @@ class ExitArrowPainter extends SpriteAnimationComponent {
   bool fadeOut = false;
   @override
   void update(double dt) {
-    angle = -radiansBetweenPoints(Vector2(0, 1), player.center - (exitVector));
+    angle = -radiansBetweenPoints(Vector2(0, 1), player.center - exitVector);
     if (player.center.distanceTo(exitVector) < 4 && !fadeOut) {
       fadeOut = true;
-      add(OpacityEffect.fadeOut(EffectController(
-        duration: .5,
-        onMax: () {
-          removeFromParent();
-        },
-      )));
+      add(
+        OpacityEffect.fadeOut(
+          EffectController(
+            duration: .5,
+            onMax: removeFromParent,
+          ),
+        ),
+      );
     }
     super.update(dt);
   }

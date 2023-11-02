@@ -15,11 +15,11 @@ import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/secondary_abilities.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
-import '../attributes/attributes_mixin.dart';
-import '../resources/functions/custom.dart';
+import 'package:runefire/attributes/attributes_mixin.dart';
+import 'package:runefire/resources/functions/custom.dart';
 
-import '../resources/enums.dart';
-import '../resources/constants/priorities.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/constants/priorities.dart';
 
 class PlayerAttachmentJointComponent extends PositionComponent
     with HasAncestor<Entity> {
@@ -89,14 +89,17 @@ class PlayerAttachmentJointComponent extends PositionComponent
 }
 
 typedef AttackSplitFunction = List<double> Function(
-    double angle, int attackCount);
+  double angle,
+  int attackCount,
+);
 
 abstract class Weapon extends Component with UpgradeFunctions {
   Weapon(int? newUpgradeLevel, this.entityAncestor) {
     assert(
-        this is! ProjectileFunctionality ||
-            (this as ProjectileFunctionality).projectileType != null,
-        "Projectile weapon types need a projectile type");
+      this is! ProjectileFunctionality ||
+          (this as ProjectileFunctionality).projectileType != null,
+      'Projectile weapon types need a projectile type',
+    );
 
     maxLevel = weaponType.maxLevel;
     newUpgradeLevel ??= 0;
@@ -108,7 +111,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   late double weaponLength = entityAncestor == null
       ? 0
-      : (pngSize.clone()..scaledToHeight(entityAncestor!, weapon: this)).y;
+      : (pngSize.clone()..scaledToHeight(entityAncestor, weapon: this)).y;
 
   final DoubleParameterManager attackTickRate =
       DoubleParameterManager(baseParameter: 1, minParameter: 0.01);
@@ -126,7 +129,10 @@ abstract class Weapon extends Component with UpgradeFunctions {
       BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
 
   final DoubleParameterManager critChance = DoubleParameterManager(
-      baseParameter: 0.05, minParameter: 0, maxParameter: 1);
+    baseParameter: 0.05,
+    minParameter: 0,
+    maxParameter: 1,
+  );
 
   final DoubleParameterManager critDamage =
       DoubleParameterManager(baseParameter: 1.4, minParameter: 1);
@@ -136,7 +142,10 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   final IntParameterManager pierce = IntParameterManager(baseParameter: 0);
   final DoubleParameterManager weaponRandomnessPercent = DoubleParameterManager(
-      baseParameter: 0, minParameter: 0, maxParameter: 1);
+    baseParameter: 0,
+    minParameter: 0,
+    maxParameter: 1,
+  );
 
   // final DoubleParameterManager spreadDegrees =
   //     DoubleParameterManager(baseParameter: 1, minParameter: 0.1);
@@ -154,8 +163,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   Map<AttackSpreadType, AttackSplitFunction> attackSplitFunctions = {
     AttackSpreadType.base: (double angle, int attackCount) => [angle],
-    AttackSpreadType.regular: (double angle, int attackCount) =>
-        regularAttackSpread(angle, attackCount, 60, false),
+    AttackSpreadType.regular: regularAttackSpread,
   };
 
   Vector2 baseOffset = Vector2.zero();
@@ -216,25 +224,26 @@ abstract class Weapon extends Component with UpgradeFunctions {
   bool get hasAltAttack => this is SecondaryFunctionality;
   bool get isCurrentWeapon {
     if (entityAncestor is AttackFunctionality) {
-      final att = entityAncestor as AttackFunctionality;
+      final att = entityAncestor! as AttackFunctionality;
       return att.currentWeapon == this;
     }
     return false;
   }
 
-  bool get isReloading => this is ReloadFunctionality
-      ? (this as ReloadFunctionality).reloadTimer != null
-      : false;
+  bool get isReloading =>
+      this is ReloadFunctionality &&
+      (this as ReloadFunctionality).reloadTimer != null;
 
   bool get weaponCanChain => chainingTargets.parameter > 0;
   bool get weaponCanHome => maxHomingTargets.parameter > 0;
-  Vector2 weaponTipPosition(double percent, [bool distanceFromPlayer = false]) {
+  Vector2 weaponTipPosition(double percent, {bool distanceFromPlayer = false}) {
     return newPositionRad(
-        entityAncestor!.handJoint.absolutePosition,
-        -entityAncestor!.handJoint.angle,
-        distanceFromPlayer
-            ? this.distanceFromPlayer
-            : (tipOffset.y * weaponLength * percent) + this.distanceFromPlayer);
+      entityAncestor!.handJoint.absolutePosition,
+      -entityAncestor!.handJoint.angle,
+      distanceFromPlayer
+          ? this.distanceFromPlayer
+          : (tipOffset.y * weaponLength * percent) + this.distanceFromPlayer,
+    );
   }
 
   void addAdditionalWeapon(Weapon newWeapon) {
@@ -243,20 +252,29 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   /// Returns true if an attack occured, otherwise false.
-  void attackAttempt([double holdDurationPercent = 1]) {
-    if (entityAncestor?.isDead ?? false) return;
+  Future<void> attackAttempt([double holdDurationPercent = 1]) async {
+    if (entityAncestor?.isDead ?? false) {
+      return;
+    }
     standardAttack(holdDurationPercent);
   }
 
   FutureOr<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint);
+    PlayerAttachmentJointComponent parentJoint,
+  );
 
   DamageInstance calculateDamage(
-          HealthFunctionality victim, dynamic sourceAttack) =>
-      damageCalculations(entityAncestor!, victim, baseDamage.damageBase,
-          sourceWeapon: this,
-          sourceAttack: sourceAttack,
-          damageSource: baseDamage);
+    HealthFunctionality victim,
+    dynamic sourceAttack,
+  ) =>
+      damageCalculations(
+        entityAncestor!,
+        victim,
+        baseDamage.damageBase,
+        sourceWeapon: this,
+        sourceAttack: sourceAttack,
+        damageSource: baseDamage,
+      );
 
   void endAltAttacking();
 
@@ -266,15 +284,18 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
     if (this is AttributeWeaponFunctionsFunctionality) {
       final att = this as AttributeWeaponFunctionsFunctionality;
-      for (var element in att.onAttackingFinish) {
+      for (final element in att.onAttackingFinish) {
         element.call(this);
       }
     }
   }
 
-  Vector2 generateGlobalPosition(SourceAttackLocation attackLocation,
-      [Vector2? delta, bool melee = false]) {
-    Vector2 center = Vector2.zero();
+  Vector2 generateGlobalPosition(
+    SourceAttackLocation attackLocation, {
+    Vector2? delta,
+    bool melee = false,
+  }) {
+    var center = Vector2.zero();
 
     switch (attackLocation) {
       case SourceAttackLocation.mouse:
@@ -287,34 +308,31 @@ abstract class Weapon extends Component with UpgradeFunctions {
         center = weaponTipPosition(0.5);
 
       case SourceAttackLocation.distanceFromPlayer:
-        center = weaponTipPosition(0, true);
+        center = weaponTipPosition(0, distanceFromPlayer: true);
         break;
       case SourceAttackLocation.customOffset:
         if (melee) {
           center = weaponTipPosition(0);
         }
 
-        center += (customOffset ?? Vector2.zero());
+        center += customOffset ?? Vector2.zero();
         break;
       default:
     }
-    // if (attackLocation != SourceAttackLocation.mouse) {
-    center += entityAncestor!.center;
-    // }
 
-    return center;
+    return center += entityAncestor!.center;
   }
 
   int getAttackCount(double chargeDuration) {
-    int additional = 0;
+    var additional = 0;
     if (this is SemiAutomatic) {
-      final semi = (this as SemiAutomatic);
+      final semi = this as SemiAutomatic;
       if (semi.increaseAttackCountWhenCharged) {
         additional =
             (semi.increaseWhenFullyCharged.parameter * chargeDuration).round();
       }
     }
-    int additionalDurationCountIncrease = countIncreaseWithTime.parameter
+    final additionalDurationCountIncrease = countIncreaseWithTime.parameter
         ? (durationHeld * 2).round().clamp(0, 3)
         : 0;
     return attackCountIncrease.parameter +
@@ -323,8 +341,10 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   void muzzleFlash() {
-    for (var element in weaponAttachmentPoints.entries) {
-      if (element.value.weaponSpriteAnimation == null) continue;
+    for (final element in weaponAttachmentPoints.entries) {
+      if (element.value.weaponSpriteAnimation == null) {
+        continue;
+      }
 
       element.value.weaponSpriteAnimation!.addMuzzleFlash();
     }
@@ -338,19 +358,24 @@ abstract class Weapon extends Component with UpgradeFunctions {
   ///Sets the current status of the weapon, i.e. idle, shooting, reloading
   Future<void> setWeaponStatus(WeaponStatus weaponStatus) async {
     this.weaponStatus = weaponStatus;
-    List<Future> futures = [];
-    for (var element in weaponAttachmentPoints.entries) {
-      if (element.value.weaponSpriteAnimation == null) continue;
+    final futures = <Future>[];
+    for (final element in weaponAttachmentPoints.entries) {
+      if (element.value.weaponSpriteAnimation == null) {
+        continue;
+      }
 
-      futures.add(element.value.weaponSpriteAnimation!
-          .setWeaponStatus(this.weaponStatus));
+      futures.add(
+        element.value.weaponSpriteAnimation!.setWeaponStatus(this.weaponStatus),
+      );
     }
 
     await Future.wait(futures);
   }
 
   void spriteVisibilityCheck() {
-    if (!removeSpriteOnAttack || isAdditionalWeapon) return;
+    if (!removeSpriteOnAttack || isAdditionalWeapon) {
+      return;
+    }
 
     if (attacksAreActive && !spritesHidden) {
       entityAncestor?.backJoint?.weaponSpriteAnimation?.opacity = 0;
@@ -364,16 +389,18 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   @mustCallSuper
-  void standardAttack(
-      [double holdDurationPercent = 1, bool callFunctions = true]) {
+  void standardAttack([
+    double holdDurationPercent = 1,
+    bool callFunctions = true,
+  ]) {
     muzzleFlash();
 
-    for (var element in additionalWeapons.entries) {
+    for (final element in additionalWeapons.entries) {
       element.value.attackAttempt(holdDurationPercent);
     }
     if (callFunctions && entityAncestor is AttributeFunctionsFunctionality) {
-      for (var element
-          in (entityAncestor as AttributeFunctionsFunctionality).onAttack) {
+      for (final element
+          in (entityAncestor! as AttributeFunctionsFunctionality).onAttack) {
         element.call(this);
       }
     }
@@ -406,8 +433,10 @@ abstract class PlayerWeapon extends Weapon
   PlayerWeapon(super.newUpgradeLevel, super.entityAncestor);
 
   @override
-  void standardAttack(
-      [double holdDurationPercent = 1, bool callFunctions = true]) {
+  void standardAttack([
+    double holdDurationPercent = 1,
+    bool callFunctions = true,
+  ]) {
     InputManager().applyVibration(.1, .25);
 
     super.standardAttack(holdDurationPercent, callFunctions);
@@ -431,12 +460,14 @@ abstract class EnemyWeapon extends Weapon
 ///Based on the current action of the weapon, this will display different kinds
 ///of animations.
 class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
-  WeaponSpriteAnimation(this.spriteOffset,
-      {required this.weaponAnimations,
-      required this.weapon,
-      this.flashSize = 2.0,
-      this.idleOnly = false,
-      required this.parentJoint}) {
+  WeaponSpriteAnimation(
+    this.spriteOffset, {
+    required this.weaponAnimations,
+    required this.weapon,
+    required this.parentJoint,
+    this.flashSize = 2.0,
+    this.idleOnly = false,
+  }) {
     animations = weaponAnimations;
     applyKey(WeaponStatus.idle);
     anchor = Anchor.topCenter;
@@ -471,24 +502,25 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   bool get isAnimationPlaying => !(animationTicker?.done() ?? true);
 
   void addMuzzleFlash() {
-    if (!weaponAnimations.containsKey('muzzle_flash')) return;
-    SpriteAnimation muzzleFlash = weaponAnimations['muzzle_flash']!;
+    if (!weaponAnimations.containsKey('muzzle_flash')) {
+      return;
+    }
+    final muzzleFlash = weaponAnimations['muzzle_flash']!;
     muzzleFlashComponent = SpriteAnimationComponent(
-        animation: muzzleFlash,
-        position:
-            Vector2(width * tipOffset.x, tipOffset.y * weapon.weaponLength),
-        size: muzzleFlash.frames.first.sprite.srcSize
-            .scaled(flashSize / muzzleFlash.frames.first.sprite.srcSize.y),
-        anchor: Anchor.topCenter,
-        priority: attackPriority);
+      animation: muzzleFlash,
+      position: Vector2(width * tipOffset.x, tipOffset.y * weapon.weaponLength),
+      size: muzzleFlash.frames.first.sprite.srcSize
+          .scaled(flashSize / muzzleFlash.frames.first.sprite.srcSize.y),
+      anchor: Anchor.topCenter,
+      priority: attackPriority,
+    );
 
     add(muzzleFlashComponent!);
 
     final previousComponent = muzzleFlashComponent;
 
-    previousComponent?.animationTicker?.onComplete = () {
-      previousComponent.removeFromParent();
-    };
+    previousComponent?.animationTicker?.onComplete =
+        previousComponent.removeFromParent;
   }
 
   void applyAnimation(dynamic key) {
@@ -497,7 +529,9 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   }
 
   void applyKey(dynamic key) {
-    if (animations?.containsKey(key) != true) return;
+    if (animations?.containsKey(key) != true) {
+      return;
+    }
     current = key;
     resize(animation!.frames.first.sprite.srcSize);
   }
@@ -509,16 +543,20 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
 
   void resize(Vector2 sourceSize) {
     final tempSize = sourceSize;
-    tempSize.scaledToHeight(weapon.entityAncestor!, weapon: weapon);
+    tempSize.scaledToHeight(weapon.entityAncestor, weapon: weapon);
     size.setFrom(tempSize);
   }
 
-  Future<void> setWeaponStatus(WeaponStatus newWeaponStatus,
-      [dynamic key]) async {
-    SpriteAnimation? newAnimation =
+  Future<void> setWeaponStatus(
+    WeaponStatus newWeaponStatus, [
+    dynamic key,
+  ]) async {
+    final newAnimation =
         weaponAnimations[key] ?? weaponAnimations[newWeaponStatus];
     if (newWeaponStatus == currentStatus &&
-        [WeaponStatus.idle].contains(newWeaponStatus)) return;
+        [WeaponStatus.idle].contains(newWeaponStatus)) {
+      return;
+    }
 
     if (tempAnimationPlaying) {
       statusQueue = newWeaponStatus;
@@ -531,19 +569,21 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     if (newAnimation != null) {
       switch (newWeaponStatus) {
         case WeaponStatus.spawn:
-          assert(!newAnimation.loop, "Temp animations must not loop");
+          assert(!newAnimation.loop, 'Temp animations must not loop');
           break;
         case WeaponStatus.dead:
-          assert(!newAnimation.loop, "Temp animations must not loop");
+          assert(!newAnimation.loop, 'Temp animations must not loop');
           break;
         case WeaponStatus.attack:
-          assert(!newAnimation.loop, "Temp animations must not loop");
+          assert(!newAnimation.loop, 'Temp animations must not loop');
           weaponAnimations[WeaponStatus.attack]?.stepTime =
               weapon.attackTickRate.parameter / newAnimation.frames.length;
           break;
         case WeaponStatus.reload:
-          if (weapon is! ReloadFunctionality) break;
-          assert(!newAnimation.loop, "Temp animations must not loop");
+          if (weapon is! ReloadFunctionality) {
+            break;
+          }
+          assert(!newAnimation.loop, 'Temp animations must not loop');
           weaponAnimations[WeaponStatus.reload]?.stepTime =
               (weapon as ReloadFunctionality).reloadTime.parameter /
                   newAnimation.frames.length;
@@ -558,10 +598,14 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     } else {
       if (newWeaponStatus == WeaponStatus.dead) {
         final duration = weapon.attackTickRate.baseParameter / 3;
-        add(OpacityEffect.fadeOut(EffectController(
-          duration: duration,
-          curve: Curves.easeOut,
-        )));
+        add(
+          OpacityEffect.fadeOut(
+            EffectController(
+              duration: duration,
+              curve: Curves.easeOut,
+            ),
+          ),
+        );
         await Future.delayed(duration.seconds);
       }
     }
@@ -581,11 +625,13 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   }
 
   Future<void> weaponCharging() async {
-    if (animations?.containsKey(WeaponStatus.charge) != true) return;
-    double chargeDuration = weapon.attackTickRate.parameter;
+    if (animations?.containsKey(WeaponStatus.charge) != true) {
+      return;
+    }
+    final chargeDuration = weapon.attackTickRate.parameter;
     final length = weaponAnimations[WeaponStatus.charge]!.frames.length;
 
-    weaponAnimations[WeaponStatus.charge]?.stepTime = (chargeDuration / length);
+    weaponAnimations[WeaponStatus.charge]?.stepTime = chargeDuration / length;
 
     applyAnimation(WeaponStatus.charge);
 

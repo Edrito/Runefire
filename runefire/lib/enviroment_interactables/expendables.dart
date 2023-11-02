@@ -10,6 +10,7 @@ import 'package:runefire/enviroment_interactables/runes.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:recase/recase.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
 
 import '../player/player.dart';
 import '../game/enviroment.dart';
@@ -101,10 +102,12 @@ class InteractableRunePickup extends InteractableComponent {
 
   @override
   Future<void> onLoad() async {
+    final spirte = await buildSprite();
     spriteComponent = SpriteAnimationComponent(
         anchor: Anchor.center,
-        animation: SpriteAnimation.spriteList([await buildSprite()],
-            stepTime: 1, loop: true));
+        size: spirte.srcSize..scaledToHeight(null, env: gameEnviroment),
+        animation:
+            SpriteAnimation.spriteList([spirte], stepTime: 1, loop: true));
     spriteComponent.add(MoveEffect.by(
         Vector2(0, -.2),
         InfiniteEffectController(EffectController(

@@ -147,7 +147,9 @@ enum AttributeType {
       category: AttributeCategory.utility,
       territory: AttributeTerritory.game,
       attributeEligibilityTest: playerHasMeleeWeapon,
-      elementalRequirement: {DamageType.psychic: .25}),
+      elementalRequirement: {
+        DamageType.psychic: .25,
+      }),
 
   periodicPush(
       rarity: AttributeRarity.uncommon,
@@ -536,6 +538,11 @@ enum AttributeType {
   final AttributeEligibilityTest _attributeEligibilityTest;
   final Map<DamageType, double>? _elementalRequirement;
 
+  List<DamageType> get elementalRequirement =>
+      _elementalRequirement?.keys.toList() ?? [];
+
+  bool get requiresElementalPower => _elementalRequirement != null;
+
   bool attributeMeetsForcedElementalRequest(
       Player player, DamageType? damageType) {
     if (damageType == null) return true;
@@ -648,35 +655,40 @@ extension AllAttributesExtension on AttributeType {
     AttributeFunctionality? victimEntity, {
     Entity? perpetratorEntity,
     DamageType? damageType,
-    // StatusEffects? statusEffect,
     bool isTemporary = false,
     double? duration,
   }) {
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);
     if (permanentAttr != null) return permanentAttr;
 
-    if (victimEntity != null) {
-      final regularAttr =
-          regularAttributeBuilder(this, level, victimEntity, damageType);
-
-      if (regularAttr != null) return regularAttr;
-
-      if (perpetratorEntity != null) {
-        final perpetratorAttr = perpetratorAttributeBuilder(
-            this, level, victimEntity, perpetratorEntity);
-        if (perpetratorAttr != null) return perpetratorAttr;
-
-        final statusEffectAttr = statusEffectBuilder(
-          this,
-          level,
-          victimEntity,
-          perpetratorEntity: perpetratorEntity,
-          isTemporary: isTemporary,
-          duration: duration,
-        );
-        if (statusEffectAttr != null) return statusEffectAttr;
-      }
+    if (victimEntity == null) {
+      throw Exception("Victim entity required for $this!");
     }
+
+    final regularAttr =
+        regularAttributeBuilder(this, level, victimEntity, damageType);
+
+    if (regularAttr != null) return regularAttr;
+
+    if (perpetratorEntity == null) {
+      throw Exception("Perpetrator entity required for $this!");
+    }
+
+    final perpetratorAttr = perpetratorAttributeBuilder(
+        this, level, victimEntity, perpetratorEntity);
+
+    if (perpetratorAttr != null) return perpetratorAttr;
+
+    final statusEffectAttr = statusEffectBuilder(
+      this,
+      level,
+      victimEntity,
+      perpetratorEntity: perpetratorEntity,
+      isTemporary: isTemporary,
+      duration: duration,
+    );
+
+    if (statusEffectAttr != null) return statusEffectAttr;
 
     throw Exception("Attribute not found - $this");
   }

@@ -33,15 +33,15 @@ import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../enemies/enemy.dart';
-import '../enviroment_interactables/interactable.dart';
-import '../resources/functions/vector_functions.dart';
-import '../main.dart';
-import '../resources/data_classes/player_data.dart';
-import '../resources/enums.dart';
-import '../attributes/attributes_mixin.dart';
-import '../enviroment_interactables/expendables.dart';
-import '../weapons/weapon_class.dart';
+import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/enviroment_interactables/interactable.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/data_classes/player_data.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/attributes/attributes_mixin.dart';
+import 'package:runefire/enviroment_interactables/expendables.dart';
+import 'package:runefire/weapons/weapon_class.dart';
 
 class Player extends Entity
     with
@@ -61,10 +61,13 @@ class Player extends Entity
         HealthRegenFunctionality,
         PlayerStatistics,
         PlayerStatisticsRecorder {
-  Player(this.playerData, this.isDisplay,
-      {required super.enviroment,
-      required super.eventManagement,
-      required super.initialPosition}) {
+  Player(
+    this.playerData,
+    this.isDisplay, {
+    required super.enviroment,
+    required super.eventManagement,
+    required super.initialPosition,
+  }) {
     // if (!isDisplay) {
     playerData.selectedPlayer.applyBaseCharacterStats(this);
     initAttributes(playerData.unlockedPermanentAttributes);
@@ -75,25 +78,33 @@ class Player extends Entity
 
     if (isDisplay) {
       // height.setParameterPercentValue('display', .5);
-      add(TimerComponent(
-        period: .05,
-        repeat: true,
-        onTick: () {
-          var temp = center.clone();
-          temp = Vector2(double.parse(temp.x.toStringAsFixed(2)),
-              double.parse(temp.y.toStringAsFixed(2)));
-          addMoveVelocity(-temp.normalized(), aiInputPriority);
-        },
-      ));
+      add(
+        TimerComponent(
+          period: .05,
+          repeat: true,
+          onTick: () {
+            var temp = center.clone();
+            temp = Vector2(
+              double.parse(temp.x.toStringAsFixed(2)),
+              double.parse(temp.y.toStringAsFixed(2)),
+            );
+            addMoveVelocity(-temp.normalized(), aiInputPriority);
+          },
+        ),
+      );
     }
   }
+
+  List<AttributeType> attributesToGrabDebug = [];
   final PlayerData playerData;
 
   @override
-  Future<void> die(DamageInstance damage,
-      [EndGameState endGameState = EndGameState.playerDeath]) {
-    invincible.setIncrease("wingame", true);
-    disableInput.setIncrease("wingame", true);
+  Future<void> die(
+    DamageInstance damage, [
+    EndGameState endGameState = EndGameState.playerDeath,
+  ]) {
+    invincible.setIncrease('wingame', true);
+    disableInput.setIncrease('wingame', true);
 
     removeWeapons();
     return super.die(damage, endGameState);
@@ -106,19 +117,19 @@ class Player extends Entity
 
   void addCloseInteractableComponents(InteractableComponent newComponent) {
     if (_interactableComponents.isNotEmpty) {
-      _interactableComponents.first.toggleDisplay(false);
+      _interactableComponents.first.toggleDisplay(isOn: false);
     }
-    newComponent.toggleDisplay(true);
+    newComponent.toggleDisplay();
     _interactableComponents.addFirst(newComponent);
   }
 
   void removeCloseInteractable(InteractableComponent newComponent) {
     if (_interactableComponents.isNotEmpty) {
-      newComponent.toggleDisplay(false);
+      newComponent.toggleDisplay(isOn: false);
       _interactableComponents.remove(newComponent);
 
       if (_interactableComponents.isNotEmpty) {
-        _interactableComponents.first.toggleDisplay(true);
+        _interactableComponents.first.toggleDisplay();
       }
     }
   }
@@ -169,7 +180,9 @@ class Player extends Entity
     instance.removeGameActionListener(GameAction.reload, reloadWeaponAction);
     instance.removeGameActionListener(GameAction.interact, interactAction);
     instance.removeGameActionListener(
-        GameAction.useExpendable, expendableAction);
+      GameAction.useExpendable,
+      expendableAction,
+    );
     instance.removeGameActionListener(GameAction.dash, dashAction);
     instance.removeGameActionListener(GameAction.jump, jumpAction);
     instance.removeGameActionListener(GameAction.primary, primaryAction);
@@ -186,7 +199,9 @@ class Player extends Entity
   void pointerMoveAction(ExternalInputType type, Offset pos) {
     if (type == ExternalInputType.mouseKeyboard && isLoaded) {
       final position = (shiftCoordinatesToCenter(
-                  pos.toVector2(), enviroment.gameCamera.viewport.size) /
+                pos.toVector2(),
+                enviroment.gameCamera.viewport.size,
+              ) /
               enviroment.zoom) -
           entityOffsetFromCameraCenter;
 
@@ -197,20 +212,25 @@ class Player extends Entity
 
   @override
   void applyDamage(DamageInstance damage) {
-    gameEnviroment.gameCamera.viewport.add(ShakeEffect(
+    gameEnviroment.gameCamera.viewport.add(
+      ShakeEffect(
         EffectController(duration: .1),
-        intensity: (damage.isCrit ? 8 : 2)));
+        intensity: (damage.isCrit ? 8 : 2),
+      ),
+    );
 
     InputManager().applyVibration(
-        damage.damage == double.infinity ? 1 : .3, damage.isCrit ? .8 : .4);
+      damage.damage == double.infinity ? 1 : .3,
+      damage.isCrit ? .8 : .4,
+    );
 
     super.applyDamage(damage);
   }
 
   void parseGamepadJoy(GamepadEvent event) {
     if (disableInput.parameter) return;
-    GamepadButtons buttonToCheck = event.button;
-    bool swapJoys = game.systemDataComponent.dataObject.flipJoystickControl;
+    var buttonToCheck = event.button;
+    final swapJoys = game.systemDataComponent.dataObject.flipJoystickControl;
 
     if (swapJoys) {
       if (buttonToCheck == GamepadButtons.leftJoy) {
@@ -227,8 +247,11 @@ class Player extends Entity
         } else {
           final eventXY = event.xyValue.toVector2();
           final normalized = eventXY.normalized();
-          addMoveVelocity(normalized * eventXY.length.clamp(0, 1),
-              gamepadUserInputPriority, false);
+          addMoveVelocity(
+            normalized * eventXY.length.clamp(0, 1),
+            gamepadUserInputPriority,
+            false,
+          );
         }
 
         break;
@@ -241,7 +264,9 @@ class Player extends Entity
           final newPos = InputManager().getGamepadCursorPosition?.toVector2();
           if (newPos != null) {
             final position = (shiftCoordinatesToCenter(
-                        newPos, enviroment.gameCamera.viewport.size) /
+                      newPos,
+                      enviroment.gameCamera.viewport.size,
+                    ) /
                     enviroment.zoom) -
                 entityOffsetFromCameraCenter;
 
@@ -293,12 +318,14 @@ class Player extends Entity
     xpGrabRadius.radius = xpSensorRadius.parameter;
     renderBody = false;
 
-    xpGrabRadiusFixture = FixtureDef(xpGrabRadius,
-        userData: {"type": FixtureType.sensor, "object": this},
-        isSensor: true,
-        filter: Filter()
-          ..categoryBits = playerCategory
-          ..maskBits = proximityCategory);
+    xpGrabRadiusFixture = FixtureDef(
+      xpGrabRadius,
+      userData: {'type': FixtureType.sensor, 'object': this},
+      isSensor: true,
+      filter: Filter()
+        ..categoryBits = playerCategory
+        ..maskBits = proximityCategory,
+    );
 
     return super.createBody()..createFixture(xpGrabRadiusFixture)
         // ..setBullet(true)
@@ -337,8 +364,8 @@ class Player extends Entity
 
   void applyAimAssist() {
     if (disableInput.parameter) return;
-    ExternalInputType inputType = InputManager().externalInputType;
-    AimAssistStrength aimAssistStrength =
+    final inputType = InputManager().externalInputType;
+    final aimAssistStrength =
         game.systemDataComponent.dataObject.aimAssistStrength;
     if (aimAssistStrength == AimAssistStrength.none) return;
 
@@ -353,7 +380,9 @@ class Player extends Entity
           if (aimPos.distanceTo(clostestEnemyToMousePos) <
               aimAssistStrength.threshold) {
             addAimAngle(
-                clostestEnemyToMousePos.normalized(), aimAssistInputPriority);
+              clostestEnemyToMousePos.normalized(),
+              aimAssistInputPriority,
+            );
 
             // addAimPosition(clostestEnemyToMousePos, aimAssistInputPriority);
           } else {
@@ -368,28 +397,30 @@ class Player extends Entity
   }
 
   void findClosestEnemy() {
-    double closestDistance = double.infinity;
-    double closestDistanceMouse = double.infinity;
+    var closestDistance = double.infinity;
+    var closestDistanceMouse = double.infinity;
 
-    final enemyList = world.physicsWorld.bodies.where((element) =>
-        element.userData is Enemy && !(element.userData as Enemy).isDead);
+    final enemyList = world.physicsWorld.bodies.where(
+      (element) =>
+          element.userData is Enemy && !(element.userData! as Enemy).isDead,
+    );
     var aimPosition = getAimPosition(userInputPriority);
 
     if (aimPosition != null) {
       aimPosition += enviroment.gameCamera.viewfinder.position;
     }
 
-    for (var otherBody in enemyList) {
+    for (final otherBody in enemyList) {
       if (otherBody.worldCenter.distanceTo(center) < closestDistance) {
         closestDistance = otherBody.worldCenter.distanceTo(center);
-        closestEnemy = otherBody.userData as Enemy;
+        closestEnemy = otherBody.userData! as Enemy;
       }
 
       if (aimPosition != null &&
           otherBody.worldCenter.distanceTo(aimPosition) <
               closestDistanceMouse) {
         closestDistanceMouse = otherBody.worldCenter.distanceTo(aimPosition);
-        closestEnemyToMouse = otherBody.userData as Enemy;
+        closestEnemyToMouse = otherBody.userData! as Enemy;
       }
     }
   }
@@ -421,8 +452,10 @@ class Player extends Entity
   }
 
   void primaryAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
-    if (disableInput.parameter) return;
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
+    if (disableInput.parameter || game.paused) return;
     switch (gameActionEvent.pressState) {
       case PressState.pressed:
         startPrimaryAttacking();
@@ -436,8 +469,10 @@ class Player extends Entity
   }
 
   void secondaryAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
-    if (disableInput.parameter) return;
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
+    if (disableInput.parameter || game.paused) return;
     switch (gameActionEvent.pressState) {
       case PressState.pressed:
         startSecondaryAttacking();
@@ -451,18 +486,24 @@ class Player extends Entity
   }
 
   void swapWeaponAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
     if (gameActionEvent.pressState != PressState.pressed) return;
     if (disableInput.parameter) return;
+    if (game.paused) return;
     swapWeapon();
   }
 
   void reloadWeaponAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
     if (gameActionEvent.pressState != PressState.pressed) return;
     if (disableInput.parameter) return;
+    if (game.paused) return;
     if (currentWeapon is ReloadFunctionality) {
-      final currentWeaponReload = currentWeapon as ReloadFunctionality;
+      final currentWeaponReload = currentWeapon! as ReloadFunctionality;
       if (currentWeaponReload.isReloading ||
           currentWeaponReload.spentAttacks == 0) return;
 
@@ -471,28 +512,37 @@ class Player extends Entity
   }
 
   void jumpAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
     if (gameActionEvent.pressState != PressState.pressed) return;
     if (disableInput.parameter) return;
+    if (game.paused) return;
 
     jump();
   }
 
   void dashAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
     if (gameActionEvent.pressState != PressState.pressed) return;
     if (disableInput.parameter) return;
+    if (game.paused) return;
     dash();
   }
 
   void interactAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
     if (gameActionEvent.pressState != PressState.pressed) return;
     if (disableInput.parameter) return;
+    if (game.paused) return;
     if (_interactableComponents.isNotEmpty) {
       final itemToInteractWith = _interactableComponents.first;
       itemToInteractWith.interact();
-      for (var element in interactableFunctions) {
+      for (final element in interactableFunctions) {
         element(itemToInteractWith);
       }
     }
@@ -501,9 +551,12 @@ class Player extends Entity
   List<Function(InteractableComponent interactable)> interactableFunctions = [];
 
   void expendableAction(
-      GameActionEvent gameActionEvent, Set<GameAction> activeGameActions) {
+    GameActionEvent gameActionEvent,
+    Set<GameAction> activeGameActions,
+  ) {
     if (gameActionEvent.pressState != PressState.pressed) return;
     if (disableInput.parameter) return;
+    if (game.paused) return;
     useExpendable();
   }
 
@@ -518,30 +571,30 @@ class Player extends Entity
   EntityType entityType = EntityType.player;
 
   List<EndGameExperienceEntry> buildEndGameEntries() {
-    List<EndGameExperienceEntry> returnList = [
+    final returnList = <EndGameExperienceEntry>[
       (
-        label: "Total XP:",
+        label: 'Total XP:',
         amount: experiencePointsGained + 5555222,
         damageType: null,
         isTotal: true,
-        rating: "SS"
+        rating: 'SS'
       ),
       (
-        label: "Tota22:",
+        label: 'Tota22:',
         amount: 53.00,
         damageType: null,
         isTotal: false,
         rating: null
       ),
       (
-        label: "Elemental Prowess Bonus:",
+        label: 'Elemental Prowess Bonus:',
         amount: 1201,
         damageType: DamageType.fire,
         isTotal: false,
         rating: null
       ),
       (
-        label: "Weapon Pickup Bonus:",
+        label: 'Weapon Pickup Bonus:',
         amount: 5555,
         damageType: null,
         isTotal: false,
@@ -552,18 +605,20 @@ class Player extends Entity
     return returnList;
   }
 
-  void winGame(
+  Future<void> winGame(
     ExitPortal portal,
   ) async {
-    invincible.setIncrease("wingame", true);
-    disableInput.setIncrease("wingame", true);
+    invincible.setIncrease('wingame', true);
+    disableInput.setIncrease('wingame', true);
 
     removeWeapons();
     final portalOffset = Vector2(0, portal.spriteComponent.height / 3.65);
     body.linearDamping = 16;
-    void followPortal(double dt) async {
-      addMoveVelocity(((portal.center + portalOffset) - center).normalized(),
-          absoluteOverrideInputPriority);
+    Future<void> followPortal(double dt) async {
+      addMoveVelocity(
+        ((portal.center + portalOffset) - center).normalized(),
+        absoluteOverrideInputPriority,
+      );
 
       if (center.distanceTo(portal.center + portalOffset) < .25) {
         onUpdate.remove(followPortal);
@@ -577,14 +632,15 @@ class Player extends Entity
 
         await Future.delayed((jumpDuration.parameter / 2).seconds);
         final ctr = EffectController(
-            duration: jumpDuration.parameter / 2, curve: Curves.easeIn);
+          duration: jumpDuration.parameter / 2,
+          curve: Curves.easeIn,
+        );
         entityAnimationsGroup.add(OpacityEffect.fadeOut(ctr));
         entityAnimationsGroup.add(ScaleEffect.to(Vector2.all(0.2), ctr));
         await Future.delayed(2.seconds);
 
         GameState().pauseGame(
           gameWinDisplay.key,
-          pauseGame: true,
         );
       }
     }

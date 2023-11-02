@@ -8,6 +8,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 // import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -26,12 +27,12 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 // import 'package:win32_gamepad/win32_gamepad.dart';
-import 'game/menu_game.dart';
+import 'package:runefire/game/menu_game.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:window_manager/window_manager.dart';
-import 'menus/overlays.dart';
-import 'resources/constants/routes.dart' as routes;
-import '../menus/overlays.dart' as overlay;
+import 'package:runefire/menus/overlays.dart';
+import 'package:runefire/resources/constants/routes.dart' as routes;
+import 'package:runefire/menus/overlays.dart' as overlay;
 
 final rng = Random();
 
@@ -44,7 +45,7 @@ final SpriteAnimations spriteAnimations = SpriteAnimations();
 
 void main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isWindows) {
+  if (!kIsWeb && Platform.isWindows) {
     await windowManager.ensureInitialized();
   }
   await Future.wait([
@@ -56,9 +57,9 @@ void main() async {
 
   Hive.registerAdapter(SystemDataAdapter());
 
-  final PlayerData playerData = PlayerData();
+  final playerData = PlayerData();
   late final SystemData systemData;
-  var box = await Hive.openBox<SystemData>('systemData');
+  final box = await Hive.openBox<SystemData>('systemData');
   if (!box.containsKey(0)) {
     systemData = SystemData();
     box.put(0, systemData);
@@ -66,19 +67,19 @@ void main() async {
     systemData = box.get(0)!;
   }
 
-  final List<String> toLoad = [
+  final toLoad = <String>[
     ...ImagesAssetsUi.allFiles,
     ...ImagesAssetsBackground.allFiles,
     ...ImagesAssetsRunes.allFiles,
     ...ImagesAssetsAttributeSprites.allFiles,
-    ...ImagesAssetsRunes.allFiles
+    ...ImagesAssetsRunes.allFiles,
   ];
 
   Images().loadAllImages();
   binding.addPostFrameCallback((_) async {
-    BuildContext context = binding.rootElement as BuildContext;
-    List<Future> futures = [];
-    for (var asset in toLoad) {
+    final context = binding.rootElement!;
+    final futures = <Future>[];
+    for (final asset in toLoad) {
       futures.add(precacheImage(AssetImage(asset), context));
     }
     await Future.wait(futures);
@@ -96,19 +97,17 @@ void main() async {
   GameState().currentRoute = startInGame ? routes.gameplay : routes.blank;
 
   GameState().initParameters(
-      currentMenuPage: MenuPageType.startMenuPage,
-      gameRouter: gameRouter,
-      playerData: playerData,
-      systemData: systemData);
+    currentMenuPage: MenuPageType.startMenuPage,
+    gameRouter: gameRouter,
+    playerData: playerData,
+    systemData: systemData,
+  );
 
   final inputManagerState = InputManager();
   inputManagerState.setInitReferences(gameRouter);
-  // Gamepads.events.listen(inputManagerState.gamepadEventHandler);
 
   ServicesBinding.instance.keyboard
       .addHandler(inputManagerState.keyboardEventHandler);
-
-  // Gamepads.events.listen(inputManagerState.onGamepadEvent);
 
   runApp(
     MouseRegion(
@@ -123,9 +122,10 @@ void main() async {
             onPointerUp: inputManagerState.onPointerUp,
             onPointerSignal: inputManagerState.onPointerSignal,
             onPointerCancel: inputManagerState.onPointerCancel,
-            child: Stack(children: [
-              Positioned.fill(
-                child: GameWidget(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: GameWidget(
                     backgroundBuilder: (context) {
                       if (GameState().currentRoute == routes.gameplay) {
                         return const SizedBox();
@@ -138,7 +138,7 @@ void main() async {
                       return Padding(
                         padding: const EdgeInsets.all(15),
                         child: Text(
-                          "LOADING",
+                          'LOADING',
                           style: defaultStyle,
                         ).animate().fadeIn(),
                       );
@@ -156,10 +156,12 @@ void main() async {
                       overlay.textDisplay,
                       overlay.deathScreen,
                       overlay.attributeSelection,
-                    ])),
-              ),
-              GamepadCursorDisplay(gameRouter)
-            ]),
+                    ]),
+                  ),
+                ),
+                GamepadCursorDisplay(gameRouter),
+              ],
+            ),
           ),
         ),
       ),
@@ -184,7 +186,7 @@ class GameRouter extends Forge2DGame {
 
   List<Function(SystemData data)> onSystemDataChange = [];
   void callOnSystemDataChange(SystemData data) {
-    for (var function in onSystemDataChange) {
+    for (final function in onSystemDataChange) {
       function(data);
     }
   }
@@ -198,15 +200,16 @@ class GameRouter extends Forge2DGame {
   }
 
   @override
-  void onLoad() async {
+  Future<void> onLoad() async {
     // debugMode = true;
     router = RouterComponent(
       routes: {
         routes.blank: Route(MenuGame.new, maintainState: false),
         routes.transition: Route(Component.new, maintainState: false),
         routes.gameplay: Route(
-            playerDataComponent.dataObject.selectedLevel.buildEnvrioment,
-            maintainState: false),
+          playerDataComponent.dataObject.selectedLevel.buildEnvrioment,
+          maintainState: false,
+        ),
       },
       initialRoute: gameStateComponent.gameState.currentRoute,
     );

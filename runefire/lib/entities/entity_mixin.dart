@@ -307,7 +307,7 @@ mixin MovementFunctionality on Entity {
 
   @override
   void initializeParentParameters() {
-    speed = DoubleParameterManager(baseParameter: .1);
+    speed = DoubleParameterManager(baseParameter: 1000);
     super.initializeParentParameters();
   }
 }
@@ -1278,6 +1278,7 @@ mixin DodgeFunctionality on HealthFunctionality {
       [bool applyStatusEffect = true]) {
     if (dodgeCheck(damage)) {
       damage.damageMap.remove(DamageType.physical);
+      if (damage.damageMap.isEmpty) return false;
     }
     return super.takeDamage(id, damage, applyStatusEffect);
   }

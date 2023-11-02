@@ -4,6 +4,7 @@ import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/attributes/attributes_regular.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/elemental_power_level.dart';
@@ -12,7 +13,9 @@ import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:numerus/numerus.dart';
@@ -65,12 +68,14 @@ class CustomBorderBox extends StatelessWidget {
       this.hideBackground = false,
       this.hideBaseBorder = false,
       this.lightColor = false,
+      this.attributeType,
       super.key});
   final Widget? child;
   final bool small;
   final bool hideBackground;
   final bool hideBaseBorder;
   final bool lightColor;
+  final AttributeType? attributeType;
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +87,55 @@ class CustomBorderBox extends StatelessWidget {
     String backgroundImage = small
         ? ImagesAssetsUi.attributeBackgroundMaskSmall.path
         : ImagesAssetsUi.attributeBackgroundMask.path;
-    String borderImage = small
-        ? ImagesAssetsUi.attributeBorderSmall.path
-        : ImagesAssetsUi.attributeBorder.path;
+    List<String> borderImage = [
+      small
+          ? ImagesAssetsUi.attributeBorderSmall.path
+          : ImagesAssetsUi.attributeBorder.path
+    ];
+
+    List<DamageType> elementalPowerBorder =
+        attributeType?.elementalRequirement ?? [];
+
+    if (elementalPowerBorder.isNotEmpty) {
+      borderImage.clear();
+      for (var element in elementalPowerBorder) {
+        switch (element) {
+          case DamageType.energy:
+            borderImage.add(
+              ImagesAssetsUi.attributeBorderEnergy.path,
+            );
+            break;
+          case DamageType.fire:
+            borderImage.add(
+              ImagesAssetsUi.attributeBorderFire.path,
+            );
+            break;
+          case DamageType.frost:
+            borderImage.add(
+              ImagesAssetsUi.attributeBorderFrost.path,
+            );
+            break;
+          case DamageType.psychic:
+            borderImage.add(
+              ImagesAssetsUi.attributeBorderPsychic.path,
+            );
+            break;
+          case DamageType.magic:
+            borderImage.add(
+              ImagesAssetsUi.attributeBorderMagic.path,
+            );
+            break;
+          case DamageType.physical:
+            borderImage.add(
+              ImagesAssetsUi.attributeBorderPhysical.path,
+            );
+            break;
+          default:
+        }
+      }
+    }
+    final Size cardSize = small ? smallCardSize : largeCardSize;
+
     String borderMidImage = small
         ? ImagesAssetsUi.attributeBorderMidSmall.path
         : ImagesAssetsUi.attributeBorderMid.path;
@@ -98,12 +149,27 @@ class CustomBorderBox extends StatelessWidget {
       color: backgroundColor,
       filterQuality: FilterQuality.none,
     ));
-    Widget border = Positioned.fill(
-        child: buildImageAsset(
-      borderImage,
-      color: borderColorTop,
-      fit: BoxFit.fitWidth,
-    ));
+
+    int count = borderImage.length;
+    Widget border =
+        Positioned.fill(child: LayoutBuilder(builder: (context, straints) {
+      return Stack(
+        children: [
+          for (int i = 0; i < count; i++)
+            Positioned.fill(
+              child: ClipRect(
+                clipper: CustomRectClipper(i / count, (i + 1) / count),
+                child: buildImageAsset(
+                  borderImage[i],
+                  fit: BoxFit.fitWidth,
+                  color: elementalPowerBorder.isEmpty ? borderColorTop : null,
+                ),
+              ),
+            ),
+        ],
+      );
+    }));
+
     Widget borderMid = Positioned.fill(
         child: buildImageAsset(
       borderMidImage,
@@ -116,7 +182,6 @@ class CustomBorderBox extends StatelessWidget {
       color: borderColorBase,
       fit: BoxFit.fitWidth,
     ));
-    final Size cardSize = small ? smallCardSize : largeCardSize;
 
     return SizedBox(
       // width: cardSize.width,

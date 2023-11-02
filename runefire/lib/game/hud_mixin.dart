@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:async' as async;
+import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -24,6 +25,149 @@ import '../weapons/weapon_class.dart';
 import 'enviroment.dart';
 import '../enviroment_interactables/expendables.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
+
+class ElementalPowerIndicatorComponent extends PositionComponent {
+  ElementalPowerIndicatorComponent({
+    required this.player,
+    required this.baseHud,
+    super.position,
+  }) : super(
+          size: Vector2.zero(),
+        );
+  BaseHud baseHud;
+  Player player;
+
+  late final Paint frontPaint = Paint();
+  late final ui.Gradient gradient;
+  late final List<DamageType> damageTypeList;
+  @override
+  FutureOr<void> onLoad() async {
+    damageTypeList = [...DamageType.values]..remove(DamageType.healing);
+    List<double> stops = [
+      for (int i = 0; i < damageTypeList.length + 1; i++) ...[
+        i / (damageTypeList.length),
+        i / (damageTypeList.length)
+      ]
+    ];
+    stops.removeLast();
+    stops.removeAt(0);
+
+    gradient = ui.Gradient.sweep(
+        Offset.zero,
+        [
+          for (var type in damageTypeList) ...[type.color, type.color]
+        ],
+        stops);
+    elementalPie = SpriteComponent(
+      sprite: await Sprite.load(ImagesAssetsUi.elementalPie.flamePath),
+      size: ImagesAssetsUi.elementalPie.size.asVector2 * baseHud.hudScale.scale,
+      anchor: Anchor.center,
+    );
+    add(elementalPie);
+    radius = elementalPie.size.y * .45;
+    return super.onLoad();
+  }
+
+  Map<DamageType, double> get elementalPower => player.elementalPower;
+  late final SpriteComponent elementalPie;
+  late final double radius;
+
+  Path hexPath = Path();
+  Map<DamageType, Path> circleElementalPaths = {};
+  Map<DamageType, Paint> circleElementalPaints = {};
+  late final Paint backPaint = ApolloColorPalette.darkestGray.paint();
+
+  @override
+  void render(ui.Canvas canvas) {
+    // canvas.drawCircle(const Offset(0, 0), radius, backPaint);
+    double sixthAngle = (2 * pi / 6);
+    final elementalPowerMap = elementalPower;
+    frontPaint.shader = gradient;
+    for (var i = 0; i < damageTypeList.length; i++) {
+      final type = damageTypeList[i];
+      circleElementalPaths[type] ??= Path();
+      circleElementalPaints[type] ??= Paint()
+        ..isAntiAlias = true
+        ..color = type.color;
+      // ..shader = ui.Gradient.radial(Offset.zero, radius, [
+      //   type.color.darken(.2),
+      //   type.color.darken(.2),
+      //   type.color,
+      //   type.color,
+      //   type.color.brighten(.2),
+      //   type.color.brighten(.2),
+      // ], [
+      //   .0,
+      //   .33,
+      //   .331,
+      //   .66,
+      //   .661,
+      //   .1
+      // ]);
+      final tempRadius = ((elementalPowerMap[type] ?? 0) * radius);
+      final path = circleElementalPaths[type]!;
+      path.reset();
+
+      path.moveTo(0, 0);
+
+      final angle1 = (sixthAngle * i) + sixthAngle / 2;
+      final angle2 = (sixthAngle * (i + 1)) + sixthAngle / 2;
+
+      final x1 = tempRadius * cos(angle1);
+      final y1 = tempRadius * sin(angle1);
+
+      path.lineTo(x1, y1);
+      path.addArc(Rect.fromCircle(center: Offset.zero, radius: tempRadius),
+          angle1, angle2 - angle1);
+      path.lineTo(0, 0);
+      // path.lineTo(tempRadius * cos(angle2), tempRadius * sin(angle2));
+
+      hexPath.close();
+
+      canvas.drawPath(path, circleElementalPaints[type]!);
+    }
+
+    // frontPaint.shader = gradient;
+    // hexPath.reset();
+    // final radius = 400 * sqrt(3) / 2;
+    // bool moved = false;
+    // for (var i = 0; i < damageTypeList.length; i++) {
+    //   final type = damageTypeList[i];
+    //   final tempRadius = ((elementalPower[type] ?? 0) * radius) + 10;
+    //   final x = tempRadius * cos(angle);
+    //   final y = tempRadius * sin(angle);
+    //   if (!moved) {
+    //     hexPath.moveTo(tempRadius * cos((pi / 6)), 0);
+    //     moved = true;
+    //   }
+    //   hexPath.lineTo(x, y);
+    // }
+
+    // // for (var element in damageTypeList) {}
+
+    // // for (int i = 0; i < 6; i++) {}
+
+    // hexPath.close();
+
+    // canvas.drawPath(hexPath, frontPaint);
+
+    super.render(canvas);
+  }
+}
+
+mixin ElementalPowerIndicator on BaseHud {
+  late final ElementalPowerIndicatorComponent elementalPowerIndicatorSprite;
+  @override
+  FutureOr<void> onLoad() async {
+    await super.onLoad();
+    elementalPowerIndicatorSprite = ElementalPowerIndicatorComponent(
+      player: player!,
+      baseHud: this,
+      position: Vector2.all(ImagesAssetsUi.elementalPie.size!.$2 * .5) *
+          hudScale.scale,
+    )..addToParent(topLeftMarginParent);
+  }
+}
 
 mixin BossBar on BaseHud {
   late final SpriteComponent bossBarLeftSprite;

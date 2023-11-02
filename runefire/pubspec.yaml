@@ -32,6 +32,8 @@ dependencies:
   image_size_getter: ^2.1.2
   infinite_carousel: ^1.0.3
   win32_gamepad: ^1.0.7
+  flame_lint: ^1.1.1
+  audioplayers_linux: ^1.0.4
 
   
 

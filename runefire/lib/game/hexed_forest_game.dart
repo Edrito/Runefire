@@ -11,13 +11,13 @@ import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/visuals.dart';
-import '../custom_test.dart';
-import '../events/event_management.dart';
-import '../entities/entity_class.dart';
-import '../resources/enums.dart';
-import '../resources/constants/priorities.dart';
-import 'background.dart';
-import 'enviroment.dart';
+import 'package:runefire/custom_test.dart';
+import 'package:runefire/events/event_management.dart';
+import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/game/background.dart';
+import 'package:runefire/game/enviroment.dart';
 
 extension PositionProvider on Entity {
   Vector2 get position => body.worldCenter;
@@ -42,10 +42,11 @@ class ForestGame extends GameEnviroment {
     // forestBackground = level.buildBackground(this);
     final srcSprite = await Sprite.load('background/mushroom_garden.png');
     forestBackground = SpriteComponent(
-        sprite: srcSprite,
-        priority: backgroundPriority,
-        size: srcSprite.srcSize..scaledToHeight(null, env: this, amount: 3),
-        anchor: Anchor.center);
+      sprite: srcSprite,
+      priority: backgroundPriority,
+      size: srcSprite.srcSize..scaledToHeight(null, env: this, amount: 3),
+      anchor: Anchor.center,
+    );
 
     entityShadow = SpriteShadows(this);
     add(entityShadow);
@@ -66,13 +67,15 @@ class HexedForestBackground extends BackgroundComponent {
       ParallaxImageData('background/mushroom_garden.png'),
       filterQuality: FilterQuality.none,
       alignment: Alignment.center,
-      fill: LayerFill.height,
       repeat: ImageRepeat.repeat,
     );
 
-    parallax = Parallax([
-      backgroundLayer,
-    ], size: Vector2.all(50));
+    parallax = Parallax(
+      [
+        backgroundLayer,
+      ],
+      size: Vector2.all(50),
+    );
 
     anchor = Anchor.center;
     priority = backgroundPriority;
@@ -208,8 +211,12 @@ class ForestEnemyManagement extends EventManagement {
         eventTriggerInterval: (1, 5),
       ),
 
-      EndGameEvent(gameEnviroment, this,
-          eventBeginEnd: (10, 10), eventTriggerInterval: (0, 0))
+      EndGameEvent(
+        gameEnviroment,
+        this,
+        eventBeginEnd: (10, 10),
+        eventTriggerInterval: (0, 0),
+      ),
     ]);
   }
 }

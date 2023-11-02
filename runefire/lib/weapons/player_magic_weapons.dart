@@ -23,9 +23,9 @@ import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../entities/entity_mixin.dart';
-import '../resources/functions/functions.dart';
-import '../resources/enums.dart';
+import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/enums.dart';
 
 class Icecicle extends PlayerWeapon
     with
@@ -34,9 +34,9 @@ class Icecicle extends PlayerWeapon
         SemiAutomatic,
         ChargeEffect {
   Icecicle(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.frost] = (7, 15);
     maxAttacks.baseParameter = 3;
     attackTickRate.baseParameter = .35;
@@ -63,7 +63,8 @@ class Icecicle extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -101,9 +102,9 @@ class Icecicle extends PlayerWeapon
 
 class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   PowerWord(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     maxAttacks.baseParameter = 1;
     reloadTime.baseParameter = 2;
     _setWord();
@@ -144,32 +145,42 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
 
   TextComponent buildTextComponent() {
     return TextComponent(
-        text: currentWord,
-        position: Vector2(.5, -entityAncestor!.spriteHeight / 2),
-        textRenderer: colorPalette.buildTextPaint(
-            .4, ShadowStyle.lightGame, Colors.white));
+      text: currentWord,
+      position: Vector2(.5, -entityAncestor!.spriteHeight / 2),
+      textRenderer: colorPalette.buildTextPaint(
+        .4,
+        ShadowStyle.lightGame,
+        Colors.white,
+      ),
+    );
   }
 
   void explodeTextComponent() {
     final text = buildTextComponent();
 
-    text.add(ScaleEffect.by(
+    text.add(
+      ScaleEffect.by(
         Vector2.all(4),
         EffectController(
-            onMax: () {
-              Future.delayed(.2.seconds).then((value) {
-                text.add(ScaleEffect.to(
-                    Vector2.all(0),
-                    EffectController(
-                        onMax: () {
-                          text.removeFromParent();
-                        },
-                        curve: Curves.easeInCirc,
-                        duration: .03)));
-              });
-            },
-            curve: Curves.easeOutQuart,
-            duration: .1)));
+          onMax: () {
+            Future.delayed(.2.seconds).then((value) {
+              text.add(
+                ScaleEffect.to(
+                  Vector2.all(0),
+                  EffectController(
+                    onMax: text.removeFromParent,
+                    curve: Curves.easeInCirc,
+                    duration: .03,
+                  ),
+                ),
+              );
+            });
+          },
+          curve: Curves.easeOutQuart,
+          duration: .1,
+        ),
+      ),
+    );
     entityAncestor?.add(text);
   }
 
@@ -178,8 +189,8 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
     toggleTextComponent(true);
   }
 
-  List<String> words = ["die.", "stop.", "away.", "fall.", "forget."];
-  String currentWord = "";
+  List<String> words = ['die.', 'stop.', 'away.', 'fall.', 'forget.'];
+  String currentWord = '';
   TextComponent? textComponent;
   @override
   void reloadCompleteFunctions() {
@@ -189,75 +200,92 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   }
 
   @override
-  void standardAttack(
-      [double holdDurationPercent = 1, bool callFunctions = true]) {
+  void standardAttack([
+    double holdDurationPercent = 1,
+    bool callFunctions = true,
+  ]) {
     toggleTextComponent(false);
 
-    GameState().playAudio('sfx/magic/power_word/fall.wav',
-        useAudioPool: true, maxPlayers: 1);
+    GameState().playAudio(
+      'sfx/magic/power_word/fall.wav',
+      useAudioPool: true,
+      maxPlayers: 1,
+    );
 
     explodeTextComponent();
-    final enemies = entityAncestor!.world.physicsWorld.bodies.where((element) =>
-        element.userData is Enemy &&
-        entityAncestor!.gameEnviroment.gameCamera.visibleWorldRect
-            .containsPoint(element.worldCenter) &&
-        !(element.userData as Enemy).isDead);
+    final enemies = entityAncestor!.world.physicsWorld.bodies.where(
+      (element) =>
+          element.userData is Enemy &&
+          entityAncestor!.gameEnviroment.gameCamera.visibleWorldRect
+              .containsPoint(element.worldCenter) &&
+          !(element.userData! as Enemy).isDead,
+    );
 
     switch (currentWord) {
-      case "die.":
+      case 'die.':
         for (final body in enemies) {
-          final enemy = body.userData as Enemy;
+          final enemy = body.userData! as Enemy;
 
           enemy.hitCheck(
-              weaponId, calculateDamage(enemy, this)..checkCrit(true));
+            weaponId,
+            calculateDamage(enemy, this)..checkCrit(true),
+          );
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
 
         break;
-      case "stop.":
+      case 'stop.':
         for (final body in enemies) {
-          final enemy = body.userData as Enemy;
+          final enemy = body.userData! as Enemy;
 
-          enemy.addAttribute(AttributeType.stun,
-              isTemporary: true,
-              duration: 4,
-              perpetratorEntity: entityAncestor!);
+          enemy.addAttribute(
+            AttributeType.stun,
+            isTemporary: true,
+            duration: 4,
+            perpetratorEntity: entityAncestor,
+          );
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
 
         break;
-      case "away.":
+      case 'away.':
         for (final body in enemies) {
-          final enemy = body.userData as Enemy;
+          final enemy = body.userData! as Enemy;
 
-          enemy.addAttribute(AttributeType.fear,
-              isTemporary: true,
-              duration: 4,
-              perpetratorEntity: entityAncestor!);
+          enemy.addAttribute(
+            AttributeType.fear,
+            isTemporary: true,
+            duration: 4,
+            perpetratorEntity: entityAncestor,
+          );
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
 
         break;
-      case "fall.":
+      case 'fall.':
         for (final body in enemies) {
-          final enemy = body.userData as Enemy;
+          final enemy = body.userData! as Enemy;
 
-          enemy.addAttribute(AttributeType.stun,
-              isTemporary: true,
-              duration: 2,
-              perpetratorEntity: entityAncestor!);
+          enemy.addAttribute(
+            AttributeType.stun,
+            isTemporary: true,
+            duration: 2,
+            perpetratorEntity: entityAncestor,
+          );
           enemy.hitCheck(weaponId, calculateDamage(enemy, this));
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
         break;
-      case "forget.":
+      case 'forget.':
         for (final body in enemies) {
-          final enemy = body.userData as Enemy;
+          final enemy = body.userData! as Enemy;
 
-          enemy.addAttribute(AttributeType.psychic,
-              isTemporary: true,
-              duration: 6,
-              perpetratorEntity: entityAncestor!);
+          enemy.addAttribute(
+            AttributeType.psychic,
+            isTemporary: true,
+            duration: 6,
+            perpetratorEntity: entityAncestor,
+          );
           enemy.hitCheck(weaponId, calculateDamage(enemy, this));
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
@@ -272,7 +300,8 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -309,9 +338,9 @@ class FireballMagic extends PlayerWeapon
         SemiAutomatic,
         ChargeEffect {
   FireballMagic(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.fire] = (3, 7);
     maxAttacks.baseParameter = 3;
     attackTickRate.baseParameter = 1;
@@ -324,7 +353,6 @@ class FireballMagic extends PlayerWeapon
         sourceEntity: entityAncestor!,
         position: projectile.center,
         animationRandomlyFlipped: true,
-        durationType: DurationType.instant,
         damage: {DamageType.fire: (10, 25)},
       );
       final particleGenerator = CustomParticleGenerator(
@@ -360,7 +388,8 @@ class FireballMagic extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -406,9 +435,9 @@ class EnergyMagic extends PlayerWeapon
         // ChargeFullAutomatic,
         ChargeEffect {
   EnergyMagic(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     chainingTargets.baseParameter = 3;
     baseDamage.damageBase[DamageType.energy] = (1, 2);
     maxAttacks.baseParameter = 20;
@@ -442,7 +471,8 @@ class EnergyMagic extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -482,9 +512,9 @@ class EnergyMagic extends PlayerWeapon
 class PsychicMagic extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
   PsychicMagic(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     // chainingTargets.baseParameter = 3;
     maxHomingTargets.baseParameter = 1;
     baseDamage.damageBase[DamageType.psychic] = (3, 7);
@@ -514,7 +544,8 @@ class PsychicMagic extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -555,9 +586,9 @@ class MagicBlast extends PlayerWeapon
         SemiAutomatic,
         ChargeEffect {
   MagicBlast(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.magic] = (3, 7);
     maxAttacks.baseParameter = 20;
     attackTickRate.baseParameter = 1;
@@ -579,7 +610,8 @@ class MagicBlast extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -623,9 +655,9 @@ class MagicMissile extends PlayerWeapon
         SemiAutomatic,
         ChargeEffect {
   MagicMissile(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.magic] = (3, 7);
     maxAttacks.baseParameter = 3;
     attackTickRate.baseParameter = .5;
@@ -647,7 +679,8 @@ class MagicMissile extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(

@@ -11,9 +11,9 @@ import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../entities/entity_mixin.dart';
-import '../resources/functions/functions.dart';
-import '../resources/enums.dart';
+import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/enums.dart';
 
 class CrystalPistol extends PlayerWeapon
     with
@@ -22,9 +22,9 @@ class CrystalPistol extends PlayerWeapon
         ReloadFunctionality,
         MultiWeaponCheck {
   CrystalPistol(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.magic] = (7, 10);
     maxAttacks.baseParameter = 8;
     projectileVelocity.baseParameter = 20;
@@ -54,19 +54,20 @@ class CrystalPistol extends PlayerWeapon
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
-    WeaponSpritePosition.hand
+    WeaponSpritePosition.hand,
   ];
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.crystalPistolIdle1
+            WeaponStatus.idle: await spriteAnimations.crystalPistolIdle1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -85,9 +86,9 @@ class CrystalPistol extends PlayerWeapon
 class Shotgun extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
   Shotgun(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.physical] = (5, 8);
     maxAttacks.baseParameter = 5;
     attackTickRate.baseParameter = .8;
@@ -120,13 +121,14 @@ class Shotgun extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
           Vector2.zero(),
           weaponAnimations: {
-            WeaponStatus.idle: await spriteAnimations.scatterVineIdle1
+            WeaponStatus.idle: await spriteAnimations.scatterVineIdle1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -154,9 +156,9 @@ class Shotgun extends PlayerWeapon
 class LongRangeRifle extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
   LongRangeRifle(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.magic] = (50, 100);
     maxAttacks.baseParameter = 30;
     attackTickRate.baseParameter = .05;
@@ -179,7 +181,8 @@ class LongRangeRifle extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -189,7 +192,6 @@ class LongRangeRifle extends PlayerWeapon
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
             WeaponStatus.idle: await spriteAnimations.scryshotIdle1,
           },
-          flashSize: 2.0,
           parentJoint: parentJoint,
           weapon: this,
         );
@@ -230,9 +232,9 @@ class ArcaneBlaster extends PlayerWeapon
         ChargeEffect,
         ChargeFullAutomatic {
   ArcaneBlaster(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.physical] = (2, 4);
     maxAttacks.baseParameter = 15;
     attackTickRate.baseParameter = .2;
@@ -260,7 +262,8 @@ class ArcaneBlaster extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -299,9 +302,9 @@ class LaserRifle extends PlayerWeapon
         ChargeEffect,
         MuzzleGlow {
   LaserRifle(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.energy] = (1, 3);
     baseDamage.damageBase[DamageType.fire] = (1, 3);
     baseDamage.damageBase[DamageType.frost] = (1, 3);
@@ -341,13 +344,14 @@ class LaserRifle extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
-            WeaponStatus.idle: await spriteAnimations.prismaticBeamIdle1
+            WeaponStatus.idle: await spriteAnimations.prismaticBeamIdle1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -377,9 +381,9 @@ class LaserRifle extends PlayerWeapon
 class RocketLauncher extends PlayerWeapon
     with ProjectileFunctionality, ReloadFunctionality, SemiAutomatic {
   RocketLauncher(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.fire] = (40, 80);
     maxAttacks.baseParameter = 1;
     attackTickRate.baseParameter = 2;
@@ -399,13 +403,14 @@ class RocketLauncher extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
-            WeaponStatus.idle: await spriteAnimations.eldritchRunnerIdle1
+            WeaponStatus.idle: await spriteAnimations.eldritchRunnerIdle1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -440,9 +445,9 @@ class Railspire extends PlayerWeapon
         SemiAutomatic,
         ChargeEffect {
   Railspire(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.energy] = (30, 40);
     maxAttacks.baseParameter = 2;
     attackTickRate.baseParameter = 2;
@@ -462,14 +467,15 @@ class Railspire extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
             'muzzle_flash': await spriteAnimations.fireMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.railspireIdle1
+            WeaponStatus.idle: await spriteAnimations.railspireIdle1,
           },
           parentJoint: parentJoint,
           weapon: this,

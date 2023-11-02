@@ -84,7 +84,7 @@ class MushroomRunner extends Enemy
   @override
   Map<ExpendableType, double> get expendableRate => {
         // ExpendableType.fearEnemiesRunes: 0.5,
-        ExpendableType.healingRune: 0.001,
+        ExpendableType.healingRune: 0.1,
         // ExpendableType.experienceAttractRune: 0.5,
       };
 
@@ -369,25 +369,22 @@ class MushroomSpinner extends Enemy
       1: EnemyState(this,
           priority: 5,
           randomFunctions: [],
+          onStateEnd: () {
+            currentWeapon?.endAttacking();
+          },
           stateDuration: (spinDuration, spinDuration * 1.5),
           onStateStart: () async {
-        await toggleIdleRunAnimations(true);
+            await toggleIdleRunAnimations(true);
 
-        setEntityAnimation("spin_start");
-        speed.baseParameter = .05;
-        for (var i = 1; i < 4; i++) {
-          Future.delayed(((spinDuration / 4) * i).seconds, () {
-            final count = 3 + (rng.nextBool() ? 0 : 3);
-            currentWeapon?.attackCountIncrease.baseParameter = count;
+            setEntityAnimation("spin_start");
+            speed.baseParameter = .05;
+            touchDamage.damageBase[DamageType.psychic] = (5, 10);
 
             currentWeapon?.startAttacking();
-            currentWeapon?.endAttacking();
-          });
-        }
-        touchDamage.damageBase[DamageType.psychic] = (5, 10);
-      }, triggerFunctions: [
-        () => center.distanceTo(gameEnviroment.player!.center) < 10
-      ]),
+          },
+          triggerFunctions: [
+            () => center.distanceTo(gameEnviroment.player!.center) < 10
+          ]),
     };
   }
 
@@ -472,6 +469,7 @@ class MushroomBurrower extends Enemy
         AimFunctionality,
         TouchDamageFunctionality,
         AttackFunctionality,
+        AimControlFunctionality,
         StateManagedAI {
   MushroomBurrower(
       {required super.initialPosition,
@@ -498,48 +496,29 @@ class MushroomBurrower extends Enemy
         stateDuration: (0, 0),
         triggerFunctions: []);
 
-    late async.Timer timer;
-
     const groundDuration = 2.0;
     enemyStates = {
       //Out
-      0: EnemyState(this,
-          priority: 0,
-          randomFunctions: [],
-          onStateStart: () {
-            if (initState) {
-              setEntityAnimation("burrow_out")
-                  .then((value) => setEntityAnimation(EntityStatus.idle));
-              body.setTransform(
-                  SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1),
-                  angle);
-            } else {
-              initState = true;
-            }
+      0: EnemyState(this, priority: 0, randomFunctions: [],
+          onStateStart: () async {
+        toggleIdleRunAnimations(false);
+        if (initState) {
+          body.setTransform(
+              SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1), angle);
+          await setEntityAnimation("burrow_out")
+              .then((value) => setEntityAnimation(EntityStatus.idle));
+        } else {
+          initState = true;
+        }
 
-            toggleIdleRunAnimations(false);
-            Future.delayed(burrowSpeed.seconds).then((value) {
-              touchDamage.damageBase[DamageType.physical] = (10, 15);
-              collision.removeKey(entityId);
-              timer =
-                  async.Timer.periodic((groundDuration / 2).seconds, (timer) {
-                if (isDead) return;
-                addAimAngle(
-                    (gameEnviroment.player!.center - center), aiInputPriority);
+        touchDamage.damageBase[DamageType.physical] = (10, 15);
+        collision.removeKey(entityId);
 
-                aimHandJoint(false);
-                final count = 2 + (rng.nextBool() ? 0 : 2);
-                currentWeapon?.attackCountIncrease.baseParameter = count;
+        final count = 2 + (rng.nextBool() ? 0 : 2);
+        currentWeapon?.attackCountIncrease.baseParameter = count;
 
-                currentWeapon?.standardAttack(1, true);
-              });
-            });
-          },
-          stateDuration: (4, 5),
-          triggerFunctions: [],
-          onStateEnd: () {
-            timer.cancel();
-          }),
+        currentWeapon?.startAttacking();
+      }, stateDuration: (4, 5), triggerFunctions: [], onStateEnd: () {}),
       //In
       1: EnemyState(this,
           priority: 5,
@@ -616,4 +595,7 @@ class MushroomBurrower extends Enemy
 
   @override
   late Map<int, EnemyState> enemyStates;
+
+  @override
+  AimPattern aimPattern = AimPattern.player;
 }

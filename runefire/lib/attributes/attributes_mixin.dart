@@ -36,8 +36,11 @@ mixin AttributeFunctionality on Entity {
     bool isTemporary = false,
     double? duration,
   }) {
+    //Already has it
     if (currentAttributes.containsKey(attribute)) {
       currentAttributes[attribute]?.incrementLevel(level ?? 1);
+
+      //Doesnt have it
     } else {
       currentAttributes[attribute] = attribute.buildAttribute(
         level ?? 1,
@@ -55,31 +58,37 @@ mixin AttributeFunctionality on Entity {
 
   List<Attribute> buildAttributeSelection() {
     if (!isPlayer) return [];
-    List<Attribute> returnList = [];
+
     final player = (this as Player);
+    List<Attribute> returnList = [];
     DamageType? elementalDamageTypeForced =
         player.shouldForceElementalAttribute();
     int attempts = 0;
 
     while (returnList.length < 3 && attempts < 1000) {
       attempts++;
+      List<AttributeType> potentialCandidates = [
+        ...player.attributesToGrabDebug
+      ];
+      player.attributesToGrabDebug.clear();
+      if (potentialCandidates.isEmpty) {
+        potentialCandidates = AttributeType.values
+            .where((element) =>
+                //Attribute is game attribute and not permanenet
+                element.territory == AttributeTerritory.game &&
+                //Player is not max level
 
-      final potentialCandidates = AttributeType.values
-          .where((element) =>
-              //Attribute is game attribute and not permanenet
-              element.territory == AttributeTerritory.game &&
-              //Player is not max level
-
-              player.currentAttributes[element]?.isMaxLevel != true &&
-              //if forced selection is active, only show those attributes
-              element.attributeMeetsForcedElementalRequest(
-                  player, elementalDamageTypeForced) &&
-              //we dont already have this attribute
-              !returnList
-                  .any((elementD) => elementD.attributeType == element) &&
-              //
-              element.isEligible(player))
-          .toList();
+                player.currentAttributes[element]?.isMaxLevel != true &&
+                //if forced selection is active, only show those attributes
+                element.attributeMeetsForcedElementalRequest(
+                    player, elementalDamageTypeForced) &&
+                //we dont already have this attribute
+                !returnList
+                    .any((elementD) => elementD.attributeType == element) &&
+                //
+                element.isEligible(player))
+            .toList();
+      }
 
       if (elementalDamageTypeForced != null && potentialCandidates.isEmpty) {
         elementalDamageTypeForced = null;

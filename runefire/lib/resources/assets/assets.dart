@@ -559,11 +559,23 @@ static const FileDataClass attributeBorder =
 static const FileDataClass attributeBorderBase = 
 (path:"assets/images/ui/attribute_border_base.png",flamePath:"ui/attribute_border_base.png", size:(128.0,96.0)  );///attribute_border_base_small.png
 static const FileDataClass attributeBorderBaseSmall = 
-(path:"assets/images/ui/attribute_border_base_small.png",flamePath:"ui/attribute_border_base_small.png", size:(128.0,48.0)  );///attribute_border_mid.png
+(path:"assets/images/ui/attribute_border_base_small.png",flamePath:"ui/attribute_border_base_small.png", size:(128.0,48.0)  );///attribute_border_energy.png
+static const FileDataClass attributeBorderEnergy = 
+(path:"assets/images/ui/attribute_border_energy.png",flamePath:"ui/attribute_border_energy.png", size:(128.0,96.0)  );///attribute_border_fire.png
+static const FileDataClass attributeBorderFire = 
+(path:"assets/images/ui/attribute_border_fire.png",flamePath:"ui/attribute_border_fire.png", size:(128.0,96.0)  );///attribute_border_frost.png
+static const FileDataClass attributeBorderFrost = 
+(path:"assets/images/ui/attribute_border_frost.png",flamePath:"ui/attribute_border_frost.png", size:(128.0,96.0)  );///attribute_border_magic.png
+static const FileDataClass attributeBorderMagic = 
+(path:"assets/images/ui/attribute_border_magic.png",flamePath:"ui/attribute_border_magic.png", size:(128.0,96.0)  );///attribute_border_mid.png
 static const FileDataClass attributeBorderMid = 
 (path:"assets/images/ui/attribute_border_mid.png",flamePath:"ui/attribute_border_mid.png", size:(128.0,96.0)  );///attribute_border_mid_small.png
 static const FileDataClass attributeBorderMidSmall = 
-(path:"assets/images/ui/attribute_border_mid_small.png",flamePath:"ui/attribute_border_mid_small.png", size:(128.0,48.0)  );///attribute_border_small.png
+(path:"assets/images/ui/attribute_border_mid_small.png",flamePath:"ui/attribute_border_mid_small.png", size:(128.0,48.0)  );///attribute_border_physical.png
+static const FileDataClass attributeBorderPhysical = 
+(path:"assets/images/ui/attribute_border_physical.png",flamePath:"ui/attribute_border_physical.png", size:(128.0,96.0)  );///attribute_border_psychic.png
+static const FileDataClass attributeBorderPsychic = 
+(path:"assets/images/ui/attribute_border_psychic.png",flamePath:"ui/attribute_border_psychic.png", size:(128.0,96.0)  );///attribute_border_small.png
 static const FileDataClass attributeBorderSmall = 
 (path:"assets/images/ui/attribute_border_small.png",flamePath:"ui/attribute_border_small.png", size:(128.0,48.0)  );///bag.png
 static const FileDataClass bag = 
@@ -581,7 +593,9 @@ static const FileDataClass bossBarLeft =
 static const FileDataClass bossBarRight = 
 (path:"assets/images/ui/boss_bar_right.png",flamePath:"ui/boss_bar_right.png", size:(32.0,8.0)  );///elemental_column.png
 static const FileDataClass elementalColumn = 
-(path:"assets/images/ui/elemental_column.png",flamePath:"ui/elemental_column.png", size:(32.0,96.0)  );///health_bar.png
+(path:"assets/images/ui/elemental_column.png",flamePath:"ui/elemental_column.png", size:(32.0,96.0)  );///elemental_pie.png
+static const FileDataClass elementalPie = 
+(path:"assets/images/ui/elemental_pie.png",flamePath:"ui/elemental_pie.png", size:(32.0,32.0)  );///health_bar.png
 static const FileDataClass healthBar = 
 (path:"assets/images/ui/health_bar.png",flamePath:"ui/health_bar.png", size:(128.0,32.0)  );///health_bar_cap.png
 static const FileDataClass healthBarCap = 
@@ -653,8 +667,14 @@ attributeBackgroundSmall.path,
 attributeBorder.path,
 attributeBorderBase.path,
 attributeBorderBaseSmall.path,
+attributeBorderEnergy.path,
+attributeBorderFire.path,
+attributeBorderFrost.path,
+attributeBorderMagic.path,
 attributeBorderMid.path,
 attributeBorderMidSmall.path,
+attributeBorderPhysical.path,
+attributeBorderPsychic.path,
 attributeBorderSmall.path,
 bag.path,
 banner.path,
@@ -664,6 +684,7 @@ bossBarCenter.path,
 bossBarLeft.path,
 bossBarRight.path,
 elementalColumn.path,
+elementalPie.path,
 healthBar.path,
 healthBarCap.path,
 healthBarMid.path,
@@ -706,8 +727,14 @@ attributeBackgroundSmall.flamePath,
 attributeBorder.flamePath,
 attributeBorderBase.flamePath,
 attributeBorderBaseSmall.flamePath,
+attributeBorderEnergy.flamePath,
+attributeBorderFire.flamePath,
+attributeBorderFrost.flamePath,
+attributeBorderMagic.flamePath,
 attributeBorderMid.flamePath,
 attributeBorderMidSmall.flamePath,
+attributeBorderPhysical.flamePath,
+attributeBorderPsychic.flamePath,
 attributeBorderSmall.flamePath,
 bag.flamePath,
 banner.flamePath,
@@ -717,6 +744,7 @@ bossBarCenter.flamePath,
 bossBarLeft.flamePath,
 bossBarRight.flamePath,
 elementalColumn.flamePath,
+elementalPie.flamePath,
 healthBar.flamePath,
 healthBarCap.flamePath,
 healthBarMid.flamePath,

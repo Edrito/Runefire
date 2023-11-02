@@ -11,11 +11,11 @@ import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/game_state_class.dart';
 
-import '../player/player.dart';
-import '../resources/functions/custom.dart';
-import '../resources/functions/vector_functions.dart';
-import '../main.dart';
-import '../resources/enums.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/enums.dart';
 
 abstract class ProximityItem extends BodyComponent<GameRouter>
     with ContactCallbacks {
@@ -43,15 +43,16 @@ abstract class ProximityItem extends BodyComponent<GameRouter>
       ..maskBits = playerCategory
       ..categoryBits = proximityCategory;
 
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        isSensor: true,
-        filter: proxFilter);
+    final fixtureDef = FixtureDef(
+      shape,
+      userData: {'type': FixtureType.body, 'object': this},
+      isSensor: true,
+      filter: proxFilter,
+    );
 
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      type: BodyType.static,
     );
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
@@ -59,7 +60,10 @@ abstract class ProximityItem extends BodyComponent<GameRouter>
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Player) {
-      itemContact((contact.fixtureA.userData as Map)['type'], other);
+      itemContact(
+        (contact.fixtureA.userData as Map?)?['type'] as FixtureType,
+        other,
+      );
     }
     super.beginContact(other, contact);
   }
@@ -68,8 +72,10 @@ abstract class ProximityItem extends BodyComponent<GameRouter>
 }
 
 class ExperienceItem extends ProximityItem {
-  ExperienceItem(
-      {required this.experienceAmount, required super.originPosition});
+  ExperienceItem({
+    required this.experienceAmount,
+    required super.originPosition,
+  });
 
   ExperienceAmount experienceAmount;
   // late ShapeComponent shapeComponent;
@@ -84,17 +90,22 @@ class ExperienceItem extends ProximityItem {
   @override
   void render(Canvas canvas) {
     for (var i = trails.length - 1; i > 1; i--) {
-      canvas.drawCircle(((trails[i] - center)).toOffset(),
-          radius * .65 / trailCount * (trailCount - i), trailPaint);
+      canvas.drawCircle(
+        (trails[i] - center).toOffset(),
+        radius * .65 / trailCount * (trailCount - i),
+        trailPaint,
+      );
     }
 
     canvas.drawPoints(
-        PointMode.polygon,
-        trails.fold(
-            [],
-            (previousValue, element) =>
-                [...previousValue, (element - center).toOffset()]),
-        paint);
+      PointMode.polygon,
+      trails.fold(
+        [],
+        (previousValue, element) =>
+            [...previousValue, (element - center).toOffset()],
+      ),
+      paint,
+    );
 
     // canvas.drawCircle(Offset.zero, radius, xpPaint);
 
@@ -130,17 +141,18 @@ class ExperienceItem extends ProximityItem {
       }
       final moveDelta = (target!.center - center).normalized();
       body.setTransform(
-          center +
-              moveDelta *
-                  (speed * dt) *
-                  target!.center.distanceTo(center).clamp(2, 4),
-          angle);
+        center +
+            moveDelta *
+                (speed * dt) *
+                target!.center.distanceTo(center).clamp(2, 4),
+        angle,
+      );
     }
   }
 
   Component generateParticle() {
     final moveDelta = (target!.center - center).normalized();
-    var particleColor = color.withAlpha(120 + rng.nextInt(125));
+    final particleColor = color.withAlpha(120 + rng.nextInt(125));
     final particlePaint = Paint()..color = particleColor;
     final particle = Particle.generate(
       lifespan: 1,
@@ -148,7 +160,7 @@ class ExperienceItem extends ProximityItem {
       generator: (i) => AcceleratedParticle(
         position: Vector2.all(radius / 2),
         speed: -moveDelta -
-            (randomizeVector2Delta(moveDelta, .05).normalized()).clone() *
+            randomizeVector2Delta(moveDelta, .05).normalized().clone() *
                 (.5 + rng.nextDouble()),
         child: SquareParticle(
           size: Vector2.all(.1) * (1 + rng.nextDouble() * .5),
@@ -168,10 +180,12 @@ class ExperienceItem extends ProximityItem {
 
   @override
   void itemContact(FixtureType otherType, dynamic otherObject) {
-    if (otherObject is! Player) return;
+    if (otherObject is! Player) {
+      return;
+    }
     if (otherType == FixtureType.sensor) {
       target = otherObject;
-      for (var element in effects) {
+      for (final element in effects) {
         element.reset();
         element.removeFromParent();
       }

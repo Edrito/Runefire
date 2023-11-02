@@ -14,30 +14,32 @@ import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:uuid/uuid.dart';
 
-import '../player/player.dart';
-import '../resources/enums.dart';
-import '../game/enviroment.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/game/enviroment.dart';
 
 class ExitPortal extends InteractableComponent {
   @override
-  String displayedTextString = "Exit";
+  String displayedTextString = 'Exit';
 
   @override
   late SpriteAnimationComponent spriteComponent;
   Player player;
 
-  ExitPortal(
-      {required super.initialPosition,
-      required super.gameEnviroment,
-      required this.player});
+  ExitPortal({
+    required super.initialPosition,
+    required super.gameEnviroment,
+    required this.player,
+  });
 
   @override
   Future<void> onLoad() async {
     final animation = await spriteAnimations.exitPortalBlue1;
     spriteComponent = SpriteAnimationComponent(
-        animation: animation,
-        anchor: Anchor.center,
-        size: animation.frames.first.sprite.srcSize..scaledToHeight(player));
+      animation: animation,
+      anchor: Anchor.center,
+      size: animation.frames.first.sprite.srcSize..scaledToHeight(player),
+    );
     return super.onLoad();
   }
 
@@ -49,8 +51,10 @@ class ExitPortal extends InteractableComponent {
 
 abstract class InteractableComponent extends BodyComponent<GameRouter>
     with ContactCallbacks {
-  InteractableComponent(
-      {required this.initialPosition, required this.gameEnviroment}) {
+  InteractableComponent({
+    required this.initialPosition,
+    required this.gameEnviroment,
+  }) {
     id = const Uuid().v4();
     priority = backgroundPickupPriority;
   }
@@ -85,21 +89,22 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
     super.beginContact(other, contact);
   }
 
-  void toggleDisplay(bool isOn) {
+  void toggleDisplay({bool isOn = true}) {
     if (isOn) {
-      String? key = game.systemDataComponent.dataObject
+      final key = game.systemDataComponent.dataObject
           .getBinding(GameAction.interact, InputManager());
       displayedText ??= TextComponent(
         text: "${key == null ? "" : "$key ~ "}$displayedTextString",
         anchor: Anchor.center,
         // position: Vector2.all(5),
         textRenderer: TextPaint(
-            style: defaultStyle.copyWith(
-          fontSize: .4,
+          style: defaultStyle.copyWith(
+            fontSize: .4,
 
-          shadows: [colorPalette.buildShadow(ShadowStyle.lightGame)],
-          // color: Colors.red.shade100,
-        )),
+            shadows: [colorPalette.buildShadow(ShadowStyle.lightGame)],
+            // color: Colors.red.shade100,
+          ),
+        ),
       )..addToParent(this);
     } else {
       displayedText?.removeFromParent();
@@ -122,17 +127,18 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
     shape = CircleShape();
     shape.radius = spriteComponent.size.x / 2;
     renderBody = false;
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        isSensor: true,
-        filter: Filter()
-          ..categoryBits = interactableCategory
-          ..maskBits = playerCategory);
+    final fixtureDef = FixtureDef(
+      shape,
+      userData: {'type': FixtureType.body, 'object': this},
+      isSensor: true,
+      filter: Filter()
+        ..categoryBits = interactableCategory
+        ..maskBits = playerCategory,
+    );
 
     final bodyDef = BodyDef(
       userData: this,
       position: initialPosition,
-      type: BodyType.static,
       fixedRotation: true,
     );
 

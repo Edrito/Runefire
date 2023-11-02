@@ -66,7 +66,7 @@ packages:
     source: hosted
     version: "3.0.1"
   audioplayers_linux:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: audioplayers_linux
       sha256: e95b65e1f4d4764601dac5e65f8d8186fc29401043ab020f1dacec483d708707
@@ -305,6 +305,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.15.1"
+  flame_lint:
+    dependency: "direct main"
+    description:
+      name: flame_lint
+      sha256: "49ed8ba7b4ef666ea0e9ff4c63b12091140258ee88953f482e46b8d9c51df067"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   flame_tiled:
     dependency: "direct main"
     description:

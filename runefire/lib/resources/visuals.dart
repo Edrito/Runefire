@@ -6,11 +6,13 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/main.dart';
-import 'enums.dart';
-import 'functions/functions.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/functions.dart';
 
 enum ShadowStyle { light, medium, lightGame }
 
@@ -65,7 +67,7 @@ class ApolloColorPalette {
   static const PaletteEntry nearlyWhite = PaletteEntry(Color(0xFFC7CFCC));
   static const PaletteEntry offWhite = PaletteEntry(Color(0xFFebede9));
   Color get randomBrightColor {
-    final List<Color> brightColors = [
+    final brightColors = <Color>[
       lightBlue.color,
       lightGreen.color,
       lightSkin.color,
@@ -76,6 +78,19 @@ class ApolloColorPalette {
       lightestGray.color,
     ];
     return brightColors[rng.nextInt(brightColors.length)];
+  }
+
+  Map<DamageType, Paint> buildDamagePaints = {};
+
+  Paint getDamageTypePaint(DamageType type) {
+    if (buildDamagePaints.containsKey(type)) {
+      return buildDamagePaints[type]!;
+    }
+    final returnPaint = Paint()
+      ..color = type.color
+      ..isAntiAlias = true;
+    buildDamagePaints[type] = returnPaint;
+    return returnPaint;
   }
 
   Map<String, Paint> cachedPaints = {};
@@ -96,23 +111,24 @@ class ApolloColorPalette {
       //     offset: const Offset(1, 1))
       case ShadowStyle.light:
         returnShadow = BoxShadow(
-            color: ApolloColorPalette.darkestGray.color,
-            offset: const Offset(1, 1),
-            blurStyle: BlurStyle.solid);
+          color: ApolloColorPalette.darkestGray.color,
+          offset: const Offset(1, 1),
+          blurStyle: BlurStyle.solid,
+        );
         break;
       case ShadowStyle.lightGame:
         returnShadow = BoxShadow(
-            color: ApolloColorPalette.darkestGray.color,
-            offset: const Offset(.01, .01),
-            blurStyle: BlurStyle.solid);
+          color: ApolloColorPalette.darkestGray.color,
+          offset: const Offset(.01, .01),
+          blurStyle: BlurStyle.solid,
+        );
         break;
       case ShadowStyle.medium:
         returnShadow = BoxShadow(
-            color: ApolloColorPalette.darkestGray.color,
-            offset: const Offset(2, 2),
-            blurStyle: BlurStyle.normal,
-            spreadRadius: 0,
-            blurRadius: 2);
+          color: ApolloColorPalette.darkestGray.color,
+          offset: const Offset(2, 2),
+          blurRadius: 2,
+        );
         break;
     }
 
@@ -121,26 +137,33 @@ class ApolloColorPalette {
   }
 
   TextPaint buildTextPaint(
-      double fontSize, ShadowStyle shadowStyle, Color color) {
-    String key =
-        fontSize.toString() + shadowStyle.toString() + color.toString();
+    double fontSize,
+    ShadowStyle shadowStyle,
+    Color color,
+  ) {
+    final key = fontSize.toString() + shadowStyle.toString() + color.toString();
 
-    if (cachedTextPaints.containsKey(key)) return cachedTextPaints[key]!;
+    if (cachedTextPaints.containsKey(key)) {
+      return cachedTextPaints[key]!;
+    }
 
-    TextPaint returnPaint = TextPaint(
-        style: defaultStyle.copyWith(
-      fontSize: fontSize,
-      shadows: [buildShadow(shadowStyle)],
-      color: color,
-    ));
+    final returnPaint = TextPaint(
+      style: defaultStyle.copyWith(
+        fontSize: fontSize,
+        shadows: [buildShadow(shadowStyle)],
+        color: color,
+      ),
+    );
     cachedTextPaints[key] = returnPaint;
     return returnPaint;
   }
 
   Paint buildPaint(Color color) {
-    String key = color.value.toString();
-    if (cachedPaints.containsKey(key)) return cachedPaints[key]!;
-    Paint returnPaint = Paint()
+    final key = color.value.toString();
+    if (cachedPaints.containsKey(key)) {
+      return cachedPaints[key]!;
+    }
+    final returnPaint = Paint()
       ..color = color
       ..isAntiAlias = true;
     cachedPaints[key] = returnPaint;
@@ -157,7 +180,7 @@ class ApolloColorPalette {
     MaskFilter? maskFilter,
     FilterQuality filterQuality = FilterQuality.none,
   }) {
-    String key = color.value.toString() +
+    final key = color.value.toString() +
         projectileType.toString() +
         lighten.toString() +
         blendMode.toString() +
@@ -165,15 +188,18 @@ class ApolloColorPalette {
         width.toString() +
         maskFilter.toString() +
         filterQuality.toString();
-    if (cachedPaints.containsKey(key)) return cachedPaints[key]!;
-    Paint returnPaint = Paint()
+    if (cachedPaints.containsKey(key)) {
+      return cachedPaints[key]!;
+    }
+    final returnPaint = Paint()
       ..maskFilter = maskFilter
       ..filterQuality = filterQuality
       ..strokeCap = StrokeCap.round
       ..isAntiAlias = true
       ..colorFilter = ColorFilter.mode(
-          (lighten ? color.brighten(.85) : color).withOpacity(opacity),
-          BlendMode.srcATop);
+        (lighten ? color.brighten(.85) : color).withOpacity(opacity),
+        BlendMode.srcATop,
+      );
     if (blendMode != null) {
       returnPaint.blendMode = blendMode;
     }
@@ -229,8 +255,8 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
 }
 
 final defaultStyle = TextStyle(
-  fontSize: Platform.isAndroid || Platform.isIOS ? 21 : 45,
-  fontFamily: "Alagard",
+  fontSize: !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? 21 : 45,
+  fontFamily: 'Alagard',
   // fontWeight: FontWeight.bold,
 
   color: colorPalette.secondaryColor,
@@ -245,27 +271,34 @@ ScrollBehavior scrollConfiguration(BuildContext context) =>
       dragDevices: {
         // Allows to swipe in web browsers
         PointerDeviceKind.touch,
-        PointerDeviceKind.mouse
+        PointerDeviceKind.mouse,
       },
     );
 
-void buildProgressBar(
-    {required Canvas canvas,
-    required double percentProgress,
-    required Color color,
-    required Vector2 size,
-    double widthOfBar = .2,
-    double heightOfBar = .5,
-    double padding = .1,
-    double peak = 1.2,
-    double growth = 5,
-    double loadInPercent = 1.0}) {
+void buildProgressBar({
+  required Canvas canvas,
+  required double percentProgress,
+  required Color color,
+  required Vector2 size,
+  double widthOfBar = .2,
+  double heightOfBar = .5,
+  double padding = .1,
+  double peak = 1.2,
+  double growth = 5,
+  double loadInPercent = 1.0,
+}) {
   final noXpPaint = Paint()
-    ..shader = ui.Gradient.linear(Offset.zero, Offset(size.x, 0),
-        [Colors.grey.shade900, Colors.grey.shade700]);
+    ..shader = ui.Gradient.linear(
+      Offset.zero,
+      Offset(size.x, 0),
+      [Colors.grey.shade900, Colors.grey.shade700],
+    );
   final xpPaint = Paint()
     ..shader = ui.Gradient.linear(
-        Offset.zero, Offset(size.x, 0), [color.brighten(.2), color]);
+      Offset.zero,
+      Offset(size.x, 0),
+      [color.brighten(.2), color],
+    );
 
   final amountOfBars = (size.x / (widthOfBar + padding)).floor();
   final iteration = (size.x - padding / 2) / amountOfBars;
@@ -273,15 +306,18 @@ void buildProgressBar(
 
   for (var i = 0; i < amountOfBars; i++) {
     final iRatio = i / amountOfBars;
-    if (iRatio > loadInPercent) continue;
+    if (iRatio > loadInPercent) {
+      continue;
+    }
     final ratio = iRatio * peak;
     final isXpBar = xpCutOff > i;
     canvas.drawRect(
-        (Offset((padding / 2) + (iteration * i), 0) &
-            Size(
-              widthOfBar,
-              (heightOfBar / 3) + heightOfBar * pow(ratio, growth),
-            )),
-        isXpBar ? xpPaint : noXpPaint);
+      Offset((padding / 2) + (iteration * i), 0) &
+          Size(
+            widthOfBar,
+            (heightOfBar / 3) + heightOfBar * pow(ratio, growth),
+          ),
+      isXpBar ? xpPaint : noXpPaint,
+    );
   }
 }

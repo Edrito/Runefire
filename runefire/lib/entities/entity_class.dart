@@ -244,7 +244,7 @@ abstract class Entity extends BodyComponent<GameRouter>
         userData: {"type": FixtureType.body, "object": this},
         restitution: 0,
         friction: 0,
-        density: 0,
+        density: 0.8,
         filter: filter);
     final closeBodySensor =
         FixtureDef(CircleShape()..radius = closeBodiesSensorRadius,

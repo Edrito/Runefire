@@ -238,6 +238,7 @@ class _CustomCardState extends State<CustomCard> {
             CustomBorderBox(
               small: widget.smallCard,
               hideBackground: true,
+              attributeType: widget.attribute.attributeType,
               hideBaseBorder: widget.smallCard,
             )
           ],

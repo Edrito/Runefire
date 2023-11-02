@@ -19,8 +19,8 @@ import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../enemies/enemy_mixin.dart';
-import '../resources/functions/custom.dart';
+import 'package:runefire/enemies/enemy_mixin.dart';
+import 'package:runefire/resources/functions/custom.dart';
 
 ///Class of Entity that is attached to the Player or Enemy as a form of
 ///weapon, armor, or other attribute
@@ -35,8 +35,9 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
     this.distance = 1,
     this.rotationSpeed,
   }) : super(
-            eventManagement: parentEntity.eventManagement,
-            enviroment: parentEntity.enviroment) {
+          eventManagement: parentEntity.eventManagement,
+          enviroment: parentEntity.enviroment,
+        ) {
     this.upgradeLevel = upgradeLevel;
     applyUpgrade();
   }
@@ -68,10 +69,8 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
     final bodyDef = BodyDef(
       position: initialPosition,
       userData: this,
-      type: BodyType.static,
       isAwake: false,
       linearDamping: 2,
-      allowSleep: true,
       fixedRotation: true,
     );
     return world.createBody(bodyDef);
@@ -80,7 +79,7 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
   bool locked = true;
 
   void setTransform(Vector2 position, double angle) {
-    bool hasMoveVelocities = this is MovementFunctionality
+    final hasMoveVelocities = this is MovementFunctionality
         ? (this as MovementFunctionality).hasMoveVelocities
         : false;
     locked = locked && !hasMoveVelocities;
@@ -96,11 +95,13 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
     if (hasMoveVelocities) {
       return;
     } else {
-      body.applyForce((position - center).normalized() *
-          (position.distanceTo(center).clamp(3, 10) / 2) *
-          (this is MovementFunctionality
-              ? (this as MovementFunctionality).speed.parameter
-              : 1));
+      body.applyForce(
+        (position - center).normalized() *
+            (position.distanceTo(center).clamp(3, 10) / 2) *
+            (this is MovementFunctionality
+                ? (this as MovementFunctionality).speed.parameter
+                : 1),
+      );
     }
   }
 
@@ -115,11 +116,12 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
 }
 
 abstract class MovingSentry extends ChildEntity with MovementFunctionality {
-  MovingSentry(
-      {required super.initialPosition,
-      super.distance = 2,
-      required super.upgradeLevel,
-      required super.parentEntity});
+  MovingSentry({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  });
 
   abstract Body? target;
 
@@ -127,13 +129,15 @@ abstract class MovingSentry extends ChildEntity with MovementFunctionality {
 
   @override
   Body createBody() {
-    final fixture = FixtureDef(CircleShape()..radius = spriteHeight / 2,
-        filter: Filter()
-          ..maskBits = maskBits
-          ..categoryBits = isPlayer ? playerCategory : enemyCategory,
-        isSensor: true,
-        userData: {'type': FixtureType.body, "object": this},
-        density: .9);
+    final fixture = FixtureDef(
+      CircleShape()..radius = spriteHeight / 2,
+      filter: Filter()
+        ..maskBits = maskBits
+        ..categoryBits = isPlayer ? playerCategory : enemyCategory,
+      isSensor: true,
+      userData: {'type': FixtureType.body, 'object': this},
+      density: .9,
+    );
     renderBody = false;
     return super.createBody()
       ..createFixture(fixture)
@@ -144,7 +148,7 @@ abstract class MovingSentry extends ChildEntity with MovementFunctionality {
     if (target == null) {
       removeMoveVelocity(aiInputPriority);
     } else {
-      addMoveVelocity((target!.position - body.position), aiInputPriority);
+      addMoveVelocity(target!.position - body.position, aiInputPriority);
     }
   }
 
@@ -153,9 +157,7 @@ abstract class MovingSentry extends ChildEntity with MovementFunctionality {
     moveDeltaUpdater = TimerComponent(
       period: moveUpdateInterval,
       repeat: true,
-      onTick: () {
-        setTargetMovement();
-      },
+      onTick: setTargetMovement,
     );
     moveDeltaUpdater?.addToParent(this);
     return super.onLoad();
@@ -177,11 +179,12 @@ class TeslaCrystal extends ChildEntity
         AttackFunctionality,
         DumbShoot,
         AimControlFunctionality {
-  TeslaCrystal(
-      {required super.initialPosition,
-      super.distance = 2,
-      required super.upgradeLevel,
-      required super.parentEntity}) {
+  TeslaCrystal({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  }) {
     initialWeapons.add(WeaponType.blankProjectileWeapon);
   }
 
@@ -204,11 +207,12 @@ class TeslaCrystal extends ChildEntity
 }
 
 class MarkEnemySentry extends ChildEntity {
-  MarkEnemySentry(
-      {required super.initialPosition,
-      super.distance = 2,
-      required super.upgradeLevel,
-      required super.parentEntity});
+  MarkEnemySentry({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  });
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -244,15 +248,19 @@ class MarkEnemySentry extends ChildEntity {
     switch (aimPattern) {
       case AimPattern.randomEnemy:
         final filteredBodies = bodies
-            .where((element) =>
-                (isPlayer
-                    ? element.userData is Enemy
-                    : element.userData is Player) &&
-                element.userData is AttributeFunctionality &&
-                !(element.userData as HealthFunctionality).isMarked.parameter)
+            .where(
+              (element) =>
+                  (isPlayer
+                      ? element.userData is Enemy
+                      : element.userData is Player) &&
+                  element.userData is AttributeFunctionality &&
+                  !(element.userData! as HealthFunctionality)
+                      .isMarked
+                      .parameter,
+            )
             .toList();
         if (filteredBodies.isNotEmpty) {
-          target = filteredBodies.random().userData as Enemy;
+          target = filteredBodies.random().userData! as Enemy;
         }
         break;
       default:
@@ -260,14 +268,18 @@ class MarkEnemySentry extends ChildEntity {
   }
 
   void markTarget() {
-    if (target == null) return;
-    final attr = target as AttributeFunctionality;
+    if (target == null) {
+      return;
+    }
+    final attr = target! as AttributeFunctionality;
     setEntityAnimation(EntityStatus.attack);
 
-    attr.addAttribute(AttributeType.marked,
-        perpetratorEntity: parentEntity,
-        isTemporary: true,
-        duration: markerDuration);
+    attr.addAttribute(
+      AttributeType.marked,
+      perpetratorEntity: parentEntity,
+      isTemporary: true,
+      duration: markerDuration,
+    );
   }
 
   // @override
@@ -285,12 +297,13 @@ class RangedAttackSentry extends ChildEntity
         AttackFunctionality,
         DumbShoot,
         AimControlFunctionality {
-  RangedAttackSentry(
-      {required super.initialPosition,
-      super.distance = 2,
-      required this.damageType,
-      required super.upgradeLevel,
-      required super.parentEntity}) {
+  RangedAttackSentry({
+    required super.initialPosition,
+    required this.damageType,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  }) {
     initialWeapons.add(WeaponType.blankProjectileWeapon);
   }
 
@@ -315,11 +328,12 @@ class RangedAttackSentry extends ChildEntity
 }
 
 class GrabItemsSentry extends MovingSentry with ContactCallbacks {
-  GrabItemsSentry(
-      {required super.initialPosition,
-      super.distance = 2,
-      required super.upgradeLevel,
-      required super.parentEntity});
+  GrabItemsSentry({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  });
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -341,9 +355,7 @@ class GrabItemsSentry extends MovingSentry with ContactCallbacks {
     targetUpdater = TimerComponent(
       period: fetchInterval,
       repeat: true,
-      onTick: () {
-        findTarget();
-      },
+      onTick: findTarget,
     );
     targetUpdater?.addToParent(this);
     return super.onLoad();
@@ -396,12 +408,13 @@ class GrabItemsSentry extends MovingSentry with ContactCallbacks {
 
 class ElementalAttackSentry extends MovingSentry
     with ContactCallbacks, TouchDamageFunctionality {
-  ElementalAttackSentry(
-      {required super.initialPosition,
-      super.distance = 2,
-      required this.damageType,
-      required super.upgradeLevel,
-      required super.parentEntity}) {
+  ElementalAttackSentry({
+    required super.initialPosition,
+    required this.damageType,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  }) {
     touchDamage.damageBase[damageType] ??= (1, 4);
   }
 
@@ -439,9 +452,7 @@ class ElementalAttackSentry extends MovingSentry
     targetUpdater = TimerComponent(
       period: fetchInterval,
       repeat: true,
-      onTick: () {
-        findTarget();
-      },
+      onTick: findTarget,
     );
     targetUpdater?.addToParent(this);
 
@@ -455,26 +466,30 @@ class ElementalAttackSentry extends MovingSentry
   }
 
   void deadCheck() {
-    if (target != null && (target!.userData as Entity).isDead) {
+    if (target != null && (target!.userData! as Entity).isDead) {
       shouldFetchNewTarget = true;
     }
   }
 
   void findTarget() {
     deadCheck();
-    if (!shouldFetchNewTarget) return;
+    if (!shouldFetchNewTarget) {
+      return;
+    }
     final bodies = world.physicsWorld.bodies.where(
       (element) => element.userData is Entity,
     );
 
     final filteredBodies = bodies
-        .where((element) =>
-            (isPlayer
-                ? element.userData is Enemy
-                : element.userData is Player) &&
-            target != element &&
-            element.userData is HealthFunctionality &&
-            element.worldCenter.distanceTo(parentEntity.center) < 10)
+        .where(
+          (element) =>
+              (isPlayer
+                  ? element.userData is Enemy
+                  : element.userData is Player) &&
+              target != element &&
+              element.userData is HealthFunctionality &&
+              element.worldCenter.distanceTo(parentEntity.center) < 10,
+        )
         .toList();
 
     if (filteredBodies.isNotEmpty) {
@@ -501,17 +516,18 @@ class ElementalCaptureBulletSentry extends ChildEntity
         AimFunctionality,
         AttackFunctionality,
         AimControlFunctionality {
-  ElementalCaptureBulletSentry(
-      {required super.initialPosition,
-      super.distance = 2,
-      required super.upgradeLevel,
-      required super.parentEntity}) {
+  ElementalCaptureBulletSentry({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  }) {
     initialWeapons.add(WeaponType.blankProjectileWeapon);
   }
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations["absorb_projectile"] =
+    entityAnimations['absorb_projectile'] =
         await spriteAnimations.elementalAbsorb1;
 
     entityAnimations[EntityStatus.idle] =
@@ -549,9 +565,11 @@ class ElementalCaptureBulletSentry extends ChildEntity
   bool captureBulletAttempt(DamageInstance damage) {
     if (capturedBullet != null ||
         isCoolingDown ||
-        damage.sourceAttack is! Projectile) return false;
+        damage.sourceAttack is! Projectile) {
+      return false;
+    }
 
-    var projectile = damage.sourceAttack as Projectile;
+    final projectile = damage.sourceAttack as Projectile;
 
     if (!projectile.isMounted ||
         projectile.isRemoved ||
@@ -559,18 +577,17 @@ class ElementalCaptureBulletSentry extends ChildEntity
       return false;
     }
 
-    setEntityAnimation("absorb_projectile");
+    setEntityAnimation('absorb_projectile');
 
-    projectile.killBullet(false);
+    projectile.killBullet();
 
-    capturedBullet = damage.sourceAttack;
+    capturedBullet = projectile;
 
     target = damage.source.body;
 
     bulletFireDelayTimer = TimerComponent(
       period: bulletFireDelayCooldown,
       removeOnFinish: true,
-      repeat: false,
       onTick: () {
         bulletFireDelayTimer = null;
         capturedBullet = null;
@@ -601,11 +618,12 @@ class ElementalCaptureBulletSentry extends ChildEntity
 
 class MirrorOrbSentry extends ChildEntity
     with ContactCallbacks, AimFunctionality, AttackFunctionality {
-  MirrorOrbSentry(
-      {required super.initialPosition,
-      super.distance = 2,
-      required super.upgradeLevel,
-      required super.parentEntity}) {
+  MirrorOrbSentry({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2,
+  }) {
     initialWeapons.add(WeaponType.blankProjectileWeapon);
   }
 
@@ -619,7 +637,9 @@ class MirrorOrbSentry extends ChildEntity
   }
 
   void mirrorAttack(double holdDuration) {
-    if (parentEntity is! AttackFunctionality || currentWeapon == null) return;
+    if (parentEntity is! AttackFunctionality || currentWeapon == null) {
+      return;
+    }
     final parentAttackFunctionality = parentEntity as AttackFunctionality;
     final parentWeapon = parentAttackFunctionality.currentWeapon;
 
@@ -628,7 +648,7 @@ class MirrorOrbSentry extends ChildEntity
 
     if (parentWeapon is MeleeFunctionality &&
         currentWeapon is MeleeFunctionality) {
-      final melee = currentWeapon as MeleeFunctionality;
+      final melee = currentWeapon! as MeleeFunctionality;
       melee.currentAttackIndex = parentWeapon.currentAttackIndex - 1;
       // print(parentWeapon.currentAttackIndex);
       // print(melee.currentAttackIndex);
@@ -640,7 +660,7 @@ class MirrorOrbSentry extends ChildEntity
     setEntityAnimation(EntityStatus.attack);
   }
 
-  void buildSentryWeapon(Weapon? previous, Weapon newWeapon) async {
+  Future<void> buildSentryWeapon(Weapon? previous, Weapon newWeapon) async {
     if (previous is AttributeWeaponFunctionsFunctionality) {
       previous.onAttack.remove(mirrorAttack);
     }
@@ -667,7 +687,7 @@ class MirrorOrbSentry extends ChildEntity
   Future<void> onLoad() async {
     await super.onLoad();
     if (parentEntity is AttackFunctionality) {
-      final att = (parentEntity as AttackFunctionality);
+      final att = parentEntity as AttackFunctionality;
       att.onWeaponSwap.add(buildSentryWeapon);
       final parentWeapon = att.currentWeapon;
       if (parentWeapon != null) {
@@ -704,11 +724,12 @@ class MirrorOrbSentry extends ChildEntity
 
 class ShieldSentry extends ChildEntity
     with ContactCallbacks, HealthFunctionality {
-  ShieldSentry(
-      {required super.initialPosition,
-      super.distance = 1.25,
-      required super.upgradeLevel,
-      required super.parentEntity}) {
+  ShieldSentry({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 1.25,
+  }) {
     height.baseParameter = 3;
     invincible.baseParameter = true;
   }
@@ -723,15 +744,16 @@ class ShieldSentry extends ChildEntity
   }
 
   @override
-  createBody() {
-    final fixture = FixtureDef(CircleShape()..radius = spriteHeight / 3,
-        filter: Filter()
-          ..maskBits =
-              projectileCategory + (!isPlayer ? playerCategory : enemyCategory)
-          ..categoryBits = isPlayer ? playerCategory : enemyCategory,
-        userData: {'type': FixtureType.body, 'object': this},
-        isSensor: false,
-        density: 0.005);
+  Body createBody() {
+    final fixture = FixtureDef(
+      CircleShape()..radius = spriteHeight / 3,
+      filter: Filter()
+        ..maskBits =
+            projectileCategory + (!isPlayer ? playerCategory : enemyCategory)
+        ..categoryBits = isPlayer ? playerCategory : enemyCategory,
+      userData: {'type': FixtureType.body, 'object': this},
+      density: 0.005,
+    );
     renderBody = false;
     return super.createBody()
       ..createFixture(fixture)
@@ -741,7 +763,7 @@ class ShieldSentry extends ChildEntity
   @override
   beginContact(Object other, Contact contact) {
     if (other is Projectile) {
-      other.killBullet(false);
+      other.killBullet();
     } else if (other is MeleeAttackHandler) {
       other.kill();
     }
@@ -750,12 +772,13 @@ class ShieldSentry extends ChildEntity
 
 class SwordSentry extends ChildEntity
     with ContactCallbacks, HealthFunctionality, TouchDamageFunctionality {
-  SwordSentry(
-      {required super.initialPosition,
-      super.distance = 2.5,
-      required super.upgradeLevel,
-      super.rotationSpeed = .5,
-      required super.parentEntity}) {
+  SwordSentry({
+    required super.initialPosition,
+    required super.upgradeLevel,
+    required super.parentEntity,
+    super.distance = 2.5,
+    super.rotationSpeed = .5,
+  }) {
     if (rotationSpeed != null) {
       rotationSpeed = rotationSpeed! * upgradeLevel;
     }
@@ -772,14 +795,16 @@ class SwordSentry extends ChildEntity
   }
 
   @override
-  createBody() {
-    final fixture = FixtureDef(CircleShape()..radius = spriteHeight / 3,
-        filter: Filter()
-          ..maskBits = (!isPlayer ? playerCategory : enemyCategory)
-          ..categoryBits = swordCategory,
-        userData: {'type': FixtureType.body, 'object': this},
-        isSensor: true,
-        density: 0.9);
+  Body createBody() {
+    final fixture = FixtureDef(
+      CircleShape()..radius = spriteHeight / 3,
+      filter: Filter()
+        ..maskBits = (!isPlayer ? playerCategory : enemyCategory)
+        ..categoryBits = swordCategory,
+      userData: {'type': FixtureType.body, 'object': this},
+      isSensor: true,
+      density: 0.9,
+    );
     renderBody = false;
     return super.createBody()
       ..createFixture(fixture)

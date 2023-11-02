@@ -11,6 +11,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 // import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -31,12 +32,12 @@ import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:uuid/uuid.dart';
 // import 'package:win32_gamepad/win32_gamepad.dart';
-import 'game/menu_game.dart';
+import 'package:runefire/game/menu_game.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:window_manager/window_manager.dart';
-import 'menus/overlays.dart';
-import 'resources/constants/routes.dart' as routes;
-import '../menus/overlays.dart' as overlay;
+import 'package:runefire/menus/overlays.dart';
+import 'package:runefire/resources/constants/routes.dart' as routes;
+import 'package:runefire/menus/overlays.dart' as overlay;
 import 'package:win32_gamepad/win32_gamepad.dart';
 
 typedef GameActionEvent = ({
@@ -45,7 +46,9 @@ typedef GameActionEvent = ({
 });
 
 typedef GameActionCallback = Function(
-    GameActionEvent gameAction, Set<GameAction> activeGameActions);
+  GameActionEvent gameAction,
+  Set<GameAction> activeGameActions,
+);
 
 enum CustomInputWatcherEvents {
   hoverOn,
@@ -92,8 +95,8 @@ class GamepadInputManager {
       deadzone = capabilities.rightThumbDeadzone;
     }
     // deadzone = 20000;
-    bool isInDeadZone = x.abs() < deadzone && y.abs() < deadzone;
-    bool eventActive = _gamepadEvents.containsKey(stickToCheck);
+    final isInDeadZone = x.abs() < deadzone && y.abs() < deadzone;
+    final eventActive = _gamepadEvents.containsKey(stickToCheck);
 
     if (eventActive && isInDeadZone) {
       _gamepadEvents.remove(stickToCheck);
@@ -101,8 +104,8 @@ class GamepadInputManager {
       tempGamepadButton = stickToCheck;
       return true;
     } else if (!isInDeadZone) {
-      final double xClamped = (x / 32777).clamp(-1, 1);
-      double yClamped = (y / 32777).clamp(-1, 1);
+      final xClamped = (x / 32777).clamp(-1, 1).toDouble();
+      var yClamped = (y / 32777).clamp(-1, 1).toDouble();
       if (!parentInputManager._systemDataReference.invertYAxis) {
         yClamped *= -1;
       }
@@ -141,8 +144,8 @@ class GamepadInputManager {
   bool _checkTrigger(int value, GamepadButtons triggerToCheck) {
     final capabilities = GamepadCapabilities(0);
 
-    bool isInDeadZone = value < capabilities.triggerThreshold;
-    bool eventActive = _gamepadEvents.containsKey(triggerToCheck);
+    final isInDeadZone = value < capabilities.triggerThreshold;
+    final eventActive = _gamepadEvents.containsKey(triggerToCheck);
     if (eventActive && isInDeadZone) {
       _gamepadEvents.remove(triggerToCheck);
       tempSingleValue = 0;
@@ -151,8 +154,8 @@ class GamepadInputManager {
       tempGamepadButton = triggerToCheck;
       return true;
     } else if (!isInDeadZone) {
-      final double valueClamped = (value / 255).clamp(0, 1);
-      tempSingleValue = valueClamped;
+      final valueClamped = (value / 255).clamp(0, 1);
+      tempSingleValue = valueClamped.toDouble();
       tempPressState = eventActive ? PressState.held : PressState.pressed;
 
       tempGamepadButton = triggerToCheck;
@@ -176,7 +179,10 @@ class GamepadInputManager {
   }
 
   GamepadInputManager(
-      this.parentInputManager, this.onGamepadEvent, this._gameRouterReference) {
+    this.parentInputManager,
+    this.onGamepadEvent,
+    this._gameRouterReference,
+  ) {
     _initCheckGamepadTimer();
   }
 
@@ -208,10 +214,14 @@ class GamepadInputManager {
       gamepadEvent = _gamepadEvents[tempGamepadButton]!
         ..pressState = tempPressState
         ..singleValue = tempSingleValue
-        ..xyValue = (tempXyValue);
+        ..xyValue = tempXyValue;
     } else {
       gamepadEvent = GamepadEvent(
-          tempGamepadButton, tempXyValue, tempSingleValue, tempPressState);
+        tempGamepadButton,
+        tempXyValue,
+        tempSingleValue,
+        tempPressState,
+      );
       if (tempPressState != PressState.released) {
         _gamepadEvents[tempGamepadButton] = gamepadEvent;
       }
@@ -234,7 +244,7 @@ class GamepadInputManager {
   }
 
   void parseGameState() {
-    GamepadState event = gamepad.state;
+    final event = gamepad.state;
     if (_gamepadEvents.isEmpty && !event.isConnected) {
       _updateGamepadTimer?.cancel();
       _updateGamepadTimer = null;
@@ -246,8 +256,8 @@ class GamepadInputManager {
       _initGamepadTimer();
     }
 
-    bool shouldCreateEvent = false;
-    for (var element in GamepadButtons.values) {
+    var shouldCreateEvent = false;
+    for (final element in GamepadButtons.values) {
       shouldCreateEvent = false; // Initialize to false
       tempXyValue = Offset.zero;
       tempSingleValue = 0;
@@ -288,11 +298,15 @@ class GamepadInputManager {
           break;
         case GamepadButtons.leftShoulder:
           shouldCreateEvent = _checkSimpleButton(
-              event.leftShoulder, GamepadButtons.leftShoulder);
+            event.leftShoulder,
+            GamepadButtons.leftShoulder,
+          );
           break;
         case GamepadButtons.rightShoulder:
           shouldCreateEvent = _checkSimpleButton(
-              event.rightShoulder, GamepadButtons.rightShoulder);
+            event.rightShoulder,
+            GamepadButtons.rightShoulder,
+          );
           break;
         case GamepadButtons.leftThumb:
           shouldCreateEvent =
@@ -311,12 +325,18 @@ class GamepadInputManager {
               _checkSimpleButton(event.buttonBack, GamepadButtons.buttonBack);
           break;
         case GamepadButtons.leftJoy:
-          shouldCreateEvent = _checkAnalogStick(event.leftThumbstickX,
-              event.leftThumbstickY, GamepadButtons.leftJoy);
+          shouldCreateEvent = _checkAnalogStick(
+            event.leftThumbstickX,
+            event.leftThumbstickY,
+            GamepadButtons.leftJoy,
+          );
           break;
         case GamepadButtons.rightJoy:
-          shouldCreateEvent = _checkAnalogStick(event.rightThumbstickX,
-              event.rightThumbstickY, GamepadButtons.rightJoy);
+          shouldCreateEvent = _checkAnalogStick(
+            event.rightThumbstickX,
+            event.rightThumbstickY,
+            GamepadButtons.rightJoy,
+          );
           break;
         case GamepadButtons.leftTrigger:
           shouldCreateEvent =
@@ -354,7 +374,9 @@ class InputManager with WindowListener {
   }
 
   InputManager._internal() {
-    windowManager.addListener(this);
+    if (!kIsWeb && Platform.isWindows) {
+      windowManager.addListener(this);
+    }
   }
 
   late final CustomInputWatcherManager customInputWatcherManager;
@@ -417,7 +439,9 @@ class InputManager with WindowListener {
 
   //Game components use this to add new callbacks
   void addGameActionListener(
-      GameAction gameAction, GameActionCallback callback) {
+    GameAction gameAction,
+    GameActionCallback callback,
+  ) {
     _onGameActionMap[gameAction] ??= {};
     _onGameActionMap[gameAction]!.add(callback);
   }
@@ -426,11 +450,15 @@ class InputManager with WindowListener {
   void beginHoldCall(
     bool isPrimary,
   ) {
-    if (isPrimaryTimerActive != null) return;
+    if (isPrimaryTimerActive != null) {
+      return;
+    }
     isPrimaryTimerActive ??= isPrimary;
 
     Future.delayed(.5.seconds).then((value) {
-      if (isPrimaryTimerActive == null) return;
+      if (isPrimaryTimerActive == null) {
+        return;
+      }
       holdCallTimer = ac.Timer.periodic(incrementDuration, (timer) {
         if (isPrimaryTimerActive == null) {
           stopHoldCall(null);
@@ -450,18 +478,21 @@ class InputManager with WindowListener {
   Offset? get getGamepadCursorPosition => _gamepadCursorPosition;
 
   void buildGamepadCursor(GamepadEvent event) {
-    GamepadButtons buttonToWatch = _systemDataReference.flipJoystickControl
+    final buttonToWatch = _systemDataReference.flipJoystickControl
         ? GamepadButtons.leftJoy
         : GamepadButtons.rightJoy;
-    if (event.button != buttonToWatch) return;
+    if (event.button != buttonToWatch) {
+      return;
+    }
     final gameRouterSizeOffset = _gameRouterReference.size.toOffset();
     _gamepadCursorPosition ??= gameRouterSizeOffset / 2;
 
     _gamepadCursorPosition =
         _gamepadCursorPosition! + (event.xyValue * gamepadCursorSpeed);
     _gamepadCursorPosition = Offset(
-        _gamepadCursorPosition!.dx.clamp(0, gameRouterSizeOffset.dx),
-        _gamepadCursorPosition!.dy.clamp(0, gameRouterSizeOffset.dy));
+      _gamepadCursorPosition!.dx.clamp(0, gameRouterSizeOffset.dx),
+      _gamepadCursorPosition!.dy.clamp(0, gameRouterSizeOffset.dy),
+    );
 
     pointerFunnel(_gamepadCursorPosition!, ExternalInputType.gamepad, -1);
 
@@ -479,16 +510,20 @@ class InputManager with WindowListener {
     _setVibrationZero();
   }
 
-  void _setVibrationZero() => gamepadInputManager.gamepad
-      .vibrate(leftMotorSpeed: 0, rightMotorSpeed: 0);
+  void _setVibrationZero() => gamepadInputManager.gamepad.vibrate();
 
-  Future<void> applyVibration(double? duration, double intensity,
-      [bool? leftOnly]) async {
+  Future<void> applyVibration(
+    double? duration,
+    double intensity, {
+    bool? leftOnly,
+  }) async {
     if (!_systemDataReference.gamepadVibrationEnabled ||
-        !gamepadInputManager.gamepad.isConnected) return;
+        !gamepadInputManager.gamepad.isConnected) {
+      return;
+    }
 
-    final int mappedIntensity = (65535 * intensity).clamp(0, 65535).toInt();
-    final String id = const Uuid().v1();
+    final mappedIntensity = (65535 * intensity).clamp(0, 65535).toInt();
+    final id = const Uuid().v1();
     vibrationId = id;
     gamepadInputManager.gamepad.vibrate(
       leftMotorSpeed: leftOnly == true ? 0 : mappedIntensity,
@@ -496,14 +531,16 @@ class InputManager with WindowListener {
     );
     if (duration != null) {
       await Future.delayed(duration.seconds, () {
-        if (vibrationId != id) return;
+        if (vibrationId != id) {
+          return;
+        }
         _setVibrationZero();
       });
     }
   }
 
   bool keyboardEventHandler(KeyEvent keyEvent) {
-    for (var element in keyEventList) {
+    for (final element in keyEventList) {
       element.call(keyEvent);
     }
 
@@ -527,14 +564,14 @@ class InputManager with WindowListener {
     externalInputType = ExternalInputType.mouseKeyboard;
     final mappedActions = _systemDataReference.keyboardMappings.entries
         .where((element) => element.value.any(keyEvent.physicalKey));
-    for (var element in mappedActions) {
+    for (final element in mappedActions) {
       onGameActionCall((gameAction: element.key, pressState: pressState));
     }
 
     final permanentMappedActions = _systemDataReference
         .constantKeyboardMappings.entries
         .where((element) => element.value.contains(keyEvent.physicalKey));
-    for (var element in permanentMappedActions) {
+    for (final element in permanentMappedActions) {
       onGameActionCall((gameAction: element.key, pressState: pressState));
     }
 
@@ -542,20 +579,19 @@ class InputManager with WindowListener {
   }
 
   void onGameActionCall(GameActionEvent event) {
-    if (_gameRouterReference.paused) return;
+    // if (_gameRouterReference.paused) return;
     if (event.pressState != PressState.released) {
       activeGameActions.add(event.gameAction);
     } else {
       activeGameActions.remove(event.gameAction);
     }
-    for (GameActionCallback element
-        in _onGameActionMap[event.gameAction] ?? {}) {
+    for (final element in _onGameActionMap[event.gameAction] ?? {}) {
       element.call(event, activeGameActions);
     }
   }
 
   void onGamepadEvent(GamepadEvent event) {
-    for (var element in gamepadEventList) {
+    for (final element in gamepadEventList) {
       element.call(event);
     }
     customInputWatcherManager.handleGamepadInput(event);
@@ -563,14 +599,14 @@ class InputManager with WindowListener {
     externalInputType = ExternalInputType.gamepad;
     final mappedActions = _systemDataReference.gamePadMappings.entries
         .where((element) => element.value.any(event.button));
-    for (var element in mappedActions) {
+    for (final element in mappedActions) {
       onGameActionCall((gameAction: element.key, pressState: event.pressState));
     }
 
     final constantMappedActions = _systemDataReference
         .constantGamePadMappings.entries
         .where((element) => element.value == (event.button));
-    for (var element in constantMappedActions) {
+    for (final element in constantMappedActions) {
       onGameActionCall((gameAction: element.key, pressState: event.pressState));
     }
   }
@@ -588,7 +624,7 @@ class InputManager with WindowListener {
 
   void onPointerDown(PointerDownEvent event) {
     activePointers.add(event.pointer);
-    for (var element in pointerDownList) {
+    for (final element in pointerDownList) {
       element.call(event);
     }
     if (event.kind == PointerDeviceKind.mouse) {
@@ -605,20 +641,22 @@ class InputManager with WindowListener {
 
   void onPointerMove(PointerMoveEvent event) {
     pointerFunnel(
-        event.position,
-        event.kind == PointerDeviceKind.mouse
-            ? ExternalInputType.mouseKeyboard
-            : ExternalInputType.touch,
-        event.pointer);
+      event.position,
+      event.kind == PointerDeviceKind.mouse
+          ? ExternalInputType.mouseKeyboard
+          : ExternalInputType.touch,
+      event.pointer,
+    );
   }
 
   void onPointerHover(PointerHoverEvent event) {
     pointerFunnel(
-        event.position,
-        event.kind == PointerDeviceKind.mouse
-            ? ExternalInputType.mouseKeyboard
-            : ExternalInputType.touch,
-        event.pointer);
+      event.position,
+      event.kind == PointerDeviceKind.mouse
+          ? ExternalInputType.mouseKeyboard
+          : ExternalInputType.touch,
+      event.pointer,
+    );
   }
 
   void pointerFunnel(Offset position, ExternalInputType inputType, int id) {
@@ -626,7 +664,7 @@ class InputManager with WindowListener {
 
     pointerLocalPositions[id] = position;
     latestPointerPosition = position;
-    for (var element in onPointerMoveList) {
+    for (final element in onPointerMoveList) {
       element.call(inputType, position);
     }
     customInputWatcherManager.checkStatesHovered();
@@ -654,14 +692,16 @@ class InputManager with WindowListener {
   void onPrimaryCancelCall(PointerCancelEvent info) {
     stopHoldCall(true);
     onGameActionCall(
-        (gameAction: GameAction.primary, pressState: PressState.released));
+      (gameAction: GameAction.primary, pressState: PressState.released),
+    );
 
     customInputWatcherManager.onPrimaryUp();
   }
 
   void onPrimaryDownCall(PointerDownEvent info) {
     onGameActionCall(
-        (gameAction: GameAction.primary, pressState: PressState.pressed));
+      (gameAction: GameAction.primary, pressState: PressState.pressed),
+    );
     customInputWatcherManager.onPrimary();
 
     beginHoldCall(true);
@@ -669,7 +709,8 @@ class InputManager with WindowListener {
 
   void onPrimaryUpCall(PointerUpEvent info) {
     onGameActionCall(
-        (gameAction: GameAction.primary, pressState: PressState.released));
+      (gameAction: GameAction.primary, pressState: PressState.released),
+    );
     stopHoldCall(true);
     customInputWatcherManager.onPrimaryUp();
   }
@@ -678,7 +719,8 @@ class InputManager with WindowListener {
     // for (var element in onSecondaryCancel) {
     //   element.call(info);
     onGameActionCall(
-        (gameAction: GameAction.secondary, pressState: PressState.released));
+      (gameAction: GameAction.secondary, pressState: PressState.released),
+    );
     customInputWatcherManager.onSecondaryUp();
 
     stopHoldCall(false);
@@ -687,7 +729,8 @@ class InputManager with WindowListener {
   void onSecondaryDownCall(PointerDownEvent info) {
     // for (var element in onSecondaryDown) {
     onGameActionCall(
-        (gameAction: GameAction.secondary, pressState: PressState.pressed));
+      (gameAction: GameAction.secondary, pressState: PressState.pressed),
+    );
     //   element.call(info);
     beginHoldCall(false);
     customInputWatcherManager.onSecondary();
@@ -699,14 +742,17 @@ class InputManager with WindowListener {
     // for (var element in onSecondaryUp) {
     //   element.call(info);
     onGameActionCall(
-        (gameAction: GameAction.secondary, pressState: PressState.released));
+      (gameAction: GameAction.secondary, pressState: PressState.released),
+    );
     customInputWatcherManager.onSecondaryUp();
     stopHoldCall(false);
     // }
   }
 
   void removeGameActionListener(
-      GameAction gameAction, GameActionCallback callback) {
+    GameAction gameAction,
+    GameActionCallback callback,
+  ) {
     _onGameActionMap[gameAction]?.remove(callback);
   }
 
@@ -716,12 +762,16 @@ class InputManager with WindowListener {
     _systemDataReference = _gameRouterReference.systemDataComponent.dataObject;
     customInputWatcherManager =
         CustomInputWatcherManager(this, _systemDataReference);
-
-    gamepadInputManager = GamepadInputManager(this, onGamepadEvent, gameRouter);
+    if (!kIsWeb && Platform.isWindows) {
+      gamepadInputManager =
+          GamepadInputManager(this, onGamepadEvent, gameRouter);
+    }
   }
 
   void stopHoldCall(bool? isPrimary) {
-    if (isPrimaryTimerActive != isPrimary && isPrimary != null) return;
+    if (isPrimaryTimerActive != isPrimary && isPrimary != null) {
+      return;
+    }
     isPrimaryTimerActive = null;
     holdCallTimer?.cancel();
     holdCallTimer = null;
@@ -729,7 +779,7 @@ class InputManager with WindowListener {
 
   @override
   void onWindowEvent(String eventName) {
-    for (var element in onWindowEventList) {
+    for (final element in onWindowEventList) {
       element.call(eventName);
     }
 
@@ -758,7 +808,9 @@ enum GameAction {
 
 class CustomInputWatcherManager {
   CustomInputWatcherManager(
-      this.parentInputManager, this._systemDataReference) {
+    this.parentInputManager,
+    this._systemDataReference,
+  ) {
     parentInputManager.onWindowEventList
         .add((windowEvent) => updateCustomInputWatcherRectangles());
   }
@@ -789,7 +841,8 @@ class CustomInputWatcherManager {
 
   //add a new widget to the input manager
   StreamController<CustomInputWatcherEvents> addCustomInputWatcher(
-      State<CustomInputWatcher> customInputWatcher) {
+    State<CustomInputWatcher> customInputWatcher,
+  ) {
     final eventController = StreamController<CustomInputWatcherEvents>();
     _customInputWatcherStreams[customInputWatcher] = eventController;
 
@@ -810,7 +863,9 @@ class CustomInputWatcherManager {
     //scroll controller
     if (customInputWatcher.widget.scrollController != null) {
       registerScrollController(
-          customInputWatcher, customInputWatcher.widget.scrollController!);
+        customInputWatcher,
+        customInputWatcher.widget.scrollController!,
+      );
     }
 
     return eventController;
@@ -818,7 +873,7 @@ class CustomInputWatcherManager {
 
   //Function that both keyboard and gamepad will call to move the currently hovered widget
   void changeHoveredState(AxisDirection directionOfInput) {
-    final int highestZIndex = _customInputWatcherRows.keys.reduce(max);
+    final highestZIndex = _customInputWatcherRows.keys.reduce(max);
 
     if (currentlyHoveredWidget == null) {
       final entries = _customInputWatcherRectangles.entries
@@ -827,7 +882,7 @@ class CustomInputWatcherManager {
       switch (directionOfInput) {
         case AxisDirection.up:
           initValue = 0;
-          for (var element in entries) {
+          for (final element in entries) {
             if (element.value.bottom > initValue) {
               initValue = element.value.bottom;
               setHoveredState(element.key);
@@ -837,7 +892,7 @@ class CustomInputWatcherManager {
           break;
         case AxisDirection.right:
           initValue = double.infinity;
-          for (var element in entries) {
+          for (final element in entries) {
             if (element.value.left < initValue) {
               initValue = element.value.left;
               setHoveredState(element.key);
@@ -847,7 +902,7 @@ class CustomInputWatcherManager {
           break;
         case AxisDirection.down:
           initValue = double.infinity;
-          for (var element in entries) {
+          for (final element in entries) {
             if (element.value.top < initValue) {
               initValue = element.value.top;
               setHoveredState(element.key);
@@ -857,7 +912,7 @@ class CustomInputWatcherManager {
           break;
         case AxisDirection.left:
           initValue = 0;
-          for (var element in entries) {
+          for (final element in entries) {
             if (element.value.right > initValue) {
               initValue = element.value.right;
               setHoveredState(element.key);
@@ -872,10 +927,10 @@ class CustomInputWatcherManager {
 
     final currentRowId = currentlyHoveredWidget!.widget.rowId;
 
-    bool isSwappingRows = (directionOfInput == AxisDirection.up ||
-        directionOfInput == AxisDirection.down);
+    final isSwappingRows = directionOfInput == AxisDirection.up ||
+        directionOfInput == AxisDirection.down;
 
-    bool isHoveringScrollWidget =
+    final isHoveringScrollWidget =
         currentlyHoveredWidget!.widget.scrollController != null;
 
     //If the direction of the axisinput (up down left right) is against the axis of the
@@ -884,7 +939,7 @@ class CustomInputWatcherManager {
       swapRows(directionOfInput, currentRowId, highestZIndex);
       return;
     } else if (isHoveringScrollWidget) {
-      Axis axis =
+      final axis =
           currentlyHoveredWidget!.widget.scrollController!.position.axis;
 
       if (axis == Axis.vertical && !isSwappingRows) {
@@ -902,15 +957,15 @@ class CustomInputWatcherManager {
 
       if (scrollControllerChildren != null &&
           scrollControllerChildren.isNotEmpty) {
-        int currentIndex =
+        final currentIndex =
             scrollControllerChildren.indexOf(currentlyHoveredWidget!);
-        int nextIndex = currentIndex +
+        final nextIndex = currentIndex +
             ((directionOfInput == AxisDirection.up ||
                     directionOfInput == AxisDirection.left)
                 ? -1
                 : 1);
 
-        bool isEndOfScrollController =
+        final isEndOfScrollController =
             nextIndex < 0 || nextIndex >= scrollControllerChildren.length;
         if (isEndOfScrollController) {
           if (isSwappingRows) {
@@ -963,9 +1018,11 @@ class CustomInputWatcherManager {
             widget.widget.zHeight <= currentlyHoveredWidget!.widget.zHeight) {
       return false;
     }
-    final Rect? rect = _customInputWatcherRectangles[widget];
-    if (rect == null) return false;
-    final Offset mousePosition = parentInputManager.latestPointerPosition ??
+    final rect = _customInputWatcherRectangles[widget];
+    if (rect == null) {
+      return false;
+    }
+    final mousePosition = parentInputManager.latestPointerPosition ??
         parentInputManager.pointerLocalPositions.values.firstOrNull ??
         Offset.zero;
     final contains = rect.contains(mousePosition);
@@ -991,12 +1048,14 @@ class CustomInputWatcherManager {
 
   void handleGamepadInput(GamepadEvent event) {
     if (_customInputWatcherStreams.isEmpty ||
-        event.pressState == PressState.held) return;
+        event.pressState == PressState.held) {
+      return;
+    }
 
     if ([
       GamepadButtons.buttonA,
     ].contains(event.button)) {
-      CustomInputWatcherEvents eventType = CustomInputWatcherEvents.onPrimary;
+      var eventType = CustomInputWatcherEvents.onPrimary;
       switch (event.pressState) {
         case PressState.pressed:
           eventType = CustomInputWatcherEvents.onPrimary;
@@ -1015,7 +1074,7 @@ class CustomInputWatcherManager {
     } else if ([
       GamepadButtons.buttonX,
     ].contains(event.button)) {
-      CustomInputWatcherEvents eventType = CustomInputWatcherEvents.onSecondary;
+      var eventType = CustomInputWatcherEvents.onSecondary;
       switch (event.pressState) {
         case PressState.pressed:
           eventType = CustomInputWatcherEvents.onSecondary;
@@ -1033,7 +1092,9 @@ class CustomInputWatcherManager {
       sendStreamEvent(currentlyHoveredWidget, eventType);
     }
 
-    if (event.pressState == PressState.released) return;
+    if (event.pressState == PressState.released) {
+      return;
+    }
 
     if ([
       GamepadButtons.dpadUp,
@@ -1055,14 +1116,16 @@ class CustomInputWatcherManager {
   }
 
   void handleWidgetKeyboardInput(KeyEvent keyEvent) {
-    if (_customInputWatcherStreams.isEmpty) return;
+    if (_customInputWatcherStreams.isEmpty) {
+      return;
+    }
     if ([
       PhysicalKeyboardKey.space,
       PhysicalKeyboardKey.enter,
       PhysicalKeyboardKey.equal,
       PhysicalKeyboardKey.keyE,
     ].contains(keyEvent.physicalKey)) {
-      CustomInputWatcherEvents eventType = CustomInputWatcherEvents.onPrimary;
+      var eventType = CustomInputWatcherEvents.onPrimary;
       switch (keyEvent.runtimeType) {
         case KeyDownEvent:
           eventType = CustomInputWatcherEvents.onPrimary;
@@ -1084,7 +1147,7 @@ class CustomInputWatcherManager {
       PhysicalKeyboardKey.controlLeft,
       PhysicalKeyboardKey.keyQ,
     ].contains(keyEvent.physicalKey)) {
-      CustomInputWatcherEvents eventType = CustomInputWatcherEvents.onSecondary;
+      var eventType = CustomInputWatcherEvents.onSecondary;
       switch (keyEvent.runtimeType) {
         case KeyDownEvent:
           eventType = CustomInputWatcherEvents.onSecondary;
@@ -1102,7 +1165,9 @@ class CustomInputWatcherManager {
       sendStreamEvent(currentlyHoveredWidget, eventType);
     }
 
-    if (keyEvent is KeyUpEvent) return;
+    if (keyEvent is KeyUpEvent) {
+      return;
+    }
 
     if ([
       PhysicalKeyboardKey.keyW,
@@ -1128,11 +1193,15 @@ class CustomInputWatcherManager {
   }
 
   void checkStatesHovered() {
-    if (_customInputWatcherRows.isEmpty) return;
+    if (_customInputWatcherRows.isEmpty) {
+      return;
+    }
     final maxIndex = _customInputWatcherRows.keys.reduce(max);
-    for (var element in _customInputWatcherStreams.entries
+    for (final element in _customInputWatcherStreams.entries
         .where((element) => element.key.widget.zIndex == maxIndex)) {
-      if (_checkIfStateHovered(element.key)) break;
+      if (_checkIfStateHovered(element.key)) {
+        break;
+      }
     }
   }
 
@@ -1142,41 +1211,55 @@ class CustomInputWatcherManager {
 
   void onPrimaryHold() {
     sendStreamEvent(
-        currentlyHoveredWidget, CustomInputWatcherEvents.onPrimaryHold);
+      currentlyHoveredWidget,
+      CustomInputWatcherEvents.onPrimaryHold,
+    );
   }
 
   void onPrimaryUp() {
     sendStreamEvent(
-        currentlyHoveredWidget, CustomInputWatcherEvents.onPrimaryUp);
+      currentlyHoveredWidget,
+      CustomInputWatcherEvents.onPrimaryUp,
+    );
   }
 
   void onSecondary() {
     sendStreamEvent(
-        currentlyHoveredWidget, CustomInputWatcherEvents.onSecondary);
+      currentlyHoveredWidget,
+      CustomInputWatcherEvents.onSecondary,
+    );
   }
 
   void onSecondaryHold() {
     sendStreamEvent(
-        currentlyHoveredWidget, CustomInputWatcherEvents.onSecondaryHold);
+      currentlyHoveredWidget,
+      CustomInputWatcherEvents.onSecondaryHold,
+    );
   }
 
   void onSecondaryUp() {
     sendStreamEvent(
-        currentlyHoveredWidget, CustomInputWatcherEvents.onSecondaryUp);
+      currentlyHoveredWidget,
+      CustomInputWatcherEvents.onSecondaryUp,
+    );
   }
 
-  void registerScrollController(State<CustomInputWatcher> customInputWatcher,
-      ScrollController scrollController) {
-    bool addListener =
+  void registerScrollController(
+    State<CustomInputWatcher> customInputWatcher,
+    ScrollController scrollController,
+  ) {
+    final addListener =
         _customInputWatcherScrollControllers[scrollController] == null;
 
     _customInputWatcherScrollControllers[scrollController] ??= [];
     _customInputWatcherScrollControllers[scrollController]
         ?.add(customInputWatcher);
     if (addListener) {
-      scrollController.addListener(() =>
-          updateCustomInputWatcherRectanglesFromScrollController(
-              scrollController));
+      scrollController.addListener(
+        () => updateCustomInputWatcherRectanglesFromScrollController(
+          scrollController,
+        ),
+      );
     }
   }
 
@@ -1205,7 +1288,9 @@ class CustomInputWatcherManager {
       removeScrollController(customInputWatcher);
     }
 
-    if (customInputWatcher == currentlyHoveredWidget) removeHoveredState();
+    if (customInputWatcher == currentlyHoveredWidget) {
+      removeHoveredState();
+    }
   }
 
   void removeHoveredState() {
@@ -1215,9 +1300,11 @@ class CustomInputWatcherManager {
   }
 
   void removeScrollController(State<CustomInputWatcher> customInputWatcher) {
-    customInputWatcher.widget.scrollController?.removeListener(() =>
-        updateCustomInputWatcherRectanglesFromScrollController(
-            customInputWatcher.widget.scrollController!));
+    customInputWatcher.widget.scrollController?.removeListener(
+      () => updateCustomInputWatcherRectanglesFromScrollController(
+        customInputWatcher.widget.scrollController!,
+      ),
+    );
 
     _customInputWatcherScrollControllers[
             customInputWatcher.widget.scrollController]
@@ -1231,8 +1318,10 @@ class CustomInputWatcherManager {
     }
   }
 
-  void sendStreamEvent(State<CustomInputWatcher>? customInputWatcher,
-      CustomInputWatcherEvents event) {
+  void sendStreamEvent(
+    State<CustomInputWatcher>? customInputWatcher,
+    CustomInputWatcherEvents event,
+  ) {
     _customInputWatcherStreams[customInputWatcher]?.add(event);
 
     hoverOverlayWidget?.$2.add(event);
@@ -1275,15 +1364,20 @@ class CustomInputWatcherManager {
     sendStreamEvent(widget, CustomInputWatcherEvents.hoverOn);
 
     if (widget.widget.hoverWidget != null) {
-      updateOverlayHoverWidget(widget.widget.hoverWidget!,
-          _customInputWatcherRectangles[widget]?.center ?? Offset.zero);
+      updateOverlayHoverWidget(
+        widget.widget.hoverWidget,
+        _customInputWatcherRectangles[widget]?.center ?? Offset.zero,
+      );
     }
 
     currentlyHoveredWidget = widget;
   }
 
   void shiftPositionInRow(
-      AxisDirection directionOfInput, int currentRowId, int highestZIndex) {
+    AxisDirection directionOfInput,
+    int currentRowId,
+    int highestZIndex,
+  ) {
     final listOfCurrentRowStates = _customInputWatcherRows[highestZIndex]![
             currentRowId]!
         //     .where((element) {
@@ -1302,7 +1396,7 @@ class CustomInputWatcherManager {
     final currentHoveredWidgetIndex =
         listOfCurrentRowStates.indexOf(currentlyHoveredWidget!);
 
-    int nextHoveredWidgetIndex = directionOfInput == AxisDirection.up ||
+    var nextHoveredWidgetIndex = directionOfInput == AxisDirection.up ||
             directionOfInput == AxisDirection.left
         ? currentHoveredWidgetIndex - 1
         : currentHoveredWidgetIndex + 1;
@@ -1321,10 +1415,10 @@ class CustomInputWatcherManager {
   }
 
   void sortRowStates(Map<int, List<State<CustomInputWatcher>>> rowIdMap) {
-    for (var element in rowIdMap.entries) {
+    for (final element in rowIdMap.entries) {
       element.value.sort((a, b) {
         return (_customInputWatcherRectangles[a]?.center.dx ?? 0)
-            .compareTo((_customInputWatcherRectangles[b]?.center.dx ?? 0));
+            .compareTo(_customInputWatcherRectangles[b]?.center.dx ?? 0);
       });
     }
   }
@@ -1334,7 +1428,7 @@ class CustomInputWatcherManager {
       ..sort();
 
     final indexOfCurrentGroupId = listOfAllIds.indexOf(currentRowId);
-    int indexOfNextGroupId =
+    var indexOfNextGroupId =
         direction == AxisDirection.up || direction == AxisDirection.left
             ? indexOfCurrentGroupId - 1
             : indexOfCurrentGroupId + 1;
@@ -1346,19 +1440,23 @@ class CustomInputWatcherManager {
     }
 
     final nextRowId = listOfAllIds[indexOfNextGroupId];
-    if (nextRowId == currentRowId) return;
-    double closestDistance = (double.maxFinite);
+    if (nextRowId == currentRowId) {
+      return;
+    }
+    var closestDistance = double.maxFinite;
     State<CustomInputWatcher>? closestWidget;
-    Vector2 goalCenter = _customInputWatcherRectangles[currentlyHoveredWidget!]
+    final goalCenter = _customInputWatcherRectangles[currentlyHoveredWidget!]
             ?.center
             .toVector2() ??
         Vector2.zero();
 
-    for (var element in _customInputWatcherRows[highestZIndex]![nextRowId]!) {
+    for (final element in _customInputWatcherRows[highestZIndex]![nextRowId]!) {
       final rect = _customInputWatcherRectangles[element];
-      if (rect == null) continue;
+      if (rect == null) {
+        continue;
+      }
 
-      final double distance = rect.center.toVector2().distanceTo(goalCenter);
+      final distance = rect.center.toVector2().distanceTo(goalCenter);
       if (distance < closestDistance) {
         closestDistance = distance;
         closestWidget = element;
@@ -1374,28 +1472,34 @@ class CustomInputWatcherManager {
 
   void updateCustomInputWatcher(State<CustomInputWatcher> customInputWatcher) {
     // if (!_customInputWatcherStreams.containsKey(customInputWatcher)) return;
-    RenderBox? box =
-        customInputWatcher.context.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    Offset position = box.localToGlobal(Offset.zero);
-    Size size = box.size;
+    final box = customInputWatcher.context.findRenderObject() as RenderBox?;
+    if (box == null) {
+      return;
+    }
+    final position = box.localToGlobal(Offset.zero);
+    final size = box.size;
     _customInputWatcherRectangles[customInputWatcher] =
         Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
   }
 
   void updateCustomInputWatcherRectangles() {
-    for (var element in _customInputWatcherStreams.entries) {
+    for (final element in _customInputWatcherStreams.entries) {
       sendStreamEvent(
-          element.key, CustomInputWatcherEvents.updateOnPostFrameCallback);
+        element.key,
+        CustomInputWatcherEvents.updateOnPostFrameCallback,
+      );
     }
   }
 
   void updateCustomInputWatcherRectanglesFromScrollController(
-      ScrollController scrollController) {
-    for (State<CustomInputWatcher> element
+    ScrollController scrollController,
+  ) {
+    for (final element
         in _customInputWatcherScrollControllers[scrollController] ?? []) {
       sendStreamEvent(
-          element, CustomInputWatcherEvents.updateOnPostFrameCallback);
+        element as State<CustomInputWatcher>,
+        CustomInputWatcherEvents.updateOnPostFrameCallback,
+      );
     }
   }
 }
@@ -1403,21 +1507,22 @@ class CustomInputWatcherManager {
 class CustomInputWatcher extends StatefulWidget {
   ///Add a globalkey to [hoverWidget] to enable the prevention of window clipping
   ///aka prevent the content from going outside the window
-  const CustomInputWatcher(
-      {this.onHover,
-      required this.child,
-      this.onPrimary,
-      this.onPrimaryHold,
-      this.onPrimaryUp,
-      this.scrollController,
-      this.rowId = 0,
-      this.hoverWidget,
-      this.zHeight = 0,
-      this.zIndex = 0,
-      this.onSecondary,
-      this.onSecondaryHold,
-      this.onSecondaryUp,
-      super.key});
+  const CustomInputWatcher({
+    required this.child,
+    this.onHover,
+    this.onPrimary,
+    this.onPrimaryHold,
+    this.onPrimaryUp,
+    this.scrollController,
+    this.rowId = 0,
+    this.hoverWidget,
+    this.zHeight = 0,
+    this.zIndex = 0,
+    this.onSecondary,
+    this.onSecondaryHold,
+    this.onSecondaryUp,
+    super.key,
+  });
 
   final Function(bool isHover)? onHover;
   final Function()? onPrimary;
@@ -1477,7 +1582,9 @@ class CustomInputWatcherState<T extends CustomInputWatcher> extends State<T> {
 
   void updateCustomInputWatcher() {
     Future.delayed(Duration.zero, () {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       inputManager.customInputWatcherManager.updateCustomInputWatcher(this);
     });
   }
