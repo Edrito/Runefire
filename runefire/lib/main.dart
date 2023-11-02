@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
+import 'package:audioplayers/audioplayers.dart';
 
 import 'package:flame/cache.dart';
 import 'package:flame/components.dart' hide World;
