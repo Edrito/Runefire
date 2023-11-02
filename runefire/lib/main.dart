@@ -230,9 +230,10 @@ class GameRouter extends Forge2DGame {
       InputManager().gamepadInputManager;
   @override
   void update(double dt) {
-    gamepadInputManager.gamepad.updateState();
-    gamepadInputManager.parseGameState();
-
+    if (!kIsWeb && Platform.isWindows) {
+      gamepadInputManager.gamepad.updateState();
+      gamepadInputManager.parseGameState();
+    }
     super.update(dt);
   }
 
