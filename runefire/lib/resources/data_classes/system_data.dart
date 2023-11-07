@@ -7,9 +7,9 @@ import 'package:runefire/game/hud.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 
-import '../../game/enviroment.dart';
-import '../enums.dart';
-import 'base.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:hive/hive.dart';
 
 part 'system_data.g.dart';
@@ -44,9 +44,11 @@ class SystemData extends DataClass {
   HudScale hudScale = HudScale.medium;
 
   void setKeyboardMapping(
-      GameAction action, PhysicalKeyboardKey? key, bool isPrimary) {
-    (PhysicalKeyboardKey?, PhysicalKeyboardKey?)? newKeyboardMapping =
-        keyboardMappings[action];
+    GameAction action,
+    PhysicalKeyboardKey? key,
+    bool isPrimary,
+  ) {
+    var newKeyboardMapping = keyboardMappings[action];
 
     if (newKeyboardMapping != null) {
       if (isPrimary) {
@@ -76,8 +78,11 @@ class SystemData extends DataClass {
   }
 
   void setMouseButtonMapping(
-      GameAction action, int? listenerButtonId, bool isPrimary) {
-    (int?, int?)? newMouseButtonMapping = mouseButtonMappings[action];
+    GameAction action,
+    int? listenerButtonId,
+    bool isPrimary,
+  ) {
+    var newMouseButtonMapping = mouseButtonMappings[action];
 
     if (newMouseButtonMapping != null) {
       if (isPrimary) {
@@ -110,9 +115,11 @@ class SystemData extends DataClass {
   }
 
   void setGamepadMapping(
-      GameAction action, GamepadButtons? button, bool isPrimary) {
-    (GamepadButtons?, GamepadButtons?)? newGamepadMapping =
-        gamePadMappings[action];
+    GameAction action,
+    GamepadButtons? button,
+    bool isPrimary,
+  ) {
+    var newGamepadMapping = gamePadMappings[action];
 
     if (newGamepadMapping != null) {
       if (isPrimary) {
@@ -164,7 +171,7 @@ class SystemData extends DataClass {
   @HiveField(105)
   Map<GameAction, (int?, int?)> mouseButtonMappings = {
     GameAction.primary: (1, null),
-    GameAction.secondary: (2, null)
+    GameAction.secondary: (2, null),
   };
 
   @HiveField(110)
@@ -201,7 +208,7 @@ class SystemData extends DataClass {
   AimAssistStrength aimAssistStrength = AimAssistStrength.medium;
 
   Map<GameAction, GamepadButtons> constantGamePadMappings = {
-    GameAction.pause: GamepadButtons.buttonStart
+    GameAction.pause: GamepadButtons.buttonStart,
   };
 
   set setMusicVolume(double value) {
@@ -227,6 +234,15 @@ class SystemData extends DataClass {
     parentComponent?.notifyListeners();
     save();
   }
+
+  set setShowFPS(bool value) {
+    showFPS = value;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
+  List<GameLevel> availableLevels = [GameLevel.hexedForest];
+  List<GameDifficulty> availableDifficulties = [GameDifficulty.regular];
 }
 
 enum MouseButtons { primaryClick, scrollClick, secondaryClick, misc }
@@ -288,7 +304,7 @@ class GamepadEvent {
 
   @override
   String toString() =>
-      "GamepadEvent(button: $button, xyValue: $xyValue, value: $singleValue, isPressed: $pressState)";
+      'GamepadEvent(button: $button, xyValue: $xyValue, value: $singleValue, isPressed: $pressState)';
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -326,7 +342,7 @@ extension HelperFunctionsSystemData on SystemData {
   String? getBinding(GameAction gameAction, InputManager inputManager) {
     switch (inputManager.externalInputType) {
       case ExternalInputType.gamepad:
-        var gamepadMapping = gamePadMappings[gameAction];
+        final gamepadMapping = gamePadMappings[gameAction];
         if (gamepadMapping != null) {
           if (gamepadMapping.$1 != null) {
             return gamepadMapping.$1!.name.titleCase;
@@ -335,8 +351,8 @@ extension HelperFunctionsSystemData on SystemData {
           }
         }
       case ExternalInputType.mouseKeyboard:
-        var keyboardMapping = keyboardMappings[gameAction];
-        var mouseMapping = mouseButtonMappings[gameAction];
+        final keyboardMapping = keyboardMappings[gameAction];
+        final mouseMapping = mouseButtonMappings[gameAction];
         if (keyboardMapping != null) {
           if (keyboardMapping.$1 != null) {
             return keyboardMapping.$1!.debugName!.titleCase;
@@ -346,12 +362,12 @@ extension HelperFunctionsSystemData on SystemData {
           if (mouseMapping.$1 != null) {
             final mouseButton = getMouseButton(mouseMapping.$1!);
             return mouseButton == MouseButtons.misc
-                ? "Mouse Button ${mouseMapping.$1}"
+                ? 'Mouse Button ${mouseMapping.$1}'
                 : mouseButton.name.titleCase;
           } else if (mouseMapping.$2 != null) {
             final mouseButton = getMouseButton(mouseMapping.$2!);
             return mouseButton == MouseButtons.misc
-                ? "Mouse Button ${mouseMapping.$2}"
+                ? 'Mouse Button ${mouseMapping.$2}'
                 : mouseButton.name.titleCase;
           }
         } else if (keyboardMapping != null) {

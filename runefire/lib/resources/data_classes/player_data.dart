@@ -1,12 +1,12 @@
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/player/player_mixin.dart';
 
-import '../../attributes/attributes_permanent.dart';
-import '../../player/player.dart';
-import '../enums.dart';
+import 'package:runefire/attributes/attributes_permanent.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/enums.dart';
 import 'package:hive/hive.dart';
 
-import 'base.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 class PlayerDataComponent extends DataComponent {
@@ -27,7 +27,7 @@ class PlayerData extends DataClass with PlayerStatistics {
     //Parse player data
     experiencePoints += player.experiencePointsGained.round();
 
-    for (var element in DamageType.values) {
+    for (final element in DamageType.values) {
       damageDealt[element] =
           (damageDealt[element] ?? 0) + (player.damageDealt[element] ?? 0);
       totalDamageTaken[element] = (totalDamageTaken[element] ?? 0) +
@@ -37,7 +37,7 @@ class PlayerData extends DataClass with PlayerStatistics {
     damageHealed += player.damageHealed;
     damageDodged += player.damageDodged;
 
-    for (var element in EnemyType.values) {
+    for (final element in EnemyType.values) {
       enemiesKilled[element] =
           (enemiesKilled[element] ?? 0) + (player.enemiesKilled[element] ?? 0);
       enemiesKilledGuns[element] = (enemiesKilledGuns[element] ?? 0) +
@@ -68,26 +68,26 @@ class PlayerData extends DataClass with PlayerStatistics {
   GameLevel selectedLevel = GameLevel.hexedForest;
   CharacterType selectedPlayer = CharacterType.regular;
 
-  List<GameLevel> completedLevels = [];
+  // List<GameLevel> completedLevels = [];
   List<CharacterType> unlockedCharacters = [CharacterType.regular];
 
   bool characterUnlocked() {
     return unlockedCharacters.contains(selectedPlayer);
   }
 
-  bool unlockCharacter() {
-    if (characterUnlocked()) {
-      return true;
-    }
+  // bool unlockCharacter() {
+  //   if (characterUnlocked()) {
+  //     return true;
+  //   }
 
-    if (enoughMoney(selectedPlayer.unlockCost)) {
-      experiencePoints -= selectedPlayer.unlockCost;
-      unlockedCharacters.add(selectedPlayer);
-      parentComponent?.notifyListeners();
-      return true;
-    }
-    return false;
-  }
+  //   if (enoughMoney(selectedPlayer.unlockCost)) {
+  //     experiencePoints -= selectedPlayer.unlockCost;
+  //     unlockedCharacters.add(selectedPlayer);
+  //     parentComponent?.notifyListeners();
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   Map<int, WeaponType> selectedWeapons = {
     0: WeaponType.arcaneBlaster,
@@ -109,12 +109,12 @@ class PlayerData extends DataClass with PlayerStatistics {
     // WeaponType.phaseDagger,
     WeaponType.scryshot,
     // WeaponType.flameSword,
-    ...WeaponType.values
+    ...WeaponType.values,
   }..remove(WeaponType.flameSword);
 
   Map<SecondaryType, int> unlockedSecondarys = {
-    SecondaryType.pistol: 0,
-    SecondaryType.reloadAndRapidFire: 0
+    SecondaryType.pistolAttachment: 0,
+    SecondaryType.reloadAndRapidFire: 0,
   };
 
   Map<AttributeType, int> unlockedPermanentAttributes = {};
@@ -124,7 +124,9 @@ class PlayerData extends DataClass with PlayerStatistics {
   }
 
   bool unlockPermanentAttribute(AttributeType? attributeType) {
-    if (attributeType == null) return false;
+    if (attributeType == null) {
+      return false;
+    }
     final currentLevel = unlockedPermanentAttributes[attributeType] ?? 0;
     final currentAttribute = attributeType.buildAttribute(
       currentLevel,
@@ -171,13 +173,36 @@ class PlayerData extends DataClass with PlayerStatistics {
     parentComponent?.notifyListeners();
   }
 
-  void selectWeapon(int index, WeaponType weaponType) {
-    selectedWeapons[index] = weaponType;
+  void selectWeapon({
+    required int primaryOrSecondarySlot,
+    required WeaponType weaponType,
+  }) {
+    selectedWeapons[primaryOrSecondarySlot] = weaponType;
+    final tempWeaponBuilt = weaponType.buildTemp(
+      unlockedWeapons[weaponType] ?? 0,
+    );
+    final isCurrentSecondaryCompatible =
+        selectedSecondaries[primaryOrSecondarySlot]?.compatibilityCheck(
+              tempWeaponBuilt,
+            ) ??
+            true;
+
+    if (!isCurrentSecondaryCompatible) {
+      selectedSecondaries[primaryOrSecondarySlot] =
+          SecondaryType.values.firstWhere(
+        (element) => element.compatibilityCheck(tempWeaponBuilt),
+        orElse: () => SecondaryType.pistolAttachment,
+      );
+    }
+
     parentComponent?.notifyListeners();
   }
 
-  void selectSecondary(int index, SecondaryType secondaryType) {
-    selectedSecondaries[index] = secondaryType;
+  void selectSecondary(
+    int primaryOrSecondarySlot,
+    SecondaryType secondaryType,
+  ) {
+    selectedSecondaries[primaryOrSecondarySlot] = secondaryType;
     parentComponent?.notifyListeners();
   }
 }

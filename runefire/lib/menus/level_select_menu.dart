@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/input_manager.dart';
@@ -11,15 +12,15 @@ import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:infinite_carousel/infinite_carousel.dart';
 import 'package:recase/recase.dart';
-import '../resources/data_classes/player_data.dart';
-import 'custom_button.dart';
-import '../resources/constants/routes.dart' as routes;
-import 'menus.dart';
+import 'package:runefire/resources/data_classes/player_data.dart';
+import 'package:runefire/menus/custom_button.dart';
+import 'package:runefire/resources/constants/routes.dart' as routes;
+import 'package:runefire/menus/menus.dart';
 
 class LevelMenu extends StatefulWidget {
   const LevelMenu({
-    super.key,
     required this.gameRef,
+    super.key,
   });
   final GameRouter gameRef;
 
@@ -40,20 +41,25 @@ class _LevelMenuState extends State<LevelMenu> {
   }
 
   void onPlayerDataNotification() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {});
   }
 
   void setSelectedLevel(int index) {
     playerData.selectedLevel = levels.elementAt(index);
     playerData.parentComponent?.notifyListeners();
-    pageControllerLevel.animateToItem(index);
+
+    if (!playerData.selectedDifficulty.isUnlocked(
+        playerData, gameState.systemData, playerData.selectedLevel)) {
+      setSelectedDifficulty(1);
+    }
   }
 
   void setSelectedDifficulty(int index) {
     playerData.selectedDifficulty = GameDifficulty.values.elementAt(index);
     playerData.parentComponent?.notifyListeners();
-    pageControllerDifficulty.animateToItem(index);
   }
 
   late Iterable<GameLevel> levels;
@@ -61,7 +67,7 @@ class _LevelMenuState extends State<LevelMenu> {
   void initState() {
     super.initState();
     gameState = widget.gameRef.gameStateComponent.gameState;
-    levels = GameLevel.values.where((element) => element.name != "menu");
+    levels = GameLevel.values.where((element) => element.name != 'menu');
     selectedLevel = gameState.playerData.selectedLevel;
 
     playerDataNotifer =
@@ -70,147 +76,181 @@ class _LevelMenuState extends State<LevelMenu> {
     playerDataNotifer.addListener(onPlayerDataNotification);
 
     pageControllerLevel = InfiniteScrollController(
-        initialItem:
-            levels.toList().indexWhere((element) => element == selectedLevel));
+      initialItem:
+          levels.toList().indexWhere((element) => element == selectedLevel),
+    );
     pageControllerDifficulty = InfiniteScrollController(
-        initialItem: playerData.selectedDifficulty.index);
+      initialItem: playerData.selectedDifficulty.index,
+    );
 
-    pageControllerDifficulty.jumpToItem(playerData.selectedDifficulty.index);
+    // pageControllerDifficulty.jumpToItem(playerData.selectedDifficulty.index);
   }
 
   late GameLevel selectedLevel;
 
-  Widget buildTile(GameLevel? level, GameDifficulty? difficulty, int index,
-      ScrollController scrollController) {
-    bool isHovering = false;
-    bool isLevel = level != null;
+  Widget buildTile(
+    GameLevel? level,
+    GameDifficulty? difficulty,
+    int index,
+    ScrollController scrollController,
+  ) {
+    var isHovering = false;
+    final isLevel = level != null;
 
-    return StatefulBuilder(builder: (context, setstate) {
-      bool isSelected = (level == selectedLevel) ||
-          (difficulty == playerData.selectedDifficulty);
-      Color hoverColor = isSelected
-          ? ApolloColorPalette.offWhite.color
-          : isHovering
-              ? colorPalette.primaryColor
-              : colorPalette.secondaryColor;
-      return SizedBox(
-        height: 200,
-        width: 250,
-        child: CustomInputWatcher(
-          onHover: (value) {
-            setstate(
-              () {
-                isHovering = value;
-              },
-            );
-          },
-          scrollController: scrollController,
-          rowId: 1,
-          onPrimary: () {
-            if (isLevel) {
-              setSelectedLevel(index);
-            } else {
-              setSelectedDifficulty(index);
-            }
-          },
-          child: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(color: hoverColor, width: 6),
-                bottom: BorderSide(color: hoverColor, width: 6),
-                right: BorderSide(color: hoverColor, width: 6),
+    return StatefulBuilder(
+      builder: (context, setstate) {
+        final isSelected = (level == selectedLevel) ||
+            (difficulty == playerData.selectedDifficulty);
+        final isUnlocked = isLevel
+            ? level.isUnlocked(playerData, gameState.systemData)
+            : difficulty!.isUnlocked(
+                playerData, gameState.systemData, playerData.selectedLevel);
+
+        late final Color color;
+        if (!isUnlocked) {
+          color = (isHovering
+              ? ApolloColorPalette.lightGray.color
+              : ApolloColorPalette.mediumGray.color);
+        } else {
+          color = isSelected
+              ? (ApolloColorPalette.offWhite.color)
+              : isHovering
+                  ? colorPalette.primaryColor
+                  : colorPalette.secondaryColor;
+        }
+
+        return SizedBox(
+          height: 200,
+          width: 250,
+          child: CustomInputWatcher(
+            onHover: (value) {
+              setstate(
+                () {
+                  isHovering = value;
+                },
+              );
+            },
+            scrollController: scrollController,
+            rowId: 1,
+            onPrimaryUp: () {
+              if (!isUnlocked) {
+                return;
+              }
+              if (isLevel) {
+                setSelectedLevel(index);
+              } else {
+                setSelectedDifficulty(index);
+              }
+              (isLevel ? pageControllerLevel : pageControllerDifficulty)
+                  .jumpToItem(
+                index,
+              );
+            },
+            onPrimary: () {},
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(color: color, width: 6),
+                  bottom: BorderSide(color: color, width: 6),
+                  top: BorderSide(color: color, width: 6),
+                  right: BorderSide(color: color, width: 6),
+                ),
+                color: (isSelected
+                        ? gameState.portalColor().darken(.5)
+                        : Colors.black)
+                    .withOpacity(1),
               ),
-              color: (isSelected ? gameState.portalColor() : Colors.black)
-                  .withOpacity(.5),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                level?.name.titleCase ?? difficulty?.name.titleCase ?? "",
-                style: defaultStyle.copyWith(color: hoverColor),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  level?.name.titleCase ?? difficulty?.name.titleCase ?? '',
+                  style: defaultStyle.copyWith(color: color),
+                ),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   Function? exitFunction;
 
   void onExit() {
     if (exitFunction != null) {
-      exitFunction!();
+      exitFunction!.call();
     }
   }
 
   Widget buildPicker(bool isLevel) {
     return ShaderMask(
-        blendMode: BlendMode.dstIn,
-        shaderCallback: (bounds) {
-          return const LinearGradient(colors: [
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (bounds) {
+        return const LinearGradient(
+          colors: [
             Colors.transparent,
             Colors.black,
             // Colors.black,
-            Colors.transparent
-          ], stops: [
+            Colors.transparent,
+          ],
+          stops: [
             .2,
             .5,
             .8,
-          ], begin: Alignment.bottomCenter, end: Alignment.topCenter)
-              .createShader(bounds);
-        },
-        child: Align(
-          child: SizedBox(
-            width: 450,
-            child: InfiniteCarousel.builder(
-              scrollBehavior: ScrollConfiguration.of(context).copyWith(
-                  dragDevices: {
-                    PointerDeviceKind.touch,
-                    PointerDeviceKind.mouse
-                  },
-                  scrollbars: false),
-              itemCount: isLevel ? levels.length : GameDifficulty.values.length,
-              itemExtent: 120,
-              center: true,
-              velocityFactor: 0.2,
-              controller:
-                  isLevel ? pageControllerLevel : pageControllerDifficulty,
-              axisDirection: Axis.vertical,
-              loop: false,
-              itemBuilder: (context, itemIndex, realIndex) {
-                if (isLevel) {
-                  final element = levels.elementAt(itemIndex);
-
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: buildTile(
-                        element,
-                        null,
-                        itemIndex,
-                        isLevel
-                            ? pageControllerLevel
-                            : pageControllerDifficulty),
-                  );
-                } else {
-                  final element = GameDifficulty.values.elementAt(itemIndex);
-
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: buildTile(
-                        null,
-                        element,
-                        itemIndex,
-                        isLevel
-                            ? pageControllerLevel
-                            : pageControllerDifficulty),
-                  );
-                }
+          ],
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+        ).createShader(bounds);
+      },
+      child: Align(
+        child: SizedBox(
+          width: 450,
+          child: InfiniteCarousel.builder(
+            scrollBehavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
               },
+              scrollbars: false,
             ),
+            itemCount: isLevel ? levels.length : GameDifficulty.values.length,
+            itemExtent: 120,
+            controller:
+                isLevel ? pageControllerLevel : pageControllerDifficulty,
+            axisDirection: Axis.vertical,
+            loop: false,
+            itemBuilder: (context, itemIndex, realIndex) {
+              if (isLevel) {
+                final element = levels.elementAt(itemIndex);
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: buildTile(
+                    element,
+                    null,
+                    itemIndex,
+                    isLevel ? pageControllerLevel : pageControllerDifficulty,
+                  ),
+                );
+              } else {
+                final element = GameDifficulty.values.elementAt(itemIndex);
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: buildTile(
+                    null,
+                    element,
+                    itemIndex,
+                    isLevel ? pageControllerLevel : pageControllerDifficulty,
+                  ),
+                );
+              }
+            },
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   @override
@@ -233,29 +273,28 @@ class _LevelMenuState extends State<LevelMenu> {
         Positioned.fill(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(child: buildPicker(true)),
               Expanded(
-                  child: Column(
-                key: Key(playerData.selectedDifficulty.name),
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < difficultyDescription.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        difficultyDescription[i],
-                        style: defaultStyle.copyWith(fontSize: 30),
-                        textAlign: TextAlign.center,
-                      ),
-                    ).animate().fadeIn().moveY(begin: 5),
-                  const SizedBox(
-                    height: 25,
-                  )
-                ],
-              )),
+                child: Column(
+                  key: Key(playerData.selectedDifficulty.name),
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    for (var i = 0; i < difficultyDescription.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          difficultyDescription[i],
+                          style: defaultStyle.copyWith(fontSize: 30),
+                          textAlign: TextAlign.center,
+                        ),
+                      ).animate().fadeIn().moveY(begin: 5),
+                    const SizedBox(
+                      height: 25,
+                    ),
+                  ],
+                ),
+              ),
               Expanded(child: buildPicker(false)),
             ],
           ),
@@ -270,7 +309,7 @@ class _LevelMenuState extends State<LevelMenu> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: CustomButton(
-                  "Back",
+                  'Back',
                   zHeight: 1,
                   rowId: 666,
                   gameRef: widget.gameRef,
@@ -288,7 +327,7 @@ class _LevelMenuState extends State<LevelMenu> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: CustomButton(
-                  "Begin",
+                  'Begin',
                   zHeight: 1,
                   rowId: 666,
                   gameRef: widget.gameRef,

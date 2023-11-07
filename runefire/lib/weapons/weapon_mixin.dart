@@ -1116,14 +1116,14 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
 
 String buildWeaponDescription(
   WeaponDescription weaponDescription,
-  WeaponType weapon,
-  int level, [
+  Weapon builtWeapon, [
   bool isUnlocked = true,
 ]) {
   var returnString = '';
 
-  if (!isUnlocked) return ' - ';
-  final builtWeapon = weapon.buildTemp(level);
+  if (!isUnlocked) {
+    return ' - ';
+  }
 
   switch (weaponDescription) {
     case WeaponDescription.attackRate:
@@ -1206,6 +1206,8 @@ String buildWeaponDescription(
       }
 
       break;
+    case WeaponDescription.description:
+      returnString = '';
   }
 
   return returnString;

@@ -2,9 +2,9 @@ import 'package:flame/components.dart';
 import 'package:runefire/main.dart';
 import 'package:uuid/uuid.dart';
 
-import '../resources/functions/functions.dart';
-import 'enemy.dart';
-import '../entities/entity_mixin.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/entities/entity_mixin.dart';
 
 typedef TriggerFunction = bool Function();
 typedef FutureFunction = Future Function();
@@ -37,7 +37,7 @@ class EnemyState {
   final (double, double) stateDuration;
   final bool preventDoubleRandomFunction;
   final double minimumTimePassedBeforeStateChange;
-  final Function()? onStateStart;
+  final Function(double duration)? onStateStart;
   final Function()? onStateEnd;
   final bool isFinalState;
   final bool isBaseState;
@@ -55,7 +55,9 @@ class EnemyState {
   bool canStart() =>
       durationPassedCheck() &&
       triggerFunctions.fold<bool>(
-          true, (previousValue, elementD) => previousValue && elementD.call());
+        true,
+        (previousValue, elementD) => previousValue && elementD.call(),
+      );
 
   /// Initialize the event timer to call random functions periodically.
   void initEventTimer() {
@@ -63,24 +65,24 @@ class EnemyState {
         .addAiTimer(callRandomFunction, stateId, eventPeriodDuration);
   }
 
-  void initDurationTimer() {
+  double initDurationTimer() {
     final timerLimit = randomBetween(stateDuration);
     stateDurationTimer = TimerComponent(
       period: timerLimit,
-      onTick: () {
-        onStateEndCall();
-      },
+      onTick: onStateEndCall,
     )..addToParent(stateManagedAI);
+    return timerLimit;
   }
 
   /// Call the onStateStart function and start the event timer.
   Future<void> onStateStartCall() async {
+    var durationOfState = 0.0;
     if (stateDuration.$2 != 0) {
-      initDurationTimer();
+      durationOfState = initDurationTimer();
       initEventTimer();
     }
 
-    onStateStart?.call();
+    onStateStart?.call(durationOfState);
 
     if (stateDuration.$2 == 0 && !isBaseState) {
       await callRandomFunction();
@@ -196,7 +198,7 @@ mixin StateManagedAI
     // ⠀⠀⠀⢀⣴⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⣼⣿⣿⣿⣿⣷⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣏⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⠀⠀⣠⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⢀⣴⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀⠀⢠⣿⣿⢿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    bool enoughTimeHasPassed =
+    final enoughTimeHasPassed =
         durationSincePreviousStateChange > minimumTimeBeforeStateChange;
 
     if ((!enoughTimeHasPassed && firstStateChangeCompleted) ||
@@ -219,8 +221,8 @@ mixin StateManagedAI
       enemyStatesList = enemyStatesList.reversed.toList();
     }
 
-    for (var element in enemyStatesList) {
-      if ((element.canStart() || !firstStateChangeCompleted)) {
+    for (final element in enemyStatesList) {
+      if (element.canStart() || !firstStateChangeCompleted) {
         enemyStates[currentState ?? -1]?.onStateEndCall();
         currentState =
             enemyStates.keys.firstWhere((key) => enemyStates[key] == element);

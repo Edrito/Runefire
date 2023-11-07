@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:async' as async;
+import 'dart:math';
+import 'package:flame/effects.dart';
 import 'package:runefire/entities/entity_class.dart';
 
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide RotateEffect;
 import 'package:forge2d/src/dynamics/body.dart';
 import 'package:runefire/enemies/enemy_mixin.dart';
 import 'package:runefire/entities/entity_mixin.dart';
@@ -15,22 +17,23 @@ import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../resources/functions/functions.dart';
-import '../resources/enums.dart';
-import 'enemy.dart';
-import 'enemy_mushroom_constants.dart';
-import 'enemy_state_mixin.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/enemies/enemy_mushroom_constants.dart';
+import 'package:runefire/enemies/enemy_state_mixin.dart';
 
 class MushroomDummy extends Enemy with JumpFunctionality
 
 // MovementFunctionality,
 // DumbFollowAI,
 {
-  MushroomDummy(
-      {required super.initialPosition,
-      required super.enviroment,
-      required super.upgradeLevel,
-      required super.eventManagement}) {
+  MushroomDummy({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
     height.baseParameter = mushroomHopperBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
@@ -67,11 +70,12 @@ class MushroomDummy extends Enemy with JumpFunctionality
 
 class MushroomRunner extends Enemy
     with MovementFunctionality, TouchDamageFunctionality, DumbFollowAI {
-  MushroomRunner(
-      {required super.initialPosition,
-      required super.enviroment,
-      required super.upgradeLevel,
-      required super.eventManagement}) {
+  MushroomRunner({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
     height.baseParameter = 3;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
@@ -128,11 +132,12 @@ class MushroomHopper extends Enemy
         MovementFunctionality,
         HopFollowAI,
         TouchDamageFunctionality {
-  MushroomHopper(
-      {required super.initialPosition,
-      required super.enviroment,
-      required super.upgradeLevel,
-      required super.eventManagement}) {
+  MushroomHopper({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
     height.baseParameter = mushroomHopperBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
@@ -178,11 +183,12 @@ class MushroomHopper extends Enemy
 
 class MushroomBoomer extends Enemy
     with MovementFunctionality, FollowThenSuicideAI {
-  MushroomBoomer(
-      {required super.initialPosition,
-      required super.enviroment,
-      required super.upgradeLevel,
-      required super.eventManagement}) {
+  MushroomBoomer({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
     height.baseParameter = mushroomBoomerBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomBoomerBaseInvincibilityDuration;
@@ -198,11 +204,11 @@ class MushroomBoomer extends Enemy
       }
 
       final temp = AreaEffect(
-          position: body.worldCenter,
-          sourceEntity: this,
-          radius: 4 * ((upgradeLevel / 2)) + 2,
-          durationType: DurationType.instant,
-          damage: {DamageType.fire: (2, 15)});
+        position: body.worldCenter,
+        sourceEntity: this,
+        radius: 4 * ((upgradeLevel / 2)) + 2,
+        damage: {DamageType.fire: (2, 15)},
+      );
       gameEnviroment.addPhysicsComponent([temp]);
     });
   }
@@ -263,11 +269,12 @@ class MushroomShooter extends Enemy
         AttackFunctionality,
         DumbShoot,
         DumbFollowRangeAI {
-  MushroomShooter(
-      {required super.initialPosition,
-      required super.enviroment,
-      required super.upgradeLevel,
-      required super.eventManagement}) {
+  MushroomShooter({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
     height.baseParameter = mushroomShooterBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomShooterBaseInvincibilityDuration;
@@ -330,61 +337,87 @@ class MushroomSpinner extends Enemy
         AttackFunctionality,
         DumbFollowAI,
         StateManagedAI {
-  MushroomSpinner(
-      {required super.initialPosition,
-      required super.enviroment,
-      required super.upgradeLevel,
-      required super.eventManagement}) {
+  MushroomSpinner({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
     height.baseParameter = mushroomShooterBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomShooterBaseInvincibilityDuration;
     maxHealth.baseParameter = mushroomShooterBaseMaxHealth;
-    speed.baseParameter = mushroomShooterBaseSpeed;
+    speed.baseParameter = mushroomShooterBaseSpeed * .5;
     initialWeapons.add(WeaponType.blankProjectileWeapon);
 
-    bool initState = false;
+    var initState = false;
 
-    baseState = EnemyState(this,
-        priority: 0,
-        randomFunctions: [],
-        stateDuration: (0, 0),
-        triggerFunctions: []);
+    baseState = EnemyState(
+      this,
+      priority: 0,
+      randomFunctions: [],
+      stateDuration: (0, 1),
+      triggerFunctions: [],
+    );
 
     const spinDuration = 6.0;
+    late RotateEffect rotateEffect;
     enemyStates = {
       //Walking
-      0: EnemyState(this, priority: 0, randomFunctions: [],
-          onStateStart: () async {
-        await toggleIdleRunAnimations(false);
-
-        if (initState) {
-          setEntityAnimation("spin_end");
-        } else {
-          initState = true;
-        }
-        speed.baseParameter = .03;
-        touchDamage.damageBase.clear();
-      }, stateDuration: (4, 5), triggerFunctions: []),
+      0: EnemyState(
+        this,
+        priority: 0,
+        randomFunctions: [],
+        onStateStart: (duration) async {
+          await toggleIdleRunAnimations(false);
+          hitSinceLastSpin = false;
+          if (initState) {
+            setEntityAnimation('spin_end');
+          } else {
+            initState = true;
+          }
+        },
+        stateDuration: (3, 5),
+        triggerFunctions: [],
+      ),
       //Spinning
-      1: EnemyState(this,
-          priority: 5,
-          randomFunctions: [],
-          onStateEnd: () {
-            currentWeapon?.endAttacking();
-          },
-          stateDuration: (spinDuration, spinDuration * 1.5),
-          onStateStart: () async {
-            await toggleIdleRunAnimations(true);
-
-            setEntityAnimation("spin_start");
-            speed.baseParameter = .05;
+      1: EnemyState(
+        this,
+        priority: 5,
+        randomFunctions: [],
+        onStateEnd: () {
+          currentWeapon?.endAttacking();
+          speed.baseParameter = mushroomShooterBaseSpeed * .5;
+          touchDamage.damageBase.clear();
+          rotateEffect.removeFromParent();
+          entityAnimationsGroup.angle = 0;
+        },
+        stateDuration: (spinDuration, spinDuration * 1.5),
+        onStateStart: (duration) async {
+          await toggleIdleRunAnimations(true);
+          setEntityAnimation('spin_start').then((_) {
+            currentWeapon?.startAttacking();
+            speed.baseParameter = mushroomShooterBaseSpeed * 2;
             touchDamage.damageBase[DamageType.psychic] = (5, 10);
 
-            currentWeapon?.startAttacking();
-          },
-          triggerFunctions: [
-            () => center.distanceTo(gameEnviroment.player!.center) < 10
-          ]),
+            entityAnimationsGroup.add(
+              rotateEffect = RotateEffect.by(
+                pi / 18,
+                RepeatedEffectController(
+                  SineEffectController(
+                    period: 1 + (2 * rng.nextDouble()),
+                  ),
+                  duration.floor().clamp(1, 200),
+                ),
+              ),
+            );
+          });
+        },
+        triggerFunctions: [
+          () => center.distanceTo(gameEnviroment.player!.center) < 10,
+          () => hitSinceLastSpin,
+        ],
+      ),
     };
   }
 
@@ -394,10 +427,17 @@ class MushroomSpinner extends Enemy
   @override
   void update(double dt) {
     if (entityAnimationsGroup.animations?[EntityStatus.run] ==
-        entityAnimations["spin"]) {}
+        entityAnimations['spin']) {}
 
     moveCharacter();
     super.update(dt);
+  }
+
+  bool hitSinceLastSpin = false;
+  @override
+  void applyDamage(DamageInstance damage) {
+    hitSinceLastSpin = true;
+    super.applyDamage(damage);
   }
 
   @override
@@ -409,9 +449,9 @@ class MushroomSpinner extends Enemy
 
   Future<void> toggleIdleRunAnimations(bool isSpinning) async {
     if (isSpinning) {
-      entityAnimations[EntityStatus.idle] = entityAnimations["spin"]!.clone();
+      entityAnimations[EntityStatus.idle] = entityAnimations['spin']!.clone();
 
-      entityAnimations[EntityStatus.run] = entityAnimations["spin"]!.clone();
+      entityAnimations[EntityStatus.run] = entityAnimations['spin']!.clone();
     } else {
       await loadRunIdleAnimations();
     }
@@ -434,13 +474,13 @@ class MushroomSpinner extends Enemy
     entityAnimations[EntityStatus.dead] =
         await spriteAnimations.mushroomSpinnerDead1;
 
-    entityAnimations["spin_start"] =
+    entityAnimations['spin_start'] =
         await spriteAnimations.mushroomSpinnerSpinStart1;
 
-    entityAnimations["spin_end"] =
+    entityAnimations['spin_end'] =
         await spriteAnimations.mushroomSpinnerSpinEnd1;
 
-    entityAnimations["spin"] = await spriteAnimations.mushroomSpinnerSpin1;
+    entityAnimations['spin'] = await spriteAnimations.mushroomSpinnerSpin1;
   }
 
   @override
@@ -471,11 +511,12 @@ class MushroomBurrower extends Enemy
         AttackFunctionality,
         AimControlFunctionality,
         StateManagedAI {
-  MushroomBurrower(
-      {required super.initialPosition,
-      required super.enviroment,
-      required super.upgradeLevel,
-      required super.eventManagement}) {
+  MushroomBurrower({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
     height.baseParameter = mushroomShooterBaseHeight;
 
     invincibilityDuration.baseParameter =
@@ -488,49 +529,63 @@ class MushroomBurrower extends Enemy
 
     initialWeapons.add(WeaponType.blankProjectileWeapon);
 
-    bool initState = false;
+    var initState = false;
 
-    baseState = EnemyState(this,
-        priority: 0,
-        randomFunctions: [],
-        stateDuration: (0, 0),
-        triggerFunctions: []);
+    baseState = EnemyState(
+      this,
+      priority: 0,
+      randomFunctions: [],
+      stateDuration: (0, 0),
+      triggerFunctions: [],
+    );
 
     const groundDuration = 2.0;
     enemyStates = {
       //Out
-      0: EnemyState(this, priority: 0, randomFunctions: [],
-          onStateStart: () async {
-        toggleIdleRunAnimations(false);
-        if (initState) {
-          body.setTransform(
-              SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1), angle);
-          await setEntityAnimation("burrow_out")
-              .then((value) => setEntityAnimation(EntityStatus.idle));
-        } else {
-          initState = true;
-        }
+      0: EnemyState(
+        this,
+        priority: 0,
+        randomFunctions: [],
+        onStateStart: (duration) async {
+          toggleIdleRunAnimations(false);
+          if (initState) {
+            body.setTransform(
+              SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1),
+              angle,
+            );
+            await setEntityAnimation('burrow_out')
+                .then((value) => setEntityAnimation(EntityStatus.idle));
+          } else {
+            initState = true;
+          }
 
-        touchDamage.damageBase[DamageType.physical] = (10, 15);
-        collision.removeKey(entityId);
+          touchDamage.damageBase[DamageType.physical] = (10, 15);
+          collision.removeKey(entityId);
 
-        final count = 2 + (rng.nextBool() ? 0 : 2);
-        currentWeapon?.attackCountIncrease.baseParameter = count;
+          final count = 2 + (rng.nextBool() ? 0 : 2);
+          currentWeapon?.attackCountIncrease.baseParameter = count;
 
-        currentWeapon?.startAttacking();
-      }, stateDuration: (4, 5), triggerFunctions: [], onStateEnd: () {}),
+          currentWeapon?.startAttacking();
+        },
+        stateDuration: (4, 5),
+        triggerFunctions: [],
+        onStateEnd: () {},
+      ),
       //In
-      1: EnemyState(this,
-          priority: 5,
-          randomFunctions: [],
-          stateDuration: (groundDuration, groundDuration * 1.5),
-          onStateStart: () {
-        setEntityAnimation("burrow_in")
-            .then((value) => setEntityAnimation(EntityStatus.idle));
-        toggleIdleRunAnimations(true);
-        touchDamage.damageBase.clear();
-        collision.setIncrease(entityId, false);
-      }, triggerFunctions: []),
+      1: EnemyState(
+        this,
+        priority: 5,
+        randomFunctions: [],
+        stateDuration: (groundDuration, groundDuration * 1.5),
+        onStateStart: (duration) {
+          setEntityAnimation('burrow_in')
+              .then((value) => setEntityAnimation(EntityStatus.idle));
+          toggleIdleRunAnimations(true);
+          touchDamage.damageBase.clear();
+          collision.setIncrease(entityId, false);
+        },
+        triggerFunctions: [],
+      ),
     };
   }
 
@@ -564,10 +619,10 @@ class MushroomBurrower extends Enemy
     toggleIdleRunAnimations(false);
     entityAnimations[EntityStatus.dead] =
         await spriteAnimations.mushroomBurrowerDead1;
-    entityAnimations["burrow_in"] =
+    entityAnimations['burrow_in'] =
         await spriteAnimations.mushroomBurrowerBurrowIn1
           ..stepTime = burrowSpeed / 9;
-    entityAnimations["burrow_out"] =
+    entityAnimations['burrow_out'] =
         await spriteAnimations.mushroomBurrowerBurrowOut1
           ..stepTime = burrowSpeed / 9;
   }

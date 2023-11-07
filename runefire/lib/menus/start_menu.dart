@@ -5,14 +5,14 @@ import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
-import 'custom_button.dart';
+import 'package:runefire/menus/custom_button.dart';
 
-import 'menus.dart';
+import 'package:runefire/menus/menus.dart';
 
 class StartMenu extends StatefulWidget {
   const StartMenu({
-    super.key,
     required this.gameRef,
+    super.key,
   });
   final GameRouter gameRef;
 
@@ -29,23 +29,30 @@ class _StartMenuState extends State<StartMenu> {
   void initState() {
     super.initState();
     startButtonComponent = CustomButton(
-      "Start Game",
+      'Start Game',
       gameRef: widget.gameRef,
-      rowId: 0,
       onPrimary: () {
         widget.gameRef.gameStateComponent.gameState
             .changeMainMenuPage(MenuPageType.weaponMenu);
       },
     );
-    optionsButtonComponent = CustomButton("Options",
-        gameRef: widget.gameRef, rowId: 1, onPrimary: () {
-      widget.gameRef.gameStateComponent.gameState
-          .changeMainMenuPage(MenuPageType.options);
-    });
-    exitButtonComponent =
-        CustomButton("Exit", gameRef: widget.gameRef, rowId: 2, onPrimary: () {
-      exit(0);
-    });
+    optionsButtonComponent = CustomButton(
+      'Options',
+      gameRef: widget.gameRef,
+      rowId: 1,
+      onPrimary: () {
+        widget.gameRef.gameStateComponent.gameState
+            .changeMainMenuPage(MenuPageType.options);
+      },
+    );
+    exitButtonComponent = CustomButton(
+      'Exit',
+      gameRef: widget.gameRef,
+      rowId: 2,
+      onPrimary: () {
+        exit(0);
+      },
+    );
   }
 
   @override
@@ -53,32 +60,7 @@ class _StartMenuState extends State<StartMenu> {
     final size = MediaQuery.of(context).size;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Center(
-        //   child: ListView.builder(
-        //       itemCount: 10,
-        //       shrinkWrap: true,
-        //       itemBuilder: (context, index) {
-        //         bool testHoverTest = false;
-
-        //         return StatefulBuilder(builder: (context, setState) {
-        //           return Center(
-        //             child: CustomInputWatcher(
-        //               onHover: (isHover) {
-        //                 testHoverTest = isHover;
-        //                 setState(() {});
-        //               },
-        //               child: Text(
-        //                 testHoverTest ? "Test" : "Kinda works tho",
-        //                 style: defaultStyle,
-        //               ),
-        //             ),
-        //           );
-        //         });
-        //       }),
-        // ),
-
         Expanded(
           child: Align(
             alignment: Alignment.topCenter,
@@ -91,25 +73,34 @@ class _StartMenuState extends State<StartMenu> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text("RuneFire",
-                            style: defaultStyle.copyWith(
-                                fontSize: size.shortestSide / 7,
-                                color: ApolloColorPalette.blue.color,
-                                shadows: [])),
+                        child: Text(
+                          'RuneFire',
+                          style: defaultStyle.copyWith(
+                            fontSize: size.shortestSide / 7,
+                            color: ApolloColorPalette.blue.color,
+                            shadows: [],
+                          ),
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(3),
-                        child: Text("RuneFire",
-                            style: defaultStyle.copyWith(
-                                fontSize: size.shortestSide / 7,
-                                color: ApolloColorPalette.lightBlue.color,
-                                shadows: [])),
-                      ),
-                      Text("RuneFire",
+                        child: Text(
+                          'RuneFire',
                           style: defaultStyle.copyWith(
-                              fontSize: size.shortestSide / 7,
-                              color: ApolloColorPalette.lightCyan.color,
-                              shadows: [])),
+                            fontSize: size.shortestSide / 7,
+                            color: ApolloColorPalette.lightBlue.color,
+                            shadows: [],
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'RuneFire',
+                        style: defaultStyle.copyWith(
+                          fontSize: size.shortestSide / 7,
+                          color: ApolloColorPalette.lightCyan.color,
+                          shadows: [],
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -125,10 +116,11 @@ class _StartMenuState extends State<StartMenu> {
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 startButtonComponent,
                 optionsButtonComponent,
-                exitButtonComponent
+                exitButtonComponent,
               ],
             ),
           ),

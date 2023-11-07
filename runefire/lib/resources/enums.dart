@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/events/event_management.dart';
@@ -9,6 +10,8 @@ import 'package:runefire/player/player_constants.dart' as player_constants;
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
+import 'package:runefire/resources/data_classes/player_data.dart';
+import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/player_magic_weapons.dart';
@@ -17,18 +20,18 @@ import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/weapons/player_projectile_weapons.dart';
 
-import '../enemies/enemy.dart';
-import '../enemies/enemy_mushroom.dart';
-import '../entities/entity_class.dart';
-import '../player/player.dart';
-import '../game/background.dart';
-import '../game/enviroment.dart';
-import '../game/hexed_forest_game.dart';
-import '../game/menu_game.dart';
-import '../weapons/enemy_weapons.dart';
-import '../weapons/projectiles.dart';
-import '../weapons/secondary_abilities.dart';
-import '../weapons/weapon_class.dart';
+import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/enemies/enemy_mushroom.dart';
+import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/game/background.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/game/hexed_forest_game.dart';
+import 'package:runefire/game/menu_game.dart';
+import 'package:runefire/weapons/enemy_weapons.dart';
+import 'package:runefire/weapons/projectiles.dart';
+import 'package:runefire/weapons/secondary_abilities.dart';
+import 'package:runefire/weapons/weapon_class.dart';
 
 enum AudioType {
   sfx,
@@ -70,46 +73,53 @@ extension EnemyTypeExtension on EnemyType {
     switch (this) {
       case EnemyType.mushroomHopper:
         return MushroomHopper(
-            initialPosition: position,
-            enviroment: gameEnviroment,
-            eventManagement: eventManagement,
-            upgradeLevel: level);
+          initialPosition: position,
+          enviroment: gameEnviroment,
+          eventManagement: eventManagement,
+          upgradeLevel: level,
+        );
       case EnemyType.mushroomBoomer:
         return MushroomBoomer(
-            initialPosition: position,
-            eventManagement: eventManagement,
-            enviroment: gameEnviroment,
-            upgradeLevel: level);
+          initialPosition: position,
+          eventManagement: eventManagement,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
       case EnemyType.mushroomShooter:
         return MushroomShooter(
-            eventManagement: eventManagement,
-            initialPosition: position,
-            enviroment: gameEnviroment,
-            upgradeLevel: level);
+          eventManagement: eventManagement,
+          initialPosition: position,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
       case EnemyType.mushroomBurrower:
         return MushroomBurrower(
-            eventManagement: eventManagement,
-            initialPosition: position,
-            enviroment: gameEnviroment,
-            upgradeLevel: level);
+          eventManagement: eventManagement,
+          initialPosition: position,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
       case EnemyType.mushroomSpinner:
         return MushroomSpinner(
-            initialPosition: position,
-            eventManagement: eventManagement,
-            enviroment: gameEnviroment,
-            upgradeLevel: level);
+          initialPosition: position,
+          eventManagement: eventManagement,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
       case EnemyType.mushroomRunner:
         return MushroomRunner(
-            initialPosition: position,
-            eventManagement: eventManagement,
-            enviroment: gameEnviroment,
-            upgradeLevel: level);
+          initialPosition: position,
+          eventManagement: eventManagement,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
       default:
         return MushroomDummy(
-            initialPosition: position,
-            eventManagement: eventManagement,
-            enviroment: gameEnviroment,
-            upgradeLevel: level);
+          initialPosition: position,
+          eventManagement: eventManagement,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
     }
   }
 }
@@ -131,6 +141,7 @@ enum WeaponDescription {
   semiOrAuto,
   maxAmmo,
   additionalAttackCount,
+  description,
 }
 
 enum SemiAutoType { regular, release, charge }
@@ -186,21 +197,38 @@ enum CharacterType { regular, sorcerer, warlock, wizard, witch, unknown }
 
 //Unlock cost
 extension CharacterTypeUnlockCost on CharacterType {
-  int get unlockCost {
+  // int get unlockCost {
+  //   switch (this) {
+  //     case CharacterType.regular:
+  //       return 0;
+  //     case CharacterType.sorcerer:
+  //       return 10000;
+
+  //     case CharacterType.warlock:
+  //       return 10000;
+  //     case CharacterType.wizard:
+  //       return 10000;
+  //     case CharacterType.witch:
+  //       return 10000;
+  //     case CharacterType.unknown:
+  //       return 20000;
+  //   }
+  // }
+  String get characterCharacteristics {
     switch (this) {
       case CharacterType.regular:
-        return 0;
-      case CharacterType.sorcerer:
-        return 10000;
+        return 'No notable features, just a regular mage.';
+      default:
+        return 'misc ${rng.nextDouble()}';
+    }
+  }
 
-      case CharacterType.warlock:
-        return 10000;
-      case CharacterType.wizard:
-        return 10000;
-      case CharacterType.witch:
-        return 10000;
-      case CharacterType.unknown:
-        return 20000;
+  String get howToUnlock {
+    switch (this) {
+      case CharacterType.regular:
+        return '...';
+      default:
+        return 'find them lol! ${rng.nextDouble()}';
     }
   }
 }
@@ -219,12 +247,12 @@ extension GameDifficultyExtension on GameDifficulty {
       case GameDifficulty.hard:
         return [
           'Enemies have more health, hit harder, and are faster.',
-          'Gain increased experience.'
+          'Gain increased experience.',
         ];
       case GameDifficulty.chaos:
         return [
           'Enemies will also gain your abilities.',
-          'Unique and powerful weapons can be discovered.'
+          'Unique and powerful weapons can be discovered.',
         ];
     }
   }
@@ -239,6 +267,30 @@ extension GameDifficultyExtension on GameDifficulty {
         return ApolloColorPalette.red.color;
       case GameDifficulty.chaos:
         return ApolloColorPalette.purple.color;
+    }
+  }
+
+  bool isUnlocked(
+    PlayerData playerData,
+    SystemData systemData,
+    GameLevel gameLevel,
+  ) {
+    if (!systemData.availableDifficulties.contains(this) && !kDebugMode) {
+      return false;
+    }
+    switch (this) {
+      case GameDifficulty.quick:
+        return true;
+      case GameDifficulty.regular:
+        return true;
+      case GameDifficulty.hard:
+        return playerData.gamesWon.keys
+            .contains((gameLevel, GameDifficulty.regular));
+      case GameDifficulty.chaos:
+        return playerData.gamesWon.keys
+            .contains((gameLevel, GameDifficulty.hard));
+      default:
+        return false;
     }
   }
 }
@@ -285,6 +337,24 @@ extension GameLevelExtension on GameLevel {
         return ApolloColorPalette.extraLightGray.color;
       default:
         return Colors.green;
+    }
+  }
+
+  bool isUnlocked(PlayerData playerData, SystemData systemData) {
+    if (!systemData.availableLevels.contains(this) && !kDebugMode) {
+      return false;
+    }
+    switch (this) {
+      case GameLevel.hexedForest:
+        return true;
+      case GameLevel.dungeon:
+        return playerData.gamesWon.keys
+            .any((element) => element.$1 == GameLevel.hexedForest);
+      case GameLevel.graveyard:
+        return playerData.gamesWon.keys
+            .any((element) => element.$1 == GameLevel.dungeon);
+      default:
+        return false;
     }
   }
 
@@ -395,44 +465,49 @@ enum ProjectileType {
 }
 
 extension ProjectileTypeExtension on ProjectileType {
-  Projectile generateProjectile(
-      {required Vector2 delta,
-      required Vector2 originPositionVar,
-      required ProjectileFunctionality ancestorVar,
-      DamageType? primaryDamageType,
-      double size = .3,
-      double chargeAmount = 1}) {
+  Projectile generateProjectile({
+    required Vector2 delta,
+    required Vector2 originPositionVar,
+    required ProjectileFunctionality ancestorVar,
+    DamageType? primaryDamageType,
+    double size = .3,
+    double chargeAmount = 1,
+  }) {
     switch (this) {
       case ProjectileType.laser:
         return PaintLaser(
-            originPosition: originPositionVar,
-            size: size,
-            delta: delta,
-            weaponAncestor: ancestorVar,
-            power: chargeAmount);
+          originPosition: originPositionVar,
+          size: size,
+          delta: delta,
+          weaponAncestor: ancestorVar,
+          power: chargeAmount,
+        );
       case ProjectileType.followLaser:
         return FollowLaser(
-            originPosition: originPositionVar,
-            delta: delta,
-            size: size,
-            weaponAncestor: ancestorVar,
-            power: chargeAmount);
+          originPosition: originPositionVar,
+          delta: delta,
+          size: size,
+          weaponAncestor: ancestorVar,
+          power: chargeAmount,
+        );
       case ProjectileType.spriteBullet:
         return SpriteBullet(
-            originPosition: originPositionVar,
-            delta: delta,
-            size: size,
-            weaponAncestor: ancestorVar,
-            power: chargeAmount);
+          originPosition: originPositionVar,
+          delta: delta,
+          size: size,
+          weaponAncestor: ancestorVar,
+          power: chargeAmount,
+        );
       case ProjectileType.blackSpriteBullet:
         return SpriteBullet(
-            originPosition: originPositionVar,
-            delta: delta,
-            size: size,
-            customBulletName: "black",
-            weaponAncestor: ancestorVar,
-            // customHitAnimation: spriteAnimations.,
-            power: chargeAmount);
+          originPosition: originPositionVar,
+          delta: delta,
+          size: size,
+          customBulletName: 'black',
+          weaponAncestor: ancestorVar,
+          // customHitAnimation: spriteAnimations.,
+          power: chargeAmount,
+        );
 
       case ProjectileType.magicProjectile:
         return MagicalProjectile(
@@ -444,22 +519,24 @@ extension ProjectileTypeExtension on ProjectileType {
         );
       case ProjectileType.paintBullet:
         return PaintBullet(
-            weaponAncestor: ancestorVar,
-            originPosition: originPositionVar,
-            delta: delta,
-            primaryDamageType: primaryDamageType,
-            size: size,
-            power: chargeAmount);
+          weaponAncestor: ancestorVar,
+          originPosition: originPositionVar,
+          delta: delta,
+          primaryDamageType: primaryDamageType,
+          size: size,
+          power: chargeAmount,
+        );
 
       case ProjectileType.holyBullet:
         return SpriteBullet(
-            originPosition: originPositionVar,
-            delta: delta,
-            size: size,
-            weaponAncestor: ancestorVar,
-            customSpawnAnimation: spriteAnimations.holyBulletSpawn1,
-            customPlayAnimation: spriteAnimations.holyBulletPlay1,
-            power: chargeAmount);
+          originPosition: originPositionVar,
+          delta: delta,
+          size: size,
+          weaponAncestor: ancestorVar,
+          customSpawnAnimation: spriteAnimations.holyBulletSpawn1,
+          customPlayAnimation: spriteAnimations.holyBulletPlay1,
+          power: chargeAmount,
+        );
     }
   }
 }
@@ -473,9 +550,11 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
     switch (this) {
       case SecondaryType.reloadAndRapidFire:
         return RapidFire(primaryWeaponAncestor, 5, upgradeLevel);
-      case SecondaryType.pistol:
+      case SecondaryType.pistolAttachment:
         return BlankProjectileWeapon(
-            upgradeLevel, primaryWeaponAncestor?.entityAncestor!);
+          upgradeLevel,
+          primaryWeaponAncestor?.entityAncestor,
+        );
       case SecondaryType.explodeProjectiles:
         return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
     }
@@ -483,44 +562,89 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 }
 
 enum WeaponType {
-  // ghostHand('assets/images/weapons/pistol.png', 5, AttackType.melee, 0,hidden: true),
+  ///Guns
   crystalPistol('assets/images/weapons/pistol.png', 5, AttackType.guns, 0),
-  scryshot('assets/images/weapons/long_rifle.png', 5, AttackType.guns, 0),
   arcaneBlaster(
-      'assets/images/weapons/arcane_blaster.png', 5, AttackType.guns, 0),
-  prismaticBeam(
-      'assets/images/weapons/prismatic_beam.png', 5, AttackType.guns, 0),
-  railspire('assets/images/weapons/railspire.png', 5, AttackType.guns, 0),
-  swordOfJustice(
-      'assets/images/weapons/sword_of_justice.png', 5, AttackType.melee, 1250),
-  eldritchRunner(
-      'assets/images/weapons/eldritch_runner.png', 5, AttackType.guns, 0),
+    'assets/images/weapons/arcane_blaster.png',
+    5,
+    AttackType.guns,
+    0,
+  ),
   scatterBlast(
-      'assets/images/weapons/scatter_vine.png', 5, AttackType.guns, 500),
-  holySword('assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
-  frostKatana(
-      'assets/images/weapons/frost_katana.png', 5, AttackType.melee, 500),
-  flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
+    'assets/images/weapons/scatter_vine.png',
+    5,
+    AttackType.guns,
+    500,
+  ),
+
+  scryshot('assets/images/weapons/long_rifle.png', 5, AttackType.guns, 0),
+
+  prismaticBeam(
+    'assets/images/weapons/prismatic_beam.png',
+    5,
+    AttackType.guns,
+    0,
+  ),
+  railspire('assets/images/weapons/railspire.png', 5, AttackType.guns, 0),
+  eldritchRunner(
+    'assets/images/weapons/eldritch_runner.png',
+    5,
+    AttackType.guns,
+    0,
+  ),
+
+  ///Swords
+  crystalSword(
+    'assets/images/weapons/crystal_sword.png',
+    5,
+    AttackType.melee,
+    100,
+  ),
   phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.melee, 0),
-  blankProjectileWeapon(
-      'assets/images/weapons/dagger.png', 5, AttackType.guns, 0,
-      isPlayerWeapon: false),
+  spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
+  largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
+  frostKatana(
+    'assets/images/weapons/frost_katana.png',
+    5,
+    AttackType.melee,
+    500,
+  ),
+  holySword('assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
+  flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
+
+  swordOfJustice(
+    'assets/images/weapons/sword_of_justice.png',
+    5,
+    AttackType.melee,
+    1250,
+  ),
+
+  ///Magic
+  magicMissile('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   icecicleMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   psychicMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   fireballMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   energyMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
   magicBlast('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-  magicMissile('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-
-  largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
-  spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
   powerWord('assets/images/weapons/book_idle.png', 5, AttackType.magic, 1500),
-  crystalSword(
-      'assets/images/weapons/crystal_sword.png', 5, AttackType.melee, 100),
+
+  ///MISC
+  blankProjectileWeapon(
+    'assets/images/weapons/dagger.png',
+    5,
+    AttackType.guns,
+    0,
+    isPlayerWeapon: false,
+  ),
   ;
 
-  const WeaponType(this.icon, this.maxLevel, this.attackType, this.baseCost,
-      {this.isPlayerWeapon = true});
+  const WeaponType(
+    this.icon,
+    this.maxLevel,
+    this.attackType,
+    this.baseCost, {
+    this.isPlayerWeapon = true,
+  });
   final String icon;
   final int maxLevel;
   final AttackType attackType;
@@ -529,16 +653,19 @@ enum WeaponType {
 
   String get flameImage {
     final split = icon.split('/');
-    return "${split[2]}/${split[3]}";
+    return '${split[2]}/${split[3]}';
   }
 }
 
 extension WeaponTypeFilename on WeaponType {
-  Weapon build(AimFunctionality ancestor, SecondaryType? secondaryWeaponType,
-      GameRouter gameRouter,
-      [int? customWeaponLevel]) {
+  Weapon build(
+    AimFunctionality ancestor,
+    SecondaryType? secondaryWeaponType,
+    GameRouter gameRouter, [
+    int? customWeaponLevel,
+  ]) {
     Weapon? returnWeapon;
-    int upgradeLevel = customWeaponLevel ??
+    final upgradeLevel = customWeaponLevel ??
         gameRouter.playerDataComponent.dataObject.unlockedWeapons[this] ??
         0;
 
@@ -615,7 +742,7 @@ extension WeaponTypeFilename on WeaponType {
         break;
     }
     if (returnWeapon is SecondaryFunctionality && secondaryWeaponType != null) {
-      int secondaryWeaponUpgrade = gameRouter.playerDataComponent.dataObject
+      final secondaryWeaponUpgrade = gameRouter.playerDataComponent.dataObject
               .unlockedSecondarys[secondaryWeaponType] ??
           0;
       returnWeapon.setSecondaryFunctionality =
@@ -720,9 +847,9 @@ class DamageInstance {
 
   ///Modifies [damageMap] based on entity resistances
   void applyResistances(Entity other) {
-    for (var element in damageMap.entries) {
-      DamageType damageType = element.key;
-      double damageInc = element.value;
+    for (final element in damageMap.entries) {
+      final damageType = element.key;
+      var damageInc = element.value;
 
       damageInc *=
           other.damageTypeResistance.damagePercentIncrease[element.key] ??= 1;
@@ -732,8 +859,8 @@ class DamageInstance {
   }
 
   void checkCrit(bool force) {
-    double rngCrit = rng.nextDouble();
-    double critDamageIncrease = 1;
+    final rngCrit = rng.nextDouble();
+    var critDamageIncrease = 1.0;
     if (!force && victim.consumeMark()) {
       force = true;
     }
@@ -742,8 +869,10 @@ class DamageInstance {
                 (sourceWeapon?.critChance.parameter ?? 0) ||
         force) {
       isCrit = true;
-      critDamageIncrease = max(source.critDamage.parameter,
-          (sourceWeapon?.critDamage.parameter ?? 1));
+      critDamageIncrease = max(
+        source.critDamage.parameter,
+        sourceWeapon?.critDamage.parameter ?? 1,
+      );
     }
 
     increaseByPercent(critDamageIncrease);
@@ -765,7 +894,7 @@ class DamageInstance {
   bool isCrit;
 
   void increaseByPercent(double percent) {
-    for (var element in damageMap.entries) {
+    for (final element in damageMap.entries) {
       damageMap[element.key] = element.value * percent;
     }
   }
@@ -796,14 +925,22 @@ class DamageInstance {
 
 enum SecondaryType {
   reloadAndRapidFire(ImagesAssetsSecondaryIcons.rapidFire, 5, rapidReload, 500),
-  pistol(ImagesAssetsSecondaryIcons.blank, 5, alwaysCompatible, 500),
-  explodeProjectiles(ImagesAssetsSecondaryIcons.explodeProjectiles, 5,
-      weaponIsProjectileFunctionality, 500);
+  pistolAttachment(ImagesAssetsSecondaryIcons.blank, 5, alwaysCompatible, 500),
+  explodeProjectiles(
+    ImagesAssetsSecondaryIcons.explodeProjectiles,
+    5,
+    weaponShootsProjectiles,
+    500,
+  );
 
   const SecondaryType(
-      this.icon, this.maxLevel, this.compatibilityCheck, this.baseCost,
-      // ignore: unused_element
-      {this.isPlayerOnly = true});
+    this.icon,
+    this.maxLevel,
+    this.compatibilityCheck,
+    this.baseCost, {
+    // ignore: unused_element
+    this.isPlayerOnly = true,
+  });
 
   ///Based on a input weapon, return true or false to
   ///see if the weapon is compatible with the secondary ability
@@ -819,12 +956,14 @@ typedef CompatibilityFunction = bool Function(Weapon);
 bool alwaysCompatible(Weapon weapon) => true;
 
 bool weaponIsReloadFunctionality(Weapon weapon) {
-  bool test = weapon is ReloadFunctionality;
+  final test = weapon is ReloadFunctionality;
   return test;
 }
 
 bool rapidReload(Weapon weapon) {
-  if (weapon is! ReloadFunctionality) return false;
+  if (weapon is! ReloadFunctionality) {
+    return false;
+  }
 
   if (weapon is SemiAutomatic &&
       (weapon as SemiAutomatic).semiAutoType != SemiAutoType.regular) {
@@ -833,7 +972,14 @@ bool rapidReload(Weapon weapon) {
   return true;
 }
 
+bool weaponShootsProjectiles(Weapon weapon) {
+  final test = weapon is ProjectileFunctionality &&
+      weapon.projectileType != ProjectileType.laser &&
+      weapon.projectileType != ProjectileType.followLaser;
+  return test;
+}
+
 bool weaponIsProjectileFunctionality(Weapon weapon) {
-  bool test = weapon is ProjectileFunctionality;
+  final test = weapon is ProjectileFunctionality;
   return test;
 }

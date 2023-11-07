@@ -57,25 +57,30 @@ enum BarType {
   staminaBar,
 }
 
-class GameHud extends BaseHud with BossBar, ExperienceBar
-// , ElementalPowerIndicator
-{
+class GameHud extends BaseHud
+    with
+//  BossBar,
+        ExperienceBar {
   GameHud(super.gameEnviroment);
 }
 
 abstract class BaseHud extends PositionComponent {
   BaseHud(this.gameEnviroment) {
     hudScale = gameEnviroment.gameRef.systemDataComponent.dataObject.hudScale;
+    fpsEnabled = gameEnviroment.gameRef.systemDataComponent.dataObject.showFPS;
   }
-
+  late final bool fpsEnabled;
   late final Paint barBackPaint;
   late final SpriteComponent characterPortrait;
   late final CircleComponent characterPortraitBacking;
-  late final FpsTextComponent fpsCounter = FpsTextComponent(
-    textRenderer:
-        TextPaint(style: defaultStyle.copyWith(fontSize: hudFontSize * .75)),
-    anchor: Anchor.bottomRight,
-  )..loaded.then((value) => fpsTextPosition());
+  late FpsTextComponent fpsCounter = buildFpsTextComponent();
+
+  FpsTextComponent buildFpsTextComponent() => FpsTextComponent(
+        textRenderer: TextPaint(
+          style: defaultStyle.copyWith(fontSize: hudFontSize * .75),
+        ),
+        anchor: Anchor.bottomRight,
+      )..loaded.then((value) => fpsTextPosition());
 
   late final SpriteComponent healthBarEnd;
   late final SpriteComponent healthBarMid;
@@ -369,6 +374,9 @@ abstract class BaseHud extends PositionComponent {
   }
 
   void fpsTextPosition() {
+    if (!fpsEnabled) {
+      return;
+    }
     final heightPaddingBoss = bossBarHeightPadding(hudScale);
     final widthPaddingBoss = bossBarWidthPadding(hudScale);
     final heightBoss = bossBarHeight(hudScale);
@@ -515,6 +523,7 @@ abstract class BaseHud extends PositionComponent {
     healthEnergyFrame = SpriteAnimationComponent(
       animation: sprite,
       size: healthBarSize,
+      priority: -3,
     );
 
     healthBarEnd = SpriteComponent(
@@ -545,15 +554,12 @@ abstract class BaseHud extends PositionComponent {
       sprite: await Sprite.load(ImagesAssetsUi.staminaBarMid.flamePath),
     );
     //FPS
-
-    Future.delayed(1.seconds).then((_) {
-      add(fpsCounter);
-    });
+    if (fpsEnabled) {
+      Future.delayed(.25.seconds).then((_) {
+        add(fpsCounter);
+      });
+    }
     //Timer
-    // timerParent = HudMarginComponent(
-    //     margin: EdgeInsets.fromLTRB(0, 10 + height + heightPadding,
-    //         widthPadding + (110 * hudScale.scale), 0),
-    //     anchor: Anchor.center);
     timerText = CaTextComponent(
       anchor: Anchor.topRight,
       textRenderer: TextPaint(
@@ -609,9 +615,9 @@ abstract class BaseHud extends PositionComponent {
     topLeftMarginParent.add(healthEnergyFrame);
 
     topLeftMarginParent.add(levelWrapper);
+    // topLeftMarginParent.add(characterPortraitBacking);
     topLeftMarginParent.add(characterPortrait);
     topLeftMarginParent.add(expendableIcon);
-    topLeftMarginParent.add(characterPortraitBacking);
     topLeftMarginParent.addAll([
       staminaBarEnd,
       staminaBarMid,
@@ -631,7 +637,6 @@ abstract class BaseHud extends PositionComponent {
   @override
   void onParentResize(Vector2 maxSize) {
     if (isLoaded) {
-      fpsCounter.position.x = gameEnviroment.gameCamera.viewport.size.x - 200;
       size = gameEnviroment.gameCamera.viewport.size;
       levelTextPosition();
       fpsTextPosition();

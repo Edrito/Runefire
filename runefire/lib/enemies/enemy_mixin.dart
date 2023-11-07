@@ -8,7 +8,7 @@ import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/enviroment_interactables/proximity_item.dart';
 import 'package:runefire/main.dart';
 
-import '../resources/enums.dart';
+import 'package:runefire/resources/enums.dart';
 
 enum AimPattern {
   player,
@@ -37,7 +37,7 @@ mixin DropItemFunctionality on HealthFunctionality {
   List<Component> _calculateExperienceDrop() {
     ExperienceAmount? experienceAmount;
 
-    List<ExperienceItem> experienceAmounts = [];
+    final experienceAmounts = <ExperienceItem>[];
 
     final amountCalculated =
         rng.nextInt((experiencePerDrop.$2 - experiencePerDrop.$1) + 1) +
@@ -45,34 +45,39 @@ mixin DropItemFunctionality on HealthFunctionality {
     final spread = amountCalculated / 5;
 
     for (var i = 0; i < amountCalculated; i++) {
-      double chance = rng.nextDouble();
+      final chance = rng.nextDouble();
 
       final entryList = experienceRate.entries.toList();
       entryList.sort((a, b) => a.value.compareTo(b.value));
 
-      for (var element in entryList) {
+      for (final element in entryList) {
         if (element.value > chance) {
           experienceAmount = element.key;
           break;
         }
       }
-      if (experienceAmount == null) continue;
+      if (experienceAmount == null) {
+        continue;
+      }
 
-      experienceAmounts.add(ExperienceItem(
+      experienceAmounts.add(
+        ExperienceItem(
           experienceAmount: experienceAmount,
           originPosition: body.position +
-              ((Vector2.random() * spread) - Vector2.all(spread / 2))));
+              ((Vector2.random() * spread) - Vector2.all(spread / 2)),
+        ),
+      );
     }
     return experienceAmounts;
   }
 
   Component? _calculateExpendableDrop() {
-    double chance = rng.nextDouble();
+    final chance = rng.nextDouble();
     final entryList = expendableRate.entries.toList();
     entryList.sort((a, b) => rng.nextInt(2));
     entryList.sort((a, b) => a.value.compareTo(b.value));
     ExpendableType? expendableType;
-    for (var element in entryList) {
+    for (final element in entryList) {
       if (element.value > chance) {
         expendableType = element.key;
         break;
@@ -81,9 +86,10 @@ mixin DropItemFunctionality on HealthFunctionality {
 
     if (expendableType != null) {
       return expendableType.buildInteractable(
-          initialPosition:
-              body.position + ((Vector2.random() * 1) - Vector2.all(1 / 2)),
-          gameEnviroment: gameEnviroment);
+        initialPosition:
+            body.position + ((Vector2.random() * 1) - Vector2.all(1 / 2)),
+        gameEnviroment: gameEnviroment,
+      );
     }
     return null;
   }
@@ -99,9 +105,7 @@ mixin DropItemFunctionality on HealthFunctionality {
 
   @override
   Future<void> onLoad() {
-    onDeath.add((instance) {
-      _calculateDeathDrops(instance);
-    });
+    onDeath.add(_calculateDeathDrops);
     return super.onLoad();
   }
 }
@@ -160,10 +164,10 @@ mixin AimControlFunctionality on AimFunctionality {
 }
 
 mixin DumbFollowAI on Enemy, MovementFunctionality {
-  double targetUpdateFrequency = .3;
+  double targetUpdateFrequency = .25;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnviroment.player!.center - body.position);
+    final newPosition = gameEnviroment.player!.center - body.position;
     addMoveVelocity(newPosition, aiInputPriority);
   }
 
@@ -172,13 +176,19 @@ mixin DumbFollowAI on Enemy, MovementFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
     super.onRemove();
   }
 }
@@ -187,7 +197,9 @@ mixin DumbShoot on AttackFunctionality {
   double shootInterval = 2;
 
   void onTick() {
-    if (aimVector.isZero()) return;
+    if (aimVector.isZero()) {
+      return;
+    }
     startPrimaryAttacking();
     setEntityAnimation(EntityStatus.attack);
     endPrimaryAttacking();
@@ -230,13 +242,19 @@ mixin DumbFollowRangeAI on MovementFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-        _dumbFollowRangeTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowRangeTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-        _dumbFollowRangeTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowRangeTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
     super.onRemove();
   }
 }
@@ -246,17 +264,22 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
   bool inverse = false;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnviroment.player!.center - body.position);
+    final newPosition = gameEnviroment.player!.center - body.position;
 
     addMoveVelocity(
-        newPosition.normalized() * (inverse ? -1 : 1), aiInputPriority);
+      newPosition.normalized() * (inverse ? -1 : 1),
+      aiInputPriority,
+    );
   }
 
   TimerComponent? inverseTimer;
 
   @override
-  bool takeDamage(String id, DamageInstance damage,
-      [bool applyStatusEffect = true]) {
+  bool takeDamage(
+    String id,
+    DamageInstance damage, [
+    bool applyStatusEffect = true,
+  ]) {
     inverse = true;
     _dumbFollowTargetTick();
     if (inverseTimer == null) {
@@ -280,13 +303,19 @@ mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
     super.onRemove();
   }
 }
@@ -295,7 +324,7 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
   double targetUpdateFrequency = 1.5;
 
   void _dumbFollowTargetTick() {
-    final newPosition = (gameEnviroment.player!.center - body.position);
+    final newPosition = gameEnviroment.player!.center - body.position;
     removeMoveVelocity(absoluteOverrideInputPriority);
     addMoveVelocity(newPosition.normalized(), aiInputPriority);
     jump();
@@ -314,13 +343,19 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
     super.onRemove();
   }
 }
@@ -329,17 +364,26 @@ mixin FollowThenSuicideAI on MovementFunctionality, HealthFunctionality {
   double targetUpdateFrequency = .3;
   double distanceThreshold = 2;
 
-  void _dumbFollowTargetTick() async {
+  Future<void> _dumbFollowTargetTick() async {
     if (isDead) {
       eventManagement.removeAiTimer(
-          _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+        _dumbFollowTargetTick,
+        entityId,
+        targetUpdateFrequency,
+      );
       return;
     }
-    final newPosition = (gameEnviroment.player!.center - body.position);
+    final newPosition = gameEnviroment.player!.center - body.position;
     addMoveVelocity(newPosition.normalized(), aiInputPriority);
     if (center.distanceTo(gameEnviroment.player!.center) < distanceThreshold) {
-      await die(DamageInstance(
-          damageMap: {}, source: this, victim: this, sourceAttack: this));
+      await die(
+        DamageInstance(
+          damageMap: {},
+          source: this,
+          victim: this,
+          sourceAttack: this,
+        ),
+      );
     }
   }
 
@@ -348,13 +392,19 @@ mixin FollowThenSuicideAI on MovementFunctionality, HealthFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-        _dumbFollowTargetTick, entityId, targetUpdateFrequency);
+      _dumbFollowTargetTick,
+      entityId,
+      targetUpdateFrequency,
+    );
     super.onRemove();
   }
 }

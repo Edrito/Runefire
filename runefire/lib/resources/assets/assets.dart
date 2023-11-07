@@ -345,37 +345,29 @@ walk.flamePath,
 class ImagesAssetsMushroomSpinner {
 ///death.png
 static const FileDataClass death = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/death.png",flamePath:"enemy_sprites/mushroomSpinner/death.png", size:(640.0,64.0)  );///idle.png
+(path:"assets/images/enemy_sprites/mushroomSpinner/death.png",flamePath:"enemy_sprites/mushroomSpinner/death.png", size:(240.0,48.0)  );///idle.png
 static const FileDataClass idle = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/idle.png",flamePath:"enemy_sprites/mushroomSpinner/idle.png", size:(480.0,48.0)  );///jump.png
-static const FileDataClass jump = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/jump.png",flamePath:"enemy_sprites/mushroomSpinner/jump.png", size:(144.0,48.0)  );///run.png
+(path:"assets/images/enemy_sprites/mushroomSpinner/idle.png",flamePath:"enemy_sprites/mushroomSpinner/idle.png", size:(96.0,48.0)  );///run.png
 static const FileDataClass run = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/run.png",flamePath:"enemy_sprites/mushroomSpinner/run.png", size:(384.0,48.0)  );///spin.png
+(path:"assets/images/enemy_sprites/mushroomSpinner/run.png",flamePath:"enemy_sprites/mushroomSpinner/run.png", size:(96.0,48.0)  );///spin.png
 static const FileDataClass spin = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/spin.png",flamePath:"enemy_sprites/mushroomSpinner/spin.png", size:(336.0,48.0)  );///spin_end.png
+(path:"assets/images/enemy_sprites/mushroomSpinner/spin.png",flamePath:"enemy_sprites/mushroomSpinner/spin.png", size:(144.0,48.0)  );///spin_end.png
 static const FileDataClass spinEnd = 
 (path:"assets/images/enemy_sprites/mushroomSpinner/spin_end.png",flamePath:"enemy_sprites/mushroomSpinner/spin_end.png", size:(432.0,48.0)  );///spin_start.png
 static const FileDataClass spinStart = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/spin_start.png",flamePath:"enemy_sprites/mushroomSpinner/spin_start.png", size:(432.0,48.0)  );///walk.png
-static const FileDataClass walk = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/walk.png",flamePath:"enemy_sprites/mushroomSpinner/walk.png", size:(384.0,48.0)  );static  List<String> allFiles = [death.path,
+(path:"assets/images/enemy_sprites/mushroomSpinner/spin_start.png",flamePath:"enemy_sprites/mushroomSpinner/spin_start.png", size:(432.0,48.0)  );static  List<String> allFiles = [death.path,
 idle.path,
-jump.path,
 run.path,
 spin.path,
 spinEnd.path,
 spinStart.path,
-walk.path,
 ];
 static  List<String> allFilesFlame = [death.flamePath,
 idle.flamePath,
-jump.flamePath,
 run.flamePath,
 spin.flamePath,
 spinEnd.flamePath,
 spinStart.flamePath,
-walk.flamePath,
 ];
 }
 class ImagesAssetsEntityEffects {

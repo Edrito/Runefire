@@ -16,13 +16,13 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../entities/child_entities.dart';
-import '../resources/data_classes/base.dart';
-import '../resources/functions/custom.dart';
-import '../menus/overlays.dart';
-import '../resources/constants/priorities.dart';
-import '../resources/visuals.dart';
-import '../entities/entity_class.dart';
+import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/resources/data_classes/base.dart';
+import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/menus/overlays.dart';
+import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/entities/entity_class.dart';
 
 mixin ExperienceFunctionality on Entity {
   @override
@@ -61,25 +61,25 @@ mixin ExperienceFunctionality on Entity {
     game.gameStateComponent.gameState.pauseGame(attributeSelection.key);
   }
 
-  void preLevelUp() async {
+  Future<void> preLevelUp() async {
     if (previousLevelUpDelay != null) {
       levelUpQueue++;
       return;
     }
 
     previousLevelUpDelay = TimerComponent(
-        period: .3,
-        repeat: true,
-        onTick: () {
-          if (levelUpQueue > 0) {
-            levelUpQueue--;
-            levelUp();
-          } else {
-            previousLevelUpDelay?.removeFromParent();
-            previousLevelUpDelay = null;
-          }
-        })
-      ..addToParent(this);
+      period: .3,
+      repeat: true,
+      onTick: () {
+        if (levelUpQueue > 0) {
+          levelUpQueue--;
+          levelUp();
+        } else {
+          previousLevelUpDelay?.removeFromParent();
+          previousLevelUpDelay = null;
+        }
+      },
+    )..addToParent(this);
 
     levelUp();
   }
@@ -87,7 +87,7 @@ mixin ExperienceFunctionality on Entity {
   void levelUpFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
     if (attr != null && attr.onLevelUp.isNotEmpty) {
-      for (var element in attr.onLevelUp) {
+      for (final element in attr.onLevelUp) {
         element();
       }
     }
@@ -95,7 +95,7 @@ mixin ExperienceFunctionality on Entity {
 
   int calculateExperienceRequired(int level) {
     // Define the base experience required for level 1
-    int experienceRequired =
+    final experienceRequired =
         (baseExperiencePerLevel * pow(growthMultiplier, level - 1)).round();
 
     return experienceRequired;
@@ -104,7 +104,7 @@ mixin ExperienceFunctionality on Entity {
   // int get nextLevelExperienceRequired => pow(2, currentLevel + 1).toInt();
   // int get currentLevelExperienceRequired => pow(2, currentLevel).toInt();
   int get nextLevelExperienceRequired {
-    int returnInt = 0;
+    var returnInt = 0;
     for (var i = 1; i < currentLevel + 1; i++) {
       returnInt += calculateExperienceRequired(i);
     }
@@ -112,7 +112,7 @@ mixin ExperienceFunctionality on Entity {
   }
 
   int get currentLevelExperienceRequired {
-    int returnInt = 0;
+    var returnInt = 0;
     for (var i = 1; i < currentLevel; i++) {
       returnInt += calculateExperienceRequired(i);
     }
@@ -168,7 +168,7 @@ mixin PlayerStatisticsRecorder
   @override
   Future<void> onLoad() {
     onPreDamageOtherEntity.add((damage) {
-      for (var element in damage.damageMap.entries) {
+      for (final element in damage.damageMap.entries) {
         damageDealt.update(
           element.key,
           (value) => value + element.value,
@@ -181,28 +181,40 @@ mixin PlayerStatisticsRecorder
     onKillOtherEntity.add((instance) {
       if (instance.victim is! Enemy) return;
       final enemy = instance.victim as Enemy;
-      enemiesKilled.update(enemy.enemyType, (value) => value + 1,
-          ifAbsent: () => 1);
+      enemiesKilled.update(
+        enemy.enemyType,
+        (value) => value + 1,
+        ifAbsent: () => 1,
+      );
 
       switch (instance.attackType) {
         case AttackType.magic:
-          enemiesKilledMagic.update(enemy.enemyType, (value) => value + 1,
-              ifAbsent: () => 1);
+          enemiesKilledMagic.update(
+            enemy.enemyType,
+            (value) => value + 1,
+            ifAbsent: () => 1,
+          );
           break;
         case AttackType.guns:
-          enemiesKilledGuns.update(enemy.enemyType, (value) => value + 1,
-              ifAbsent: () => 1);
+          enemiesKilledGuns.update(
+            enemy.enemyType,
+            (value) => value + 1,
+            ifAbsent: () => 1,
+          );
           break;
         case AttackType.melee:
-          enemiesKilledMelee.update(enemy.enemyType, (value) => value + 1,
-              ifAbsent: () => 1);
+          enemiesKilledMelee.update(
+            enemy.enemyType,
+            (value) => value + 1,
+            ifAbsent: () => 1,
+          );
           break;
         default:
       }
     });
 
     onHitByOtherEntity.add((damage) {
-      for (var element in damage.damageMap.entries) {
+      for (final element in damage.damageMap.entries) {
         totalDamageTaken.update(
           element.key,
           (value) => value + element.value,
@@ -335,7 +347,7 @@ mixin PlayerStatistics {
   @HiveField(304)
   int runesFound = 0;
   List<(String, String)> buildStatStrings(bool includeGameStats) {
-    List<(String, String)> returnList = [];
+    final returnList = <(String, String)>[];
     if (includeGameStats) {
       // returnList.add(
       //     ("Games Won", gamesWon.values.reduce((a, b) => a + b).toString()));
@@ -348,58 +360,70 @@ mixin PlayerStatistics {
       //   longestGame.values.reduce((a, b) => a + b).toString()
       // ));
     }
-    returnList.add((
-      "Damage Dealt",
-      damageDealt.values
-          .fold(0.0, (previousValue, element) => previousValue + element)
-          .toStringAsFixed(0)
-    ));
-    returnList.add((
-      "Damage Taken",
-      totalDamageTaken.values
-          .fold(0.0, (previousValue, element) => previousValue + element)
-          .toStringAsFixed(0)
-    ));
-    returnList.add(("Damage Healed", damageHealed.toStringAsFixed(0)));
-    returnList.add(("Damage Dodged", damageDodged.toStringAsFixed(0)));
+    returnList.add(
+      (
+        'Damage Dealt',
+        damageDealt.values
+            .fold(0.0, (previousValue, element) => previousValue + element)
+            .toStringAsFixed(0)
+      ),
+    );
+    returnList.add(
+      (
+        'Damage Taken',
+        totalDamageTaken.values
+            .fold(0.0, (previousValue, element) => previousValue + element)
+            .toStringAsFixed(0)
+      ),
+    );
+    returnList.add(('Damage Healed', damageHealed.toStringAsFixed(0)));
+    returnList.add(('Damage Dodged', damageDodged.toStringAsFixed(0)));
 
-    returnList.add((
-      "Enemies Killed",
-      enemiesKilled.values
-          .fold(0, (previousValue, element) => previousValue + element)
-          .toStringAsFixed(0)
-    ));
-    returnList.add((
-      "Enemies Killed Magic",
-      enemiesKilledMagic.values
-          .fold(0, (previousValue, element) => previousValue + element)
-          .toStringAsFixed(0)
-    ));
-    returnList.add((
-      "Enemies Killed Guns",
-      enemiesKilledGuns.values
-          .fold(0, (previousValue, element) => previousValue + element)
-          .toStringAsFixed(0)
-    ));
-    returnList.add((
-      "Enemies Killed Melee",
-      enemiesKilledMelee.values
-          .fold(0, (previousValue, element) => previousValue + element)
-          .toStringAsFixed(0)
-    ));
+    returnList.add(
+      (
+        'Enemies Killed',
+        enemiesKilled.values
+            .fold(0, (previousValue, element) => previousValue + element)
+            .toStringAsFixed(0)
+      ),
+    );
+    returnList.add(
+      (
+        'Enemies Killed Magic',
+        enemiesKilledMagic.values
+            .fold(0, (previousValue, element) => previousValue + element)
+            .toStringAsFixed(0)
+      ),
+    );
+    returnList.add(
+      (
+        'Enemies Killed Guns',
+        enemiesKilledGuns.values
+            .fold(0, (previousValue, element) => previousValue + element)
+            .toStringAsFixed(0)
+      ),
+    );
+    returnList.add(
+      (
+        'Enemies Killed Melee',
+        enemiesKilledMelee.values
+            .fold(0, (previousValue, element) => previousValue + element)
+            .toStringAsFixed(0)
+      ),
+    );
 
-    returnList.add(("Projectiles Shot", projectilesShot.toString()));
-    returnList.add(("Melee Swings", meleeSwings.toString()));
-    returnList.add(("Magic Cast", magicCast.toString()));
-    returnList.add(("Times Reloaded", timesReloaded.toString()));
+    returnList.add(('Projectiles Shot', projectilesShot.toString()));
+    returnList.add(('Melee Swings', meleeSwings.toString()));
+    returnList.add(('Magic Cast', magicCast.toString()));
+    returnList.add(('Times Reloaded', timesReloaded.toString()));
 
-    returnList.add(("Jumped", jumped.toString()));
-    returnList.add(("Dashed", dashed.toString()));
-    returnList.add(("Distance Traveled", distanceTraveled.toString()));
-    returnList.add(("Total Stamina Used", totalStaminaUsed.toString()));
+    returnList.add(('Jumped', jumped.toString()));
+    returnList.add(('Dashed', dashed.toString()));
+    returnList.add(('Distance Traveled', distanceTraveled.toString()));
+    returnList.add(('Total Stamina Used', totalStaminaUsed.toString()));
 
-    returnList.add(("Items Picked Up", itemsPickedUp.toString()));
-    returnList.add(("Expendable Items Used", expendableItemsUsed.toString()));
+    returnList.add(('Items Picked Up', itemsPickedUp.toString()));
+    returnList.add(('Expendable Items Used', expendableItemsUsed.toString()));
 
     return returnList;
   }
@@ -433,35 +457,48 @@ mixin PlayerStatistics {
   }
 
   void modifyGameVariables(EndGameState gameState, GameEnviroment enviroment) {
+    final key = (enviroment.level, enviroment.difficulty);
     switch (gameState) {
       case EndGameState.win:
-        gamesWon.update(enviroment.level, (value) => value + 1,
-            ifAbsent: () => 1);
+        gamesWon.update(
+          key,
+          (value) => value + 1,
+          ifAbsent: () => 1,
+        );
         break;
       case EndGameState.playerDeath:
-        gamesLost.update(enviroment.level, (value) => value + 1,
-            ifAbsent: () => 1);
+        gamesLost.update(
+          key,
+          (value) => value + 1,
+          ifAbsent: () => 1,
+        );
         break;
       case EndGameState.quit:
-        gamesQuit.update(enviroment.level, (value) => value + 1,
-            ifAbsent: () => 1);
+        gamesQuit.update(
+          key,
+          (value) => value + 1,
+          ifAbsent: () => 1,
+        );
         break;
     }
 
     final currentGameTime = enviroment.timePassed;
-    final longestGameTime = longestGame[enviroment.level] ?? 0;
+    final longestGameTime = longestGame[key] ?? 0;
     if (currentGameTime > longestGameTime) {
-      longestGame.update(enviroment.level, (value) => currentGameTime,
-          ifAbsent: () => currentGameTime);
+      longestGame.update(
+        key,
+        (value) => currentGameTime,
+        ifAbsent: () => currentGameTime,
+      );
     }
   }
 
   @HiveField(400)
-  Map<GameLevel, int> gamesWon = {};
+  Map<(GameLevel, GameDifficulty), int> gamesWon = {};
   @HiveField(401)
-  Map<GameLevel, int> gamesLost = {};
+  Map<(GameLevel, GameDifficulty), int> gamesLost = {};
   @HiveField(402)
-  Map<GameLevel, int> gamesQuit = {};
+  Map<(GameLevel, GameDifficulty), int> gamesQuit = {};
   @HiveField(403)
-  Map<GameLevel, double> longestGame = {};
+  Map<(GameLevel, GameDifficulty), double> longestGame = {};
 }

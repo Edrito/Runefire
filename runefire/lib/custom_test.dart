@@ -28,7 +28,7 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
       final elementIncreasing = DamageType.values.random();
       player?.modifyElementalPower(elementIncreasing, .1);
       if (gameEnviroment.hud.isLoaded) {
-        gameEnviroment.hud.applyBossHitEffect(DamageType.values.random());
+        // gameEnviroment.hud.applyBossHitEffect(DamageType.values.random());
       }
     });
   }

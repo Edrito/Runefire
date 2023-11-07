@@ -517,6 +517,9 @@ class InputManager with WindowListener {
     double intensity, {
     bool? leftOnly,
   }) async {
+    if (kIsWeb || !Platform.isWindows) {
+      return;
+    }
     if (!_systemDataReference.gamepadVibrationEnabled ||
         !gamepadInputManager.gamepad.isConnected) {
       return;

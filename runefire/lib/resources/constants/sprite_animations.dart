@@ -10,14 +10,15 @@ Future<SpriteAnimation> loadSpriteAnimation(
   double stepTime,
   bool loop,
 ) async {
-  final sprite = (await Sprite.load(source));
-  Vector2 newScale = sprite.srcSize;
+  final sprite = await Sprite.load(source);
+  var newScale = sprite.srcSize;
   newScale = Vector2(newScale.x / numberOfSprites, newScale.y);
   return SpriteSheet(image: sprite.image, srcSize: newScale).createAnimation(
-      row: 0,
-      stepTime: stepTime,
-      loop: loop,
-      to: loop ? null : numberOfSprites);
+    row: 0,
+    stepTime: stepTime,
+    loop: loop,
+    to: loop ? null : numberOfSprites,
+  );
 }
 
 class SpriteAnimations {
@@ -32,89 +33,201 @@ class SpriteAnimations {
 //Character One
 
   late Future<SpriteAnimation> playerCharacterOneIdle1 = loadSpriteAnimation(
-      6, ImagesAssetsRuneknight.runeknightIdle1.flamePath, .15, true);
+    6,
+    ImagesAssetsRuneknight.runeknightIdle1.flamePath,
+    .15,
+    true,
+  );
   late Future<SpriteAnimation> playerCharacterOneJump1 = loadSpriteAnimation(
-      3, ImagesAssetsRuneknight.runeknightJump1.flamePath, .2, false);
+    3,
+    ImagesAssetsRuneknight.runeknightJump1.flamePath,
+    .2,
+    false,
+  );
   late Future<SpriteAnimation> playerCharacterOneDash1 = loadSpriteAnimation(
-      6, ImagesAssetsRuneknight.runeknightDash1.flamePath, .075, false);
+    6,
+    ImagesAssetsRuneknight.runeknightDash1.flamePath,
+    .075,
+    false,
+  );
   // late Future<SpriteAnimation> playerCharacterOneWalk1 =
   //     loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
   late Future<SpriteAnimation> playerCharacterOneRun1 = loadSpriteAnimation(
-      8, ImagesAssetsRuneknight.runeknightRun1.flamePath, .13, true);
+    8,
+    ImagesAssetsRuneknight.runeknightRun1.flamePath,
+    .13,
+    true,
+  );
   late Future<SpriteAnimation> playerCharacterOneHit1 = loadSpriteAnimation(
-      4, ImagesAssetsRuneknight.runeknightHit1.flamePath, .08, false);
+    4,
+    ImagesAssetsRuneknight.runeknightHit1.flamePath,
+    .08,
+    false,
+  );
   late Future<SpriteAnimation> playerCharacterOneDead1 = loadSpriteAnimation(
-      8, ImagesAssetsRuneknight.runeknightDeath1.flamePath, .2, false);
+    8,
+    ImagesAssetsRuneknight.runeknightDeath1.flamePath,
+    .2,
+    false,
+  );
 
 //Enemies
 //Mushroom Hopper
   late Future<SpriteAnimation> mushroomHopperIdle1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomHopper/idle.png', .1, true);
+    10,
+    'enemy_sprites/mushroomHopper/idle.png',
+    .1,
+    true,
+  );
   late Future<SpriteAnimation> mushroomHopperJump1 = loadSpriteAnimation(
-      3, 'enemy_sprites/mushroomHopper/jump.png', .1, false);
+    3,
+    'enemy_sprites/mushroomHopper/jump.png',
+    .1,
+    false,
+  );
   late Future<SpriteAnimation> mushroomHopperDead1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomHopper/death.png', .1, false);
+    10,
+    'enemy_sprites/mushroomHopper/death.png',
+    .1,
+    false,
+  );
 
 //Mushroom Runner
 
   late Future<SpriteAnimation> mushroomRunnerIdle1 = loadSpriteAnimation(
-      2, 'enemy_sprites/mushroomRunner/idle.png', .15, true);
+    2,
+    'enemy_sprites/mushroomRunner/idle.png',
+    .15,
+    true,
+  );
 
   late Future<SpriteAnimation> mushroomRunnerRun1 =
       loadSpriteAnimation(2, 'enemy_sprites/mushroomRunner/run.png', .15, true);
   late Future<SpriteAnimation> mushroomRunnerDead1 = loadSpriteAnimation(
-      4, 'enemy_sprites/mushroomRunner/dead.png', .15, false);
+    4,
+    'enemy_sprites/mushroomRunner/dead.png',
+    .15,
+    false,
+  );
 //Mushroom Boomer
 
   late Future<SpriteAnimation> mushroomBoomerIdle1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomBoomer/idle.png', .1, true);
+    10,
+    'enemy_sprites/mushroomBoomer/idle.png',
+    .1,
+    true,
+  );
   late Future<SpriteAnimation> mushroomBoomerWalk1 =
       loadSpriteAnimation(8, 'enemy_sprites/mushroomBoomer/walk.png', .1, true);
   late Future<SpriteAnimation> mushroomBoomerRun1 =
       loadSpriteAnimation(8, 'enemy_sprites/mushroomBoomer/run.png', .1, true);
   late Future<SpriteAnimation> mushroomBoomerDead1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomBoomer/death.png', .1, false);
+    10,
+    'enemy_sprites/mushroomBoomer/death.png',
+    .1,
+    false,
+  );
 
 //Mushroom Shooter
 
   late Future<SpriteAnimation> mushroomShooterIdle1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomShooter/idle.png', .1, true);
+    10,
+    'enemy_sprites/mushroomShooter/idle.png',
+    .1,
+    true,
+  );
   late Future<SpriteAnimation> mushroomShooterRun1 =
       loadSpriteAnimation(8, 'enemy_sprites/mushroomShooter/run.png', .1, true);
   late Future<SpriteAnimation> mushroomShooterDead1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomShooter/death.png', .1, false);
+    10,
+    'enemy_sprites/mushroomShooter/death.png',
+    .1,
+    false,
+  );
   late Future<SpriteAnimation> mushroomShooterAttack1 = loadSpriteAnimation(
-      3, 'enemy_sprites/mushroomShooter/jump.png', .1, false);
+    3,
+    'enemy_sprites/mushroomShooter/jump.png',
+    .1,
+    false,
+  );
 
 //Mushroom Spinner
 
   late Future<SpriteAnimation> mushroomSpinnerIdle1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomSpinner/idle.png', .1, true);
+    2,
+    'enemy_sprites/mushroomSpinner/idle.png',
+    .4,
+    true,
+  );
   late Future<SpriteAnimation> mushroomSpinnerSpinStart1 = loadSpriteAnimation(
-      9, 'enemy_sprites/mushroomSpinner/spin_start.png', .1, false);
+    9,
+    'enemy_sprites/mushroomSpinner/spin_start.png',
+    .05,
+    false,
+  );
   late Future<SpriteAnimation> mushroomSpinnerSpinEnd1 = loadSpriteAnimation(
-      9, 'enemy_sprites/mushroomSpinner/spin_end.png', .1, false);
+    9,
+    'enemy_sprites/mushroomSpinner/spin_end.png',
+    .05,
+    false,
+  );
   late Future<SpriteAnimation> mushroomSpinnerSpin1 = loadSpriteAnimation(
-      7, 'enemy_sprites/mushroomSpinner/spin.png', .02, true);
+    4,
+    'enemy_sprites/mushroomSpinner/spin.png',
+    .05,
+    true,
+  );
   late Future<SpriteAnimation> mushroomSpinnerDead1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomSpinner/death.png', .1, false);
-  late Future<SpriteAnimation> mushroomSpinnerRun1 =
-      loadSpriteAnimation(8, 'enemy_sprites/mushroomSpinner/run.png', .1, true);
+    5,
+    'enemy_sprites/mushroomSpinner/death.png',
+    .1,
+    false,
+  );
+  late Future<SpriteAnimation> mushroomSpinnerRun1 = loadSpriteAnimation(
+    2,
+    'enemy_sprites/mushroomSpinner/run.png',
+    .15,
+    true,
+  );
 
   late Future<SpriteAnimation> mushroomBurrowerIdle1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomSpinner/idle.png', .1, true);
+    10,
+    'enemy_sprites/mushroomSpinner/idle.png',
+    .1,
+    true,
+  );
   late Future<SpriteAnimation> mushroomBurrowerDead1 = loadSpriteAnimation(
-      10, 'enemy_sprites/mushroomBurrower/death.png', .1, false);
+    10,
+    'enemy_sprites/mushroomBurrower/death.png',
+    .1,
+    false,
+  );
   late Future<SpriteAnimation> mushroomBurrowerBurrowIn1 = loadSpriteAnimation(
-      9, 'enemy_sprites/mushroomBurrower/burrow_in.png', 1, false);
+    9,
+    'enemy_sprites/mushroomBurrower/burrow_in.png',
+    1,
+    false,
+  );
   late Future<SpriteAnimation> mushroomBurrowerBurrowOut1 = loadSpriteAnimation(
-      9, 'enemy_sprites/mushroomBurrower/burrow_out.png', 1, false);
+    9,
+    'enemy_sprites/mushroomBurrower/burrow_out.png',
+    1,
+    false,
+  );
 
 //WeaponHitEffects
   late Future<SpriteAnimation> slashEffect1 = loadSpriteAnimation(
-      4, 'weapons/melee/small_slash_effect.png', .07, false);
+    4,
+    'weapons/melee/small_slash_effect.png',
+    .07,
+    false,
+  );
   late Future<SpriteAnimation> crustEffect1 = loadSpriteAnimation(
-      4, 'weapons/melee/small_crush_effect.png', .07, false);
+    4,
+    'weapons/melee/small_crush_effect.png',
+    .07,
+    false,
+  );
   late Future<SpriteAnimation> scratchEffect1 =
       loadSpriteAnimation(6, ImagesAssetsMelee.scratch1.flamePath, .07, false);
 
@@ -123,11 +236,23 @@ class SpriteAnimations {
 
 //ChildEntities
   late Future<SpriteAnimation> hoveringCrystalIdle1 = loadSpriteAnimation(
-      6, 'attribute_sprites/hovering_crystal_6.png', .3, true);
+    6,
+    'attribute_sprites/hovering_crystal_6.png',
+    .3,
+    true,
+  );
   late Future<SpriteAnimation> hoveringCrystalAttack1 = loadSpriteAnimation(
-      6, 'attribute_sprites/hovering_crystal_attack_6.png', .05, false);
+    6,
+    'attribute_sprites/hovering_crystal_attack_6.png',
+    .05,
+    false,
+  );
   late Future<SpriteAnimation> elementalAbsorb1 = loadSpriteAnimation(
-      6, 'attribute_sprites/hovering_crystal_6.png', .05, false);
+    6,
+    'attribute_sprites/hovering_crystal_6.png',
+    .05,
+    false,
+  );
 //EnergyElemental
   late Future<SpriteAnimation> energyElementalIdle1 =
       loadSpriteAnimation(7, 'attribute_sprites/spark_child_1_7.png', .2, true);
@@ -148,28 +273,50 @@ class SpriteAnimations {
 //Status Effects
 
   late Future<SpriteAnimation> burnEffect1 = loadSpriteAnimation(
-      4,
-      ImagesAssetsStatusEffects.fireEffect.flamePath,
-      defaultFrameDuration,
-      true);
+    4,
+    ImagesAssetsStatusEffects.fireEffect.flamePath,
+    defaultFrameDuration,
+    true,
+  );
   late Future<SpriteAnimation> markedEffect1 = loadSpriteAnimation(
-      4,
-      ImagesAssetsAttributeSprites.markEnemy4.flamePath,
-      defaultFrameDuration,
-      true);
+    4,
+    ImagesAssetsAttributeSprites.markEnemy4.flamePath,
+    defaultFrameDuration,
+    true,
+  );
 
 //Weapon Effects
   late Future<SpriteAnimation> holyBulletSpawn1 = loadSpriteAnimation(
-      1, 'weapons/projectiles/bullets/holy_bullet_spawn.png', .1, false);
+    1,
+    'weapons/projectiles/bullets/holy_bullet_spawn.png',
+    .1,
+    false,
+  );
   late Future<SpriteAnimation> holyBulletPlay1 = loadSpriteAnimation(
-      1, 'weapons/projectiles/bullets/holy_bullet_play.png', 1, true);
+    1,
+    'weapons/projectiles/bullets/holy_bullet_play.png',
+    1,
+    true,
+  );
 
   late Future<SpriteAnimation> magicMuzzleFlash1 = loadSpriteAnimation(
-      5, 'weapons/projectiles/magic_muzzle_flash.png', .07, false);
+    5,
+    'weapons/projectiles/magic_muzzle_flash.png',
+    .07,
+    false,
+  );
   late Future<SpriteAnimation> fireMuzzleFlash1 = loadSpriteAnimation(
-      5, 'weapons/projectiles/fire_muzzle_flash.png', .03, false);
+    5,
+    'weapons/projectiles/fire_muzzle_flash.png',
+    .03,
+    false,
+  );
   late Future<SpriteAnimation> blackMuzzleFlash1 = loadSpriteAnimation(
-      5, 'weapons/projectiles/black_muzzle_flash.png', .03, false);
+    5,
+    'weapons/projectiles/black_muzzle_flash.png',
+    .03,
+    false,
+  );
 
 //Weapons
 //Guns
@@ -211,7 +358,11 @@ class SpriteAnimations {
   late Future<SpriteAnimation> aethertideSpearIdle1 =
       loadSpriteAnimation(1, 'weapons/spear.png', 1, true);
   late Future<SpriteAnimation> holySwordIdle1 = loadSpriteAnimation(
-      3, ImagesAssetsWeapons.holySwordIdle.flamePath, 1, true);
+    3,
+    ImagesAssetsWeapons.holySwordIdle.flamePath,
+    1,
+    true,
+  );
 
   late Future<SpriteAnimation> fireSwordIdle1 =
       loadSpriteAnimation(1, 'weapons/fire_sword.png', 1, true);
@@ -231,21 +382,41 @@ class SpriteAnimations {
   late Future<SpriteAnimation> fireChargeEnd1 =
       loadSpriteAnimation(4, 'weapons/charge/fire_charge_end.png', .07, false);
   late Future<SpriteAnimation> fireChargeSpawn1 = loadSpriteAnimation(
-      5, 'weapons/charge/fire_charge_spawn.png', .01, false);
+    5,
+    'weapons/charge/fire_charge_spawn.png',
+    .01,
+    false,
+  );
   late Future<SpriteAnimation> fireChargeCharged1 = loadSpriteAnimation(
-      6, 'weapons/charge/fire_charge_charged.png', .05, false);
+    6,
+    'weapons/charge/fire_charge_charged.png',
+    .05,
+    false,
+  );
 
 //UI
 
   late Future<SpriteAnimation> uiHealthBar1 =
       loadSpriteAnimation(1, 'ui/health_bar.png', 1, true);
   late Future<SpriteAnimation> exitArrow1 = loadSpriteAnimation(
-      8, ImagesAssetsEntityEffects.exitArrow.flamePath, .25, true);
+    8,
+    ImagesAssetsEntityEffects.exitArrow.flamePath,
+    .25,
+    true,
+  );
 
   //ENV EFFECTS
   late Future<SpriteAnimation> ghostHandAttack1 = loadSpriteAnimation(
-      20, ImagesAssetsEnemySprites.ghostHandAttackRed.flamePath, .1, false);
+    20,
+    ImagesAssetsEnemySprites.ghostHandAttackRed.flamePath,
+    .1,
+    false,
+  );
 
   late Future<SpriteAnimation> exitPortalBlue1 = loadSpriteAnimation(
-      4, ImagesAssetsEntityEffects.exitPortalBlue.flamePath, .2, true);
+    4,
+    ImagesAssetsEntityEffects.exitPortalBlue.flamePath,
+    .2,
+    true,
+  );
 }

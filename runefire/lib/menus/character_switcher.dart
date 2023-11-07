@@ -7,12 +7,12 @@ import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:recase/recase.dart';
 
-import '../main.dart';
+import 'package:runefire/main.dart';
 
 class CharacterSwitcher extends StatefulWidget {
   const CharacterSwitcher({
-    super.key,
     required this.gameRef,
+    super.key,
   });
   final GameRouter gameRef;
 
@@ -24,40 +24,42 @@ class _CharacterSwitcherState extends State<CharacterSwitcher> {
   Widget arrowButton({required bool isLeft}) {
     return Center(
       child: SizedBox(
-          height: 50,
-          child: ArrowButtonCustom(
-            onHoverColor: colorPalette.primaryColor,
-            offHoverColor: colorPalette.secondaryColor,
-            rowId: 5,
-            groupOrientation: Axis.horizontal,
-            onPrimary: () {
-              int currentPlayerIndex = widget
-                  .gameRef.playerDataComponent.dataObject.selectedPlayer.index;
-              if (isLeft) {
-                currentPlayerIndex--;
-              } else {
-                currentPlayerIndex++;
-              }
-              if (currentPlayerIndex >= CharacterType.values.length) {
-                currentPlayerIndex = 0;
-              } else if (currentPlayerIndex < 0) {
-                currentPlayerIndex = CharacterType.values.length - 1;
-              }
-              widget.gameRef.playerDataComponent.dataObject.selectedPlayer =
-                  CharacterType.values[currentPlayerIndex];
-              widget.gameRef.playerDataComponent.notifyListeners();
-            },
-            quaterTurns: isLeft ? 3 : 1,
-          )),
+        height: 50,
+        child: ArrowButtonCustom(
+          onHoverColor: colorPalette.primaryColor,
+          offHoverColor: colorPalette.secondaryColor,
+          rowId: 5,
+          groupOrientation: Axis.horizontal,
+          onPrimary: () {
+            var currentPlayerIndex = widget
+                .gameRef.playerDataComponent.dataObject.selectedPlayer.index;
+            if (isLeft) {
+              currentPlayerIndex--;
+            } else {
+              currentPlayerIndex++;
+            }
+            if (currentPlayerIndex >= CharacterType.values.length) {
+              currentPlayerIndex = 0;
+            } else if (currentPlayerIndex < 0) {
+              currentPlayerIndex = CharacterType.values.length - 1;
+            }
+            widget.gameRef.playerDataComponent.dataObject.selectedPlayer =
+                CharacterType.values[currentPlayerIndex];
+            widget.gameRef.playerDataComponent.notifyListeners();
+          },
+          quaterTurns: isLeft ? 3 : 1,
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    bool currentIsUnlocked =
+    final selectedCharacter =
+        widget.gameRef.playerDataComponent.dataObject.selectedPlayer;
+    final currentIsUnlocked =
         widget.gameRef.playerDataComponent.dataObject.characterUnlocked();
     return Align(
-      alignment: Alignment.center,
       child: SizedBox(
         height: 100,
         child: Row(
@@ -69,22 +71,27 @@ class _CharacterSwitcherState extends State<CharacterSwitcher> {
             const Spacer(),
             SizedBox(
               width: 250,
+              key: ValueKey(selectedCharacter),
               child: Column(
                 children: [
                   Text(
                     currentIsUnlocked
-                        ? widget.gameRef.playerDataComponent.dataObject
-                            .selectedPlayer.name.titleCase
-                        : "???",
+                        ? selectedCharacter.name.titleCase
+                        : '???',
                     style: defaultStyle,
                     textAlign: TextAlign.center,
                   ),
                   Text(
-                    "Information about character\nIf is unlocked, stats\nif hidden, how to unlock",
-                    style: defaultStyle.copyWith(fontSize: 18),
+                    currentIsUnlocked
+                        ? selectedCharacter.characterCharacteristics
+                        : selectedCharacter.howToUnlock,
+                    style: defaultStyle.copyWith(fontSize: 24),
                     textAlign: TextAlign.center,
-                  )
-                ].animate().fadeIn(),
+                  ),
+                ].animate().fadeIn().scale(
+                      begin: const Offset(1.1, 1.1),
+                      end: const Offset(1, 1),
+                    ),
               ),
             ),
             const Spacer(),

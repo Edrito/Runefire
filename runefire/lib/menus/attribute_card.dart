@@ -10,7 +10,7 @@ import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/functions.dart';
-import '../resources/visuals.dart';
+import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 class CustomCard extends StatefulWidget {
@@ -23,8 +23,8 @@ class CustomCard extends StatefulWidget {
     this.disableTouch = false,
     this.groupOrientation = Axis.horizontal,
     this.scrollController,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final ScrollController? scrollController;
   final GameRouter gameRef;
   final Function(DamageType? damageType)? onPrimary;
@@ -52,25 +52,27 @@ class _CustomCardState extends State<CustomCard> {
         : widget.attribute.attributeType.rarity.color.brighten(.1);
     final regularColor = Colors.grey.shade100;
 
-    bool hasDamageTypeSelector =
+    final hasDamageTypeSelector =
         widget.attribute.allowedDamageTypes.isNotEmpty &&
             widget.attribute.damageType == null;
 
-    TextStyle style =
+    final style =
         defaultStyle.copyWith(color: regularColor, fontSize: 30, shadows: []);
 
-    List<Widget> levelIndicators = [];
+    final levelIndicators = <Widget>[];
 
     if (widget.attribute.maxLevel != null) {
-      for (int i = 0; i < widget.attribute.upgradeLevel; i++) {
-        levelIndicators.add(Padding(
-          padding: const EdgeInsets.all(2),
-          child: Icon(
-            Icons.circle,
-            size: 25,
-            color: highlightColor.darken(.4),
+      for (var i = 0; i < widget.attribute.upgradeLevel; i++) {
+        levelIndicators.add(
+          Padding(
+            padding: const EdgeInsets.all(2),
+            child: Icon(
+              Icons.circle,
+              size: 25,
+              color: highlightColor.darken(.4),
+            ),
           ),
-        ));
+        );
       }
 
       for (var i = 0;
@@ -89,18 +91,16 @@ class _CustomCardState extends State<CustomCard> {
       }
     }
 
-    Widget attributeIcon = buildImageAsset(
+    final Widget attributeIcon = buildImageAsset(
       'assets/images/${widget.attribute.icon}',
       fit: BoxFit.contain,
       color: widget.attribute.damageType?.color ?? regularColor,
     );
 
-    Widget title = Positioned(
-      // top: 10,
+    final Widget title = Positioned(
       height: topPadding,
       left: 0,
       right: 0,
-      bottom: null,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
         child: Center(
@@ -116,11 +116,11 @@ class _CustomCardState extends State<CustomCard> {
     );
 
     final size = MediaQuery.of(context).size;
-    final double maxWidth =
-        !widget.smallCard ? (100 * (size.width / 400)).clamp(350, 450) : 400;
-    final double cardWidth = maxWidth;
+    final maxWidth =
+        !widget.smallCard ? (100 * (size.width / 400)).clamp(350, 450) : 400.0;
+    final cardWidth = maxWidth.toDouble();
     final cardHeight = cardWidth * (cardSize.height / cardSize.width);
-    Widget content = Container(
+    final Widget content = Container(
       color: highlightColor.withOpacity(.05),
       child: Padding(
         padding: widget.smallCard
@@ -140,7 +140,7 @@ class _CustomCardState extends State<CustomCard> {
                     child: Text(
                       widget.attribute.description(),
                       style: style.copyWith(
-                        fontSize: (style.fontSize! * .75),
+                        fontSize: style.fontSize! * .75,
                         color: style.color!.darken(.1),
                         fontWeight: FontWeight.w200,
                       ),
@@ -183,13 +183,13 @@ class _CustomCardState extends State<CustomCard> {
                         ),
                       )
                     : null,
-              )
+              ),
           ],
         ),
       ),
     );
 
-    Widget card = SizedBox(
+    final Widget card = SizedBox(
       height: cardHeight,
       width: cardWidth,
       child: Center(
@@ -206,11 +206,12 @@ class _CustomCardState extends State<CustomCard> {
                   children: [
                     title,
                     Positioned(
-                        height: cardHeight -
-                            (widget.smallCard ? topPadding / 1.15 : topPadding),
-                        width: cardWidth,
-                        bottom: 0,
-                        child: content),
+                      height: cardHeight -
+                          (widget.smallCard ? topPadding / 1.15 : topPadding),
+                      width: cardWidth,
+                      bottom: 0,
+                      child: content,
+                    ),
                   ],
                 ),
               ),
@@ -223,8 +224,9 @@ class _CustomCardState extends State<CustomCard> {
                 height: 80,
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(35),
-                      bottomRight: Radius.circular(35)),
+                    bottomLeft: Radius.circular(35),
+                    bottomRight: Radius.circular(35),
+                  ),
                   child: DamageTypeSelector(
                     widget.attribute.allowedDamageTypes,
                     (p0) {
@@ -240,17 +242,18 @@ class _CustomCardState extends State<CustomCard> {
               hideBackground: true,
               attributeType: widget.attribute.attributeType,
               hideBaseBorder: widget.smallCard,
-            )
+            ),
           ],
         )
             .animate(
               target: isHovered ? 1 : 0,
             )
             .rotate(
-                begin: 0,
-                end: .001,
-                curve: Curves.easeInOut,
-                duration: .1.seconds)
+              begin: 0,
+              end: .001,
+              curve: Curves.easeInOut,
+              duration: .1.seconds,
+            )
             .scale(
               curve: Curves.easeInOut,
               duration: .1.seconds,
@@ -259,26 +262,28 @@ class _CustomCardState extends State<CustomCard> {
             ),
       ),
     );
-    Widget cardBase = ConstrainedBox(
-        constraints: const BoxConstraints(
-          minWidth: 100,
-        ),
-        child: widget.disableTouch
-            ? card
-            : CustomInputWatcher(
-                scrollController: widget.scrollController,
-                rowId: widget.rowId,
-                onHover: (value) {
-                  setState(() {
-                    isHovered = value;
-                  });
-                },
-                onPrimary: () {
-                  if (!hasDamageTypeSelector) {
-                    widget.onPrimary?.call(null);
-                  }
-                },
-                child: card));
+    final Widget cardBase = ConstrainedBox(
+      constraints: const BoxConstraints(
+        minWidth: 100,
+      ),
+      child: widget.disableTouch
+          ? card
+          : CustomInputWatcher(
+              scrollController: widget.scrollController,
+              rowId: widget.rowId,
+              onHover: (value) {
+                setState(() {
+                  isHovered = value;
+                });
+              },
+              onPrimary: () {
+                if (!hasDamageTypeSelector) {
+                  widget.onPrimary?.call(null);
+                }
+              },
+              child: card,
+            ),
+    );
     return cardBase
         .animate(
           onPlay: (controller) => controller.forward(from: rng.nextDouble()),

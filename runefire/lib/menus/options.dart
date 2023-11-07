@@ -12,13 +12,13 @@ import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
-import '../resources/data_classes/system_data.dart';
-import 'custom_button.dart';
+import 'package:runefire/resources/data_classes/system_data.dart';
+import 'package:runefire/menus/custom_button.dart';
 
-import 'menus.dart';
+import 'package:runefire/menus/menus.dart';
 
 class OptionsMenu extends StatefulWidget {
-  const OptionsMenu({super.key, required this.gameRef, this.backFunction});
+  const OptionsMenu({required this.gameRef, super.key, this.backFunction});
 
   final GameRouter gameRef;
   final Function? backFunction;
@@ -36,7 +36,9 @@ class _OptionsMenuState extends State<OptionsMenu> {
 
   Function? centerSetState;
   void onGamepadEvent(GamepadEvent event) {
-    if (event.pressState != PressState.pressed) return;
+    if (event.pressState != PressState.pressed) {
+      return;
+    }
 
     switch (event.button) {
       case GamepadButtons.rightShoulder:
@@ -64,7 +66,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
   }
 
   void incrementOptionsPage(bool increment) {
-    int currentIndex = OptionsMenuPages.values.indexOf(currentPage);
+    var currentIndex = OptionsMenuPages.values.indexOf(currentPage);
     if (increment) {
       currentIndex++;
     } else {
@@ -104,7 +106,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
   @override
   Widget build(BuildContext context) {
     keyboardBindingsButton = CustomButton(
-      "Keyboard Bindings",
+      'Keyboard Bindings',
       gameRef: widget.gameRef,
       onPrimary: () {
         centerSetState?.call(() {
@@ -113,7 +115,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
       },
     );
     gamepadBindingsButton = CustomButton(
-      "Gamepad Bindings",
+      'Gamepad Bindings',
       gameRef: widget.gameRef,
       onPrimary: () {
         centerSetState?.call(() {
@@ -122,7 +124,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
       },
     );
     mainOptionsButton = CustomButton(
-      "General",
+      'General',
       gameRef: widget.gameRef,
       onPrimary: () {
         centerSetState?.call(() {
@@ -132,7 +134,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
     );
 
     exitButton = CustomButton(
-      "Back",
+      'Back',
       gameRef: widget.gameRef,
       onPrimary: () {
         if (widget.backFunction != null) {
@@ -143,10 +145,10 @@ class _OptionsMenuState extends State<OptionsMenu> {
             .changeMainMenuPage(MenuPageType.startMenuPage);
       },
     );
-    final List<Widget> topBarWidgets = [
+    final topBarWidgets = <Widget>[
       mainOptionsButton,
       keyboardBindingsButton,
-      gamepadBindingsButton
+      gamepadBindingsButton,
     ];
 
     return Stack(
@@ -157,21 +159,22 @@ class _OptionsMenuState extends State<OptionsMenu> {
           right: 0,
           child: Center(
             child: Wrap(
-                children: ([
-              for (var element in topBarWidgets) ...[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: element,
-                ),
-                Text(
-                  "~",
-                  style: defaultStyle,
-                )
-              ]
-            ]..removeLast())
-                    .animate(interval: .05.seconds)
-                    .fadeIn()
-                    .moveY()),
+              children: ([
+                for (final element in topBarWidgets) ...[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: element,
+                  ),
+                  Text(
+                    '~',
+                    style: defaultStyle,
+                  ),
+                ],
+              ]..removeLast())
+                  .animate(interval: .05.seconds)
+                  .fadeIn()
+                  .moveY(),
+            ),
           ),
         ),
         Positioned.fill(
@@ -196,8 +199,8 @@ class _OptionsMenuState extends State<OptionsMenu> {
 
 class OptionsMain extends StatefulWidget {
   const OptionsMain({
-    super.key,
     required this.gameRef,
+    super.key,
   });
 
   final GameRouter gameRef;
@@ -217,13 +220,14 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
   (double, double) musicMinMax = (0, 100);
   late HudScale hudScale;
   late AimAssistStrength aimAssistStrength;
+  late bool showFPS;
   // late CustomButton keyboardBindingsButton;
   late double musicVolume;
   late double sfxVolume;
 
   CustomButton buildHudScaleButton() {
     return CustomButton(
-      "Hud Scale: ${hudScale.name.titleCase}",
+      'Hud Scale: ${hudScale.name.titleCase}',
       gameRef: widget.gameRef,
       rowId: 7,
       onPrimary: () {
@@ -237,7 +241,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
 
   CustomButton buildAimAssistButton() {
     return CustomButton(
-      "Aim Assist: ${aimAssistStrength.name.titleCase}",
+      'Aim Assist: ${aimAssistStrength.name.titleCase}',
       gameRef: widget.gameRef,
       rowId: 8,
       onPrimary: () {
@@ -249,9 +253,23 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
     );
   }
 
+  CustomButton buildShowFpsButton() {
+    return CustomButton(
+      'Display FPS: ${showFPS.toString().titleCase}',
+      gameRef: widget.gameRef,
+      rowId: 9,
+      onPrimary: () {
+        toggleFps = !showFPS;
+      },
+      onSecondary: () {
+        toggleFps = !showFPS;
+      },
+    );
+  }
+
   CustomButton buildMusicButton() {
     return CustomButton(
-      "Music: $musicVolume",
+      'Music: $musicVolume',
       gameRef: widget.gameRef,
       rowId: 6,
       onPrimary: () {
@@ -271,7 +289,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
 
   CustomButton buildSFXButton() {
     return CustomButton(
-      "Sound Effects: $sfxVolume",
+      'Sound Effects: $sfxVolume',
       gameRef: widget.gameRef,
       rowId: 5,
       onPrimary: () {
@@ -290,7 +308,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
   }
 
   void incrementAimAssist(bool increment) {
-    int currentIndex = AimAssistStrength.values.indexOf(aimAssistStrength);
+    var currentIndex = AimAssistStrength.values.indexOf(aimAssistStrength);
     if (increment) {
       currentIndex++;
     } else {
@@ -301,8 +319,12 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
     systemData.setAimAssist = AimAssistStrength.values[currentIndex];
   }
 
+  set toggleFps(bool increment) {
+    systemData.setShowFPS = increment;
+  }
+
   void incrementHudScale(bool increment) {
-    int currentIndex = HudScale.values.indexOf(hudScale);
+    var currentIndex = HudScale.values.indexOf(hudScale);
     if (increment) {
       currentIndex++;
     } else {
@@ -320,7 +342,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
       musicVolume = musicVolume - 1;
     }
     systemData.setMusicVolume =
-        (musicVolume).clamp(musicMinMax.$1, musicMinMax.$2);
+        musicVolume.clamp(musicMinMax.$1, musicMinMax.$2);
   }
 
   void incrementSfx(bool increment) {
@@ -329,7 +351,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
     } else {
       sfxVolume = sfxVolume - 1;
     }
-    systemData.setSFXVolume = (sfxVolume).clamp(sfxMinMax.$1, sfxMinMax.$2);
+    systemData.setSFXVolume = sfxVolume.clamp(sfxMinMax.$1, sfxMinMax.$2);
   }
 
   @override
@@ -355,13 +377,12 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
     sfxVolume = systemData.sfxVolume;
     hudScale = systemData.hudScale;
     aimAssistStrength = systemData.aimAssistStrength;
+    showFPS = systemData.showFPS;
   }
 
   @override
   void onSystemDataNotification() {
-    setState(() {
-      applyValues();
-    });
+    setState(applyValues);
   }
 
   @override
@@ -375,6 +396,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
           buildMusicButton(),
           buildHudScaleButton(),
           buildAimAssistButton(),
+          buildShowFpsButton(),
         ],
       ),
     );
@@ -383,9 +405,9 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
 
 class KeyboardMouseGamepadBindings extends StatefulWidget {
   const KeyboardMouseGamepadBindings({
-    super.key,
     required this.gameRef,
     required this.configType,
+    super.key,
   });
 
   final ExternalInputType configType;
@@ -414,8 +436,13 @@ class _KeyboardMouseGamepadBindingsState
   )? gamepadCallback;
 
   void beginRebindKey(
-      GameAction gameAction, bool firstIndex, ExternalInputType source) {
-    if (isWaitingInput) return;
+    GameAction gameAction,
+    bool firstIndex,
+    ExternalInputType source,
+  ) {
+    if (isWaitingInput) {
+      return;
+    }
     setState(() {
       isWaitingInput = true;
     });
@@ -427,10 +454,16 @@ class _KeyboardMouseGamepadBindingsState
               event?.logicalKey != LogicalKeyboardKey.escape) {
             if (event != null) {
               systemData.setKeyboardMapping(
-                  gameAction, event.physicalKey, firstIndex);
+                gameAction,
+                event.physicalKey,
+                firstIndex,
+              );
             } else if (pointerEvent != null) {
               systemData.setMouseButtonMapping(
-                  gameAction, pointerEvent.buttons, firstIndex);
+                gameAction,
+                pointerEvent.buttons,
+                firstIndex,
+              );
             }
           } else {
             systemData.setKeyboardMapping(gameAction, null, firstIndex);
@@ -456,7 +489,10 @@ class _KeyboardMouseGamepadBindingsState
               event?.logicalKey != LogicalKeyboardKey.escape) {
             if (gamepadEvent != null) {
               systemData.setGamepadMapping(
-                  gameAction, gamepadEvent, firstIndex);
+                gameAction,
+                gamepadEvent,
+                firstIndex,
+              );
             }
           } else {
             systemData.setGamepadMapping(gameAction, null, firstIndex);
@@ -480,10 +516,15 @@ class _KeyboardMouseGamepadBindingsState
   }
 
   Widget buildRow(
-      GameAction? action, int index, String one, String two, String three,
-      [bool title = false]) {
-    const double maxWidth = 1200;
-    const double minWidth = 400;
+    GameAction? action,
+    int index,
+    String one,
+    String two,
+    String three, [
+    bool title = false,
+  ]) {
+    const maxWidth = 1200.0;
+    const minWidth = 400.0;
     if (!generatedColors.containsKey(two) &&
         generatedStrings.where((element) => element == two).length > 1) {
       generatedColors[two] = colorPalette.randomBrightColor;
@@ -507,11 +548,11 @@ class _KeyboardMouseGamepadBindingsState
                 padding: const EdgeInsets.all(8.0),
                 // padding: EdgeInsets.zero,
                 child: Container(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-
-                      // borderRadius: BorderRadius.circular(8),
-                      color: ApolloColorPalette.mediumGray.color),
+                    // borderRadius: BorderRadius.circular(8),
+                    color: ApolloColorPalette.mediumGray.color,
+                  ),
                   child: Text(
                     one,
                     style:
@@ -525,39 +566,41 @@ class _KeyboardMouseGamepadBindingsState
                 padding: const EdgeInsets.all(8.0),
                 // padding: EdgeInsets.zero,
                 child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        border: title
-                            ? null
-                            : Border.all(
-                                color: ApolloColorPalette.mediumGray.color,
-                                width: 2,
-                              ),
-                        // borderRadius: BorderRadius.circular(8),
-                        color: generatedColors[two] ??
-                            ApolloColorPalette.deepGray.color),
-                    child: title
-                        ? Text(
-                            two,
-                            textAlign: TextAlign.center,
-                            style: defaultStyle,
-                          )
-                        : CustomButton(
-                            two,
-                            rowId: index,
-                            upDownColor: two == "Set binding"
-                                ? (
-                                    ApolloColorPalette.veryLightGray.color,
-                                    ApolloColorPalette.lightGray.color,
-                                  )
-                                : null,
-                            gameRef: widget.gameRef,
-                            scrollController: scrollController,
-                            onPrimary: () {
-                              beginRebindKey(action!, true, widget.configType);
-                            },
-                          )),
+                  padding: EdgeInsets.all(title ? 16 : 8.0),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    border: title
+                        ? null
+                        : Border.all(
+                            color: ApolloColorPalette.lightGray.color,
+                            width: 4,
+                          ),
+                    // borderRadius: BorderRadius.circular(8),
+                    color: generatedColors[two] ??
+                        ApolloColorPalette.deepGray.color,
+                  ),
+                  child: title
+                      ? Text(
+                          two,
+                          textAlign: TextAlign.center,
+                          style: defaultStyle,
+                        )
+                      : CustomButton(
+                          two,
+                          rowId: index,
+                          upDownColor: two == 'Set binding'
+                              ? (
+                                  ApolloColorPalette.veryLightGray.color,
+                                  ApolloColorPalette.lightGray.color,
+                                )
+                              : null,
+                          gameRef: widget.gameRef,
+                          scrollController: scrollController,
+                          onPrimary: () {
+                            beginRebindKey(action!, true, widget.configType);
+                          },
+                        ),
+                ),
               ),
             ),
             Expanded(
@@ -565,39 +608,41 @@ class _KeyboardMouseGamepadBindingsState
                 padding: const EdgeInsets.all(8.0),
                 // padding: EdgeInsets.zero,
                 child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        border: title
-                            ? null
-                            : Border.all(
-                                color: ApolloColorPalette.mediumGray.color,
-                                width: 2,
-                              ),
-                        // borderRadius: BorderRadius.circular(8),
-                        color: generatedColors[three] ??
-                            ApolloColorPalette.deepGray.color),
-                    child: title
-                        ? Text(
-                            three,
-                            textAlign: TextAlign.center,
-                            style: defaultStyle,
-                          )
-                        : CustomButton(
-                            three,
-                            scrollController: scrollController,
-                            gameRef: widget.gameRef,
-                            rowId: index,
-                            upDownColor: three == "Set binding"
-                                ? (
-                                    ApolloColorPalette.veryLightGray.color,
-                                    ApolloColorPalette.lightGray.color,
-                                  )
-                                : null,
-                            onPrimary: () {
-                              beginRebindKey(action!, false, widget.configType);
-                            },
-                          )),
+                  padding: EdgeInsets.all(title ? 16 : 8.0),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    border: title
+                        ? null
+                        : Border.all(
+                            color: ApolloColorPalette.mediumGray.color,
+                            width: 4,
+                          ),
+                    // borderRadius: BorderRadius.circular(8),
+                    color: generatedColors[three] ??
+                        ApolloColorPalette.deepGray.color,
+                  ),
+                  child: title
+                      ? Text(
+                          three,
+                          textAlign: TextAlign.center,
+                          style: defaultStyle,
+                        )
+                      : CustomButton(
+                          three,
+                          scrollController: scrollController,
+                          gameRef: widget.gameRef,
+                          rowId: index,
+                          upDownColor: three == 'Set binding'
+                              ? (
+                                  ApolloColorPalette.veryLightGray.color,
+                                  ApolloColorPalette.lightGray.color,
+                                )
+                              : null,
+                          onPrimary: () {
+                            beginRebindKey(action!, false, widget.configType);
+                          },
+                        ),
+                ),
               ),
             ),
           ],
@@ -611,43 +656,44 @@ class _KeyboardMouseGamepadBindingsState
       case ExternalInputType.mouseKeyboard:
         final keyBoardMappings = systemData.keyboardMappings[key];
         final mouseMappings = systemData.mouseButtonMappings[key];
-        PhysicalKeyboardKey? keyBoardResult =
+        final keyBoardResult =
             (firstIndex ? keyBoardMappings?.$1 : keyBoardMappings?.$2);
         if (keyBoardResult != null) {
           return keyBoardResult.debugName.toString().titleCase;
         }
-        int? mouseButtonResult =
+        final mouseButtonResult =
             firstIndex ? mouseMappings?.$1 : mouseMappings?.$2;
 
         if (mouseButtonResult != null) {
           final result = getMouseButton(mouseButtonResult);
           if (result == MouseButtons.misc) {
-            return "Button: $mouseButtonResult";
+            return 'Button: $mouseButtonResult';
           }
           return result.name.titleCase;
         }
 
-        return "Set binding";
+        return 'Set binding';
 
       case ExternalInputType.gamepad:
         final gamepadMappings = systemData.gamePadMappings[key];
-        GamepadButtons? gamepadResult =
+        final gamepadResult =
             firstIndex ? gamepadMappings?.$1 : gamepadMappings?.$2;
 
         if (gamepadResult != null) {
           return gamepadResult.name.titleCase;
         }
 
-        return "Set binding";
+        return 'Set binding';
 
-        break;
       default:
     }
-    return "";
+    return '';
   }
 
   void newKeyboardPress(KeyEvent event) {
-    if (event is! KeyDownEvent) return;
+    if (event is! KeyDownEvent) {
+      return;
+    }
     keyboardMouseCallback?.call(event, null);
     gamepadCallback?.call(event, null);
   }
@@ -657,7 +703,9 @@ class _KeyboardMouseGamepadBindingsState
   }
 
   void newGamepadPress(GamepadEvent event) {
-    if (event.pressState != PressState.pressed) return;
+    if (event.pressState != PressState.pressed) {
+      return;
+    }
     if (event.button == GamepadButtons.leftJoy ||
         event.button == GamepadButtons.rightJoy) {
       return;
@@ -689,22 +737,22 @@ class _KeyboardMouseGamepadBindingsState
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> gameActionTriplets = [];
+    final gameActionTriplets = <Widget>[];
     generatedStrings.clear();
-    int i = 4;
+    var i = 4;
 
-    for (var element in GameAction.values) {
+    for (final element in GameAction.values) {
       final primaryString = getStringRepresentation(element, true);
       final secondaryString = getStringRepresentation(element, false);
-      if (primaryString != "Set binding") {
+      if (primaryString != 'Set binding') {
         generatedStrings.add(primaryString);
       }
-      if (secondaryString != "Set binding") {
+      if (secondaryString != 'Set binding') {
         generatedStrings.add(secondaryString);
       }
     }
 
-    for (var element in GameAction.values) {
+    for (final element in GameAction.values) {
       final primaryString = getStringRepresentation(element, true);
       final secondaryString = getStringRepresentation(element, false);
       gameActionTriplets.add(
@@ -726,8 +774,14 @@ class _KeyboardMouseGamepadBindingsState
             ignoring: isWaitingInput,
             child: Column(
               children: [
-                buildRow(null, 3, "Game Action", "Primary Button",
-                    "Alternate Button", true),
+                buildRow(
+                  null,
+                  3,
+                  'Game Action',
+                  'Primary Button',
+                  'Alternate Button',
+                  true,
+                ),
                 const SizedBox(
                   height: 20,
                 ),
@@ -735,14 +789,15 @@ class _KeyboardMouseGamepadBindingsState
                   child: ScrollConfiguration(
                     behavior: scrollConfiguration(context),
                     child: SingleChildScrollView(
-                        controller: scrollController,
-                        child: Container(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: gameActionTriplets,
-                          ),
-                        )),
+                      controller: scrollController,
+                      child: Container(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: gameActionTriplets,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -751,22 +806,23 @@ class _KeyboardMouseGamepadBindingsState
         ),
         if (isWaitingInput)
           Positioned.fill(
-              child: Container(
-            color: ApolloColorPalette.deepGray.color.withOpacity(.5),
-          )).animate().fadeIn(duration: .2.seconds),
+            child: Container(
+              color: ApolloColorPalette.deepGray.color.withOpacity(.5),
+            ),
+          ).animate().fadeIn(duration: .2.seconds),
         if (isWaitingInput)
           Center(
             child: Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                  color: ApolloColorPalette.darkestGray.color,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: ApolloColorPalette.lightGray.color,
-                    width: 4,
-                  )),
+                color: ApolloColorPalette.darkestGray.color,
+                border: Border.all(
+                  color: ApolloColorPalette.lightGray.color,
+                  width: 4,
+                ),
+              ),
               child: Text(
-                "Input new binding!",
+                'Input new binding!',
                 style: defaultStyle,
                 textAlign: TextAlign.center,
               ),

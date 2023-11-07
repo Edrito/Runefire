@@ -21,11 +21,11 @@ import 'package:runefire/resources/visuals.dart';
 import 'package:recase/recase.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../attributes/attributes_structure.dart';
-import '../main.dart';
-import '../resources/functions/functions.dart';
-import 'attribute_card.dart';
-import 'components_notifier_builder.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/menus/attribute_card.dart';
+import 'package:runefire/menus/components_notifier_builder.dart';
 
 class DisplayTextWidget extends StatefulWidget {
   const DisplayTextWidget({super.key});
@@ -44,15 +44,16 @@ class _DisplayTextWidgetState extends State<DisplayTextWidget> {
       alignment: Alignment.topCenter,
       children: [
         Positioned.fill(
-            top: 200,
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Text(
-                GameState().textToDisplay!.text,
-                style: defaultStyle,
-                textAlign: TextAlign.center,
-              ),
-            ))
+          top: 200,
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Text(
+              GameState().textToDisplay!.text,
+              style: defaultStyle,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
       ],
     )
         .animate()
@@ -81,7 +82,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> pauseMenu =
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
     MapEntry('DeathScreen', (context, gameRouter) {
-  FocusNode node = FocusNode();
+  final node = FocusNode();
 
   node.requestFocus();
 
@@ -93,32 +94,40 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
         if (value is! KeyDownEvent) return;
       },
       child: Center(
-        child: StatefulBuilder(builder: (context, setState) {
-          return ConstrainedBox(
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return ConstrainedBox(
               constraints: const BoxConstraints(
-                  maxWidth: 400, minHeight: 200, maxHeight: 500, minWidth: 250),
+                maxWidth: 400,
+                minHeight: 200,
+                maxHeight: 500,
+                minWidth: 250,
+              ),
               child: OverlayWidgetList(
-                  gameRouter,
-                  [
-                    CustomButton(
-                      "Try again",
-                      gameRef: gameRouter,
-                      onPrimary: () {
-                        gameRouter.gameStateComponent.gameState
-                            .endGame(EndGameState.playerDeath, true);
-                      },
-                    ),
-                    CustomButton(
-                      "Give up",
-                      gameRef: gameRouter,
-                      onPrimary: () {
-                        gameRouter.gameStateComponent.gameState
-                            .endGame(EndGameState.playerDeath);
-                      },
-                    )
-                  ],
-                  "You Died :'("));
-        }),
+                gameRouter,
+                [
+                  CustomButton(
+                    'Try again',
+                    gameRef: gameRouter,
+                    onPrimary: () {
+                      gameRouter.gameStateComponent.gameState
+                          .endGame(EndGameState.playerDeath, true);
+                    },
+                  ),
+                  CustomButton(
+                    'Give up',
+                    gameRef: gameRouter,
+                    onPrimary: () {
+                      gameRouter.gameStateComponent.gameState
+                          .endGame(EndGameState.playerDeath);
+                    },
+                  ),
+                ],
+                "You Died :'(",
+              ),
+            );
+          },
+        ),
       ),
     ),
   );
@@ -127,10 +136,11 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
 MapEntry<String, Widget Function(BuildContext, GameRouter)> mainMenu =
     MapEntry('MainMenu', (context, gameRouter) {
   return ComponentsNotifierBuilder<GameStateComponent>(
-      notifier: gameRouter.componentsNotifier<GameStateComponent>(),
-      builder: (context, notifier) =>
-          notifier.single?.gameState.currentMenuPage.buildPage(gameRouter) ??
-          const SizedBox());
+    notifier: gameRouter.componentsNotifier<GameStateComponent>(),
+    builder: (context, notifier) =>
+        notifier.single?.gameState.currentMenuPage.buildPage(gameRouter) ??
+        const SizedBox(),
+  );
 });
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> caveFront =
@@ -176,8 +186,12 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> attributeSelection =
 });
 
 class DamageTypeSelector extends StatefulWidget {
-  const DamageTypeSelector(this.damageTypes, this.selectDamageType,
-      {this.scrollController, super.key});
+  const DamageTypeSelector(
+    this.damageTypes,
+    this.selectDamageType, {
+    this.scrollController,
+    super.key,
+  });
   final Set<DamageType> damageTypes;
   final Function(DamageType) selectDamageType;
   final ScrollController? scrollController;
@@ -192,7 +206,7 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        for (var damageType in widget.damageTypes)
+        for (final damageType in widget.damageTypes)
           Expanded(
             child: CustomInputWatcher(
               zHeight: 1,
@@ -211,25 +225,30 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
                     ? damageType.color.darken(.7)
                     : damageType.color.darken(.3),
                 child: Center(
-                    child: Text(
-                  damageType.name.titleCase,
-                  style: defaultStyle.copyWith(
+                  child: Text(
+                    damageType.name.titleCase,
+                    style: defaultStyle.copyWith(
                       fontSize: 18,
                       color: hoveredDamageTypes[damageType] ?? false
                           ? damageType.color.brighten(1)
-                          : damageType.color.brighten(.7)),
-                )),
+                          : damageType.color.brighten(.7),
+                    ),
+                  ),
+                ),
               ),
             ),
-          )
+          ),
       ],
     );
   }
 }
 
 class StatsDisplay extends StatefulWidget {
-  const StatsDisplay(
-      {required this.gameRef, required this.statStrings, super.key});
+  const StatsDisplay({
+    required this.gameRef,
+    required this.statStrings,
+    super.key,
+  });
   final GameRouter gameRef;
   final List<(String, String)>? statStrings;
 
@@ -240,12 +259,13 @@ class StatsDisplay extends StatefulWidget {
 class _StatsDisplayState extends State<StatsDisplay> {
   @override
   Widget build(BuildContext context) {
-    Widget title = Text(
-      "Current Stats",
+    final Widget title = Text(
+      'Current Stats',
       textAlign: TextAlign.center,
       style: defaultStyle.copyWith(
-          color: colorPalette.secondaryColor,
-          shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+        color: colorPalette.secondaryColor,
+        shadows: [colorPalette.buildShadow(ShadowStyle.light)],
+      ),
     ).animate().fadeIn();
 
     return Column(
@@ -268,7 +288,6 @@ class _StatsDisplayState extends State<StatsDisplay> {
                             // color: Colors.blue,
                             // height: 100,
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
@@ -284,7 +303,7 @@ class _StatsDisplayState extends State<StatsDisplay> {
                           ),
                         );
                       },
-                    )
+                    ),
                 ],
               ),
             ),
@@ -296,8 +315,11 @@ class _StatsDisplayState extends State<StatsDisplay> {
 }
 
 class AttributeDisplay extends StatefulWidget {
-  const AttributeDisplay(
-      {required this.gameRef, required this.attributes, super.key});
+  const AttributeDisplay({
+    required this.gameRef,
+    required this.attributes,
+    super.key,
+  });
   final GameRouter gameRef;
   final List<Attribute> attributes;
   @override
@@ -310,21 +332,24 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
   @override
   void initState() {
     super.initState();
-    widget.attributes
-        .sort(((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel)));
-    widget.attributes.sort(((a, b) =>
-        a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index)));
+    widget.attributes.sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
+    widget.attributes.sort(
+      (a, b) =>
+          a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    Color color = colorPalette.secondaryColor;
+    final color = colorPalette.secondaryColor;
 
-    Widget title = Text(
-      "Unlocked Attributes",
+    final Widget title = Text(
+      'Unlocked Attributes',
       textAlign: TextAlign.center,
       style: defaultStyle.copyWith(
-          color: color, shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+        color: color,
+        shadows: [colorPalette.buildShadow(ShadowStyle.light)],
+      ),
     ).animate().fadeIn();
 
     return Column(
@@ -336,61 +361,63 @@ class _AttributeDisplayState extends State<AttributeDisplay> {
             behavior: scrollConfiguration(context),
             child: SingleChildScrollView(
               child: Wrap(
-                runAlignment: WrapAlignment.start,
                 children: [
                   for (int i = 0; i < (widget.attributes.length); i++)
                     Builder(
                       builder: (context) {
                         final currentAttrib = widget.attributes.elementAt(i);
-                        bool isHovered = false;
-                        return StatefulBuilder(builder: (context, ss) {
-                          builtKeys[currentAttrib.attributeType] ??=
-                              GlobalKey<CustomInputWatcherState>();
-                          return CustomInputWatcher(
-                            onHover: (isHover) => ss(() {
-                              isHovered = isHover;
-                            }),
-                            hoverWidget: CustomCard(
-                              currentAttrib,
-                              gameRef: widget.gameRef,
-                              key: builtKeys[currentAttrib.attributeType],
-                              disableTouch: true,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SizedBox(
-                                height: 96,
-                                width: 60,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Expanded(
-                                      child: buildImageAsset(
+                        var isHovered = false;
+                        return StatefulBuilder(
+                          builder: (context, ss) {
+                            builtKeys[currentAttrib.attributeType] ??=
+                                GlobalKey<CustomInputWatcherState>();
+                            return CustomInputWatcher(
+                              onHover: (isHover) => ss(() {
+                                isHovered = isHover;
+                              }),
+                              hoverWidget: CustomCard(
+                                currentAttrib,
+                                gameRef: widget.gameRef,
+                                key: builtKeys[currentAttrib.attributeType],
+                                disableTouch: true,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  height: 96,
+                                  width: 60,
+                                  child: Column(
+                                    children: [
+                                      Expanded(
+                                        child: buildImageAsset(
                                           'assets/images/${currentAttrib.icon}',
                                           fit: BoxFit.fitHeight,
                                           color: isHovered
                                               ? currentAttrib
                                                   .attributeType.rarity.color
-                                              : null),
-                                    ),
-                                    Text(
-                                      currentAttrib.upgradeLevel
-                                              .toRomanNumeralString() ??
-                                          "",
-                                      style: defaultStyle.copyWith(
+                                              : null,
+                                        ),
+                                      ),
+                                      Text(
+                                        currentAttrib.upgradeLevel
+                                                .toRomanNumeralString() ??
+                                            '',
+                                        style: defaultStyle.copyWith(
                                           color: currentAttrib
                                               .attributeType.rarity.color,
-                                          fontSize: 32),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
+                                          fontSize: 32,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        });
+                            );
+                          },
+                        );
                       },
-                    )
+                    ),
                 ],
               ),
             ),
@@ -415,7 +442,7 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
       widgetOverlayStreamSubscription;
 
   void _updateHoverWidgetSize() {
-    final RenderBox? renderBoxRed =
+    final renderBoxRed =
         hoveredWidgetKey?.currentContext?.findRenderObject() as RenderBox?;
     final newSize = renderBoxRed?.size;
 
@@ -424,7 +451,7 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
 
   void onGamepadCursorChange(ExternalInputType type, Offset position) {
     setState(() {
-      this.position = (position);
+      this.position = position;
       latestEventWasKeyboard = false;
       _updateHoverWidgetSize();
     });
@@ -515,53 +542,72 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
   );
   @override
   Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
-    if (position == null) {
-      return const SizedBox();
-    }
-    return Stack(
-      children: [
-        Transform(
-            transform: Matrix4.translationValues(
-                position!.dx - (radius / 2), position!.dy - (radius / 2), 0.0),
-            child: cachedCursor
-            // .animate(
-            //   target: targetClick ? 1 : 0,
-            // )
-            // .scaleXY(
-            //     duration: .05.seconds,
-            //     begin: 1,
-            //     end: 1.2,
-            //     curve: Curves.easeIn)
+    final screenSize = MediaQuery.of(context).size;
+
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            child: Text(
+              'Pre-Alpha Development Build',
+              style: defaultStyle.copyWith(fontSize: 32),
             ),
-        if (hoveredWidget != null)
-          Builder(builder: (context) {
-            double xPositionOfHover = latestEventWasKeyboard
-                ? hoveredWidget!.$1.dx
-                : position?.dx ?? hoveredWidget!.$1.dx;
-
-            double yPositionOfHover = latestEventWasKeyboard
-                ? hoveredWidget!.$1.dy
-                : position?.dy ?? hoveredWidget!.$1.dy;
-            if (xPositionOfHover + (sizeOfHoveredWidget?.width ?? 0) >
-                screenSize.width) {
-              xPositionOfHover =
-                  screenSize.width - (sizeOfHoveredWidget?.width ?? 0);
-            }
-            if (yPositionOfHover + (sizeOfHoveredWidget?.height ?? 0) >
-                screenSize.height) {
-              yPositionOfHover =
-                  screenSize.height - (sizeOfHoveredWidget?.height ?? 0);
-            }
-
-            return Transform(
+          ),
+          Positioned.fill(
+            child: Stack(
+              children: [
+                if (position != null) ...[
+                  Transform(
                     transform: Matrix4.translationValues(
-                        xPositionOfHover, yPositionOfHover, 0.0),
-                    child: hoveredWidget!.$2)
-                .animate(key: ValueKey(hoveredWidget?.$1))
-                .fadeIn(duration: .15.seconds);
-          })
-      ],
+                      position!.dx - (radius / 2),
+                      position!.dy - (radius / 2),
+                      0.0,
+                    ),
+                    child: cachedCursor,
+                  ),
+                  if (hoveredWidget != null)
+                    Builder(
+                      builder: (context) {
+                        var xPositionOfHover = latestEventWasKeyboard
+                            ? hoveredWidget!.$1.dx
+                            : position?.dx ?? hoveredWidget!.$1.dx;
+
+                        var yPositionOfHover = latestEventWasKeyboard
+                            ? hoveredWidget!.$1.dy
+                            : position?.dy ?? hoveredWidget!.$1.dy;
+                        if (xPositionOfHover +
+                                (sizeOfHoveredWidget?.width ?? 0) >
+                            screenSize.width) {
+                          xPositionOfHover = screenSize.width -
+                              (sizeOfHoveredWidget?.width ?? 0);
+                        }
+                        if (yPositionOfHover +
+                                (sizeOfHoveredWidget?.height ?? 0) >
+                            screenSize.height) {
+                          yPositionOfHover = screenSize.height -
+                              (sizeOfHoveredWidget?.height ?? 0);
+                        }
+
+                        return Transform(
+                          transform: Matrix4.translationValues(
+                            xPositionOfHover,
+                            yPositionOfHover,
+                            0.0,
+                          ),
+                          child: hoveredWidget!.$2,
+                        )
+                            .animate(key: ValueKey(hoveredWidget?.$1))
+                            .fadeIn(duration: .15.seconds);
+                      },
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
