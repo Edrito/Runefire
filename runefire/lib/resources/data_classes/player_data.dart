@@ -1,3 +1,4 @@
+import 'package:runefire/achievements/achievements.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/player/player_mixin.dart';
 
@@ -75,22 +76,8 @@ class PlayerData extends DataClass with PlayerStatistics {
     return unlockedCharacters.contains(selectedPlayer);
   }
 
-  // bool unlockCharacter() {
-  //   if (characterUnlocked()) {
-  //     return true;
-  //   }
-
-  //   if (enoughMoney(selectedPlayer.unlockCost)) {
-  //     experiencePoints -= selectedPlayer.unlockCost;
-  //     unlockedCharacters.add(selectedPlayer);
-  //     parentComponent?.notifyListeners();
-  //     return true;
-  //   }
-  //   return false;
-  // }
-
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.arcaneBlaster,
+    0: WeaponType.crystalPistol,
     1: WeaponType.crystalSword,
   };
   Map<int, SecondaryType> selectedSecondaries = {
@@ -103,6 +90,8 @@ class PlayerData extends DataClass with PlayerStatistics {
     WeaponType.crystalSword: 0,
     WeaponType.icecicleMagic: 0,
   };
+
+  Set<AchievementsEnum> unlockedAchievements = {};
 
   Set<WeaponType> availableWeapons = {
     WeaponType.crystalPistol,

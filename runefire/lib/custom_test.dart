@@ -14,6 +14,7 @@ import 'package:runefire/events/event_management.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/menus/overlays.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
@@ -22,15 +23,28 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
   await Future.delayed(1.seconds);
   player?.attributesToGrabDebug.add(AttributeType.psychicReach);
-
+  player?.addAttribute(AttributeType.forbiddenMagic);
+  var i = 0;
   while (true) {
-    await Future.delayed(1.seconds).then((value) {
+    await Future.delayed(5.seconds).then((value) {
       final elementIncreasing = DamageType.values.random();
       player?.modifyElementalPower(elementIncreasing, .1);
       if (gameEnviroment.hud.isLoaded) {
         // gameEnviroment.hud.applyBossHitEffect(DamageType.values.random());
       }
+
+      // if (rng.nextBool()) {
+      //   final dur = 2 + rng.nextDouble();
+      //   GameState().displayOverlayMessage(
+      //     OverlayMessage(
+      //       'Random $i $dur',
+      //       image: ImagesAssetsBullets.allFiles.random(),
+      //       duration: dur,
+      //     ),
+      //   );
+      // }
     });
+    i++;
   }
 }
 

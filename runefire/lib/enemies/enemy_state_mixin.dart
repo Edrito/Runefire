@@ -109,7 +109,9 @@ class EnemyState {
     //wont be accurate but will be close enough
     stateDurationTimer?.update(eventPeriodDuration);
 
-    if (randomFunctions.isEmpty || stateManagedAI.randomFunctionRunning) return;
+    if (randomFunctions.isEmpty || stateManagedAI.randomFunctionRunning) {
+      return;
+    }
     try {
       randomFunctionRunning = true;
       FutureFunction randomFunction;
@@ -205,7 +207,9 @@ mixin StateManagedAI
         //if final state, dont change
         (activeState?.isFinalState ?? false) ||
         (activeState?.stateDurationTimer?.timer.isRunning() ?? false) ||
-        isDead) return;
+        isDead) {
+      return;
+    }
 
     var enemyStatesList = enemyStates.entries
         .where((element) => element.key != currentState)

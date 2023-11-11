@@ -52,7 +52,10 @@ class _LevelMenuState extends State<LevelMenu> {
     playerData.parentComponent?.notifyListeners();
 
     if (!playerData.selectedDifficulty.isUnlocked(
-        playerData, gameState.systemData, playerData.selectedLevel)) {
+      playerData,
+      gameState.systemData,
+      playerData.selectedLevel,
+    )) {
       setSelectedDifficulty(1);
     }
   }
@@ -63,6 +66,10 @@ class _LevelMenuState extends State<LevelMenu> {
   }
 
   late Iterable<GameLevel> levels;
+
+  late int diffCenter;
+  late int gameLevelCenter;
+
   @override
   void initState() {
     super.initState();
@@ -82,7 +89,8 @@ class _LevelMenuState extends State<LevelMenu> {
     pageControllerDifficulty = InfiniteScrollController(
       initialItem: playerData.selectedDifficulty.index,
     );
-
+    diffCenter = pageControllerDifficulty.initialItem;
+    gameLevelCenter = pageControllerLevel.initialItem;
     // pageControllerDifficulty.jumpToItem(playerData.selectedDifficulty.index);
   }
 
@@ -92,7 +100,7 @@ class _LevelMenuState extends State<LevelMenu> {
     GameLevel? level,
     GameDifficulty? difficulty,
     int index,
-    ScrollController scrollController,
+    InfiniteScrollController scrollController,
   ) {
     var isHovering = false;
     final isLevel = level != null;
@@ -104,21 +112,26 @@ class _LevelMenuState extends State<LevelMenu> {
         final isUnlocked = isLevel
             ? level.isUnlocked(playerData, gameState.systemData)
             : difficulty!.isUnlocked(
-                playerData, gameState.systemData, playerData.selectedLevel);
+                playerData,
+                gameState.systemData,
+                playerData.selectedLevel,
+              );
 
         late final Color color;
         if (!isUnlocked) {
           color = (isHovering
-              ? ApolloColorPalette.lightGray.color
+              // ? ApolloColorPalette.lightGray.color
+              ? ApolloColorPalette.pink.color
               : ApolloColorPalette.mediumGray.color);
         } else {
           color = isSelected
               ? (ApolloColorPalette.offWhite.color)
               : isHovering
-                  ? colorPalette.primaryColor
+                  // ? colorPalette.primaryColor
+                  ? ApolloColorPalette.pink.color
                   : colorPalette.secondaryColor;
         }
-
+        final rowId = index;
         return SizedBox(
           height: 200,
           width: 250,
@@ -131,7 +144,7 @@ class _LevelMenuState extends State<LevelMenu> {
               );
             },
             scrollController: scrollController,
-            rowId: 1,
+            rowId: rowId,
             onPrimaryUp: () {
               if (!isUnlocked) {
                 return;
@@ -216,6 +229,14 @@ class _LevelMenuState extends State<LevelMenu> {
             ),
             itemCount: isLevel ? levels.length : GameDifficulty.values.length,
             itemExtent: 120,
+            // onIndexChanged: (index) {
+            //   if (isLevel) {
+            //     gameLevelCenter = index;
+            //   } else {
+            //     diffCenter = index;
+            //   }
+            //   setState(() {});
+            // },
             controller:
                 isLevel ? pageControllerLevel : pageControllerDifficulty,
             axisDirection: Axis.vertical,

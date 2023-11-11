@@ -26,32 +26,72 @@ import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/menus/attribute_card.dart';
 import 'package:runefire/menus/components_notifier_builder.dart';
+import 'package:runefire/resources/constants/routes.dart' as routes;
 
-class DisplayTextWidget extends StatefulWidget {
-  const DisplayTextWidget({super.key});
-
-  @override
-  State<DisplayTextWidget> createState() => _DisplayTextWidgetState();
-}
-
-class _DisplayTextWidgetState extends State<DisplayTextWidget> {
-  late final OverlayMessage message = GameState().textToDisplay!;
-  late final double duration = message.duration;
+class HintOverlayWidget extends StatelessWidget {
+  const HintOverlayWidget(
+    this.message, {
+    super.key,
+  });
+  final OverlayMessage message;
 
   @override
   Widget build(BuildContext context) {
+    final hudScaleIncrease = GameState().systemData.hudScale.scale;
+    return Container(
+      decoration: message.showBackground
+          ? BoxDecoration(
+              color: ApolloColorPalette.darkestGray.color,
+              border: Border.all(
+                color: ApolloColorPalette.lightGray.color,
+                width: 2 * hudScaleIncrease,
+              ),
+            )
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (message.image != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Image.asset(
+                  message.image!,
+                  height: 24 * hudScaleIncrease,
+                  width: 24 * hudScaleIncrease,
+                ),
+              ),
+            Text(
+              message.text,
+              style: defaultStyle.copyWith(
+                fontSize: 16 * hudScaleIncrease,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DisplayTextWidget extends StatelessWidget {
+  const DisplayTextWidget(
+    this.message, {
+    super.key,
+  });
+  final OverlayMessage message;
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        Positioned.fill(
-          top: 200,
-          child: Padding(
-            padding: const EdgeInsets.all(40),
-            child: Text(
-              GameState().textToDisplay!.text,
-              style: defaultStyle,
-              textAlign: TextAlign.center,
-            ),
+        Positioned(
+          top: height * .15,
+          child: Center(
+            child: HintOverlayWidget(message),
           ),
         ),
       ],
@@ -59,16 +99,11 @@ class _DisplayTextWidgetState extends State<DisplayTextWidget> {
         .animate()
         .fadeIn(duration: .3.seconds)
         .moveY(duration: .3.seconds)
-        .animate(delay: (duration - .3).seconds)
+        .animate(delay: (message.duration - .3).seconds)
         .fadeOut(duration: .3.seconds)
         .moveY(duration: .3.seconds);
   }
 }
-
-MapEntry<String, Widget Function(BuildContext, GameRouter)> textDisplay =
-    MapEntry('TextDisplay', (context, gameRouter) {
-  return const DisplayTextWidget();
-});
 
 MapEntry<String, Widget Function(BuildContext, GameRouter)> gameWinDisplay =
     MapEntry('GameWinDisplay', (context, gameRouter) {
@@ -91,7 +126,9 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
     child: KeyboardListener(
       focusNode: node,
       onKeyEvent: (value) {
-        if (value is! KeyDownEvent) return;
+        if (value is! KeyDownEvent) {
+          return;
+        }
       },
       child: Center(
         child: StatefulBuilder(
@@ -441,6 +478,8 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
   late final StreamSubscription<(Offset, Widget)?>
       widgetOverlayStreamSubscription;
 
+  late final StreamSubscription<OverlayMessage> overlayMessageSubscription;
+
   void _updateHoverWidgetSize() {
     final renderBoxRed =
         hoveredWidgetKey?.currentContext?.findRenderObject() as RenderBox?;
@@ -451,8 +490,15 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
 
   void onGamepadCursorChange(ExternalInputType type, Offset position) {
     setState(() {
-      this.position = position;
-      latestEventWasKeyboard = false;
+      //if gamepad is being used and the game is not paused, hide the custom cursor
+      if (type == ExternalInputType.gamepad &&
+          widget.gameRef.router.currentRoute.name == routes.gameplay &&
+          !widget.gameRef.paused) {
+        this.position = null;
+      } else {
+        this.position = position;
+      }
+      latestEventWasKeyboard = type == ExternalInputType.mouseKeyboard;
       _updateHoverWidgetSize();
     });
   }
@@ -508,23 +554,58 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
   @override
   void initState() {
     InputManager().onPointerMoveList.add(onGamepadCursorChange);
-    InputManager().keyEventList.add(onKeyEvent);
+    InputManager().addKeyListener(onKeyEvent);
     final controllerTuple =
         InputManager().customInputWatcherManager.addHoverOverlay(this);
     eventStreamSubscription =
         controllerTuple.$1.stream.listen(gameWidgetEvents);
     widgetOverlayStreamSubscription =
         controllerTuple.$2.stream.listen(newHoveredWidget);
+
+    overlayMessageSubscription =
+        GameState().textOverlayController.stream.listen(_newOverlayMessage);
+
     super.initState();
+  }
+
+  List<OverlayMessage> queuedTextMessages = [];
+
+  OverlayMessage? activeMessage;
+
+  void _newOverlayMessage(OverlayMessage message) {
+    if (activeMessage == null) {
+      setState(() {
+        activeMessage = message;
+      });
+      Future.delayed(message.duration.seconds, () async {
+        activeMessage = null;
+        if (queuedTextMessages.isNotEmpty) {
+          _newOverlayMessage(queuedTextMessages.removeAt(0));
+        }
+      });
+    } else {
+      if (message.isImportant) {
+        final latestImportant =
+            queuedTextMessages.lastIndexWhere((element) => element.isImportant);
+
+        queuedTextMessages.insert(
+          latestImportant == -1 ? 0 : latestImportant + 1,
+          message,
+        );
+      } else {
+        queuedTextMessages.add(message);
+      }
+    }
   }
 
   @override
   void dispose() {
     InputManager().onPointerMoveList.remove(onGamepadCursorChange);
     InputManager().customInputWatcherManager.removeHoverOverlay();
-    InputManager().keyEventList.remove(onKeyEvent);
+    InputManager().removeKeyListener(onKeyEvent);
     eventStreamSubscription.cancel();
     widgetOverlayStreamSubscription.cancel();
+    overlayMessageSubscription.cancel();
 
     super.dispose();
   }
@@ -534,7 +615,7 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
   bool targetClick = false;
   late final Widget cachedCursor = Container(
     decoration: BoxDecoration(
-      color: colorPalette.randomBrightColor,
+      color: colorPalette.secondaryColor,
       shape: BoxShape.circle,
     ),
     height: radius,
@@ -555,57 +636,63 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
               style: defaultStyle.copyWith(fontSize: 32),
             ),
           ),
-          Positioned.fill(
-            child: Stack(
-              children: [
-                if (position != null) ...[
-                  Transform(
-                    transform: Matrix4.translationValues(
-                      position!.dx - (radius / 2),
-                      position!.dy - (radius / 2),
-                      0.0,
-                    ),
-                    child: cachedCursor,
-                  ),
-                  if (hoveredWidget != null)
-                    Builder(
-                      builder: (context) {
-                        var xPositionOfHover = latestEventWasKeyboard
-                            ? hoveredWidget!.$1.dx
-                            : position?.dx ?? hoveredWidget!.$1.dx;
-
-                        var yPositionOfHover = latestEventWasKeyboard
-                            ? hoveredWidget!.$1.dy
-                            : position?.dy ?? hoveredWidget!.$1.dy;
-                        if (xPositionOfHover +
-                                (sizeOfHoveredWidget?.width ?? 0) >
-                            screenSize.width) {
-                          xPositionOfHover = screenSize.width -
-                              (sizeOfHoveredWidget?.width ?? 0);
-                        }
-                        if (yPositionOfHover +
-                                (sizeOfHoveredWidget?.height ?? 0) >
-                            screenSize.height) {
-                          yPositionOfHover = screenSize.height -
-                              (sizeOfHoveredWidget?.height ?? 0);
-                        }
-
-                        return Transform(
-                          transform: Matrix4.translationValues(
-                            xPositionOfHover,
-                            yPositionOfHover,
-                            0.0,
-                          ),
-                          child: hoveredWidget!.$2,
-                        )
-                            .animate(key: ValueKey(hoveredWidget?.$1))
-                            .fadeIn(duration: .15.seconds);
-                      },
-                    ),
-                ],
-              ],
+          if (activeMessage != null)
+            DisplayTextWidget(
+              activeMessage!,
+              key: ValueKey(activeMessage),
             ),
-          ),
+          if (position != null || hoveredWidget != null)
+            Positioned.fill(
+              child: Stack(
+                children: [
+                  if (position != null) ...[
+                    Transform(
+                      transform: Matrix4.translationValues(
+                        position!.dx - (radius / 2),
+                        position!.dy - (radius / 2),
+                        0.0,
+                      ),
+                      child: cachedCursor,
+                    ),
+                    if (hoveredWidget != null)
+                      Builder(
+                        builder: (context) {
+                          var xPositionOfHover = latestEventWasKeyboard
+                              ? hoveredWidget!.$1.dx
+                              : position?.dx ?? hoveredWidget!.$1.dx;
+
+                          var yPositionOfHover = latestEventWasKeyboard
+                              ? hoveredWidget!.$1.dy
+                              : position?.dy ?? hoveredWidget!.$1.dy;
+                          if (xPositionOfHover +
+                                  (sizeOfHoveredWidget?.width ?? 0) >
+                              screenSize.width) {
+                            xPositionOfHover = screenSize.width -
+                                (sizeOfHoveredWidget?.width ?? 0);
+                          }
+                          if (yPositionOfHover +
+                                  (sizeOfHoveredWidget?.height ?? 0) >
+                              screenSize.height) {
+                            yPositionOfHover = screenSize.height -
+                                (sizeOfHoveredWidget?.height ?? 0);
+                          }
+
+                          return Transform(
+                            transform: Matrix4.translationValues(
+                              xPositionOfHover,
+                              yPositionOfHover,
+                              0.0,
+                            ),
+                            child: hoveredWidget!.$2,
+                          )
+                              .animate(key: ValueKey(hoveredWidget?.$1))
+                              .fadeIn(duration: .15.seconds);
+                        },
+                      ),
+                  ],
+                ],
+              ),
+            ),
         ],
       ),
     );

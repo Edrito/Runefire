@@ -18,11 +18,21 @@ import 'package:runefire/enemies/enemy.dart';
 abstract class EventManagement extends Component {
   EventManagement(this.enviroment);
 
+  ///Current function index
   Map<double, int> activeAiFunctionIndex = {};
-  Map<double, List<Function>> activeAiFunctions = {};
-  List<Function> activeAiFunctionsToCall = [];
+
+  ///Total functions to call
+  Map<double, List<Function()>> activeAiFunctions = {};
+
+  ///Copied functions to call
+  final Map<double, List<Function()>> _tempAiFunctionsToCall = {};
+
+  ///Ids of entities/objects that are added to the timers
   Map<double, List<String>> activeAiIds = {};
+
+  ///Active timers
   Map<double, TimerComponent> activeAiTimers = {};
+
   Map<String, TimerComponent> activeEventConfigTimers = {};
   List<GameEvent> eventsCurrentlyActive = [];
   List<GameEvent> eventsFinished = [];
@@ -33,7 +43,7 @@ abstract class EventManagement extends Component {
 
   TimerComponent? eventTimer;
 
-  void addAiTimer(Function function, String id, double time) {
+  void addAiTimer(Function() function, String id, double time) {
     activeAiIds[time] ??= [];
     activeAiFunctions[time] ??= [];
     activeAiFunctionIndex[time] ??= 0;
@@ -169,14 +179,23 @@ abstract class EventManagement extends Component {
       onTick: () {
         //Create timer that calls function over the difference between ticks
         // so there are no lag spikes...
-        if (activeAiFunctionIndex[timeKey]! >= activeAiFunctionsToCall.length) {
+        if ((activeAiFunctionIndex[timeKey] ?? double.infinity) >=
+            (_tempAiFunctionsToCall[timeKey]?.length ?? 0)) {
           activeAiFunctionIndex[timeKey] = 0;
-          activeAiFunctionsToCall = [...activeAiFunctions[timeKey]!];
+          _tempAiFunctionsToCall[timeKey] = [
+            ...activeAiFunctions[timeKey] ?? [],
+          ];
         }
-        if (activeAiFunctionsToCall.isEmpty) {
+        if (_tempAiFunctionsToCall[timeKey] == null) {
           return;
         }
-        activeAiFunctionsToCall[activeAiFunctionIndex[timeKey]!].call();
+        if (_tempAiFunctionsToCall[timeKey]!.isEmpty) {
+          _tempAiFunctionsToCall.remove(timeKey);
+          recalculateAiTimer(timeKey);
+          return;
+        }
+        _tempAiFunctionsToCall[timeKey]?[activeAiFunctionIndex[timeKey]!]
+            .call();
         activeAiFunctionIndex[timeKey] = activeAiFunctionIndex[timeKey]! + 1;
       },
     )..addToParent(this);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi';
 
 import 'package:flame/components.dart';
@@ -12,39 +13,47 @@ import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/entities/entity_class.dart';
 
-import '../player/player.dart';
-import '../game/enviroment.dart';
-import '../game/enviroment_mixin.dart';
-import '../game/menu_game.dart';
-import '../main.dart';
-import '../menus/menus.dart';
-import 'data_classes/player_data.dart';
-import 'data_classes/system_data.dart';
-import 'enums.dart';
-import 'constants/routes.dart' as routes;
-import '../menus/overlays.dart' as overlays;
+import 'package:runefire/player/player.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/game/menu_game.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/menus/menus.dart';
+import 'package:runefire/resources/data_classes/player_data.dart';
+import 'package:runefire/resources/data_classes/system_data.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/constants/routes.dart' as routes;
+import 'package:runefire/menus/overlays.dart' as overlays;
 
 class OverlayMessage {
-  OverlayMessage(this.text, {this.duration = 5, this.isImportant = false});
+  OverlayMessage(
+    this.text, {
+    this.duration = 5,
+    this.isImportant = false,
+    this.showBackground = true,
+    this.image,
+  });
   final String text;
   final double duration;
   final bool isImportant;
+  final bool showBackground;
+  final String? image;
 }
 
 class GameState {
+  factory GameState() {
+    return _instance;
+  }
   GameState._internal();
 
   static final GameState _instance = GameState._internal();
 
-  factory GameState() {
-    return _instance;
-  }
-
-  void initParameters(
-      {required GameRouter gameRouter,
-      required PlayerData playerData,
-      required SystemData systemData,
-      required MenuPageType currentMenuPage}) {
+  void initParameters({
+    required GameRouter gameRouter,
+    required PlayerData playerData,
+    required SystemData systemData,
+    required MenuPageType currentMenuPage,
+  }) {
     this.gameRouter = gameRouter;
     this.playerData = playerData;
     this.systemData = systemData;
@@ -59,34 +68,15 @@ class GameState {
 
   late GlobalKey centerBackgroundKey;
 
+  late final StreamController<OverlayMessage> textOverlayController =
+      StreamController<OverlayMessage>();
+
   String? currentOverlay;
   late String currentRoute;
   bool transitionOccuring = false;
-  OverlayMessage? textToDisplay;
-  bool get textOverlayIsActive => textToDisplay != null;
-  List<OverlayMessage> queuedTextMessages = [];
 
-  void displayText(OverlayMessage message) {
-    if (textOverlayIsActive) {
-      queuedTextMessages.add(message);
-      return;
-    }
-    textToDisplay = message;
-    final String overlayToAdd = message.isImportant
-        ? overlays.textDisplay.key
-        : overlays.textDisplay.key;
-
-    gameRouter.overlays.add(overlayToAdd);
-
-    Future.delayed((message.duration).seconds).then((value) {
-      textToDisplay = null;
-      gameRouter.overlays.remove(overlayToAdd);
-      Future.delayed(.5.seconds).then((value) {
-        if (queuedTextMessages.isNotEmpty) {
-          displayText(queuedTextMessages.removeAt(0));
-        }
-      });
-    });
+  void displayOverlayMessage(OverlayMessage message) {
+    textOverlayController.add(message);
   }
 
   //Key and audiopool
@@ -97,8 +87,10 @@ class GameState {
     List<MapEntry<(AudioScope, String), AudioPool>> listToRemove;
     if (audioLocation != null) {
       listToRemove = audioPools.entries
-          .where((element) =>
-              element.key.$1 == audioScope && element.key.$2 == audioLocation)
+          .where(
+            (element) =>
+                element.key.$1 == audioScope && element.key.$2 == audioLocation,
+          )
           .toList();
       return;
     } else {
@@ -107,19 +99,21 @@ class GameState {
           .toList();
     }
 
-    for (var element in listToRemove) {
+    for (final element in listToRemove) {
       element.value.audioCache.clear(element.key.$2);
       audioPools.remove(element.key);
     }
   }
 
-  void playAudio(String audioLocation,
-      {AudioType audioType = AudioType.sfx,
-      AudioDurationType audioScopeType = AudioDurationType.short,
-      AudioScope audioScope = AudioScope.game,
-      bool useAudioPool = false,
-      int maxPlayers = 3,
-      bool isLooping = false}) async {
+  Future<void> playAudio(
+    String audioLocation, {
+    AudioType audioType = AudioType.sfx,
+    AudioDurationType audioScopeType = AudioDurationType.short,
+    AudioScope audioScope = AudioScope.game,
+    bool useAudioPool = false,
+    int maxPlayers = 3,
+    bool isLooping = false,
+  }) async {
     // return;
 
     double volume;
@@ -139,9 +133,11 @@ class GameState {
     volume = volume.clamp(0, 1);
 
     if (useAudioPool) {
-      (AudioScope, String) key = (audioScope, audioLocation);
-      audioPools[key] ??= await FlameAudio.createPool(audioLocation,
-          minPlayers: 1, maxPlayers: maxPlayers);
+      final key = (audioScope, audioLocation);
+      audioPools[key] ??= await FlameAudio.createPool(
+        audioLocation,
+        maxPlayers: maxPlayers,
+      );
       audioPools[key]?.start(volume: volume);
       return;
     }
@@ -196,7 +192,7 @@ extension GameStateGetters on GameState {
   bool get gameIsPaused => gameRouter.paused;
 
   Enviroment? get currentEnviroment {
-    var result =
+    final result =
         gameRouter.router.currentRoute.children.whereType<Enviroment>();
 
     if (result.isNotEmpty) {
@@ -217,8 +213,11 @@ extension GameStateGetters on GameState {
 }
 
 extension GameStateFunctions on GameState {
-  void pauseGame(String overlay,
-      {bool pauseGame = true, bool wipeMovement = false}) {
+  void pauseGame(
+    String overlay, {
+    bool pauseGame = true,
+    bool wipeMovement = false,
+  }) {
     final game = currentEnviroment;
     if (currentOverlay != null ||
         transitionOccuring ||
@@ -244,7 +243,7 @@ extension GameStateFunctions on GameState {
   void handlePlayerPreview(MenuPageType page) {
     MenuGame? menuGame;
     if (currentEnviroment is MenuGame) {
-      menuGame = currentEnviroment as MenuGame;
+      menuGame = currentEnviroment! as MenuGame;
     }
 
     if (page == MenuPageType.weaponMenu) {
@@ -296,10 +295,11 @@ extension GameStateFunctions on GameState {
     if (!restart) {
       toggleGameStart(null);
       changeMainMenuPage(
-          endGameState == EndGameState.win
-              ? MenuPageType.weaponMenu
-              : MenuPageType.startMenuPage,
-          false);
+        endGameState == EndGameState.win
+            ? MenuPageType.weaponMenu
+            : MenuPageType.startMenuPage,
+        false,
+      );
     } else {
       toggleGameStart(routes.gameplay);
     }
@@ -307,7 +307,10 @@ extension GameStateFunctions on GameState {
   }
 
   void killPlayer(
-      EndGameState gameEndState, Player player, DamageInstance instance) {
+    EndGameState gameEndState,
+    Player player,
+    DamageInstance instance,
+  ) {
     if (transitionOccuring) return;
 
     transitionOccuring = true;
@@ -317,7 +320,7 @@ extension GameStateFunctions on GameState {
         if (gameEndState == EndGameState.playerDeath) {
           pauseGame(overlays.deathScreen.key, wipeMovement: true);
         } else {
-          endGame(gameEndState, false);
+          endGame(gameEndState);
         }
       },
     );

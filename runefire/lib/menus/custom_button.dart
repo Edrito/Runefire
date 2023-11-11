@@ -21,6 +21,7 @@ class CustomButton extends StatefulWidget {
     this.onSecondaryHold,
     this.upDownColor,
     this.scrollController,
+    this.hoverWidget,
     this.zHeight = 0,
     this.zIndex = 0,
     this.rowId = 0,
@@ -33,6 +34,7 @@ class CustomButton extends StatefulWidget {
   final Function()? onPrimaryUp;
   final Function()? onSecondary;
   final Function()? onSecondaryUp;
+  final Widget? hoverWidget;
   final Function()? onSecondaryHold;
   final ScrollController? scrollController;
   final String text;
@@ -74,6 +76,7 @@ class _CustomButtonState extends State<CustomButton> {
       onSecondaryHold: () => widget.onSecondaryHold?.call(),
       rowId: widget.rowId,
       zIndex: widget.zIndex,
+      hoverWidget: widget.hoverWidget,
       scrollController: widget.scrollController,
       child: Padding(
         padding: !isHovered

@@ -50,7 +50,7 @@ class CrystalPistol extends PlayerWeapon
   late CircleComponent circle;
 
   @override
-  double distanceFromPlayer = .5;
+  double distanceFromPlayer = .2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -76,7 +76,7 @@ class CrystalPistol extends PlayerWeapon
   }
 
   @override
-  double weaponScale = 1;
+  double weaponScale = .75;
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.pistol.size.asVector2;
   @override

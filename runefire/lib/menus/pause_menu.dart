@@ -19,10 +19,10 @@ import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:numerus/numerus.dart';
-import '../game/enviroment.dart';
-import '../main.dart';
-import '../resources/visuals.dart';
-import 'custom_button.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/menus/custom_button.dart';
 
 class OverlayWidgetDisplay extends StatefulWidget {
   const OverlayWidgetDisplay(this.gameRef, {required this.child, super.key});
@@ -36,40 +36,45 @@ class OverlayWidgetDisplay extends StatefulWidget {
 class _OverlayWidgetDisplayState extends State<OverlayWidgetDisplay> {
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final ratio = largeCardSize.aspectRatio;
-      final double maxHeightOfAttributes = constraints.maxWidth / ratio;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final ratio = largeCardSize.aspectRatio;
+        final maxHeightOfAttributes = constraints.maxWidth / ratio;
 
-      return SizedBox(
-        height: maxHeightOfAttributes,
-        child: Stack(
-          children: [
-            const CustomBorderBox(),
-            Positioned.fill(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(8.0 * maxHeightOfAttributes / 100),
-                  child: SizedBox(
-                      height: maxHeightOfAttributes, child: widget.child),
+        return SizedBox(
+          height: maxHeightOfAttributes,
+          child: Stack(
+            children: [
+              const CustomBorderBox(),
+              Positioned.fill(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0 * maxHeightOfAttributes / 100),
+                    child: SizedBox(
+                      height: maxHeightOfAttributes,
+                      child: widget.child,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      );
-    });
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
 class CustomBorderBox extends StatelessWidget {
-  const CustomBorderBox(
-      {this.child,
-      this.small = false,
-      this.hideBackground = false,
-      this.hideBaseBorder = false,
-      this.lightColor = false,
-      this.attributeType,
-      super.key});
+  const CustomBorderBox({
+    this.child,
+    this.small = false,
+    this.hideBackground = false,
+    this.hideBaseBorder = false,
+    this.lightColor = false,
+    this.attributeType,
+    super.key,
+  });
   final Widget? child;
   final bool small;
   final bool hideBackground;
@@ -79,26 +84,26 @@ class CustomBorderBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = ApolloColorPalette.mediumGray.color;
-    Color borderColorBase = ApolloColorPalette.darkestGray.color;
-    Color borderColorMid = ApolloColorPalette.lightGray.color;
-    Color borderColorTop = ApolloColorPalette.veryLightGray.color;
+    final backgroundColor = ApolloColorPalette.mediumGray.color;
+    final borderColorBase = ApolloColorPalette.darkestGray.color;
+    final borderColorMid = ApolloColorPalette.lightGray.color;
+    final borderColorTop = ApolloColorPalette.veryLightGray.color;
 
-    String backgroundImage = small
+    final backgroundImage = small
         ? ImagesAssetsUi.attributeBackgroundMaskSmall.path
         : ImagesAssetsUi.attributeBackgroundMask.path;
-    List<String> borderImage = [
-      small
-          ? ImagesAssetsUi.attributeBorderSmall.path
-          : ImagesAssetsUi.attributeBorder.path
+    final borderImage = <String>[
+      if (small)
+        ImagesAssetsUi.attributeBorderSmall.path
+      else
+        ImagesAssetsUi.attributeBorder.path,
     ];
 
-    List<DamageType> elementalPowerBorder =
-        attributeType?.elementalRequirement ?? [];
+    final elementalPowerBorder = attributeType?.elementalRequirement ?? [];
 
     if (elementalPowerBorder.isNotEmpty) {
       borderImage.clear();
-      for (var element in elementalPowerBorder) {
+      for (final element in elementalPowerBorder) {
         switch (element) {
           case DamageType.energy:
             borderImage.add(
@@ -134,65 +139,75 @@ class CustomBorderBox extends StatelessWidget {
         }
       }
     }
-    final Size cardSize = small ? smallCardSize : largeCardSize;
+    final cardSize = small ? smallCardSize : largeCardSize;
 
-    String borderMidImage = small
+    final borderMidImage = small
         ? ImagesAssetsUi.attributeBorderMidSmall.path
         : ImagesAssetsUi.attributeBorderMid.path;
-    String borderBaseImage = small
+    final borderBaseImage = small
         ? ImagesAssetsUi.attributeBorderBaseSmall.path
         : ImagesAssetsUi.attributeBorderBase.path;
-    Widget background = Positioned.fill(
-        child: Image.asset(
-      backgroundImage,
-      fit: BoxFit.fitWidth,
-      color: backgroundColor,
-      filterQuality: FilterQuality.none,
-    ));
+    final Widget background = Positioned.fill(
+      child: Image.asset(
+        backgroundImage,
+        fit: BoxFit.fitWidth,
+        color: backgroundColor,
+        filterQuality: FilterQuality.none,
+      ),
+    );
 
-    int count = borderImage.length;
-    Widget border =
-        Positioned.fill(child: LayoutBuilder(builder: (context, straints) {
-      return Stack(
-        children: [
-          for (int i = 0; i < count; i++)
-            Positioned.fill(
-              child: ClipRect(
-                clipper: CustomRectClipper(i / count, (i + 1) / count),
-                child: buildImageAsset(
-                  borderImage[i],
-                  fit: BoxFit.fitWidth,
-                  color: elementalPowerBorder.isEmpty ? borderColorTop : null,
+    final count = borderImage.length;
+    final Widget border = Positioned.fill(
+      child: LayoutBuilder(
+        builder: (context, straints) {
+          return Stack(
+            children: [
+              for (int i = 0; i < count; i++)
+                Positioned.fill(
+                  child: ClipRect(
+                    clipper: CustomRectClipper(i / count, (i + 1) / count),
+                    child: buildImageAsset(
+                      borderImage[i],
+                      fit: BoxFit.fitWidth,
+                      color:
+                          elementalPowerBorder.isEmpty ? borderColorTop : null,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
-      );
-    }));
+            ],
+          );
+        },
+      ),
+    );
 
-    Widget borderMid = Positioned.fill(
-        child: buildImageAsset(
-      borderMidImage,
-      color: borderColorMid,
-      fit: BoxFit.fitWidth,
-    ));
-    Widget borderBase = Positioned.fill(
-        child: buildImageAsset(
-      borderBaseImage,
-      color: borderColorBase,
-      fit: BoxFit.fitWidth,
-    ));
+    final Widget borderMid = Positioned.fill(
+      child: buildImageAsset(
+        borderMidImage,
+        color: borderColorMid,
+        fit: BoxFit.fitWidth,
+      ),
+    );
+    final Widget borderBase = Positioned.fill(
+      child: buildImageAsset(
+        borderBaseImage,
+        color: borderColorBase,
+        fit: BoxFit.fitWidth,
+      ),
+    );
 
     return SizedBox(
       // width: cardSize.width,
       // height: cardSize.height,
-      child: Stack(alignment: Alignment.topCenter, children: [
-        if (!hideBackground) background,
-        if (!hideBaseBorder) borderBase,
-        borderMid,
-        border,
-        if (child != null) Positioned.fill(child: child!)
-      ]),
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          if (!hideBackground) background,
+          if (!hideBaseBorder) borderBase,
+          borderMid,
+          border,
+          if (child != null) Positioned.fill(child: child!),
+        ],
+      ),
     );
   }
 }
@@ -211,9 +226,9 @@ class _OverlayWidgetListState extends State<OverlayWidgetList> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    Color color = colorPalette.secondaryColor;
+    final color = colorPalette.secondaryColor;
 
-    Widget title = Positioned.fill(
+    final Widget title = Positioned.fill(
       bottom: null,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -221,8 +236,9 @@ class _OverlayWidgetListState extends State<OverlayWidgetList> {
           widget.title,
           textAlign: TextAlign.center,
           style: defaultStyle.copyWith(
-              color: color,
-              shadows: [colorPalette.buildShadow(ShadowStyle.light)]),
+            color: color,
+            shadows: [colorPalette.buildShadow(ShadowStyle.light)],
+          ),
         ).animate().fadeIn(),
       ),
     );
@@ -239,7 +255,7 @@ class _OverlayWidgetListState extends State<OverlayWidgetList> {
               ),
             ),
           ),
-          title
+          title,
         ],
       ),
     );
@@ -261,10 +277,10 @@ class _PauseMenuState extends State<PauseMenu> {
 
   bool fetchAttributeLogicChecker(Attribute element, bool isTemp) {
     final tempChecker =
-        ((element.attributeType.territory == AttributeTerritory.temporary &&
+        (element.attributeType.territory == AttributeTerritory.temporary &&
                 isTemp) ||
             (element.attributeType.territory != AttributeTerritory.temporary &&
-                !isTemp));
+                !isTemp);
 
     final permanentChecker =
         element.attributeType.territory != AttributeTerritory.permanent;
@@ -277,7 +293,7 @@ class _PauseMenuState extends State<PauseMenu> {
     node.requestFocus();
     gameRouter = widget.gameRef;
     gameState = gameRouter.gameStateComponent.gameState;
-    env = gameState.currentEnviroment as GameEnviroment;
+    env = gameState.currentEnviroment! as GameEnviroment;
   }
 
   final Size cardSize = const Size(128, 96);
@@ -285,20 +301,22 @@ class _PauseMenuState extends State<PauseMenu> {
   bool optionsEnabled = false;
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-    var entries = env.player?.currentAttributes;
+    final size = MediaQuery.of(context).size;
+    final entries = env.player?.currentAttributes;
 
-    var nonTempEntries = entries?.values
+    final nonTempEntries = entries?.values
             .where((element) => fetchAttributeLogicChecker(element, false))
             .toList() ??
         [];
 
-    nonTempEntries.sort((a, b) =>
-        a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index));
+    nonTempEntries.sort(
+      (a, b) =>
+          a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index),
+    );
 
     nonTempEntries.sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
 
-    double bottomPaddingAmount = 200 * ((size.height - 300) / 900).clamp(0, 1);
+    final bottomPaddingAmount = 200.0 * ((size.height - 300) / 900).clamp(0, 1);
     return Container(
       color: ApolloColorPalette.darkestGray.color.withOpacity(.8),
       child: optionsEnabled
@@ -328,16 +346,19 @@ class _PauseMenuState extends State<PauseMenu> {
                                 constraints:
                                     const BoxConstraints(maxWidth: 700),
                                 child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 12),
-                                    child: OverlayWidgetDisplay(
-                                      gameRouter,
-                                      child: StatsDisplay(
-                                        gameRef: gameRouter,
-                                        statStrings:
-                                            env.player?.buildStatStrings(false),
-                                      ),
-                                    )),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  child: OverlayWidgetDisplay(
+                                    gameRouter,
+                                    child: StatsDisplay(
+                                      gameRef: gameRouter,
+                                      statStrings:
+                                          env.player?.buildStatStrings(false),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -345,50 +366,56 @@ class _PauseMenuState extends State<PauseMenu> {
                             child: SizedBox(
                               width: 450,
                               child: OverlayWidgetList(
-                                  gameRouter,
-                                  [
-                                    CustomButton(
-                                      "Resume",
-                                      upDownColor: (
-                                        colorPalette.primaryColor.brighten(.5),
-                                        colorPalette.primaryColor
-                                      ),
-                                      rowId: 1,
-                                      gameRef: widget.gameRef,
-                                      onPrimary: () {
-                                        gameState.resumeGame();
-                                      },
+                                gameRouter,
+                                [
+                                  CustomButton(
+                                    'Resume',
+                                    upDownColor: (
+                                      colorPalette.primaryColor.brighten(.5),
+                                      colorPalette.primaryColor
                                     ),
-                                    CustomButton("Options",
-                                        gameRef: widget.gameRef,
-                                        rowId: 3, onPrimary: () {
+                                    rowId: 1,
+                                    gameRef: widget.gameRef,
+                                    onPrimary: () {
+                                      gameState.resumeGame();
+                                    },
+                                  ),
+                                  CustomButton(
+                                    'Options',
+                                    gameRef: widget.gameRef,
+                                    rowId: 3,
+                                    onPrimary: () {
                                       setState(
                                         () {
                                           optionsEnabled = true;
                                         },
                                       );
-                                    }),
-                                    CustomButton(
-                                      "Give up",
-                                      gameRef: gameRouter,
-                                      upDownColor: (
-                                        colorPalette.primaryColor.brighten(.5),
-                                        colorPalette.primaryColor
-                                      ),
-                                      rowId: 5,
-                                      onPrimary: () {
-                                        gameState.resumeGame();
-                                        gameState.currentPlayer?.die(
-                                            DamageInstance(
-                                                damageMap: {},
-                                                source: env.player!,
-                                                victim: env.player!,
-                                                sourceAttack: this),
-                                            EndGameState.quit);
-                                      },
-                                    )
-                                  ],
-                                  "Pause Menu"),
+                                    },
+                                  ),
+                                  CustomButton(
+                                    'Give up',
+                                    gameRef: gameRouter,
+                                    upDownColor: (
+                                      colorPalette.primaryColor.brighten(.5),
+                                      colorPalette.primaryColor
+                                    ),
+                                    rowId: 5,
+                                    onPrimary: () {
+                                      gameState.resumeGame();
+                                      gameState.currentPlayer?.die(
+                                        DamageInstance(
+                                          damageMap: {},
+                                          source: env.player!,
+                                          victim: env.player!,
+                                          sourceAttack: this,
+                                        ),
+                                        EndGameState.quit,
+                                      );
+                                    },
+                                  ),
+                                ],
+                                'Pause Menu',
+                              ),
                             ),
                           ),
                           Expanded(
@@ -397,14 +424,18 @@ class _PauseMenuState extends State<PauseMenu> {
                                 constraints:
                                     const BoxConstraints(maxWidth: 700),
                                 child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 12),
-                                    child: OverlayWidgetDisplay(
-                                      gameRouter,
-                                      child: AttributeDisplay(
-                                          gameRef: gameRouter,
-                                          attributes: nonTempEntries),
-                                    )),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  child: OverlayWidgetDisplay(
+                                    gameRouter,
+                                    child: AttributeDisplay(
+                                      gameRef: gameRouter,
+                                      attributes: nonTempEntries,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -418,7 +449,7 @@ class _PauseMenuState extends State<PauseMenu> {
                   child: TotalPowerGraph(
                     player: env.player!,
                   ),
-                )
+                ),
               ],
             ),
     ).animate().fadeIn();

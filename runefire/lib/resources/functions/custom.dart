@@ -19,8 +19,8 @@ import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'dart:math' as math;
-import '../../entities/entity_class.dart';
-import '../../weapons/projectile_mixin.dart';
+import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/weapons/projectile_mixin.dart';
 
 extension ResetTicker on SpriteAnimationGroupComponent {
   void resetTicker(dynamic key) {
@@ -48,28 +48,29 @@ extension ColorExtension on Color {
   Color mergeWith(Color other, double mergeFactor) {
     mergeFactor = mergeFactor.clamp(0.0, 1.0);
 
-    int mergedRed =
-        ((red + (other.red - red) * mergeFactor).round()).clamp(0, 255);
-    int mergedGreen =
-        ((green + (other.green - green) * mergeFactor).round()).clamp(0, 255);
-    int mergedBlue =
-        ((blue + (other.blue - blue) * mergeFactor).round()).clamp(0, 255);
+    final mergedRed =
+        (red + (other.red - red) * mergeFactor).round().clamp(0, 255);
+    final mergedGreen =
+        (green + (other.green - green) * mergeFactor).round().clamp(0, 255);
+    final mergedBlue =
+        (blue + (other.blue - blue) * mergeFactor).round().clamp(0, 255);
 
     return Color.fromARGB(alpha, mergedRed, mergedGreen, mergedBlue);
   }
 }
 
 class CaTextComponent extends TextComponent with HasOpacityProvider {
-  CaTextComponent(
-      {super.anchor,
-      super.angle,
-      super.children,
-      super.position,
-      super.priority,
-      super.scale,
-      super.size,
-      super.text,
-      super.textRenderer});
+  CaTextComponent({
+    super.anchor,
+    super.angle,
+    super.children,
+    super.position,
+    super.priority,
+    super.scale,
+    super.size,
+    super.text,
+    super.textRenderer,
+  });
 }
 
 class SquareParticle extends Particle {
@@ -85,17 +86,18 @@ class SquareParticle extends Particle {
   @override
   void render(Canvas canvas) {
     canvas.drawRect(
-        Rect.fromCenter(center: Offset.zero, width: size.x, height: size.y),
-        paint);
+      Rect.fromCenter(center: Offset.zero, width: size.x, height: size.y),
+      paint,
+    );
   }
 }
 
 class FadeOutCircleParticle extends CircleParticle {
   FadeOutCircleParticle({
-    required Paint paint,
+    required super.paint,
     required double lifespan,
-    double radius = 10.0,
-  }) : super(paint: paint, radius: radius, lifespan: lifespan) {
+    super.radius,
+  }) : super(lifespan: lifespan) {
     lifespanForOpacity = lifespan;
   }
   late double lifespanForOpacity;
@@ -109,11 +111,12 @@ class FadeOutCircleParticle extends CircleParticle {
   @override
   void render(Canvas canvas) {
     canvas.drawCircle(
-        Offset.zero,
-        radius,
-        Paint()
-          ..color = paint.color
-              .withOpacity((1 - duration / lifespanForOpacity).clamp(0, 1)));
+      Offset.zero,
+      radius,
+      Paint()
+        ..color = paint.color
+            .withOpacity((1 - duration / lifespanForOpacity).clamp(0, 1)),
+    );
   }
 }
 
@@ -218,20 +221,21 @@ class SimpleStartPlayEndSpriteAnimationComponent
   DurationType durationType;
   bool randomlyFlipped;
 
-  SimpleStartPlayEndSpriteAnimationComponent(
-      {this.spawnAnimation,
-      this.playAnimation,
-      this.durationType = DurationType.temporary,
-      this.randomlyFlipped = false,
-      this.endAnimation,
-      this.randomizePlay = false,
-      this.desiredWidth,
-      super.position,
-      super.anchor = Anchor.center}) {
+  SimpleStartPlayEndSpriteAnimationComponent({
+    this.spawnAnimation,
+    this.playAnimation,
+    this.durationType = DurationType.temporary,
+    this.randomlyFlipped = false,
+    this.endAnimation,
+    this.randomizePlay = false,
+    this.desiredWidth,
+    super.position,
+    super.anchor = Anchor.center,
+  }) {
     assert(playAnimation != null || spawnAnimation != null);
     assert(spawnAnimation != null || durationType != DurationType.instant);
-    bool desiredWidthIsNull = desiredWidth == null;
-    final bool isSizeZero = size.x == 0 || size.y == 0;
+    final desiredWidthIsNull = desiredWidth == null;
+    final isSizeZero = size.x == 0 || size.y == 0;
     if (isSizeZero) {
       final spriteSize = playAnimation?.frames.first.sprite.srcSize ??
           spawnAnimation!.frames.first.sprite.srcSize;
@@ -254,7 +258,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
   FutureOr<void> onLoad() {
     autoResize = false;
 
-    Map<dynamic, SpriteAnimation>? animationsToSet = {
+    final animationsToSet = <dynamic, SpriteAnimation>{
       if (spawnAnimation != null) EntityStatus.spawn: spawnAnimation!,
       EntityStatus.idle: playAnimation ?? spawnAnimation!,
       if (endAnimation != null) EntityStatus.dead: endAnimation!,
@@ -305,9 +309,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
         final controller = EffectController(
           curve: Curves.easeInCubic,
           duration: duration,
-          onMax: () {
-            removeFromParent();
-          },
+          onMax: removeFromParent,
         );
         add(OpacityEffect.fadeOut(controller));
       }
@@ -317,9 +319,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
       _setStatus(EntityStatus.dead);
       if (animation != null) {
         animation?.loop = false;
-        animationTicker?.onComplete = () {
-          removeFromParent();
-        };
+        animationTicker?.onComplete = removeFromParent;
         await animationTicker?.completed;
       } else {
         removeFromParent();
@@ -335,8 +335,8 @@ class CustomParticleGenerator extends Component {
     required this.lifespan,
     required this.frequency,
     required this.velocity,
-    this.color,
     required this.particlePosition,
+    this.color,
     this.sprites,
     this.originPosition,
     this.duration,
@@ -377,60 +377,67 @@ class CustomParticleGenerator extends Component {
       position = originPosition!;
     }
 
-    double randomLifespan = ((rng.nextDouble() - .5) * lifespan) + (lifespan);
-    int count = rng.nextInt((frequency / 2).ceil()) + (frequency * .75).round();
+    final randomLifespan = ((rng.nextDouble() - .5) * lifespan) + lifespan;
+    final count =
+        rng.nextInt((frequency / 2).ceil()) + (frequency * .75).round();
     // int i = 0;
     final particleSystem = ParticleSystemComponent(
-        position: position,
-        particle: Particle.generate(
-          applyLifespanToChildren: true,
-          lifespan: randomLifespan,
-          count: count,
-          // count: 50,
-          generator: (p0) {
-            final randomPosition = Vector2(
-                ((rng.nextDouble() * 2) - 1) * particlePosition.x,
-                ((rng.nextDouble() * 2) - 1) * particlePosition.y);
-            Vector2? velocity;
-            if (this.velocity != null) {
-              velocity = Vector2(
-                  ((rng.nextDouble() * 2) - 1) * this.velocity!.x,
-                  ((rng.nextDouble() * 2) - 1) * this.velocity!.y);
-            }
-
-            (particlePosition * .75) +
-                Vector2(rng.nextDouble() * .5 * particlePosition.x,
-                    rng.nextDouble() * .5 * particlePosition.y);
-            final size = rng.nextDouble() * (maxSize - minSize) + minSize;
-            if (color != null) {
-              customPaint = colorPalette.buildProjectile(
-                  color: color!,
-                  projectileType: ProjectileType.paintBullet,
-                  lighten: false);
-            }
-            if (sprites != null && sprites!.isNotEmpty) {
-              final sprite = sprites?.random();
-              return SpriteParticle(
-                  sprite: sprite!,
-                  position: randomPosition,
-                  lifespan: randomLifespan,
-                  size: Vector2(size, size),
-                  overridePaint: customPaint);
-            }
-
-            final particle = AcceleratedParticle(
-              position: randomPosition,
-              speed: velocity,
-              child: CircleParticle(
-                paint: customPaint!,
-                lifespan: randomLifespan,
-                radius: size / 2,
-              ),
+      position: position,
+      particle: Particle.generate(
+        lifespan: randomLifespan,
+        count: count,
+        // count: 50,
+        generator: (p0) {
+          final randomPosition = Vector2(
+            ((rng.nextDouble() * 2) - 1) * particlePosition.x,
+            ((rng.nextDouble() * 2) - 1) * particlePosition.y,
+          );
+          Vector2? velocity;
+          if (this.velocity != null) {
+            velocity = Vector2(
+              ((rng.nextDouble() * 2) - 1) * this.velocity!.x,
+              ((rng.nextDouble() * 2) - 1) * this.velocity!.y,
             );
+          }
 
-            return particle;
-          },
-        ));
+          (particlePosition * .75) +
+              Vector2(
+                rng.nextDouble() * .5 * particlePosition.x,
+                rng.nextDouble() * .5 * particlePosition.y,
+              );
+          final size = rng.nextDouble() * (maxSize - minSize) + minSize;
+          if (color != null) {
+            customPaint = colorPalette.buildProjectile(
+              color: color!,
+              projectileType: ProjectileType.paintBullet,
+              lighten: false,
+            );
+          }
+          if (sprites != null && sprites!.isNotEmpty) {
+            final sprite = sprites?.random();
+            return SpriteParticle(
+              sprite: sprite!,
+              position: randomPosition,
+              lifespan: randomLifespan,
+              size: Vector2(size, size),
+              overridePaint: customPaint,
+            );
+          }
+
+          final particle = AcceleratedParticle(
+            position: randomPosition,
+            speed: velocity,
+            child: CircleParticle(
+              paint: customPaint!,
+              lifespan: randomLifespan,
+              radius: size / 2,
+            ),
+          );
+
+          return particle;
+        },
+      ),
+    );
     add(particleSystem);
     await Future.delayed(randomLifespan.seconds).then((value) {
       particleSystem.removeFromParent();
@@ -472,8 +479,8 @@ class ShakeEffect extends Effect with EffectTarget<PositionProvider> {
 
   ShakeEffect(
     super.controller, {
-    super.onComplete,
     required double intensity,
+    super.onComplete,
   })  : _shakeBuffer = Vector2.zero(),
         _shakeIntensity = intensity;
 
@@ -503,8 +510,10 @@ class CustomRectClipper extends CustomClipper<Rect> {
   @override
   Rect getClip(Size size) {
     print(endPercent);
-    return Rect.fromPoints(Offset(size.width * startPercent, 0),
-        Offset(size.width * endPercent, size.height));
+    return Rect.fromPoints(
+      Offset(size.width * startPercent, 0),
+      Offset(size.width * endPercent, size.height),
+    );
   }
 
   @override

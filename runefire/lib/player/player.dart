@@ -187,8 +187,8 @@ class Player extends Entity
     instance.removeGameActionListener(GameAction.jump, jumpAction);
     instance.removeGameActionListener(GameAction.primary, primaryAction);
     instance.removeGameActionListener(GameAction.secondary, secondaryAction);
-    instance.gamepadEventList.remove(parseGamepadJoy);
-    instance.keyEventList.remove(onKeyEvent);
+    instance.removeGamepadEventListener(parseGamepadJoy);
+    instance.removeKeyListener(onKeyEvent);
     instance.onPointerMoveList.remove(pointerMoveAction);
 
     super.onRemove();
@@ -228,7 +228,9 @@ class Player extends Entity
   }
 
   void parseGamepadJoy(GamepadEvent event) {
-    if (disableInput.parameter) return;
+    if (disableInput.parameter) {
+      return;
+    }
     var buttonToCheck = event.button;
     final swapJoys = game.systemDataComponent.dataObject.flipJoystickControl;
 
@@ -240,7 +242,7 @@ class Player extends Entity
       }
     }
 
-    switch (event.button) {
+    switch (buttonToCheck) {
       case GamepadButtons.leftJoy:
         if (event.pressState == PressState.released) {
           removeMoveVelocity(gamepadUserInputPriority);
@@ -296,8 +298,8 @@ class Player extends Entity
     instance.addGameActionListener(GameAction.jump, jumpAction);
     instance.addGameActionListener(GameAction.primary, primaryAction);
     instance.addGameActionListener(GameAction.secondary, secondaryAction);
-    instance.gamepadEventList.add(parseGamepadJoy);
-    instance.keyEventList.add(onKeyEvent);
+    instance.addGamepadEventListener(parseGamepadJoy);
+    instance.addKeyListener(onKeyEvent);
     instance.onPointerMoveList.add(pointerMoveAction);
 
     initialWeapons.addAll(playerData.selectedWeapons.values);
@@ -333,7 +335,9 @@ class Player extends Entity
   }
 
   void onKeyEvent(KeyEvent event) {
-    if (event is KeyUpEvent) return;
+    if (event is KeyUpEvent) {
+      return;
+    }
     if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
       levelUp();
     }
@@ -363,11 +367,15 @@ class Player extends Entity
   Enemy? aimAssistEnemy;
 
   void applyAimAssist() {
-    if (disableInput.parameter) return;
+    if (disableInput.parameter) {
+      return;
+    }
     final inputType = InputManager().externalInputType;
     final aimAssistStrength =
         game.systemDataComponent.dataObject.aimAssistStrength;
-    if (aimAssistStrength == AimAssistStrength.none) return;
+    if (aimAssistStrength == AimAssistStrength.none) {
+      return;
+    }
 
     switch (inputType) {
       case ExternalInputType.mouseKeyboard:
@@ -428,7 +436,9 @@ class Player extends Entity
   Vector2 tempMoveAngle = Vector2.zero();
 
   void onMoveAction(GameActionEvent _, Set<GameAction> activeGameActions) {
-    if (disableInput.parameter) return;
+    if (disableInput.parameter) {
+      return;
+    }
     tempMoveAngle.setZero();
 
     if (activeGameActions.contains(GameAction.moveRight)) {
@@ -455,7 +465,9 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (disableInput.parameter || game.paused) return;
+    if (disableInput.parameter || game.paused) {
+      return;
+    }
     switch (gameActionEvent.pressState) {
       case PressState.pressed:
         startPrimaryAttacking();
@@ -472,7 +484,9 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (disableInput.parameter || game.paused) return;
+    if (disableInput.parameter || game.paused) {
+      return;
+    }
     switch (gameActionEvent.pressState) {
       case PressState.pressed:
         startSecondaryAttacking();
@@ -489,9 +503,15 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (gameActionEvent.pressState != PressState.pressed) return;
-    if (disableInput.parameter) return;
-    if (game.paused) return;
+    if (gameActionEvent.pressState != PressState.pressed) {
+      return;
+    }
+    if (disableInput.parameter) {
+      return;
+    }
+    if (game.paused) {
+      return;
+    }
     swapWeapon();
   }
 
@@ -499,13 +519,21 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (gameActionEvent.pressState != PressState.pressed) return;
-    if (disableInput.parameter) return;
-    if (game.paused) return;
+    if (gameActionEvent.pressState != PressState.pressed) {
+      return;
+    }
+    if (disableInput.parameter) {
+      return;
+    }
+    if (game.paused) {
+      return;
+    }
     if (currentWeapon is ReloadFunctionality) {
       final currentWeaponReload = currentWeapon! as ReloadFunctionality;
       if (currentWeaponReload.isReloading ||
-          currentWeaponReload.spentAttacks == 0) return;
+          currentWeaponReload.spentAttacks == 0) {
+        return;
+      }
 
       currentWeaponReload.reload();
     }
@@ -515,9 +543,15 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (gameActionEvent.pressState != PressState.pressed) return;
-    if (disableInput.parameter) return;
-    if (game.paused) return;
+    if (gameActionEvent.pressState != PressState.pressed) {
+      return;
+    }
+    if (disableInput.parameter) {
+      return;
+    }
+    if (game.paused) {
+      return;
+    }
 
     jump();
   }
@@ -526,9 +560,15 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (gameActionEvent.pressState != PressState.pressed) return;
-    if (disableInput.parameter) return;
-    if (game.paused) return;
+    if (gameActionEvent.pressState != PressState.pressed) {
+      return;
+    }
+    if (disableInput.parameter) {
+      return;
+    }
+    if (game.paused) {
+      return;
+    }
     dash();
   }
 
@@ -536,9 +576,15 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (gameActionEvent.pressState != PressState.pressed) return;
-    if (disableInput.parameter) return;
-    if (game.paused) return;
+    if (gameActionEvent.pressState != PressState.pressed) {
+      return;
+    }
+    if (disableInput.parameter) {
+      return;
+    }
+    if (game.paused) {
+      return;
+    }
     if (_interactableComponents.isNotEmpty) {
       final itemToInteractWith = _interactableComponents.first;
       itemToInteractWith.interact();
@@ -554,9 +600,15 @@ class Player extends Entity
     GameActionEvent gameActionEvent,
     Set<GameAction> activeGameActions,
   ) {
-    if (gameActionEvent.pressState != PressState.pressed) return;
-    if (disableInput.parameter) return;
-    if (game.paused) return;
+    if (gameActionEvent.pressState != PressState.pressed) {
+      return;
+    }
+    if (disableInput.parameter) {
+      return;
+    }
+    if (game.paused) {
+      return;
+    }
     useExpendable();
   }
 

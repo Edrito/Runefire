@@ -222,7 +222,7 @@ class EndGameEvent extends GameEvent {
   @override
   void startEvent() {
     gameEnviroment.gameHasEnded = true;
-    GameState().displayText(OverlayMessage(endGameMessages.random()));
+    GameState().displayOverlayMessage(OverlayMessage(endGameMessages.random()));
     final exitVector =
         (Vector2.random() * gameEnviroment.boundsDistanceFromCenter * 2) -
             Vector2.all(gameEnviroment.boundsDistanceFromCenter);

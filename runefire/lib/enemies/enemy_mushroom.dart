@@ -361,7 +361,10 @@ class MushroomSpinner extends Enemy
     );
 
     const spinDuration = 6.0;
-    late RotateEffect rotateEffect;
+    RotateEffect? rotateEffect;
+    onDeath.add((instance) {
+      rotateEffect?.removeFromParent();
+    });
     enemyStates = {
       //Walking
       0: EnemyState(
@@ -389,7 +392,8 @@ class MushroomSpinner extends Enemy
           currentWeapon?.endAttacking();
           speed.baseParameter = mushroomShooterBaseSpeed * .5;
           touchDamage.damageBase.clear();
-          rotateEffect.removeFromParent();
+          rotateEffect?.removeFromParent();
+          rotateEffect = null;
           entityAnimationsGroup.angle = 0;
         },
         stateDuration: (spinDuration, spinDuration * 1.5),
@@ -397,9 +401,9 @@ class MushroomSpinner extends Enemy
           await toggleIdleRunAnimations(true);
           setEntityAnimation('spin_start').then((_) {
             currentWeapon?.startAttacking();
-            speed.baseParameter = mushroomShooterBaseSpeed * 2;
+            speed.baseParameter = mushroomShooterBaseSpeed * 1.5;
             touchDamage.damageBase[DamageType.psychic] = (5, 10);
-
+            rotateEffect?.removeFromParent();
             entityAnimationsGroup.add(
               rotateEffect = RotateEffect.by(
                 pi / 18,
@@ -415,7 +419,7 @@ class MushroomSpinner extends Enemy
         },
         triggerFunctions: [
           () => center.distanceTo(gameEnviroment.player!.center) < 10,
-          () => hitSinceLastSpin,
+          () => hitSinceLastSpin || durationSincePreviousStateChange > 10,
         ],
       ),
     };

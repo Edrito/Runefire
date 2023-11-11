@@ -879,13 +879,13 @@ mixin HealthFunctionality on Entity {
     currentColorEffect?.controller.setToStart();
 
     currentScaleEffect ??= SizeEffect.to(
-      baseSize! * (1 + (.25 * rng.nextDouble())),
+      baseSize! * (1 + (.25 * rng.nextDouble() * color.opacity)),
       reversedController,
     )..addToParent(entityAnimationsGroup);
 
     currentColorEffect ??= ColorEffect(
       color,
-      const Offset(0.0, 1),
+      Offset(0.0, color.opacity),
       reversedController,
     )..addToParent(entityAnimationsGroup);
   }
@@ -974,10 +974,15 @@ mixin HealthFunctionality on Entity {
     } else {
       damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
     }
-    addFloatingText(
-      instance..copyWith(damageMap: {DamageType.healing: amount}),
-    );
-    addDamageEffects(DamageType.healing.color);
+    // addFloatingText(
+    //   DamageInstance(
+    //     damageMap: {DamageType.healing: amount},
+    //     source: this,
+    //     victim: this,
+    //     sourceAttack: this,
+    //   ),
+    // );
+    addDamageEffects(DamageType.healing.color.withOpacity(.35));
   }
 
   void applyHealing(DamageInstance damage) {

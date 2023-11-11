@@ -112,7 +112,7 @@ mixin DropItemFunctionality on HealthFunctionality {
 
 mixin AimControlFunctionality on AimFunctionality {
   abstract AimPattern aimPattern;
-  late final Function updateFunction;
+  late final Function() updateFunction;
 
   Body? target;
 
@@ -157,7 +157,7 @@ mixin AimControlFunctionality on AimFunctionality {
 
   @override
   void update(double dt) {
-    updateFunction();
+    updateFunction.call();
     aimHandJoint(false);
     super.update(dt);
   }
@@ -166,7 +166,8 @@ mixin AimControlFunctionality on AimFunctionality {
 mixin DumbFollowAI on Enemy, MovementFunctionality {
   double targetUpdateFrequency = .25;
 
-  void _dumbFollowTargetTick() {
+  Future<void> _dumbFollowTargetTick() async {
+    await loaded;
     final newPosition = gameEnviroment.player!.center - body.position;
     addMoveVelocity(newPosition, aiInputPriority);
   }

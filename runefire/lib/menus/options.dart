@@ -8,6 +8,7 @@ import 'package:recase/recase.dart';
 import 'package:runefire/game/hud.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/game_state_class.dart';
@@ -54,13 +55,13 @@ class _OptionsMenuState extends State<OptionsMenu> {
 
   @override
   void initState() {
-    InputManager().gamepadEventList.add(onGamepadEvent);
+    InputManager().addGamepadEventListener(onGamepadEvent);
     super.initState();
   }
 
   @override
   void dispose() {
-    InputManager().gamepadEventList.remove(onGamepadEvent);
+    InputManager().removeGamepadEventListener(onGamepadEvent);
 
     super.dispose();
   }
@@ -715,9 +716,9 @@ class _KeyboardMouseGamepadBindingsState
 
   @override
   void dispose() {
-    InputManager().keyEventList.remove(newKeyboardPress);
+    InputManager().removeKeyListener(newKeyboardPress);
     InputManager().pointerDownList.remove(newPointerDownPress);
-    InputManager().gamepadEventList.remove(newGamepadPress);
+    InputManager().removeGamepadEventListener(newGamepadPress);
     super.dispose();
   }
 
@@ -727,13 +728,19 @@ class _KeyboardMouseGamepadBindingsState
   @override
   void initState() {
     super.initState();
-    InputManager().keyEventList.add(newKeyboardPress);
-    InputManager().gamepadEventList.add(newGamepadPress);
+    InputManager().addKeyListener(newKeyboardPress);
+    InputManager().addGamepadEventListener(newGamepadPress);
     InputManager().pointerDownList.add(newPointerDownPress);
   }
 
   @override
   void onSystemDataNotification() {}
+
+  GlobalKey<CustomInputWatcherState<CustomInputWatcher>>? flipJoystickHintKey;
+
+  final OverlayMessage joystickHintOverlayMessage = OverlayMessage(
+    'If true, the left joystick will control aiming,\nand the right joystick will control movement.',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -766,7 +773,6 @@ class _KeyboardMouseGamepadBindingsState
       );
       i++;
     }
-
     return Stack(
       children: [
         Positioned.fill(
@@ -774,6 +780,31 @@ class _KeyboardMouseGamepadBindingsState
             ignoring: isWaitingInput,
             child: Column(
               children: [
+                if (widget.configType == ExternalInputType.gamepad)
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      final systemData = gameRef.systemDataComponent.dataObject;
+                      flipJoystickHintKey ??= GlobalKey<
+                          CustomInputWatcherState<CustomInputWatcher>>();
+                      return CustomButton(
+                        'Flip Joystick Functionality: ${systemData.flipJoystickControl.toString().titleCase}',
+                        gameRef: gameRef,
+                        rowId: 2,
+                        hoverWidget: HintOverlayWidget(
+                          joystickHintOverlayMessage,
+                          key: flipJoystickHintKey,
+                        ),
+                        onPrimary: () => setState(() {
+                          systemData.setFlipJoystickControl =
+                              !systemData.flipJoystickControl;
+                        }),
+                        onSecondary: () => setState(() {
+                          systemData.setFlipJoystickControl =
+                              !systemData.flipJoystickControl;
+                        }),
+                      );
+                    },
+                  ),
                 buildRow(
                   null,
                   3,

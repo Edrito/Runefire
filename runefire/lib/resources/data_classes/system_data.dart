@@ -205,11 +205,17 @@ class SystemData extends DataClass {
   bool gamepadVibrationEnabled = true;
 
   @HiveField(120)
-  AimAssistStrength aimAssistStrength = AimAssistStrength.medium;
+  AimAssistStrength aimAssistStrength = AimAssistStrength.none;
 
   Map<GameAction, GamepadButtons> constantGamePadMappings = {
     GameAction.pause: GamepadButtons.buttonStart,
   };
+
+  set setFlipJoystickControl(bool value) {
+    flipJoystickControl = value;
+    parentComponent?.notifyListeners();
+    save();
+  }
 
   set setMusicVolume(double value) {
     musicVolume = value;

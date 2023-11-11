@@ -7,19 +7,19 @@ import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../resources/data_classes/base.dart';
-import '../resources/enums.dart';
+import 'package:runefire/resources/data_classes/base.dart';
+import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
-import 'attributes_mixin.dart';
-import '../entities/entity_class.dart';
-import 'attributes_regular.dart';
-import 'attributes_permanent.dart';
+import 'package:runefire/attributes/attributes_mixin.dart';
+import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/attributes/attributes_regular.dart';
+import 'package:runefire/attributes/attributes_permanent.dart';
 import 'package:uuid/uuid.dart';
 
-import '../main.dart';
-import '../menus/attribute_card.dart';
-import '../resources/functions/custom.dart';
-import 'attributes_status_effect.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/menus/attribute_card.dart';
+import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/attributes/attributes_status_effect.dart';
 
 /// This file contains all the enums for the attributes.
 /// It also contains the extension methods for the enums.
@@ -102,10 +102,10 @@ enum AttributeType {
   speedPermanent(category: AttributeCategory.mobility),
   maxStaminaPermanent(category: AttributeCategory.mobility),
   staminaRegenPermanent(category: AttributeCategory.mobility),
-  experienceGainPermanent(category: AttributeCategory.utility),
+  experienceGainPermanent(),
   durationPermanent,
   reloadTimePermanent(),
-  statusEffectPotencyPermanent(category: AttributeCategory.utility),
+  statusEffectPotencyPermanent(),
 
   physicalDamageIncreasePermanent(category: AttributeCategory.elemental),
   magicDamageIncreasePermanent(category: AttributeCategory.elemental),
@@ -123,51 +123,56 @@ enum AttributeType {
 
   ///Game Attributes
   explosionOnKill(
-      rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.attack,
-      territory: AttributeTerritory.game),
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.attack,
+    territory: AttributeTerritory.game,
+  ),
 
   explosiveDash(
-      rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offence,
-      territory: AttributeTerritory.game),
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+  ),
 
   gravityDash(
-      rarity: AttributeRarity.rare,
-      category: AttributeCategory.utility,
-      territory: AttributeTerritory.game),
+    rarity: AttributeRarity.rare,
+    territory: AttributeTerritory.game,
+  ),
 
   groundSlam(
-      rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offence,
-      territory: AttributeTerritory.game),
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+  ),
 
   psychicReach(
-      rarity: AttributeRarity.rare,
-      category: AttributeCategory.utility,
-      territory: AttributeTerritory.game,
-      attributeEligibilityTest: playerHasMeleeWeapon,
-      elementalRequirement: {
-        DamageType.psychic: .25,
-      }),
+    rarity: AttributeRarity.rare,
+    territory: AttributeTerritory.game,
+    attributeEligibilityTest: playerHasMeleeWeapon,
+    elementalRequirement: {
+      DamageType.psychic: .25,
+    },
+  ),
 
   periodicPush(
-      rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.utility,
-      attributeEligibilityTest: negativeCombinePulseTest,
-      territory: AttributeTerritory.game),
+    rarity: AttributeRarity.uncommon,
+    attributeEligibilityTest: negativeCombinePulseTest,
+    territory: AttributeTerritory.game,
+  ),
 
   periodicMagicPulse(
-      rarity: AttributeRarity.uncommon,
-      attributeEligibilityTest: negativeCombinePulseTest,
-      category: AttributeCategory.offence,
-      territory: AttributeTerritory.game),
+    rarity: AttributeRarity.uncommon,
+    attributeEligibilityTest: negativeCombinePulseTest,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+  ),
 
   periodicStun(
-      rarity: AttributeRarity.uncommon,
-      attributeEligibilityTest: negativeCombinePulseTest,
-      category: AttributeCategory.offence,
-      territory: AttributeTerritory.game),
+    rarity: AttributeRarity.uncommon,
+    attributeEligibilityTest: negativeCombinePulseTest,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+  ),
 
   combinePeriodicPulse(
     rarity: AttributeRarity.unique,
@@ -177,13 +182,10 @@ enum AttributeType {
     territory: AttributeTerritory.game,
   ),
   increaseXpGrabRadius(
-    rarity: AttributeRarity.standard,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
   sentryMarkEnemy(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
   sentryRangedAttack(
@@ -194,7 +196,6 @@ enum AttributeType {
 
   sentryGrabItems(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
 
@@ -213,7 +214,6 @@ enum AttributeType {
   //TODO
   sentryCombination(
     rarity: AttributeRarity.unique,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
     priority: 5,
     attributeEligibilityTest: sentryCombinationTest,
@@ -229,7 +229,6 @@ enum AttributeType {
 
   shieldSurround(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
 
@@ -240,10 +239,10 @@ enum AttributeType {
   ),
 
   reverseKnockback(
-      rarity: AttributeRarity.rare,
-      category: AttributeCategory.utility,
-      territory: AttributeTerritory.game,
-      priority: 5),
+    rarity: AttributeRarity.rare,
+    territory: AttributeTerritory.game,
+    priority: 5,
+  ),
 
   projectileSplitExplode(
     rarity: AttributeRarity.rare,
@@ -253,20 +252,17 @@ enum AttributeType {
   ),
 
   dodgeStandStillIncrease(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.mobility,
     territory: AttributeTerritory.game,
   ),
 
   defenceStandStillIncrease(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.mobility,
     territory: AttributeTerritory.game,
     priority: 5,
   ),
 
   damageStandStillIncrease(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.mobility,
     territory: AttributeTerritory.game,
   ),
@@ -299,11 +295,12 @@ enum AttributeType {
   ),
 
   teleportDash(
-      rarity: AttributeRarity.unique,
-      category: AttributeCategory.mobility,
-      territory: AttributeTerritory.game,
-      priority: 5,
-      attributeEligibilityTest: teleportDashTest),
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+    priority: 5,
+    attributeEligibilityTest: teleportDashTest,
+  ),
 
   weaponMerge(
     rarity: AttributeRarity.unique,
@@ -320,23 +317,26 @@ enum AttributeType {
   ///Pushes spent ammunition in all directions around player
   ///(incentivizes using all ammo)
   reloadSpray(
-      rarity: AttributeRarity.rare,
-      category: AttributeCategory.offence,
-      territory: AttributeTerritory.game,
-      attributeEligibilityTest: playerIsReloadFunctionality),
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    attributeEligibilityTest: playerIsReloadFunctionality,
+  ),
 
   ///Is invincible for the duration of the reload, depending on how much ammo was spent
   reloadInvincibility(
-      rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.defence,
-      territory: AttributeTerritory.game,
-      attributeEligibilityTest: playerIsReloadFunctionality),
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+    attributeEligibilityTest: playerIsReloadFunctionality,
+  ),
 
   reloadPush(
-      rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offence,
-      territory: AttributeTerritory.game,
-      attributeEligibilityTest: playerIsReloadFunctionality),
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    attributeEligibilityTest: playerIsReloadFunctionality,
+  ),
 
   ///increase attack count over time
   focus(
@@ -390,37 +390,29 @@ enum AttributeType {
   ///
   ///
   heavyHitter(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   quickShot(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   rapidFire(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   bigPockets(
-    rarity: AttributeRarity.standard,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
   secondsPlease(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.defence,
     territory: AttributeTerritory.game,
   ),
   primalMagic(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   appleADay(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.defence,
     territory: AttributeTerritory.game,
   ),
@@ -435,39 +427,30 @@ enum AttributeType {
   //   territory: AttributeTerritory.game,
   // ),
   critChanceDecreaseDamage(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   putYourBackIntoIt(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   agile(
-    rarity: AttributeRarity.standard,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
   areaSizeDecreaseDamage(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
   decreaseMaxAmmoIncreaseReloadSpeed(
-    rarity: AttributeRarity.standard,
-    category: AttributeCategory.utility,
     territory: AttributeTerritory.game,
   ),
 
   potionSeller(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   battleScars(
-    rarity: AttributeRarity.standard,
     category: AttributeCategory.defence,
     priority: 10,
     territory: AttributeTerritory.game,
@@ -512,23 +495,24 @@ enum AttributeType {
   ),
 
   slugTrail(
-      rarity: AttributeRarity.uncommon,
-      category: AttributeCategory.offence,
-      territory: AttributeTerritory.game);
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+  );
 
   ///Constructor
-  const AttributeType(
-      {this.rarity = AttributeRarity.standard,
-      this.category = AttributeCategory.utility,
-      this.territory = AttributeTerritory.permanent,
+  const AttributeType({
+    this.rarity = AttributeRarity.standard,
+    this.category = AttributeCategory.utility,
+    this.territory = AttributeTerritory.permanent,
 
-      ///A higher priority means the attribute will be processed last
-      this.priority = 0,
-      bool Function(Player) attributeEligibilityTest =
-          defaultAttributeEligibilityTest,
-      // ignore: unused_element
-      Map<DamageType, double>? elementalRequirement})
-      : _elementalRequirement = elementalRequirement,
+    ///A higher priority means the attribute will be processed last
+    this.priority = 0,
+    bool Function(Player) attributeEligibilityTest =
+        defaultAttributeEligibilityTest,
+    // ignore: unused_element
+    Map<DamageType, double>? elementalRequirement,
+  })  : _elementalRequirement = elementalRequirement,
         _attributeEligibilityTest = attributeEligibilityTest;
 
   final AttributeRarity rarity;
@@ -544,7 +528,9 @@ enum AttributeType {
   bool get requiresElementalPower => _elementalRequirement != null;
 
   bool attributeMeetsForcedElementalRequest(
-      Player player, DamageType? damageType) {
+    Player player,
+    DamageType? damageType,
+  ) {
     if (damageType == null) return true;
     final playerElementalLevel = player.elementalPower[damageType];
     if (_elementalRequirement == null ||
@@ -559,8 +545,8 @@ enum AttributeType {
   bool isEligible(Player player) {
     if (_elementalRequirement != null) {
       final playerElementalLevel = player.elementalPower;
-      bool elementalRequirementMet = true;
-      for (var element in _elementalRequirement!.entries) {
+      var elementalRequirementMet = true;
+      for (final element in _elementalRequirement!.entries) {
         final playerEntry = playerElementalLevel[element.key];
         if (playerEntry == null || !elementalRequirementMet) {
           return false;
@@ -599,7 +585,7 @@ bool sentryCombinationTest(Player player) {
     return false;
   }
 
-  int good = 0;
+  var good = 0;
   if (player.currentAttributes.containsKey(AttributeType.sentryRangedAttack)) {
     good++;
   }
@@ -662,7 +648,7 @@ extension AllAttributesExtension on AttributeType {
     if (permanentAttr != null) return permanentAttr;
 
     if (victimEntity == null) {
-      throw Exception("Victim entity required for $this!");
+      throw Exception('Victim entity required for $this!');
     }
 
     final regularAttr =
@@ -671,11 +657,15 @@ extension AllAttributesExtension on AttributeType {
     if (regularAttr != null) return regularAttr;
 
     if (perpetratorEntity == null) {
-      throw Exception("Perpetrator entity required for $this!");
+      throw Exception('Perpetrator entity required for $this!');
     }
 
     final perpetratorAttr = perpetratorAttributeBuilder(
-        this, level, victimEntity, perpetratorEntity);
+      this,
+      level,
+      victimEntity,
+      perpetratorEntity,
+    );
 
     if (perpetratorAttr != null) return perpetratorAttr;
 
@@ -690,7 +680,7 @@ extension AllAttributesExtension on AttributeType {
 
     if (statusEffectAttr != null) return statusEffectAttr;
 
-    throw Exception("Attribute not found - $this");
+    throw Exception('Attribute not found - $this');
   }
 }
 
@@ -747,25 +737,30 @@ abstract class Attribute extends UpgradeFunctions {
   String description() {
     final percent = ((factor ?? 0) * 100).abs().round();
 
-    String current = "${upgradeLevel * percent}%";
-    String next = "${(upgradeLevel + 1) * percent}%";
+    final current = '${upgradeLevel * percent}%';
+    final next = '${(upgradeLevel + 1) * percent}%';
 
     return "$current${upgradeLevel == maxLevel ? "" : " > $next"}";
   }
 
-  void applyActionToWeapons(Function(Weapon weapon) function,
-      bool includeSecondaries, bool includeAdditionalPrimaries) {
+  void applyActionToWeapons(
+    Function(Weapon weapon) function,
+    bool includeSecondaries,
+    bool includeAdditionalPrimaries,
+  ) {
     final weapons = victimEntity?.getAllWeaponItems(
-        includeSecondaries, includeAdditionalPrimaries);
+      includeSecondaries,
+      includeAdditionalPrimaries,
+    );
     if (weapons == null) return;
 
-    for (var element in weapons) {
+    for (final element in weapons) {
       function(element);
     }
   }
 
   String help() {
-    return "An increase of ${((factor ?? 0) * 100)}% of your base attribute with an additional ${((factor ?? 0) * 100)}% at max level.";
+    return 'An increase of ${(factor ?? 0) * 100}% of your base attribute with an additional ${(factor ?? 0) * 100}% at max level.';
   }
 
   late String attributeId;
@@ -799,35 +794,49 @@ abstract class Attribute extends UpgradeFunctions {
 
   ///Increase or decrease the level based on the input value
 
-  void genericAttributeIncrease(dynamic parameterManager,
-      bool increaseFromBaseParameter, bool increaseParameterPercentage,
-      [DamageType? damageType]) {
+  void genericAttributeIncrease(
+    dynamic parameterManager,
+    bool increaseFromBaseParameter,
+    bool increaseParameterPercentage, [
+    DamageType? damageType,
+  ]) {
     switch (parameterManager.runtimeType) {
       case DoubleParameterManager:
         if (increaseParameterPercentage) {
           (parameterManager as DoubleParameterManager).setParameterPercentValue(
-              attributeId,
-              increase(
-                  increaseFromBaseParameter, parameterManager.baseParameter));
+            attributeId,
+            increase(
+              increaseFromBaseParameter,
+              parameterManager.baseParameter,
+            ),
+          );
         } else {
           (parameterManager as DoubleParameterManager).setParameterFlatValue(
-              attributeId,
-              increase(
-                  increaseFromBaseParameter, parameterManager.baseParameter));
+            attributeId,
+            increase(
+              increaseFromBaseParameter,
+              parameterManager.baseParameter,
+            ),
+          );
         }
         break;
       case IntParameterManager:
         if (increaseParameterPercentage) {
           (parameterManager as IntParameterManager).setParameterPercentValue(
-              attributeId,
-              increase(increaseFromBaseParameter,
-                  parameterManager.baseParameter.toDouble()));
+            attributeId,
+            increase(
+              increaseFromBaseParameter,
+              parameterManager.baseParameter.toDouble(),
+            ),
+          );
         } else {
           (parameterManager as IntParameterManager).setParameterFlatValue(
-              attributeId,
-              increase(increaseFromBaseParameter,
-                      parameterManager.baseParameter.toDouble())
-                  .round());
+            attributeId,
+            increase(
+              increaseFromBaseParameter,
+              parameterManager.baseParameter.toDouble(),
+            ).round(),
+          );
         }
         break;
       case BoolParameterManager:
@@ -844,7 +853,9 @@ abstract class Attribute extends UpgradeFunctions {
       case DamagePercentParameterManager:
         (parameterManager as DamagePercentParameterManager)
             .setDamagePercentIncrease(
-                attributeId, {damageType!: increase(false)});
+          attributeId,
+          {damageType!: increase(false)},
+        );
 
         break;
 

@@ -37,9 +37,7 @@ import 'package:runefire/menus/overlays.dart' as overlay;
 
 final rng = Random();
 
-bool startInGame = true;
-
-// Map<int, bool> isSecondaryPointer = {};
+bool _startInGame = false;
 
 final ApolloColorPalette colorPalette = ApolloColorPalette();
 final SpriteAnimations spriteAnimations = SpriteAnimations();
@@ -95,7 +93,7 @@ void main() async {
   //   leftMotorSpeed: 25000,
   // );
 
-  GameState().currentRoute = startInGame ? routes.gameplay : routes.blank;
+  GameState().currentRoute = _startInGame ? routes.gameplay : routes.blank;
 
   GameState().initParameters(
     currentMenuPage: MenuPageType.startMenuPage,
@@ -146,7 +144,7 @@ void main() async {
                     },
                     game: gameRouter,
                     initialActiveOverlays: [
-                      if (!startInGame) ...[caveFront.key, mainMenu.key],
+                      if (!_startInGame) ...[caveFront.key, mainMenu.key],
                     ],
                     overlayBuilderMap: Map<String,
                         Widget Function(BuildContext, GameRouter)>.fromEntries([
@@ -154,7 +152,6 @@ void main() async {
                       overlay.mainMenu,
                       overlay.caveFront,
                       overlay.gameWinDisplay,
-                      overlay.textDisplay,
                       overlay.deathScreen,
                       overlay.attributeSelection,
                     ]),

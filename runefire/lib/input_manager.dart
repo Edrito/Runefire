@@ -16,6 +16,7 @@ import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:infinite_carousel/infinite_carousel.dart';
 // import 'package:gamepads/gamepads.dart';
 // import 'package:gamepads/gamepads.dart';
 import 'package:runefire/game/background.dart';
@@ -383,10 +384,28 @@ class InputManager with WindowListener {
   late final GamepadInputManager gamepadInputManager;
 
   //Keyboard
-  List<Function(KeyEvent event)> keyEventList = [];
+  final List<Function(KeyEvent event)> _keyEventList = [];
+
+  void addKeyListener(Function(KeyEvent event) newListener) {
+    _keyEventList.add(newListener);
+  }
+
+  void removeKeyListener(Function(KeyEvent event) listenerToRemove) {
+    _keyEventList.remove(listenerToRemove);
+  }
 
   // Keyboard
-  List<Function(GamepadEvent event)> gamepadEventList = [];
+  final List<Function(GamepadEvent event)> _gamepadEventList = [];
+
+  void addGamepadEventListener(Function(GamepadEvent event) newListener) {
+    _gamepadEventList.add(newListener);
+  }
+
+  void removeGamepadEventListener(
+    Function(GamepadEvent event) listenerToRemove,
+  ) {
+    _gamepadEventList.remove(listenerToRemove);
+  }
 
   List<Function(PointerDownEvent event)> pointerDownList = [];
   // Callbacks for pointer moving
@@ -543,7 +562,7 @@ class InputManager with WindowListener {
   }
 
   bool keyboardEventHandler(KeyEvent keyEvent) {
-    for (final element in keyEventList) {
+    for (final element in _keyEventList) {
       element.call(keyEvent);
     }
 
@@ -594,7 +613,7 @@ class InputManager with WindowListener {
   }
 
   void onGamepadEvent(GamepadEvent event) {
-    for (final element in gamepadEventList) {
+    for (final element in _gamepadEventList) {
       element.call(event);
     }
     customInputWatcherManager.handleGamepadInput(event);
@@ -927,7 +946,6 @@ class CustomInputWatcherManager {
 
       return;
     }
-
     final currentRowId = currentlyHoveredWidget!.widget.rowId;
 
     final isSwappingRows = directionOfInput == AxisDirection.up ||
@@ -938,75 +956,84 @@ class CustomInputWatcherManager {
 
     //If the direction of the axisinput (up down left right) is against the axis of the
     //currently hovered widget, then we are swapping groups
-    if (isSwappingRows && !isHoveringScrollWidget) {
-      swapRows(directionOfInput, currentRowId, highestZIndex);
-      return;
-    } else if (isHoveringScrollWidget) {
+    if (isHoveringScrollWidget) {
       final axis =
           currentlyHoveredWidget!.widget.scrollController!.position.axis;
+      final currentScrollController =
+          currentlyHoveredWidget!.widget.scrollController;
+      // if (axis == Axis.vertical && !isSwappingRows ||
+      //     (axis == Axis.horizontal && !isSwappingRows)) {
+      //   shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
+      //   return;
+      // } else if (axis == Axis.vertical && isSwappingRows) {
+      //   swapRows(directionOfInput, currentRowId, highestZIndex);
+      //   return;
+      // } else if ((axis == Axis.horizontal && isSwappingRows) ||
+      //     isSwappingRows) {
+      //   swapRows(directionOfInput, currentRowId, highestZIndex);
+      //   return;
+      // }
 
-      if (axis == Axis.vertical && !isSwappingRows) {
-        shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
-        return;
-      } else if (axis == Axis.horizontal && isSwappingRows) {
-        swapRows(directionOfInput, currentRowId, highestZIndex);
-        return;
-      }
+      isSwappingRows
+          ? swapRows(directionOfInput, currentRowId, highestZIndex)
+          : shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
 
       //If the group we are moving in is inside a scroll widget
       //we need to take that into account
-      final scrollControllerChildren = _customInputWatcherScrollControllers[
-          currentlyHoveredWidget!.widget.scrollController];
+      final scrollControllerChildren =
+          _customInputWatcherScrollControllers[currentScrollController];
 
-      if (scrollControllerChildren != null &&
-          scrollControllerChildren.isNotEmpty) {
-        final currentIndex =
-            scrollControllerChildren.indexOf(currentlyHoveredWidget!);
-        final nextIndex = currentIndex +
-            ((directionOfInput == AxisDirection.up ||
-                    directionOfInput == AxisDirection.left)
-                ? -1
-                : 1);
+      // if (
+      //     // scrollControllerChildren != null &&
+      //     //   scrollControllerChildren.isNotEmpty
+      //     //  &&
+      //     !isSwappingRows) {
+      // final currentIndex =
+      //     scrollControllerChildren.indexOf(currentlyHoveredWidget!);
+      // final nextIndex = currentIndex +
+      //     ((directionOfInput == AxisDirection.up ||
+      //             directionOfInput == AxisDirection.left)
+      //         ? -1
+      //         : 1);
 
-        final isEndOfScrollController =
-            nextIndex < 0 || nextIndex >= scrollControllerChildren.length;
-        if (isEndOfScrollController) {
-          if (isSwappingRows) {
-            swapRows(directionOfInput, currentRowId, highestZIndex);
-            // setHoveredState(scrollControllerChildren[nextIndex]);
-            return;
-          } else {
-            shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
-            return;
-          }
-        }
-        setHoveredState(scrollControllerChildren[nextIndex]);
-
-        // Axis  scrollAxis = currentlyHoveredWidget!.widget.scrollController!
-        //     .position.axis;
-
-        // if(scrollAxis == Axis.vertical &&
-        // directionOfInput == AxisDirection.up || directionOfInput == AxisDirection.down){
-        //   final nextHoveredWidget =
-        //   shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
-
-        // }
-        // final heightOfItem = (nextHoveredWidget
-        //             .widget.scrollController?.position.maxScrollExtent ??
-        //         0) /
-        //     scrollControllerChildren.length;
-
-        // bool isNextIndexAfterCurrentIndex =
-        //     nextHoveredWidgetIndex >= currentIndex;
-
-        // nextHoveredWidget.widget.scrollController?.animateTo(
-        //     heightOfItem * nextHoveredWidgetIndex * 1.5,
-        //     duration: .5.seconds,
-        //     curve: Curves.ease);
+      // final isEndOfScrollController =
+      //     nextIndex < 0 || nextIndex >= scrollControllerChildren.length;
+      // if (isEndOfScrollController) {
+      //   if (isSwappingRows) {
+      //     swapRows(directionOfInput, currentRowId, highestZIndex);
+      //     // setHoveredState(scrollControllerChildren[nextIndex]);
+      //     return;
+      //   } else {
+      //     shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
+      //     return;
+      //   }
+      // }
+      // setHoveredState(scrollControllerChildren[nextIndex]);
+      final currentHoveredRect =
+          _customInputWatcherRectangles[currentlyHoveredWidget!]!;
+      final scrollAxis =
+          currentlyHoveredWidget!.widget.scrollController?.position.axis;
+      if (scrollAxis == Axis.vertical && directionOfInput == AxisDirection.up ||
+          directionOfInput == AxisDirection.down) {
+        currentScrollController is InfiniteScrollController
+            ? currentScrollController.animateToItem(
+                scrollControllerChildren?.indexWhere(
+                      (element) => element == currentlyHoveredWidget,
+                    ) ??
+                    0,
+              )
+            : currentScrollController?.animateTo(
+                currentScrollController.position.pixels +
+                    currentHoveredRect.top -
+                    currentHoveredRect.height,
+                duration: .25.seconds,
+                curve: Curves.ease,
+              );
       }
+    } else if (isSwappingRows) {
+      swapRows(directionOfInput, currentRowId, highestZIndex);
     } else {
       sortRowStates(_customInputWatcherRows[highestZIndex]!);
-
       shiftPositionInRow(directionOfInput, currentRowId, highestZIndex);
     }
   }
@@ -1102,7 +1129,9 @@ class CustomInputWatcherManager {
     if ([
       GamepadButtons.dpadUp,
     ].contains(event.button)) {
-      changeHoveredState(AxisDirection.up);
+      changeHoveredState(
+        AxisDirection.up,
+      );
     } else if ([
       GamepadButtons.dpadDown,
     ].contains(event.button)) {
