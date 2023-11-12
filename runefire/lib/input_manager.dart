@@ -1015,6 +1015,10 @@ class CustomInputWatcherManager {
           currentlyHoveredWidget!.widget.scrollController?.position.axis;
       if (scrollAxis == Axis.vertical && directionOfInput == AxisDirection.up ||
           directionOfInput == AxisDirection.down) {
+        //screen height
+        final height = WidgetsBinding
+            .instance.platformDispatcher.views.first.physicalSize.height;
+
         currentScrollController is InfiniteScrollController
             ? currentScrollController.animateToItem(
                 scrollControllerChildren?.indexWhere(
@@ -1025,7 +1029,7 @@ class CustomInputWatcherManager {
             : currentScrollController?.animateTo(
                 currentScrollController.position.pixels +
                     currentHoveredRect.top -
-                    currentHoveredRect.height,
+                    (height * .2),
                 duration: .25.seconds,
                 curve: Curves.ease,
               );

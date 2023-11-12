@@ -151,7 +151,8 @@ mixin BaseAttributes {
 
   void forceInitializeParameters() {
     invincible = BoolParameterManager(baseParameter: false);
-    enableMovement = BoolParameterManager(baseParameter: true);
+    enableMovement =
+        BoolParameterManager(baseParameter: true, isFoldOfIncreases: false);
   }
 
   @mustCallSuper
@@ -675,12 +676,6 @@ mixin AttackFunctionality on AimFunctionality {
     onDeath.add((_) {
       endPrimaryAttacking();
     });
-
-    if (isPlayer && enviroment is GameEnviroment && !isChildEntity) {
-      gameEnviroment.hud.mounted.then(
-        (value) => gameEnviroment.hud.buildRemainingAmmoText(this as Player),
-      );
-    }
   }
 
   @override
@@ -842,7 +837,7 @@ mixin HealthFunctionality on Entity {
   //HEALTH
   Map<DamageType, TextComponent> damageTexts = {};
 
-  Map<String, TimerComponent> hitSourceInvincibility = {};
+  Map<String, double> hitSourceInvincibility = {};
   //health
   late final DoubleParameterManager invincibilityDuration;
 
@@ -855,7 +850,7 @@ mixin HealthFunctionality on Entity {
   Vector2? baseTextSize;
   ColorEffect? currentColorEffect;
   SizeEffect? currentScaleEffect;
-  TimerComponent? iFrameTimer;
+  double iFrameDuration = 0;
 
   bool get canBeHit => !isInvincible && !isDead;
   double get healthPercentage => remainingHealth / maxHealth.parameter;
@@ -891,7 +886,7 @@ mixin HealthFunctionality on Entity {
   }
 
   void addFloatingText(DamageInstance damage, [String? customText]) {
-    final newTexts = <Component>[];
+    final newTexts = <TextComponent>[];
     for (final element in damage.damageMap.entries) {
       final color = element.key.color;
       final fontSize = .45 * (damage.isCrit ? 1.3 : 1);
@@ -945,10 +940,11 @@ mixin HealthFunctionality on Entity {
       newTexts.add(tempText);
     }
     newTexts.shuffle();
+
     if (isPlayer) {
       addAll(newTexts);
     } else {
-      gameEnviroment.addPhysicsComponent(newTexts, duration: .1);
+      gameEnviroment.addTextComponents(newTexts);
     }
   }
 
@@ -993,23 +989,25 @@ mixin HealthFunctionality on Entity {
     }
   }
 
-  void applyIFrameTimer(String id) {
-    hitSourceInvincibility[id] = TimerComponent(
-      period: sameDamageSourceDuration,
-      removeOnFinish: true,
-      onTick: () {
-        hitSourceInvincibility.remove(id);
-      },
-    )..addToParent(this);
-
-    if (invincibilityDuration.parameter > 0) {
-      iFrameTimer = TimerComponent(
-        period: invincibilityDuration.parameter,
-        removeOnFinish: true,
-        onTick: () => iFrameTimer = null,
-      );
-      add(iFrameTimer!);
+  @override
+  void update(double dt) {
+    for (final element in [...hitSourceInvincibility.keys]) {
+      if (hitSourceInvincibility[element]! <= dt) {
+        hitSourceInvincibility.remove(element);
+        continue;
+      }
+      hitSourceInvincibility[element] = hitSourceInvincibility[element]! - dt;
     }
+    if (iFrameDuration > 0) {
+      iFrameDuration -= dt;
+    }
+    super.update(dt);
+  }
+
+  void applyIFrameTimer(String id) {
+    hitSourceInvincibility[id] = sameDamageSourceDuration;
+
+    iFrameDuration = invincibilityDuration.parameter;
   }
 
   void applyKnockback(DamageInstance damage) {
@@ -1091,8 +1089,69 @@ mixin HealthFunctionality on Entity {
 
   void deathChecker(DamageInstance damage) {
     if ((remainingHealth <= 0 || !remainingHealth.isFinite) && !isDead) {
-      die(damage);
+      final remainingLives = this.remainingLives;
+      deathCount++;
+
+      _deadFunctionsCall(damage);
+      callOtherWeaponOnKillFunctions(damage);
+
+      if (remainingLives > 1) {
+        dieThenRevive();
+      } else {
+        die(damage);
+      }
     }
+  }
+
+  Future<void> dieThenRevive() async {
+    // entityStatusWrapper.removeAllAnimations();
+
+    if (isPlayer) {
+      final player = this as Player;
+      player.disableInput.setIncrease('revive', true);
+    }
+    invincible.setIncrease('revive', true);
+
+    if (this is MovementFunctionality) {
+      final move = (this as MovementFunctionality)
+        ..enableMovement.setIncrease('revive', false);
+      move.addMoveVelocity(Vector2.zero(), absoluteOverrideInputPriority);
+    }
+
+    await setEntityAnimation(EntityStatus.dead);
+    Future.delayed(.5.seconds);
+    await setEntityAnimation(EntityStatus.spawn);
+
+    if (isPlayer) {
+      final player = this as Player;
+      player.disableInput.removeIncrease('revive');
+    }
+
+    if (this is MovementFunctionality) {
+      final move = (this as MovementFunctionality)
+        ..enableMovement.removeIncrease('revive');
+      move.removeMoveVelocity(absoluteOverrideInputPriority);
+      move.removeMoveVelocity(userInputPriority);
+      move.removeMoveVelocity(gamepadUserInputPriority);
+    }
+
+    await addOpacityFlashEffect(3.0);
+    invincible.removeIncrease('revive');
+    heal(damageTaken);
+  }
+
+  Future<void> addOpacityFlashEffect(double duration) async {
+    late final OpacityEffect flashEffect;
+    final previousOpacity = entityAnimationsGroup.opacity;
+    entityAnimationsGroup.add(
+      flashEffect = OpacityEffect.by(
+        .5,
+        InfiniteEffectController(SineEffectController(period: .2)),
+      ),
+    );
+    await Future.delayed(duration.seconds);
+    entityAnimationsGroup.opacity = previousOpacity;
+    flashEffect.removeFromParent();
   }
 
   Future<void> die(
@@ -1103,7 +1162,7 @@ mixin HealthFunctionality on Entity {
 
     permanentlyDisableEntity();
     entityStatusWrapper.removeAllAnimations();
-    setEntityAnimation(EntityStatus.dead, finalAnimation: true);
+    await setEntityAnimation(EntityStatus.dead, finalAnimation: true);
     entityAnimationsGroup.add(
       OpacityEffect.fadeOut(
         EffectController(
@@ -1115,12 +1174,10 @@ mixin HealthFunctionality on Entity {
       ),
     );
 
-    _deadFunctionsCall(damage);
     if (this is Player) {
       game.gameStateComponent.gameState
           .killPlayer(endGameState, this as Player, damage);
     }
-    callOtherWeaponOnKillFunctions(damage);
   }
 
   ///Heal the attacker if they have the essence steal attribute
@@ -1173,8 +1230,8 @@ mixin HealthFunctionality on Entity {
     if (damage.damageMap.isEmpty || onHitByOtherFunctionsCall(damage)) {
       return false;
     }
-    if (damage.source is AttributeFunctionsFunctionality) {
-      if ((damage.source as AttributeFunctionsFunctionality)
+    if (damage.source is AttributeCallbackFunctionality) {
+      if ((damage.source as AttributeCallbackFunctionality)
           .onPreDamageOtherEntityFunctions
           .call(damage)) {
         return false;
@@ -1232,8 +1289,8 @@ mixin HealthFunctionality on Entity {
       applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
       essenceStealChecker(damage);
     }
-    if (damage.source is AttributeFunctionsFunctionality) {
-      (damage.source as AttributeFunctionsFunctionality)
+    if (damage.source is AttributeCallbackFunctionality) {
+      (damage.source as AttributeCallbackFunctionality)
           .onPostDamageOtherEntityFunctions
           .call(damage);
     }
@@ -1265,7 +1322,7 @@ mixin HealthFunctionality on Entity {
   }
 
   @override
-  bool get isInvincible => super.isInvincible || iFrameTimer != null;
+  bool get isInvincible => super.isInvincible || iFrameDuration > 0;
 }
 
 mixin DodgeFunctionality on HealthFunctionality {
@@ -1912,8 +1969,8 @@ mixin ExpendableFunctionality on Entity {
   Expendable? currentExpendable;
 
   void onExpendable(Expendable expendable) {
-    if (this is AttributeFunctionsFunctionality) {
-      final attr = this as AttributeFunctionsFunctionality;
+    if (this is AttributeCallbackFunctionality) {
+      final attr = this as AttributeCallbackFunctionality;
       for (final element in attr.onExpendableUsed) {
         element.call(expendable);
       }
@@ -1921,8 +1978,8 @@ mixin ExpendableFunctionality on Entity {
   }
 
   void pickupExpendable(Expendable groundExpendable) {
-    if (this is AttributeFunctionsFunctionality) {
-      final attr = this as AttributeFunctionsFunctionality;
+    if (this is AttributeCallbackFunctionality) {
+      final attr = this as AttributeCallbackFunctionality;
       for (final element in attr.onItemPickup) {
         element.call(groundExpendable);
       }

@@ -17,26 +17,28 @@ import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../resources/enums.dart';
+import 'package:runefire/resources/enums.dart';
 
 abstract class FadeOutBullet extends Bullet with FadeOutProjectile {
-  FadeOutBullet(
-      {required super.delta,
-      required super.originPosition,
-      super.primaryDamageType,
-      required super.weaponAncestor,
-      required super.size,
-      super.power});
+  FadeOutBullet({
+    required super.delta,
+    required super.originPosition,
+    required super.weaponAncestor,
+    required super.size,
+    super.primaryDamageType,
+    super.power,
+  });
 }
 
 abstract class Bullet extends Projectile with StandardProjectile {
-  Bullet(
-      {required super.delta,
-      required super.originPosition,
-      required super.weaponAncestor,
-      required super.size,
-      super.primaryDamageType,
-      super.power});
+  Bullet({
+    required super.delta,
+    required super.originPosition,
+    required super.weaponAncestor,
+    required super.size,
+    super.primaryDamageType,
+    super.power,
+  });
 
   @override
   double ttl = 2;
@@ -52,9 +54,10 @@ mixin FadeOutProjectile on Projectile {
 
   @override
   double get opacity => fadeOutCurve.transform(
-      (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
-          .clamp(0, 1)
-          .toDouble());
+        (1 - ((timePassed - ttl + fadeOutDuration) / fadeOutDuration))
+            .clamp(0, 1)
+            .toDouble(),
+      );
   // @override
   // double get opacity => 1;
 
@@ -67,13 +70,14 @@ mixin FadeOutProjectile on Projectile {
 
 abstract class Projectile extends BodyComponent<GameRouter>
     with ContactCallbacks {
-  Projectile(
-      {required this.delta,
-      required this.originPosition,
-      required this.weaponAncestor,
-      required this.size,
-      DamageType? primaryDamageType,
-      this.power = 1}) {
+  Projectile({
+    required this.delta,
+    required this.originPosition,
+    required this.weaponAncestor,
+    required this.size,
+    DamageType? primaryDamageType,
+    this.power = 1,
+  }) {
     projectileId = const Uuid().v4();
     damageType = primaryDamageType ??
         weaponAncestor.baseDamage.damageBase.keys.toList().random();
@@ -126,7 +130,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   void callBulletKillFunctions() {
     if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
       final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      for (var element in weapon.onProjectileDeath) {
+      for (final element in weapon.onProjectileDeath) {
         element(this);
       }
     }
@@ -135,13 +139,13 @@ abstract class Projectile extends BodyComponent<GameRouter>
   void callOnProjectileAttackFunctions() {
     if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
       final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      for (var element in weapon.onAttackProjectile) {
+      for (final element in weapon.onAttackProjectile) {
         element(this);
       }
     }
   }
 
-  void killBullet([bool withEffect = false]) async {
+  Future<void> killBullet([bool withEffect = false]) async {
     if (!world.physicsWorld.isLocked) {
       body.setType(BodyType.static);
     }
@@ -150,12 +154,14 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   void onHitFunctions(
-      DamageInstance damageInstance, HealthFunctionality victim) {
+    DamageInstance damageInstance,
+    HealthFunctionality victim,
+  ) {
     if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
       final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      bool result = false;
+      var result = false;
 
-      for (var element in weapon.onHitProjectile) {
+      for (final element in weapon.onHitProjectile) {
         result = result || element(damageInstance);
       }
     }
@@ -193,9 +199,9 @@ abstract class Projectile extends BodyComponent<GameRouter>
       return super.beginContact(other, contact);
     }
 
-    bool isHomingSensor =
-        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor ||
-            (contact.fixtureA.userData as Map)['type'] == FixtureType.sensor;
+    final isHomingSensor =
+        (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor ||
+            (contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor;
 
     if (isHomingSensor &&
         other.targetsHomingEntity < other.maxTargetsHomingEntity) {
@@ -210,9 +216,9 @@ abstract class Projectile extends BodyComponent<GameRouter>
   @override
   void endContact(Object other, Contact contact) {
     if (other is! HealthFunctionality) return;
-    bool isHomingSensor =
-        (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor ||
-            (contact.fixtureA.userData as Map)['type'] == FixtureType.sensor;
+    final isHomingSensor =
+        (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor ||
+            (contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor;
 
     if (isHomingSensor) {
       sensorEndContact(other);

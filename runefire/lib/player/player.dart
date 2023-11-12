@@ -51,7 +51,7 @@ class Player extends Entity
         AimFunctionality,
         AttackFunctionality,
         AttributeFunctionality,
-        AttributeFunctionsFunctionality,
+        AttributeCallbackFunctionality,
         MovementFunctionality,
         JumpFunctionality,
         ExperienceFunctionality,
@@ -62,22 +62,32 @@ class Player extends Entity
         PlayerStatistics,
         PlayerStatisticsRecorder {
   Player(
-    this.playerData,
-    this.isDisplay, {
+    this.playerData, {
+    required this.isDisplay,
     required super.enviroment,
     required super.eventManagement,
     required super.initialPosition,
   }) {
-    // if (!isDisplay) {
-    playerData.selectedPlayer.applyBaseCharacterStats(this);
-    initAttributes(playerData.unlockedPermanentAttributes);
-    // }
-    onAttack.add(updateRemainingAmmo);
-    onReloadComplete.add(updateRemainingAmmo);
-    onReload.add(updateRemainingAmmo);
+    if (enviroment is GameEnviroment) {
+      loaded.then((value) {
+        updateRemainingAmmo(currentWeapon);
+        gameEnviroment.hud.buildRemainingLives(this);
+      });
+      maxLives.addListener((parameter) {
+        gameEnviroment.hud.buildRemainingLives(this);
+      });
+      onDeath.add((instance) {
+        gameEnviroment.hud.buildRemainingLives(this);
+      });
+      playerData.selectedPlayer.applyBaseCharacterStats(this);
+      initAttributes(playerData.unlockedPermanentAttributes);
+      onSpentAttack.add(updateRemainingAmmo);
+      onWeaponSwap.add((from, to) {
+        updateRemainingAmmo(to);
+      });
+    }
 
     if (isDisplay) {
-      // height.setParameterPercentValue('display', .5);
       add(
         TimerComponent(
           period: .05,
@@ -155,15 +165,9 @@ class Player extends Entity
         await spriteAnimations.playerCharacterOneHit1;
   }
 
-  @override
-  Future<void> swapWeapon() async {
-    await super.swapWeapon();
-    updateRemainingAmmo(null);
-  }
-
   void updateRemainingAmmo(Weapon? weapon) {
     if (enviroment is GameEnviroment) {
-      gameEnviroment.hud.buildRemainingAmmoText(this);
+      gameEnviroment.hud.buildRemainingAmmo(this);
     }
   }
 

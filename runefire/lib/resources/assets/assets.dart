@@ -351,7 +351,7 @@ static const FileDataClass idle =
 static const FileDataClass run = 
 (path:"assets/images/enemy_sprites/mushroomSpinner/run.png",flamePath:"enemy_sprites/mushroomSpinner/run.png", size:(96.0,48.0)  );///spin.png
 static const FileDataClass spin = 
-(path:"assets/images/enemy_sprites/mushroomSpinner/spin.png",flamePath:"enemy_sprites/mushroomSpinner/spin.png", size:(144.0,48.0)  );///spin_end.png
+(path:"assets/images/enemy_sprites/mushroomSpinner/spin.png",flamePath:"enemy_sprites/mushroomSpinner/spin.png", size:(192.0,48.0)  );///spin_end.png
 static const FileDataClass spinEnd = 
 (path:"assets/images/enemy_sprites/mushroomSpinner/spin_end.png",flamePath:"enemy_sprites/mushroomSpinner/spin_end.png", size:(432.0,48.0)  );///spin_start.png
 static const FileDataClass spinStart = 
@@ -593,7 +593,11 @@ static const FileDataClass healthBar =
 static const FileDataClass healthBarCap = 
 (path:"assets/images/ui/health_bar_cap.png",flamePath:"ui/health_bar_cap.png", size:(8.0,8.0)  );///health_bar_mid.png
 static const FileDataClass healthBarMid = 
-(path:"assets/images/ui/health_bar_mid.png",flamePath:"ui/health_bar_mid.png", size:(8.0,8.0)  );///inf.png
+(path:"assets/images/ui/health_bar_mid.png",flamePath:"ui/health_bar_mid.png", size:(8.0,8.0)  );///heart.png
+static const FileDataClass heart = 
+(path:"assets/images/ui/heart.png",flamePath:"ui/heart.png", size:(40.0,8.0)  );///heart_blank.png
+static const FileDataClass heartBlank = 
+(path:"assets/images/ui/heart_blank.png",flamePath:"ui/heart_blank.png", size:(8.0,8.0)  );///inf.png
 static const FileDataClass inf = 
 (path:"assets/images/ui/inf.png",flamePath:"ui/inf.png", size:(14.0,11.0)  );///level_indicator_gun_blue.png
 static const FileDataClass levelIndicatorGunBlue = 
@@ -680,6 +684,8 @@ elementalPie.path,
 healthBar.path,
 healthBarCap.path,
 healthBarMid.path,
+heart.path,
+heartBlank.path,
 inf.path,
 levelIndicatorGunBlue.path,
 levelIndicatorGunRed.path,
@@ -740,6 +746,8 @@ elementalPie.flamePath,
 healthBar.flamePath,
 healthBarCap.flamePath,
 healthBarMid.flamePath,
+heart.flamePath,
+heartBlank.flamePath,
 inf.flamePath,
 levelIndicatorGunBlue.flamePath,
 levelIndicatorGunRed.flamePath,

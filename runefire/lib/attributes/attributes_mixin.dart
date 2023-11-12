@@ -16,11 +16,11 @@ import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../resources/enums.dart';
-import '../entities/child_entities.dart';
-import '../weapons/weapon_class.dart';
-import 'attributes_structure.dart';
-import '../resources/visuals.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/weapons/weapon_class.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/resources/visuals.dart';
 
 mixin AttributeFunctionality on Entity {
   Map<AttributeType, Attribute> currentAttributes = {};
@@ -57,36 +57,41 @@ mixin AttributeFunctionality on Entity {
   }
 
   List<Attribute> buildAttributeSelection() {
-    if (!isPlayer) return [];
+    if (!isPlayer) {
+      return [];
+    }
 
-    final player = (this as Player);
-    List<Attribute> returnList = [];
-    DamageType? elementalDamageTypeForced =
-        player.shouldForceElementalAttribute();
-    int attempts = 0;
+    final player = this as Player;
+    final returnList = <Attribute>[];
+    var elementalDamageTypeForced = player.shouldForceElementalAttribute();
+    var attempts = 0;
 
     while (returnList.length < 3 && attempts < 1000) {
       attempts++;
-      List<AttributeType> potentialCandidates = [
-        ...player.attributesToGrabDebug
+      var potentialCandidates = <AttributeType>[
+        ...player.attributesToGrabDebug,
       ];
       player.attributesToGrabDebug.clear();
       if (potentialCandidates.isEmpty) {
         potentialCandidates = AttributeType.values
-            .where((element) =>
-                //Attribute is game attribute and not permanenet
-                element.territory == AttributeTerritory.game &&
-                //Player is not max level
+            .where(
+              (element) =>
+                  //Attribute is game attribute and not permanenet
+                  element.territory == AttributeTerritory.game &&
+                  //Player is not max level
 
-                player.currentAttributes[element]?.isMaxLevel != true &&
-                //if forced selection is active, only show those attributes
-                element.attributeMeetsForcedElementalRequest(
-                    player, elementalDamageTypeForced) &&
-                //we dont already have this attribute
-                !returnList
-                    .any((elementD) => elementD.attributeType == element) &&
-                //
-                element.isEligible(player))
+                  player.currentAttributes[element]?.isMaxLevel != true &&
+                  //if forced selection is active, only show those attributes
+                  element.attributeMeetsForcedElementalRequest(
+                    player,
+                    elementalDamageTypeForced,
+                  ) &&
+                  //we dont already have this attribute
+                  !returnList
+                      .any((elementD) => elementD.attributeType == element) &&
+                  //
+                  element.isEligible(player),
+            )
             .toList();
       }
 
@@ -95,15 +100,15 @@ mixin AttributeFunctionality on Entity {
         continue;
       }
 
-      Map<AttributeRarity, double> weightings = {};
-      Map<AttributeRarity, int> rarityAmounts = {
-        for (var e in potentialCandidates)
+      final weightings = <AttributeRarity, double>{};
+      final rarityAmounts = <AttributeRarity, int>{
+        for (final e in potentialCandidates)
           e.rarity: potentialCandidates
               .where((element) => element.rarity == e.rarity)
-              .length
+              .length,
       };
 
-      for (var element in rarityAmounts.entries) {
+      for (final element in rarityAmounts.entries) {
         weightings[element.key] = (element.value / potentialCandidates.length) *
             element.key.weighting;
       }
@@ -111,7 +116,7 @@ mixin AttributeFunctionality on Entity {
       final totalWeighting =
           weightings.values.reduce((value, element) => value + element);
       final increase = 1 / totalWeighting;
-      for (var element in weightings.entries) {
+      for (final element in weightings.entries) {
         weightings[element.key] = element.value * increase;
       }
 
@@ -119,8 +124,8 @@ mixin AttributeFunctionality on Entity {
       weightList.sort();
 
       final random = rng.nextDouble();
-      AttributeRarity rarity = AttributeRarity.standard;
-      for (var element in weightList) {
+      var rarity = AttributeRarity.standard;
+      for (final element in weightList) {
         if (random < element) {
           rarity =
               weightings.keys.firstWhere((key) => weightings[key] == element);
@@ -131,7 +136,9 @@ mixin AttributeFunctionality on Entity {
       final tempPotentialCandidates =
           potentialCandidates.where((element) => element.rarity == rarity);
 
-      if (tempPotentialCandidates.isEmpty) continue;
+      if (tempPotentialCandidates.isEmpty) {
+        continue;
+      }
 
       final attr = tempPotentialCandidates
           .elementAt(rng.nextInt(tempPotentialCandidates.length));
@@ -150,16 +157,16 @@ mixin AttributeFunctionality on Entity {
     const attr = AttributeType.experienceGainPermanent;
     late Attribute returnAttrib;
     if (currentAttributes.containsKey(attr)) {
-      returnAttrib = (currentAttributes[attr]!);
+      returnAttrib = currentAttributes[attr]!;
     } else {
-      returnAttrib = (attr.buildAttribute(0, this));
+      returnAttrib = attr.buildAttribute(0, this);
     }
 
     return returnAttrib;
   }
 
   void clearAttributes() {
-    for (var element in currentAttributes.entries) {
+    for (final element in currentAttributes.entries) {
       element.value.removeUpgrade();
     }
     currentAttributes.clear();
@@ -169,14 +176,17 @@ mixin AttributeFunctionality on Entity {
   ///Initial Attribtes and their initial level
   ///i.e. Max Speed : Level 3
   void initAttributes(Map<AttributeType, int> attributesToAdd) {
-    if (initalized) return;
-    List<AttributeType> attributeTypes = attributesToAdd.keys.toList();
+    if (initalized) {
+      return;
+    }
+    final attributeTypes = attributesToAdd.keys.toList();
     attributeTypes.sort((a, b) => a.priority.compareTo(b.priority));
-    for (var element in attributeTypes) {
+    for (final element in attributeTypes) {
       currentAttributes[element] = element.buildAttribute(
-          attributesToAdd[element]!, this,
-          perpetratorEntity: this)
-        ..applyUpgrade();
+        attributesToAdd[element]!,
+        this,
+        perpetratorEntity: this,
+      )..applyUpgrade();
     }
 
     initalized = true;
@@ -186,14 +196,14 @@ mixin AttributeFunctionality on Entity {
 
   void modifyLevel(AttributeType attributeEnum, [int amount = 0]) {
     if (currentAttributes.containsKey(attributeEnum)) {
-      var attr = currentAttributes[attributeEnum]!;
+      final attr = currentAttributes[attributeEnum]!;
       attr.changeLevel(amount);
     }
   }
 
   void remapAttributes() {
-    List<Attribute> tempList = [];
-    for (var element in currentAttributes.values) {
+    final tempList = <Attribute>[];
+    for (final element in currentAttributes.values) {
       if (element.upgradeApplied) {
         element.unMapUpgrade();
         tempList.add(element);
@@ -201,9 +211,10 @@ mixin AttributeFunctionality on Entity {
     }
 
     tempList.sort(
-        (a, b) => a.attributeType.priority.compareTo(b.attributeType.priority));
+      (a, b) => a.attributeType.priority.compareTo(b.attributeType.priority),
+    );
 
-    for (var element in tempList) {
+    for (final element in tempList) {
       element.mapUpgrade();
     }
   }
@@ -214,7 +225,7 @@ mixin AttributeFunctionality on Entity {
   }
 }
 
-mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
+mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   void _checkFinishTimer() {
     if (finishPulseTimer) {
       pulseTimer?.removeFromParent();
@@ -224,28 +235,35 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   }
 
   void _processBodyEntities(
-      List<ChildEntity> bodyEntities, double distance, double dt) {
-    if (bodyEntities.isEmpty) return; // Avoid division by zero
+    List<ChildEntity> bodyEntities,
+    double distance,
+    double dt,
+  ) {
+    if (bodyEntities.isEmpty) {
+      return; // Avoid division by zero
+    }
 
-    Vector2 offsetPosition = bodyEntityWrapper!.absolutePosition + center;
-    Set<double> distanceSteps = bodyEntities.fold<Set<double>>(
-        {}, (previousValue, element) => {...previousValue, element.distance});
+    final offsetPosition = bodyEntityWrapper!.absolutePosition + center;
+    final distanceSteps = bodyEntities.fold<Set<double>>(
+      {},
+      (previousValue, element) => {...previousValue, element.distance},
+    );
 
-    for (var distanceStep in distanceSteps) {
-      List<ChildEntity> tempBodies = bodyEntities
+    for (final distanceStep in distanceSteps) {
+      final tempBodies = bodyEntities
           .where((element) => element.distance == distanceStep)
           .toList();
 
-      int numEntities = tempBodies.length;
-      double angleStep = 2 * pi / numEntities;
-      double currentAngle = (previousBodyAngle[distanceStep] ?? 0) +
+      final numEntities = tempBodies.length;
+      final angleStep = 2 * pi / numEntities;
+      var currentAngle = (previousBodyAngle[distanceStep] ?? 0) +
           (dt * (tempBodies.first.rotationSpeed ?? speedBody));
 
-      for (int i = 0; i < numEntities; i++) {
+      for (var i = 0; i < numEntities; i++) {
         final body = tempBodies[i];
 
-        double x = distance * cos(currentAngle);
-        double y = distance * sin(currentAngle);
+        final x = distance * cos(currentAngle);
+        final y = distance * sin(currentAngle);
         if (body.isLoaded) {
           body.setTransform((Vector2(x, y) * distanceStep) + offsetPosition, 0);
         }
@@ -256,18 +274,23 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   }
 
   void _processHeadEntities(
-      List<ChildEntity> entities, double distance, double dt) {
-    if (entities.isEmpty) return; // Avoid division by zero
+    List<ChildEntity> entities,
+    double distance,
+    double dt,
+  ) {
+    if (entities.isEmpty) {
+      return; // Avoid division by zero
+    }
 
-    int numEntities = entities.length;
-    double angleStep = 2 * pi / numEntities;
-    double currentAngle = previousHeadAngle += dt * speedHead;
-    Vector2 offsetPosition = headEntityWrapper!.absolutePosition + center;
+    final numEntities = entities.length;
+    final angleStep = 2 * pi / numEntities;
+    var currentAngle = previousHeadAngle += dt * speedHead;
+    final offsetPosition = headEntityWrapper!.absolutePosition + center;
 
-    for (int i = 0; i < numEntities; i++) {
+    for (var i = 0; i < numEntities; i++) {
       if (numEntities != 1) {
-        double x = distance * cos(currentAngle);
-        double y = distance * sin(currentAngle);
+        final x = distance * cos(currentAngle);
+        final y = distance * sin(currentAngle);
         if (entities[i].isLoaded) {
           entities[i].setTransform(Vector2(x * 2, y * .75) + offsetPosition, 0);
         }
@@ -304,6 +327,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   final List<OnHitDef> onHitOtherEntity = [];
   final List<Function> onLevelUp = [];
   final List<Function> onMove = [];
+  final List<Function(Weapon weapon)> onSpentAttack = [];
 
   bool finishPulseTimer = false;
   //Only called when damage is 100% going to be applied
@@ -334,7 +358,9 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     bodyEntityWrapper ??= PositionComponent()..addToParent(this);
 
     _bodyComponents.add(entity);
-    if (entity.parent == null) enviroment.addPhysicsComponent([entity]);
+    if (entity.parent == null) {
+      enviroment.addPhysicsComponent([entity]);
+    }
   }
 
   void addHeadEntity(ChildEntity entity) {
@@ -343,52 +369,54 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
     )..addToParent(this);
 
     _headEntities.add(entity);
-    if (entity.parent == null) enviroment.addPhysicsComponent([entity]);
+    if (entity.parent == null) {
+      enviroment.addPhysicsComponent([entity]);
+    }
   }
 
   void addPulseFunction(Function function) {
     pulseTimer ??= TimerComponent(
-        period: pulsePeriod.parameter,
-        repeat: true,
-        onTick: () async {
+      period: pulsePeriod.parameter,
+      repeat: true,
+      onTick: () async {
+        _checkFinishTimer();
+        for (final element in _pulseFunctions) {
+          await Future.delayed(.1.seconds).then((_) {
+            element();
+          });
           _checkFinishTimer();
-          for (var element in _pulseFunctions) {
-            await Future.delayed(.1.seconds).then((_) {
-              element();
-            });
-            _checkFinishTimer();
-            pulseTimer?.timer.reset();
-          }
-        })
-      ..addToParent(this);
+          pulseTimer?.timer.reset();
+        }
+      },
+    )..addToParent(this);
     _pulseFunctions.add(function);
     finishPulseTimer = false;
   }
 
   void onHitFunctions(DamageInstance damage) {
-    for (var element in onHitOtherEntity) {
+    for (final element in onHitOtherEntity) {
       element(damage);
     }
   }
 
   bool onPostDamageOtherEntityFunctions(DamageInstance damage) {
-    bool returnVal = false;
-    for (var element in onPostDamageOtherEntity) {
+    var returnVal = false;
+    for (final element in onPostDamageOtherEntity) {
       returnVal = element(damage) || returnVal;
     }
     return returnVal;
   }
 
   bool onPreDamageOtherEntityFunctions(DamageInstance damage) {
-    bool returnVal = false;
-    for (var element in onPreDamageOtherEntity) {
+    var returnVal = false;
+    for (final element in onPreDamageOtherEntity) {
       returnVal = element(damage) || returnVal;
     }
     return returnVal;
   }
 
   void removeAllHeadEntities() {
-    for (var element in _headEntities) {
+    for (final element in _headEntities) {
       element.removeFromParent();
     }
     _headEntities.clear();
@@ -397,7 +425,9 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   void removeBodyEntity(String entityId) {
     final index =
         _bodyComponents.indexWhere((element) => element.entityId == entityId);
-    if (index == -1) return;
+    if (index == -1) {
+      return;
+    }
     final entityToRemove = _bodyComponents[index];
     entityToRemove.removeFromParent();
     _bodyComponents.removeAt(index);
@@ -406,7 +436,9 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   void removeHeadEntity(String entityId) {
     final index =
         _headEntities.indexWhere((element) => element.entityId == entityId);
-    if (index == -1) return;
+    if (index == -1) {
+      return;
+    }
     final entityToRemove = _headEntities[index];
     entityToRemove.removeFromParent();
     _headEntities.removeAt(index);
@@ -420,7 +452,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
   }
 
   void touchFunctions(HealthFunctionality other) {
-    for (var element in onTouch) {
+    for (final element in onTouch) {
       element(other);
     }
   }
@@ -435,7 +467,7 @@ mixin AttributeFunctionsFunctionality on Entity, ContactCallbacks {
 
   @override
   void update(double dt) {
-    for (var element in [...onUpdate]) {
+    for (final element in [...onUpdate]) {
       element(dt);
     }
     _processHeadEntities(_headEntities, .5, dt);
@@ -459,9 +491,10 @@ class StatusEffect extends PositionComponent {
     anchor = Anchor.center;
 
     spriteAnimationComponent = SpriteAnimationComponent(
-        animation: await getEffectSprite(effect),
-        size: size,
-        anchor: Anchor.center);
+      animation: await getEffectSprite(effect),
+      size: size,
+      anchor: Anchor.center,
+    );
 
     spriteAnimationComponent.size = size * ((level.toDouble() / 30) + 1);
     add(spriteAnimationComponent);
@@ -548,22 +581,30 @@ class EntityStatusEffectsWrapper {
   //   holdDuration = null;
   // }
 
-  void addMarkedStatus() async {
-    if (removedAnimations) return;
+  Future<void> addMarkedStatus() async {
+    if (removedAnimations) {
+      return;
+    }
     final sprite = await getEffectSprite(StatusEffects.marked);
     markerAnimation = SpriteAnimationComponent(
-        animation: sprite,
-        size: sprite.frames.first.sprite.srcSize..scaledToHeight(entity),
-        anchor: Anchor.center);
+      animation: sprite,
+      size: sprite.frames.first.sprite.srcSize..scaledToHeight(entity),
+      anchor: Anchor.center,
+    );
 
     entity.add(markerAnimation!);
   }
 
   void addReloadAnimation(
-      String sourceId, double duration, TimerComponent timer,
-      [bool isSecondary = false]) {
-    if (removedAnimations) return;
-    String key = generateKey(sourceId, isSecondary);
+    String sourceId,
+    double duration,
+    TimerComponent timer, [
+    bool isSecondary = false,
+  ]) {
+    if (removedAnimations) {
+      return;
+    }
+    final key = generateKey(sourceId, isSecondary);
 
     final entry = reloadAnimations[key];
 
@@ -576,10 +617,12 @@ class EntityStatusEffectsWrapper {
   }
 
   void addStatusEffect(StatusEffects effect, int level) {
-    if (removedAnimations) return;
+    if (removedAnimations) {
+      return;
+    }
     activeStatusEffects[effect]?.removeFromParent();
 
-    activeStatusEffects[effect] = (StatusEffect(effect, level));
+    activeStatusEffects[effect] = StatusEffect(effect, level);
     final posX = getXPosition(effect);
     activeStatusEffects[effect]!.position.x = posX;
     activeStatusEffects[effect]!.position.y = -.2 - (entity.spriteHeight);
@@ -587,15 +630,14 @@ class EntityStatusEffectsWrapper {
   }
 
   String generateKey(String sourceId, bool isSecondary) =>
-      "${sourceId}_$isSecondary";
+      '${sourceId}_$isSecondary';
 
   double getXPosition(StatusEffects effect) {
-    return (((effect.index) / StatusEffects.values.length) * (width)) -
-        width / 2;
+    return (((effect.index) / StatusEffects.values.length) * width) - width / 2;
   }
 
   void hideReloadAnimations(String sourceId) {
-    for (bool isSecondary in [true, false]) {
+    for (final isSecondary in [true, false]) {
       final key = generateKey(sourceId, isSecondary);
       reloadAnimations[key]?.toggleOpacity(true);
     }
@@ -603,12 +645,12 @@ class EntityStatusEffectsWrapper {
 
   void removeAllAnimations() {
     removedAnimations = true;
-    for (var element in activeStatusEffects.values) {
+    for (final element in activeStatusEffects.values) {
       element.removeFromParent();
     }
     activeStatusEffects.clear();
 
-    for (var element in reloadAnimations.values) {
+    for (final element in reloadAnimations.values) {
       element.removeFromParent();
     }
     reloadAnimations.clear();
@@ -618,7 +660,7 @@ class EntityStatusEffectsWrapper {
   }
 
   void removeAllReloads() {
-    for (var element in reloadAnimations.entries) {
+    for (final element in reloadAnimations.entries) {
       element.value.removeFromParent();
     }
     reloadAnimations.clear();
@@ -630,7 +672,7 @@ class EntityStatusEffectsWrapper {
   }
 
   void removeReloadAnimation(String sourceId, bool isSecondary) {
-    String key = generateKey(sourceId, isSecondary);
+    final key = generateKey(sourceId, isSecondary);
     reloadAnimations[key]?.removeFromParent();
     reloadAnimations.remove(key);
   }
@@ -641,8 +683,10 @@ class EntityStatusEffectsWrapper {
   }
 
   void showReloadAnimations(String sourceId) {
-    if (removedAnimations) return;
-    for (bool isSecondary in [true, false]) {
+    if (removedAnimations) {
+      return;
+    }
+    for (final isSecondary in [true, false]) {
       final key = generateKey(sourceId, isSecondary);
       reloadAnimations[key]?.toggleOpacity(false);
     }
@@ -674,7 +718,7 @@ class ReloadAnimation extends PositionComponent {
 
   @override
   FutureOr<void> onLoad() {
-    final parent = this.parent as Player;
+    final parent = this.parent! as Player;
     // final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
     final width = parent.entityStatusWrapper.width * .7;
     // final x = (parent.entityStatusWrapper.width - width) / 2;
@@ -694,15 +738,16 @@ class ReloadAnimation extends PositionComponent {
   render(Canvas canvas) {
     if (!isOpaque) {
       buildProgressBar(
-          canvas: canvas,
-          percentProgress: percentReloaded,
-          color: color,
-          size: size,
-          heightOfBar: height,
-          widthOfBar: barWidth,
-          padding: sidePadding,
-          peak: 1,
-          growth: 0);
+        canvas: canvas,
+        percentProgress: percentReloaded,
+        color: color,
+        size: size,
+        heightOfBar: height,
+        widthOfBar: barWidth,
+        padding: sidePadding,
+        peak: 1,
+        growth: 0,
+      );
     }
 
     super.render(canvas);

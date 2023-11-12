@@ -9,6 +9,7 @@ import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/custom_button.dart';
 import 'package:runefire/menus/custom_widgets.dart';
+import 'package:runefire/menus/elemental_power_level.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/player/player.dart';
@@ -19,11 +20,11 @@ import 'package:runefire/resources/visuals.dart';
 import 'package:recase/recase.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../attributes/attributes_structure.dart';
-import '../main.dart';
-import '../resources/functions/functions.dart';
-import 'attribute_card.dart';
-import 'components_notifier_builder.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/menus/attribute_card.dart';
+import 'package:runefire/menus/components_notifier_builder.dart';
 
 class AttributeSelection extends StatefulWidget {
   const AttributeSelection(this.gameRouter, {super.key});
@@ -43,9 +44,9 @@ class _AttributeSelectionState extends State<AttributeSelection> {
   late final Attribute xpAttribute = player!.buildXpAttribute();
   @override
   void initState() {
-    assert(player != null, "Player should not be null, if leveling up!");
+    assert(player != null, 'Player should not be null, if leveling up!');
     cardSelected[xpAttribute] ??= false;
-    for (var element in currentAttributeSelection) {
+    for (final element in currentAttributeSelection) {
       cardSelected[element] ??= false;
     }
 
@@ -56,10 +57,11 @@ class _AttributeSelectionState extends State<AttributeSelection> {
   static const double loadInDuration = .2;
   static const double exitAnimationDuration = .2;
 
-  CustomCard buildWidget(
-      {required Attribute attribute,
-      required Function(DamageType? damageType) onTap,
-      bool small = false}) {
+  CustomCard buildWidget({
+    required Attribute attribute,
+    required Function(DamageType? damageType) onTap,
+    bool small = false,
+  }) {
     return CustomCard(
       attribute,
       gameRef: GameState().gameRouter,
@@ -88,20 +90,22 @@ class _AttributeSelectionState extends State<AttributeSelection> {
   void onAnimationComplete() {
     gameRouter.resumeEngine();
 
-    Future.delayed(exitAnimationDuration.seconds).then((value) => {
-          gameRouter.gameStateComponent.gameState.resumeGame(),
-        });
+    Future.delayed(exitAnimationDuration.seconds).then(
+      (value) => {
+        gameRouter.gameStateComponent.gameState.resumeGame(),
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    List<Widget> buildWidgets = [];
+    final buildWidgets = <Widget>[];
     late Widget xpCardWidget;
 
-    for (var element in currentAttributeSelection) {
-      Widget card = buildWidget(
+    for (final element in currentAttributeSelection) {
+      final Widget card = buildWidget(
         attribute: element,
         onTap: (damageType) {
           onSelectAttribute(element, damageType: damageType);
@@ -116,11 +120,12 @@ class _AttributeSelectionState extends State<AttributeSelection> {
     }
 
     xpCardWidget = buildWidget(
-            attribute: xpAttribute,
-            onTap: (damageType) {
-              onSelectAttribute(xpAttribute, damageType: damageType);
-            },
-            small: true)
+      attribute: xpAttribute,
+      onTap: (damageType) {
+        onSelectAttribute(xpAttribute, damageType: damageType);
+      },
+      small: true,
+    )
         .animate(
           target: cardSelected[xpAttribute] ?? false ? 1 : 0,
         )
@@ -130,10 +135,11 @@ class _AttributeSelectionState extends State<AttributeSelection> {
     return Animate(
       effects: [
         FadeEffect(
-            duration: exitAnimationDuration.seconds,
-            begin: 1,
-            end: 0,
-            curve: Curves.easeInOut),
+          duration: exitAnimationDuration.seconds,
+          begin: 1,
+          end: 0,
+          curve: Curves.easeInOut,
+        ),
       ],
       target: selectionFinished ? 1 : 0,
       autoPlay: false,
@@ -146,12 +152,13 @@ class _AttributeSelectionState extends State<AttributeSelection> {
               alignment: Alignment.center,
               children: [
                 Positioned(
-                    right: 0,
-                    left: 0,
-                    height: size.height * .6,
-                    child: const StarBackstripe(
-                      percentOfHeight: .6,
-                    )),
+                  right: 0,
+                  left: 0,
+                  height: size.height * .6,
+                  child: const StarBackstripe(
+                    percentOfHeight: .6,
+                  ),
+                ),
                 Positioned(
                   top: 0,
                   right: 0,
@@ -159,7 +166,7 @@ class _AttributeSelectionState extends State<AttributeSelection> {
                   child: Padding(
                     padding: const EdgeInsets.all(40),
                     child: Text(
-                      "Choose an attribute",
+                      'Choose an attribute',
                       textAlign: TextAlign.center,
                       style: defaultStyle.copyWith(fontSize: 60),
                     ),
@@ -181,16 +188,18 @@ class _AttributeSelectionState extends State<AttributeSelection> {
                               runSpacing: 16,
                               children: [...buildWidgets]
                                   .animate(
-                                      interval: (loadInDuration / 3).seconds)
+                                    interval: (loadInDuration / 3).seconds,
+                                  )
                                   .fadeIn(
                                     duration: loadInDuration.seconds,
                                     curve: Curves.decelerate,
                                   )
                                   .moveY(
-                                      duration: loadInDuration.seconds,
-                                      curve: Curves.decelerate,
-                                      begin: 50,
-                                      end: 0),
+                                    duration: loadInDuration.seconds,
+                                    curve: Curves.decelerate,
+                                    begin: 50,
+                                    end: 0,
+                                  ),
                             ),
                             const SizedBox(
                               height: 16,
@@ -202,6 +211,19 @@ class _AttributeSelectionState extends State<AttributeSelection> {
                           ],
                         ),
                       ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  top: null,
+                  left: null,
+                  right: null,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: TotalPowerGraph(
+                      player: player!,
+                      showTitle: false,
+                      zHeight: 1,
                     ),
                   ),
                 ),

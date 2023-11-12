@@ -8,83 +8,92 @@ import 'package:runefire/main.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 
-import '../../game/enviroment.dart';
+import 'package:runefire/game/enviroment.dart';
 import 'package:forge2d/src/settings.dart' as settings;
 
 Vector2 shiftCoordinatesToCenter(Vector2 v1, Vector2 size) {
-  return ((v1) - size / 2);
+  return v1 - size / 2;
 }
 
 extension ScaledToDimensionVector2 on Vector2 {
   void scaledToDimension(bool scaleY, double maxLength) {
-    double ratio = 1;
+    var ratio = 1.0;
     if (scaleY) {
       ratio = maxLength / y;
     } else {
       ratio = maxLength / x;
     }
-    y = (y * ratio);
-    (x = x * ratio);
+    y = y * ratio;
+    x = x * ratio;
   }
 
-  void scaledToHeight(Entity? entity,
-      {Weapon? weapon, Enviroment? env, double? amount}) {
+  void scaledToHeight(
+    Entity? entity, {
+    Weapon? weapon,
+    Enviroment? env,
+    double? amount,
+  }) {
     scaledToDimension(
-        true,
-        y /
-            (entity?.enviroment.zoom ?? env?.zoom ?? 1) *
-            (amount ??
-                    ((entity?.height.doubleParameter ?? 3) *
-                        (weapon?.weaponScale ?? 1)))
-                .clamp(.5, 20));
+      true,
+      y /
+          (entity?.enviroment.zoom ?? env?.zoom ?? 1) *
+          (amount ??
+                  ((entity?.height.doubleParameter ?? 3) *
+                      (weapon?.weaponScale ?? 1)))
+              .clamp(.5, 20),
+    );
   }
 }
 
 Vector2 tiledObjectToOrtho(Vector2 isoPoint, TiledComponent? info) {
-  double orthoX = (isoPoint.x - isoPoint.y);
-  double orthoY = (isoPoint.x / 2 + isoPoint.y / 2);
+  var orthoX = isoPoint.x - isoPoint.y;
+  final orthoY = isoPoint.x / 2 + isoPoint.y / 2;
   return Vector2(
-      orthoX += info != null
-          ? info.tileMap.map.height.toDouble() * info.tileMap.destTileSize.y
-          : 0,
-      orthoY);
+    orthoX += info != null
+        ? info.tileMap.map.height.toDouble() * info.tileMap.destTileSize.y
+        : 0,
+    orthoY,
+  );
 }
 
 bool isEntityInfrontOfHandAngle(
-    Vector2 entity, Vector2 position, Vector2 positionDelta) {
+  Vector2 entity,
+  Vector2 position,
+  Vector2 positionDelta,
+) {
   final test1 = entity - position;
 
   return positionDelta.dot(test1) >= 0;
 }
 
 List<Vector2> expandToBox(List<Vector2> coordinates, double distance) {
-  List<Vector2> leftCoor = [];
-  List<Vector2> rightCoor = [];
+  final leftCoor = <Vector2>[];
+  final rightCoor = <Vector2>[];
 
-  for (int i = 0; i < coordinates.length - 1; i++) {
-    Vector2 current = coordinates[i];
-    Vector2 next = coordinates[i + 1];
+  for (var i = 0; i < coordinates.length - 1; i++) {
+    final current = coordinates[i];
+    final next = coordinates[i + 1];
 
-    double deltaX = next.x - current.x;
-    double deltaY = next.y - current.y;
+    final deltaX = next.x - current.x;
+    final deltaY = next.y - current.y;
 
     // Calculate the perpendicular vector
-    double perpendicularX = -deltaY;
-    double perpendicularY = deltaX;
+    final perpendicularX = -deltaY;
+    final perpendicularY = deltaX;
 
     // Normalize the perpendicular vector
-    double length =
+    final length =
         sqrt(perpendicularX * perpendicularX + perpendicularY * perpendicularY);
-    double normalizedPerpendicularX = (perpendicularX / length) * distance;
-    double normalizedPerpendicularY = (perpendicularY / length) * distance;
+    final normalizedPerpendicularX = (perpendicularX / length) * distance;
+    final normalizedPerpendicularY = (perpendicularY / length) * distance;
 
-    Vector2 normalizedPerpendicular =
+    final normalizedPerpendicular =
         Vector2(normalizedPerpendicularX, normalizedPerpendicularY);
 
-    Vector2 topLeft = current.clone()..add(normalizedPerpendicular);
-    Vector2 topRight = next.clone()..add(normalizedPerpendicular);
-    Vector2 bottomRight = next.clone()..sub(normalizedPerpendicular);
-    Vector2 bottomLeft = current.clone()..sub(normalizedPerpendicular);
+    final topLeft = current.clone()..add(normalizedPerpendicular);
+    final topRight = next.clone()..add(normalizedPerpendicular);
+    final bottomRight = next.clone()..sub(normalizedPerpendicular);
+    final bottomLeft = current.clone()..sub(normalizedPerpendicular);
 
     // Add the four corners to the expanded coordinates list
 
@@ -102,10 +111,12 @@ List<Vector2> expandToBox(List<Vector2> coordinates, double distance) {
 }
 
 Vector2 randomizeVector2Delta(Vector2 element, double percent) {
-  if (percent == 0) return element;
+  if (percent == 0) {
+    return element;
+  }
   percent = percent.clamp(0, 1);
 
-  Vector2 random = Vector2.random() * 2;
+  var random = Vector2.random() * 2;
   random -= Vector2.all(1);
   random *= percent;
   element *= 1 - percent;
@@ -114,30 +125,33 @@ Vector2 randomizeVector2Delta(Vector2 element, double percent) {
 }
 
 Vector2 calculateInterpolatedVector(
-    Vector2 vector1, Vector2 vector2, double factor) {
-  double angle1 = atan2(vector1.y, vector1.x);
-  double angle2 = atan2(vector2.y, vector2.x);
+  Vector2 vector1,
+  Vector2 vector2,
+  double factor,
+) {
+  final angle1 = atan2(vector1.y, vector1.x);
+  final angle2 = atan2(vector2.y, vector2.x);
 
-  double deltaAngle = angle2 - angle1;
+  var deltaAngle = angle2 - angle1;
 
   // Normalize deltaAngle to be within -pi and pi
   deltaAngle = normalizeAngle(deltaAngle);
 
   // Calculate the interpolated angle
-  double interpolatedAngle = angle1 + (deltaAngle * factor);
+  var interpolatedAngle = angle1 + (deltaAngle * factor);
 
   // Normalize interpolatedAngle to be within -pi and pi
   interpolatedAngle = normalizeAngle(interpolatedAngle);
 
   // Calculate the length of the interpolated vector
-  double length = (vector2 - vector1).length * factor;
+  final length = (vector2 - vector1).length * factor;
 
   // Calculate the x and y components of the interpolated vector
-  double x = cos(interpolatedAngle) * length;
-  double y = sin(interpolatedAngle) * length;
+  final x = cos(interpolatedAngle) * length;
+  final y = sin(interpolatedAngle) * length;
 
   // Create the interpolated vector
-  Vector2 interpolatedVector = Vector2(x, y);
+  final interpolatedVector = Vector2(x, y);
 
   return interpolatedVector;
 }
@@ -163,28 +177,33 @@ double normalizeAngle(double angle) {
 //                               ---*****
 //
 List<Vector2> splitVector2DeltaIntoArea(
-    Vector2 angle, int count, double maxAngleVarianceDegrees) {
-  if (count == 1) return [angle];
-  List<Vector2> angles = [];
+  Vector2 angle,
+  int count,
+  double maxAngleVarianceDegrees,
+) {
+  if (count == 1) {
+    return [angle];
+  }
+  final angles = <Vector2>[];
 
   // Convert maxAngleVariance from degrees to radians
-  double maxAngleVariance = radians(maxAngleVarianceDegrees);
+  final maxAngleVariance = radians(maxAngleVarianceDegrees);
 
   // Calculate the step size for evenly spreading the angles
-  double stepSize = maxAngleVariance / (count - 1);
+  final stepSize = maxAngleVariance / (count - 1);
 
   // Calculate the starting angle
-  double startAngle = radiansBetweenPoints(angle, Vector2(0.000001, -0.0000));
+  var startAngle = radiansBetweenPoints(angle, Vector2(0.000001, -0.0000));
 
   // Generate the angles
   startAngle -= maxAngleVariance / 2;
 
-  for (int i = 0; i < count; i++) {
-    double currentAngle = startAngle + (stepSize * i);
+  for (var i = 0; i < count; i++) {
+    final currentAngle = startAngle + (stepSize * i);
 
     // Convert the angle back to Vector2
-    double x = cos(currentAngle);
-    double y = sin(currentAngle);
+    final x = cos(currentAngle);
+    final y = sin(currentAngle);
 
     angles.add(Vector2(x, y));
   }
@@ -192,25 +211,31 @@ List<Vector2> splitVector2DeltaIntoArea(
   return angles;
 }
 
-List<double> splitRadInCone(double angle, int count,
-    double maxAngleVarianceDegrees, bool removeOriginalAngle) {
-  if (count == 1) return [angle];
-  List<double> angles = [];
+List<double> splitRadInCone(
+  double angle,
+  int count,
+  double maxAngleVarianceDegrees,
+  bool removeOriginalAngle,
+) {
+  if (count == 1) {
+    return [angle];
+  }
+  final angles = <double>[];
 
   // Convert maxAngleVariance from degrees to radians
-  double maxAngleVariance = radians(maxAngleVarianceDegrees);
+  final maxAngleVariance = radians(maxAngleVarianceDegrees);
 
   // Calculate the step size for evenly spreading the angles
-  double stepSize = maxAngleVariance / (count - 1);
+  final stepSize = maxAngleVariance / (count - 1);
 
   // Calculate the starting angle
 
   // Generate the angles
-  double variance = angle - (maxAngleVariance / 2);
-  bool topOrBottom = rng.nextBool();
+  final variance = angle - (maxAngleVariance / 2);
+  final topOrBottom = rng.nextBool();
 
-  for (int i = 0; i < count; i++) {
-    double currentAngle = variance + (stepSize * i);
+  for (var i = 0; i < count; i++) {
+    final currentAngle = variance + (stepSize * i);
 
     if (((topOrBottom && i == count - 1) || (!topOrBottom && i == 0)) &&
         removeOriginalAngle) {
@@ -224,7 +249,7 @@ List<double> splitRadInCone(double angle, int count,
 }
 
 List<Vector2> validateChainDistances(final List<Vector2> vertices) {
-  List<Vector2> returnList = [];
+  final returnList = <Vector2>[];
   for (var i = 1; i < vertices.length; i++) {
     final v1 = vertices[i - 1];
     final v2 = vertices[i];
@@ -238,15 +263,18 @@ List<Vector2> validateChainDistances(final List<Vector2> vertices) {
 
 // Function to calculate the delta
 Vector2 calculateDelta(
-    Vector2 bulletPosition, Vector2 playerPosition, Vector2 playerAim) {
+  Vector2 bulletPosition,
+  Vector2 playerPosition,
+  Vector2 playerAim,
+) {
   // Calculate the direction vector from the bullet to the player
-  Vector2 directionToPlayer = playerPosition - bulletPosition;
+  final directionToPlayer = playerPosition - bulletPosition;
 
   // Normalize the direction
-  Vector2 normalizedDirectionToPlayer = directionToPlayer.normalized();
+  final normalizedDirectionToPlayer = directionToPlayer.normalized();
 
   // Calculate the delta vector
-  Vector2 delta = playerAim - normalizedDirectionToPlayer;
+  final delta = playerAim - normalizedDirectionToPlayer;
 
   return delta;
 }
@@ -255,12 +283,12 @@ Vector2 rotateVector2(Vector2 vector, double rad) {
   // Convert degrees to radians
 
   // Calculate the sine and cosine of the angle
-  double cosine = cos(rad);
-  double sine = sin(rad);
+  final cosine = cos(rad);
+  final sine = sin(rad);
 
   // Perform the rotation using the rotation matrix
-  double x = vector[0] * cosine - vector[1] * sine;
-  double y = vector[0] * sine + vector[1] * cosine;
+  final x = vector[0] * cosine - vector[1] * sine;
+  final y = vector[0] * sine + vector[1] * cosine;
 
   // Return the rotated vector
   return Vector2(x, y);
@@ -306,20 +334,22 @@ Vector2 rotateVector2(Vector2 vector, double rad) {
 // }
 
 Vector2 generateRandomGamePositionInViewport(
-    bool internal, Enviroment gameRef) {
+  bool internal,
+  Enviroment gameRef,
+) {
   const paddingDouble = 1.0;
   final padding = Vector2.all(paddingDouble);
   final random = Vector2.random();
 
-  Vector2 initalArea =
+  final initalArea =
       gameRef.gameCamera.viewport.size / gameRef.gameCamera.viewfinder.zoom;
-  Vector2 area = Vector2.zero();
+  var area = Vector2.zero();
   if (internal) {
     area = initalArea + (padding * 2);
     area = Vector2(random.x * area.x, random.y * area.y);
     area -= padding;
   } else {
-    Random rng = Random();
+    final rng = Random();
 
     final side = rng.nextInt(4);
     // const side = 1;
@@ -342,10 +372,10 @@ Vector2 generateRandomGamePositionInViewport(
     }
   }
 
-  return (area -
+  return area -
       ((gameRef.gameCamera.viewport.size / gameRef.gameCamera.viewfinder.zoom) /
           2) +
-      gameRef.gameCamera.viewfinder.position);
+      gameRef.gameCamera.viewfinder.position;
 }
 
 double radiansBetweenPoints(Vector2 v1, Vector2 v2) {
@@ -353,15 +383,17 @@ double radiansBetweenPoints(Vector2 v1, Vector2 v2) {
   final b = v1.length * v2.length;
 
   // Avoid division by zero error and handle floating point error
-  if (b == 0.0) return 0.0;
+  if (b == 0.0) {
+    return 0.0;
+  }
 
   final ratio = (a / b).clamp(-1.0, 1.0);
 
   // Compute the angle in radians
-  double tempRadians = acos(ratio);
+  var tempRadians = acos(ratio);
 
   // Use cross product to check orientation
-  double crossProduct = v1.x * v2.y - v1.y * v2.x;
+  final crossProduct = v1.x * v2.y - v1.y * v2.x;
   if (crossProduct > 0) {
     tempRadians = -tempRadians;
   }
@@ -375,10 +407,10 @@ double radiansBetweenPoints(Vector2 v1, Vector2 v2) {
 
 Vector2 newPosition(Vector2 origin, double angleInDegrees, double distance) {
   // Convert angle from degrees to radians
-  double angleInRadians = radians(angleInDegrees);
+  final angleInRadians = radians(angleInDegrees);
   // Calculate new position
-  double newX = origin.x + distance * sin(angleInRadians);
-  double newY = origin.y + distance * cos(angleInRadians);
+  final newX = origin.x + distance * sin(angleInRadians);
+  final newY = origin.y + distance * cos(angleInRadians);
 
   // Return new position
   return Vector2(newX, newY);
@@ -387,8 +419,8 @@ Vector2 newPosition(Vector2 origin, double angleInDegrees, double distance) {
 Vector2 newPositionRad(Vector2 origin, double rad, double distance) {
   // Convert angle from degrees to radians
   // Calculate new position
-  double newX = origin.x + distance * sin(rad);
-  double newY = origin.y + distance * cos(rad);
+  final newX = origin.x + distance * sin(rad);
+  final newY = origin.y + distance * cos(rad);
 
   // Return new position
   return Vector2(newX, newY);
@@ -402,21 +434,21 @@ List<Vector2> triangleZoomEffect(
   double bendFactor,
 ) {
   // Calculate the midpoint between the previous and current points
-  Vector2 midPoint = (previousPoint + currentPoint) / 2;
+  final midPoint = (previousPoint + currentPoint) / 2;
 
   // Calculate the control point that creates the bending effect
-  Vector2 controlPoint = midPoint + Vector2(bendFactor, 0);
+  final controlPoint = midPoint + Vector2(bendFactor, 0);
 
   // Calculate the remaining points of the triangle
-  Vector2 vertexA = previousPoint;
-  Vector2 vertexB = controlPoint;
-  Vector2 vertexC = currentPoint;
+  final vertexA = previousPoint;
+  final vertexB = controlPoint;
+  final vertexC = currentPoint;
 
   // Calculate the offset for the base width
-  double halfBaseWidth = baseWidth / 2;
+  final halfBaseWidth = baseWidth / 2;
 
   // Calculate the height offset
-  double heightOffset = height / 2;
+  final heightOffset = height / 2;
 
   // Adjust the triangle vertices based on the base width and height
   vertexA.x -= halfBaseWidth;
@@ -428,6 +460,40 @@ List<Vector2> triangleZoomEffect(
 
   // Return the triangle vertices as a list
   return [vertexA, vertexB, vertexC];
+}
+
+List<Vector2> sortPointsInCircle(List<Vector2> points) {
+  if (points.isEmpty) {
+    return [];
+  }
+
+  // Calculate the center of the circle
+  final center = points.fold(
+    Vector2.zero(),
+    (previousValue, element) => previousValue
+      ..setValues(
+        (previousValue.x + element.x) / 2,
+        (previousValue.y + element.y) / 2,
+      ),
+  );
+
+  // Calculate the angle between each point and the x-axis
+  final angles = <double>[];
+
+  for (final point in points) {
+    final angle = atan2(point.y - center.y, point.x - center.x);
+    angles.add(angle);
+  }
+
+  // Sort the points based on their angles
+  final sortedPoints = List<Vector2>.from(points)
+    ..sort((a, b) {
+      final angleA = angles[points.indexOf(a)];
+      final angleB = angles[points.indexOf(b)];
+      return angleA.compareTo(angleB);
+    });
+
+  return sortedPoints;
 }
 
 // List<Vector2> bezierInterpolation(List<Vector2> points, {int smoothness = 2}) {
@@ -459,16 +525,16 @@ List<Vector2> triangleZoomEffect(
 // }
 
 List<(Vector2, Vector2)> separateIntoAnglePairs(List<Vector2> vectors) {
-  List<(Vector2, Vector2)> anglePairs = [];
+  final anglePairs = <(Vector2, Vector2)>[];
   if (vectors.length < 2) {
     return anglePairs;
   }
 
-  for (int i = 1; i < vectors.length; i++) {
-    Vector2 vector1 = vectors[i - 1];
-    Vector2 vector2 = vectors[i];
+  for (var i = 1; i < vectors.length; i++) {
+    final vector1 = vectors[i - 1];
+    final vector2 = vectors[i];
 
-    double angle = atan2(vector2.y - vector1.y, vector2.x - vector1.x);
+    var angle = atan2(vector2.y - vector1.y, vector2.x - vector1.x);
 
     angle = roundDouble(angle, 3);
 
@@ -477,8 +543,10 @@ List<(Vector2, Vector2)> separateIntoAnglePairs(List<Vector2> vectors) {
       continue;
     }
 
-    double previousAngle = atan2(anglePairs.last.$2.y - anglePairs.last.$1.y,
-        anglePairs.last.$2.x - anglePairs.last.$1.x);
+    var previousAngle = atan2(
+      anglePairs.last.$2.y - anglePairs.last.$1.y,
+      anglePairs.last.$2.x - anglePairs.last.$1.x,
+    );
 
     previousAngle = roundDouble(previousAngle, 3);
     if (angle != previousAngle) {
@@ -492,24 +560,26 @@ List<(Vector2, Vector2)> separateIntoAnglePairs(List<Vector2> vectors) {
 }
 
 List<Set<Vector2>> turnPairsIntoBoxes(
-    List<(Vector2, Vector2)> anglePairs, double size) {
-  List<Set<Vector2>> boxes = [];
+  List<(Vector2, Vector2)> anglePairs,
+  double size,
+) {
+  final boxes = <Set<Vector2>>[];
 
-  for ((Vector2, Vector2) pair in anglePairs) {
-    Vector2 vector1 = pair.$1;
-    Vector2 vector2 = pair.$2;
+  for (final pair in anglePairs) {
+    final vector1 = pair.$1;
+    final vector2 = pair.$2;
 
-    Vector2 perpendicular1 =
+    final perpendicular1 =
         Vector2(vector1.y - vector2.y, vector2.x - vector1.x).normalized() *
             size;
-    Vector2 perpendicular2 =
+    final perpendicular2 =
         Vector2(vector2.y - vector1.y, vector1.x - vector2.x).normalized() *
             size;
 
-    Vector2 p1 = vector1 + perpendicular1;
-    Vector2 p2 = vector1 - perpendicular1;
-    Vector2 p3 = vector2 - perpendicular2;
-    Vector2 p4 = vector2 + perpendicular2;
+    final p1 = vector1 + perpendicular1;
+    final p2 = vector1 - perpendicular1;
+    final p3 = vector2 - perpendicular2;
+    final p4 = vector2 + perpendicular2;
 
     boxes.add({p1, p2, p3, p4});
   }
@@ -524,36 +594,39 @@ List<Vector2> generateLightning(
   required double frequency, // Frequency of the lightning effect
   required double currentAngle,
 }) {
-  final List<Vector2> lightningPoints = [];
-  double angleBetweenPoints = 0;
-  double increase = 1;
+  final lightningPoints = <Vector2>[];
+  var angleBetweenPoints = 0.0;
+  var increase = 1.0;
 
   // Iterate through the original points
-  for (int i = 0; i < points.length - 1; i++) {
-    final Vector2 start = points.elementAt(i);
-    final Vector2 end = points.elementAt(i + 1);
+  for (var i = 0; i < points.length - 1; i++) {
+    final start = points.elementAt(i);
+    final end = points.elementAt(i + 1);
     if (i == 0) {}
     angleBetweenPoints = radiansBetweenPoints(start, end);
     // Calculate the number of segments between two points
-    final int numSegments = (start.distanceTo(end) / frequency).ceil();
+    final numSegments = (start.distanceTo(end) / frequency).ceil();
 
     // Generate intermediate points along the line segment
-    for (int j = 1; j < numSegments; j++) {
+    for (var j = 1; j < numSegments; j++) {
       increase = 1 -
-          pow((((j - 1 - (numSegments / 2)) / numSegments).abs() * .9), .7)
+          pow(((j - 1 - (numSegments / 2)) / numSegments).abs() * .9, .7)
               .toDouble();
-      final double t = j / numSegments;
-      final double x = lerpDouble(start.x, end.x, t)!;
-      final double y = lerpDouble(start.y, end.y, t)!;
+      final t = j / numSegments;
+      final x = lerpDouble(start.x, end.x, t)!;
+      final y = lerpDouble(start.y, end.y, t)!;
 
       // Apply a random displacement for the lightning effect
       // final double offsetX = rng.nextDouble() * amplitude;
       // final double offsetY = rng.nextDouble() * amplitude;
-      lightningPoints.add(newPositionRad(
+      lightningPoints.add(
+        newPositionRad(
           Vector2(x, y),
           -(i == 0 ? currentAngle : (angleBetweenPoints + (pi / 2))) +
               (rng.nextBool() ? pi / 2 : (-pi / 2)),
-          (rng.nextDouble() * amplitude * increase)));
+          rng.nextDouble() * amplitude * increase,
+        ),
+      );
 
       // Add the point to the lightning list with displacement
       // lightningPoints.add(Vector2(
@@ -567,22 +640,25 @@ List<Vector2> generateLightning(
   }
 
   // Add the last point from the original list
-  lightningPoints.add(newPositionRad(
+  lightningPoints.add(
+    newPositionRad(
       points.last,
       (angleBetweenPoints + (pi / 2)) + (rng.nextBool() ? pi / 2 : (-pi / 2)),
-      rng.nextDouble() * amplitude * increase));
+      rng.nextDouble() * amplitude * increase,
+    ),
+  );
 
   return lightningPoints;
 }
 
 Set<Vector2> generateCurvePoints(Set<Vector2> points, double percent) {
-  Set<Vector2> result = {};
+  final result = <Vector2>{};
 
-  for (int i = 0; i < points.length - 1; i++) {
-    final Vector2 start = points.elementAt(i);
-    final Vector2 end = points.elementAt(i + 1);
+  for (var i = 0; i < points.length - 1; i++) {
+    final start = points.elementAt(i);
+    final end = points.elementAt(i + 1);
 
-    Vector2 direction = end - start;
+    final direction = end - start;
     // double angle = start.angleTo(end);
 
     if (i == 0) {
@@ -592,8 +668,8 @@ Set<Vector2> generateCurvePoints(Set<Vector2> points, double percent) {
 
     // if (angle >= minAngle) {
     // Calculate the control point (midpoint)
-    Vector2 point1 = start + (direction * percent);
-    Vector2 point2 = start + (direction * (1 - percent));
+    final point1 = start + (direction * percent);
+    final point2 = start + (direction * (1 - percent));
 
     result.add(point1);
     result.add(point2);
@@ -605,31 +681,31 @@ Set<Vector2> generateCurvePoints(Set<Vector2> points, double percent) {
 
 Vector2 bezier(Vector2 controlPoint, Vector2 offset, Vector2 end) {
   // Calculate the two control points for the quadratic Bezier curve
-  Vector2 controlPoint1 = controlPoint + offset;
-  Vector2 controlPoint2 = controlPoint - offset;
+  final controlPoint1 = controlPoint + offset;
+  final controlPoint2 = controlPoint - offset;
 
   // Return the quadratic Bezier curve
   return controlPoint1 * 0.5 + controlPoint2 * 0.5;
 }
 
 List<Vector2> generateBezierPoints(List<Vector2> points, double distance) {
-  List<Vector2> bezierPoints = [];
+  final bezierPoints = <Vector2>[];
 
-  for (int i = 0; i < points.length - 1; i++) {
-    Vector2 a = points[i];
-    Vector2 b = points[i + 1];
-    Vector2 c = Vector2((a.x + b.x) / 2, (a.y + b.y) / 2);
+  for (var i = 0; i < points.length - 1; i++) {
+    final a = points[i];
+    final b = points[i + 1];
+    final c = Vector2((a.x + b.x) / 2, (a.y + b.y) / 2);
 
     // Calculate the angle between a and c
-    double angle = atan2(c.y - a.y, c.x - a.x);
+    final angle = atan2(c.y - a.y, c.x - a.x);
 
     // Calculate the normal vector
-    double normalX = cos(angle + (pi / 2));
-    double normalY = sin(angle + (pi / 2));
+    final normalX = cos(angle + (pi / 2));
+    final normalY = sin(angle + (pi / 2));
 
     // Calculate points on either side of c
-    Vector2 p1 = Vector2(c.x + normalX * distance, c.y + normalY * distance);
-    Vector2 p2 = Vector2(c.x - normalX * distance, c.y - normalY * distance);
+    final p1 = Vector2(c.x + normalX * distance, c.y + normalY * distance);
+    final p2 = Vector2(c.x - normalX * distance, c.y - normalY * distance);
 
     bezierPoints.add(Vector2(a.x, a.y));
     bezierPoints.add(Vector2(p1.x, p1.y));
@@ -642,23 +718,23 @@ List<Vector2> generateBezierPoints(List<Vector2> points, double distance) {
 
 double calculateAngle(Vector2 point1, Vector2 point2, Vector2 point3) {
   // Calculate vectors from point2 to point1 and point2 to point3
-  Vector2 vector1 = point1 - point2;
-  Vector2 vector2 = point3 - point2;
+  final vector1 = point1 - point2;
+  final vector2 = point3 - point2;
 
   // Calculate the angle between the two vectors using the dot product
-  double dotProduct = vector1.dot(vector2);
-  double magnitude1 = vector1.length;
-  double magnitude2 = vector2.length;
+  final dotProduct = vector1.dot(vector2);
+  final magnitude1 = vector1.length;
+  final magnitude2 = vector2.length;
 
   // Ensure that the magnitudes are not zero to avoid division by zero
   if (magnitude1 == 0 || magnitude2 == 0) {
     return 0.0; // Angle is not defined in this case
   }
 
-  double cosTheta = dotProduct / (magnitude1 * magnitude2);
+  final cosTheta = dotProduct / (magnitude1 * magnitude2);
 
   // Calculate the angle in radians using the inverse cosine (arccos)
-  double angleRadians = acos(cosTheta);
+  final angleRadians = acos(cosTheta);
 
   return angleRadians;
 }

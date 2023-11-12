@@ -17,7 +17,7 @@ abstract class Enemy extends Entity
         // ContactCallbacks,
         UpgradeFunctions,
         AttributeFunctionality,
-        AttributeFunctionsFunctionality,
+        AttributeCallbackFunctionality,
         HealthFunctionality,
         DropItemFunctionality {
   Enemy({

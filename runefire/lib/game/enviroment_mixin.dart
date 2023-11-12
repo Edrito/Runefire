@@ -16,21 +16,21 @@ import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/game_state_class.dart';
 
-import '../resources/functions/custom.dart';
-import '../events/event_management.dart';
-import '../game/hud.dart';
+import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/events/event_management.dart';
+import 'package:runefire/game/hud.dart';
 
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import '../resources/functions/custom_follow_behavior.dart';
-import '../resources/functions/custom_joystick.dart';
-import '../main.dart';
-import '../resources/enums.dart';
-import '../resources/constants/priorities.dart';
+import 'package:runefire/resources/functions/custom_follow_behavior.dart';
+import 'package:runefire/resources/functions/custom_joystick.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/constants/priorities.dart';
 
-import '../resources/functions/functions.dart';
-import 'enviroment.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/game/enviroment.dart';
 
 // mixin JoystickFunctionality on PlayerFunctionality {
 //   CustomJoystickComponent? aimJoystick;
@@ -150,11 +150,17 @@ import 'enviroment.dart';
 
 mixin HudFunctionality on Enviroment {
   late GameHud hud;
-
-  void rebuildHud() {
+  @override
+  GameEnviroment get gameEnviroment => this as GameEnviroment;
+  Future<void> rebuildHud() async {
     hud.removeFromParent();
-    hud = GameHud(this as GameEnviroment);
+    hud = GameHud(gameEnviroment);
     gameCamera.viewport.addAll([hud]);
+    if (gameEnviroment.playerAdded) {
+      await hud.loaded;
+      hud.buildRemainingLives(gameEnviroment.player!);
+      hud.buildRemainingAmmo(gameEnviroment.player!);
+    }
   }
 
   @override
@@ -176,7 +182,7 @@ mixin HudFunctionality on Enviroment {
       ...ImagesAssetsAmmo.allFilesFlame,
     ]);
     assert(this is GameEnviroment);
-    hud = GameHud(this as GameEnviroment);
+    hud = GameHud(gameEnviroment);
     gameCamera.viewport.addAll([hud]);
   }
 }
@@ -193,13 +199,13 @@ mixin BoundsFunctionality on Enviroment {
   Bounds? bossBounds;
   final double boundsDistanceFromCenter = 70;
 
-  void resizeBossBounds(String windowEvent) async {
+  Future<void> resizeBossBounds(String windowEvent) async {
     if (bossBounds == null) return;
     if (!bossBounds!.isMounted ||
         bossBounds!.isCircle ||
         bossBounds!.scope != BossBoundsScope.viewportSize) return;
 
-    if (windowEvent.contains("maximize")) await Future.delayed(.2.seconds);
+    if (windowEvent.contains('maximize')) await Future.delayed(.2.seconds);
 
     bossBounds?.boundsSize = getViewportSize();
     bossBounds?.createBounds();
@@ -226,19 +232,22 @@ mixin BoundsFunctionality on Enviroment {
   }
 
   EnemyEvent? boss;
-  void createBossBounds(bool isCircle, EnemyEvent boss) async {
-    assert(boss.boundsScope != BossBoundsScope.customSize ||
-        boss.bossBoundsSize != null);
+  Future<void> createBossBounds(bool isCircle, EnemyEvent boss) async {
+    assert(
+      boss.boundsScope != BossBoundsScope.customSize ||
+          boss.bossBoundsSize != null,
+    );
     await boss.enemies.first.loaded;
 
     bossBounds = Bounds(
-        boundsSize: boss.boundsScope == BossBoundsScope.viewportSize
-            ? getViewportSize()
-            : (boss.bossBoundsSize!
-              ..x += boss.enemies.first.center.distanceTo(getPlayer!.center)),
-        position: Vector2.zero(),
-        isCircle: isCircle,
-        scope: boss.boundsScope);
+      boundsSize: boss.boundsScope == BossBoundsScope.viewportSize
+          ? getViewportSize()
+          : (boss.bossBoundsSize!
+            ..x += boss.enemies.first.center.distanceTo(getPlayer!.center)),
+      position: Vector2.zero(),
+      isCircle: isCircle,
+      scope: boss.boundsScope,
+    );
     this.boss = boss;
     addPhysicsComponent([bossBounds!], instant: true);
   }
@@ -255,10 +264,11 @@ mixin BoundsFunctionality on Enviroment {
         bossBounds?.body.setTransform(gameCamera.viewfinder.position, 0);
       } else {
         bossBounds?.body.setTransform(
-            boss?.enemies.first.isLoaded == true
-                ? boss!.enemies.first.center
-                : boss!.enemies.first.initialPosition,
-            0);
+          boss?.enemies.first.isLoaded == true
+              ? boss!.enemies.first.center
+              : boss!.enemies.first.initialPosition,
+          0,
+        );
       }
     }
     super.update(dt);
@@ -269,20 +279,22 @@ mixin BoundsFunctionality on Enviroment {
     super.onLoad();
 
     mainGameBorder = Bounds(
-        boundsSize: Vector2.all(boundsDistanceFromCenter),
-        position: Vector2.zero(),
-        isCircle: false,
-        scope: BossBoundsScope.customSize);
+      boundsSize: Vector2.all(boundsDistanceFromCenter),
+      position: Vector2.zero(),
+      isCircle: false,
+      scope: BossBoundsScope.customSize,
+    );
     addPhysicsComponent([mainGameBorder], instant: true);
   }
 }
 
 class Bounds extends BodyComponent<GameRouter> with ContactCallbacks {
-  Bounds(
-      {required this.boundsSize,
-      required this.position,
-      required this.isCircle,
-      required this.scope});
+  Bounds({
+    required this.boundsSize,
+    required this.position,
+    required this.isCircle,
+    required this.scope,
+  });
   BossBoundsScope scope;
   Vector2 boundsSize;
   @override
@@ -333,17 +345,16 @@ class Bounds extends BodyComponent<GameRouter> with ContactCallbacks {
 
     renderBody = true;
 
-    final fixtureDef = FixtureDef(currentBounds,
-        userData: {"type": FixtureType.body, "object": this},
-        restitution: 0,
-        friction: 0,
-        density: 1,
-        filter: Filter()..maskBits = playerCategory);
+    final fixtureDef = FixtureDef(
+      currentBounds,
+      userData: {'type': FixtureType.body, 'object': this},
+      density: 1,
+      filter: Filter()..maskBits = playerCategory,
+    );
 
     final bodyDef = BodyDef(
       userData: this,
       position: position,
-      type: BodyType.static,
       linearDamping: 12,
       fixedRotation: true,
     );
@@ -363,7 +374,7 @@ mixin PauseOnFocusLost on Enviroment {
   @override
   void onMount() {
     addWindowEventFunctionToWrapper((windowEvent) {
-      if (windowEvent == "blur") {
+      if (windowEvent == 'blur') {
         onWindowBlur();
       }
     });
@@ -408,12 +419,15 @@ mixin PlayerFunctionality on Enviroment {
   // final test = PositionComponent();
 
   void addPlayer(EventManagement? eventManagement) {
-    bool isMenuGame = this is MenuGame;
-    player = Player(playerData, isMenuGame,
-        eventManagement:
-            isMenuGame ? MenuGameEventManagement(this) : eventManagement!,
-        enviroment: this,
-        initialPosition: Vector2.zero());
+    final isMenuGame = this is MenuGame;
+    player = Player(
+      playerData,
+      isDisplay: isMenuGame,
+      eventManagement:
+          isMenuGame ? MenuGameEventManagement(this) : eventManagement!,
+      enviroment: this,
+      initialPosition: Vector2.zero(),
+    );
 
     if (this is GameEnviroment) {
       customFollow =
@@ -475,20 +489,20 @@ mixin PlayerFunctionality on Enviroment {
 
 mixin GameTimerFunctionality on Enviroment {
   double timePassed = 0;
-  bool isPaused = false;
+  bool isGameTimerPaused = false;
 
   void pauseGameTimer() {
-    if (isPaused) {
+    if (isGameTimerPaused) {
       return;
     }
-    isPaused = true;
+    isGameTimerPaused = true;
   }
 
   void unPauseGameTimer() {
-    if (!isPaused) {
+    if (!isGameTimerPaused) {
       return;
     }
-    isPaused = false;
+    isGameTimerPaused = false;
   }
 
   Map<String, double> pulsingTimeMap = {};
@@ -497,12 +511,16 @@ mixin GameTimerFunctionality on Enviroment {
   ///+ [backAndForth] indicates if the value should go back and forth or just reset
   ///+ [maxValue] indicates the max value the value should reach
   ///+ [curve] indicates the curve the value should follow
-  double getPulsingTime(double fullCycleDuration, bool backAndForth,
-      {Curve? curve, double? maxValue}) {
+  double getPulsingTime(
+    double fullCycleDuration,
+    bool backAndForth, {
+    Curve? curve,
+    double? maxValue,
+  }) {
     curve = Curves.linear;
 
     //TODO POTENTIAL LAG
-    String key = "pulsingTime$fullCycleDuration$backAndForth$curve$maxValue";
+    final key = "pulsingTime$fullCycleDuration$backAndForth$curve$maxValue";
 
     if (pulsingTimeMap.containsKey(key)) {
       return pulsingTimeMap[key]!;
@@ -523,10 +541,10 @@ mixin GameTimerFunctionality on Enviroment {
 
   @override
   void update(double dt) {
-    if (!isPaused) {
+    if (!isGameTimerPaused) {
       timePassed += dt;
       if (this is HudFunctionality) {
-        final hud = (this as HudFunctionality);
+        final hud = this as HudFunctionality;
         if (hud.hud.isLoaded) {
           hud.hud.timerText.text =
               convertSecondsToMinutesSeconds(timePassed.round());

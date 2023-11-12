@@ -13,16 +13,16 @@ import 'package:runefire/weapons/melee_swing_manager.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../entities/entity_mixin.dart';
-import '../resources/functions/functions.dart';
-import '../resources/enums.dart';
+import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/enums.dart';
 
 class PhaseDagger extends PlayerWeapon
     with MeleeFunctionality, FullAutomatic, StaminaCostFunctionality {
   PhaseDagger(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.physical] = (1, 3);
     baseDamage.damageBase[DamageType.psychic] = (1, 2);
     attackTickRate.baseParameter = .25;
@@ -31,46 +31,51 @@ class PhaseDagger extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-                })
-              ..opacity = (.5 * rng.nextDouble()) + .5;
-          },
-          weaponTrailConfig: WeaponTrailConfig(
-              color: DamageType.psychic.color.withOpacity(.5)),
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(.2, -.5), -20, 1),
-            (Vector2(0, 1.5), 30, 1),
-            // (Vector2(.25, 0), -35, 1),
-          ]),
+        attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+            },
+          )..opacity = (.5 * rng.nextDouble()) + .5;
+        },
+        weaponTrailConfig: WeaponTrailConfig(
+          color: DamageType.psychic.color.withOpacity(.5),
+        ),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(.2, -.5), -20, 1),
+          (Vector2(0, 1.5), 30, 1),
+          // (Vector2(.25, 0), -35, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-                })
-              ..opacity = (.5 * rng.nextDouble()) + .5;
-          },
-          weaponTrailConfig: WeaponTrailConfig(color: DamageType.psychic.color),
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(-.2, -.5), 20, 1),
-            (Vector2(0, 1.5), -30, 1),
-            // (Vector2(.25, 0), -35, 1),
-          ]),
+        attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+            },
+          )..opacity = (.5 * rng.nextDouble()) + .5;
+        },
+        weaponTrailConfig: WeaponTrailConfig(color: DamageType.psychic.color),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(-.2, -.5), 20, 1),
+          (Vector2(0, 1.5), -30, 1),
+          // (Vector2(.25, 0), -35, 1),
+        ],
+      ),
     ];
 
     spirteComponentPositions.add(WeaponSpritePosition.back);
@@ -97,24 +102,29 @@ class PhaseDagger extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-            })
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+          },
+        )
           ..angle = radians(-15)
           ..position = Vector2(.15, -.5);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-            });
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+          },
+        );
     }
   }
 
@@ -139,76 +149,74 @@ class PhaseDagger extends PlayerWeapon
 class CrystalSword extends PlayerWeapon
     with MeleeFunctionality, FullAutomatic, StaminaCostFunctionality {
   CrystalSword(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.physical] = (2, 5);
     attackTickRate.baseParameter = .55;
     pierce.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (
-            Vector2(weaponLength / 3.5, weaponLength),
-            (.1, .9)
-          ),
-          flippedDuringAttack: true,
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
-                });
-          },
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(-1, 0), 55, 1),
-            (Vector2(2, -1), -75, 1),
-          ]),
+        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        flippedDuringAttack: true,
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
+            },
+          );
+        },
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(-1, 0), 55, 1),
+          (Vector2(2, -1), -75, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (
-            Vector2(weaponLength / 3.5, weaponLength),
-            (.1, .9)
-          ),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
-                });
-          },
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(1, 0), -45, 1),
-            (Vector2(-2, 0), 45, 1),
-          ]),
+        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
+            },
+          );
+        },
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(1, 0), -45, 1),
+          (Vector2(-2, 0), 45, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (
-            Vector2(weaponLength / 3.5, weaponLength),
-            (.1, .9)
-          ),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
-                });
-          },
-          weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(0, 0), -0, 1),
-            // (Vector2(.2, 1), 90, 1),
-            (Vector2(0, 2), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
+            },
+          );
+        },
+        weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(0, 0), -0, 1),
+          // (Vector2(.2, 1), 90, 1),
+          (Vector2(0, 2), 0, 1),
+        ],
+      ),
     ];
     removeSpriteOnAttack = true;
     spirteComponentPositions.add(WeaponSpritePosition.back);
@@ -235,24 +243,29 @@ class CrystalSword extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
-            })
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
+          },
+        )
           ..position = Vector2(.75, -.75)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
-            });
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.crystalSwordIdle1,
+          },
+        );
     }
   }
 
@@ -280,69 +293,77 @@ class AethertideSpear extends PlayerWeapon
         FullAutomatic,
         StaminaCostFunctionality {
   AethertideSpear(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.physical] = (8, 16);
     attackTickRate.baseParameter = .8;
     pierce.baseParameter = 100;
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
-          weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle:
-                      await spriteAnimations.aethertideSpearIdle1,
-                });
-          },
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(.2, -.7), 0, 1),
-            (Vector2(0, 6), 0, 1),
-            // (Vector2(0, 1.5), -20, 1),
-          ]),
+        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
+        meleeAttackType: MeleeType.stab,
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
+            },
+          );
+        },
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(.2, -.7), 0, 1),
+          (Vector2(0, 6), 0, 1),
+          // (Vector2(0, 1.5), -20, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle:
-                      await spriteAnimations.aethertideSpearIdle1,
-                });
-          },
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(-.2, -.7), 0, 1),
-            (Vector2(0, 6), 0, 1),
-            // (Vector2(0, 1.5), 20, 1),
-          ]),
+        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
+            },
+          );
+        },
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(-.2, -.7), 0, 1),
+          (Vector2(0, 6), 0, 1),
+          // (Vector2(0, 1.5), 20, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (Vector2(3, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle:
-                      await spriteAnimations.aethertideSpearIdle1,
-                });
-          },
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(0, 3), 370, 1),
-            (Vector2(0, -4), -10, 1),
-          ]),
+        attackHitboxSize: (Vector2(3, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
+            },
+          );
+        },
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(0, 3), 370, 1),
+          (Vector2(0, -4), -10, 1),
+        ],
+      ),
     ];
     pierce.baseParameter = 5;
     chainingTargets.baseParameter = 6;
@@ -370,24 +391,29 @@ class AethertideSpear extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
-            })
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
+          },
+        )
           ..position = Vector2(weaponLength / 2, -weaponLength / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
-            });
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.aethertideSpearIdle1,
+          },
+        );
     }
   }
 
@@ -417,9 +443,9 @@ class HolySword extends PlayerWeapon
         StaminaCostFunctionality,
         MeleeChargeReady {
   HolySword(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.energy] = (5, 12);
     attackTickRate.baseParameter = .7;
     projectileVelocity.baseParameter = 15;
@@ -429,50 +455,56 @@ class HolySword extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
-                });
-          },
-          chargePattern: [
-            (Vector2(0, -.5), -140, .8),
-            (Vector2(.2, 0), -120, 1.0),
-            (Vector2(.1, 0), -100, 1.2),
-          ],
-          attackPattern: [
-            // (Vector2(.2, 1), 0, 1),
-            (Vector2(-1, .5), 140, 1),
-            (Vector2(2, 0), -45, 1.1),
-            // (Vector2(0, -.4), 55, 1),
-            // (Vector2(.2, 1), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+            },
+          );
+        },
+        chargePattern: [
+          (Vector2(0, -.5), -140, .8),
+          (Vector2(.2, 0), -120, 1.0),
+          (Vector2(.1, 0), -100, 1.2),
+        ],
+        attackPattern: [
+          // (Vector2(.2, 1), 0, 1),
+          (Vector2(-1, .5), 140, 1),
+          (Vector2(2, 0), -45, 1.1),
+          // (Vector2(0, -.4), 55, 1),
+          // (Vector2(.2, 1), 0, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
-                });
-          },
-          chargePattern: [
-            (Vector2(0, .3), -20, .8),
-            (Vector2(.2, .3), -40, 1),
-            (Vector2(.1, .3), -60, 1.2),
-          ],
-          attackPattern: [
-            // (Vector2(.2, 1), 0, 1),
-            (Vector2(.5, .5), -130, 1),
-            (Vector2(-1.5, -.0), 45, 1),
-            // (Vector2(.2, 1), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+            },
+          );
+        },
+        chargePattern: [
+          (Vector2(0, .3), -20, .8),
+          (Vector2(.2, .3), -40, 1),
+          (Vector2(.1, .3), -60, 1.2),
+        ],
+        attackPattern: [
+          // (Vector2(.2, 1), 0, 1),
+          (Vector2(.5, .5), -130, 1),
+          (Vector2(-1.5, -.0), 45, 1),
+          // (Vector2(.2, 1), 0, 1),
+        ],
+      ),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
   }
@@ -497,8 +529,9 @@ class HolySword extends PlayerWeapon
   }
 
   @override
-  List<Projectile> generateMultipleProjectileFunction(
-      [double chargeAmount = 1]) {
+  List<Projectile> generateMultipleProjectileFunction([
+    double chargeAmount = 1,
+  ]) {
     if (chargeAmount < .7) return [];
     return super.generateMultipleProjectileFunction(chargeAmount)
       ..forEach((element) {
@@ -511,24 +544,29 @@ class HolySword extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(baseOffset,
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
-            })
+        return WeaponSpriteAnimation(
+          baseOffset,
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+          },
+        )
           ..position = Vector2(weaponLength / 3, .35)
           ..angle = radians(135);
       default:
-        return WeaponSpriteAnimation(baseOffset,
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
-            });
+        return WeaponSpriteAnimation(
+          baseOffset,
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+          },
+        );
     }
   }
 
@@ -570,42 +608,48 @@ class FlameSword extends PlayerWeapon
     // baseAttackCount.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          weaponTrailConfig:
-              WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
-                });
-          },
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(.2, 0), -360, 1),
-            (Vector2(.2, 1), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        weaponTrailConfig:
+            WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
+            },
+          );
+        },
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(.2, 0), -360, 1),
+          (Vector2(.2, 1), 0, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
-          weaponTrailConfig:
-              WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
-                });
-          },
-          flippedDuringAttack: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(-.2, 0), 360, 1),
-            (Vector2(-.2, 1), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        weaponTrailConfig:
+            WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
+            },
+          );
+        },
+        flippedDuringAttack: true,
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(-.2, 0), 360, 1),
+          (Vector2(-.2, 1), 0, 1),
+        ],
+      ),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
     if (ancestor == null) return;
@@ -635,24 +679,29 @@ class FlameSword extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(baseOffset,
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
-            })
+        return WeaponSpriteAnimation(
+          baseOffset,
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
+          },
+        )
           ..position = Vector2(-.6, .6)
           ..angle = radians(-145);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
-            });
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.fireSwordIdle1,
+          },
+        );
     }
   }
 
@@ -676,27 +725,30 @@ class FlameSword extends PlayerWeapon
 class LargeSword extends PlayerWeapon
     with MeleeFunctionality, SemiAutomatic, StaminaCostFunctionality {
   LargeSword(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.physical] = (12, 20);
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (Vector2.all(1), (.1, .9)),
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.largeSwordIdle1,
-                });
-          },
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(.2, 0), 0, 1),
-            (Vector2(.2, 1), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2.all(1), (.1, .9)),
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.largeSwordIdle1,
+            },
+          );
+        },
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(.2, 0), 0, 1),
+          (Vector2(.2, 1), 0, 1),
+        ],
+      ),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
     attackTickRate.baseParameter = 2;
@@ -727,24 +779,29 @@ class LargeSword extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            parentJoint: parentJoint,
-            weapon: this,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.largeSwordIdle1,
-            })
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          parentJoint: parentJoint,
+          weapon: this,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.largeSwordIdle1,
+          },
+        )
           ..position = Vector2(weaponLength / 2, -weaponLength / 2)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.largeSwordIdle1,
-            });
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.largeSwordIdle1,
+          },
+        );
     }
   }
 
@@ -776,9 +833,9 @@ class FrostKatana extends PlayerWeapon
         StaminaCostFunctionality,
         MeleeChargeReady {
   FrostKatana(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.frost] = (5, 12);
     attackTickRate.baseParameter = .5;
     pierce.baseParameter = 5;
@@ -787,13 +844,14 @@ class FrostKatana extends PlayerWeapon
 
     onAttackMelee.add((holdDurationPercent) {
       if (entityAncestor is DashFunctionality) {
-        final dash = (entityAncestor as DashFunctionality);
+        final dash = entityAncestor! as DashFunctionality;
         if (holdDurationPercent < .6) return;
         pierce.setParameterFlatValue(weaponId, 999);
         dash.beginDash(
-            power: holdDurationPercent * 2.5,
-            weaponSource: true,
-            triggerFunctions: false);
+          power: holdDurationPercent * 2.5,
+          weaponSource: true,
+          triggerFunctions: false,
+        );
         Future.delayed(dash.dashDuration.parameter.seconds)
             .then((value) => pierce.removeFlatKey(weaponId));
       }
@@ -801,28 +859,31 @@ class FrostKatana extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
-          entitySpriteAnimation: null,
-          weaponTrailConfig: WeaponTrailConfig(
-            bottomStartFromTipPercent: .25,
-          ),
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.frostKatanaIdle1,
-                });
-          },
-          chargePattern: [
-            (Vector2(-.2, -.2), -120, 1),
-            (Vector2(.2, -.2), -100, 1),
-            (Vector2(.2, -.4), -80, 1),
-          ],
-          attackPattern: [
-            (Vector2(0, -.2), 140, 1),
-            (Vector2(1, .2), -45, 1.1),
-          ]),
+        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        weaponTrailConfig: WeaponTrailConfig(
+          bottomStartFromTipPercent: .25,
+        ),
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.frostKatanaIdle1,
+            },
+          );
+        },
+        chargePattern: [
+          (Vector2(-.2, -.2), -120, 1),
+          (Vector2(.2, -.2), -100, 1),
+          (Vector2(.2, -.4), -80, 1),
+        ],
+        attackPattern: [
+          (Vector2(0, -.2), 140, 1),
+          (Vector2(1, .2), -45, 1.1),
+        ],
+      ),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
   }
@@ -854,24 +915,29 @@ class FrostKatana extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(baseOffset,
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.frostKatanaIdle1,
-            })
+        return WeaponSpriteAnimation(
+          baseOffset,
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.frostKatanaIdle1,
+          },
+        )
           ..position = Vector2(.6, -1.2)
           ..angle = radians(30);
       default:
-        return WeaponSpriteAnimation(baseOffset,
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.frostKatanaIdle1,
-            });
+        return WeaponSpriteAnimation(
+          baseOffset,
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.frostKatanaIdle1,
+          },
+        );
     }
   }
 
@@ -896,9 +962,9 @@ class FrostKatana extends PlayerWeapon
 class SwordOfJustice extends PlayerWeapon
     with MeleeFunctionality, FullAutomatic, StaminaCostFunctionality {
   SwordOfJustice(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.physical] = (2, 5);
     baseDamage.damageBase[DamageType.fire] = (2, 5);
     attackTickRate.baseParameter = .4;
@@ -916,74 +982,71 @@ class SwordOfJustice extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-          attackHitboxSize: (
-            Vector2(weaponLength / 3.5, weaponLength),
-            (.1, .9)
-          ),
-          entitySpriteAnimation: null,
-          meleeAttackType: MeleeType.stab,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
-                });
-          },
-          weaponTrailConfig:
-              WeaponTrailConfig(color: ApolloColorPalette.red.color),
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(0, -.5), -35, 1),
-            (Vector2(0, 1.5), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
+            },
+          );
+        },
+        weaponTrailConfig:
+            WeaponTrailConfig(color: ApolloColorPalette.red.color),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(0, -.5), -35, 1),
+          (Vector2(0, 1.5), 0, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (
-            Vector2(weaponLength / 3.5, weaponLength),
-            (.1, .9)
-          ),
-          meleeAttackType: MeleeType.stab,
-          entitySpriteAnimation: null,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
-                });
-          },
-          weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(.2, -.25), -0, 1),
-            (Vector2(0, 2), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        meleeAttackType: MeleeType.stab,
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
+            },
+          );
+        },
+        weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(.2, -.25), -0, 1),
+          (Vector2(0, 2), 0, 1),
+        ],
+      ),
       MeleeAttack(
-          attackHitboxSize: (
-            Vector2(weaponLength / 3.5, weaponLength),
-            (.1, .9)
-          ),
-          entitySpriteAnimation: null,
-          meleeAttackType: MeleeType.stab,
-          attackSpriteAnimationBuild: () async {
-            return WeaponSpriteAnimation(Vector2.zero(),
-                weapon: this,
-                parentJoint: null,
-                weaponAnimations: {
-                  WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
-                });
-          },
-          weaponTrailConfig:
-              WeaponTrailConfig(color: ApolloColorPalette.red.color),
-          customStartAngle: true,
-          chargePattern: [],
-          attackPattern: [
-            (Vector2(-.2, -.5), 35, 1),
-            // (Vector2(.2, 1), 90, 1),
-            (Vector2(0, 1.5), 0, 1),
-          ]),
+        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
+            },
+          );
+        },
+        weaponTrailConfig:
+            WeaponTrailConfig(color: ApolloColorPalette.red.color),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(-.2, -.5), 35, 1),
+          // (Vector2(.2, 1), 90, 1),
+          (Vector2(0, 1.5), 0, 1),
+        ],
+      ),
     ];
 
     spirteComponentPositions.add(WeaponSpritePosition.back);
@@ -1010,24 +1073,29 @@ class SwordOfJustice extends PlayerWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
-            })
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
+          },
+        )
           ..position = Vector2(.75, -1.75)
           ..angle = radians(45);
       default:
-        return WeaponSpriteAnimation(Vector2.zero(),
-            weapon: this,
-            parentJoint: parentJoint,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
-            });
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.swordOfJusticeIdle1,
+          },
+        );
     }
   }
 

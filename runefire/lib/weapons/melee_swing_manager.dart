@@ -1,5 +1,8 @@
+// ignore_for_file: parameter_assignments, use_if_null_to_convert_nulls_to_bools
+
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 import 'dart:ui';
 import 'dart:ui' as ui;
 import 'package:runefire/resources/damage_type_enum.dart';
@@ -15,35 +18,215 @@ import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:uuid/uuid.dart';
 
-import '../entities/entity_class.dart';
-import '../player/player.dart';
-import '../resources/functions/vector_functions.dart';
-import '../enemies/enemy.dart';
-import '../main.dart';
-import '../resources/enums.dart';
+import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/enums.dart';
 
 class MeleeAttackHitbox extends BodyComponent<GameRouter>
     with ContactCallbacks {
   MeleeAttackHitbox(this.size, this.meleeAttackAncestor, this.onHit);
-  MeleeAttackHandler meleeAttackAncestor;
-  Function(DamageInstance damage) onHit;
-  List<String> hitEnemiesId = [];
-  final (Vector2, (double, double)) size;
-  late PolygonShape shape;
-  int hitEnemies = 0;
 
-  void enableHitbox(bool enable) {
+  List<(Vector2, Vector2)> hitboxPoints = [];
+  int hitEnemies = 0;
+  List<String> hitEnemiesId = [];
+  bool hitboxIsDead = false;
+  bool _isEnabled = false;
+
+  bool get isEnabled => _isEnabled;
+
+  set isEnabled(bool value) {
+    _isEnabled = value;
+  }
+
+  MeleeAttackHandler meleeAttackAncestor;
+  late PolygonShape shape;
+  late Fixture weaponHitboxFixture;
+
+  (Vector2, Vector2)? lastBackPos;
+  (Vector2, Vector2)? lastCenterPos;
+
+  Function(DamageInstance damage) onHit;
+
+  Future<void> applyHitSpriteEffects(DamageInstance damage) async {
+    final SpriteAnimation animation;
+    switch (meleeAttackAncestor.currentAttack.meleeAttackType) {
+      case MeleeType.crush:
+        animation = await spriteAnimations.crustEffect1;
+        break;
+      case MeleeType.slash:
+        animation = await spriteAnimations.slashEffect1;
+        break;
+      case MeleeType.stab:
+        animation = await spriteAnimations.stabEffect1;
+        break;
+    }
+    damage.victim.applyHitAnimation(
+      animation,
+      center,
+      damage.damageMap.keys.first.color,
+    );
+  }
+
+  void bodyContact(HealthFunctionality other) {
+    hitEnemiesId.add(other.entityId);
+    final damageInstance =
+        meleeAttackAncestor.weaponAncestor.calculateDamage(other, this);
+    onHitFunctions(damageInstance);
+    other.hitCheck(meleeAttackAncestor.meleeId, damageInstance);
+    applyHitSpriteEffects(damageInstance);
+    hitEnemies++;
+  }
+
+  // double testLengthOfHitboxLife = 1000;
+
+  void enableHitbox({required bool enable}) {
     isEnabled = enable;
     body.setActive(isEnabled);
   }
 
-  bool isEnabled = false;
+  final (Vector2, (double, double)) size;
 
-  bool hitboxIsDead = false;
+  void onHitFunctions(DamageInstance instance) {
+    if (meleeAttackAncestor.weaponAncestor
+        is AttributeWeaponFunctionsFunctionality) {
+      final weapon = meleeAttackAncestor.weaponAncestor
+          as AttributeWeaponFunctionsFunctionality;
+      for (final element in weapon.onHitMelee) {
+        element(instance);
+      }
+    }
+
+    meleeAttackAncestor
+        .weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
+        ?.onHitFunctions(instance);
+
+    onHit(instance);
+  }
+
+  double trailStepDuration = .2;
+  double backTrailStepDurationProgress = 0;
+  double centerTrailStepDurationProgress = 0;
+
+  Future<void> updatePosition(double dt) async {
+    final ref = meleeAttackAncestor.activeSwings;
+    if (ref.isEmpty) {
+      return;
+    }
+    final latestSwingRef = ref.last;
+    final halfWidth = size.$1.x / 2;
+
+    final topCenter = newPositionRad(
+      latestSwingRef.swingPosition,
+      -latestSwingRef.swingAngle,
+      size.$1.y,
+    );
+    final top1 = newPositionRad(
+      topCenter,
+      -latestSwingRef.swingAngle - pi / 2,
+      -halfWidth,
+    );
+    final top2 = newPositionRad(
+      topCenter,
+      -latestSwingRef.swingAngle - pi / 2,
+      halfWidth,
+    );
+    final botCenter = newPositionRad(
+      latestSwingRef.swingPosition,
+      -latestSwingRef.swingAngle,
+      0,
+    );
+    final bot1 = newPositionRad(
+      botCenter,
+      -latestSwingRef.swingAngle - pi / 2,
+      -halfWidth,
+    );
+
+    final bot2 = newPositionRad(
+      botCenter,
+      -latestSwingRef.swingAngle - pi / 2,
+      halfWidth,
+    );
+
+    (Vector2, Vector2) getBehindPoints() =>
+        meleeAttackAncestor.currentAttack.meleeAttackType == MeleeType.stab
+            ? (top1, top2)
+            : (bot1, top1);
+
+    (Vector2, Vector2) getInfrontPoints() =>
+        meleeAttackAncestor.currentAttack.meleeAttackType == MeleeType.stab
+            ? (bot1, bot2)
+            : (bot2, top2);
+
+    if (hitboxPoints.isEmpty) {
+      hitboxPoints.add(
+        getBehindPoints(),
+      );
+      hitboxPoints.add(
+        (botCenter, topCenter),
+      );
+      hitboxPoints.add(
+        getInfrontPoints(),
+      );
+    } else if (isEnabled) {
+      hitboxPoints[0] = lastBackPos ?? (lastBackPos = getBehindPoints());
+      hitboxPoints[1] =
+          lastCenterPos ?? (lastCenterPos = (botCenter, topCenter));
+      hitboxPoints[2] = getInfrontPoints();
+
+      backTrailStepDurationProgress += dt;
+      centerTrailStepDurationProgress += dt;
+      if (trailStepDuration < backTrailStepDurationProgress) {
+        backTrailStepDurationProgress = 0;
+        lastBackPos = getBehindPoints();
+      }
+
+      if ((trailStepDuration / 1.75) < centerTrailStepDurationProgress) {
+        centerTrailStepDurationProgress = 0;
+        lastCenterPos = (botCenter, topCenter);
+      }
+    }
+    final newPoints = hitboxPoints.fold(
+      [],
+      (previousValue, element) => [...previousValue, element.$1, element.$2],
+    );
+    // if (rng.nextDouble() < .03) {
+    //   add(
+    //     PolygonComponent(
+    //       [...List<Vector2>.from(newPoints)],
+    //       position: Vector2.zero(),
+    //       paint: Paint()..color = Colors.red.withOpacity(.5),
+    //     ),
+    //   );
+    //   newPoints = sortPointsInCircle(List<Vector2>.from(newPoints));
+    //   const color = Colors.blue;
+    //   for (final element in newPoints) {
+    //     add(
+    //       CircleComponent(
+    //         radius: .2,
+    //         position: element as Vector2,
+    //         paint: Paint()..color = color.withOpacity(.5),
+    //       ),
+    //     );
+    //   }
+    //   add(
+    //     PolygonComponent(
+    //       [...List<Vector2>.from(newPoints)],
+    //       position: Vector2.zero(),
+    //       paint: Paint()..color = color.withOpacity(.5),
+    //     ),
+    //   );
+    // }
+    //
+    modifyFixture(sortPointsInCircle(List<Vector2>.from(newPoints)));
+  }
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -69,112 +252,64 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     }
   }
 
-  void bodyContact(HealthFunctionality other) {
-    hitEnemiesId.add(other.entityId);
-    final damageInstance =
-        meleeAttackAncestor.weaponAncestor.calculateDamage(other, this);
-    onHitFunctions(damageInstance);
-    other.hitCheck(meleeAttackAncestor.meleeId, damageInstance);
-    applyHitSpriteEffects(damageInstance);
-    hitEnemies++;
-  }
-
-  void applyHitSpriteEffects(DamageInstance damage) async {
-    final SpriteAnimation animation;
-    switch (meleeAttackAncestor.currentAttack.meleeAttackType) {
-      case MeleeType.crush:
-        animation = await spriteAnimations.crustEffect1;
-        break;
-      case MeleeType.slash:
-        animation = await spriteAnimations.slashEffect1;
-        break;
-      case MeleeType.stab:
-        animation = await spriteAnimations.stabEffect1;
-        break;
-    }
-    damage.victim.applyHitAnimation(
-        animation, center, damage.damageMap.keys.first.color);
-  }
-
-  void onHitFunctions(DamageInstance instance) {
-    if (meleeAttackAncestor.weaponAncestor
-        is AttributeWeaponFunctionsFunctionality) {
-      final weapon = meleeAttackAncestor.weaponAncestor
-          as AttributeWeaponFunctionsFunctionality;
-      for (var element in weapon.onHitMelee) {
-        element(instance);
-      }
-    }
-
-    meleeAttackAncestor
-        .weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
-        ?.onHitFunctions(instance);
-
-    onHit(instance);
-  }
-
   @override
   Body createBody() {
-    shape = PolygonShape();
-
-    final verts = [
-      Vector2(-size.$1.x / 2, 0),
-      Vector2(size.$1.x / 2, 0),
-      Vector2(size.$1.x / 2, size.$1.y),
-      Vector2(-size.$1.x / 2, size.$1.y),
-    ];
-
-    shape.set(verts);
-
-    add(PolygonComponent(verts,
-        anchor: Anchor.center,
-        paint: Paint()..color = Colors.red.withOpacity(.1)));
-
-    final swordFilter = Filter();
-    if (meleeAttackAncestor.weaponAncestor.entityAncestor is Enemy) {
-      swordFilter.maskBits = playerCategory;
-    } else {
-      swordFilter.maskBits = enemyCategory;
-    }
-    swordFilter.categoryBits = swordCategory;
-
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        restitution: 0,
-        friction: 0,
-        isSensor: true,
-        density: 0,
-        filter: swordFilter);
-
     final bodyDef = BodyDef(
       userData: this,
+      type: BodyType.kinematic,
       bullet: true,
-      active: false,
       allowSleep: false,
-      position: meleeAttackAncestor.activeSwings.last.swingPosition,
-      angle: meleeAttackAncestor.activeSwings.last.swingAngle,
-      type: BodyType.static,
     );
-    renderBody = false;
-    return world.createBody(bodyDef)..createFixture(fixtureDef);
+    // renderBody = false;
+    final returnBody = world.createBody(bodyDef);
+    return returnBody;
   }
 
-  void updatePosition() async {
-    final ref = meleeAttackAncestor.activeSwings;
-    if (ref.isEmpty) return;
-    body.setTransform(ref.last.swingPosition, ref.last.swingAngle);
+  void modifyFixture(List<Vector2> verts) {
+    if (verts.length < 3) {
+      return;
+    }
+    if (body.fixtures.isEmpty) {
+      shape = PolygonShape();
+      shape.set(verts);
+
+      final swordFilter = Filter();
+      if (meleeAttackAncestor.weaponAncestor.entityAncestor is Enemy) {
+        swordFilter.maskBits = playerCategory;
+      } else {
+        swordFilter.maskBits = enemyCategory;
+      }
+      swordFilter.categoryBits = swordCategory;
+
+      final fixtureDef = FixtureDef(
+        shape,
+        userData: {'type': FixtureType.body, 'object': this},
+        isSensor: true,
+        filter: swordFilter,
+      );
+
+      weaponHitboxFixture = body.createFixture(fixtureDef);
+    } else {
+      (weaponHitboxFixture.shape as PolygonShape).set(
+        verts,
+      );
+    }
   }
 
   @override
   void update(double dt) {
-    updatePosition();
+    updatePosition(dt);
     super.update(dt);
   }
 }
 
 class MeleeAttackSprite extends PositionComponent {
-  MeleeAttackSprite(WeaponSpriteAnimation? swingAnimation, this.initPosition,
-      this.target, this.handler) {
+  MeleeAttackSprite(
+    WeaponSpriteAnimation? swingAnimation,
+    this.initPosition,
+    this.target,
+    this.handler,
+  ) {
     if (target != null) {
       initTargetPosition = target!.center.clone();
     }
@@ -188,21 +323,34 @@ class MeleeAttackSprite extends PositionComponent {
     }
     weaponSpriteAnimation = swingAnimation;
   }
-  void removeSwing() {
-    handler.removeSwing(this);
-  }
 
-  late final WeaponTrailConfig? weaponTrailConfig;
+  late final double bottomStartFromTipPercent;
+  late final Color color;
+  late final Curve curve;
   late final bool disableTrail;
+  late final Paint drawPaint;
+  late final int swingCutOff;
+  late final double topStartFromTipPercent;
+  late final WeaponTrailConfig? weaponTrailConfig;
+
+  MeleeAttackHandler handler;
+  Vector2 initPosition;
+  late Vector2 initTargetPosition;
+  List<Offset> points = [];
+  bool renderTrail = false;
+  bool triggerRemove = false;
+  late double widthOfTrail;
+
+  TimerComponent? swingTimer;
+  Entity? target;
   WeaponSpriteAnimation? weaponSpriteAnimation;
 
-  Entity? target;
-  late Vector2 initTargetPosition;
-  Vector2 initPosition;
+  double get swingAngle => weaponSpriteAnimation!.angle;
+  Vector2 get swingPosition => weaponSpriteAnimation!.position + position;
 
-  void fadeOut() async {
-    if (weaponSpriteAnimation?.animations?.containsKey(WeaponStatus.dead) ==
-        true) {
+  Future<void> fadeOut() async {
+    if (weaponSpriteAnimation?.animations?.containsKey(WeaponStatus.dead) ??
+        false) {
       await weaponSpriteAnimation?.setWeaponStatus(WeaponStatus.dead);
       removeSwing();
     } else {
@@ -210,90 +358,10 @@ class MeleeAttackSprite extends PositionComponent {
       final controller = EffectController(
         duration: fadeOutDuration,
         curve: Curves.easeIn,
-        onMax: () {
-          removeSwing();
-        },
+        onMax: removeSwing,
       );
       weaponSpriteAnimation?.add(OpacityEffect.fadeOut(controller));
     }
-  }
-
-  Vector2 get swingPosition => weaponSpriteAnimation!.position + position;
-  double get swingAngle => weaponSpriteAnimation!.angle;
-
-  @override
-  void update(double dt) {
-    if (target != null) {
-      position.setFrom(initPosition + (target!.center - initTargetPosition));
-    }
-    super.update(dt);
-  }
-
-  @override
-  void render(Canvas canvas) {
-    if (!disableTrail) {
-      generateSwingTrail();
-      canvas.drawVertices(Vertices(VertexMode.triangleStrip, points),
-          BlendMode.plus, drawPaint);
-    }
-
-    super.render(canvas);
-  }
-
-  MeleeAttackHandler handler;
-  TimerComponent? swingTimer;
-
-  @override
-  FutureOr<void> onLoad() {
-    if (!handler.isCharging) {
-      swingTimer = TimerComponent(
-        period: handler.duration,
-        onTick: () {
-          fadeOut();
-        },
-      );
-      add(swingTimer!);
-    }
-    if (handler.isCharging) {
-      weaponSpriteAnimation?.weaponCharging();
-    }
-    add(weaponSpriteAnimation!);
-    initSwingTrail();
-    return super.onLoad();
-  }
-
-  bool renderTrail = false;
-  bool triggerRemove = false;
-
-  List<Offset> points = [];
-  late final Paint drawPaint;
-  late double widthOfTrail;
-  late final double topStartFromTipPercent;
-  late final double bottomStartFromTipPercent;
-  late final int swingCutOff;
-  late final Color color;
-  late final Curve curve;
-
-  void initSwingTrail() {
-    if (disableTrail) return;
-    swingCutOff = weaponTrailConfig?.swingCutOff ?? 14;
-    curve = weaponTrailConfig?.curve ?? Curves.easeIn;
-    renderTrail = true;
-    color = weaponTrailConfig?.color ??
-        (handler.weaponAncestor.baseDamage.damageBase.keys.toList().random())
-            .color;
-    topStartFromTipPercent = weaponTrailConfig?.topStartFromTipPercent ?? .95;
-    bottomStartFromTipPercent =
-        weaponTrailConfig?.bottomStartFromTipPercent ?? .3;
-
-    widthOfTrail = (handler.weaponAncestor.tipOffset.y *
-            handler.weaponAncestor.weaponLength) *
-        (topStartFromTipPercent - bottomStartFromTipPercent);
-    drawPaint = Paint()..color = color.withOpacity(1);
-    final centerPoint =
-        handler.weaponAncestor.entityAncestor!.center - position;
-    drawPaint.shader = ui.Gradient.radial(centerPoint.toOffset(), 3,
-        [color.darken(.25), color], [.7, .7], TileMode.clamp, null, null, 0);
   }
 
   void generateSwingTrail() {
@@ -305,21 +373,20 @@ class MeleeAttackSprite extends PositionComponent {
     }
 
     final tipPos = newPositionRad(
-            weaponSpriteAnimation!.position,
-            // Vector2.zero(),
-            -swingAngle,
-            handler.weaponAncestor.tipOffset.y *
-                handler.weaponAncestor.weaponLength *
-                topStartFromTipPercent)
-        .toOffset();
+      weaponSpriteAnimation!.position,
+      // Vector2.zero(),
+      -swingAngle,
+      handler.weaponAncestor.tipOffset.y *
+          handler.weaponAncestor.weaponLength *
+          topStartFromTipPercent,
+    ).toOffset();
     final midPos = newPositionRad(
-            weaponSpriteAnimation!.position,
-            // swing.swingPosition,
-            -swingAngle,
-            handler.weaponAncestor.tipOffset.y *
-                handler.weaponAncestor.weaponLength *
-                bottomStartFromTipPercent)
-        .toOffset();
+      weaponSpriteAnimation!.position,
+      -swingAngle,
+      handler.weaponAncestor.tipOffset.y *
+          handler.weaponAncestor.weaponLength *
+          bottomStartFromTipPercent,
+    ).toOffset();
 
     points.addAll([tipPos, midPos]);
     // }
@@ -338,18 +405,91 @@ class MeleeAttackSprite extends PositionComponent {
       points[i + 1] = nextElement - (diff * (.8 * closeToEnd));
     }
   }
+
+  void initSwingTrail() {
+    if (disableTrail) {
+      return;
+    }
+    swingCutOff = weaponTrailConfig?.swingCutOff ?? 14;
+    curve = weaponTrailConfig?.curve ?? Curves.easeIn;
+    renderTrail = true;
+    color = weaponTrailConfig?.color ??
+        handler.weaponAncestor.baseDamage.damageBase.keys
+            .toList()
+            .random()
+            .color;
+    topStartFromTipPercent = weaponTrailConfig?.topStartFromTipPercent ?? .95;
+    bottomStartFromTipPercent =
+        weaponTrailConfig?.bottomStartFromTipPercent ?? .3;
+
+    widthOfTrail = (handler.weaponAncestor.tipOffset.y *
+            handler.weaponAncestor.weaponLength) *
+        (topStartFromTipPercent - bottomStartFromTipPercent);
+    drawPaint = Paint()..color = color.withOpacity(1);
+    final centerPoint =
+        handler.weaponAncestor.entityAncestor!.center - position;
+    drawPaint.shader = ui.Gradient.radial(
+      centerPoint.toOffset(),
+      3,
+      [color.darken(.25), color],
+      [.7, .7],
+    );
+  }
+
+  void removeSwing() {
+    handler.removeSwing(this);
+  }
+
+  @override
+  FutureOr<void> onLoad() {
+    if (!handler.isCharging) {
+      swingTimer = TimerComponent(
+        period: handler.duration,
+        onTick: fadeOut,
+      );
+      add(swingTimer!);
+    }
+    if (handler.isCharging) {
+      weaponSpriteAnimation?.weaponCharging();
+    }
+    add(weaponSpriteAnimation!);
+    initSwingTrail();
+    return super.onLoad();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    if (!disableTrail) {
+      generateSwingTrail();
+      canvas.drawVertices(
+        Vertices(VertexMode.triangleStrip, points),
+        BlendMode.plus,
+        drawPaint,
+      );
+    }
+
+    super.render(canvas);
+  }
+
+  @override
+  void update(double dt) {
+    if (target != null) {
+      position.setFrom(initPosition + (target!.center - initTargetPosition));
+    }
+    super.update(dt);
+  }
 }
 
 class MeleeAttackHandler extends Component {
-  MeleeAttackHandler(
-      {
-      // required this.chargeAmount,
-      required this.currentAttack,
-      this.isCharging = false,
-      required this.initPosition,
-      required this.initAngle,
-      this.attachmentPoint,
-      required this.weaponAncestor}) {
+  MeleeAttackHandler({
+    // required this.chargeAmount,
+    required this.currentAttack,
+    required this.initPosition,
+    required this.initAngle,
+    required this.weaponAncestor,
+    this.isCharging = false,
+    this.attachmentPoint,
+  }) {
     double? tempStepDuration;
     int? tempAttackPatternLength;
 
@@ -367,95 +507,58 @@ class MeleeAttackHandler extends Component {
         ;
     duration = tempStepDuration ?? weaponAncestor.attackTickRate.parameter;
     meleeId = const Uuid().v4();
-    if (!currentAttack.customStartAngle) initAngle = 0;
+    if (!currentAttack.customStartAngle) {
+      initAngle = 0;
+    }
     hitboxBeginEnd = (
       currentAttack.attackHitboxSize.$2.$1 * duration,
       currentAttack.attackHitboxSize.$2.$2 * duration
     );
   }
 
-  bool isCharging;
-
-  Vector2 initPosition;
-  double initAngle;
-
-  bool isDead = false;
-
-  bool disableChaining = false;
-  MeleeAttack currentAttack;
-
   List<MeleeAttackSprite> activeSwings = [];
-  Entity? attachmentPoint;
-  // double chargeAmount;
+  late double attackStepDuration;
+  Map<MeleeAttackSprite, double> attackStepTimer = {};
+  MeleeAttack currentAttack;
+  bool disableChaining = false;
 
   late double duration;
-  late double attackStepDuration;
-  late String meleeId;
-  double durationTimer = 0;
-  late final (double, double) hitboxBeginEnd;
 
+  double durationTimer = 0;
+  double initAngle;
+  Vector2 initPosition;
+  bool isCharging;
+  bool isDead = false;
+  late String meleeId;
+  Map<MeleeAttackSprite, Queue<Function>> meleeSteps = {};
   MeleeFunctionality weaponAncestor;
+
+  Entity? attachmentPoint;
   MeleeAttackHitbox? hitbox;
 
+  MeleeAttackSprite get currentSwing => activeSwings.last;
   bool get isFlipped => weaponAncestor.entityAncestor?.isFlipped ?? false;
 
-  void onHitFunction(DamageInstance damage) {
-    chain(damage.victim);
-  }
-
-  void chain(HealthFunctionality other) {
-    if (!disableChaining &&
-        weaponAncestor.weaponCanChain &&
-        hitbox!.hitEnemies < weaponAncestor.chainingTargets.parameter &&
-        !isDead) {
-      List<Body> bodies = [
-        ...weaponAncestor.entityAncestor?.world.physicsWorld.bodies
-                .where((element) {
-              if (weaponAncestor.entityAncestor is Player) {
-                return element.userData is Enemy &&
-                    element.userData != other &&
-                    !hitbox!.hitEnemiesId
-                        .contains((element.userData as Entity).entityId);
-              } else {
-                return element.userData is Player &&
-                    element.userData != other &&
-                    !hitbox!.hitEnemiesId.contains(other.entityId);
-              }
-            }) ??
-            []
-      ];
-      if (bodies.isEmpty) {
-        return;
-      }
-      bodies.sort((a, b) => (a.position - other.center)
-          .length2
-          .compareTo((b.position - other.center).length2));
-
-      final delta = (other.center - bodies.first.position);
-
-      final otherAngle = -radiansBetweenPoints(
-        Vector2(0, -1),
-        delta,
-      );
-      attachmentPoint = other;
-
-      initSwing(otherAngle, other.center);
-    }
-  }
-
   void addStepToSwing(
-      int previousIndex, double currentAngle, MeleeAttackSprite swing) {
+    int previousIndex,
+    double currentAngle,
+    MeleeAttackSprite swing,
+  ) {
     (Vector2, double, double) previousPattern;
     (Vector2, double, double) newPattern;
     if (isCharging) {
       previousPattern = currentAttack.chargePattern[previousIndex];
       previousIndex++;
-      if (previousIndex == currentAttack.chargePattern.length) return;
+      if (previousIndex == currentAttack.chargePattern.length) {
+        return;
+      }
       newPattern = currentAttack.chargePattern[previousIndex];
     } else {
       previousPattern = currentAttack.attackPattern[previousIndex];
       previousIndex++;
-      if (previousIndex == currentAttack.attackPattern.length) return;
+      if (previousIndex == currentAttack.attackPattern.length) {
+        return;
+      }
       newPattern = currentAttack.attackPattern[previousIndex];
     }
 
@@ -505,8 +608,52 @@ class MeleeAttackHandler extends Component {
     addStepToSwing(previousIndex, currentAngle += totalAngle, swing);
   }
 
+  void chain(HealthFunctionality other) {
+    if (!disableChaining &&
+        weaponAncestor.weaponCanChain &&
+        hitbox!.hitEnemies < weaponAncestor.chainingTargets.parameter &&
+        !isDead) {
+      final bodies = <Body>[
+        ...weaponAncestor.entityAncestor?.world.physicsWorld.bodies
+                .where((element) {
+              if (weaponAncestor.entityAncestor is Player) {
+                return element.userData is Enemy &&
+                    element.userData != other &&
+                    !hitbox!.hitEnemiesId
+                        .contains((element.userData! as Entity).entityId);
+              } else {
+                return element.userData is Player &&
+                    element.userData != other &&
+                    !hitbox!.hitEnemiesId.contains(other.entityId);
+              }
+            }) ??
+            [],
+      ];
+      if (bodies.isEmpty) {
+        return;
+      }
+      bodies.sort(
+        (a, b) => (a.position - other.center)
+            .length2
+            .compareTo((b.position - other.center).length2),
+      );
+
+      final delta = other.center - bodies.first.position;
+
+      final otherAngle = -radiansBetweenPoints(
+        Vector2(0, -1),
+        delta,
+      );
+      attachmentPoint = other;
+
+      initSwing(otherAngle, other.center);
+    }
+  }
+
+  late final (double, double) hitboxBeginEnd;
+
   Future<void> initSwing(double swingAngle, Vector2 swingPosition) async {
-    int animationStepIndex = 0;
+    const animationStepIndex = 0;
 
     (Vector2, double, double) startPattern;
     if (isCharging) {
@@ -527,10 +674,6 @@ class MeleeAttackHandler extends Component {
     final weaponSpriteAnimation =
         await currentAttack.buildWeaponSpriteAnimation();
     weaponSpriteAnimation?.setWeaponStatus(WeaponStatus.attack);
-    // if(!(weaponSpriteAnimation!.animation?.loop??true))
-    // {
-    //   weaponSpriteAnimation.animation.
-    // }
     if (isFlipped) {
       weaponSpriteAnimation?.flipHorizontallyAroundCenter();
     }
@@ -538,8 +681,12 @@ class MeleeAttackHandler extends Component {
       weaponSpriteAnimation?.flipHorizontallyAroundCenter();
     }
 
-    final newSwing = MeleeAttackSprite(weaponSpriteAnimation,
-        swingPosition + rotatedStartPosition, attachmentPoint, this);
+    final newSwing = MeleeAttackSprite(
+      weaponSpriteAnimation,
+      swingPosition + rotatedStartPosition,
+      attachmentPoint,
+      this,
+    );
 
     final startAngle = radians(startPattern.$2) + swingAngle;
     newSwing.weaponSpriteAnimation?.angle = startAngle;
@@ -548,6 +695,28 @@ class MeleeAttackHandler extends Component {
 
     activeSwings.add(newSwing);
     newSwing.addToParent(this);
+  }
+
+  void kill() {
+    activeSwings.clear();
+    removeSwing();
+    isDead = true;
+  }
+
+  void onHitFunction(DamageInstance damage) {
+    chain(damage.victim);
+  }
+
+  void removeSwing([MeleeAttackSprite? attack]) {
+    activeSwings.remove(attack);
+    currentAttack.latestAttackSpriteAnimation
+        .remove(attack?.weaponSpriteAnimation);
+    if (activeSwings.isEmpty) {
+      weaponAncestor.activeSwings.remove(this);
+      weaponAncestor.spriteVisibilityCheck();
+      hitbox?.removeFromParent();
+      removeFromParent();
+    }
   }
 
   @override
@@ -564,27 +733,6 @@ class MeleeAttackHandler extends Component {
     return super.onLoad();
   }
 
-  void kill() {
-    activeSwings.clear();
-    removeSwing();
-    isDead = true;
-  }
-
-  void removeSwing([MeleeAttackSprite? attack]) {
-    activeSwings.remove(attack);
-    currentAttack.latestAttackSpriteAnimation
-        .remove(attack?.weaponSpriteAnimation);
-    if (activeSwings.isEmpty) {
-      weaponAncestor.activeSwings.remove(this);
-      weaponAncestor.spriteVisibilityCheck();
-      hitbox?.removeFromParent();
-      removeFromParent();
-    }
-  }
-
-  Map<MeleeAttackSprite, Queue<Function>> meleeSteps = {};
-  Map<MeleeAttackSprite, double> attackStepTimer = {};
-
   @override
   void update(double dt) {
     attackStepTimer.forEach((key, value) {
@@ -592,7 +740,7 @@ class MeleeAttackHandler extends Component {
       if (attackStepTimer[key]! >= attackStepDuration) {
         attackStepTimer[key] = 0;
         if (meleeSteps.isNotEmpty) {
-          if (meleeSteps[key]?.isEmpty == true) {
+          if (meleeSteps[key]?.isEmpty ?? false) {
             meleeSteps.remove(key);
             return;
           }
@@ -605,31 +753,32 @@ class MeleeAttackHandler extends Component {
     if (durationTimer > hitboxBeginEnd.$1 &&
         durationTimer < hitboxBeginEnd.$2 &&
         hitbox?.isEnabled == false) {
-      hitbox?.enableHitbox(true);
+      hitbox?.enableHitbox(enable: true);
     } else if (durationTimer >= hitboxBeginEnd.$2 &&
         hitbox?.isEnabled == true) {
-      hitbox?.enableHitbox(false);
+      hitbox?.enableHitbox(enable: false);
     }
 
     super.update(dt);
   }
-
-  MeleeAttackSprite get currentSwing => activeSwings.last;
 }
 
 class WeaponTrailConfig {
-  final double bottomStartFromTipPercent;
-  final double topStartFromTipPercent;
-  Color? color;
-  bool disableTrail;
-  final int swingCutOff;
-  final Curve curve;
+  WeaponTrailConfig({
+    this.bottomStartFromTipPercent = .5,
+    this.topStartFromTipPercent = 1,
+    this.color,
+    this.curve = Curves.easeIn,
+    this.disableTrail = false,
+    this.swingCutOff = 26,
+  });
 
-  WeaponTrailConfig(
-      {this.bottomStartFromTipPercent = .5,
-      this.topStartFromTipPercent = 1,
-      this.color,
-      this.curve = Curves.easeIn,
-      this.disableTrail = false,
-      this.swingCutOff = 26});
+  final double bottomStartFromTipPercent;
+  final Curve curve;
+  final int swingCutOff;
+  final double topStartFromTipPercent;
+
+  bool disableTrail;
+
+  Color? color;
 }

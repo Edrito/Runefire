@@ -48,7 +48,20 @@ mixin ReloadFunctionality on Weapon {
   TimerComponent? reloadTimer;
 
   //Status of reloading
-  int spentAttacks = 0;
+  int _spentAttacks = 0;
+
+  int get spentAttacks => _spentAttacks;
+
+  set spentAttacks(int value) {
+    if (entityAncestor is AttributeCallbackFunctionality) {
+      final attributeFunctions =
+          entityAncestor! as AttributeCallbackFunctionality;
+      for (final attribute in attributeFunctions.onSpentAttack) {
+        attribute(this);
+      }
+    }
+    _spentAttacks = value;
+  }
 
   double get percentReloaded =>
       (reloadTimer?.timer.current ?? reloadTime.parameter) /
@@ -58,7 +71,9 @@ mixin ReloadFunctionality on Weapon {
       maxAttacks.parameter == 0 ? null : maxAttacks.parameter - spentAttacks;
 
   void createReloadBar() {
-    if (entityAncestor == null) return;
+    if (entityAncestor == null) {
+      return;
+    }
     entityAncestor!.entityStatusWrapper.addReloadAnimation(
       weaponId,
       reloadTime.parameter,
@@ -98,9 +113,9 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void reloadCompleteFunctions() {
-    if (entityAncestor is AttributeFunctionsFunctionality) {
+    if (entityAncestor is AttributeCallbackFunctionality) {
       final attributeFunctions =
-          entityAncestor! as AttributeFunctionsFunctionality;
+          entityAncestor! as AttributeCallbackFunctionality;
       for (final attribute in attributeFunctions.onReloadComplete) {
         attribute(this);
       }
@@ -108,9 +123,9 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void reloadFunctions() {
-    if (entityAncestor is AttributeFunctionsFunctionality) {
+    if (entityAncestor is AttributeCallbackFunctionality) {
       final attributeFunctions =
-          entityAncestor! as AttributeFunctionsFunctionality;
+          entityAncestor! as AttributeCallbackFunctionality;
       for (final attribute in attributeFunctions.onReload) {
         attribute(this);
       }
@@ -148,16 +163,6 @@ mixin ReloadFunctionality on Weapon {
 
     //Check if needs to reload after an attack
     reloadCheck();
-  }
-
-  @override
-  FutureOr<void> onLoad() {
-    // if (this is MeleeFunctionality) {
-    //   assert(
-    //       maxAttacks.parameter == (this as MeleeFunctionality).attacksLength ||
-    //           maxAttacks.parameter == 0);
-    // }
-    return super.onLoad();
   }
 }
 
@@ -211,7 +216,9 @@ class MeleeAttack {
   List<(Vector2, double, double)> chargePattern;
 
   Future<WeaponSpriteAnimation?> buildWeaponSpriteAnimation() async {
-    if (attackSpriteAnimationBuild == null) return null;
+    if (attackSpriteAnimationBuild == null) {
+      return null;
+    }
     final spriteAnimation = await attackSpriteAnimationBuild!.call();
     latestAttackSpriteAnimation.add(spriteAnimation);
     return spriteAnimation;

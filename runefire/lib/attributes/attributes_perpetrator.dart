@@ -65,8 +65,8 @@ mixin TemporaryAttribute on Attribute {
   }
 
   void applyTimer(bool removeTimer) {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final func = victimEntity as AttributeFunctionsFunctionality;
+    if (victimEntity is! AttributeCallbackFunctionality) return;
+    final func = victimEntity as AttributeCallbackFunctionality;
     resetTimer();
     if (removeTimer) {
       func.onUpdate.remove(incrementTimer);

@@ -146,6 +146,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                   CustomButton(
                     'Try again',
                     gameRef: gameRouter,
+                    rowId: 1,
                     onPrimary: () {
                       gameRouter.gameStateComponent.gameState
                           .endGame(EndGameState.playerDeath, true);
@@ -154,6 +155,7 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> deathScreen =
                   CustomButton(
                     'Give up',
                     gameRef: gameRouter,
+                    rowId: 2,
                     onPrimary: () {
                       gameRouter.gameStateComponent.gameState
                           .endGame(EndGameState.playerDeath);
@@ -498,7 +500,7 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
       } else {
         this.position = position;
       }
-      latestEventWasKeyboard = type == ExternalInputType.mouseKeyboard;
+      latestEventWasKeyboard = this.position == null;
       _updateHoverWidgetSize();
     });
   }

@@ -157,7 +157,7 @@ mixin PlayerStatisticsRecorder
         AimFunctionality,
         AttackFunctionality,
         AttributeFunctionality,
-        AttributeFunctionsFunctionality,
+        AttributeCallbackFunctionality,
         MovementFunctionality,
         JumpFunctionality,
         ExperienceFunctionality,

@@ -69,19 +69,11 @@ abstract class BaseHud extends PositionComponent {
     hudScale = gameEnviroment.gameRef.systemDataComponent.dataObject.hudScale;
     fpsEnabled = gameEnviroment.gameRef.systemDataComponent.dataObject.showFPS;
   }
-  late final bool fpsEnabled;
+
   late final Paint barBackPaint;
   late final SpriteComponent characterPortrait;
   late final CircleComponent characterPortraitBacking;
-  late FpsTextComponent fpsCounter = buildFpsTextComponent();
-
-  FpsTextComponent buildFpsTextComponent() => FpsTextComponent(
-        textRenderer: TextPaint(
-          style: defaultStyle.copyWith(fontSize: hudFontSize * .75),
-        ),
-        anchor: Anchor.bottomRight,
-      )..loaded.then((value) => fpsTextPosition());
-
+  late final bool fpsEnabled;
   late final SpriteComponent healthBarEnd;
   late final SpriteComponent healthBarMid;
   late final Paint healthPaint;
@@ -89,13 +81,13 @@ abstract class BaseHud extends PositionComponent {
   late final Paint magicPaint;
   late final SpriteComponent staminaBarEnd;
   late final SpriteComponent staminaBarMid;
-  SpriteComponent? ammoPlaceholder;
   late final CaTextComponent timerText;
 
   Map<int, SpriteComponent> ammoSprites = {};
   late Sprite blankExpendableSprite;
   late SpriteComponent expendableIcon;
   int fps = 0;
+  late FpsTextComponent fpsCounter = buildFpsTextComponent();
   GameEnviroment gameEnviroment;
   late SpriteAnimationComponent healthEnergyFrame;
   late HudScale hudScale;
@@ -104,12 +96,18 @@ abstract class BaseHud extends PositionComponent {
   // late CircleComponent levelBackground;
   late PositionComponent levelWrapper;
 
+  bool noAmmoSymbolEngaged = false;
+  double previousHealthWidth = 0;
+  double previousStaminaWidth = 0;
   //Timer
   // late HudMarginComponent timerParent;
 
   //Margin Parent
   late HudMarginComponent topLeftMarginParent;
 
+  late PositionComponent maxLivesWrapper;
+
+  SpriteComponent? noAmmoSymbolSprite;
   Sprite? ammoSprite;
   Sprite? noAmmoSprite;
   Player? player;
@@ -173,7 +171,66 @@ abstract class BaseHud extends PositionComponent {
     }
   }
 
-  Future<void> buildRemainingAmmoText(Player player) async {
+  FpsTextComponent buildFpsTextComponent() => FpsTextComponent(
+        textRenderer: TextPaint(
+          style: defaultStyle.copyWith(fontSize: hudFontSize * .75),
+        ),
+        anchor: Anchor.bottomRight,
+      )..loaded.then((value) => fpsTextPosition());
+
+  List<SpriteAnimationComponent> currentLives = [];
+  List<SpriteComponent> blankLives = [];
+
+  Future<void> buildRemainingLives(Player player) async {
+    final lives = player.remainingLives;
+    final maxLives = player.maxLives.parameter;
+
+    var c = 0;
+    currentLives.forEach((element) {
+      element.removeFromParent();
+    });
+    currentLives.clear();
+    for (var i = 0; i < lives; i++) {
+      final spriteAnimation = await spriteAnimations.uiHeartBeatAnimation;
+      final size = Vector2.all(8 * hudScale.scale);
+      final pos = Vector2(0, 8 * hudScale.scale * c);
+      final heart = SpriteAnimationComponent(
+        animation: spriteAnimation,
+        anchor: Anchor.center,
+        position: pos,
+        size: size,
+      );
+      maxLivesWrapper.add((currentLives..add(heart)).last);
+
+      c++;
+    }
+
+    for (var i = 0; i < maxLives - lives; i++) {
+      final sprite = await Sprite.load(ImagesAssetsUi.heartBlank.flamePath);
+      final size = Vector2.all(8 * hudScale.scale);
+      final pos = Vector2(0, 8 * hudScale.scale * c);
+      final heart = SpriteComponent(
+        sprite: sprite,
+        anchor: Anchor.center,
+        position: pos,
+        size: size,
+      );
+      maxLivesWrapper.add((blankLives..add(heart)).last);
+      c++;
+    }
+
+    // final controller =
+    //     EffectController(duration: .5, curve: Curves.easeOutCirc);
+    // heart.add(OpacityEffect.fadeIn(controller));
+    // heart.add(MoveEffect.to(pos + Vector2(0, -10), controller));
+    // await Future.delayed(.5.seconds);
+    // heart.add(OpacityEffect.fadeOut(controller));
+    // heart.add(MoveEffect.to(pos + Vector2(0, -20), controller));
+    // await Future.delayed(.5.seconds);
+    // heart.removeFromParent();
+  }
+
+  Future<void> buildRemainingAmmo(Player player) async {
     final currentWeapon = player.currentWeapon;
     // if (currentWeapon is ReloadFunctionality) {
     final reload = currentWeapon is ReloadFunctionality ? currentWeapon : null;
@@ -238,51 +295,7 @@ abstract class BaseHud extends PositionComponent {
       });
     }
     previousWeapon = currentWeapon;
-    checkPlaceholder(previousWeapon!);
-  }
-
-  bool placeholderEngaged = false;
-  Future<void> checkPlaceholder(Weapon weapon) async {
-    if (ammoSprites.isEmpty) {
-      if (placeholderEngaged) {
-        return;
-      }
-      placeholderEngaged = true;
-      final sprite = await Sprite.load(ImagesAssetsUi.inf.flamePath);
-
-      // switch (weapon.weaponType.attackType) {
-      //   case AttackType.magic:
-      //     sprite = await Sprite.load(ImagesAssetsUi.magicIconSmall.flamePath);
-      //     break;
-      //   case AttackType.guns:
-      //     sprite = await Sprite.load(ImagesAssetsUi.rangedIconSmall.flamePath);
-
-      //     break;
-      //   case AttackType.melee:
-      //     sprite = await Sprite.load(ImagesAssetsUi.meleeIconSmall.flamePath);
-
-      //     break;
-      //   default:
-      // }
-
-      final size = sprite.srcSize..scaledToHeight(null, amount: hudScale.scale);
-      final pos = Vector2(58 * hudScale.scale, 27.5 * hudScale.scale);
-
-      ammoPlaceholder?.sprite = sprite;
-
-      ammoPlaceholder ??=
-          SpriteComponent(anchor: Anchor.center, size: size, sprite: sprite)
-            ..addToParent(topLeftMarginParent);
-      ammoPlaceholder?.position = pos + Vector2(50, 0);
-      final controller =
-          EffectController(duration: 1, curve: Curves.easeOutCirc);
-      ammoPlaceholder?.add(OpacityEffect.fadeIn(controller));
-      ammoPlaceholder?.add(MoveEffect.to(pos, controller));
-    } else {
-      placeholderEngaged = false;
-      ammoPlaceholder?.sprite = null;
-      ammoPlaceholder?.opacity = 0;
-    }
+    noAmmoSymbolCheck(previousWeapon!);
   }
 
   Path buildSlantedPath(
@@ -314,8 +327,35 @@ abstract class BaseHud extends PositionComponent {
     return returnPath;
   }
 
+  Future<void> noAmmoSymbolCheck(Weapon weapon) async {
+    if (ammoSprites.isEmpty) {
+      if (noAmmoSymbolEngaged) {
+        return;
+      }
+      noAmmoSymbolEngaged = true;
+      final sprite = await Sprite.load(ImagesAssetsUi.inf.flamePath);
+
+      final size = sprite.srcSize..scaledToHeight(null, amount: hudScale.scale);
+      final pos = Vector2(58 * hudScale.scale, 27.5 * hudScale.scale);
+
+      noAmmoSymbolSprite?.sprite = sprite;
+
+      noAmmoSymbolSprite ??=
+          SpriteComponent(anchor: Anchor.center, size: size, sprite: sprite)
+            ..addToParent(topLeftMarginParent);
+      noAmmoSymbolSprite?.position = pos + Vector2(50, 0);
+      final controller =
+          EffectController(duration: 1, curve: Curves.easeOutCirc);
+      noAmmoSymbolSprite?.add(OpacityEffect.fadeIn(controller));
+      noAmmoSymbolSprite?.add(MoveEffect.to(pos, controller));
+    } else {
+      noAmmoSymbolEngaged = false;
+      noAmmoSymbolSprite?.sprite = null;
+      noAmmoSymbolSprite?.opacity = 0;
+    }
+  }
+
   set currentExpendable(Expendable? expendable) {
-    // _currentExpendable = expendable;
     if (expendable != null) {
       expendable.expendableType
           .buildSprite()
@@ -330,8 +370,7 @@ abstract class BaseHud extends PositionComponent {
     final widthPadding = xpBarWidthPadding(hudScale) + (24 * hudScale.scale);
     final height = xpBarHeight(hudScale);
     final scale = hudScale.scale;
-    //Health and Stamina
-    // double leftPadding = widthPadding;
+
     final heightOfBar = 8 * scale;
     final startOfBars = 5 * scale;
 
@@ -345,14 +384,7 @@ abstract class BaseHud extends PositionComponent {
       ),
       barBackPaint,
     );
-    // canvas.drawPath(
-    //     buildSlantedPath(
-    //       1,
-    //       Offset(widthPadding, healthBarStartY),
-    //       heightOfBar,
-    //       player!.healthPercentage * healthBarWidth,
-    //     ),
-    //     healthPaint);
+
     canvas.drawPath(
       buildSlantedPath(
         1,
@@ -362,15 +394,6 @@ abstract class BaseHud extends PositionComponent {
       ),
       barBackPaint,
     );
-    // canvas.drawPath(
-    //     buildSlantedPath(
-    //       1,
-    //       Offset((widthPadding + 5.0), healthBarStartY + heightOfBar),
-    //       heightOfBar,
-    //       staminaBarWidth *
-    //           (player!.remainingStamina / player!.stamina.parameter),
-    //     ),
-    //     staminaPaint);
   }
 
   void fpsTextPosition() {
@@ -405,9 +428,6 @@ abstract class BaseHud extends PositionComponent {
       startPointText,
     );
   }
-
-  double previousHealthWidth = 0;
-  double previousStaminaWidth = 0;
 
   void repositionHealthStaminaBar() {
     final healthWidth =
@@ -513,6 +533,11 @@ abstract class BaseHud extends PositionComponent {
       position: Vector2.all(40.0 * hudScale.scale),
     );
 
+    maxLivesWrapper = PositionComponent(
+      anchor: Anchor.center,
+      position: Vector2(-8 * hudScale.scale, 4 * hudScale.scale),
+    );
+
     //Health Bar
     final sprite = await spriteAnimations.uiHealthBar1;
 
@@ -611,13 +636,11 @@ abstract class BaseHud extends PositionComponent {
       paint: ApolloColorPalette.darkestBlue.paint(),
     );
 
-    // timerParent.add(timerText);
     topLeftMarginParent.add(healthEnergyFrame);
-
     topLeftMarginParent.add(levelWrapper);
-    // topLeftMarginParent.add(characterPortraitBacking);
     topLeftMarginParent.add(characterPortrait);
     topLeftMarginParent.add(expendableIcon);
+    topLeftMarginParent.add(maxLivesWrapper);
     topLeftMarginParent.addAll([
       staminaBarEnd,
       staminaBarMid,

@@ -240,8 +240,8 @@ class FireDamageAttribute extends StatusEffectAttribute {
     victimEntity?.entityStatusWrapper
         .addStatusEffect(StatusEffects.burn, upgradeLevel);
 
-    if (victimEntity is AttributeFunctionsFunctionality) {
-      final attr = victimEntity as AttributeFunctionsFunctionality;
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final attr = victimEntity as AttributeCallbackFunctionality;
       attr.onUpdate.add(tickCheck);
     }
   }
@@ -250,8 +250,8 @@ class FireDamageAttribute extends StatusEffectAttribute {
   void unMapUpgrade() {
     victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.burn);
 
-    if (victimEntity is AttributeFunctionsFunctionality) {
-      final attr = victimEntity as AttributeFunctionsFunctionality;
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final attr = victimEntity as AttributeCallbackFunctionality;
       attr.onUpdate.remove(tickCheck);
     }
   }
@@ -443,8 +443,8 @@ class EmpoweredAttribute extends StatusEffectAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final attr = victimEntity as AttributeFunctionsFunctionality;
+    if (victimEntity is! AttributeCallbackFunctionality) return;
+    final attr = victimEntity as AttributeCallbackFunctionality;
     victimEntity?.entityStatusWrapper
         .addStatusEffect(StatusEffects.empowered, upgradeLevel);
     attr.onHitOtherEntity.add(onHitOtherEntity);
@@ -452,8 +452,8 @@ class EmpoweredAttribute extends StatusEffectAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeFunctionsFunctionality) return;
-    final attr = victimEntity as AttributeFunctionsFunctionality;
+    if (victimEntity is! AttributeCallbackFunctionality) return;
+    final attr = victimEntity as AttributeCallbackFunctionality;
     victimEntity?.entityStatusWrapper
         .removeStatusEffect(StatusEffects.empowered);
     attr.onHitOtherEntity.remove(onHitOtherEntity);
@@ -505,8 +505,8 @@ class StunAttribute extends StatusEffectAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeFunctionsFunctionality) {
-      final attr = victimEntity as AttributeFunctionsFunctionality;
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final attr = victimEntity as AttributeCallbackFunctionality;
       victimEntity?.entityStatusWrapper
           .addStatusEffect(StatusEffects.stun, upgradeLevel);
       attr.enableMovement.setIncrease(attributeId, false);
@@ -521,8 +521,8 @@ class StunAttribute extends StatusEffectAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeFunctionsFunctionality) {
-      final attr = victimEntity as AttributeFunctionsFunctionality;
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final attr = victimEntity as AttributeCallbackFunctionality;
       victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.stun);
       attr.enableMovement.removeKey(attributeId);
       attr.enableMovement.removeKey("${attributeId}2");

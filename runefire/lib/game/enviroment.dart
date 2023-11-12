@@ -8,6 +8,7 @@ import 'package:runefire/events/event_management.dart';
 import 'package:runefire/game/enviroment_mixin.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
@@ -95,6 +96,32 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     }
   }
 
+  List<TextComponent> enemyTexts = [];
+  void addTextComponents(List<TextComponent> textComponents) {
+    final activeCount = enemyTexts.length;
+    final newCount = textComponents.length;
+
+    if (newCount > enemyTextMaxActive) {
+      for (final element in enemyTexts) {
+        element.removeFromParent();
+      }
+      enemyTexts.clear();
+      textComponents.removeRange(0, textComponents.length - enemyTextMaxActive);
+      enemyTexts.addAll(textComponents);
+      addPhysicsComponent(textComponents, instant: true);
+    } else if (activeCount + newCount <= enemyTextMaxActive) {
+      enemyTexts.addAll(textComponents);
+      addPhysicsComponent(textComponents, instant: true);
+    } else {
+      final toRemove = activeCount + newCount - enemyTextMaxActive;
+      for (var i = 0; i < toRemove; i++) {
+        enemyTexts.removeAt(0).removeFromParent();
+      }
+      enemyTexts.addAll(textComponents);
+      addPhysicsComponent(textComponents, instant: true);
+    }
+  }
+
   bool firstTick = false;
   void addPhysicsComponent(
     List<Component> components, {
@@ -102,10 +129,12 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     double duration = .2,
     int priority = 0,
   }) {
-    if (components.isEmpty) return;
+    if (components.isEmpty) {
+      return;
+    }
     for (final element in components) {
       if (element is HasPaint) {
-        element.setOpacity(.05);
+        element.setOpacity(.2);
       }
     }
     if (instant || components.length < 2) {
@@ -243,9 +272,13 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
     GameActionEvent gameAction,
     Set<GameAction> activeGameActions,
   ) {
-    if (gameAction.pressState != PressState.pressed) return;
+    if (gameAction.pressState != PressState.pressed) {
+      return;
+    }
 
-    if (this is! GameEnviroment) return;
+    if (this is! GameEnviroment) {
+      return;
+    }
     gameRef.gameStateComponent.gameState.pauseGame(
       pauseMenu.key,
     );

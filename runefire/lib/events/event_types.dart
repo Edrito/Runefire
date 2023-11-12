@@ -12,22 +12,25 @@ import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:uuid/uuid.dart';
 
-import '../game/enviroment_mixin.dart';
-import '../resources/enums.dart';
-import '../resources/functions/vector_functions.dart';
-import '../game/enviroment.dart';
-import '../main.dart';
-import '../resources/constants/priorities.dart';
-import '../enemies/enemy.dart';
+import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 class DeathHandEvent extends PositionEvent {
-  DeathHandEvent(super.gameEnviroment, super.eventManagement,
-      {required super.eventBeginEnd,
-      super.spawnPosition,
-      this.fast = false,
-      super.spawnLocation = SpawnLocation.onPlayer,
-      required super.eventTriggerInterval});
+  DeathHandEvent(
+    super.gameEnviroment,
+    super.eventManagement, {
+    required super.eventBeginEnd,
+    required super.eventTriggerInterval,
+    super.spawnPosition,
+    this.fast = false,
+    super.spawnLocation = SpawnLocation.onPlayer,
+  });
   bool fast;
 
   @override
@@ -39,30 +42,35 @@ class DeathHandEvent extends PositionEvent {
         spawnPosition ?? spawnLocation!.grabNewPosition(gameEnviroment, 1);
     final spriteAnimation = await spriteAnimations.ghostHandAttack1;
 
-    double spriteTickSpeed = fast ? .06 : .1;
+    final spriteTickSpeed = fast ? .06 : .1;
     spriteAnimation.stepTime = spriteTickSpeed;
 
     final areaEffect = AreaEffect(
-        position: positionOfHand,
-        overridePriority: 10,
-        radius: 1.5 + (rng.nextDouble() * 1),
-        sourceEntity: (gameEnviroment).god!,
-        collisionDelay: spriteTickSpeed * 13,
-        animationRandomlyFlipped: true,
-        onTick: (entity, areaId) async {
-          entity.applyHitAnimation(await spriteAnimations.scratchEffect1,
-              entity.center, DamageType.fire.color);
-        },
-        animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
-            spawnAnimation: spriteAnimation,
-            durationType: DurationType.instant),
-        damage: {DamageType.fire: (double.infinity, double.infinity)});
+      position: positionOfHand,
+      overridePriority: 10,
+      radius: 1.5 + (rng.nextDouble() * 1),
+      sourceEntity: gameEnviroment.god!,
+      collisionDelay: spriteTickSpeed * 13,
+      animationRandomlyFlipped: true,
+      onTick: (entity, areaId) async {
+        entity.applyHitAnimation(
+          await spriteAnimations.scratchEffect1,
+          entity.center,
+          DamageType.fire.color,
+        );
+      },
+      animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
+        spawnAnimation: spriteAnimation,
+        durationType: DurationType.instant,
+      ),
+      damage: {DamageType.fire: (double.infinity, double.infinity)},
+    );
 
     gameEnviroment.addPhysicsComponent([areaEffect]);
   }
 
   @override
-  void startEvent() async {}
+  Future<void> startEvent() async {}
 }
 
 class EnemyEvent extends PositionEvent {
@@ -75,13 +83,13 @@ class EnemyEvent extends PositionEvent {
     required this.clusterSpread,
     required this.numberOfClusters,
     required this.isBigBoss,
+    required super.eventBeginEnd,
+    required super.eventTriggerInterval,
     this.boundsScope = BossBoundsScope.viewportSize,
     this.bossBoundsIsCircular = false,
     this.bossBoundsSize,
     super.spawnLocation,
     super.spawnPosition,
-    required super.eventBeginEnd,
-    required super.eventTriggerInterval,
   }) {
     bossBoundsSize ??= Vector2.all(6);
   }
@@ -111,7 +119,7 @@ class EnemyEvent extends PositionEvent {
 
   void incrementEnemyCount(List<Enemy> amount, bool remove) {
     if (remove) {
-      for (var element in amount) {
+      for (final element in amount) {
         enemies.remove(element);
       }
     } else {
@@ -126,25 +134,25 @@ class EnemyEvent extends PositionEvent {
   void onBigBoss(bool isDead) {
     if (isDead) {
       eventManagement.eventTimer?.timer.resume();
-      (gameEnviroment).customFollow.enable();
+      gameEnviroment.customFollow.enable();
       gameEnviroment.unPauseGameTimer();
-      for (var element in eventManagement.activeEventConfigTimers.entries) {
+      for (final element in eventManagement.activeEventConfigTimers.entries) {
         element.value.timer.resume();
       }
-      (gameEnviroment).removeBossBounds();
+      gameEnviroment.removeBossBounds();
     } else {
       spawnEnemies();
       eventManagement.eventTimer?.timer.pause();
       gameEnviroment.pauseGameTimer();
 
       if (boundsScope == BossBoundsScope.viewportSize) {
-        (gameEnviroment).customFollow.disable();
+        gameEnviroment.customFollow.disable();
       }
 
-      for (var element in eventManagement.activeEventConfigTimers.entries) {
+      for (final element in eventManagement.activeEventConfigTimers.entries) {
         element.value.timer.pause();
       }
-      (gameEnviroment).createBossBounds(bossBoundsIsCircular, this);
+      gameEnviroment.createBossBounds(bossBoundsIsCircular, this);
     }
   }
 
@@ -152,8 +160,8 @@ class EnemyEvent extends PositionEvent {
     for (var _ = 0; _ < numberOfClusters; _++) {
       final position =
           spawnLocation?.grabNewPosition(gameEnviroment) ?? spawnPosition;
-      for (var cluster in enemyClusters) {
-        List<Enemy> enemyCluster = [];
+      for (final cluster in enemyClusters) {
+        final enemyCluster = <Enemy>[];
         for (var i = 0; i < cluster.clusterSize; i++) {
           if (enemyLimitReached) {
             break;
@@ -210,8 +218,12 @@ class EnemyCluster {
 }
 
 class EndGameEvent extends GameEvent {
-  EndGameEvent(super.gameEnviroment, super.eventManagement,
-      {required super.eventBeginEnd, required super.eventTriggerInterval});
+  EndGameEvent(
+    super.gameEnviroment,
+    super.eventManagement, {
+    required super.eventBeginEnd,
+    required super.eventTriggerInterval,
+  });
 
   @override
   void endEvent() {}
@@ -229,9 +241,10 @@ class EndGameEvent extends GameEvent {
     gameEnviroment.player?.add(ExitArrowPainter(gameEnviroment, exitVector));
     gameEnviroment.addPhysicsComponent([
       ExitPortal(
-          initialPosition: exitVector,
-          gameEnviroment: gameEnviroment,
-          player: gameEnviroment.player!)
+        initialPosition: exitVector,
+        gameEnviroment: gameEnviroment,
+        player: gameEnviroment.player!,
+      ),
     ]);
   }
 }

@@ -18,25 +18,26 @@ import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/main.dart';
 import 'package:uuid/uuid.dart';
 
-import '../game/enviroment_mixin.dart';
-import '../resources/enums.dart';
+import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/resources/enums.dart';
 // ignore: unused_import
-import '../resources/constants/priorities.dart';
-import '../attributes/attributes_mixin.dart';
-import 'entity_mixin.dart';
+import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/attributes/attributes_mixin.dart';
+import 'package:runefire/entities/entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter>
     with BaseAttributes, ContactCallbacks, ElementalPower {
   static const dupeStatusCheckerList = [
     EntityStatus.run,
     EntityStatus.walk,
-    EntityStatus.idle
+    EntityStatus.idle,
   ];
 
-  Entity(
-      {required this.initialPosition,
-      required this.eventManagement,
-      required this.enviroment}) {
+  Entity({
+    required this.initialPosition,
+    required this.eventManagement,
+    required this.enviroment,
+  }) {
     initializeParameterManagers();
     entityId = const Uuid().v4();
   }
@@ -67,15 +68,21 @@ abstract class Entity extends BodyComponent<GameRouter>
   abstract Filter? filter;
 
   Future<void> applyGroundAnimation(
-      SpriteAnimation animation, bool followEntity, double yOffset,
-      [bool moveDirection = false]) async {
+    SpriteAnimation animation,
+    bool followEntity,
+    double yOffset, [
+    bool moveDirection = false,
+  ]) async {
     final size = animation.frames.first.sprite.srcSize;
 
     size.scaledToHeight(this);
 
     final sprite = SpriteAnimationComponent(
-        anchor: Anchor.center, size: size, animation: animation);
-    if ((!(isFlipped) && !moveDirection) ||
+      anchor: Anchor.center,
+      size: size,
+      animation: animation,
+    );
+    if ((!isFlipped && !moveDirection) ||
         (moveDirection && body.linearVelocity.x < 0)) {
       sprite.flipHorizontallyAroundCenter();
     }
@@ -95,31 +102,39 @@ abstract class Entity extends BodyComponent<GameRouter>
     entityAnimationsGroup.size = spriteSize;
     if (isLoaded) {
       body.fixtures
-          .firstWhere((element) =>
-              (element.userData! as Map)['type'] == FixtureType.body)
+          .firstWhere(
+            (element) => (element.userData! as Map)['type'] == FixtureType.body,
+          )
           .shape = CircleShape()..radius = entityAnimationsGroup.size.x / 2.4;
     }
   }
 
   Future<void> applyHitAnimation(
-      SpriteAnimation animation, Vector2 sourcePosition,
-      [Color? color]) async {
+    SpriteAnimation animation,
+    Vector2 sourcePosition, [
+    Color? color,
+  ]) async {
     if (animation.loop || currentHitAnimations > hitAnimationLimit) return;
     currentHitAnimations++;
     final hitSize = animation.frames.first.sprite.srcSize;
     hitSize.scaledToHeight(this);
     final thisHeight = spriteHeight;
     final sprite = SpriteAnimationComponent(
-        anchor: Anchor.center, size: hitSize, animation: animation);
+      anchor: Anchor.center,
+      size: hitSize,
+      animation: animation,
+    );
     if (color != null) {
       sprite.paint = colorPalette.buildProjectile(
-          color: color,
-          projectileType: ProjectileType.paintBullet,
-          lighten: false);
+        color: color,
+        projectileType: ProjectileType.paintBullet,
+        lighten: false,
+      );
     }
     sprite.position = Vector2(
-        (rng.nextDouble() * thisHeight / 3) - thisHeight / 6,
-        ((sourcePosition - center).y).clamp(thisHeight * -.5, thisHeight * .5));
+      (rng.nextDouble() * thisHeight / 3) - thisHeight / 6,
+      (sourcePosition - center).y.clamp(thisHeight * -.5, thisHeight * .5),
+    );
 
     add(sprite);
     sprite.animationTicker?.completed.then((value) {
@@ -133,19 +148,21 @@ abstract class Entity extends BodyComponent<GameRouter>
     entityAnimationsGroup.flipHorizontallyAroundCenter();
 
     isFlipped = !isFlipped;
-    for (var element in onBodyFlip) {
+    for (final element in onBodyFlip) {
       element.call(isFlipped);
     }
   }
 
   Iterable<Weapon> getAllWeaponItems(
-      bool includeSecondaries, bool includeAdditionalPrimaries) {
+    bool includeSecondaries,
+    bool includeAdditionalPrimaries,
+  ) {
     Iterable<Weapon> returnList = [];
     // await loaded;
     if (this is! AttackFunctionality) return returnList;
 
     final attackFunctionality = this as AttackFunctionality;
-    for (var element in attackFunctionality.carriedWeapons.values) {
+    for (final element in attackFunctionality.carriedWeapons.values) {
       returnList = [...returnList, element];
       if (includeSecondaries) {
         final secondary = element.getSecondaryWeapon;
@@ -154,7 +171,7 @@ abstract class Entity extends BodyComponent<GameRouter>
         }
       }
       if (includeAdditionalPrimaries) {
-        for (var element in element.additionalWeapons.entries) {
+        for (final element in element.additionalWeapons.entries) {
           returnList = [...returnList, element.value];
         }
       }
@@ -170,8 +187,10 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   void permanentlyDisableEntity() {}
 
-  Future<void> setEntityAnimation(dynamic key,
-      {bool finalAnimation = false}) async {
+  Future<void> setEntityAnimation(
+    dynamic key, {
+    bool finalAnimation = false,
+  }) async {
     //If the new key is contained in the dupe status checker list, and the current animation is the same as the new key, return
     if (entityAnimationsGroup.current == key &&
         dupeStatusCheckerList.contains(key)) {
@@ -180,7 +199,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     if (entityAnimationsGroup.animations?.containsKey(key) == false) {
       return;
     }
-    bool newAnimationIsLoop =
+    final newAnimationIsLoop =
         entityAnimationsGroup.animations?[key]?.loop == true;
 
     if (!temporaryAnimationPlaying || !newAnimationIsLoop) {
@@ -212,7 +231,8 @@ abstract class Entity extends BodyComponent<GameRouter>
     temporaryAnimationPlaying = false;
 
     setEntityAnimation(
-        entityAnimationStatusQueue ?? statusPrevious ?? EntityStatus.idle);
+      entityAnimationStatusQueue ?? statusPrevious ?? EntityStatus.idle,
+    );
 
     statusPrevious = null;
     entityAnimationStatusQueue = null;
@@ -221,13 +241,13 @@ abstract class Entity extends BodyComponent<GameRouter>
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Entity) {
-      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
         closeSensorBodies.add(other);
       }
     } else if (other is Projectile) {
-      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
         closeProjectiles.add(other);
       }
     }
@@ -240,31 +260,29 @@ abstract class Entity extends BodyComponent<GameRouter>
     shape = CircleShape();
     shape.radius = entityAnimationsGroup.size.x / 2.4;
     renderBody = false;
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        restitution: 0,
-        friction: 0,
-        density: 0.8,
-        filter: filter);
-    final closeBodySensor =
-        FixtureDef(CircleShape()..radius = closeBodiesSensorRadius,
-            userData: {"type": FixtureType.sensor, "object": this},
-            restitution: 0,
-            friction: 0,
-            isSensor: true,
-            density: .8,
-            filter: Filter()
-              ..categoryBits = sensorCategory
-              ..maskBits =
-                  // enemyCategory + playerCategory +
-                  projectileCategory);
+    final fixtureDef = FixtureDef(
+      shape,
+      userData: {'type': FixtureType.body, 'object': this},
+      density: 0.8,
+      filter: filter,
+    );
+    final closeBodySensor = FixtureDef(
+      CircleShape()..radius = closeBodiesSensorRadius,
+      userData: {'type': FixtureType.sensor, 'object': this},
+      isSensor: true,
+      density: .8,
+      filter: Filter()
+        ..categoryBits = sensorCategory
+        ..maskBits =
+            // enemyCategory + playerCategory +
+            projectileCategory,
+    );
 
     final bodyDef = BodyDef(
       position: initialPosition,
       userData: this,
       type: BodyType.dynamic,
       allowSleep: false,
-      active: true,
       linearDamping: 15,
       fixedRotation: true,
     );
@@ -277,13 +295,13 @@ abstract class Entity extends BodyComponent<GameRouter>
   @override
   void endContact(Object other, Contact contact) {
     if (other is Entity) {
-      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
         closeSensorBodies.remove(other);
       }
     } else if (other is Projectile) {
-      if ((contact.fixtureA.userData as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData as Map)['type'] == FixtureType.sensor) {
+      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
+          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
         closeProjectiles.remove(other);
       }
     }
@@ -294,13 +312,16 @@ abstract class Entity extends BodyComponent<GameRouter>
   @override
   Future<void> onLoad() async {
     entityAnimationsGroup = SpriteAnimationGroupComponent(
-        anchor: Anchor.center,
-        position: spriteOffset,
-        animations: entityAnimations);
+      anchor: Anchor.center,
+      position: spriteOffset,
+      animations: entityAnimations,
+    );
 
-    setEntityAnimation(entityAnimations.containsKey(EntityStatus.spawn)
-        ? EntityStatus.spawn
-        : EntityStatus.idle);
+    setEntityAnimation(
+      entityAnimations.containsKey(EntityStatus.spawn)
+          ? EntityStatus.spawn
+          : EntityStatus.idle,
+    );
     applyHeightToSprite();
 
     // spriteWrapper = PositionComponent(
@@ -326,9 +347,9 @@ abstract class Entity extends BodyComponent<GameRouter>
     if (other is Bounds ||
         other is Map && other['object'] is Bounds ||
         contact.fixtureA.userData is Map &&
-            (contact.fixtureA.userData as Map)['object'] is Bounds ||
+            (contact.fixtureA.userData! as Map)['object'] is Bounds ||
         contact.fixtureB.userData is Map &&
-            (contact.fixtureB.userData as Map)['object'] is Bounds) {
+            (contact.fixtureB.userData! as Map)['object'] is Bounds) {
       contact.setEnabled(true);
       return super.preSolve(other, contact, oldManifold);
     }
@@ -347,13 +368,13 @@ abstract class Entity extends BodyComponent<GameRouter>
 }
 
 extension EntityClassGetterrs on Entity {
-  AttributeFunctionsFunctionality? get attributeFunctionsFunctionality {
-    bool thisIsAttr = this is AttributeFunctionsFunctionality;
+  AttributeCallbackFunctionality? get attributeFunctionsFunctionality {
+    final thisIsAttr = this is AttributeCallbackFunctionality;
 
     if (thisIsAttr) {
-      return this as AttributeFunctionsFunctionality;
+      return this as AttributeCallbackFunctionality;
     }
-    bool thisIsChildEntity = this is ChildEntity;
+    final thisIsChildEntity = this is ChildEntity;
 
     if (thisIsChildEntity) {
       return (this as ChildEntity).parentEntity.attributeFunctionsFunctionality;
@@ -396,7 +417,7 @@ extension EntityClassGetterrs on Entity {
       return (this as ChildEntity).parentEntity.statusEffects;
     }
 
-    bool thisIsAttr = this is AttributeFunctionality;
+    final thisIsAttr = this is AttributeFunctionality;
     if (thisIsAttr) {
       return (this as AttributeFunctionality)
           .currentAttributes

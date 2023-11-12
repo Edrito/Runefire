@@ -8,6 +8,7 @@ const largeCardSize = Size(128, 96);
 //Entity
 const hitAnimationLimit = 3;
 const closeBodiesSensorRadius = 4.0;
+const enemyTextMaxActive = 20;
 
 //Projectiles
 const projectileHomingSpeedIncrease = 7.5;
@@ -33,7 +34,7 @@ const double gamepadCursorSpeed = 10;
 
 List<String> endGameMessages = [
   "I've found you...",
-  "Hmmm?",
+  'Hmmm?',
   "You're not supposed to be here...",
   "You can't escape.",
   "You're mine now.",

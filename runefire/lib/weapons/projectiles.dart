@@ -9,80 +9,121 @@ import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/projectile_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../resources/enums.dart';
-import '../resources/functions/custom.dart';
-import '../resources/functions/functions.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/functions/functions.dart';
 
 class MagicalProjectile extends SpriteBullet {
-  MagicalProjectile(
-      {required super.delta,
-      required super.originPosition,
-      required super.weaponAncestor,
-      DamageType? primaryDamageType,
-      required super.size})
-      : super(primaryDamageType: primaryDamageType, useDefaults: false) {
-    bool isSmallProjectile = this.isSmallProjectile;
+  MagicalProjectile({
+    required super.delta,
+    required super.originPosition,
+    required super.weaponAncestor,
+    required super.size,
+    super.primaryDamageType,
+  }) : super(useDefaults: false) {
+    final isSmallProjectile = this.isSmallProjectile;
 
-    String bigString = isSmallProjectile ? '' : '_big';
-    String name = damageType.name;
+    final bigString = isSmallProjectile ? '' : '_big';
+    final name = damageType.name;
 
     switch (damageType) {
       case DamageType.fire:
-        customPlayAnimation = loadSpriteAnimation(4,
-            'weapons/projectiles/magic/${name}_play$bigString.png', .1, true);
+        customPlayAnimation = loadSpriteAnimation(
+          4,
+          'weapons/projectiles/magic/${name}_play$bigString.png',
+          .1,
+          true,
+        );
         customHitAnimation = loadSpriteAnimation(
-            4, 'weapons/projectiles/magic/${name}_hit.png', .1, false);
+          4,
+          'weapons/projectiles/magic/${name}_hit.png',
+          .1,
+          false,
+        );
 
         break;
       case DamageType.energy:
-        customPlayAnimation = loadSpriteAnimation(9,
-            'weapons/projectiles/magic/${name}_play$bigString.png', .05, true);
+        customPlayAnimation = loadSpriteAnimation(
+          9,
+          'weapons/projectiles/magic/${name}_play$bigString.png',
+          .05,
+          true,
+        );
         customHitAnimation = loadSpriteAnimation(
-            4, 'weapons/projectiles/magic/${name}_hit.png', .1, false);
+          4,
+          'weapons/projectiles/magic/${name}_hit.png',
+          .1,
+          false,
+        );
 
         break;
       case DamageType.magic:
-        customPlayAnimation = loadSpriteAnimation(9,
-            'weapons/projectiles/magic/${name}_play$bigString.png', .05, true);
+        customPlayAnimation = loadSpriteAnimation(
+          9,
+          'weapons/projectiles/magic/${name}_play$bigString.png',
+          .05,
+          true,
+        );
         // customHitAnimation = loadSpriteAnimation(
         //     4, 'weapons/projectiles/magic/${name}_hit.png', .1, false);
 
         break;
       case DamageType.psychic:
-        customPlayAnimation = loadSpriteAnimation(isSmallProjectile ? 4 : 2,
-            'weapons/projectiles/magic/${name}_play$bigString.png', .1, true);
+        customPlayAnimation = loadSpriteAnimation(
+          isSmallProjectile ? 4 : 2,
+          'weapons/projectiles/magic/${name}_play$bigString.png',
+          .1,
+          true,
+        );
         customHitAnimation = loadSpriteAnimation(
-            5, 'weapons/projectiles/magic/${name}_hit.png', .1, false);
+          5,
+          'weapons/projectiles/magic/${name}_hit.png',
+          .1,
+          false,
+        );
         if (!isSmallProjectile) {
           customSpawnAnimation = loadSpriteAnimation(
-              3,
-              'weapons/projectiles/magic/${name}_spawn$bigString.png',
-              .1,
-              false);
+            3,
+            'weapons/projectiles/magic/${name}_spawn$bigString.png',
+            .1,
+            false,
+          );
         }
         break;
       case DamageType.frost:
-        customPlayAnimation = loadSpriteAnimation(3,
-            'weapons/projectiles/magic/${name}_play$bigString.png', .05, true);
+        customPlayAnimation = loadSpriteAnimation(
+          3,
+          'weapons/projectiles/magic/${name}_play$bigString.png',
+          .05,
+          true,
+        );
         customHitAnimation = loadSpriteAnimation(
-            6, 'weapons/projectiles/magic/${name}_hit.png', .065, false);
-        customSpawnAnimation = loadSpriteAnimation(3,
-            'weapons/projectiles/magic/${name}_spawn$bigString.png', .1, false);
+          6,
+          'weapons/projectiles/magic/${name}_hit.png',
+          .065,
+          false,
+        );
+        customSpawnAnimation = loadSpriteAnimation(
+          3,
+          'weapons/projectiles/magic/${name}_spawn$bigString.png',
+          .1,
+          false,
+        );
         break;
       default:
     }
   }
 
   late CustomParticleGenerator particleGenerator = CustomParticleGenerator(
-      minSize: .05,
-      maxSize: .15,
-      lifespan: 2,
-      parentBody: body,
-      frequency: 1,
-      particlePosition: Vector2(.3 * size, size),
-      velocity: Vector2.all(0.5),
-      color: damageType.color,
-      sprites: null);
+    minSize: .05,
+    maxSize: .15,
+    lifespan: 2,
+    parentBody: body,
+    frequency: 1,
+    particlePosition: Vector2(.3 * size, size),
+    velocity: Vector2.all(0.5),
+    color: damageType.color,
+  );
 
   @override
   void onRemove() {
@@ -100,13 +141,14 @@ class MagicalProjectile extends SpriteBullet {
 }
 
 class PaintBullet extends FadeOutBullet with PaintProjectile {
-  PaintBullet(
-      {required super.delta,
-      required super.originPosition,
-      required super.weaponAncestor,
-      super.primaryDamageType,
-      required super.size,
-      super.power}) {
+  PaintBullet({
+    required super.delta,
+    required super.originPosition,
+    required super.weaponAncestor,
+    required super.size,
+    super.primaryDamageType,
+    super.power,
+  }) {
     defaultLinearDamping = .3;
   }
 
@@ -120,19 +162,20 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
   Future<SpriteAnimation>? customEndAnimation;
   Future<SpriteAnimation>? customHitAnimation;
 
-  SpriteBullet(
-      {required super.delta,
-      required super.originPosition,
-      required super.weaponAncestor,
-      required super.size,
-      this.useDefaults = true,
-      this.customBulletName,
-      super.primaryDamageType,
-      this.customSpawnAnimation,
-      this.customPlayAnimation,
-      this.customEndAnimation,
-      this.customHitAnimation,
-      super.power});
+  SpriteBullet({
+    required super.delta,
+    required super.originPosition,
+    required super.weaponAncestor,
+    required super.size,
+    this.useDefaults = true,
+    this.customBulletName,
+    super.primaryDamageType,
+    this.customSpawnAnimation,
+    this.customPlayAnimation,
+    this.customEndAnimation,
+    this.customHitAnimation,
+    super.power,
+  });
 
   @override
   void bodyContact(HealthFunctionality other) {
@@ -158,7 +201,8 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
                 4,
                 'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_spawn.png',
                 .03,
-                false)
+                false,
+              )
             : null);
     playAnimation = await customPlayAnimation ??
         (useDefaults
@@ -166,7 +210,8 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
                 4,
                 'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_play.png',
                 .05,
-                true)
+                true,
+              )
             : null);
     endAnimation = await customEndAnimation ??
         (useDefaults
@@ -174,7 +219,8 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
                 3,
                 'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_end.png',
                 .1,
-                false)
+                false,
+              )
             : null);
     hitAnimation = await customHitAnimation ??
         (useDefaults
@@ -182,16 +228,15 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
                 6,
                 'weapons/projectiles/bullets/${customBulletName ?? damageType.name}_bullet_hit.png',
                 .035,
-                false)
+                false,
+              )
             : null);
 
     animationComponent ??= SimpleStartPlayEndSpriteAnimationComponent(
-      durationType: DurationType.temporary,
       playAnimation: playAnimation,
       spawnAnimation: spawnAnimation,
       randomizePlay: true,
-      anchor: Anchor.center,
-      desiredWidth: (size),
+      desiredWidth: size,
       endAnimation: endAnimation,
     );
   }
@@ -210,12 +255,13 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
 }
 
 class PaintLaser extends Projectile with FadeOutProjectile, LaserProjectile {
-  PaintLaser(
-      {required super.delta,
-      required super.originPosition,
-      required super.weaponAncestor,
-      super.size = 1.5,
-      super.power});
+  PaintLaser({
+    required super.delta,
+    required super.originPosition,
+    required super.weaponAncestor,
+    super.size = 1.5,
+    super.power,
+  });
   @override
   ProjectileType projectileType = ProjectileType.laser;
 
@@ -230,12 +276,13 @@ class PaintLaser extends Projectile with FadeOutProjectile, LaserProjectile {
 }
 
 class FollowLaser extends Projectile with FadeOutProjectile, LaserProjectile {
-  FollowLaser(
-      {required super.delta,
-      required super.originPosition,
-      required super.weaponAncestor,
-      super.size = 1.5,
-      super.power}) {
+  FollowLaser({
+    required super.delta,
+    required super.originPosition,
+    required super.weaponAncestor,
+    super.size = 1.5,
+    super.power,
+  }) {
     followWeapon = true;
     removeOnEndAttack = true;
     allowChainingOrHoming = true;

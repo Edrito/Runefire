@@ -404,6 +404,12 @@ class SpriteAnimations {
     .25,
     true,
   );
+  late Future<SpriteAnimation> uiHeartBeatAnimation = loadSpriteAnimation(
+    5,
+    ImagesAssetsUi.heart.flamePath,
+    1,
+    true,
+  );
 
   //ENV EFFECTS
   late Future<SpriteAnimation> ghostHandAttack1 = loadSpriteAnimation(

@@ -77,8 +77,8 @@ class PlayerData extends DataClass with PlayerStatistics {
   }
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.crystalPistol,
-    1: WeaponType.crystalSword,
+    0: WeaponType.phaseDagger,
+    1: WeaponType.holySword,
   };
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,

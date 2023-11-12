@@ -3,9 +3,9 @@ import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../resources/enums.dart';
-import 'attribute_constants.dart' as constants;
-import 'attributes_structure.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/attributes/attribute_constants.dart' as constants;
+import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 abstract class PermanentAttribute extends Attribute {
@@ -20,7 +20,10 @@ abstract class PermanentAttribute extends Attribute {
 }
 
 PermanentAttribute? permanentAttributeBuilder(
-    AttributeType type, int level, AttributeFunctionality? victimEntity) {
+  AttributeType type,
+  int level,
+  AttributeFunctionality? victimEntity,
+) {
   switch (type) {
     case AttributeType.speedPermanent:
       return BaseSpeedPermanentAttribute(
@@ -199,8 +202,10 @@ PermanentAttribute? permanentAttributeBuilder(
 }
 
 class AreaSizePermanentAttribute extends PermanentAttribute {
-  AreaSizePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  AreaSizePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.areaSizePermanent;
 
@@ -218,8 +223,11 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.areaSizePercentIncrease,
-        increaseFromBaseParameter, false);
+    genericAttributeIncrease(
+      victimEntity?.areaSizePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -228,15 +236,17 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Area Size";
+  String title = 'Area Size';
 }
 
 class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
-  MeleeDamageIncreasePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  MeleeDamageIncreasePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.meleeDamageIncreasePermanent;
 
@@ -255,8 +265,11 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.meleeDamagePercentIncrease,
-        increaseFromBaseParameter, false);
+    genericAttributeIncrease(
+      victimEntity?.meleeDamagePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -265,15 +278,17 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Melee Damage";
+  String title = 'Melee Damage';
 }
 
 class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
-  ProjectileDamageIncreasePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  ProjectileDamageIncreasePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.projectileDamageIncreasePermanent;
 
@@ -292,8 +307,11 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.projectileDamagePercentIncrease,
-        increaseFromBaseParameter, false);
+    genericAttributeIncrease(
+      victimEntity?.projectileDamagePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -302,15 +320,17 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Gun Damage";
+  String title = 'Gun Damage';
 }
 
 class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
-  SpellDamageIncreasePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  SpellDamageIncreasePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.spellDamageIncreasePermanent;
 
@@ -329,8 +349,11 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.spellDamagePercentIncrease,
-        increaseFromBaseParameter, false);
+    genericAttributeIncrease(
+      victimEntity?.spellDamagePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -339,15 +362,17 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Spell Damage";
+  String title = 'Spell Damage';
 }
 
 class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
-  TickDamageIncreasePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  TickDamageIncreasePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.tickDamageIncreasePermanent;
 
@@ -367,7 +392,10 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-        victimEntity?.tickDamageIncrease, increaseFromBaseParameter, false);
+      victimEntity?.tickDamageIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -376,15 +404,17 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Tick Damage";
+  String title = 'Tick Damage';
 }
 
 class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
-  AreaDamageIncreasePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  AreaDamageIncreasePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.areaDamageIncreasePermanent;
 
@@ -403,8 +433,11 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.areaDamagePercentIncrease,
-        increaseFromBaseParameter, false);
+    genericAttributeIncrease(
+      victimEntity?.areaDamagePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -413,15 +446,17 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Area Damage";
+  String title = 'Area Damage';
 }
 
 class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
-  StatusEffectPotencyPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  StatusEffectPotencyPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.statusEffectPotencyPermanent;
 
@@ -440,8 +475,11 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.statusEffectsPercentIncrease,
-        increaseFromBaseParameter, false);
+    genericAttributeIncrease(
+      victimEntity?.statusEffectsPercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -450,15 +488,17 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Effect Potency";
+  String title = 'Effect Potency';
 }
 
 class BaseSpeedPermanentAttribute extends PermanentAttribute {
-  BaseSpeedPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  BaseSpeedPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.speedPermanent;
 
@@ -476,28 +516,33 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     if (victimEntity is MovementFunctionality) {
-      genericAttributeIncrease((victimEntity as MovementFunctionality).speed,
-          increaseFromBaseParameter, false);
+      genericAttributeIncrease(
+        (victimEntity! as MovementFunctionality).speed,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is MovementFunctionality) {
-      (victimEntity as MovementFunctionality).speed.removeKey(attributeId);
+      (victimEntity! as MovementFunctionality).speed.removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Move Speed";
+  String title = 'Move Speed';
 }
 
 class MaxStaminaPermanentAttribute extends PermanentAttribute {
-  MaxStaminaPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  MaxStaminaPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.maxStaminaPermanent;
 
@@ -517,28 +562,33 @@ class MaxStaminaPermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     if (victimEntity is StaminaFunctionality) {
-      genericAttributeIncrease((victimEntity as StaminaFunctionality).stamina,
-          increaseFromBaseParameter, false);
+      genericAttributeIncrease(
+        (victimEntity! as StaminaFunctionality).stamina,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is StaminaFunctionality) {
-      (victimEntity as StaminaFunctionality).stamina.removeKey(attributeId);
+      (victimEntity! as StaminaFunctionality).stamina.removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Max Stamina";
+  String title = 'Max Stamina';
 }
 
 class MaxHealthPermanentAttribute extends PermanentAttribute {
-  MaxHealthPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  MaxHealthPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.maxHealthPermanent;
 
@@ -557,28 +607,33 @@ class MaxHealthPermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     if (victimEntity is HealthFunctionality) {
-      genericAttributeIncrease((victimEntity as HealthFunctionality).maxHealth,
-          increaseFromBaseParameter, false);
+      genericAttributeIncrease(
+        (victimEntity! as HealthFunctionality).maxHealth,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is HealthFunctionality) {
-      (victimEntity as HealthFunctionality).maxHealth.removeKey(attributeId);
+      (victimEntity! as HealthFunctionality).maxHealth.removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Max Health";
+  String title = 'Max Health';
 }
 
 class StaminaRegenPermanentAttribute extends PermanentAttribute {
-  StaminaRegenPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  StaminaRegenPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.staminaRegenPermanent;
 
@@ -599,31 +654,34 @@ class StaminaRegenPermanentAttribute extends PermanentAttribute {
   void mapUpgrade() {
     if (victimEntity is StaminaFunctionality) {
       genericAttributeIncrease(
-          (victimEntity as StaminaFunctionality).staminaRegen,
-          increaseFromBaseParameter,
-          false);
+        (victimEntity! as StaminaFunctionality).staminaRegen,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is StaminaFunctionality) {
-      (victimEntity as StaminaFunctionality)
+      (victimEntity! as StaminaFunctionality)
           .staminaRegen
           .removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Stamina Regen";
+  String title = 'Stamina Regen';
 }
 
 class HealthRegenPermanentAttribute extends PermanentAttribute {
-  HealthRegenPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  HealthRegenPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.healthRegenPermanent;
 
@@ -644,31 +702,34 @@ class HealthRegenPermanentAttribute extends PermanentAttribute {
   void mapUpgrade() {
     if (victimEntity is HealthRegenFunctionality) {
       genericAttributeIncrease(
-          (victimEntity as HealthRegenFunctionality).healthRegen,
-          increaseFromBaseParameter,
-          false);
+        (victimEntity! as HealthRegenFunctionality).healthRegen,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is HealthRegenFunctionality) {
-      (victimEntity as HealthRegenFunctionality)
+      (victimEntity! as HealthRegenFunctionality)
           .healthRegen
           .removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Health Regen";
+  String title = 'Health Regen';
 }
 
 class ExperienceGainPermanentAttribute extends PermanentAttribute {
-  ExperienceGainPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  ExperienceGainPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.experienceGainPermanent;
 
@@ -689,31 +750,34 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
   void mapUpgrade() {
     if (victimEntity is ExperienceFunctionality) {
       genericAttributeIncrease(
-          (victimEntity as ExperienceFunctionality).xpIncreasePercent,
-          increaseFromBaseParameter,
-          false);
+        (victimEntity! as ExperienceFunctionality).xpIncreasePercent,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is ExperienceFunctionality) {
-      (victimEntity as ExperienceFunctionality)
+      (victimEntity! as ExperienceFunctionality)
           .xpIncreasePercent
           .removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "XP Gained";
+  String title = 'XP Gained';
 }
 
 class DodgeChancePermanentAttribute extends PermanentAttribute {
-  DodgeChancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  DodgeChancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.dodgeChanceIncreasePermanent;
 
@@ -733,28 +797,33 @@ class DodgeChancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     if (victimEntity is DodgeFunctionality) {
-      genericAttributeIncrease((victimEntity as DodgeFunctionality).dodgeChance,
-          increaseFromBaseParameter, false);
+      genericAttributeIncrease(
+        (victimEntity! as DodgeFunctionality).dodgeChance,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
   void unMapUpgrade() {
     if (victimEntity is DodgeFunctionality) {
-      (victimEntity as DodgeFunctionality).dodgeChance.removeKey(attributeId);
+      (victimEntity! as DodgeFunctionality).dodgeChance.removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Dodge Chance";
+  String title = 'Dodge Chance';
 }
 
 class CritChancePermanentAttribute extends PermanentAttribute {
-  CritChancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  CritChancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.critChancePermanent;
 
@@ -774,7 +843,10 @@ class CritChancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-        victimEntity?.critChance, increaseFromBaseParameter, false);
+      victimEntity?.critChance,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -783,15 +855,17 @@ class CritChancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Crit Chance";
+  String title = 'Crit Chance';
 }
 
 class CritDamagePermanentAttribute extends PermanentAttribute {
-  CritDamagePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  CritDamagePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.critDamagePermanent;
 
@@ -811,7 +885,10 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-        victimEntity?.critDamage, increaseFromBaseParameter, false);
+      victimEntity?.critDamage,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -820,15 +897,17 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Crit Damage";
+  String title = 'Crit Damage';
 }
 
 class DurationPermanentAttribute extends PermanentAttribute {
-  DurationPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  DurationPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.durationPermanent;
 
@@ -846,8 +925,11 @@ class DurationPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.durationPercentIncrease,
-        increaseFromBaseParameter, false);
+    genericAttributeIncrease(
+      victimEntity?.durationPercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -856,15 +938,17 @@ class DurationPermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Effect Duration";
+  String title = 'Effect Duration';
 }
 
 class EssenceStealPermanentAttribute extends PermanentAttribute {
-  EssenceStealPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  EssenceStealPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.essenceStealPermanent;
 
@@ -884,7 +968,10 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-        victimEntity?.essenceSteal, increaseFromBaseParameter, false);
+      victimEntity?.essenceSteal,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -893,15 +980,17 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Essence Steal";
+  String title = 'Essence Steal';
 }
 
 class AttackRatePermanentAttribute extends PermanentAttribute {
-  AttackRatePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  AttackRatePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.attackRatePermanent;
 
@@ -919,25 +1008,28 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
       constants.attackRateIncreaseFromBaseParameter;
 
   @override
-  void mapUpgrade() async {
-    for (var element in victimEntity!.getAllWeaponItems(true, false)) {
+  Future<void> mapUpgrade() async {
+    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
       genericAttributeIncrease(
-          element.attackTickRate, increaseFromBaseParameter, false);
+        element.attackTickRate,
+        increaseFromBaseParameter,
+        false,
+      );
     }
   }
 
   @override
-  void unMapUpgrade() async {
-    for (var element in victimEntity!.getAllWeaponItems(true, false)) {
+  Future<void> unMapUpgrade() async {
+    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
       element.attackTickRate.removeKey(attributeId);
     }
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Attack Speed";
+  String title = 'Attack Speed';
 }
 
 class DamagePermanentAttribute extends PermanentAttribute {
@@ -961,7 +1053,10 @@ class DamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-        victimEntity?.damagePercentIncrease, increaseFromBaseParameter, false);
+      victimEntity?.damagePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+    );
   }
 
   @override
@@ -970,15 +1065,17 @@ class DamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "All Damage";
+  String title = 'All Damage';
 }
 
 class PhysicalDamagePermanentAttribute extends PermanentAttribute {
-  PhysicalDamagePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  PhysicalDamagePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.physicalDamageIncreasePermanent;
@@ -1001,8 +1098,12 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypePercentIncrease,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1011,15 +1112,17 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Physical Damage";
+  String title = 'Physical Damage';
 }
 
 class MagicDamagePermanentAttribute extends PermanentAttribute {
-  MagicDamagePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  MagicDamagePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.magicDamageIncreasePermanent;
@@ -1042,8 +1145,12 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypePercentIncrease,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1052,15 +1159,17 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Magic Damage";
+  String title = 'Magic Damage';
 }
 
 class FireDamagePermanentAttribute extends PermanentAttribute {
-  FireDamagePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  FireDamagePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.fireDamageIncreasePermanent;
@@ -1083,8 +1192,12 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypePercentIncrease,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1093,15 +1206,17 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Fire Damage";
+  String title = 'Fire Damage';
 }
 
 class PsychicDamagePermanentAttribute extends PermanentAttribute {
-  PsychicDamagePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  PsychicDamagePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.psychicDamageIncreasePermanent;
@@ -1123,8 +1238,12 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
       constants.psychicDamageIncreaseIncreaseFromBaseParameter;
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypePercentIncrease,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1133,15 +1252,17 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Psychic Damage";
+  String title = 'Psychic Damage';
 }
 
 class EnergyDamagePermanentAttribute extends PermanentAttribute {
-  EnergyDamagePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  EnergyDamagePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.energyDamageIncreasePermanent;
@@ -1163,8 +1284,12 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
       constants.energyDamageIncreaseIncreaseFromBaseParameter;
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypePercentIncrease,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1173,15 +1298,17 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Energy Damage";
+  String title = 'Energy Damage';
 }
 
 class FrostDamagePermanentAttribute extends PermanentAttribute {
-  FrostDamagePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  FrostDamagePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.frostDamageIncreasePermanent;
@@ -1204,8 +1331,12 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypePercentIncrease,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypePercentIncrease,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1214,15 +1345,17 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Frost Damage";
+  String title = 'Frost Damage';
 }
 
 class PhysicalResistancePermanentAttribute extends PermanentAttribute {
-  PhysicalResistancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  PhysicalResistancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType =
@@ -1246,8 +1379,12 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypeResistance,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypeResistance,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1256,15 +1393,17 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Physical Res";
+  String title = 'Physical Res';
 }
 
 class MagicResistancePermanentAttribute extends PermanentAttribute {
-  MagicResistancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  MagicResistancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.magicResistanceIncreasePermanent;
@@ -1287,8 +1426,12 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypeResistance,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypeResistance,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1297,15 +1440,17 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Magic Res";
+  String title = 'Magic Res';
 }
 
 class FireResistancePermanentAttribute extends PermanentAttribute {
-  FireResistancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  FireResistancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.fireResistanceIncreasePermanent;
@@ -1328,8 +1473,12 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypeResistance,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypeResistance,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1338,15 +1487,17 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Fire Res";
+  String title = 'Fire Res';
 }
 
 class PsychicResistancePermanentAttribute extends PermanentAttribute {
-  PsychicResistancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  PsychicResistancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType =
@@ -1370,8 +1521,12 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypeResistance,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypeResistance,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1380,15 +1535,17 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Psychic Res";
+  String title = 'Psychic Res';
 }
 
 class EnergyResistancePermanentAttribute extends PermanentAttribute {
-  EnergyResistancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  EnergyResistancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.energyResistanceIncreasePermanent;
@@ -1411,8 +1568,12 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypeResistance,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypeResistance,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1421,15 +1582,17 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Energy Res";
+  String title = 'Energy Res';
 }
 
 class FrostResistancePermanentAttribute extends PermanentAttribute {
-  FrostResistancePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  FrostResistancePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.frostResistanceIncreasePermanent;
@@ -1452,8 +1615,12 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    genericAttributeIncrease(victimEntity?.damageTypeResistance,
-        increaseFromBaseParameter, false, damageType);
+    genericAttributeIncrease(
+      victimEntity?.damageTypeResistance,
+      increaseFromBaseParameter,
+      false,
+      damageType,
+    );
   }
 
   @override
@@ -1462,15 +1629,17 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Frost Res";
+  String title = 'Frost Res';
 }
 
 class ReloadTimePermanentAttribute extends PermanentAttribute {
-  ReloadTimePermanentAttribute(
-      {required super.level, required super.victimEntity});
+  ReloadTimePermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.reloadTimePermanent;
 
@@ -1488,18 +1657,21 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
       constants.reloadTimeIncreaseFromBaseParameter;
 
   @override
-  void mapUpgrade() async {
-    for (var element in victimEntity!.getAllWeaponItems(true, false)) {
+  Future<void> mapUpgrade() async {
+    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
       if (element is ReloadFunctionality) {
         genericAttributeIncrease(
-            element.reloadTime, increaseFromBaseParameter, false);
+          element.reloadTime,
+          increaseFromBaseParameter,
+          false,
+        );
       }
     }
   }
 
   @override
-  void unMapUpgrade() async {
-    for (var element in victimEntity!.getAllWeaponItems(true, false)) {
+  Future<void> unMapUpgrade() async {
+    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
       if (element is ReloadFunctionality) {
         element.reloadTime.removeKey(attributeId);
       }
@@ -1507,15 +1679,17 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Attack Speed";
+  String title = 'Attack Speed';
 }
 
 class MaxLivesPermanentAttribute extends PermanentAttribute {
-  MaxLivesPermanentAttribute(
-      {required super.level, required super.victimEntity});
+  MaxLivesPermanentAttribute({
+    required super.level,
+    required super.victimEntity,
+  });
   @override
   AttributeType attributeType = AttributeType.maxLivesPermanent;
 
@@ -1532,24 +1706,26 @@ class MaxLivesPermanentAttribute extends PermanentAttribute {
   bool increaseFromBaseParameter = constants.maxLivesIncreaseFromBaseParameter;
 
   @override
-  void mapUpgrade() async {
+  Future<void> mapUpgrade() async {
     victimEntity?.maxLives.setParameterFlatValue(
-        attributeId, increase(increaseFromBaseParameter).round());
+      attributeId,
+      increase(increaseFromBaseParameter).round(),
+    );
   }
 
   @override
-  void unMapUpgrade() async {
+  Future<void> unMapUpgrade() async {
     victimEntity?.maxLives.removeKey(attributeId);
   }
 
   @override
-  String icon = "attributes/topSpeed.png";
+  String icon = 'attributes/topSpeed.png';
 
   @override
-  String title = "Max Lives";
+  String title = 'Max Lives';
 
   @override
   String description() {
-    return upgradeLevel == maxLevel ? "" : (upgradeLevel + 1).toString();
+    return upgradeLevel == maxLevel ? '' : (upgradeLevel + 1).toString();
   }
 }

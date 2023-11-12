@@ -16,12 +16,12 @@ import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../enemies/enemy.dart';
-import '../player/player.dart';
-import '../main.dart';
-import '../resources/constants/physics_filter.dart';
-import '../resources/enums.dart';
-import '../resources/functions/vector_functions.dart';
+import 'package:runefire/enemies/enemy.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/constants/physics_filter.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
 
 mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
   late int trailCount;
@@ -53,8 +53,11 @@ mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
 
     glowPaint = bulletBackPaint;
     glowPaint.blendMode = BlendMode.plus;
-    glowPaint.shader = ui.Gradient.radial(Offset.zero, size * .75,
-        [bulletBackPaint.color.withOpacity(.5), Colors.transparent]);
+    glowPaint.shader = ui.Gradient.radial(
+      Offset.zero,
+      size * .75,
+      [bulletBackPaint.color.withOpacity(.5), Colors.transparent],
+    );
 
     return super.onLoad();
   }
@@ -185,13 +188,12 @@ mixin StandardProjectile on Projectile {
 
     bulletFilter.maskBits += sensorCategory;
 
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        restitution: 0,
-        friction: 0,
-        density: 0,
-        isSensor: true,
-        filter: bulletFilter);
+    final fixtureDef = FixtureDef(
+      shape,
+      userData: {'type': FixtureType.body, 'object': this},
+      isSensor: true,
+      filter: bulletFilter,
+    );
 
     final bodyDef = BodyDef(
       userData: this,
@@ -200,7 +202,7 @@ mixin StandardProjectile on Projectile {
       linearDamping: defaultLinearDamping + (3 - (3 * power)).clamp(0, 3),
       bullet: true,
       allowSleep: false,
-      linearVelocity: (delta * weaponAncestor.projectileVelocity.parameter),
+      linearVelocity: delta * weaponAncestor.projectileVelocity.parameter,
       fixedRotation: true,
     );
     Body returnBody;
@@ -232,7 +234,7 @@ mixin StandardProjectile on Projectile {
   HealthFunctionality? target;
   bool targetSet = false;
   void setTarget(HealthFunctionality? target, [bool isChain = false]) {
-    bool instantHome = true;
+    var instantHome = true;
     instantHome = isChain;
     targetSet = true;
 
@@ -278,8 +280,9 @@ mixin StandardProjectile on Projectile {
     if (enableChaining && !projectileHasExpired && !chainingComplete) {
       closeSensorBodies.sort((a, b) => rng.nextInt(2));
 
-      int index = closeSensorBodies.indexWhere(
-          (element) => !hitIds.contains(element.entityId) && !element.isDead);
+      final index = closeSensorBodies.indexWhere(
+        (element) => !hitIds.contains(element.entityId) && !element.isDead,
+      );
 
       if (index == -1) {
         setTarget(null);
@@ -305,15 +308,19 @@ mixin StandardProjectile on Projectile {
     closetPosition = other.center;
 
     // setDelta((closetPosition - body.worldCenter).normalized());
-    setDelta(((body.worldCenter.clone()..moveToTarget(closetPosition, 2)) -
-        body.worldCenter));
+    setDelta(
+      (body.worldCenter.clone()..moveToTarget(closetPosition, 2)) -
+          body.worldCenter,
+    );
 
-    double distance = (other.center.distanceTo(center)) - .5;
+    final distance = (other.center.distanceTo(center)) - .5;
     body.linearDamping = 6 - distance.clamp(0, 6);
-    impulse.setFrom(delta *
-        weaponAncestor.projectileVelocity.parameter *
-        projectileHomingSpeedIncrease *
-        (isReverseHoming ? -1 : 1));
+    impulse.setFrom(
+      delta *
+          weaponAncestor.projectileVelocity.parameter *
+          projectileHomingSpeedIncrease *
+          (isReverseHoming ? -1 : 1),
+    );
 
     body.applyForce(impulse);
 
@@ -337,7 +344,7 @@ mixin StandardProjectile on Projectile {
   }
 
   @override
-  void killBullet([bool withEffect = false]) async {
+  Future<void> killBullet([bool withEffect = false]) async {
     // if (!world.physicsWorld.isLocked) {
     //   body.setType(BodyType.static);
     // }
@@ -349,7 +356,8 @@ mixin StandardProjectile on Projectile {
             ?.triggerEnding();
       } else if (this is FadeOutProjectile) {
         await Future.delayed(
-            (this as FadeOutProjectile).fadeOutDuration.seconds);
+          (this as FadeOutProjectile).fadeOutDuration.seconds,
+        );
       }
 
       removeFromParent();
@@ -392,10 +400,12 @@ mixin LaserProjectile on FadeOutProjectile {
         ..categoryBits = projectileCategory;
     }
 
-    return FixtureDef(PolygonShape()..set(element.toList()),
-        userData: {"type": FixtureType.body, "object": this},
-        isSensor: true,
-        filter: bulletFilter);
+    return FixtureDef(
+      PolygonShape()..set(element.toList()),
+      userData: {'type': FixtureType.body, 'object': this},
+      isSensor: true,
+      filter: bulletFilter,
+    );
   }
 
   @override
@@ -405,9 +415,9 @@ mixin LaserProjectile on FadeOutProjectile {
 
     // assert(!allowChainingOrHoming || !followWeapon);
 
-    List<FixtureDef> fixtures = [];
+    final fixtures = <FixtureDef>[];
 
-    for (var element in boxes) {
+    for (final element in boxes) {
       if (isBoxValid(element)) {
         fixtures.add(buildFixture(element));
       }
@@ -416,14 +426,12 @@ mixin LaserProjectile on FadeOutProjectile {
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      type: BodyType.static,
       allowSleep: false,
-      bullet: false,
     );
 
-    var returnBody = world.createBody(bodyDef);
+    final returnBody = world.createBody(bodyDef);
 
-    for (var element in fixtures) {
+    for (final element in fixtures) {
       savedFixtures.add(returnBody.createFixture(element));
     }
 
@@ -433,22 +441,32 @@ mixin LaserProjectile on FadeOutProjectile {
   bool infrontWeaponCheck(Body element) {
     if (weaponAncestor.entityAncestor!.isPlayer) {
       return element.userData is Enemy &&
-          !(element.userData as Enemy).isDead &&
+          !(element.userData! as Enemy).isDead &&
           isEntityInfrontOfHandAngle(
-              element.position, !isMounted ? originPosition : center, delta);
+            element.position,
+            !isMounted ? originPosition : center,
+            delta,
+          );
     } else {
       return element.userData is Player &&
-          !(element.userData as Player).isDead &&
+          !(element.userData! as Player).isDead &&
           isEntityInfrontOfHandAngle(
-              element.position, !isMounted ? originPosition : center, delta);
+            element.position,
+            !isMounted ? originPosition : center,
+            delta,
+          );
     }
   }
 
   bool isBoxValid(Set<Vector2> box) {
-    if (box.length < 4) return false;
+    if (box.length < 4) {
+      return false;
+    }
     for (var i = 0; i < box.length; i++) {
       for (var j = 0; j < box.length; j++) {
-        if (i == j) continue;
+        if (i == j) {
+          continue;
+        }
         if (box.elementAt(i).distanceToSquared(box.elementAt(j)) <
             0.5 * 0.005) {
           return false;
@@ -462,7 +480,7 @@ mixin LaserProjectile on FadeOutProjectile {
   Map<int, String> preferredPathIds = {};
 
   void homingAndChainCalculations(List<Vector2> lineThroughEnemies) {
-    double maxDistance = weaponAncestor.projectileVelocity.parameter;
+    final maxDistance = weaponAncestor.projectileVelocity.parameter;
 
     laserSteps = laserSteps.clamp(2, 30);
 
@@ -470,23 +488,23 @@ mixin LaserProjectile on FadeOutProjectile {
 
     startChaining = targetsToChain != 0;
 
-    Vector2 previousStep = Vector2.zero();
-    Vector2 tempStep = Vector2.zero();
+    var previousStep = Vector2.zero();
+    var tempStep = Vector2.zero();
     // print(laserSteps);
 
-    List<Entity> bodies = [
+    final bodies = <Entity>[
       ...world.physicsWorld.bodies
-          .where((element) => infrontWeaponCheck(element))
-          .map((e) => e.userData as Entity)
+          .where(infrontWeaponCheck)
+          .map((e) => e.userData! as Entity),
     ];
 
     for (var i = 0; i < laserSteps; i++) {
       Entity? bodyToJumpTo;
       homedTargets = 0;
       chainedTargets = 0;
-      String? preferredPathId = preferredPathIds[i];
+      final preferredPathId = preferredPathIds[i];
 
-      Vector2 newPointPosition = ((delta * pointStep) + previousStep);
+      var newPointPosition = (delta * pointStep) + previousStep;
 
       //if should be bouncing, bounce
       if (!homingComplete || !chainingComplete) {
@@ -495,10 +513,12 @@ mixin LaserProjectile on FadeOutProjectile {
               (newPointPosition - previousStep) *
                   (j / laserCheckPointsFrequency);
 
-          List<Entity> closeBodies = bodies
-              .where((element) =>
-                  element.center.distanceTo(tempStep + originPosition) <
-                  (closeBodiesSensorRadius + (element.spriteHeight / 4)))
+          final closeBodies = bodies
+              .where(
+                (element) =>
+                    element.center.distanceTo(tempStep + originPosition) <
+                    (closeBodiesSensorRadius + (element.spriteHeight / 4)),
+              )
               .toList();
 
           if (closeBodies.isNotEmpty) {
@@ -548,8 +568,8 @@ mixin LaserProjectile on FadeOutProjectile {
     }
 
     if (lineThroughEnemies.length < 2) {
-      double distance = weaponAncestor.projectileVelocity.parameter;
-      distance = (distance * power);
+      var distance = weaponAncestor.projectileVelocity.parameter;
+      distance = distance * power;
       lineThroughEnemies.add(delta * distance);
     }
   }
@@ -567,26 +587,31 @@ mixin LaserProjectile on FadeOutProjectile {
       weaponAncestor.entityAncestor!.handJoint.angle - initHandJointRad;
 
   void createLaserPath() {
-    List<Vector2> lineThroughEnemies = [];
+    final lineThroughEnemies = <Vector2>[];
     lineThroughEnemies.add(Vector2.zero());
     originPosition = weaponAncestor
         .generateGlobalPosition(weaponAncestor.sourceAttackLocation!);
 
     if (isMounted) {
       body.setTransform(originPosition, angle);
-      setDelta((rotateVector2(initDelta.normalized(), handJointDifference))
-          .normalized());
+      setDelta(
+        rotateVector2(initDelta.normalized(), handJointDifference).normalized(),
+      );
     }
 
     generateLine(lineThroughEnemies);
 
     convertLine(lineThroughEnemies.toList());
 
-    if (!isMounted) return;
-    int goodBoxes = 0;
+    if (!isMounted) {
+      return;
+    }
+    var goodBoxes = 0;
 
     while (true) {
-      if (boxes.length <= goodBoxes) break;
+      if (boxes.length <= goodBoxes) {
+        break;
+      }
       if (isBoxValid(boxes[goodBoxes])) {
         goodBoxes++;
       } else {
@@ -595,7 +620,9 @@ mixin LaserProjectile on FadeOutProjectile {
     }
 
     for (var i = 0; i < max(boxes.length, savedFixtures.length); i++) {
-      if (i >= boxes.length && i >= savedFixtures.length) break;
+      if (i >= boxes.length && i >= savedFixtures.length) {
+        break;
+      }
 
       if (i < boxes.length) {
         if (i < savedFixtures.length) {
@@ -653,8 +680,10 @@ mixin LaserProjectile on FadeOutProjectile {
   late Paint backGlowPaint;
   late Paint frontPaint;
 
-  Set<Vector2> get getLines => linePairs.fold<Set<Vector2>>({},
-      (previousValue, element) => {...previousValue, element.$1, element.$2});
+  Set<Vector2> get getLines => linePairs.fold<Set<Vector2>>(
+        {},
+        (previousValue, element) => {...previousValue, element.$1, element.$2},
+      );
 
   @override
   void update(double dt) {
@@ -663,10 +692,12 @@ mixin LaserProjectile on FadeOutProjectile {
     if (lightningEffect) {
       if (lightningChangeIntervalElapsed > lightningChangeInterval) {
         lightningEffectVectors = [
-          ...generateLightning(getLines,
-              amplitude: .6,
-              frequency: 1,
-              currentAngle: weaponAncestor.entityAncestor!.handJoint.angle)
+          ...generateLightning(
+            getLines,
+            amplitude: .6,
+            frequency: 1,
+            currentAngle: weaponAncestor.entityAncestor!.handJoint.angle,
+          ),
         ];
         lightningChangeIntervalElapsed = 0;
       } else {
@@ -680,17 +711,19 @@ mixin LaserProjectile on FadeOutProjectile {
   double lightningChangeInterval = .025;
   double lightningChangeIntervalElapsed = 0;
 
-  late List<Vector2> lightningEffectVectors = generateLightning(getLines,
-      amplitude: .9,
-      frequency: 1,
-      currentAngle: weaponAncestor.entityAncestor!.handJoint.angle);
+  late List<Vector2> lightningEffectVectors = generateLightning(
+    getLines,
+    amplitude: .9,
+    frequency: 1,
+    currentAngle: weaponAncestor.entityAncestor!.handJoint.angle,
+  );
 
   @override
   void render(Canvas canvas) {
-    var path = Path();
+    final path = Path();
     path.moveTo(linePairs.first.$1.x, linePairs.first.$1.y);
     if (lightningEffect) {
-      for (var element in lightningEffectVectors) {
+      for (final element in lightningEffectVectors) {
         path.lineTo(element.x, element.y);
       }
     } else {
@@ -698,12 +731,12 @@ mixin LaserProjectile on FadeOutProjectile {
       // final curveReadyList2 = generateCurvePoints(getLines, .4);
       final curveReadyList = generateCurvePoints(getLines, .4);
 
-      bool skip = false;
-      bool flip = false;
-      bool firstCondition = false;
-      bool secondCondition = false;
-      bool isEnd = false;
-      bool isConic = true;
+      var skip = false;
+      var flip = false;
+      var firstCondition = false;
+      var secondCondition = false;
+      var isEnd = false;
+      const isConic = true;
       Vector2 target;
 
       // for (var element in curveReadyList2) {
@@ -720,14 +753,14 @@ mixin LaserProjectile on FadeOutProjectile {
           }
           isEnd = i == curveReadyList.length - 1;
           if (flip) {
-            firstCondition = (i.isOdd);
-            secondCondition = (i.isEven || i == 1);
+            firstCondition = i.isOdd;
+            secondCondition = i.isEven || i == 1;
           } else {
-            firstCondition = (i.isEven || i == 1);
-            secondCondition = (i.isOdd);
+            firstCondition = i.isEven || i == 1;
+            secondCondition = i.isOdd;
           }
 
-          if ((firstCondition) || isEnd) {
+          if (firstCondition || isEnd) {
             path.lineTo(target.x, target.y);
           } else if (secondCondition) {
             final next = curveReadyList.elementAt(i + 1);

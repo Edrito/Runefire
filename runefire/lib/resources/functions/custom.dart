@@ -130,7 +130,9 @@ abstract mixin class UpgradeFunctions {
 
     upgradeLevel = newUpgradeLevel;
 
-    if (maxLevel != null) upgradeLevel = upgradeLevel.clamp(0, maxLevel!);
+    if (maxLevel != null) {
+      upgradeLevel = upgradeLevel.clamp(0, maxLevel!);
+    }
 
     applyUpgrade();
   }
@@ -193,12 +195,14 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
   }
 
   void applyHitAnimation(Entity other, Vector2 position) {
-    if (hitAnimation == null) return;
+    if (hitAnimation == null) {
+      return;
+    }
     other.applyHitAnimation(hitAnimation!, position);
   }
 
   @override
-  void killBullet([bool withEffect = false]) {
+  Future<void> killBullet([bool withEffect = false]) async {
     if (!world.physicsWorld.isLocked) {
       body.setType(BodyType.static);
     }

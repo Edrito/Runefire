@@ -9,10 +9,13 @@ import 'package:test/test.dart';
 
 void main() {
   final menuGame = MenuGame();
-  final player = Player(PlayerData(), false,
-      enviroment: menuGame,
-      eventManagement: MenuGameEventManagement(menuGame),
-      initialPosition: Vector2.zero());
+  final player = Player(
+    PlayerData(),
+    enviroment: menuGame,
+    isDisplay: false,
+    eventManagement: MenuGameEventManagement(menuGame),
+    initialPosition: Vector2.zero(),
+  );
   playerTest(player);
 }
 
@@ -26,11 +29,14 @@ void elementalForceTest(Player player) {
   test(
       'After the fetch attribute function is called, the force flag should be null',
       () {
-    for (var damageType in DamageType.values) {
+    for (final damageType in DamageType.values) {
       DamageType? result;
 
       void checkerWrapper(
-          double modifyAmount, double shouldBe, bool expectDamageType) {
+        double modifyAmount,
+        double shouldBe,
+        bool expectDamageType,
+      ) {
         player.modifyElementalPower(damageType, modifyAmount);
 
         result = player.shouldForceElementalAttribute();

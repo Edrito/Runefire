@@ -398,9 +398,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
     for (final element in additionalWeapons.entries) {
       element.value.attackAttempt(holdDurationPercent);
     }
-    if (callFunctions && entityAncestor is AttributeFunctionsFunctionality) {
+    if (callFunctions && entityAncestor is AttributeCallbackFunctionality) {
       for (final element
-          in (entityAncestor! as AttributeFunctionsFunctionality).onAttack) {
+          in (entityAncestor! as AttributeCallbackFunctionality).onAttack) {
         element.call(this);
       }
     }
