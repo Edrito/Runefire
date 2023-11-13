@@ -70,7 +70,7 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
   TextComponent? displayedText;
 
   // List<Player> currentPlayers = [];
-  Set<PhysicalKeyboardKey> keysPressedPhysical = {};
+  Set<LogicalKeyboardKey> keysPressedPhysical = {};
 
   @override
   Future<void> onLoad() {

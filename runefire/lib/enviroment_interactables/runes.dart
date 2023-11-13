@@ -12,60 +12,67 @@ import 'package:runefire/resources/enums.dart';
 import 'package:recase/recase.dart';
 import 'package:runefire/entities/entity_class.dart';
 
-import '../player/player.dart';
-import '../game/enviroment.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/game/enviroment.dart';
 
 class ExperienceAttract extends Expendable {
-  ExperienceAttract({required Player player}) : super(player: player);
+  ExperienceAttract({required super.player});
   @override
   ExpendableType expendableType = ExpendableType.experienceAttractRune;
 
   @override
-  void applyExpendable() {
+  bool applyExpendable() {
     final activeExperiennceItems = player.world.physicsWorld.bodies
         .where((element) => element.userData is ExperienceItem);
 
     //Player effect
     //SFX
 
-    for (var element in activeExperiennceItems) {
-      final item = element.userData as ExperienceItem;
+    for (final element in activeExperiennceItems) {
+      final item = element.userData! as ExperienceItem;
       item.setTarget = player;
     }
+    return true;
   }
 }
 
 class StunEnemiesRune extends Expendable {
-  StunEnemiesRune({required Player player}) : super(player: player);
+  StunEnemiesRune({required super.player});
   @override
   ExpendableType expendableType = ExpendableType.stunRune;
 
   @override
-  void applyExpendable() {
-    final enemies = player.world.physicsWorld.bodies.where((element) =>
-        element.userData is Enemy &&
-        player.gameEnviroment.gameCamera.visibleWorldRect
-            .containsPoint(element.worldCenter));
+  bool applyExpendable() {
+    final enemies = player.world.physicsWorld.bodies.where(
+      (element) =>
+          element.userData is Enemy &&
+          player.gameEnviroment.gameCamera.visibleWorldRect
+              .containsPoint(element.worldCenter),
+    );
 
     //Player effect
     //SFX
 
-    for (var element in enemies) {
-      final item = element.userData as Enemy;
-      item.addAttribute(AttributeType.stun,
-          isTemporary: true, perpetratorEntity: player);
+    for (final element in enemies) {
+      final item = element.userData! as Enemy;
+      item.addAttribute(
+        AttributeType.stun,
+        isTemporary: true,
+        perpetratorEntity: player,
+      );
     }
+    return true;
   }
 }
 
 class TeleportRune extends Expendable {
-  TeleportRune({required Player player}) : super(player: player);
+  TeleportRune({required super.player});
   @override
   ExpendableType expendableType = ExpendableType.teleportRune;
 
   @override
-  void applyExpendable() {
-    Vector2 newPos = player.center;
+  bool applyExpendable() {
+    var newPos = player.center;
     final length = player.gameEnviroment.boundsDistanceFromCenter * .8;
 
     //Dumb logic, prevents teleporting into current area
@@ -76,40 +83,53 @@ class TeleportRune extends Expendable {
     }
 
     player.body.setTransform(newPos, 0);
+    return true;
   }
 }
 
 class FearEnemiesRune extends Expendable {
-  FearEnemiesRune({required Player player}) : super(player: player);
+  FearEnemiesRune({required super.player});
   @override
   ExpendableType expendableType = ExpendableType.fearEnemiesRunes;
 
   @override
-  void applyExpendable() {
-    final enemies = player.world.physicsWorld.bodies.where((element) =>
-        element.userData is Enemy &&
-        player.gameEnviroment.gameCamera.visibleWorldRect
-            .containsPoint(element.worldCenter));
+  bool applyExpendable() {
+    final enemies = player.world.physicsWorld.bodies.where(
+      (element) =>
+          element.userData is Enemy &&
+          player.gameEnviroment.gameCamera.visibleWorldRect
+              .containsPoint(element.worldCenter),
+    );
 
     //Player effect
     //SFX
 
-    for (var element in enemies) {
-      final item = element.userData as Enemy;
-      item.addAttribute(AttributeType.fear,
-          level: 1, isTemporary: true, duration: 3, perpetratorEntity: player);
+    for (final element in enemies) {
+      final item = element.userData! as Enemy;
+      item.addAttribute(
+        AttributeType.fear,
+        level: 1,
+        isTemporary: true,
+        duration: 3,
+        perpetratorEntity: player,
+      );
     }
+    return true;
   }
 }
 
 class HealingRune extends Expendable {
-  HealingRune({required Player player}) : super(player: player);
+  HealingRune({required super.player});
   @override
   ExpendableType expendableType = ExpendableType.healingRune;
 
   @override
-  void applyExpendable() {
-    player.heal(player.damageTaken);
+  bool applyExpendable() {
+    if (player.damageTaken > 0) {
+      player.heal(player.damageTaken);
+      return true;
+    }
+    return false;
   }
 }
 
@@ -124,9 +144,10 @@ class WeaponPickup extends Expendable {
   bool get instantApply => true;
 
   @override
-  void applyExpendable() {
+  bool applyExpendable() {
     player.playerData.availableWeapons.add(weaponType);
     // owner.playerData.save();
     //TODO add animation yno
+    return true;
   }
 }

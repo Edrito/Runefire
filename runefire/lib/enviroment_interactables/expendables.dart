@@ -12,12 +12,12 @@ import 'package:runefire/resources/enums.dart';
 import 'package:recase/recase.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 
-import '../player/player.dart';
-import '../game/enviroment.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/game/enviroment.dart';
 
 enum ExpendableType {
   experienceAttractRune(iconName: 'experience_attract.png'),
-  fearEnemiesRunes(iconName: 'fear_enemies.png'),
+  fearEnemiesRunes(),
   teleportRune,
   weapon,
   stunRune,
@@ -50,21 +50,24 @@ extension ExpendableTypeExtension on ExpendableType {
     }
   }
 
-  InteractableRunePickup buildInteractable(
-      {required Vector2 initialPosition,
-      required GameEnviroment gameEnviroment,
-      WeaponType? weaponType}) {
+  InteractableRunePickup buildInteractable({
+    required Vector2 initialPosition,
+    required GameEnviroment gameEnviroment,
+    WeaponType? weaponType,
+  }) {
     if (weaponType != null) {
       return InteractableWeaponPickup(
-          expendableType: this,
-          initialPosition: initialPosition,
-          weaponType: weaponType,
-          gameEnviroment: gameEnviroment);
-    }
-    return InteractableRunePickup(
         expendableType: this,
         initialPosition: initialPosition,
-        gameEnviroment: gameEnviroment);
+        weaponType: weaponType,
+        gameEnviroment: gameEnviroment,
+      );
+    }
+    return InteractableRunePickup(
+      expendableType: this,
+      initialPosition: initialPosition,
+      gameEnviroment: gameEnviroment,
+    );
   }
 }
 
@@ -72,16 +75,17 @@ abstract class Expendable {
   Expendable({required this.player});
   abstract ExpendableType expendableType;
   Player player;
-  void applyExpendable();
+  bool applyExpendable();
   bool instantApply = false;
 }
 
 class InteractableWeaponPickup extends InteractableRunePickup {
-  InteractableWeaponPickup(
-      {required this.weaponType,
-      required super.expendableType,
-      required super.initialPosition,
-      required super.gameEnviroment});
+  InteractableWeaponPickup({
+    required this.weaponType,
+    required super.expendableType,
+    required super.initialPosition,
+    required super.gameEnviroment,
+  });
   WeaponType weaponType;
   @override
   Future<Sprite> buildSprite() async {
@@ -104,17 +108,23 @@ class InteractableRunePickup extends InteractableComponent {
   Future<void> onLoad() async {
     final spirte = await buildSprite();
     spriteComponent = SpriteAnimationComponent(
-        anchor: Anchor.center,
-        size: spirte.srcSize..scaledToHeight(null, env: gameEnviroment),
-        animation:
-            SpriteAnimation.spriteList([spirte], stepTime: 1, loop: true));
-    spriteComponent.add(MoveEffect.by(
+      anchor: Anchor.center,
+      size: spirte.srcSize..scaledToHeight(null, env: gameEnviroment),
+      animation: SpriteAnimation.spriteList([spirte], stepTime: 1),
+    );
+    spriteComponent.add(
+      MoveEffect.by(
         Vector2(0, -.2),
-        InfiniteEffectController(EffectController(
+        InfiniteEffectController(
+          EffectController(
             duration: 1,
             reverseCurve: Curves.easeInOut,
             reverseDuration: 1,
-            curve: Curves.easeInOut))));
+            curve: Curves.easeInOut,
+          ),
+        ),
+      ),
+    );
     return super.onLoad();
   }
 
@@ -133,14 +143,20 @@ class InteractableRunePickup extends InteractableComponent {
 
     if (previousExpendable != null) {
       final temp = previousExpendable.expendableType.buildInteractable(
-          initialPosition: initialPosition, gameEnviroment: gameEnviroment);
+        initialPosition: initialPosition,
+        gameEnviroment: gameEnviroment,
+      );
       gameEnviroment.addPhysicsComponent([temp]);
     }
 
     if (this is InteractableWeaponPickup) {
       final weapon = this as InteractableWeaponPickup;
-      player.pickupExpendable(expendableType.build(gameEnviroment.player!,
-          weaponType: weapon.weaponType));
+      player.pickupExpendable(
+        expendableType.build(
+          gameEnviroment.player!,
+          weaponType: weapon.weaponType,
+        ),
+      );
     } else {
       player.pickupExpendable(expendableType.build(gameEnviroment.player!));
     }

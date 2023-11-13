@@ -295,8 +295,8 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
     if (event is! KeyUpEvent) {
       return;
     }
-    if (event.physicalKey == PhysicalKeyboardKey.enter ||
-        event.physicalKey == PhysicalKeyboardKey.space) {
+    if (event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.space) {
       unlockAttribute();
     }
   }

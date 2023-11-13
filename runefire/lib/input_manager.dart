@@ -585,14 +585,14 @@ class InputManager with WindowListener {
 
     externalInputType = ExternalInputType.mouseKeyboard;
     final mappedActions = _systemDataReference.keyboardMappings.entries
-        .where((element) => element.value.any(keyEvent.physicalKey));
+        .where((element) => element.value.either(keyEvent.logicalKey));
     for (final element in mappedActions) {
       onGameActionCall((gameAction: element.key, pressState: pressState));
     }
 
     final permanentMappedActions = _systemDataReference
         .constantKeyboardMappings.entries
-        .where((element) => element.value.contains(keyEvent.physicalKey));
+        .where((element) => element.value.contains(keyEvent.logicalKey));
     for (final element in permanentMappedActions) {
       onGameActionCall((gameAction: element.key, pressState: pressState));
     }
@@ -601,7 +601,6 @@ class InputManager with WindowListener {
   }
 
   void onGameActionCall(GameActionEvent event) {
-    // if (_gameRouterReference.paused) return;
     if (event.pressState != PressState.released) {
       activeGameActions.add(event.gameAction);
     } else {
@@ -620,7 +619,7 @@ class InputManager with WindowListener {
     buildGamepadCursor(event);
     externalInputType = ExternalInputType.gamepad;
     final mappedActions = _systemDataReference.gamePadMappings.entries
-        .where((element) => element.value.any(event.button));
+        .where((element) => element.value.either(event.button));
     for (final element in mappedActions) {
       onGameActionCall((gameAction: element.key, pressState: event.pressState));
     }
@@ -713,26 +712,45 @@ class InputManager with WindowListener {
 
   void onPrimaryCancelCall(PointerCancelEvent info) {
     stopHoldCall(true);
-    onGameActionCall(
-      (gameAction: GameAction.primary, pressState: PressState.released),
-    );
+    final actions = _systemDataReference.mouseButtonMappings.entries
+        .where((element) => element.value.either(1))
+        .map((e) => e.key);
 
+    for (final element in actions) {
+      onGameActionCall(
+        (gameAction: element, pressState: PressState.released),
+      );
+    }
     customInputWatcherManager.onPrimaryUp();
   }
 
   void onPrimaryDownCall(PointerDownEvent info) {
-    onGameActionCall(
-      (gameAction: GameAction.primary, pressState: PressState.pressed),
-    );
+    final actions = _systemDataReference.mouseButtonMappings.entries
+        .where((element) => element.value.either(1))
+        .map((e) => e.key);
+
+    for (final element in actions) {
+      onGameActionCall(
+        (gameAction: element, pressState: PressState.pressed),
+      );
+    }
+
     customInputWatcherManager.onPrimary();
 
     beginHoldCall(true);
   }
 
   void onPrimaryUpCall(PointerUpEvent info) {
-    onGameActionCall(
-      (gameAction: GameAction.primary, pressState: PressState.released),
-    );
+    final actions = _systemDataReference.mouseButtonMappings.entries
+        .where((element) => element.value.either(1))
+        .map((e) => e.key);
+
+    for (final element in actions) {
+      onGameActionCall(
+        (gameAction: element, pressState: PressState.released),
+      );
+    }
+
     stopHoldCall(true);
     customInputWatcherManager.onPrimaryUp();
   }
@@ -740,20 +758,30 @@ class InputManager with WindowListener {
   void onSecondaryCancelCall(PointerCancelEvent info) {
     // for (var element in onSecondaryCancel) {
     //   element.call(info);
-    onGameActionCall(
-      (gameAction: GameAction.secondary, pressState: PressState.released),
-    );
+    final actions = _systemDataReference.mouseButtonMappings.entries
+        .where((element) => element.value.either(2))
+        .map((e) => e.key);
+
+    for (final element in actions) {
+      onGameActionCall(
+        (gameAction: element, pressState: PressState.released),
+      );
+    }
     customInputWatcherManager.onSecondaryUp();
 
     stopHoldCall(false);
   }
 
   void onSecondaryDownCall(PointerDownEvent info) {
-    // for (var element in onSecondaryDown) {
-    onGameActionCall(
-      (gameAction: GameAction.secondary, pressState: PressState.pressed),
-    );
-    //   element.call(info);
+    final actions = _systemDataReference.mouseButtonMappings.entries
+        .where((element) => element.value.either(2))
+        .map((e) => e.key);
+
+    for (final element in actions) {
+      onGameActionCall(
+        (gameAction: element, pressState: PressState.pressed),
+      );
+    }
     beginHoldCall(false);
     customInputWatcherManager.onSecondary();
 
@@ -763,9 +791,15 @@ class InputManager with WindowListener {
   void onSecondaryUpCall(PointerUpEvent info) {
     // for (var element in onSecondaryUp) {
     //   element.call(info);
-    onGameActionCall(
-      (gameAction: GameAction.secondary, pressState: PressState.released),
-    );
+    final actions = _systemDataReference.mouseButtonMappings.entries
+        .where((element) => element.value.either(2))
+        .map((e) => e.key);
+
+    for (final element in actions) {
+      onGameActionCall(
+        (gameAction: element, pressState: PressState.released),
+      );
+    }
     customInputWatcherManager.onSecondaryUp();
     stopHoldCall(false);
     // }
@@ -1156,11 +1190,11 @@ class CustomInputWatcherManager {
       return;
     }
     if ([
-      PhysicalKeyboardKey.space,
-      PhysicalKeyboardKey.enter,
-      PhysicalKeyboardKey.equal,
-      PhysicalKeyboardKey.keyE,
-    ].contains(keyEvent.physicalKey)) {
+      LogicalKeyboardKey.space,
+      LogicalKeyboardKey.enter,
+      LogicalKeyboardKey.equal,
+      LogicalKeyboardKey.keyE,
+    ].contains(keyEvent.logicalKey)) {
       var eventType = CustomInputWatcherEvents.onPrimary;
       switch (keyEvent.runtimeType) {
         case KeyDownEvent:
@@ -1178,11 +1212,11 @@ class CustomInputWatcherManager {
       }
       sendStreamEvent(currentlyHoveredWidget, eventType);
     } else if ([
-      PhysicalKeyboardKey.backspace,
-      PhysicalKeyboardKey.minus,
-      PhysicalKeyboardKey.controlLeft,
-      PhysicalKeyboardKey.keyQ,
-    ].contains(keyEvent.physicalKey)) {
+      LogicalKeyboardKey.backspace,
+      LogicalKeyboardKey.minus,
+      LogicalKeyboardKey.controlLeft,
+      LogicalKeyboardKey.keyQ,
+    ].contains(keyEvent.logicalKey)) {
       var eventType = CustomInputWatcherEvents.onSecondary;
       switch (keyEvent.runtimeType) {
         case KeyDownEvent:
@@ -1206,24 +1240,24 @@ class CustomInputWatcherManager {
     }
 
     if ([
-      PhysicalKeyboardKey.keyW,
-      PhysicalKeyboardKey.arrowUp,
-    ].contains(keyEvent.physicalKey)) {
+      LogicalKeyboardKey.keyW,
+      LogicalKeyboardKey.arrowUp,
+    ].contains(keyEvent.logicalKey)) {
       changeHoveredState(AxisDirection.up);
     } else if ([
-      PhysicalKeyboardKey.keyS,
-      PhysicalKeyboardKey.arrowDown,
-    ].contains(keyEvent.physicalKey)) {
+      LogicalKeyboardKey.keyS,
+      LogicalKeyboardKey.arrowDown,
+    ].contains(keyEvent.logicalKey)) {
       changeHoveredState(AxisDirection.down);
     } else if ([
-      PhysicalKeyboardKey.keyA,
-      PhysicalKeyboardKey.arrowLeft,
-    ].contains(keyEvent.physicalKey)) {
+      LogicalKeyboardKey.keyA,
+      LogicalKeyboardKey.arrowLeft,
+    ].contains(keyEvent.logicalKey)) {
       changeHoveredState(AxisDirection.left);
     } else if ([
-      PhysicalKeyboardKey.keyD,
-      PhysicalKeyboardKey.arrowRight,
-    ].contains(keyEvent.physicalKey)) {
+      LogicalKeyboardKey.keyD,
+      LogicalKeyboardKey.arrowRight,
+    ].contains(keyEvent.logicalKey)) {
       changeHoveredState(AxisDirection.right);
     }
   }

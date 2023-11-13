@@ -45,7 +45,7 @@ class SystemData extends DataClass {
 
   void setKeyboardMapping(
     GameAction action,
-    PhysicalKeyboardKey? key,
+    LogicalKeyboardKey? key,
     bool isPrimary,
   ) {
     var newKeyboardMapping = keyboardMappings[action];
@@ -139,33 +139,33 @@ class SystemData extends DataClass {
     save();
   }
 
-  final Map<GameAction, Set<PhysicalKeyboardKey>> constantKeyboardMappings = {
-    GameAction.pause: {PhysicalKeyboardKey.escape},
+  final Map<GameAction, Set<LogicalKeyboardKey>> constantKeyboardMappings = {
+    GameAction.pause: {LogicalKeyboardKey.escape},
   };
 
   @HiveField(100)
-  Map<GameAction, (PhysicalKeyboardKey?, PhysicalKeyboardKey?)>
-      keyboardMappings = {
-    GameAction.moveUp: (PhysicalKeyboardKey.keyW, PhysicalKeyboardKey.arrowUp),
+  Map<GameAction, (LogicalKeyboardKey?, LogicalKeyboardKey?)> keyboardMappings =
+      {
+    GameAction.moveUp: (LogicalKeyboardKey.keyW, LogicalKeyboardKey.arrowUp),
     GameAction.moveLeft: (
-      PhysicalKeyboardKey.keyA,
-      PhysicalKeyboardKey.arrowLeft
+      LogicalKeyboardKey.keyA,
+      LogicalKeyboardKey.arrowLeft
     ),
     GameAction.moveDown: (
-      PhysicalKeyboardKey.keyS,
-      PhysicalKeyboardKey.arrowDown
+      LogicalKeyboardKey.keyS,
+      LogicalKeyboardKey.arrowDown
     ),
     GameAction.moveRight: (
-      PhysicalKeyboardKey.keyD,
-      PhysicalKeyboardKey.arrowRight
+      LogicalKeyboardKey.keyD,
+      LogicalKeyboardKey.arrowRight
     ),
-    GameAction.reload: (PhysicalKeyboardKey.keyR, null),
-    GameAction.interact: (PhysicalKeyboardKey.keyE, null),
-    GameAction.useExpendable: (PhysicalKeyboardKey.keyQ, null),
-    GameAction.jump: (PhysicalKeyboardKey.space, null),
-    GameAction.swapWeapon: (PhysicalKeyboardKey.tab, null),
-    GameAction.dash: (PhysicalKeyboardKey.shiftLeft, null),
-    GameAction.pause: (PhysicalKeyboardKey.keyP, null),
+    GameAction.reload: (LogicalKeyboardKey.keyR, null),
+    GameAction.interact: (LogicalKeyboardKey.keyE, null),
+    GameAction.useExpendable: (LogicalKeyboardKey.keyQ, null),
+    GameAction.jump: (LogicalKeyboardKey.space, null),
+    GameAction.swapWeapon: (LogicalKeyboardKey.tab, null),
+    GameAction.dash: (LogicalKeyboardKey.shiftLeft, null),
+    GameAction.pause: (LogicalKeyboardKey.keyP, null),
   };
 
   @HiveField(105)
@@ -344,7 +344,7 @@ MouseButtons getMouseButton(int listenerButtonId) {
 }
 
 extension AnyFunctionHelper on (dynamic, dynamic) {
-  bool any(dynamic key) => this.$1 == key || this.$2 == key;
+  bool either(dynamic key) => this.$1 == key || this.$2 == key;
 }
 
 extension HelperFunctionsSystemData on SystemData {
@@ -364,7 +364,7 @@ extension HelperFunctionsSystemData on SystemData {
         final mouseMapping = mouseButtonMappings[gameAction];
         if (keyboardMapping != null) {
           if (keyboardMapping.$1 != null) {
-            return keyboardMapping.$1!.debugName!.titleCase;
+            return keyboardMapping.$1!.stringKeyLabel.titleCase;
           }
         }
         if (mouseMapping != null) {
@@ -381,7 +381,7 @@ extension HelperFunctionsSystemData on SystemData {
           }
         } else if (keyboardMapping != null) {
           if (keyboardMapping.$2 != null) {
-            return keyboardMapping.$2!.debugName!.titleCase;
+            return keyboardMapping.$2!.stringKeyLabel.titleCase;
           }
         }
         break;

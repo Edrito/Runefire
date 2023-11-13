@@ -767,7 +767,7 @@ mixin StaminaFunctionality on Entity {
   @override
   void initializeParentParameters() {
     stamina = DoubleParameterManager(baseParameter: 100);
-    staminaRegen = DoubleParameterManager(baseParameter: 5);
+    staminaRegen = DoubleParameterManager(baseParameter: 12.5);
 
     super.initializeParentParameters();
   }
@@ -1968,7 +1968,7 @@ mixin JumpFunctionality on Entity {
 mixin ExpendableFunctionality on Entity {
   Expendable? currentExpendable;
 
-  void onExpendable(Expendable expendable) {
+  void onExpendableFunctions(Expendable expendable) {
     if (this is AttributeCallbackFunctionality) {
       final attr = this as AttributeCallbackFunctionality;
       for (final element in attr.onExpendableUsed) {
@@ -1987,7 +1987,7 @@ mixin ExpendableFunctionality on Entity {
 
     if (groundExpendable.instantApply) {
       groundExpendable.applyExpendable();
-      onExpendable(groundExpendable);
+      onExpendableFunctions(groundExpendable);
       return;
     }
 
@@ -1996,13 +1996,12 @@ mixin ExpendableFunctionality on Entity {
   }
 
   void useExpendable() {
-    if (currentExpendable != null) {
-      currentExpendable?.applyExpendable();
-      onExpendable(currentExpendable!);
-    }
-    currentExpendable = null;
-    if (enviroment is GameEnviroment) {
-      gameEnviroment.hud.currentExpendable = null;
+    if (currentExpendable != null && currentExpendable!.applyExpendable()) {
+      onExpendableFunctions(currentExpendable!);
+      currentExpendable = null;
+      if (enviroment is GameEnviroment) {
+        gameEnviroment.hud.currentExpendable = null;
+      }
     }
   }
 }

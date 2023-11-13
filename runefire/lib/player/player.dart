@@ -342,7 +342,7 @@ class Player extends Entity
     if (event is KeyUpEvent) {
       return;
     }
-    if (event.physicalKey == (PhysicalKeyboardKey.keyL)) {
+    if (event.logicalKey == (LogicalKeyboardKey.keyL)) {
       levelUp();
     }
   }
