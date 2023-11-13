@@ -25,11 +25,11 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
   await player?.loaded;
   await Future.delayed(1.seconds);
-  player?.maxLives.baseParameter = 5;
-  player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
-  player?.swapWeapon();
+  player?.maxLives.baseParameter = 2;
+  // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
+  // player?.swapWeapon();
 
-  player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
+  // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
   // while (true) {
   //   if (!gameEnviroment.gameRef.paused) {
   //     player!.takeDamage(

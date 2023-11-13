@@ -660,7 +660,7 @@ class _KeyboardMouseGamepadBindingsState
         final keyBoardResult =
             (firstIndex ? keyBoardMappings?.$1 : keyBoardMappings?.$2);
         if (keyBoardResult != null) {
-          return keyBoardResult.debugName.toString().titleCase;
+          return keyBoardResult.keyLabel.toString().titleCase;
         }
         final mouseButtonResult =
             firstIndex ? mouseMappings?.$1 : mouseMappings?.$2;

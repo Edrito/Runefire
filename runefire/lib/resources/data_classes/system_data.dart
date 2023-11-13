@@ -248,7 +248,10 @@ class SystemData extends DataClass {
   }
 
   List<GameLevel> availableLevels = [GameLevel.hexedForest];
-  List<GameDifficulty> availableDifficulties = [GameDifficulty.regular];
+  List<GameDifficulty> availableDifficulties = [
+    GameDifficulty.regular,
+    GameDifficulty.quick,
+  ];
 }
 
 enum MouseButtons { primaryClick, scrollClick, secondaryClick, misc }

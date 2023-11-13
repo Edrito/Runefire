@@ -53,6 +53,7 @@ mixin ReloadFunctionality on Weapon {
   int get spentAttacks => _spentAttacks;
 
   set spentAttacks(int value) {
+    _spentAttacks = value;
     if (entityAncestor is AttributeCallbackFunctionality) {
       final attributeFunctions =
           entityAncestor! as AttributeCallbackFunctionality;
@@ -60,7 +61,6 @@ mixin ReloadFunctionality on Weapon {
         attribute(this);
       }
     }
-    _spentAttacks = value;
   }
 
   double get percentReloaded =>

@@ -1,3 +1,6 @@
+import 'dart:ui';
+import 'dart:ui' as ui;
+
 import 'package:flame/effects.dart';
 import 'package:flame/flame.dart';
 import 'package:flutter/cupertino.dart';
@@ -190,16 +193,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   double time = 0;
 
   @override
-  // ignore: unnecessary_overrides
   void update(double dt) {
-    // time += dt;
-    // if (time > seconds) {
-    //   time = 0;
-    //   printChildren(children);
-    //   print(children2);
-    //   children2 = 0;
-    // }
-
     updateFunction(this, dt);
     super.update(dt);
   }
@@ -297,6 +291,8 @@ abstract class GameEnviroment extends Enviroment
         GodFunctionality,
         CollisionEnviroment,
         HudFunctionality {
+  late final SpriteShadows entityShadow;
+  late final Vignette vignette;
   late final GameDifficulty difficulty;
   late final EventManagement _eventManagement;
   EventManagement get eventManagement => _eventManagement;
@@ -333,7 +329,16 @@ abstract class GameEnviroment extends Enviroment
       ...ImagesAssetsEffects.allFilesFlame,
       ...ImagesAssetsWeapons.allFilesFlame,
     ]);
-    super.onLoad();
+
+    await super.onLoad();
+
+    if (!disableEnemies) {
+      loaded.then((value) => add(eventManagement));
+    }
+    entityShadow = SpriteShadows(this);
+    vignette = Vignette(gameCamera);
+    add(vignette);
+    add(entityShadow);
   }
 }
 

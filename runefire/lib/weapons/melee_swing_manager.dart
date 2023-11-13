@@ -32,7 +32,7 @@ import 'package:runefire/resources/enums.dart';
 
 class MeleeAttackHitbox extends BodyComponent<GameRouter>
     with ContactCallbacks {
-  MeleeAttackHitbox(this.size, this.meleeAttackAncestor, this.onHit);
+  MeleeAttackHitbox(this.size, this.meleeAttackAncestor);
 
   List<(Vector2, Vector2)> hitboxPoints = [];
   int hitEnemies = 0;
@@ -52,8 +52,6 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
   (Vector2, Vector2)? lastBackPos;
   (Vector2, Vector2)? lastCenterPos;
-
-  Function(DamageInstance damage) onHit;
 
   Future<void> applyHitSpriteEffects(DamageInstance damage) async {
     final SpriteAnimation animation;
@@ -83,6 +81,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     other.hitCheck(meleeAttackAncestor.meleeId, damageInstance);
     applyHitSpriteEffects(damageInstance);
     hitEnemies++;
+    meleeAttackAncestor.chain(other);
   }
 
   // double testLengthOfHitboxLife = 1000;
@@ -107,20 +106,25 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     meleeAttackAncestor
         .weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
         ?.onHitFunctions(instance);
-
-    onHit(instance);
   }
 
   double trailStepDuration = .2;
   double backTrailStepDurationProgress = 0;
   double centerTrailStepDurationProgress = 0;
+  late MeleeAttackSprite latestSwingRef;
 
   Future<void> updatePosition(double dt) async {
     final ref = meleeAttackAncestor.activeSwings;
     if (ref.isEmpty) {
       return;
     }
-    final latestSwingRef = ref.last;
+    if (hitboxPoints.isEmpty) {
+      latestSwingRef = ref.last;
+    } else if (latestSwingRef != ref.last) {
+      hitboxPoints.clear();
+      latestSwingRef = ref.last;
+    }
+
     final halfWidth = size.$1.x / 2;
 
     final topCenter = newPositionRad(
@@ -260,7 +264,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       bullet: true,
       allowSleep: false,
     );
-    // renderBody = false;
+    renderBody = false;
     final returnBody = world.createBody(bodyDef);
     return returnBody;
   }
@@ -609,8 +613,7 @@ class MeleeAttackHandler extends Component {
   }
 
   void chain(HealthFunctionality other) {
-    if (!disableChaining &&
-        weaponAncestor.weaponCanChain &&
+    if (weaponAncestor.weaponCanChain &&
         hitbox!.hitEnemies < weaponAncestor.chainingTargets.parameter &&
         !isDead) {
       final bodies = <Body>[
@@ -703,10 +706,6 @@ class MeleeAttackHandler extends Component {
     isDead = true;
   }
 
-  void onHitFunction(DamageInstance damage) {
-    chain(damage.victim);
-  }
-
   void removeSwing([MeleeAttackSprite? attack]) {
     activeSwings.remove(attack);
     currentAttack.latestAttackSpriteAnimation
@@ -727,7 +726,7 @@ class MeleeAttackHandler extends Component {
 
     await initSwing(initAngle, initPosition);
     if (!isCharging) {
-      hitbox = MeleeAttackHitbox(hitboxSize, this, onHitFunction);
+      hitbox = MeleeAttackHitbox(hitboxSize, this);
       weaponAncestor.entityAncestor?.enviroment.addPhysicsComponent([hitbox!]);
     }
     return super.onLoad();

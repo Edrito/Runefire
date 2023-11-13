@@ -767,7 +767,7 @@ mixin StaminaFunctionality on Entity {
   @override
   void initializeParentParameters() {
     stamina = DoubleParameterManager(baseParameter: 100);
-    staminaRegen = DoubleParameterManager(baseParameter: 25);
+    staminaRegen = DoubleParameterManager(baseParameter: 5);
 
     super.initializeParentParameters();
   }

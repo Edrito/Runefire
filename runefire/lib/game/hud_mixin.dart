@@ -18,12 +18,12 @@ import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-import '../resources/enums.dart';
-import '../resources/functions/custom.dart';
-import '../resources/visuals.dart';
-import '../weapons/weapon_class.dart';
-import 'enviroment.dart';
-import '../enviroment_interactables/expendables.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/weapons/weapon_class.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 class ElementalPowerIndicatorComponent extends PositionComponent {
@@ -43,21 +43,22 @@ class ElementalPowerIndicatorComponent extends PositionComponent {
   @override
   FutureOr<void> onLoad() async {
     damageTypeList = [...DamageType.values]..remove(DamageType.healing);
-    List<double> stops = [
+    final stops = <double>[
       for (int i = 0; i < damageTypeList.length + 1; i++) ...[
         i / (damageTypeList.length),
-        i / (damageTypeList.length)
-      ]
+        i / (damageTypeList.length),
+      ],
     ];
     stops.removeLast();
     stops.removeAt(0);
 
     gradient = ui.Gradient.sweep(
-        Offset.zero,
-        [
-          for (var type in damageTypeList) ...[type.color, type.color]
-        ],
-        stops);
+      Offset.zero,
+      [
+        for (final type in damageTypeList) ...[type.color, type.color],
+      ],
+      stops,
+    );
     elementalPie = SpriteComponent(
       sprite: await Sprite.load(ImagesAssetsUi.elementalPie.flamePath),
       size: ImagesAssetsUi.elementalPie.size.asVector2 * baseHud.hudScale.scale,
@@ -80,7 +81,7 @@ class ElementalPowerIndicatorComponent extends PositionComponent {
   @override
   void render(ui.Canvas canvas) {
     // canvas.drawCircle(const Offset(0, 0), radius, backPaint);
-    double sixthAngle = (2 * pi / 6);
+    const sixthAngle = 2 * pi / 6;
     final elementalPowerMap = elementalPower;
     frontPaint.shader = gradient;
     for (var i = 0; i < damageTypeList.length; i++) {
@@ -104,7 +105,7 @@ class ElementalPowerIndicatorComponent extends PositionComponent {
       //   .661,
       //   .1
       // ]);
-      final tempRadius = ((elementalPowerMap[type] ?? 0) * radius);
+      final tempRadius = (elementalPowerMap[type] ?? 0) * radius;
       final path = circleElementalPaths[type]!;
       path.reset();
 
@@ -117,8 +118,11 @@ class ElementalPowerIndicatorComponent extends PositionComponent {
       final y1 = tempRadius * sin(angle1);
 
       path.lineTo(x1, y1);
-      path.addArc(Rect.fromCircle(center: Offset.zero, radius: tempRadius),
-          angle1, angle2 - angle1);
+      path.addArc(
+        Rect.fromCircle(center: Offset.zero, radius: tempRadius),
+        angle1,
+        angle2 - angle1,
+      );
       path.lineTo(0, 0);
       // path.lineTo(tempRadius * cos(angle2), tempRadius * sin(angle2));
 
@@ -200,24 +204,28 @@ mixin BossBar on BaseHud {
     bossBarLeftSprite.position =
         Vector2(widthPadding, gameSize.y - heightPadding);
     bossBarRightSprite.position = Vector2(
-        gameEnviroment.gameCamera.viewport.size.x - widthPadding,
-        gameSize.y - heightPadding);
+      gameEnviroment.gameCamera.viewport.size.x - widthPadding,
+      gameSize.y - heightPadding,
+    );
 
     bossBarMidSprite.position = Vector2(
-        (gameEnviroment.gameCamera.viewport.size.x / 2),
-        gameSize.y - heightPadding);
+      gameEnviroment.gameCamera.viewport.size.x / 2,
+      gameSize.y - heightPadding,
+    );
 
     bossBorderSprite.position = Vector2(
-        (gameEnviroment.gameCamera.viewport.size.x / 2),
-        gameSize.y - heightPadding);
+      gameEnviroment.gameCamera.viewport.size.x / 2,
+      gameSize.y - heightPadding,
+    );
     bossBorderSprite.size = Vector2(
-        gameEnviroment.gameCamera.viewport.size.x -
-            (widthPadding * 2) -
-            bossBarLeftSprite.width,
-        height);
+      gameEnviroment.gameCamera.viewport.size.x -
+          (widthPadding * 2) -
+          bossBarLeftSprite.width,
+      height,
+    );
   }
 
-  void applyBossHitEffect([DamageType? color]) async {
+  Future<void> applyBossHitEffect([DamageType? color]) async {
     displayBossHit = true;
     if (color != null) {
       bossBarHitPaint.color = color.color.brighten(.2);
@@ -236,8 +244,10 @@ mixin BossBar on BaseHud {
       ..strokeWidth = height
       ..strokeCap = StrokeCap.round
       ..shader = ui.Gradient.radial(
-          Offset(viewportSize.x / 2,
-              viewportSize.y - heightPadding - (height / 2)),
+          Offset(
+            viewportSize.x / 2,
+            viewportSize.y - heightPadding - (height / 2),
+          ),
           viewportSize.x / 2,
           [
             ApolloColorPalette.lightRed.color,
@@ -293,21 +303,34 @@ mixin BossBar on BaseHud {
       final y = gameSize.y - heightPadding - (height / 2);
       final xBegin = widthPadding + height / 2;
       final extraPadding = 1 * hudScale.scale;
-      canvas.drawLine(Offset(xBegin + extraPadding, y),
-          Offset(gameSize.x - xBegin - extraPadding, y), bossBarBackPaint);
-      canvas.drawLine(Offset(xBegin + extraPadding + 250, y),
-          Offset(gameSize.x - xBegin - extraPadding - 250, y), bossBarPaint);
+      canvas.drawLine(
+        Offset(xBegin + extraPadding, y),
+        Offset(gameSize.x - xBegin - extraPadding, y),
+        bossBarBackPaint,
+      );
+      canvas.drawLine(
+        Offset(xBegin + extraPadding + 250, y),
+        Offset(gameSize.x - xBegin - extraPadding - 250, y),
+        bossBarPaint,
+      );
 
       if (displayBossHit) {
-        canvas.drawLine(Offset(widthPadding + 250, y),
-            Offset(gameSize.x - widthPadding - 250, y), bossBarHitPaint);
+        canvas.drawLine(
+          Offset(widthPadding + 250, y),
+          Offset(gameSize.x - widthPadding - 250, y),
+          bossBarHitPaint,
+        );
       }
 
       bossText ??= TextComponent(
-          text: primaryBoss?.entityType.name ?? "Placeholder Demon",
-          anchor: Anchor.bottomCenter,
-          textRenderer: colorPalette.buildTextPaint(hudFontSize * .75,
-              ShadowStyle.light, ApolloColorPalette.red.color))
+        text: primaryBoss?.entityType.name ?? 'Placeholder Demon',
+        anchor: Anchor.bottomCenter,
+        textRenderer: colorPalette.buildTextPaint(
+          hudFontSize * .75,
+          ShadowStyle.light,
+          ApolloColorPalette.red.color,
+        ),
+      )
         ..addToParent(this)
         ..loaded.then((value) {
           buildBossTextPosition();
@@ -340,9 +363,10 @@ mixin BossBar on BaseHud {
     );
 
     bossBorderSprite = SpriteComponent(
-        sprite: await Sprite.load(ImagesAssetsUi.bossBarBorder.flamePath),
-        anchor: Anchor.bottomCenter,
-        priority: -1);
+      sprite: await Sprite.load(ImagesAssetsUi.bossBarBorder.flamePath),
+      anchor: Anchor.bottomCenter,
+      priority: -1,
+    );
 
     bossBarMidSprite.size = bossBarMidSprite.sprite!.srcSize
       ..scaledToDimension(true, heightBoss);
@@ -411,18 +435,20 @@ mixin ExperienceBar on BaseHud {
 
     xpBarLeftSprite.position = Vector2(widthPadding, heightPadding);
     xpBarRightSprite.position = Vector2(
-        gameEnviroment.gameCamera.viewport.size.x - widthPadding,
-        heightPadding);
+      gameEnviroment.gameCamera.viewport.size.x - widthPadding,
+      heightPadding,
+    );
     xpBarMidSprite.position =
-        Vector2((gameEnviroment.gameCamera.viewport.size.x / 2), heightPadding);
+        Vector2(gameEnviroment.gameCamera.viewport.size.x / 2, heightPadding);
 
     xpBarBorder.position =
-        Vector2((gameEnviroment.gameCamera.viewport.size.x / 2), heightPadding);
+        Vector2(gameEnviroment.gameCamera.viewport.size.x / 2, heightPadding);
     xpBarBorder.size = Vector2(
-        gameEnviroment.gameCamera.viewport.size.x -
-            (widthPadding * 2) -
-            (height * 2),
-        height);
+      gameEnviroment.gameCamera.viewport.size.x -
+          (widthPadding * 2) -
+          (height * 2),
+      height,
+    );
   }
 
   void drawXpBar(Canvas canvas) {
@@ -434,18 +460,25 @@ mixin ExperienceBar on BaseHud {
     final barSize = viewportSize.x - (widthPadding * 2);
 
     final basePath = buildSlantedPath(
-        1, Offset(widthPadding, heightPadding), height, barSize, true);
+      1,
+      Offset(widthPadding, heightPadding),
+      height,
+      barSize,
+      true,
+    );
     canvas.drawPath(basePath, barBackPaint);
 
     canvas.drawPath(
-        buildSlantedPath(
-            (player!.percentOfLevelGained * 2) - 1,
-            Offset(widthPadding, heightPadding),
-            height,
-            barSize * player!.percentOfLevelGained,
-            true,
-            1),
-        xpPaint);
+      buildSlantedPath(
+        (player!.percentOfLevelGained * 2) - 1,
+        Offset(widthPadding, heightPadding),
+        height,
+        barSize * player!.percentOfLevelGained,
+        true,
+        1,
+      ),
+      xpPaint,
+    );
   }
 
   Future<void> initXpBorder() async {
@@ -462,9 +495,10 @@ mixin ExperienceBar on BaseHud {
     );
 
     xpBarBorder = SpriteComponent(
-        sprite: await Sprite.load('ui/xp_bar_border.png'),
-        anchor: Anchor.topCenter,
-        priority: -1);
+      sprite: await Sprite.load('ui/xp_bar_border.png'),
+      anchor: Anchor.topCenter,
+      priority: -1,
+    );
 
     xpBarRightSprite = SpriteComponent(
       sprite: await Sprite.load('ui/xp_bar_right.png'),
@@ -502,7 +536,7 @@ mixin ExperienceBar on BaseHud {
         // 0.49,
         0.499,
         0.501,
-        1
+        1,
       ]);
 
     super.initPaints();
