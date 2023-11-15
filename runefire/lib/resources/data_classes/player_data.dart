@@ -20,7 +20,14 @@ class PlayerDataComponent extends DataComponent {
 @HiveType(typeId: 1)
 class PlayerData extends DataClass with PlayerStatistics {
   //XP
-  int experiencePoints = 6000;
+  int _experiencePoints = 6000;
+
+  int get experiencePoints => _experiencePoints;
+
+  set experiencePoints(int value) {
+    _experiencePoints = value;
+  }
+
   int spentExperiencePoints = 0;
 
   ///Update information from player, saving to file
@@ -99,7 +106,9 @@ class PlayerData extends DataClass with PlayerStatistics {
     WeaponType.scryshot,
     // WeaponType.flameSword,
     ...WeaponType.values,
-  }..remove(WeaponType.flameSword);
+  }
+      // ..remove(WeaponType.flameSword)
+      ;
 
   Map<SecondaryType, int> unlockedSecondarys = {
     SecondaryType.pistolAttachment: 0,
@@ -127,23 +136,26 @@ class PlayerData extends DataClass with PlayerStatistics {
     }
 
     final cost = currentAttribute.cost();
-    final canAfford = enoughMoney(cost);
 
-    if (canAfford) {
-      if (unlockedPermanentAttributes.containsKey(attributeType)) {
-        unlockedPermanentAttributes[attributeType] =
-            unlockedPermanentAttributes[attributeType]! + 1;
-      } else {
-        unlockedPermanentAttributes[attributeType] = 1;
-      }
-      experiencePoints -= cost;
-      spentExperiencePoints += cost;
+    if (!subtractExperience(cost)) {
+      return false;
     }
+
+    if (unlockedPermanentAttributes.containsKey(attributeType)) {
+      unlockedPermanentAttributes[attributeType] =
+          unlockedPermanentAttributes[attributeType]! + 1;
+    } else {
+      unlockedPermanentAttributes[attributeType] = 1;
+    }
+
     parentComponent?.notifyListeners();
-    return canAfford;
+    return true;
   }
 
-  void upgradeWeapon(WeaponType weaponType) {
+  void upgradeWeapon(WeaponType weaponType, int cost) {
+    if (!subtractExperience(cost)) {
+      return;
+    }
     if (unlockedWeapons.containsKey(weaponType)) {
       unlockedWeapons[weaponType] = unlockedWeapons[weaponType]! + 1;
     } else {
@@ -152,7 +164,20 @@ class PlayerData extends DataClass with PlayerStatistics {
     parentComponent?.notifyListeners();
   }
 
-  void upgradeSecondary(SecondaryType secondaryType) {
+  bool subtractExperience(int cost) {
+    if (!enoughMoney(cost)) {
+      return false;
+    }
+    experiencePoints -= cost;
+    spentExperiencePoints += cost;
+    return true;
+  }
+
+  void upgradeSecondary(SecondaryType secondaryType, int cost) {
+    if (!subtractExperience(cost)) {
+      return;
+    }
+
     if (unlockedSecondarys.containsKey(secondaryType)) {
       unlockedSecondarys[secondaryType] =
           unlockedSecondarys[secondaryType]! + 1;

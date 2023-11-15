@@ -29,7 +29,7 @@ class OptionsMenu extends StatefulWidget {
 }
 
 class _OptionsMenuState extends State<OptionsMenu> {
-  OptionsMenuPages currentPage = OptionsMenuPages.keyboardBindings;
+  OptionsMenuPages currentPage = OptionsMenuPages.main;
   late CustomButton exitButton;
   late CustomButton keyboardBindingsButton;
   late CustomButton gamepadBindingsButton;
@@ -166,9 +166,12 @@ class _OptionsMenuState extends State<OptionsMenu> {
                     padding: const EdgeInsets.all(8.0),
                     child: element,
                   ),
-                  Text(
-                    '~',
-                    style: defaultStyle,
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      ':',
+                      style: defaultStyle,
+                    ),
                   ),
                 ],
               ]..removeLast())
@@ -567,14 +570,14 @@ class _KeyboardMouseGamepadBindingsState
                 padding: const EdgeInsets.all(8.0),
                 // padding: EdgeInsets.zero,
                 child: Container(
-                  padding: EdgeInsets.all(title ? 16 : 8.0),
+                  padding: EdgeInsets.all(title ? 16 : 6),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     border: title
                         ? null
                         : Border.all(
                             color: ApolloColorPalette.lightGray.color,
-                            width: 4,
+                            width: 6,
                           ),
                     // borderRadius: BorderRadius.circular(8),
                     color: generatedColors[two] ??
@@ -609,14 +612,14 @@ class _KeyboardMouseGamepadBindingsState
                 padding: const EdgeInsets.all(8.0),
                 // padding: EdgeInsets.zero,
                 child: Container(
-                  padding: EdgeInsets.all(title ? 16 : 8.0),
+                  padding: EdgeInsets.all(title ? 16 : 6),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     border: title
                         ? null
                         : Border.all(
                             color: ApolloColorPalette.mediumGray.color,
-                            width: 4,
+                            width: 6,
                           ),
                     // borderRadius: BorderRadius.circular(8),
                     color: generatedColors[three] ??
@@ -804,7 +807,7 @@ class _KeyboardMouseGamepadBindingsState
                         }),
                       );
                     },
-                  ),
+                  ).animate().fadeIn(),
                 buildRow(
                   null,
                   3,
@@ -825,7 +828,11 @@ class _KeyboardMouseGamepadBindingsState
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: gameActionTriplets,
+                          children: gameActionTriplets
+                              .animate(
+                                interval: .05.seconds,
+                              )
+                              .fadeIn(),
                         ),
                       ),
                     ),

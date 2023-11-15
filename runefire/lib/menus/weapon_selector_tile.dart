@@ -151,18 +151,19 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab>
     }
   }
 
-  void onLevelPress(WeaponType? weaponType, SecondaryType? secondaryType) {
+  void onLevelPress(
+      WeaponType? weaponType, SecondaryType? secondaryType, int cost) {
     if (!playerData.enoughMoney(currentCost)) {
       return;
     }
     if (weaponType != null) {
       setState(() {
-        playerData.upgradeWeapon(weaponType);
+        playerData.upgradeWeapon(weaponType, cost);
         colorPulse = true;
       });
     } else if (secondaryType != null) {
       setState(() {
-        playerData.upgradeSecondary(secondaryType);
+        playerData.upgradeSecondary(secondaryType, cost);
         colorPulse = true;
       });
     }
@@ -364,7 +365,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab>
         onPrimary: isMaxLevel || !isAvailable
             ? null
             : () {
-                onLevelPress(shownWeaponType, shownSecondaryType);
+                onLevelPress(shownWeaponType, shownSecondaryType, currentCost);
               },
         child: Container(
           height: unlockButtonWidth,

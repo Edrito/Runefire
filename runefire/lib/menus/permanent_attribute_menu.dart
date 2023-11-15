@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/menus/custom_widgets.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
@@ -488,19 +489,17 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                   const SizedBox(
                     width: menuBaseBarWidthPadding,
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: CustomButton(
-                          'Back',
-                          zIndex: 1,
-                          zHeight: 10,
-                          rowId: 500,
-                          gameRef: widget.gameRef,
-                          onPrimary: () => widget.onBack(),
-                        ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: CustomButton(
+                        'Back',
+                        zIndex: 1,
+                        zHeight: 10,
+                        rowId: 500,
+                        gameRef: widget.gameRef,
+                        onPrimary: () => widget.onBack(),
                       ),
                     ),
                   ),
@@ -521,26 +520,9 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Spacer(),
-                          Center(
-                            child: Text(
-                              '${playerData.experiencePoints}',
-                              style: defaultStyle,
-                            ),
-                          ),
-                          buildImageAsset(
-                            ImagesAssetsExperience.all.path,
-                            fit: BoxFit.fitHeight,
-                          ),
-                        ],
-                      ),
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ExperiencePointsIndicator(widget.gameRef),
                   ),
                   const SizedBox(
                     width: menuBaseBarWidthPadding,
