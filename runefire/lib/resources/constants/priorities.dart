@@ -3,6 +3,7 @@ const backgroundObjectPriority = -400;
 const backgroundPickupPriority = -300;
 const worldPriority = -100;
 const cameraPriority = -90;
+const particlePriority = -75;
 const enemyPriority = -50;
 const attackPriority = -10;
 const playerBackPriority = -5;

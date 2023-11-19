@@ -92,8 +92,8 @@ class SquareParticle extends Particle {
   }
 }
 
-class FadeOutCircleParticle extends CircleParticle {
-  FadeOutCircleParticle({
+class FadeOutSquareParticle extends CircleParticle {
+  FadeOutSquareParticle({
     required super.paint,
     required double lifespan,
     super.radius,
@@ -110,9 +110,8 @@ class FadeOutCircleParticle extends CircleParticle {
 
   @override
   void render(Canvas canvas) {
-    canvas.drawCircle(
-      Offset.zero,
-      radius,
+    canvas.drawRect(
+      Rect.fromCircle(center: Offset.zero, radius: radius),
       Paint()
         ..color = paint.color
             .withOpacity((1 - duration / lifespanForOpacity).clamp(0, 1)),
@@ -341,7 +340,7 @@ class CustomParticleGenerator extends Component {
     required this.velocity,
     required this.particlePosition,
     this.color,
-    this.sprites,
+    // this.sprites,
     this.originPosition,
     this.duration,
     this.durationType = DurationType.temporary,
@@ -357,7 +356,7 @@ class CustomParticleGenerator extends Component {
   final Vector2? velocity;
   final Vector2? originPosition;
   final Color? color;
-  final List<Sprite>? sprites;
+  // final List<Sprite>? sprites;
   final double lifespan;
   final DamageType? damageType;
   final Vector2 particlePosition;
@@ -384,6 +383,8 @@ class CustomParticleGenerator extends Component {
     final randomLifespan = ((rng.nextDouble() - .5) * lifespan) + lifespan;
     final count =
         rng.nextInt((frequency / 2).ceil()) + (frequency * .75).round();
+
+    final sprite = await damageType?.particleEffect;
     // int i = 0;
     final particleSystem = ParticleSystemComponent(
       position: position,
@@ -417,25 +418,23 @@ class CustomParticleGenerator extends Component {
               lighten: false,
             );
           }
-          if (sprites != null && sprites!.isNotEmpty) {
-            final sprite = sprites?.random();
-            return SpriteParticle(
-              sprite: sprite!,
-              position: randomPosition,
-              lifespan: randomLifespan,
-              size: Vector2(size, size),
-              overridePaint: customPaint,
-            );
-          }
 
           final particle = AcceleratedParticle(
             position: randomPosition,
             speed: velocity,
-            child: CircleParticle(
-              paint: customPaint!,
-              lifespan: randomLifespan,
-              radius: size / 2,
-            ),
+            child: damageType != null
+                ? SpriteAnimationParticle(
+                    animation: sprite!,
+                    position: randomPosition,
+                    lifespan: randomLifespan,
+                    size: Vector2.all(size * 2),
+                    // overridePaint: customPaint,
+                  )
+                : CircleParticle(
+                    paint: customPaint!,
+                    lifespan: randomLifespan,
+                    radius: size / 2,
+                  ),
           );
 
           return particle;

@@ -294,6 +294,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
     SourceAttackLocation attackLocation, {
     Vector2? delta,
     bool melee = false,
+    double? tipPercent,
   }) {
     var center = Vector2.zero();
 
@@ -302,7 +303,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
         center += entityAncestor!.mouseJoint?.position ?? Vector2.zero();
         break;
       case SourceAttackLocation.weaponTip:
-        center = weaponTipPosition(1);
+        center = weaponTipPosition(tipPercent ?? 1);
         break;
       case SourceAttackLocation.weaponMid:
         center = weaponTipPosition(0.5);

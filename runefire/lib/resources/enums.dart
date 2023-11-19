@@ -148,13 +148,18 @@ enum SemiAutoType { regular, release, charge }
 
 enum StatusEffects {
   burn,
-  chill,
+  bleed,
+  slowed,
   electrified,
-  stun,
-  psychic,
+  stunned,
+  confused,
   fear,
-  marked,
-  empowered
+  marked(isStatusBar: false),
+  frozen(isStatusBar: false),
+  empowered(isStatusBar: false);
+
+  const StatusEffects({this.isStatusBar = true});
+  final bool isStatusBar;
 }
 
 enum AttackType { guns, melee, magic }
@@ -516,6 +521,7 @@ extension ProjectileTypeExtension on ProjectileType {
           delta: delta,
           primaryDamageType: primaryDamageType,
           size: size,
+          power: chargeAmount,
         );
       case ProjectileType.paintBullet:
         return PaintBullet(
@@ -965,10 +971,10 @@ bool rapidReload(Weapon weapon) {
     return false;
   }
 
-  if (weapon is SemiAutomatic &&
-      (weapon as SemiAutomatic).semiAutoType != SemiAutoType.regular) {
-    return false;
-  }
+  // if (weapon is SemiAutomatic &&
+  //     (weapon as SemiAutomatic).semiAutoType != SemiAutoType.regular) {
+  //   return false;
+  // }
   return true;
 }
 

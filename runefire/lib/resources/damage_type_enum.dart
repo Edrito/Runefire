@@ -1,3 +1,4 @@
+import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/menus/custom_widgets.dart';
@@ -27,8 +28,28 @@ extension DamageTypeExtension on DamageType {
     }
   }
 
+  Future<SpriteAnimation> get particleEffect {
+    switch (this) {
+      case DamageType.physical:
+        return spriteAnimations.damageTypePhysicalEffect1;
+      case DamageType.energy:
+        return spriteAnimations.damageTypeEnergyEffect1;
+
+      case DamageType.psychic:
+        return spriteAnimations.damageTypeEnergyEffect1;
+      case DamageType.magic:
+        return spriteAnimations.damageTypeMagicEffect1;
+      case DamageType.fire:
+        return spriteAnimations.damageTypeFireEffect1;
+      case DamageType.frost:
+        return spriteAnimations.damageTypeFrostEffect1;
+      case DamageType.healing:
+        return spriteAnimations.damageTypePhysicalEffect1;
+    }
+  }
+
   List<(double, String)> buildElementalPowerBonus() {
-    List<(double, String)> returnList = [];
+    final returnList = <(double, String)>[];
 
     switch (this) {
       case DamageType.physical:
@@ -47,15 +68,15 @@ extension DamageTypeExtension on DamageType {
         returnList.addAll([
           (
             .6,
-            "Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt."
+            'Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt.'
           ),
           (
             .25,
-            "Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt."
+            'Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt.'
           ),
           (
             .1,
-            "Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt."
+            'Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt.'
           ),
         ]);
         break;
@@ -70,8 +91,11 @@ extension DamageTypeExtension on DamageType {
 }
 
 class ElementalPowerListDisplay extends StatelessWidget {
-  const ElementalPowerListDisplay(
-      {required this.player, required this.damageType, super.key});
+  const ElementalPowerListDisplay({
+    required this.player,
+    required this.damageType,
+    super.key,
+  });
   final DamageType damageType;
   final Player player;
 
@@ -85,24 +109,26 @@ class ElementalPowerListDisplay extends StatelessWidget {
       children: [
         SizedBox(
           width: 50,
-          child: LayoutBuilder(builder: (context, straints) {
-            final powerLevel = (player.elementalPower[damageType] ?? 0);
-            return Column(
-              children: [
-                Expanded(
-                  child: Container(
-                    color: ApolloColorPalette.darkestGray.color,
+          child: LayoutBuilder(
+            builder: (context, straints) {
+              final powerLevel = player.elementalPower[damageType] ?? 0;
+              return Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      color: ApolloColorPalette.darkestGray.color,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: straints.maxHeight * powerLevel,
-                  // color: damageType.color,
-                  width: 50,
-                  child: ElementalPowerBack(damageType),
-                ),
-              ],
-            );
-          }),
+                  SizedBox(
+                    height: straints.maxHeight * powerLevel,
+                    // color: damageType.color,
+                    width: 50,
+                    child: ElementalPowerBack(damageType),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
         Expanded(
           child: Container(
@@ -112,43 +138,45 @@ class ElementalPowerListDisplay extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  for (var element in damageType.buildElementalPowerBonus())
-                    Builder(builder: (context) {
-                      final color = playerHasUnlocked(element.$1, damageType)
-                          ? damageType.color
-                          : colorPalette.primaryColor;
-                      final style = defaultStyle.copyWith(color: color);
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Icon(
-                                  Icons.circle,
-                                  color: color,
-                                ),
-                                const SizedBox(
-                                  width: 16,
-                                ),
-                                Text(
-                                  "${element.$1 * 100}%",
-                                  style: style,
-                                ),
-                              ],
-                            ),
-                            Text(
-                              element.$2,
-                              style:
-                                  style.copyWith(fontSize: style.fontSize! / 2),
-                              maxLines: 5,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      );
-                    })
+                  for (final element in damageType.buildElementalPowerBonus())
+                    Builder(
+                      builder: (context) {
+                        final color = playerHasUnlocked(element.$1, damageType)
+                            ? damageType.color
+                            : colorPalette.primaryColor;
+                        final style = defaultStyle.copyWith(color: color);
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Icon(
+                                    Icons.circle,
+                                    color: color,
+                                  ),
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
+                                  Text(
+                                    '${element.$1 * 100}%',
+                                    style: style,
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                element.$2,
+                                style: style.copyWith(
+                                    fontSize: style.fontSize! / 2),
+                                maxLines: 5,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

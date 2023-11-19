@@ -509,22 +509,30 @@ mixin ProjectileFunctionality on Weapon {
       lifespan: 2,
       applyLifespanToChildren: false,
       generator: (i) => AcceleratedParticle(
-        position: weaponTipPosition(.9),
-        speed: randomizeVector2Delta(
-              entityAncestor?.aimVector ?? Vector2.zero(),
-              .3,
-            ).normalized().clone() *
-            3 *
-            (1 + rng.nextDouble()),
-        child: FadeOutCircleParticle(
-          radius: .05 * ((rng.nextDouble() * .9) + .1),
+        position: generateGlobalPosition(
+          SourceAttackLocation.weaponTip,
+          tipPercent: .8,
+        ),
+        speed: (entityAncestor?.body.linearVelocity ?? Vector2.zero()) +
+            randomizeVector2Delta(
+                  entityAncestor?.aimVector ?? Vector2.zero(),
+                  .3,
+                ).normalized().clone() *
+                3 *
+                (1 + rng.nextDouble()),
+        child: FadeOutSquareParticle(
+          radius: 2 / entityAncestor!.enviroment.gameCamera.viewfinder.zoom,
+          // radius: 1,
           paint: paint,
           lifespan: (particleLifespan * rng.nextDouble()) + particleLifespan,
         ),
       ),
     );
 
-    return ParticleSystemComponent(particle: particle);
+    return ParticleSystemComponent(
+      particle: particle,
+      priority: particlePriority,
+    );
   }
 
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
@@ -788,7 +796,7 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
       generator: (i) => AcceleratedParticle(
         position: weaponTipPosition(1) + Vector2.zero(),
         speed: ((Vector2.random() * 4) - Vector2.all(2)) * percent,
-        child: FadeOutCircleParticle(
+        child: FadeOutSquareParticle(
           radius: .04 * ((rng.nextDouble() * .9) + .1),
           paint: paint,
           lifespan: (particleLifespan * rng.nextDouble()) + particleLifespan,

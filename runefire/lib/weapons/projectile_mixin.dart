@@ -112,10 +112,19 @@ mixin PaintProjectile on StandardProjectile, FadeOutProjectile {
     //   1
     // ]);
     // print(opacity);
-    canvas.drawCircle(Offset.zero, size * opacity, glowPaint);
-    canvas.drawCircle(Offset.zero, size * .5 * opacity, bulletBackPaint);
+    canvas.drawRect(
+      Rect.fromCircle(center: Offset.zero, radius: size * opacity),
+      glowPaint,
+    );
+    canvas.drawRect(
+      Rect.fromCircle(center: Offset.zero, radius: size * .5 * opacity),
+      bulletBackPaint,
+    );
 
-    canvas.drawCircle(Offset.zero, size * .4 * opacity, bulletPaint);
+    canvas.drawRect(
+      Rect.fromCircle(center: Offset.zero, radius: size * .4 * opacity),
+      bulletPaint,
+    );
 
     // if (opacity != 1) {
     //   canvas.drawCircle(

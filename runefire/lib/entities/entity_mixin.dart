@@ -835,7 +835,10 @@ mixin HealthFunctionality on Entity {
   List<DamageInstance> damageInstancesRecieved = [];
   double damageTaken = 0;
   //HEALTH
-  Map<DamageType, TextComponent> damageTexts = {};
+  Map<DamageType, (TextComponent, double)> damageTexts = {};
+  Map<DamageType, double> damageTextsTimer = {};
+
+  double damageTextLifespan = 2;
 
   Map<String, double> hitSourceInvincibility = {};
   //health
@@ -885,8 +888,32 @@ mixin HealthFunctionality on Entity {
     )..addToParent(entityAnimationsGroup);
   }
 
+  String _buildTextFromDamage(
+    DamageType damageType,
+    double damage,
+    String? customText,
+  ) {
+    var damageString = '';
+
+    if (customText != null) {
+      damageString = customText;
+    } else {
+      damageString = !damage.isFinite ? 'X' : damage.ceil().toString();
+
+      if (damageType == DamageType.healing) {
+        damageString = '+ $damageString';
+      }
+    }
+    return damageString;
+  }
+
   void addFloatingText(DamageInstance damage, [String? customText]) {
     final newTexts = <TextComponent>[];
+    final pos = Vector2(entityAnimationsGroup.width / 3, 0);
+    // if (!isPlayer) {
+    //   pos += center;
+    // }
+
     for (final element in damage.damageMap.entries) {
       final color = element.key.color;
       final fontSize = .45 * (damage.isCrit ? 1.3 : 1);
@@ -896,56 +923,63 @@ mixin HealthFunctionality on Entity {
         ShadowStyle.lightGame,
         damage.isCrit ? Colors.red : color.brighten(.2),
       );
-      var damageString = '';
 
-      if (customText != null) {
-        damageString = customText;
-      } else {
-        damageString =
-            !element.value.isFinite ? 'X' : element.value.ceil().toString();
+      damageTextsTimer[element.key] = damageTextLifespan;
+      final previousText = damageTexts[element.key];
 
-        if (element.key == DamageType.healing) {
-          damageString = '+ $damageString';
-        }
-      }
-      var pos = Vector2(entityAnimationsGroup.width / 3, 0);
-      if (!isPlayer) {
-        pos += center;
-      }
-      final tempText = TextComponent(
-        text: damageString,
-        // anchor: Anchor.center,
-        textRenderer: textRenderer,
-        priority: foregroundPriority,
-        position: pos,
-      );
+      if (previousText != null) {
+        final newVal = previousText.$2 + element.value;
 
-      final moveBy = (Vector2.random() * .5) * (damage.isCrit ? 3 : 1);
-
-      tempText.add(
-        MoveEffect.by(
-          Vector2(moveBy.x, -moveBy.y),
-          EffectController(
-            duration: 1.33,
-            onMax: () {
-              tempText.removeFromParent();
-              damageTexts.remove(tempText);
-            },
+        final damageString =
+            _buildTextFromDamage(element.key, newVal, customText);
+        previousText.$1.text = damageString;
+        previousText.$1.textRenderer = textRenderer;
+        previousText.$1.position = pos;
+        damageTexts[element.key] = (previousText.$1, newVal);
+        previousText.$1.add(
+          ScaleEffect.to(
+            Vector2(1.1, 1.1),
+            EffectController(
+              duration: .2,
+              reverseDuration: .1,
+              // curve: Curves.easeOut,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        final damageString =
+            _buildTextFromDamage(element.key, element.value, customText);
+        final tempText = TextComponent(
+          text: damageString,
+          // anchor: Anchor.center,
+          textRenderer: textRenderer,
+          priority: foregroundPriority,
+          position: pos,
+        );
 
-      damageTexts[element.key]?.removeFromParent();
-      damageTexts[element.key] = tempText;
-      newTexts.add(tempText);
+        final moveBy = (Vector2.random() * .5) * (damage.isCrit ? 3 : 1);
+        tempText.add(
+          MoveEffect.by(
+            Vector2(moveBy.x, -moveBy.y),
+            EffectController(
+              duration: damageTextLifespan,
+              curve: Curves.easeOut,
+            ),
+          ),
+        );
+
+        damageTexts[element.key] = (tempText, element.value);
+
+        newTexts.add(tempText);
+      }
     }
     newTexts.shuffle();
 
-    if (isPlayer) {
-      addAll(newTexts);
-    } else {
-      gameEnviroment.addTextComponents(newTexts);
-    }
+    // if (isPlayer) {
+    addAll(newTexts);
+    // } else {
+    //   gameEnviroment.addTextComponents(newTexts);
+    // }
   }
 
   void applyDamage(DamageInstance damage) {
@@ -997,6 +1031,14 @@ mixin HealthFunctionality on Entity {
         continue;
       }
       hitSourceInvincibility[element] = hitSourceInvincibility[element]! - dt;
+    }
+    for (final element in [...damageTextsTimer.keys]) {
+      damageTextsTimer[element] = damageTextsTimer[element]! - dt;
+      if (damageTextsTimer[element]! <= 0) {
+        damageTextsTimer.remove(element);
+        damageTexts[element]?.$1.removeFromParent();
+        damageTexts.remove(element);
+      }
     }
     if (iFrameDuration > 0) {
       iFrameDuration -= dt;

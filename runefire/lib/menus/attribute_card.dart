@@ -62,29 +62,21 @@ class _CustomCardState extends State<CustomCard> {
     final levelIndicators = <Widget>[];
 
     if (widget.attribute.maxLevel != null) {
-      for (var i = 0; i < widget.attribute.upgradeLevel; i++) {
-        levelIndicators.add(
-          Padding(
-            padding: const EdgeInsets.all(2),
-            child: Icon(
-              Icons.circle,
-              size: 25,
-              color: highlightColor.darken(.4),
-            ),
-          ),
-        );
-      }
+      final icon =
+          'assets/images/ui/permanent_attributes/${widget.attribute.attributeType.category.name}.png';
 
-      for (var i = 0;
-          i < widget.attribute.maxLevel! - widget.attribute.upgradeLevel;
-          i++) {
+      for (var i = 0; i < widget.attribute.maxLevel!; i++) {
         levelIndicators.add(
           Padding(
-            padding: const EdgeInsets.all(2),
-            child: Icon(
-              Icons.circle_outlined,
-              size: 25,
-              color: highlightColor.darken(.2),
+            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+            child: Text(
+              'I',
+              style: style.copyWith(
+                fontSize: 32,
+                color: i < widget.attribute.upgradeLevel
+                    ? highlightColor
+                    : highlightColor.darken(.5),
+              ),
             ),
           ),
         );
@@ -126,35 +118,34 @@ class _CustomCardState extends State<CustomCard> {
         padding: widget.smallCard
             ? const EdgeInsets.symmetric(horizontal: 20, vertical: 5)
             : const EdgeInsets.all(24),
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: widget.smallCard
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: widget.smallCard
-                    ? CrossAxisAlignment.center
-                    : CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      widget.attribute.description(),
-                      style: style.copyWith(
-                        fontSize: style.fontSize! * .75,
-                        color: style.color!.darken(.1),
-                        fontWeight: FontWeight.w200,
-                      ),
-                      textAlign:
-                          widget.smallCard ? TextAlign.center : TextAlign.left,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Flexible(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: SizedBox.expand(
+              flex: 2,
+              child: Text(
+                widget.attribute.description(),
+                style: style.copyWith(
+                  fontSize: style.fontSize! * .75,
+                  color: style.color!.darken(.1),
+                  fontWeight: FontWeight.w200,
+                ),
+                textAlign: widget.smallCard ? TextAlign.center : TextAlign.left,
+              ),
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+            Flexible(
+              child: Container(
+                alignment: Alignment.center,
+                child: SizedBox.expand(
+                  child: Column(
+                    children: [
+                      Expanded(
                         child: Padding(
                           padding: widget.smallCard
                               ? const EdgeInsets.all(2)
@@ -162,28 +153,30 @@ class _CustomCardState extends State<CustomCard> {
                           child: attributeIcon,
                         ),
                       ),
-                    ),
+                      if (!widget.smallCard)
+                        SizedBox(
+                          height: 50,
+                          child: !hasDamageTypeSelector &&
+                                  widget.attribute.maxLevel != 1
+                              ? Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Wrap(
+                                      alignment: WrapAlignment.center,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: levelIndicators,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-            if (!widget.smallCard)
-              SizedBox(
-                height: 50,
-                child: !hasDamageTypeSelector && widget.attribute.maxLevel != 1
-                    ? Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: levelIndicators,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
           ],
         ),
       ),
@@ -221,7 +214,7 @@ class _CustomCardState extends State<CustomCard> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 80,
+                height: 60,
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(35),
@@ -230,7 +223,9 @@ class _CustomCardState extends State<CustomCard> {
                   child: DamageTypeSelector(
                     widget.attribute.allowedDamageTypes,
                     (p0) {
-                      if (widget.disableTouch) return;
+                      if (widget.disableTouch) {
+                        return;
+                      }
                       widget.onPrimary?.call(p0);
                     },
                     scrollController: widget.scrollController,

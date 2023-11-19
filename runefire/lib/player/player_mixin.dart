@@ -88,7 +88,7 @@ mixin ExperienceFunctionality on Entity {
     final attr = attributeFunctionsFunctionality;
     if (attr != null && attr.onLevelUp.isNotEmpty) {
       for (final element in attr.onLevelUp) {
-        element();
+        element.call();
       }
     }
   }

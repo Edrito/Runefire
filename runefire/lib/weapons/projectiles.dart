@@ -20,6 +20,7 @@ class MagicalProjectile extends SpriteBullet {
     required super.weaponAncestor,
     required super.size,
     super.primaryDamageType,
+    super.power,
   }) : super(useDefaults: false) {
     final isSmallProjectile = this.isSmallProjectile;
 
@@ -113,16 +114,16 @@ class MagicalProjectile extends SpriteBullet {
       default:
     }
   }
-
   late CustomParticleGenerator particleGenerator = CustomParticleGenerator(
     minSize: .05,
-    maxSize: .15,
+    maxSize: (power * .2) + .15,
     lifespan: 2,
     parentBody: body,
-    frequency: 1,
+    frequency: 2,
     particlePosition: Vector2(.3 * size, size),
     velocity: Vector2.all(0.5),
     color: damageType.color,
+    damageType: damageType,
   );
 
   @override
@@ -133,6 +134,7 @@ class MagicalProjectile extends SpriteBullet {
 
   @override
   void onMount() {
+    print(power);
     weaponAncestor.entityAncestor?.enviroment
         .addPhysicsComponent([particleGenerator]);
 

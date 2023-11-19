@@ -174,6 +174,46 @@ psychic111.flamePath,
 star5.flamePath,
 ];
 }
+class ImagesAssetsDamageEffects {
+///energy.png
+static const FileDataClass energy = 
+(path:"assets/images/effects/damage_effects/energy.png",flamePath:"effects/damage_effects/energy.png", size:(24.0,8.0)  );///fire.png
+static const FileDataClass fire = 
+(path:"assets/images/effects/damage_effects/fire.png",flamePath:"effects/damage_effects/fire.png", size:(40.0,8.0)  );///frost.png
+static const FileDataClass frost = 
+(path:"assets/images/effects/damage_effects/frost.png",flamePath:"effects/damage_effects/frost.png", size:(16.0,8.0)  );///healing.png
+static const FileDataClass healing = 
+(path:"assets/images/effects/damage_effects/healing.png",flamePath:"effects/damage_effects/healing.png", size:(16.0,8.0)  );///magic.png
+static const FileDataClass magic = 
+(path:"assets/images/effects/damage_effects/magic.png",flamePath:"effects/damage_effects/magic.png", size:(48.0,8.0)  );///physical.png
+static const FileDataClass physical = 
+(path:"assets/images/effects/damage_effects/physical.png",flamePath:"effects/damage_effects/physical.png", size:(32.0,8.0)  );///psychic.png
+static const FileDataClass psychic = 
+(path:"assets/images/effects/damage_effects/psychic.png",flamePath:"effects/damage_effects/psychic.png", size:(24.0,8.0)  );static  List<String> allFiles = [energy.path,
+fire.path,
+frost.path,
+healing.path,
+magic.path,
+physical.path,
+psychic.path,
+];
+static  List<String> allFilesFlame = [energy.flamePath,
+fire.flamePath,
+frost.flamePath,
+healing.flamePath,
+magic.flamePath,
+physical.flamePath,
+psychic.flamePath,
+];
+}
+class ImagesAssetsStatusEffects {
+///fire_effect.png
+static const FileDataClass fireEffect = 
+(path:"assets/images/effects/status_effects/fire_effect.png",flamePath:"effects/status_effects/fire_effect.png", size:(64.0,16.0)  );static  List<String> allFiles = [fireEffect.path,
+];
+static  List<String> allFilesFlame = [fireEffect.flamePath,
+];
+}
 class ImagesAssetsEnemySprites {
 ///death.png
 static const FileDataClass death = 
@@ -520,14 +560,6 @@ runeknightHit1.flamePath,
 runeknightIdle1.flamePath,
 runeknightJump1.flamePath,
 runeknightRun1.flamePath,
-];
-}
-class ImagesAssetsStatusEffects {
-///fire_effect.png
-static const FileDataClass fireEffect = 
-(path:"assets/images/status_effects/fire_effect.png",flamePath:"status_effects/fire_effect.png", size:(64.0,16.0)  );static  List<String> allFiles = [fireEffect.path,
-];
-static  List<String> allFilesFlame = [fireEffect.flamePath,
 ];
 }
 class ImagesAssetsUi {

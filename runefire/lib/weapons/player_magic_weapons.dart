@@ -357,7 +357,7 @@ class FireballMagic extends PlayerWeapon
       );
       final particleGenerator = CustomParticleGenerator(
         minSize: .05,
-        maxSize: .15,
+        maxSize: (projectile.power * .2) + .15,
         lifespan: 1,
         frequency: 10,
         particlePosition: Vector2(2, 2),
@@ -365,6 +365,7 @@ class FireballMagic extends PlayerWeapon
         durationType: DurationType.instant,
         originPosition: projectile.center.clone(),
         color: DamageType.fire.color,
+        damageType: DamageType.fire,
       );
 
       entityAncestor?.enviroment.addPhysicsComponent([area, particleGenerator]);

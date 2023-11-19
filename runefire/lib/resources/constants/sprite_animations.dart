@@ -318,6 +318,50 @@ class SpriteAnimations {
     false,
   );
 
+  late Future<SpriteAnimation> damageTypeFireEffect1 = loadSpriteAnimation(
+    5,
+    ImagesAssetsDamageEffects.fire.flamePath,
+    .1,
+    true,
+  );
+  late Future<SpriteAnimation> damageTypeEnergyEffect1 = loadSpriteAnimation(
+    3,
+    ImagesAssetsDamageEffects.energy.flamePath,
+    .13,
+    true,
+  );
+  late Future<SpriteAnimation> damageTypeFrostEffect1 = loadSpriteAnimation(
+    2,
+    ImagesAssetsDamageEffects.frost.flamePath,
+    .05,
+    true,
+  );
+  late Future<SpriteAnimation> damageTypePsychicEffect1 = loadSpriteAnimation(
+    3,
+    ImagesAssetsDamageEffects.psychic.flamePath,
+    .1,
+    true,
+  );
+  late Future<SpriteAnimation> damageTypePhysicalEffect1 = loadSpriteAnimation(
+    4,
+    ImagesAssetsDamageEffects.physical.flamePath,
+    .05,
+    true,
+  );
+  late Future<SpriteAnimation> damageTypeMagicEffect1 = loadSpriteAnimation(
+    6,
+    ImagesAssetsDamageEffects.magic.flamePath,
+    .1,
+    true,
+  );
+  late Future<SpriteAnimation> damageTypHealingEffect1 = loadSpriteAnimation(
+    2,
+    ImagesAssetsDamageEffects.healing.flamePath,
+    .1,
+    true,
+  );
+  //DamageType effects
+
 //Weapons
 //Guns
   late Future<SpriteAnimation> arcaneBlasterIdle1 =

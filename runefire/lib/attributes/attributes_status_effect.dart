@@ -508,7 +508,7 @@ class StunAttribute extends StatusEffectAttribute {
     if (victimEntity is AttributeCallbackFunctionality) {
       final attr = victimEntity as AttributeCallbackFunctionality;
       victimEntity?.entityStatusWrapper
-          .addStatusEffect(StatusEffects.stun, upgradeLevel);
+          .addStatusEffect(StatusEffects.frozen, upgradeLevel);
       attr.enableMovement.setIncrease(attributeId, false);
       attr.enableMovement.setIncrease("${attributeId}2", false);
     }
@@ -523,7 +523,8 @@ class StunAttribute extends StatusEffectAttribute {
   void unMapUpgrade() {
     if (victimEntity is AttributeCallbackFunctionality) {
       final attr = victimEntity as AttributeCallbackFunctionality;
-      victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.stun);
+      victimEntity?.entityStatusWrapper
+          .removeStatusEffect(StatusEffects.frozen);
       attr.enableMovement.removeKey(attributeId);
       attr.enableMovement.removeKey("${attributeId}2");
     }
@@ -533,7 +534,7 @@ class StunAttribute extends StatusEffectAttribute {
   String icon = "powerups/power.png";
 
   @override
-  StatusEffects statusEffect = StatusEffects.stun;
+  StatusEffects statusEffect = StatusEffects.frozen;
 }
 
 class TemporaryPsychic extends PsychicAttribute with TemporaryAttribute {
@@ -557,7 +558,7 @@ class PsychicAttribute extends StatusEffectAttribute {
       required super.perpetratorEntity});
 
   @override
-  StatusEffects statusEffect = StatusEffects.psychic;
+  StatusEffects statusEffect = StatusEffects.confused;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -591,7 +592,7 @@ class PsychicAttribute extends StatusEffectAttribute {
   @override
   void mapUpgrade() {
     victimEntity?.entityStatusWrapper
-        .addStatusEffect(StatusEffects.psychic, upgradeLevel);
+        .addStatusEffect(StatusEffects.confused, upgradeLevel);
     confusionTimer = TimerComponent(
       period: 1.5,
       repeat: true,
@@ -604,7 +605,8 @@ class PsychicAttribute extends StatusEffectAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.psychic);
+    victimEntity?.entityStatusWrapper
+        .removeStatusEffect(StatusEffects.confused);
     confusionTimer?.removeFromParent();
     confusionTimer?.timer.stop();
     confusionTimer = null;

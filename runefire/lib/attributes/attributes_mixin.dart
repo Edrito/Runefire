@@ -316,17 +316,17 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<Function(DamageInstance instance)> onDodge = [];
   final List<Function(HealthFunctionality other)> onTouch = [];
   final List<Function(double dt)> onUpdate = [];
-  final List<Function> dashBeginFunctions = [];
-  final List<Function> dashEndFunctions = [];
-  final List<Function> dashOngoingFunctions = [];
-  final List<Function> jumpBeginFunctions = [];
-  final List<Function> jumpEndFunctions = [];
-  final List<Function> jumpOngoingFunctions = [];
+  final List<Function()> dashBeginFunctions = [];
+  final List<Function()> dashEndFunctions = [];
+  final List<Function()> dashOngoingFunctions = [];
+  final List<Function()> jumpBeginFunctions = [];
+  final List<Function()> jumpEndFunctions = [];
+  final List<Function()> jumpOngoingFunctions = [];
   final List<OnHitDef> onHitByOtherEntity = [];
   final List<OnHitDef> onHitByProjectile = [];
   final List<OnHitDef> onHitOtherEntity = [];
-  final List<Function> onLevelUp = [];
-  final List<Function> onMove = [];
+  final List<Function()> onLevelUp = [];
+  final List<Function()> onMove = [];
   final List<Function(Weapon weapon)> onSpentAttack = [];
 
   bool finishPulseTimer = false;

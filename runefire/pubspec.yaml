@@ -64,7 +64,10 @@ flutter:
     - assets/images/background/
     - assets/images/background/runes/
     - assets/images/effects/
+    - assets/images/effects/damage_effects/
+    - assets/images/effects/status_effects/
     - assets/images/enemy_sprites/
+    - assets/images/enemy_sprites/ghostHand/
     - assets/images/enemy_sprites/mushroomBoomer/
     - assets/images/enemy_sprites/mushroomBurrower/
     - assets/images/enemy_sprites/mushroomHopper/
@@ -79,7 +82,6 @@ flutter:
     - assets/images/secondary_icons/
     - assets/images/sprites/
     - assets/images/sprites/runeknight/
-    - assets/images/status_effects/
     - assets/images/ui/
     - assets/images/ui/ammo/
     - assets/images/ui/permanent_attributes/

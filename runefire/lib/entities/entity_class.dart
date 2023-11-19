@@ -186,14 +186,15 @@ abstract class Entity extends BodyComponent<GameRouter>
   Future<void> loadAnimationSprites();
 
   void permanentlyDisableEntity() {}
-
+  bool finalAnimationDone = false;
   Future<void> setEntityAnimation(
     dynamic key, {
     bool finalAnimation = false,
   }) async {
     //If the new key is contained in the dupe status checker list, and the current animation is the same as the new key, return
-    if (entityAnimationsGroup.current == key &&
-        dupeStatusCheckerList.contains(key)) {
+    if ((entityAnimationsGroup.current == key &&
+            dupeStatusCheckerList.contains(key)) ||
+        finalAnimationDone) {
       return;
     }
     if (entityAnimationsGroup.animations?.containsKey(key) == false) {
@@ -213,6 +214,9 @@ abstract class Entity extends BodyComponent<GameRouter>
       entityAnimationsGroup.animationTicker?.reset();
       if (!finalAnimation) {
         entityAnimationsGroup.animationTicker?.onComplete = tickerComplete;
+      } else {
+        entityAnimationStatusQueue = null;
+        finalAnimationDone = true;
       }
     }
     if (temporaryAnimationPlaying) {
@@ -404,7 +408,7 @@ extension EntityClassGetterrs on Entity {
     if (isChildEntity) {
       return (this as ChildEntity).parentEntity.isStunned;
     }
-    return statusEffects.contains(StatusEffects.stun);
+    return statusEffects.contains(StatusEffects.frozen);
   }
 
   PlayerFunctionality get playerFunctionality =>

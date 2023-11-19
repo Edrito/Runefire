@@ -264,13 +264,16 @@ class _DamageTypeSelectorState extends State<DamageTypeSelector> {
                     ? damageType.color.darken(.7)
                     : damageType.color.darken(.3),
                 child: Center(
-                  child: Text(
-                    damageType.name.titleCase,
-                    style: defaultStyle.copyWith(
-                      fontSize: 18,
-                      color: hoveredDamageTypes[damageType] ?? false
-                          ? damageType.color.brighten(1)
-                          : damageType.color.brighten(.7),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      damageType.name.titleCase,
+                      style: defaultStyle.copyWith(
+                        fontSize: 24,
+                        color: hoveredDamageTypes[damageType] ?? false
+                            ? damageType.color.brighten(1)
+                            : damageType.color.brighten(.7),
+                      ),
                     ),
                   ),
                 ),

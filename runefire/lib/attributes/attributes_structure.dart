@@ -58,15 +58,11 @@ extension AttributeRarityExtension on AttributeRarity {
 ///Used to filter and categorize attributes for level selection
 enum AttributeCategory {
   mobility,
-  attack,
-  projectile,
-  melee,
   defence,
   offence,
   resistance,
   elemental,
   utility,
-  health
 }
 
 enum AttributeTerritory { permanent, game, temporary }
@@ -124,7 +120,7 @@ enum AttributeType {
   ///Game Attributes
   explosionOnKill(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.attack,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -137,6 +133,9 @@ enum AttributeType {
   gravityDash(
     rarity: AttributeRarity.rare,
     territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.psychic: .4,
+    },
   ),
 
   groundSlam(
@@ -150,7 +149,7 @@ enum AttributeType {
     territory: AttributeTerritory.game,
     attributeEligibilityTest: playerHasMeleeWeapon,
     elementalRequirement: {
-      DamageType.psychic: .25,
+      DamageType.psychic: .6,
     },
   ),
 
@@ -190,7 +189,7 @@ enum AttributeType {
   ),
   sentryRangedAttack(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.attack,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -201,7 +200,7 @@ enum AttributeType {
 
   sentryElementalFly(
     rarity: AttributeRarity.rare,
-    category: AttributeCategory.attack,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -292,6 +291,9 @@ enum AttributeType {
     rarity: AttributeRarity.uncommon,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.physical: .10,
+    },
   ),
 
   teleportDash(
@@ -306,6 +308,9 @@ enum AttributeType {
     rarity: AttributeRarity.unique,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.physical: 1,
+    },
   ),
 
   thorns(
@@ -361,20 +366,20 @@ enum AttributeType {
 
   sonicWave(
     rarity: AttributeRarity.rare,
-    category: AttributeCategory.melee,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   ///Projectile attacks
   daggerSwing(
     rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.projectile,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
   homingProjectiles(
     rarity: AttributeRarity.rare,
-    category: AttributeCategory.projectile,
+    category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
 
@@ -531,15 +536,25 @@ enum AttributeType {
     Player player,
     DamageType? damageType,
   ) {
-    if (damageType == null) return true;
+    //If no damage type, player has the requirment
+    if (damageType == null) {
+      return true;
+    }
     final playerElementalLevel = player.elementalPower[damageType];
+
+    //if the attribute does not have a requirment,
+    //the player cannot meet that requirement, so [false]
     if (_elementalRequirement == null ||
         _elementalRequirement![damageType] == null ||
         playerElementalLevel == null) {
       return false;
     }
 
-    return _elementalRequirement![damageType]! <= playerElementalLevel;
+    //If the player has enough power for the attribute, return [true]
+    //If the attribute has more than one elemental requirement,
+    //so the forced attributes can only be a single type, return [false]
+    return _elementalRequirement![damageType]! <= playerElementalLevel &&
+        _elementalRequirement!.length < 2;
   }
 
   bool isEligible(Player player) {
@@ -547,7 +562,9 @@ enum AttributeType {
       final playerElementalLevel = player.elementalPower;
       var elementalRequirementMet = true;
       for (final element in _elementalRequirement!.entries) {
+        //current player power level
         final playerEntry = playerElementalLevel[element.key];
+        //if player has no power or not enough power from previous loop, return [false]
         if (playerEntry == null || !elementalRequirementMet) {
           return false;
         } else {
@@ -645,7 +662,9 @@ extension AllAttributesExtension on AttributeType {
     double? duration,
   }) {
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);
-    if (permanentAttr != null) return permanentAttr;
+    if (permanentAttr != null) {
+      return permanentAttr;
+    }
 
     if (victimEntity == null) {
       throw Exception('Victim entity required for $this!');
@@ -654,7 +673,9 @@ extension AllAttributesExtension on AttributeType {
     final regularAttr =
         regularAttributeBuilder(this, level, victimEntity, damageType);
 
-    if (regularAttr != null) return regularAttr;
+    if (regularAttr != null) {
+      return regularAttr;
+    }
 
     if (perpetratorEntity == null) {
       throw Exception('Perpetrator entity required for $this!');
@@ -667,7 +688,9 @@ extension AllAttributesExtension on AttributeType {
       perpetratorEntity,
     );
 
-    if (perpetratorAttr != null) return perpetratorAttr;
+    if (perpetratorAttr != null) {
+      return perpetratorAttr;
+    }
 
     final statusEffectAttr = statusEffectBuilder(
       this,
@@ -678,7 +701,9 @@ extension AllAttributesExtension on AttributeType {
       duration: duration,
     );
 
-    if (statusEffectAttr != null) return statusEffectAttr;
+    if (statusEffectAttr != null) {
+      return statusEffectAttr;
+    }
 
     throw Exception('Attribute not found - $this');
   }
@@ -752,7 +777,9 @@ abstract class Attribute extends UpgradeFunctions {
       includeSecondaries,
       includeAdditionalPrimaries,
     );
-    if (weapons == null) return;
+    if (weapons == null) {
+      return;
+    }
 
     for (final element in weapons) {
       function(element);

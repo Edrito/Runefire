@@ -222,7 +222,7 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
   SpriteAnimation spriteAnimation;
 
   switch (statusEffect) {
-    case StatusEffects.stun:
+    case StatusEffects.frozen:
       spriteAnimation = await spriteAnimations.burnEffect1;
 
       break;
@@ -257,8 +257,8 @@ Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
 final defaultStyle = TextStyle(
   fontSize: !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? 21 : 45,
   fontFamily: 'Alagard',
-  // fontWeight: FontWeight.bold,
-
+  height: 1,
+  // wordSpacing: 50,
   color: colorPalette.secondaryColor,
   shadows: [
     colorPalette.buildShadow(ShadowStyle.light),

@@ -79,6 +79,15 @@ class Player extends Entity
       onDeath.add((instance) {
         gameEnviroment.hud.buildRemainingLives(this);
       });
+
+      onKillOtherEntity.add((instance) {
+        for (final element in instance.damageMap.entries) {
+          modifyElementalPower(
+            element.key,
+            (element.value.isFinite ? element.value : 100) / 50000,
+          );
+        }
+      });
       playerData.selectedPlayer.applyBaseCharacterStats(this);
       initAttributes(playerData.unlockedPermanentAttributes);
       onSpentAttack.add(updateRemainingAmmo);
@@ -109,13 +118,19 @@ class Player extends Entity
   final PlayerData playerData;
 
   @override
+  void levelUp() {
+    endPrimaryAttacking();
+    endSecondaryAttacking();
+    super.levelUp();
+  }
+
+  @override
   Future<void> die(
     DamageInstance damage, [
     EndGameState endGameState = EndGameState.playerDeath,
   ]) {
     invincible.setIncrease('wingame', true);
     disableInput.setIncrease('wingame', true);
-
     removeWeapons();
     return super.die(damage, endGameState);
   }
