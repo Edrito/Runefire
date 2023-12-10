@@ -238,7 +238,7 @@ extension CharacterTypeUnlockCost on CharacterType {
   }
 }
 
-enum GameLevel { hexedForest, dungeon, graveyard, menu }
+enum GameLevel { hexedForest, necromancersGraveyard, menu }
 
 enum GameDifficulty { quick, regular, hard, chaos }
 
@@ -336,9 +336,9 @@ extension GameLevelExtension on GameLevel {
     switch (this) {
       case GameLevel.hexedForest:
         return ApolloColorPalette.blue.color;
-      case GameLevel.dungeon:
-        return ApolloColorPalette.paleGray.color;
-      case GameLevel.graveyard:
+      // case GameLevel.dungeon:
+      //   return ApolloColorPalette.paleGray.color;
+      case GameLevel.necromancersGraveyard:
         return ApolloColorPalette.extraLightGray.color;
       default:
         return Colors.green;
@@ -352,12 +352,12 @@ extension GameLevelExtension on GameLevel {
     switch (this) {
       case GameLevel.hexedForest:
         return true;
-      case GameLevel.dungeon:
+      // case GameLevel.dungeon:
+      //   return playerData.gamesWon.keys
+      //       .any((element) => element.$1 == GameLevel.hexedForest);
+      case GameLevel.necromancersGraveyard:
         return playerData.gamesWon.keys
             .any((element) => element.$1 == GameLevel.hexedForest);
-      case GameLevel.graveyard:
-        return playerData.gamesWon.keys
-            .any((element) => element.$1 == GameLevel.dungeon);
       default:
         return false;
     }
@@ -367,9 +367,9 @@ extension GameLevelExtension on GameLevel {
     switch (this) {
       case GameLevel.hexedForest:
         return 'assets/images/background/hexed_forest_display.png';
-      case GameLevel.dungeon:
-        return 'assets/images/background/dungeon.png';
-      case GameLevel.graveyard:
+      // case GameLevel.dungeon:
+      //   return 'assets/images/background/dungeon.png';
+      case GameLevel.necromancersGraveyard:
         return 'assets/images/background/graveyard.jpg';
       default:
         return 'assets/images/background/hexed_forest_display.png';

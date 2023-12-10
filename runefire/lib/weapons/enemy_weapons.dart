@@ -1,24 +1,25 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../entities/entity_mixin.dart';
-import '../resources/enums.dart';
+import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/enums.dart';
 
 class BlankProjectileWeapon extends EnemyWeapon
     with ProjectileFunctionality, FullAutomatic {
   BlankProjectileWeapon(
-    int? newUpgradeLevel,
-    AimFunctionality? ancestor,
-  ) : super(newUpgradeLevel, ancestor) {
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
     baseDamage.damageBase[DamageType.frost] = (5, 8);
     attackTickRate.baseParameter = 2;
     attackCountIncrease.baseParameter = 0;
     projectileVelocity.baseParameter = 10;
-    projectileSize = .5;
+    projectileSize.baseParameter = .5;
   }
   @override
   WeaponType weaponType = WeaponType.blankProjectileWeapon;
@@ -35,7 +36,8 @@ class BlankProjectileWeapon extends EnemyWeapon
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-      PlayerAttachmentJointComponent parentJoint) async {
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
@@ -57,7 +59,9 @@ class BlankProjectileWeapon extends EnemyWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+
   @override
   late Vector2 pngSize = Vector2.all(8);
 

@@ -17,6 +17,7 @@ import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -42,7 +43,7 @@ class Icecicle extends PlayerWeapon
     attackTickRate.baseParameter = .35;
     pierce.baseParameter = 5;
     primaryDamageType = DamageType.frost;
-    projectileSize = .6;
+    projectileSize.baseParameter = .6;
   }
   @override
   WeaponType weaponType = WeaponType.icecicleMagic;
@@ -92,7 +93,8 @@ class Icecicle extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  double weaponScale = .5;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -323,7 +325,8 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   ];
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -346,7 +349,7 @@ class FireballMagic extends PlayerWeapon
     attackTickRate.baseParameter = 1;
     pierce.baseParameter = 0;
     primaryDamageType = DamageType.fire;
-    projectileSize = .7;
+    projectileSize.baseParameter = .7;
 
     onProjectileDeath.add((projectile) {
       final area = AreaEffect(
@@ -419,7 +422,8 @@ class FireballMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -447,7 +451,7 @@ class EnergyMagic extends PlayerWeapon
     pierce.baseParameter = 4;
     projectileVelocity.baseParameter = 5;
     primaryDamageType = DamageType.energy;
-    projectileSize = .065;
+    projectileSize.baseParameter = .065;
 
     attackOnRelease = false;
 
@@ -502,7 +506,8 @@ class EnergyMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -524,7 +529,7 @@ class PsychicMagic extends PlayerWeapon
     pierce.baseParameter = 5;
 
     primaryDamageType = DamageType.psychic;
-    projectileSize = 1.25;
+    projectileSize.baseParameter = 1.25;
   }
 
   @override
@@ -575,7 +580,8 @@ class PsychicMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 }
@@ -596,7 +602,7 @@ class MagicBlast extends PlayerWeapon
     pierce.baseParameter = 5;
 
     primaryDamageType = DamageType.magic;
-    projectileSize = 1.25;
+    projectileSize.baseParameter = 1.25;
 
     attackOnRelease = false;
     attackOnChargeComplete = true;
@@ -641,7 +647,8 @@ class MagicBlast extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -664,7 +671,7 @@ class MagicMissile extends PlayerWeapon
     attackTickRate.baseParameter = .5;
     pierce.baseParameter = 0;
     primaryDamageType = DamageType.psychic;
-    projectileSize = .2;
+    projectileSize.baseParameter = .2;
     maxHomingTargets.baseParameter = 1;
     increaseAttackCountWhenCharged = true;
     increaseWhenFullyCharged.baseParameter = 3;
@@ -708,7 +715,8 @@ class MagicMissile extends PlayerWeapon
   @override
   ProjectileType? projectileType = ProjectileType.paintBullet;
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 

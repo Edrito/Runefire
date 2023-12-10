@@ -25,7 +25,7 @@ import 'package:runefire/main.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
-import 'package:runefire/resources/constants/sprite_animations.dart';
+import 'package:runefire/resources/assets/sprite_animations.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/enums.dart';

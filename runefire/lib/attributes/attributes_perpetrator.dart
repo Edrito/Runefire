@@ -1,4 +1,4 @@
-import '../entities/entity_class.dart';
+import 'package:runefire/entities/entity_class.dart';
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -9,10 +9,14 @@ import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 
-import '../main.dart';
+import 'package:runefire/main.dart';
 
-PerpetratorAttribute? perpetratorAttributeBuilder(AttributeType type, int level,
-    AttributeFunctionality victimEntity, Entity perpetratorEntity) {
+PerpetratorAttribute? perpetratorAttributeBuilder(
+  AttributeType type,
+  int level,
+  AttributeFunctionality victimEntity,
+  Entity perpetratorEntity,
+) {
   switch (type) {
     // case AttributeType.burn:
     //   return FireDamageAttribute(
@@ -28,11 +32,12 @@ PerpetratorAttribute? perpetratorAttributeBuilder(AttributeType type, int level,
 
 ///Attribute sourced from another entitiy, for the purpose of damaging, status effects and such.
 abstract class PerpetratorAttribute extends Attribute {
-  PerpetratorAttribute(
-      {super.level,
-      super.victimEntity,
-      required this.perpetratorEntity,
-      super.damageType});
+  PerpetratorAttribute({
+    required this.perpetratorEntity,
+    super.level,
+    super.victimEntity,
+    super.damageType,
+  });
 
   Entity perpetratorEntity;
 }
@@ -65,8 +70,10 @@ mixin TemporaryAttribute on Attribute {
   }
 
   void applyTimer(bool removeTimer) {
-    if (victimEntity is! AttributeCallbackFunctionality) return;
-    final func = victimEntity as AttributeCallbackFunctionality;
+    if (victimEntity is! AttributeCallbackFunctionality) {
+      return;
+    }
+    final func = victimEntity! as AttributeCallbackFunctionality;
     resetTimer();
     if (removeTimer) {
       func.onUpdate.remove(incrementTimer);
@@ -93,17 +100,23 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   Future<void> onLoad() async {
     spriteComponent = SpriteComponent(
-        sprite: await Sprite.load(powerup.icon),
-        size: Vector2.all(size),
-        anchor: Anchor.center);
-    spriteComponent.add(MoveEffect.by(
+      sprite: await Sprite.load(powerup.icon),
+      size: Vector2.all(size),
+      anchor: Anchor.center,
+    );
+    spriteComponent.add(
+      MoveEffect.by(
         Vector2(0, .25),
-        InfiniteEffectController(EffectController(
-          duration: .5,
-          reverseDuration: .5,
-          curve: Curves.easeInOut,
-          reverseCurve: Curves.easeInOut,
-        ))));
+        InfiniteEffectController(
+          EffectController(
+            duration: .5,
+            reverseDuration: .5,
+            curve: Curves.easeInOut,
+            reverseCurve: Curves.easeInOut,
+          ),
+        ),
+      ),
+    );
     add(spriteComponent);
     return super.onLoad();
   }
@@ -139,19 +152,16 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
       ..maskBits = playerCategory
       ..categoryBits = powerupCategory;
 
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        restitution: 0,
-        friction: 0,
-        density: 0,
-        isSensor: true,
-        filter: powerupFilter);
+    final fixtureDef = FixtureDef(
+      shape,
+      userData: {'type': FixtureType.body, 'object': this},
+      isSensor: true,
+      filter: powerupFilter,
+    );
 
     final bodyDef = BodyDef(
       userData: this,
       position: originPosition,
-      type: BodyType.static,
-      bullet: false,
     );
 
     return world.createBody(bodyDef)..createFixture(fixtureDef);

@@ -188,7 +188,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   late Color weaponPrimaryColor =
       primaryDamageType?.color ?? baseDamage.damageBase.entries.first.key.color;
 
-  abstract double weaponScale;
+  abstract DoubleParameterManager weaponScale;
   WeaponStatus weaponStatus = WeaponStatus.idle;
   abstract WeaponType weaponType;
 

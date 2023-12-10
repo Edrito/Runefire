@@ -4,7 +4,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/game/area_effects.dart';
-import 'package:runefire/resources/constants/sprite_animations.dart';
+import 'package:runefire/resources/assets/sprite_animations.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/projectile_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';

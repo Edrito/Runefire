@@ -670,7 +670,8 @@ class MirrorOrbSentry extends ChildEntity
 
     final tempWeapon =
         newWeapon.weaponType.build(this, null, game, newWeapon.upgradeLevel);
-    tempWeapon.weaponScale = tempWeapon.weaponScale / 2;
+    tempWeapon.weaponScale.baseParameter =
+        tempWeapon.weaponScale.baseParameter / 2;
     // tempWeapon.tipOffset = tempWeapon.tipOffset / 2;
     tempWeapon.weaponAttachmentPoints.forEach((key, value) {
       value.weaponSpriteAnimation?.flashSize =

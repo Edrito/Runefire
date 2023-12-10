@@ -7,6 +7,7 @@ import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/melee_swing_manager.dart';
@@ -135,7 +136,8 @@ class PhaseDagger extends PlayerWeapon
   double distanceFromPlayer = 0;
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.dagger.size.asVector2;
 
@@ -273,7 +275,8 @@ class CrystalSword extends PlayerWeapon
   double distanceFromPlayer = 1;
 
   @override
-  double weaponScale = 2 / 3;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 2 / 3);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.crystalSword.size.asVector2;
 
@@ -427,7 +430,8 @@ class AethertideSpear extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponScale = .5;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.spear.size.asVector2;
 
@@ -583,7 +587,8 @@ class HolySword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponScale = .5;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.energySword.size.asVector2;
 
@@ -715,7 +720,8 @@ class FlameSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.fireSword.size.asVector2;
   @override
@@ -812,7 +818,8 @@ class LargeSword extends PlayerWeapon
   double distanceFromPlayer = .2;
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.largeSword.size.asVector2;
 
@@ -951,7 +958,8 @@ class FrostKatana extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.frostKatana.size.asVector2;
 
@@ -1103,7 +1111,8 @@ class SwordOfJustice extends PlayerWeapon
   double distanceFromPlayer = 0;
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.swordOfJustice.size.asVector2;
 

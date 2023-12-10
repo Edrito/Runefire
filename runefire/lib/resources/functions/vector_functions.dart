@@ -39,7 +39,7 @@ extension ScaledToDimensionVector2 on Vector2 {
           (entity?.enviroment.zoom ?? env?.zoom ?? 1) *
           (amount ??
                   ((entity?.height.doubleParameter ?? 3) *
-                      (weapon?.weaponScale ?? 1)))
+                      (weapon?.weaponScale.parameter ?? 1)))
               .clamp(.5, 20),
     );
   }

@@ -3,12 +3,12 @@ import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/input_priorities.dart';
 
-import '../entities/entity_class.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
-import '../entities/entity_mixin.dart';
-import '../resources/data_classes/base.dart';
-import '../resources/enums.dart';
-import 'attributes_mixin.dart';
+import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/data_classes/base.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/attributes/attributes_mixin.dart';
 
 StatusEffectAttribute? statusEffectBuilder(
   AttributeType type,
@@ -145,11 +145,12 @@ StatusEffectAttribute? statusEffectBuilder(
 }
 
 abstract class StatusEffectAttribute extends PerpetratorAttribute {
-  StatusEffectAttribute(
-      {super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity,
-      super.damageType}) {
+  StatusEffectAttribute({
+    required super.victimEntity,
+    required super.perpetratorEntity,
+    super.level,
+    super.damageType,
+  }) {
     statusEffectPotency = perpetratorEntity.statusEffectsPercentIncrease
             .statusEffectPercentIncrease[statusEffect] ??
         1;
@@ -160,11 +161,12 @@ abstract class StatusEffectAttribute extends PerpetratorAttribute {
 }
 
 class TemporaryFireDamage extends FireDamageAttribute with TemporaryAttribute {
-  TemporaryFireDamage(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity,
-      double? duration}) {
+  TemporaryFireDamage({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+    double? duration,
+  }) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
   }
@@ -174,10 +176,11 @@ class TemporaryFireDamage extends FireDamageAttribute with TemporaryAttribute {
 }
 
 class FireDamageAttribute extends StatusEffectAttribute {
-  FireDamageAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+  FireDamageAttribute({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+  });
 
   @override
   StatusEffects statusEffect = StatusEffects.burn;
@@ -189,14 +192,14 @@ class FireDamageAttribute extends StatusEffectAttribute {
   int? get maxLevel => null;
 
   @override
-  String title = "Fire Damage";
+  String title = 'Fire Damage';
 
   @override
   AttributeType get attributeType => AttributeType.burn;
 
   @override
   String description() {
-    return "";
+    return '';
   }
 
   double tickRate = .5;
@@ -208,22 +211,24 @@ class FireDamageAttribute extends StatusEffectAttribute {
 
   void fireDamage() {
     if (victimEntity is HealthFunctionality) {
-      final victimHealth = victimEntity as HealthFunctionality;
+      final victimHealth = victimEntity! as HealthFunctionality;
       victimHealth.hitCheck(
-          attributeId,
-          damageCalculations(
-              perpetratorEntity,
-              victimHealth,
-              {
-                DamageType.fire: (
-                  minDamage * upgradeLevel.toDouble(),
-                  (maxDamage * upgradeLevel.toDouble())
-                )
-              },
-              statusEffect: statusEffect,
-              sourceAttack: perpetratorEntity,
-              damageKind: DamageKind.dot),
-          false);
+        attributeId,
+        damageCalculations(
+          perpetratorEntity,
+          victimHealth,
+          {
+            DamageType.fire: (
+              minDamage * upgradeLevel.toDouble(),
+              (maxDamage * upgradeLevel.toDouble())
+            ),
+          },
+          statusEffect: statusEffect,
+          sourceAttack: perpetratorEntity,
+          damageKind: DamageKind.dot,
+        ),
+        false,
+      );
     }
   }
 
@@ -241,7 +246,7 @@ class FireDamageAttribute extends StatusEffectAttribute {
         .addStatusEffect(StatusEffects.burn, upgradeLevel);
 
     if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity as AttributeCallbackFunctionality;
+      final attr = victimEntity! as AttributeCallbackFunctionality;
       attr.onUpdate.add(tickCheck);
     }
   }
@@ -251,21 +256,22 @@ class FireDamageAttribute extends StatusEffectAttribute {
     victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.burn);
 
     if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity as AttributeCallbackFunctionality;
+      final attr = victimEntity! as AttributeCallbackFunctionality;
       attr.onUpdate.remove(tickCheck);
     }
   }
 
   @override
-  String icon = "powerups/power.png";
+  String icon = 'powerups/power.png';
 }
 
 class TemporaryFear extends FearAttribute with TemporaryAttribute {
-  TemporaryFear(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity,
-      double? duration}) {
+  TemporaryFear({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+    double? duration,
+  }) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
   }
@@ -275,10 +281,11 @@ class TemporaryFear extends FearAttribute with TemporaryAttribute {
 }
 
 class FearAttribute extends StatusEffectAttribute {
-  FearAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+  FearAttribute({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+  });
 
   @override
   StatusEffects statusEffect = StatusEffects.fear;
@@ -290,14 +297,14 @@ class FearAttribute extends StatusEffectAttribute {
   int? get maxLevel => null;
 
   @override
-  String title = "Fear";
+  String title = 'Fear';
 
   @override
   AttributeType get attributeType => AttributeType.fear;
 
   @override
   String description() {
-    return "";
+    return '';
   }
 
   double durationPassed = 0;
@@ -308,7 +315,7 @@ class FearAttribute extends StatusEffectAttribute {
         .addStatusEffect(StatusEffects.fear, upgradeLevel);
 
     if (victimEntity is MovementFunctionality) {
-      final move = victimEntity as MovementFunctionality;
+      final move = victimEntity! as MovementFunctionality;
       move.entitiesFeared[perpetratorEntity.entityId] = perpetratorEntity;
     }
   }
@@ -317,21 +324,22 @@ class FearAttribute extends StatusEffectAttribute {
   void unMapUpgrade() {
     victimEntity?.entityStatusWrapper.removeStatusEffect(StatusEffects.fear);
     if (victimEntity is MovementFunctionality) {
-      final move = victimEntity as MovementFunctionality;
+      final move = victimEntity! as MovementFunctionality;
       move.entitiesFeared.remove(perpetratorEntity.entityId);
     }
   }
 
   @override
-  String icon = "powerups/power.png";
+  String icon = 'powerups/power.png';
 }
 
 class TemporaryMark extends MarkAttribute with TemporaryAttribute {
-  TemporaryMark(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity,
-      double? duration}) {
+  TemporaryMark({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+    double? duration,
+  }) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
   }
@@ -341,10 +349,11 @@ class TemporaryMark extends MarkAttribute with TemporaryAttribute {
 }
 
 class MarkAttribute extends StatusEffectAttribute {
-  MarkAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+  MarkAttribute({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+  });
 
   @override
   bool increaseFromBaseParameter = false;
@@ -353,14 +362,14 @@ class MarkAttribute extends StatusEffectAttribute {
   int? get maxLevel => null;
 
   @override
-  String title = "Marked";
+  String title = 'Marked';
 
   @override
   AttributeType get attributeType => AttributeType.marked;
 
   @override
   String description() {
-    return "";
+    return '';
   }
 
   double durationPassed = 0;
@@ -370,7 +379,7 @@ class MarkAttribute extends StatusEffectAttribute {
     victimEntity?.entityStatusWrapper.addMarkedStatus();
 
     if (victimEntity is HealthFunctionality) {
-      final health = victimEntity as HealthFunctionality;
+      final health = victimEntity! as HealthFunctionality;
       health.isMarked.setIncrease(attributeId, true);
     }
   }
@@ -379,7 +388,7 @@ class MarkAttribute extends StatusEffectAttribute {
   void unMapUpgrade() {
     victimEntity?.entityStatusWrapper.removeMarked();
     if (victimEntity is HealthFunctionality) {
-      final health = victimEntity as HealthFunctionality;
+      final health = victimEntity! as HealthFunctionality;
       health.isMarked.setIncrease(attributeId, false);
     }
 
@@ -390,18 +399,19 @@ class MarkAttribute extends StatusEffectAttribute {
   }
 
   @override
-  String icon = "powerups/power.png";
+  String icon = 'powerups/power.png';
 
   @override
   StatusEffects statusEffect = StatusEffects.marked;
 }
 
 class TemporaryEmpowered extends EmpoweredAttribute with TemporaryAttribute {
-  TemporaryEmpowered(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity,
-      double? duration}) {
+  TemporaryEmpowered({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+    double? duration,
+  }) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
   }
@@ -411,10 +421,11 @@ class TemporaryEmpowered extends EmpoweredAttribute with TemporaryAttribute {
 }
 
 class EmpoweredAttribute extends StatusEffectAttribute {
-  EmpoweredAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+  EmpoweredAttribute({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+  });
 
   @override
   bool increaseFromBaseParameter = false;
@@ -423,14 +434,14 @@ class EmpoweredAttribute extends StatusEffectAttribute {
   int? get maxLevel => 1;
 
   @override
-  String title = "Empowered";
+  String title = 'Empowered';
 
   @override
   AttributeType get attributeType => AttributeType.empowered;
 
   @override
   String description() {
-    return "";
+    return '';
   }
 
   bool onHitOtherEntity(DamageInstance instance) {
@@ -443,8 +454,10 @@ class EmpoweredAttribute extends StatusEffectAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) return;
-    final attr = victimEntity as AttributeCallbackFunctionality;
+    if (victimEntity is! AttributeCallbackFunctionality) {
+      return;
+    }
+    final attr = victimEntity! as AttributeCallbackFunctionality;
     victimEntity?.entityStatusWrapper
         .addStatusEffect(StatusEffects.empowered, upgradeLevel);
     attr.onHitOtherEntity.add(onHitOtherEntity);
@@ -452,26 +465,29 @@ class EmpoweredAttribute extends StatusEffectAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) return;
-    final attr = victimEntity as AttributeCallbackFunctionality;
+    if (victimEntity is! AttributeCallbackFunctionality) {
+      return;
+    }
+    final attr = victimEntity! as AttributeCallbackFunctionality;
     victimEntity?.entityStatusWrapper
         .removeStatusEffect(StatusEffects.empowered);
     attr.onHitOtherEntity.remove(onHitOtherEntity);
   }
 
   @override
-  String icon = "powerups/power.png";
+  String icon = 'powerups/power.png';
 
   @override
   StatusEffects statusEffect = StatusEffects.empowered;
 }
 
 class TemporaryStun extends StunAttribute with TemporaryAttribute {
-  TemporaryStun(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity,
-      double? duration}) {
+  TemporaryStun({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+    double? duration,
+  }) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
   }
@@ -481,10 +497,11 @@ class TemporaryStun extends StunAttribute with TemporaryAttribute {
 }
 
 class StunAttribute extends StatusEffectAttribute {
-  StunAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+  StunAttribute({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+  });
 
   @override
   bool increaseFromBaseParameter = false;
@@ -493,27 +510,27 @@ class StunAttribute extends StatusEffectAttribute {
   int? get maxLevel => 1;
 
   @override
-  String title = "Stunned";
+  String title = 'Stunned';
 
   @override
   AttributeType get attributeType => AttributeType.stun;
 
   @override
   String description() {
-    return "";
+    return '';
   }
 
   @override
   void mapUpgrade() {
     if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity as AttributeCallbackFunctionality;
+      final attr = victimEntity! as AttributeCallbackFunctionality;
       victimEntity?.entityStatusWrapper
           .addStatusEffect(StatusEffects.frozen, upgradeLevel);
       attr.enableMovement.setIncrease(attributeId, false);
-      attr.enableMovement.setIncrease("${attributeId}2", false);
+      attr.enableMovement.setIncrease('${attributeId}2', false);
     }
     if (victimEntity is AttackFunctionality) {
-      final attack = victimEntity as AttackFunctionality;
+      final attack = victimEntity! as AttackFunctionality;
       attack.endPrimaryAttacking();
       attack.endSecondaryAttacking();
     }
@@ -522,27 +539,28 @@ class StunAttribute extends StatusEffectAttribute {
   @override
   void unMapUpgrade() {
     if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity as AttributeCallbackFunctionality;
+      final attr = victimEntity! as AttributeCallbackFunctionality;
       victimEntity?.entityStatusWrapper
           .removeStatusEffect(StatusEffects.frozen);
       attr.enableMovement.removeKey(attributeId);
-      attr.enableMovement.removeKey("${attributeId}2");
+      attr.enableMovement.removeKey('${attributeId}2');
     }
   }
 
   @override
-  String icon = "powerups/power.png";
+  String icon = 'powerups/power.png';
 
   @override
   StatusEffects statusEffect = StatusEffects.frozen;
 }
 
 class TemporaryPsychic extends PsychicAttribute with TemporaryAttribute {
-  TemporaryPsychic(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity,
-      double? duration}) {
+  TemporaryPsychic({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+    double? duration,
+  }) {
     this.duration = duration ?? this.duration;
     this.duration *= perpetratorEntity.durationPercentIncrease.parameter;
   }
@@ -552,10 +570,11 @@ class TemporaryPsychic extends PsychicAttribute with TemporaryAttribute {
 }
 
 class PsychicAttribute extends StatusEffectAttribute {
-  PsychicAttribute(
-      {required super.level,
-      required super.victimEntity,
-      required super.perpetratorEntity});
+  PsychicAttribute({
+    required super.level,
+    required super.victimEntity,
+    required super.perpetratorEntity,
+  });
 
   @override
   StatusEffects statusEffect = StatusEffects.confused;
@@ -567,14 +586,14 @@ class PsychicAttribute extends StatusEffectAttribute {
   int? get maxLevel => null;
 
   @override
-  String title = "Psychic";
+  String title = 'Psychic';
 
   @override
   AttributeType get attributeType => AttributeType.psychic;
 
   @override
   String description() {
-    return "";
+    return '';
   }
 
   double durationPassed = 0;
@@ -584,7 +603,7 @@ class PsychicAttribute extends StatusEffectAttribute {
   @override
   void action() {
     if (victimEntity is MovementFunctionality) {
-      final move = victimEntity as MovementFunctionality;
+      final move = victimEntity! as MovementFunctionality;
       move.addMoveVelocity(Vector2.random(), attributeInputPriority);
     }
   }
@@ -596,9 +615,7 @@ class PsychicAttribute extends StatusEffectAttribute {
     confusionTimer = TimerComponent(
       period: 1.5,
       repeat: true,
-      onTick: () {
-        action();
-      },
+      onTick: action,
     )..addToParent(victimEntity!);
     action();
   }
@@ -611,11 +628,11 @@ class PsychicAttribute extends StatusEffectAttribute {
     confusionTimer?.timer.stop();
     confusionTimer = null;
     if (victimEntity is MovementFunctionality) {
-      final move = victimEntity as MovementFunctionality;
+      final move = victimEntity! as MovementFunctionality;
       move.removeMoveVelocity(attributeInputPriority);
     }
   }
 
   @override
-  String icon = "powerups/power.png";
+  String icon = 'powerups/power.png';
 }

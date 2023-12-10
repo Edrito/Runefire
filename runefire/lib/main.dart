@@ -21,7 +21,7 @@ import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/resources/assets/assets.dart';
-import 'package:runefire/resources/constants/sprite_animations.dart';
+import 'package:runefire/resources/assets/sprite_animations.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/enums.dart';

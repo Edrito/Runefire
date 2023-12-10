@@ -6,6 +6,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/widgets.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
@@ -31,7 +32,7 @@ class CrystalPistol extends PlayerWeapon
     attackTickRate.baseParameter = .3;
     maxHomingTargets.baseParameter = 1;
     pierce.baseParameter = 2;
-    projectileSize = .75;
+    projectileSize.baseParameter = .75;
   }
 
   @override
@@ -76,7 +77,8 @@ class CrystalPistol extends PlayerWeapon
   }
 
   @override
-  double weaponScale = .75;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .75);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.pistol.size.asVector2;
   @override
@@ -93,7 +95,7 @@ class Shotgun extends PlayerWeapon
     maxAttacks.baseParameter = 5;
     attackTickRate.baseParameter = .8;
     attackCountIncrease.baseParameter = 4;
-    projectileSize = 1.2;
+    projectileSize.baseParameter = 1.2;
 
     increaseCloseDamage.baseParameter = true;
     closeDamageIncreaseDistanceCutoff = 6;
@@ -145,7 +147,8 @@ class Shotgun extends PlayerWeapon
   ];
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.scatterVine.size.asVector2;
 
@@ -212,7 +215,8 @@ class LongRangeRifle extends PlayerWeapon
     WeaponSpritePosition.hand,
   ];
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.longRifle.size.asVector2;
 
@@ -241,7 +245,7 @@ class ArcaneBlaster extends PlayerWeapon
     attackCountIncrease.baseParameter = 1;
     weaponRandomnessPercent.baseParameter = .025;
     projectileVelocity.baseParameter = 20;
-    projectileSize = .5;
+    projectileSize.baseParameter = .5;
     customChargeDuration = 1.5;
   }
   @override
@@ -287,7 +291,8 @@ class ArcaneBlaster extends PlayerWeapon
   ];
 
   @override
-  double weaponScale = .5;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
   @override
@@ -367,7 +372,8 @@ class LaserRifle extends PlayerWeapon
     WeaponSpritePosition.hand,
   ];
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.prismaticBeam.size.asVector2;
 
@@ -427,7 +433,8 @@ class RocketLauncher extends PlayerWeapon
   ];
 
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.eldritchRunner.size.asVector2;
 
@@ -497,7 +504,8 @@ class Railspire extends PlayerWeapon
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
   @override
-  double weaponScale = 1;
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.railspire.size.asVector2;
 }

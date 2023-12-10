@@ -447,12 +447,13 @@ mixin ProjectileFunctionality on Weapon {
   double farDamageIncreaseDistanceBegin = 20;
   double farDamageIncreaseDistanceCutoff = 30;
   double particleLifespan = .5;
-  double projectileSize = .3;
+  DoubleParameterManager projectileSize =
+      DoubleParameterManager(baseParameter: .3);
   //META
   abstract ProjectileType? projectileType;
 
   Projectile buildProjectile(Vector2 delta, double chargeAmount) {
-    var newSize = projectileSize;
+    var newSize = projectileSize.parameter;
 
     if (this is SemiAutomatic &&
         (this as SemiAutomatic).increaseSizeWhenCharged) {
