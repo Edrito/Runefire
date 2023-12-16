@@ -636,8 +636,7 @@ bool combinePulseTest(Player player) {
 }
 
 bool playerHasMeleeWeapon(Player player) {
-  return player.carriedWeapons.entries
-      .any((element) => element.value is MeleeFunctionality);
+  return player.carriedWeapons.any((element) => element is MeleeFunctionality);
 }
 
 bool playerHasProjectileWeapon(Player player) {
@@ -760,7 +759,7 @@ abstract class Attribute extends UpgradeFunctions {
   AttributeTerritory get attributeTerritory => attributeType.territory;
 
   String description() {
-    final percent = ((factor ?? 0) * 100).abs().round();
+    final percent = ((upgradeFactor ?? 0) * 100).abs().round();
 
     final current = '${upgradeLevel * percent}%';
     final next = '${(upgradeLevel + 1) * percent}%';
@@ -787,13 +786,12 @@ abstract class Attribute extends UpgradeFunctions {
   }
 
   String help() {
-    return 'An increase of ${(factor ?? 0) * 100}% of your base attribute with an additional ${(factor ?? 0) * 100}% at max level.';
+    return 'An increase of ${(upgradeFactor ?? 0) * 100}% of your base attribute with an additional ${(upgradeFactor ?? 0) * 100}% at max level.';
   }
 
   late String attributeId;
   abstract String icon;
   abstract String title;
-  double? factor;
   abstract bool increaseFromBaseParameter;
   AttributeFunctionality? victimEntity;
 
@@ -801,21 +799,6 @@ abstract class Attribute extends UpgradeFunctions {
 
   @override
   int? maxLevel = 5;
-
-  double increase(bool increaseFromBaseParameter, [double? base]) =>
-      increaseFromBaseParameter
-          ? increasePercentOfBase(base!)
-          : increaseWithoutBase();
-
-  ///Default increase is multiplying the baseParameter by [factor]%
-  ///then multiplying it again by the level of the attribute
-  ///with an additional level for max level
-  double increasePercentOfBase(double base) =>
-      ((factor ?? 0) * base) *
-      (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
-
-  double increaseWithoutBase() =>
-      (factor ?? 0) * (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
 
   AttributeType get attributeType;
 
@@ -835,7 +818,7 @@ abstract class Attribute extends UpgradeFunctions {
             increase(
               increaseFromBaseParameter,
               parameterManager.baseParameter,
-            ),
+            ).toDouble(),
           );
         } else {
           (parameterManager as DoubleParameterManager).setParameterFlatValue(
@@ -843,7 +826,7 @@ abstract class Attribute extends UpgradeFunctions {
             increase(
               increaseFromBaseParameter,
               parameterManager.baseParameter,
-            ),
+            ).toDouble(),
           );
         }
         break;
@@ -854,7 +837,7 @@ abstract class Attribute extends UpgradeFunctions {
             increase(
               increaseFromBaseParameter,
               parameterManager.baseParameter.toDouble(),
-            ),
+            ).toDouble(),
           );
         } else {
           (parameterManager as IntParameterManager).setParameterFlatValue(
@@ -873,7 +856,7 @@ abstract class Attribute extends UpgradeFunctions {
         break;
       case StatusEffectPercentParameterManager:
         (parameterManager as StatusEffectPercentParameterManager)
-            .increaseAllPercent(attributeId, increase(false));
+            .increaseAllPercent(attributeId, increase(false).toDouble());
 
         break;
 
@@ -881,7 +864,7 @@ abstract class Attribute extends UpgradeFunctions {
         (parameterManager as DamagePercentParameterManager)
             .setDamagePercentIncrease(
           attributeId,
-          {damageType!: increase(false)},
+          {damageType!: increase(false).toDouble()},
         );
 
         break;

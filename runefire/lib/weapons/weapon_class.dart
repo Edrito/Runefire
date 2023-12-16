@@ -59,6 +59,7 @@ class PlayerAttachmentJointComponent extends PositionComponent
       if (jointPosition == WeaponSpritePosition.hand) {
         weaponSpriteAnimation?.position.y += weapon!.distanceFromPlayer;
       }
+
       // weaponTip = PositionComponent(
       //     anchor: Anchor.center, position: weaponSpriteAnimation!.tipOffset);
       // weaponTipCenter = PositionComponent(
@@ -107,12 +108,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
     weaponId = const Uuid().v4();
   }
 
-  abstract Vector2 pngSize;
-
-  late double weaponLength = entityAncestor == null
-      ? 0
-      : (pngSize.clone()..scaledToHeight(entityAncestor, weapon: this)).y;
-
   final DoubleParameterManager attackTickRate =
       DoubleParameterManager(baseParameter: 1, minParameter: 0.01);
 
@@ -124,9 +119,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   final BoolParameterManager countIncreaseWithTime =
       BoolParameterManager(baseParameter: false);
-
-  final BoolParameterManager reverseHoming =
-      BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
 
   final DoubleParameterManager critChance = DoubleParameterManager(
     baseParameter: 0.05,
@@ -141,6 +133,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
       DoubleParameterManager(baseParameter: 0.005);
 
   final IntParameterManager pierce = IntParameterManager(baseParameter: 0);
+  final BoolParameterManager reverseHoming =
+      BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
+
   final DoubleParameterManager weaponRandomnessPercent = DoubleParameterManager(
     baseParameter: 0,
     minParameter: 0,
@@ -154,12 +149,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
   ///Weapon is the weapon itself, preferably the weapon should not have reloadfunctionality
   final Map<String, Weapon> additionalWeapons = {};
 
-  //META INFORMATION
-  bool attackOnAnimationFinish = false;
-
   //WEAPON ATTRIBUTES
   final IntParameterManager attackCountIncrease =
       IntParameterManager(baseParameter: 0);
+
+  //META INFORMATION
+  bool attackOnAnimationFinish = false;
 
   Map<AttackSpreadType, AttackSplitFunction> attackSplitFunctions = {
     AttackSpreadType.base: (double angle, int attackCount) => [angle],
@@ -172,15 +167,13 @@ abstract class Weapon extends Component with UpgradeFunctions {
   bool isAttacking = false;
   bool isSecondaryWeapon = false;
   IntParameterManager maxHomingTargets = IntParameterManager(baseParameter: 0);
+  abstract Vector2 pngSize;
   bool removeSpriteOnAttack = false;
   Random rng = Random();
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
 
   bool spritesHidden = false;
-
-  Vector2 get tipOffset => Vector2(.5, 1);
-
   Map<WeaponSpritePosition, PlayerAttachmentJointComponent>
       weaponAttachmentPoints = {};
 
@@ -234,17 +227,17 @@ abstract class Weapon extends Component with UpgradeFunctions {
       this is ReloadFunctionality &&
       (this as ReloadFunctionality).reloadTimer != null;
 
+  Vector2 get tipOffset => Vector2(pngSize.x / 2, pngSize.y * .9)
+    ..scaledToHeight(
+      entityAncestor,
+      weapon: this,
+    );
+
   bool get weaponCanChain => chainingTargets.parameter > 0;
   bool get weaponCanHome => maxHomingTargets.parameter > 0;
-  Vector2 weaponTipPosition(double percent, {bool distanceFromPlayer = false}) {
-    return newPositionRad(
-      entityAncestor!.handJoint.absolutePosition,
-      -entityAncestor!.handJoint.angle,
-      distanceFromPlayer
-          ? this.distanceFromPlayer
-          : (tipOffset.y * weaponLength * percent) + this.distanceFromPlayer,
-    );
-  }
+  double get weaponLength => entityAncestor == null
+      ? 0
+      : (pngSize.clone()..scaledToHeight(entityAncestor, weapon: this)).y;
 
   void addAdditionalWeapon(Weapon newWeapon) {
     additionalWeapons[newWeapon.weaponId] = newWeapon;
@@ -377,7 +370,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
     if (!removeSpriteOnAttack || isAdditionalWeapon) {
       return;
     }
-
     if (attacksAreActive && !spritesHidden) {
       entityAncestor?.backJoint?.weaponSpriteAnimation?.opacity = 0;
       entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
@@ -419,6 +411,16 @@ abstract class Weapon extends Component with UpgradeFunctions {
     setWeaponStatus(WeaponStatus.spawn);
   }
 
+  Vector2 weaponTipPosition(double percent, {bool distanceFromPlayer = false}) {
+    return newPositionRad(
+      entityAncestor!.handJoint.absolutePosition,
+      -entityAncestor!.handJoint.angle,
+      distanceFromPlayer
+          ? this.distanceFromPlayer
+          : (tipOffset.y * percent) + this.distanceFromPlayer,
+    );
+  }
+
   @override
   FutureOr<void> onLoad() async {
     while (chainingTargets.parameter > pierce.parameter) {
@@ -442,9 +444,6 @@ abstract class PlayerWeapon extends Weapon
 
     super.standardAttack(holdDurationPercent, callFunctions);
   }
-
-  @override
-  late int? maxLevel;
 }
 
 abstract class EnemyWeapon extends Weapon
@@ -466,7 +465,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     required this.weaponAnimations,
     required this.weapon,
     required this.parentJoint,
-    this.flashSize = 2.0,
+    this.flashSize = 1,
     this.idleOnly = false,
   }) {
     animations = weaponAnimations;
@@ -484,7 +483,6 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
   Vector2 spriteOffset;
   bool tempAnimationPlaying = false;
   late Vector2 tipOffset = weapon.tipOffset;
-
   Weapon weapon;
   Map<dynamic, SpriteAnimation> weaponAnimations;
 
@@ -509,14 +507,19 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     final muzzleFlash = weaponAnimations['muzzle_flash']!;
     muzzleFlashComponent = SpriteAnimationComponent(
       animation: muzzleFlash,
-      position: Vector2(width * tipOffset.x, tipOffset.y * weapon.weaponLength),
-      size: muzzleFlash.frames.first.sprite.srcSize
-          .scaled(flashSize / muzzleFlash.frames.first.sprite.srcSize.y),
+      position: weapon.tipOffset,
+      size: (muzzleFlash.frames.first.sprite.srcSize
+            ..scaledToHeight(
+              weapon.entityAncestor,
+              weapon: weapon,
+            )) *
+          flashSize,
       anchor: Anchor.topCenter,
+      // angle: weapon.entityAncestor!.handJoint.angle,
       priority: attackPriority,
     );
 
-    add(muzzleFlashComponent!);
+    addAll([muzzleFlashComponent!]);
 
     final previousComponent = muzzleFlashComponent;
 
@@ -534,7 +537,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
       return;
     }
     current = key;
-    resize(animation!.frames.first.sprite.srcSize);
+    resize();
   }
 
   void initTicker() {
@@ -542,8 +545,9 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     animationTicker?.onComplete = tickerComplete;
   }
 
-  void resize(Vector2 sourceSize) {
-    final tempSize = sourceSize;
+  void resize([Vector2? sourceSize]) {
+    final tempSize =
+        sourceSize ?? animation?.frames.first.sprite.srcSize ?? weapon.pngSize;
     tempSize.scaledToHeight(weapon.entityAncestor, weapon: weapon);
     size.setFrom(tempSize);
   }

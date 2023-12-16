@@ -32,9 +32,10 @@ class HintOverlayWidget extends StatelessWidget {
   const HintOverlayWidget(
     this.message, {
     super.key,
+    this.alignment,
   });
   final OverlayMessage message;
-
+  final CrossAxisAlignment? alignment;
   @override
   Widget build(BuildContext context) {
     final hudScaleIncrease = GameState().systemData.hudScale.scale;
@@ -62,12 +63,24 @@ class HintOverlayWidget extends StatelessWidget {
                   width: 24 * hudScaleIncrease,
                 ),
               ),
-            Text(
-              message.text,
-              style: defaultStyle.copyWith(
-                fontSize: 16 * hudScaleIncrease,
-              ),
-              textAlign: TextAlign.center,
+            Column(
+              crossAxisAlignment: alignment ?? CrossAxisAlignment.center,
+              children: [
+                Text(
+                  message.title,
+                  style: defaultStyle.copyWith(
+                    fontSize: 16 * hudScaleIncrease,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  message.description,
+                  style: defaultStyle.copyWith(
+                    fontSize: 12 * hudScaleIncrease,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ],
         ),
@@ -176,9 +189,10 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> mainMenu =
     MapEntry('MainMenu', (context, gameRouter) {
   return ComponentsNotifierBuilder<GameStateComponent>(
     notifier: gameRouter.componentsNotifier<GameStateComponent>(),
-    builder: (context, notifier) =>
-        notifier.single?.gameState.currentMenuPage.buildPage(gameRouter) ??
-        const SizedBox(),
+    builder: (context, notifier) {
+      return notifier.single?.gameState.currentMenuPage.buildPage(gameRouter) ??
+          const SizedBox();
+    },
   );
 });
 

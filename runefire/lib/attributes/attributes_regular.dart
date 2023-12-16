@@ -279,7 +279,7 @@ class ExplosionOnKillAttribute extends Attribute {
   AttributeType attributeType = AttributeType.explosionOnKill;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -305,8 +305,8 @@ class ExplosionOnKillAttribute extends Attribute {
       duration: victimEntity!.durationPercentIncrease.parameter,
       damage: {
         damageType ?? allowedDamageTypes.first: (
-          increase(true, 5),
-          increase(true, 10)
+          increase(true, 5).toDouble(),
+          increase(true, 10).toDouble()
         ),
       },
     );
@@ -354,7 +354,7 @@ class ExplosiveDashAttribute extends Attribute {
   AttributeType attributeType = AttributeType.explosiveDash;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -381,8 +381,8 @@ class ExplosiveDashAttribute extends Attribute {
       duration: victimEntity!.durationPercentIncrease.parameter,
       damage: {
         damageType ?? allowedDamageTypes.first: (
-          increase(true, 5),
-          increase(true, 10)
+          increase(true, 5).toDouble(),
+          increase(true, 10).toDouble()
         ),
       },
     );
@@ -430,7 +430,7 @@ class GravityDashAttribute extends Attribute {
   AttributeType attributeType = AttributeType.gravityDash;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -501,7 +501,7 @@ class GroundSlamAttribute extends Attribute {
   AttributeType attributeType = AttributeType.groundSlam;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -527,8 +527,8 @@ class GroundSlamAttribute extends Attribute {
       duration: victimEntity!.durationPercentIncrease.parameter,
       damage: {
         damageType ?? allowedDamageTypes.first: (
-          increase(true, 5),
-          increase(true, 10)
+          increase(true, 5).toDouble(),
+          increase(true, 10).toDouble()
         ),
       },
     );
@@ -576,7 +576,7 @@ class PsychicReachAttribute extends Attribute {
   AttributeType attributeType = AttributeType.psychicReach;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -587,7 +587,7 @@ class PsychicReachAttribute extends Attribute {
   @override
   int get maxLevel => 1;
 
-  Map<int, SourceAttackLocation?> previousLocations = {};
+  List<SourceAttackLocation?> previousLocations = [];
 
   @override
   void mapUpgrade() {
@@ -596,13 +596,14 @@ class PsychicReachAttribute extends Attribute {
     }
     final att = victimEntity! as AttackFunctionality;
 
-    for (final element in att.carriedWeapons.entries
-        .where((element) => element.value is MeleeFunctionality)) {
-      final weapon = element.value;
-      previousLocations[element.key] = weapon.sourceAttackLocation;
+    for (final element in att.carriedWeapons.whereType<MeleeFunctionality>()) {
+      final weapon = element;
+      previousLocations.add(weapon.sourceAttackLocation);
       weapon.sourceAttackLocation = SourceAttackLocation.mouse;
       if (weapon is StaminaCostFunctionality) {
-        weapon.weaponStaminaCost.setParameterPercentValue(attributeId, 1);
+        (weapon as StaminaCostFunctionality)
+            .weaponStaminaCost
+            .setParameterPercentValue(attributeId, 1);
       }
     }
   }
@@ -613,12 +614,14 @@ class PsychicReachAttribute extends Attribute {
       return;
     }
     final att = victimEntity! as AttackFunctionality;
-    for (final element in att.carriedWeapons.entries
-        .where((element) => element.value is MeleeFunctionality)) {
-      final weapon = element.value;
-      weapon.sourceAttackLocation = previousLocations[element.key];
+    var i = 0;
+    for (final element in att.carriedWeapons.whereType<MeleeFunctionality>()) {
+      final weapon = element;
+      weapon.sourceAttackLocation = previousLocations[i++];
       if (weapon is StaminaCostFunctionality) {
-        weapon.weaponStaminaCost.removeKey(attributeId);
+        (weapon as StaminaCostFunctionality)
+            .weaponStaminaCost
+            .removeKey(attributeId);
       }
     }
   }
@@ -646,7 +649,7 @@ class PeriodicPushAttribute extends Attribute {
   AttributeType attributeType = AttributeType.periodicPush;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -728,7 +731,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
   AttributeType attributeType = AttributeType.periodicMagicPulse;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -753,7 +756,12 @@ class PeriodicMagicPulseAttribute extends Attribute {
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
-      damage: {DamageType.magic: (increase(true, 5), increase(true, 10))},
+      damage: {
+        DamageType.magic: (
+          increase(true, 5).toDouble(),
+          increase(true, 10).toDouble()
+        ),
+      },
     );
     victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
@@ -800,7 +808,7 @@ class PeriodicStunAttribute extends Attribute {
   AttributeType attributeType = AttributeType.periodicStun;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -881,7 +889,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
   AttributeType attributeType = AttributeType.combinePeriodicPulse;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -909,7 +917,12 @@ class CombinePeriodicPulseAttribute extends Attribute {
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
-      damage: {DamageType.magic: (increase(true, 5), increase(true, 10))},
+      damage: {
+        DamageType.magic: (
+          increase(true, 5).toDouble(),
+          increase(true, 10).toDouble()
+        ),
+      },
       onTick: (entity, areaId) {
         if (entity is AttributeFunctionality) {
           entity.addAttribute(
@@ -921,7 +934,8 @@ class CombinePeriodicPulseAttribute extends Attribute {
         }
         final increaseRes = increase(true, 3);
         entity.body.applyForce(
-          (entity.center - playerPos).normalized() * (3 + increaseRes),
+          (entity.center - playerPos).normalized() *
+              (3 + increaseRes).toDouble(),
         );
       },
     );
@@ -987,7 +1001,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   AttributeType attributeType = AttributeType.increaseXpGrabRadius;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1048,7 +1062,7 @@ class MarkSentryAttribute extends Attribute {
   AttributeType attributeType = AttributeType.sentryMarkEnemy;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1120,7 +1134,7 @@ class RangedAttackSentryAttribute extends Attribute {
   AttributeType attributeType = AttributeType.sentryRangedAttack;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1193,7 +1207,7 @@ class GrabItemsSentryAttribute extends Attribute {
   AttributeType attributeType = AttributeType.sentryGrabItems;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1265,7 +1279,7 @@ class ElementalSentryAttribute extends Attribute {
   AttributeType attributeType = AttributeType.sentryElementalFly;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1338,7 +1352,7 @@ class CaptureBulletSentryAttribute extends Attribute {
   AttributeType attributeType = AttributeType.sentryCaptureBullet;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1403,7 +1417,7 @@ class MirrorOrbAttribute extends Attribute {
   AttributeType attributeType = AttributeType.mirrorOrb;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1470,7 +1484,7 @@ class ShieldSentryAttribute extends Attribute {
   AttributeType attributeType = AttributeType.shieldSurround;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1537,7 +1551,7 @@ class SwordSentryAttribute extends Attribute {
   AttributeType attributeType = AttributeType.swordSurround;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1607,7 +1621,7 @@ class ReverseKnockbackAttribute extends Attribute {
   AttributeType attributeType = AttributeType.reverseKnockback;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1651,7 +1665,7 @@ class ProjectileSplitExplodeAttribute extends Attribute {
   AttributeType attributeType = AttributeType.projectileSplitExplode;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1828,7 +1842,7 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
   AttributeType attributeType = AttributeType.dodgeStandStillIncrease;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1873,7 +1887,7 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
   AttributeType attributeType = AttributeType.defenceStandStillIncrease;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -1920,7 +1934,7 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   AttributeType attributeType = AttributeType.damageStandStillIncrease;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -2007,7 +2021,7 @@ class DashSpeedDistanceAttribute extends Attribute {
   AttributeType attributeType = AttributeType.dashSpeedDistance;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -2060,7 +2074,7 @@ class DashAttackEmpowerAttribute extends Attribute {
   AttributeType attributeType = AttributeType.dashAttackEmpower;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -2114,7 +2128,7 @@ class TeleportDashAttribute extends Attribute {
   AttributeType attributeType = AttributeType.teleportDash;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -2188,11 +2202,11 @@ class WeaponMergeAttribute extends Attribute {
     }
 
     attackEntity.carriedWeapons.removeWhere(
-      (key, value) =>
+      (value) =>
           movedWeapons.any((element) => element.weaponId == value.weaponId),
     );
 
-    attackEntity.setWeapon(currentWeapon);
+    attackEntity.swapWeapon(currentWeapon);
   }
 
   @override
@@ -2207,9 +2221,9 @@ class WeaponMergeAttribute extends Attribute {
       return;
     }
 
-    attack.carriedWeapons.addAll([currentWeapon, ...movedWeapons].asMap());
+    attack.carriedWeapons.addAll([currentWeapon, ...movedWeapons]);
 
-    attack.setWeapon(attack.currentWeapon!);
+    attack.swapWeapon(attack.currentWeapon);
 
     currentWeapon.additionalWeapons.removeWhere(
       (key, value) =>
@@ -3755,7 +3769,7 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
   AttributeType attributeType = AttributeType.reduceHealthIncreaseLifeSteal;
 
   @override
-  double get factor => .035;
+  double get upgradeFactor => .035;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -3772,7 +3786,7 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
     }
 
     victimEntity?.essenceSteal
-        .setParameterPercentValue(attributeId, increase(false));
+        .setParameterPercentValue(attributeId, increase(false).toDouble());
   }
 
   @override
@@ -3804,7 +3818,7 @@ class StaminaStealAttribute extends Attribute {
   AttributeType attributeType = AttributeType.staminaSteal;
 
   @override
-  double get factor => .035;
+  double get upgradeFactor => .035;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -3841,7 +3855,7 @@ class SplitDamageAttribute extends Attribute {
   AttributeType attributeType = AttributeType.splitDamage;
 
   @override
-  double get factor => .035;
+  double get upgradeFactor => .035;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -3904,7 +3918,7 @@ class RollTheDiceAttribute extends Attribute {
   AttributeType attributeType = AttributeType.rollTheDice;
 
   @override
-  double get factor => .035;
+  double get upgradeFactor => .035;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -3946,7 +3960,7 @@ class GlassWandAttribute extends Attribute {
   AttributeType attributeType = AttributeType.glassWand;
 
   @override
-  double get factor => .035;
+  double get upgradeFactor => .035;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -3988,7 +4002,7 @@ class SlugTrailAttribute extends Attribute {
   AttributeType attributeType = AttributeType.slugTrail;
 
   @override
-  double get factor => .25;
+  double get upgradeFactor => .25;
 
   @override
   bool increaseFromBaseParameter = false;
@@ -4015,8 +4029,8 @@ class SlugTrailAttribute extends Attribute {
       ///Map<DamageType, (double, double)>>>>
       damage: {
         damageType ?? allowedDamageTypes.first: (
-          increase(true, 2),
-          increase(true, 5)
+          increase(true, 2).toDouble(),
+          increase(true, 5).toDouble()
         ),
       },
     );

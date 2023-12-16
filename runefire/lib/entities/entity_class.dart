@@ -105,7 +105,7 @@ abstract class Entity extends BodyComponent<GameRouter>
           .firstWhere(
             (element) => (element.userData! as Map)['type'] == FixtureType.body,
           )
-          .shape = CircleShape()..radius = entityAnimationsGroup.size.x / 2.4;
+          .shape = CircleShape()..radius = hitboxRadius;
     }
   }
 
@@ -114,7 +114,9 @@ abstract class Entity extends BodyComponent<GameRouter>
     Vector2 sourcePosition, [
     Color? color,
   ]) async {
-    if (animation.loop || currentHitAnimations > hitAnimationLimit) return;
+    if (animation.loop || currentHitAnimations > hitAnimationLimit) {
+      return;
+    }
     currentHitAnimations++;
     final hitSize = animation.frames.first.sprite.srcSize;
     hitSize.scaledToHeight(this);
@@ -159,10 +161,12 @@ abstract class Entity extends BodyComponent<GameRouter>
   ) {
     Iterable<Weapon> returnList = [];
     // await loaded;
-    if (this is! AttackFunctionality) return returnList;
+    if (this is! AttackFunctionality) {
+      return returnList;
+    }
 
     final attackFunctionality = this as AttackFunctionality;
-    for (final element in attackFunctionality.carriedWeapons.values) {
+    for (final element in attackFunctionality.carriedWeapons) {
       returnList = [...returnList, element];
       if (includeSecondaries) {
         final secondary = element.getSecondaryWeapon;
@@ -258,11 +262,12 @@ abstract class Entity extends BodyComponent<GameRouter>
     super.beginContact(other, contact);
   }
 
+  double get hitboxRadius => entityAnimationsGroup.size.x / 2.4;
   @override
   Body createBody() {
     late CircleShape shape;
     shape = CircleShape();
-    shape.radius = entityAnimationsGroup.size.x / 2.4;
+    shape.radius = hitboxRadius;
     renderBody = false;
     final fixtureDef = FixtureDef(
       shape,
@@ -334,7 +339,9 @@ abstract class Entity extends BodyComponent<GameRouter>
     add(entityAnimationsGroup);
     enviroment.activeEntites.add(this);
     entityStatusWrapper = EntityStatusEffectsWrapper(entity: this);
-
+    height.addListener((value) {
+      applyHeightToSprite();
+    });
     return super.onLoad();
   }
 

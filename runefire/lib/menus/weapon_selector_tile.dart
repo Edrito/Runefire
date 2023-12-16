@@ -152,7 +152,10 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab>
   }
 
   void onLevelPress(
-      WeaponType? weaponType, SecondaryType? secondaryType, int cost) {
+    WeaponType? weaponType,
+    SecondaryType? secondaryType,
+    int cost,
+  ) {
     if (!playerData.enoughMoney(currentCost)) {
       return;
     }
@@ -177,7 +180,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab>
       isAvailable = playerData.availableWeapons.contains(shownWeaponType);
       unlockedLevel = playerData.unlockedWeapons[shownWeaponType] ?? 0;
       maxLevel = shownWeaponType!.maxLevel;
-      icon = shownWeaponType!.icon;
+      icon = shownWeaponType!.path;
       baseCost = shownWeaponType!.baseCost;
     } else {
       isEquipped =

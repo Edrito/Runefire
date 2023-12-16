@@ -121,8 +121,30 @@ class FadeOutSquareParticle extends CircleParticle {
 
 abstract mixin class UpgradeFunctions {
   int upgradeLevel = 0;
-  abstract int? maxLevel;
+  int? maxLevel;
   bool get isMaxLevel => upgradeLevel == maxLevel;
+
+  double? upgradeFactor;
+  num increase(bool increaseFromBaseParameter, [double? base]) =>
+      increaseFromBaseParameter
+          ? increasePercentOfBase(base!)
+          : increaseWithoutBase();
+
+  ///Default increase is multiplying the baseParameter by [upgradeFactor]%
+  ///then multiplying it again by the level of the attribute
+  ///T an additional level for max level
+  num increasePercentOfBase(
+    num base, {
+    double? customUpgradeFactor,
+    bool includeBase = false,
+  }) =>
+      (includeBase ? base : 0) +
+      (((customUpgradeFactor ?? upgradeFactor ?? .1) * base) *
+          (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0)));
+
+  double increaseWithoutBase() =>
+      (upgradeFactor ?? .1) *
+      (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
 
   void changeLevel(int newUpgradeLevel) {
     removeUpgrade();
@@ -504,15 +526,13 @@ class ShakeEffect extends Effect with EffectTarget<PositionProvider> {
 }
 
 class CustomRectClipper extends CustomClipper<Rect> {
-  CustomRectClipper(this.startPercent, this.endPercent) {
-    assert(startPercent < endPercent);
-  }
+  CustomRectClipper(this.startPercent, this.endPercent)
+      : assert(startPercent < endPercent);
   double startPercent;
   double endPercent;
 
   @override
   Rect getClip(Size size) {
-    print(endPercent);
     return Rect.fromPoints(
       Offset(size.width * startPercent, 0),
       Offset(size.width * endPercent, size.height),

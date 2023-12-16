@@ -32,7 +32,7 @@ class PhaseDagger extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(.5, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         attackSpriteAnimationBuild: () async {
@@ -56,7 +56,7 @@ class PhaseDagger extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(.5, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         attackSpriteAnimationBuild: () async {
@@ -83,23 +83,20 @@ class PhaseDagger extends PlayerWeapon
   }
 
   @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
+  double distanceFromPlayer = 0;
 
   @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
+  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
   @override
-  void unMapUpgrade() {}
+  List<WeaponSpritePosition> spirteComponentPositions = [];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+
+  @override
+  WeaponType weaponType = WeaponType.phaseDagger;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -130,22 +127,26 @@ class PhaseDagger extends PlayerWeapon
   }
 
   @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
   bool get removeSpriteOnAttack => true;
 
   @override
-  double distanceFromPlayer = 0;
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.dagger.size.asVector2;
-
-  @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  WeaponType weaponType = WeaponType.phaseDagger;
+  void unMapUpgrade() {}
 }
 
 class CrystalSword extends PlayerWeapon
@@ -159,7 +160,10 @@ class CrystalSword extends PlayerWeapon
     pierce.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (
+          () => Vector2(weaponLength / 3.5, weaponLength),
+          (.1, .9)
+        ),
         flippedDuringAttack: true,
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
@@ -179,7 +183,10 @@ class CrystalSword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (
+          () => Vector2(weaponLength / 3.5, weaponLength),
+          (.1, .9)
+        ),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -198,7 +205,10 @@ class CrystalSword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (
+          () => Vector2(weaponLength / 3.5, weaponLength),
+          (.1, .9)
+        ),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         attackSpriteAnimationBuild: () async {
@@ -225,23 +235,22 @@ class CrystalSword extends PlayerWeapon
   }
 
   @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
+  double distanceFromPlayer = 1;
 
   @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
+  late Vector2 pngSize = ImagesAssetsWeapons.crystalSword.size.asVector2;
 
   @override
-  void unMapUpgrade() {}
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    // WeaponSpritePosition.back
+  ];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 2 / 3);
+
+  @override
+  WeaponType weaponType = WeaponType.crystalSword;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -272,21 +281,23 @@ class CrystalSword extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 1;
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 2 / 3);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.crystalSword.size.asVector2;
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  List<WeaponSpritePosition> spirteComponentPositions = [
-    // WeaponSpritePosition.back
-  ];
-
-  @override
-  WeaponType weaponType = WeaponType.crystalSword;
+  void unMapUpgrade() {}
 }
 
 class AethertideSpear extends PlayerWeapon
@@ -305,7 +316,7 @@ class AethertideSpear extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
         weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
         meleeAttackType: MeleeType.stab,
         entitySpriteAnimation: null,
@@ -327,7 +338,7 @@ class AethertideSpear extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
@@ -349,7 +360,7 @@ class AethertideSpear extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(3, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(3, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -374,23 +385,20 @@ class AethertideSpear extends PlayerWeapon
   }
 
   @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
+  double distanceFromPlayer = .2;
 
   @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
+  late Vector2 pngSize = ImagesAssetsWeapons.spear.size.asVector2;
 
   @override
-  void unMapUpgrade() {}
+  List<WeaponSpritePosition> spirteComponentPositions = [];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+
+  @override
+  WeaponType weaponType = WeaponType.spear;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -421,22 +429,26 @@ class AethertideSpear extends PlayerWeapon
   }
 
   @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
   bool get removeSpriteOnAttack => true;
 
   @override
-  double distanceFromPlayer = .2;
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.spear.size.asVector2;
-
-  @override
-  WeaponType weaponType = WeaponType.spear;
+  void unMapUpgrade() {}
 }
 
 class HolySword extends PlayerWeapon
@@ -459,7 +471,7 @@ class HolySword extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -485,7 +497,7 @@ class HolySword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -514,37 +526,26 @@ class HolySword extends PlayerWeapon
   }
 
   @override
+  double distanceFromPlayer = .2;
+
+  @override
+  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.holyBullet;
+
+  @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
 
   @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
+  List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .5);
 
   @override
-  List<Projectile> generateMultipleProjectileFunction([
-    double chargeAmount = 1,
-  ]) {
-    if (chargeAmount < .7) return [];
-    return super.generateMultipleProjectileFunction(chargeAmount)
-      ..forEach((element) {
-        element.size = weaponLength / 2;
-      });
-  }
-
-  @override
-  void unMapUpgrade() {}
+  WeaponType weaponType = WeaponType.holySword;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -575,25 +576,37 @@ class HolySword extends PlayerWeapon
   }
 
   @override
+  List<Projectile> generateMultipleProjectileFunction([
+    double chargeAmount = 1,
+  ]) {
+    if (chargeAmount < .7) return [];
+    return super.generateMultipleProjectileFunction(chargeAmount)
+      ..forEach((element) {
+        element.size = weaponLength / 2;
+      });
+  }
+
+  @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
   bool get removeSpriteOnAttack => true;
 
   @override
-  double distanceFromPlayer = .2;
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  ProjectileType? projectileType = ProjectileType.holyBullet;
-
-  @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.energySword.size.asVector2;
-
-  @override
-  WeaponType weaponType = WeaponType.holySword;
+  void unMapUpgrade() {}
 }
 
 class FlameSword extends PlayerWeapon
@@ -613,7 +626,7 @@ class FlameSword extends PlayerWeapon
     // baseAttackCount.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         weaponTrailConfig:
             WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
@@ -634,7 +647,7 @@ class FlameSword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
         weaponTrailConfig:
             WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
         entitySpriteAnimation: null,
@@ -661,23 +674,20 @@ class FlameSword extends PlayerWeapon
   }
 
   @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
+  double distanceFromPlayer = .2;
 
   @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
+  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
   @override
-  void unMapUpgrade() {}
+  List<WeaponSpritePosition> spirteComponentPositions = [];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+
+  @override
+  WeaponType weaponType = WeaponType.flameSword;
 
   // @override
   // Vector2 get baseOffset => Vector2(5, .25);
@@ -711,21 +721,26 @@ class FlameSword extends PlayerWeapon
   }
 
   @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
   bool get removeSpriteOnAttack => true;
 
   @override
-  double distanceFromPlayer = .2;
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.fireSword.size.asVector2;
-  @override
-  WeaponType weaponType = WeaponType.flameSword;
+  void unMapUpgrade() {}
 }
 
 class LargeSword extends PlayerWeapon
@@ -737,7 +752,7 @@ class LargeSword extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (12, 20);
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2.all(1), (.1, .9)),
+        attackHitboxSize: (() => Vector2.all(1), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -762,26 +777,26 @@ class LargeSword extends PlayerWeapon
   }
 
   @override
+  double distanceFromPlayer = .2;
+
+  @override
+  late Vector2 pngSize = ImagesAssetsWeapons.largeSword.size.asVector2;
+
+  @override
   SemiAutoType semiAutoType = SemiAutoType.release;
-  @override
-  @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
 
   @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
+  List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  void unMapUpgrade() {}
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+
+  @override
+  WeaponType weaponType = WeaponType.largeSword;
+
+  @override
+  double get attackRateDelay => 0;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -812,25 +827,27 @@ class LargeSword extends PlayerWeapon
   }
 
   @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
   bool get removeSpriteOnAttack => true;
 
   @override
-  double distanceFromPlayer = .2;
+  @override
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.largeSword.size.asVector2;
-
-  @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  double get attackRateDelay => 0;
-
-  @override
-  WeaponType weaponType = WeaponType.largeSword;
+  void unMapUpgrade() {}
 }
 
 class FrostKatana extends PlayerWeapon
@@ -866,7 +883,7 @@ class FrostKatana extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         weaponTrailConfig: WeaponTrailConfig(
           bottomStartFromTipPercent: .25,
@@ -896,29 +913,26 @@ class FrostKatana extends PlayerWeapon
   }
 
   @override
+  double distanceFromPlayer = .2;
+
+  @override
+  late Vector2 pngSize = ImagesAssetsWeapons.frostKatana.size.asVector2;
+
+  @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
 
   @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
+  List<WeaponSpritePosition> spirteComponentPositions = [];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+
+  @override
+  WeaponType weaponType = WeaponType.frostKatana;
 
   @override
   double get attackRateDelay => attackTickRate.parameter / 4;
-
-  @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
-
-  @override
-  void unMapUpgrade() {}
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -949,22 +963,26 @@ class FrostKatana extends PlayerWeapon
   }
 
   @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
   bool get removeSpriteOnAttack => true;
 
   @override
-  double distanceFromPlayer = .2;
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.frostKatana.size.asVector2;
-
-  @override
-  WeaponType weaponType = WeaponType.frostKatana;
+  void unMapUpgrade() {}
 }
 
 class SwordOfJustice extends PlayerWeapon
@@ -990,7 +1008,10 @@ class SwordOfJustice extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (
+          () => Vector2(weaponLength / 3.5, weaponLength),
+          (.1, .9)
+        ),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         attackSpriteAnimationBuild: () async {
@@ -1012,7 +1033,10 @@ class SwordOfJustice extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (
+          () => Vector2(weaponLength / 3.5, weaponLength),
+          (.1, .9)
+        ),
         meleeAttackType: MeleeType.stab,
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
@@ -1033,7 +1057,10 @@ class SwordOfJustice extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (Vector2(weaponLength / 3.5, weaponLength), (.1, .9)),
+        attackHitboxSize: (
+          () => Vector2(weaponLength / 3.5, weaponLength),
+          (.1, .9)
+        ),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         attackSpriteAnimationBuild: () async {
@@ -1061,23 +1088,22 @@ class SwordOfJustice extends PlayerWeapon
   }
 
   @override
-  set setSecondaryFunctionality(item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
+  double distanceFromPlayer = 0;
 
   @override
-  void mapUpgrade() {
-    unMapUpgrade();
-
-    super.mapUpgrade();
-  }
+  late Vector2 pngSize = ImagesAssetsWeapons.swordOfJustice.size.asVector2;
 
   @override
-  void unMapUpgrade() {}
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    // WeaponSpritePosition.back
+  ];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+
+  @override
+  WeaponType weaponType = WeaponType.swordOfJustice;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -1108,19 +1134,21 @@ class SwordOfJustice extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 0;
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.swordOfJustice.size.asVector2;
+  set setSecondaryFunctionality(item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 
   @override
-  List<WeaponSpritePosition> spirteComponentPositions = [
-    // WeaponSpritePosition.back
-  ];
-
-  @override
-  WeaponType weaponType = WeaponType.swordOfJustice;
+  void unMapUpgrade() {}
 }

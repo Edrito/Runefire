@@ -354,35 +354,66 @@ class SpriteAnimations {
     .1,
     true,
   );
-  late Future<SpriteAnimation> damageTypHealingEffect1 = loadSpriteAnimation(
-    2,
-    ImagesAssetsDamageEffects.healing.flamePath,
-    .1,
-    true,
-  );
+  // late Future<SpriteAnimation> damageTypHealingEffect1 = loadSpriteAnimation(
+  //   2,
+  //   ImagesAssetsDamageEffects..flamePath,
+  //   .1,
+  //   true,
+  // );
   //DamageType effects
 
 //Weapons
 //Guns
-  late Future<SpriteAnimation> arcaneBlasterIdle1 =
-      loadSpriteAnimation(1, 'weapons/arcane_blaster.png', .2, true);
+  late Future<SpriteAnimation> arcaneBlasterIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsWeapons.arcaneBlaster.flamePath,
+    .2,
+    true,
+  );
 
-  late Future<SpriteAnimation> crystalPistolIdle1 =
-      loadSpriteAnimation(1, 'weapons/pistol.png', 1, true);
+  late Future<SpriteAnimation> crystalPistolIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsWeapons.crystalPistol.flamePath,
+    1,
+    true,
+  );
 
-  late Future<SpriteAnimation> scatterVineIdle1 =
-      loadSpriteAnimation(1, 'weapons/scatter_vine.png', 1, true);
+  late Future<SpriteAnimation> scatterVineIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsWeapons.scatterBlast.flamePath,
+    1,
+    true,
+  );
 
-  late Future<SpriteAnimation> scryshotAttack1 =
-      loadSpriteAnimation(6, 'weapons/long_rifle_attack.png', .02, false);
-  late Future<SpriteAnimation> scryshotIdle1 =
-      loadSpriteAnimation(19, 'weapons/long_rifle_idle.png', .2, true);
-  late Future<SpriteAnimation> prismaticBeamIdle1 =
-      loadSpriteAnimation(1, 'weapons/prismatic_beam.png', .2, true);
-  late Future<SpriteAnimation> eldritchRunnerIdle1 =
-      loadSpriteAnimation(1, 'weapons/eldritch_runner.png', .2, true);
+  late Future<SpriteAnimation> scryshotAttack1 = loadSpriteAnimation(
+    6,
+    ImagesAssetsWeapons.scryshotAttack.flamePath,
+    .02,
+    false,
+  );
+  late Future<SpriteAnimation> scryshotIdle1 = loadSpriteAnimation(
+    19,
+    ImagesAssetsWeapons.scryshotIdle.flamePath,
+    .2,
+    true,
+  );
+  late Future<SpriteAnimation> prismaticBeamIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsWeapons.prismaticBeam.flamePath,
+    .2,
+    true,
+  );
+  late Future<SpriteAnimation> eldritchRunnerIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsWeapons.eldritchRunner.flamePath,
+    .2,
+    true,
+  );
   late Future<SpriteAnimation> railspireIdle1 =
-      loadSpriteAnimation(1, 'weapons/railspire.png', .2, true);
+      loadSpriteAnimation(1, ImagesAssetsWeapons.railspire.flamePath, .2, true);
+
+  late Future<SpriteAnimation> emberBowIdle1 =
+      loadSpriteAnimation(1, ImagesAssetsWeapons.emberBow.flamePath, .2, true);
 
 //Magic
 
@@ -393,8 +424,8 @@ class SpriteAnimations {
 
   //Swords
 
-  late Future<SpriteAnimation> phaseDaggerIdle1 =
-      loadSpriteAnimation(1, 'weapons/dagger.png', 1, true);
+  late Future<SpriteAnimation> phaseDaggerIdle1 = loadSpriteAnimation(
+      1, ImagesAssetsWeapons.phaseDagger.flamePath, 1, true);
 
   late Future<SpriteAnimation> crystalSwordIdle1 =
       loadSpriteAnimation(1, 'weapons/crystal_sword.png', 1, true);

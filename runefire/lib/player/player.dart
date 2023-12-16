@@ -131,7 +131,7 @@ class Player extends Entity
   ]) {
     invincible.setIncrease('wingame', true);
     disableInput.setIncrease('wingame', true);
-    removeWeapons();
+    clearWeapons();
     return super.die(damage, endGameState);
   }
 
@@ -682,7 +682,7 @@ class Player extends Entity
     invincible.setIncrease('wingame', true);
     disableInput.setIncrease('wingame', true);
 
-    removeWeapons();
+    clearWeapons();
     final portalOffset = Vector2(0, portal.spriteComponent.height / 3.65);
     body.linearDamping = 16;
     Future<void> followPortal(double dt) async {

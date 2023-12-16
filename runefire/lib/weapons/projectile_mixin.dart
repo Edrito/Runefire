@@ -178,7 +178,7 @@ mixin StandardProjectile on Projectile {
   Body createBody() {
     createBodyShape();
 
-    renderBody = false;
+    renderBody = true;
 
     final bulletFilter = Filter();
     if (!isPlayer) {

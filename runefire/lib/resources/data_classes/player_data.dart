@@ -19,16 +19,141 @@ class PlayerDataComponent extends DataComponent {
 
 @HiveType(typeId: 1)
 class PlayerData extends DataClass with PlayerStatistics {
+  Set<WeaponType> availableWeapons = {
+    WeaponType.crystalPistol,
+    // WeaponType.phaseDagger,
+    WeaponType.scryshot,
+    // WeaponType.flameSword,
+    ...WeaponType.values,
+  };
+
+  GameDifficulty selectedDifficulty = GameDifficulty.regular;
+  GameLevel selectedLevel = GameLevel.hexedForest;
+  CharacterType selectedPlayer = CharacterType.regular;
+  Map<int, SecondaryType> selectedSecondaries = {
+    0: SecondaryType.reloadAndRapidFire,
+    1: SecondaryType.reloadAndRapidFire,
+  };
+
+  Map<int, WeaponType> selectedWeapons = {
+    0: WeaponType.crystalPistol,
+    1: WeaponType.crystalSword,
+  };
+
+  int spentExperiencePoints = 0;
+  Set<Achievements> unlockedAchievements = {};
+  // List<GameLevel> completedLevels = [];
+  List<CharacterType> unlockedCharacters = [CharacterType.regular];
+
+  void addAchievement(Achievements achievement) {
+    if (unlockedAchievements.contains(achievement)) {
+      return;
+    }
+    unlockedAchievements.add(achievement);
+    parentComponent?.notifyListeners();
+  }
+
+  Map<AttributeType, int> unlockedPermanentAttributes = {};
+  Map<SecondaryType, int> unlockedSecondarys = {
+    SecondaryType.pistolAttachment: 0,
+    SecondaryType.reloadAndRapidFire: 0,
+  };
+
+  Map<WeaponType, int> unlockedWeapons = {
+    WeaponType.crystalPistol: 0,
+    WeaponType.crystalSword: 0,
+    WeaponType.icecicleMagic: 0,
+  };
+
   //XP
   int _experiencePoints = 6000;
 
   int get experiencePoints => _experiencePoints;
 
+  bool characterUnlocked() {
+    return unlockedCharacters.contains(selectedPlayer);
+  }
+
+  bool enoughMoney(int cost) {
+    return experiencePoints >= cost;
+  }
+
   set experiencePoints(int value) {
     _experiencePoints = value;
   }
 
-  int spentExperiencePoints = 0;
+  void selectSecondary(
+    int primaryOrSecondarySlot,
+    SecondaryType secondaryType,
+  ) {
+    selectedSecondaries[primaryOrSecondarySlot] = secondaryType;
+    parentComponent?.notifyListeners();
+  }
+
+  void selectWeapon({
+    required int primaryOrSecondarySlot,
+    required WeaponType weaponType,
+  }) {
+    selectedWeapons[primaryOrSecondarySlot] = weaponType;
+    final tempWeaponBuilt = weaponType.buildTemp(
+      unlockedWeapons[weaponType] ?? 0,
+    );
+    final isCurrentSecondaryCompatible =
+        selectedSecondaries[primaryOrSecondarySlot]?.compatibilityCheck(
+              tempWeaponBuilt,
+            ) ??
+            true;
+
+    if (!isCurrentSecondaryCompatible) {
+      selectedSecondaries[primaryOrSecondarySlot] =
+          SecondaryType.values.firstWhere(
+        (element) => element.compatibilityCheck(tempWeaponBuilt),
+        orElse: () => SecondaryType.pistolAttachment,
+      );
+    }
+
+    parentComponent?.notifyListeners();
+  }
+
+  bool subtractExperience(int cost) {
+    if (!enoughMoney(cost)) {
+      return false;
+    }
+    experiencePoints -= cost;
+    spentExperiencePoints += cost;
+    return true;
+  }
+
+  bool unlockPermanentAttribute(AttributeType? attributeType) {
+    if (attributeType == null) {
+      return false;
+    }
+    final currentLevel = unlockedPermanentAttributes[attributeType] ?? 0;
+    final currentAttribute = attributeType.buildAttribute(
+      currentLevel,
+      null,
+    );
+    if ((currentAttribute.upgradeLevel == currentAttribute.maxLevel) ||
+        currentAttribute is! PermanentAttribute) {
+      return false;
+    }
+
+    final cost = currentAttribute.cost();
+
+    if (!subtractExperience(cost)) {
+      return false;
+    }
+
+    if (unlockedPermanentAttributes.containsKey(attributeType)) {
+      unlockedPermanentAttributes[attributeType] =
+          unlockedPermanentAttributes[attributeType]! + 1;
+    } else {
+      unlockedPermanentAttributes[attributeType] = 1;
+    }
+
+    parentComponent?.notifyListeners();
+    return true;
+  }
 
   ///Update information from player, saving to file
   void updateInformation(Player player) {
@@ -71,108 +196,6 @@ class PlayerData extends DataClass with PlayerStatistics {
     // save();
   }
 
-  GameDifficulty selectedDifficulty = GameDifficulty.regular;
-
-  GameLevel selectedLevel = GameLevel.hexedForest;
-  CharacterType selectedPlayer = CharacterType.regular;
-
-  // List<GameLevel> completedLevels = [];
-  List<CharacterType> unlockedCharacters = [CharacterType.regular];
-
-  bool characterUnlocked() {
-    return unlockedCharacters.contains(selectedPlayer);
-  }
-
-  Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.crystalPistol,
-    1: WeaponType.crystalSword,
-  };
-  Map<int, SecondaryType> selectedSecondaries = {
-    0: SecondaryType.reloadAndRapidFire,
-    1: SecondaryType.reloadAndRapidFire,
-  };
-
-  Map<WeaponType, int> unlockedWeapons = {
-    WeaponType.crystalPistol: 0,
-    WeaponType.crystalSword: 0,
-    WeaponType.icecicleMagic: 0,
-  };
-
-  Set<AchievementsEnum> unlockedAchievements = {};
-
-  Set<WeaponType> availableWeapons = {
-    WeaponType.crystalPistol,
-    // WeaponType.phaseDagger,
-    WeaponType.scryshot,
-    // WeaponType.flameSword,
-    ...WeaponType.values,
-  }
-      // ..remove(WeaponType.flameSword)
-      ;
-
-  Map<SecondaryType, int> unlockedSecondarys = {
-    SecondaryType.pistolAttachment: 0,
-    SecondaryType.reloadAndRapidFire: 0,
-  };
-
-  Map<AttributeType, int> unlockedPermanentAttributes = {};
-
-  bool enoughMoney(int cost) {
-    return experiencePoints >= cost;
-  }
-
-  bool unlockPermanentAttribute(AttributeType? attributeType) {
-    if (attributeType == null) {
-      return false;
-    }
-    final currentLevel = unlockedPermanentAttributes[attributeType] ?? 0;
-    final currentAttribute = attributeType.buildAttribute(
-      currentLevel,
-      null,
-    );
-    if ((currentAttribute.upgradeLevel == currentAttribute.maxLevel) ||
-        currentAttribute is! PermanentAttribute) {
-      return false;
-    }
-
-    final cost = currentAttribute.cost();
-
-    if (!subtractExperience(cost)) {
-      return false;
-    }
-
-    if (unlockedPermanentAttributes.containsKey(attributeType)) {
-      unlockedPermanentAttributes[attributeType] =
-          unlockedPermanentAttributes[attributeType]! + 1;
-    } else {
-      unlockedPermanentAttributes[attributeType] = 1;
-    }
-
-    parentComponent?.notifyListeners();
-    return true;
-  }
-
-  void upgradeWeapon(WeaponType weaponType, int cost) {
-    if (!subtractExperience(cost)) {
-      return;
-    }
-    if (unlockedWeapons.containsKey(weaponType)) {
-      unlockedWeapons[weaponType] = unlockedWeapons[weaponType]! + 1;
-    } else {
-      unlockedWeapons[weaponType] = 1;
-    }
-    parentComponent?.notifyListeners();
-  }
-
-  bool subtractExperience(int cost) {
-    if (!enoughMoney(cost)) {
-      return false;
-    }
-    experiencePoints -= cost;
-    spentExperiencePoints += cost;
-    return true;
-  }
-
   void upgradeSecondary(SecondaryType secondaryType, int cost) {
     if (!subtractExperience(cost)) {
       return;
@@ -187,36 +210,15 @@ class PlayerData extends DataClass with PlayerStatistics {
     parentComponent?.notifyListeners();
   }
 
-  void selectWeapon({
-    required int primaryOrSecondarySlot,
-    required WeaponType weaponType,
-  }) {
-    selectedWeapons[primaryOrSecondarySlot] = weaponType;
-    final tempWeaponBuilt = weaponType.buildTemp(
-      unlockedWeapons[weaponType] ?? 0,
-    );
-    final isCurrentSecondaryCompatible =
-        selectedSecondaries[primaryOrSecondarySlot]?.compatibilityCheck(
-              tempWeaponBuilt,
-            ) ??
-            true;
-
-    if (!isCurrentSecondaryCompatible) {
-      selectedSecondaries[primaryOrSecondarySlot] =
-          SecondaryType.values.firstWhere(
-        (element) => element.compatibilityCheck(tempWeaponBuilt),
-        orElse: () => SecondaryType.pistolAttachment,
-      );
+  void upgradeWeapon(WeaponType weaponType, int cost) {
+    if (!subtractExperience(cost)) {
+      return;
     }
-
-    parentComponent?.notifyListeners();
-  }
-
-  void selectSecondary(
-    int primaryOrSecondarySlot,
-    SecondaryType secondaryType,
-  ) {
-    selectedSecondaries[primaryOrSecondarySlot] = secondaryType;
+    if (unlockedWeapons.containsKey(weaponType)) {
+      unlockedWeapons[weaponType] = unlockedWeapons[weaponType]! + 1;
+    } else {
+      unlockedWeapons[weaponType] = 1;
+    }
     parentComponent?.notifyListeners();
   }
 }

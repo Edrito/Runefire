@@ -139,6 +139,7 @@ enum WeaponDescription {
   velocity,
   staminaCost,
   semiOrAuto,
+  pierce,
   maxAmmo,
   additionalAttackCount,
   description,
@@ -569,31 +570,39 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
 
 enum WeaponType {
   ///Guns
-  crystalPistol('assets/images/weapons/pistol.png', 5, AttackType.guns, 0),
+  crystalPistol(5, AttackType.guns, 0),
   arcaneBlaster(
-    'assets/images/weapons/arcane_blaster.png',
     5,
     AttackType.guns,
     0,
   ),
+
   scatterBlast(
-    'assets/images/weapons/scatter_vine.png',
     5,
     AttackType.guns,
     500,
   ),
 
-  scryshot('assets/images/weapons/long_rifle.png', 5, AttackType.guns, 0),
+  shimmerRifle(
+    5,
+    AttackType.guns,
+    500,
+  ),
+  emberBow(
+    5,
+    AttackType.guns,
+    500,
+  ),
+
+  scryshot(5, AttackType.guns, 0),
 
   prismaticBeam(
-    'assets/images/weapons/prismatic_beam.png',
     5,
     AttackType.guns,
     0,
   ),
-  railspire('assets/images/weapons/railspire.png', 5, AttackType.guns, 0),
+  railspire(5, AttackType.guns, 0),
   eldritchRunner(
-    'assets/images/weapons/eldritch_runner.png',
     5,
     AttackType.guns,
     0,
@@ -601,42 +610,38 @@ enum WeaponType {
 
   ///Swords
   crystalSword(
-    'assets/images/weapons/crystal_sword.png',
     5,
     AttackType.melee,
     100,
   ),
-  phaseDagger('assets/images/weapons/dagger.png', 5, AttackType.melee, 0),
-  spear('assets/images/weapons/spear.png', 5, AttackType.melee, 0),
-  largeSword('assets/images/weapons/large_sword.png', 5, AttackType.melee, 600),
+  phaseDagger(5, AttackType.melee, 0),
+  spear(5, AttackType.melee, 0),
+  largeSword(5, AttackType.melee, 600),
   frostKatana(
-    'assets/images/weapons/frost_katana.png',
     5,
     AttackType.melee,
     500,
   ),
-  holySword('assets/images/weapons/energy_sword.png', 5, AttackType.melee, 500),
-  flameSword('assets/images/weapons/fire_sword.png', 5, AttackType.melee, 500),
+  holySword(5, AttackType.melee, 500),
+  flameSword(5, AttackType.melee, 500),
 
   swordOfJustice(
-    'assets/images/weapons/sword_of_justice.png',
     5,
     AttackType.melee,
     1250,
   ),
 
   ///Magic
-  magicMissile('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-  icecicleMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-  psychicMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-  fireballMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-  energyMagic('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-  magicBlast('assets/images/weapons/book_idle.png', 5, AttackType.magic, 0),
-  powerWord('assets/images/weapons/book_idle.png', 5, AttackType.magic, 1500),
+  magicMissile(5, AttackType.magic, 0),
+  icecicleMagic(5, AttackType.magic, 0),
+  psychicMagic(5, AttackType.magic, 0),
+  fireballMagic(5, AttackType.magic, 0),
+  energyMagic(5, AttackType.magic, 0),
+  magicBlast(5, AttackType.magic, 0),
+  powerWord(5, AttackType.magic, 1500),
 
   ///MISC
   blankProjectileWeapon(
-    'assets/images/weapons/dagger.png',
     5,
     AttackType.guns,
     0,
@@ -645,21 +650,74 @@ enum WeaponType {
   ;
 
   const WeaponType(
-    this.icon,
     this.maxLevel,
     this.attackType,
     this.baseCost, {
     this.isPlayerWeapon = true,
   });
-  final String icon;
   final int maxLevel;
   final AttackType attackType;
   final int baseCost;
   final bool isPlayerWeapon;
 
-  String get flameImage {
-    final split = icon.split('/');
-    return '${split[2]}/${split[3]}';
+  String get flamePath => getImageClass.flamePath;
+  String get path => getImageClass.path;
+
+  FileDataClass get getImageClass {
+    switch (this) {
+      case WeaponType.emberBow:
+        return ImagesAssetsWeapons.emberBow;
+      case WeaponType.shimmerRifle:
+        return ImagesAssetsWeapons.scryshot;
+      case WeaponType.crystalPistol:
+        return ImagesAssetsWeapons.crystalPistol;
+      case WeaponType.scatterBlast:
+        return ImagesAssetsWeapons.scatterBlast;
+      case WeaponType.railspire:
+        return ImagesAssetsWeapons.railspire;
+      case WeaponType.eldritchRunner:
+        return ImagesAssetsWeapons.eldritchRunner;
+      case WeaponType.crystalSword:
+        return ImagesAssetsWeapons.crystalSword;
+      case WeaponType.phaseDagger:
+        return ImagesAssetsWeapons.phaseDagger;
+      case WeaponType.spear:
+        return ImagesAssetsWeapons.spear;
+      case WeaponType.largeSword:
+        return ImagesAssetsWeapons.largeSword;
+      case WeaponType.frostKatana:
+        return ImagesAssetsWeapons.frostKatana;
+      case WeaponType.holySword:
+        return ImagesAssetsWeapons.holySword;
+      case WeaponType.flameSword:
+        return ImagesAssetsWeapons.flameSword;
+      case WeaponType.swordOfJustice:
+        return ImagesAssetsWeapons.swordOfJustice;
+      case WeaponType.magicMissile:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.icecicleMagic:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.psychicMagic:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.fireballMagic:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.energyMagic:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.magicBlast:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.powerWord:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.blankProjectileWeapon:
+        return ImagesAssetsWeapons.bookIdle;
+
+      case WeaponType.arcaneBlaster:
+        return ImagesAssetsWeapons.arcaneBlaster;
+
+      case WeaponType.scryshot:
+        return ImagesAssetsWeapons.scryshot;
+      case WeaponType.prismaticBeam:
+        return ImagesAssetsWeapons.prismaticBeam;
+    }
   }
 }
 
@@ -704,16 +762,16 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = ArcaneBlaster(upgradeLevel, ancestor);
         break;
       case WeaponType.scryshot:
-        returnWeapon = LongRangeRifle(upgradeLevel, ancestor);
+        returnWeapon = Scryshot(upgradeLevel, ancestor);
         break;
       case WeaponType.swordOfJustice:
         returnWeapon = SwordOfJustice(upgradeLevel, ancestor);
         break;
       case WeaponType.eldritchRunner:
-        returnWeapon = RocketLauncher(upgradeLevel, ancestor);
+        returnWeapon = EldritchRunner(upgradeLevel, ancestor);
         break;
       case WeaponType.prismaticBeam:
-        returnWeapon = LaserRifle(upgradeLevel, ancestor);
+        returnWeapon = PrismaticBeam(upgradeLevel, ancestor);
         break;
       case WeaponType.icecicleMagic:
         returnWeapon = Icecicle(upgradeLevel, ancestor);
@@ -745,6 +803,13 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.flameSword:
         returnWeapon = FlameSword(upgradeLevel, ancestor);
 
+        break;
+      case WeaponType.shimmerRifle:
+        returnWeapon = ShimmerRifle(upgradeLevel, ancestor);
+        break;
+
+      case WeaponType.emberBow:
+        returnWeapon = EmberBow(upgradeLevel, ancestor);
         break;
     }
     if (returnWeapon is SecondaryFunctionality && secondaryWeaponType != null) {
@@ -783,10 +848,10 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.frostKatana:
         returnWeapon = FrostKatana(upgradeLevel, null);
       case WeaponType.scryshot:
-        returnWeapon = LongRangeRifle(upgradeLevel, null);
+        returnWeapon = Scryshot(upgradeLevel, null);
         break;
       case WeaponType.eldritchRunner:
-        returnWeapon = RocketLauncher(upgradeLevel, null);
+        returnWeapon = EldritchRunner(upgradeLevel, null);
         break;
       case WeaponType.crystalSword:
         returnWeapon = CrystalSword(upgradeLevel, null);
@@ -795,7 +860,7 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = MagicMissile(upgradeLevel, null);
         break;
       case WeaponType.prismaticBeam:
-        returnWeapon = LaserRifle(upgradeLevel, null);
+        returnWeapon = PrismaticBeam(upgradeLevel, null);
         break;
       case WeaponType.psychicMagic:
         returnWeapon = PsychicMagic(upgradeLevel, null);
@@ -833,6 +898,11 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = FlameSword(upgradeLevel, null);
 
         break;
+      case WeaponType.shimmerRifle:
+        returnWeapon = ShimmerRifle(upgradeLevel, null);
+
+      case WeaponType.emberBow:
+        returnWeapon = EmberBow(upgradeLevel, null);
     }
 
     return returnWeapon;

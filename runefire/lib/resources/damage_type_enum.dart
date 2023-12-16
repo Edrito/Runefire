@@ -36,7 +36,7 @@ extension DamageTypeExtension on DamageType {
         return spriteAnimations.damageTypeEnergyEffect1;
 
       case DamageType.psychic:
-        return spriteAnimations.damageTypeEnergyEffect1;
+        return spriteAnimations.damageTypePsychicEffect1;
       case DamageType.magic:
         return spriteAnimations.damageTypeMagicEffect1;
       case DamageType.fire:
@@ -168,7 +168,8 @@ class ElementalPowerListDisplay extends StatelessWidget {
                               Text(
                                 element.$2,
                                 style: style.copyWith(
-                                    fontSize: style.fontSize! / 2),
+                                  fontSize: style.fontSize! / 2,
+                                ),
                                 maxLines: 5,
                                 overflow: TextOverflow.ellipsis,
                               ),

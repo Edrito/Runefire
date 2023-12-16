@@ -65,7 +65,7 @@ class WeaponSecondaryTile extends StatelessWidget {
           ? RotatedBox(
               quarterTurns: 2,
               child: buildImageAsset(
-                weaponType!.icon,
+                weaponType!.path,
                 fit: BoxFit.scaleDown,
                 scale: 1 / 3,
               ),
@@ -279,7 +279,7 @@ class WeaponSecondarySelector extends StatefulWidget {
   });
 
   // final Function(dynamic) onSelect;
-  final Function onBack;
+  final Function() onBack;
 
   final GameRouter gameRef;
   final bool isPrimarySlot;
@@ -389,7 +389,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                         zIndex: 1,
                         rowId: 666,
                         gameRef: widget.gameRef,
-                        onPrimary: () => widget.onBack(),
+                        onPrimary: () => widget.onBack.call(),
                       ),
                     ),
                   ),
@@ -757,6 +757,43 @@ class _WeaponMenuState extends State<WeaponMenu> {
               ),
               const SizedBox(
                 width: menuBaseBarWidthPadding,
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const SizedBox(
+                width: menuBaseBarWidthPadding,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: CustomButton(
+                      'Achievements',
+                      gameRef: widget.gameRef,
+                      zHeight: 1,
+                      rowId: 5,
+                      onPrimary: () {
+                        setState(() {
+                          exitFunction = () {
+                            widget.gameRef.gameStateComponent.gameState
+                                .changeMainMenuPage(
+                              MenuPageType.achievementsMenu,
+                            );
+                          };
+                        });
+                      },
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

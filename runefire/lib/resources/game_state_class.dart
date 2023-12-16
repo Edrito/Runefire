@@ -6,6 +6,7 @@ import 'package:flame_audio/audio_pool.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/achievements/achievements.dart';
 import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/overlays.dart';
@@ -26,14 +27,16 @@ import 'package:runefire/resources/constants/routes.dart' as routes;
 import 'package:runefire/menus/overlays.dart' as overlays;
 
 class OverlayMessage {
-  OverlayMessage(
-    this.text, {
+  OverlayMessage({
+    required this.title,
+    this.description = '',
     this.duration = 5,
     this.isImportant = false,
     this.showBackground = true,
     this.image,
   });
-  final String text;
+  final String title;
+  final String description;
   final double duration;
   final bool isImportant;
   final bool showBackground;
@@ -77,6 +80,21 @@ class GameState {
 
   void displayOverlayMessage(OverlayMessage message) {
     textOverlayController.add(message);
+  }
+
+  void obtainAchievement(Achievements achievement) {
+    if (playerData.unlockedAchievements.contains(achievement)) {
+      return;
+    }
+    playerData.addAchievement(achievement);
+    displayOverlayMessage(
+      OverlayMessage(
+        title: achievement.getInformation[0],
+        description: achievement.getInformation[1],
+        duration: 2,
+        image: achievement.getImage,
+      ),
+    );
   }
 
   //Key and audiopool

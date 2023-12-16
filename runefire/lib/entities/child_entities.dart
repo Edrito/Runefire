@@ -672,16 +672,14 @@ class MirrorOrbSentry extends ChildEntity
         newWeapon.weaponType.build(this, null, game, newWeapon.upgradeLevel);
     tempWeapon.weaponScale.baseParameter =
         tempWeapon.weaponScale.baseParameter / 2;
-    // tempWeapon.tipOffset = tempWeapon.tipOffset / 2;
     tempWeapon.weaponAttachmentPoints.forEach((key, value) {
       value.weaponSpriteAnimation?.flashSize =
           value.weaponSpriteAnimation!.flashSize / 2;
     });
 
-    carriedWeapons[0] = tempWeapon;
-    await setWeapon(tempWeapon);
+    carriedWeapons.add(tempWeapon);
 
-    //  currentWeapon?.addToParent(this);
+    swapWeapon(currentWeapon);
   }
 
   @override

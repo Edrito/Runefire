@@ -742,7 +742,8 @@ class _KeyboardMouseGamepadBindingsState
   GlobalKey<CustomInputWatcherState<CustomInputWatcher>>? flipJoystickHintKey;
 
   final OverlayMessage joystickHintOverlayMessage = OverlayMessage(
-    'If true, the left joystick will control aiming,\nand the right joystick will control movement.',
+    title:
+        'If true, the left joystick will control aiming,\nand the right joystick will control movement.',
   );
 
   @override

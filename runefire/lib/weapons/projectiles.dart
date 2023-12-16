@@ -120,7 +120,7 @@ class MagicalProjectile extends SpriteBullet {
     lifespan: 2,
     parentBody: body,
     frequency: 2,
-    particlePosition: Vector2(.3 * size, size),
+    particlePosition: Vector2(.3 * size, .3 * size),
     velocity: Vector2.all(0.5),
     color: damageType.color,
     damageType: damageType,
@@ -134,7 +134,6 @@ class MagicalProjectile extends SpriteBullet {
 
   @override
   void onMount() {
-    print(power);
     weaponAncestor.entityAncestor?.enviroment
         .addPhysicsComponent([particleGenerator]);
 

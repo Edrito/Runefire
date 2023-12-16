@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:runefire/achievements/achievements.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
@@ -30,24 +31,41 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   // player?.swapWeapon();
 
   // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
-  // while (true) {
-  //   if (!gameEnviroment.gameRef.paused) {
-  //     player!.takeDamage(
-  //       'a',
-  //       DamageInstance(
-  //         damageMap: {
-  //           DamageType.energy: double.infinity,
-  //         },
-  //         source: gameEnviroment.god!,
-  //         victim: player,
-  //         sourceAttack: gameEnviroment.god,
-  //       ),
-  //     );
-  //   }
 
-  //   await Future.delayed(5.seconds);
-  // }
+  for (final element in WeaponType.values) {
+    await Future.delayed(5.seconds);
+
+    player?.clearWeapons();
+    player?.carriedWeapons.add(
+      element.build(
+        player,
+        null,
+        gameEnviroment.gameRef,
+      ),
+    );
+    // player?.carriedWeapons.add(
+    //   WeaponType.shimmerRifle.build(
+    //     player,
+    //     null,
+    //     gameEnviroment.gameRef,
+    //   ),
+    // );
+    player?.swapWeapon(
+      player.currentWeapon,
+    );
+  }
+
+  while (true) {
+    if (!gameEnviroment.gameRef.paused) {
+      player?.height.setParameterFlatValue('t', (rng.nextDouble() * 3).round());
+    }
+    player?.applyHeightToSprite();
+    await Future.delayed(2.seconds);
+  }
 }
+
+//   await Future.delayed(5.seconds);
+// }
 
 void updateFunction(Enviroment enviroment, double dt) {
   // if (enviroment is GameEnviroment) {

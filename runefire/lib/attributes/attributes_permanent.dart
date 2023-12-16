@@ -210,7 +210,7 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.areaSizePermanent;
 
   @override
-  double get factor => constants.areaSizeFactor;
+  double get upgradeFactor => constants.areaSizeFactor;
 
   @override
   int get maxLevel => constants.areaSizeMaxLevel;
@@ -251,7 +251,7 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.meleeDamageIncreasePermanent;
 
   @override
-  double get factor => constants.meleeDamageIncreaseFactor;
+  double get upgradeFactor => constants.meleeDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.meleeDamageIncreaseMaxLevel;
@@ -293,7 +293,7 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.projectileDamageIncreasePermanent;
 
   @override
-  double get factor => constants.projectileDamageIncreaseFactor;
+  double get upgradeFactor => constants.projectileDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.projectileDamageIncreaseMaxLevel;
@@ -335,7 +335,7 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.spellDamageIncreasePermanent;
 
   @override
-  double get factor => constants.spellDamageIncreaseFactor;
+  double get upgradeFactor => constants.spellDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.spellDamageIncreaseMaxLevel;
@@ -377,7 +377,7 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.tickDamageIncreasePermanent;
 
   @override
-  double get factor => constants.tickDamageIncreaseFactor;
+  double get upgradeFactor => constants.tickDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.tickDamageIncreaseMaxLevel;
@@ -419,7 +419,7 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.areaDamageIncreasePermanent;
 
   @override
-  double get factor => constants.areaDamageIncreaseFactor;
+  double get upgradeFactor => constants.areaDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.areaDamageIncreaseMaxLevel;
@@ -461,7 +461,7 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.statusEffectPotencyPermanent;
 
   @override
-  double get factor => constants.statusEffectPotencyFactor;
+  double get upgradeFactor => constants.statusEffectPotencyFactor;
 
   @override
   int get maxLevel => constants.statusEffectPotencyMaxLevel;
@@ -503,7 +503,7 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.speedPermanent;
 
   @override
-  double get factor => constants.speedFactor;
+  double get upgradeFactor => constants.speedFactor;
 
   @override
   int get maxLevel => constants.speedMaxLevel;
@@ -547,7 +547,7 @@ class MaxStaminaPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.maxStaminaPermanent;
 
   @override
-  double get factor => constants.maxStaminaFactor;
+  double get upgradeFactor => constants.maxStaminaFactor;
 
   @override
   int get maxLevel => constants.maxStaminaMaxLevel;
@@ -593,7 +593,7 @@ class MaxHealthPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.maxHealthPermanent;
 
   @override
-  double get factor => constants.maxHealthFactor;
+  double get upgradeFactor => constants.maxHealthFactor;
 
   @override
   int get maxLevel => constants.maxHealthMaxLevel;
@@ -638,7 +638,7 @@ class StaminaRegenPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.staminaRegenPermanent;
 
   @override
-  double get factor => constants.staminaRegenFactor;
+  double get upgradeFactor => constants.staminaRegenFactor;
 
   @override
   int get maxLevel => constants.staminaRegenMaxLevel;
@@ -686,7 +686,7 @@ class HealthRegenPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.healthRegenPermanent;
 
   @override
-  double get factor => constants.healthRegenFactor;
+  double get upgradeFactor => constants.healthRegenFactor;
 
   @override
   int get maxLevel => constants.healthRegenMaxLevel;
@@ -734,7 +734,7 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.experienceGainPermanent;
 
   @override
-  double get factor => constants.experienceGainFactor;
+  double get upgradeFactor => constants.experienceGainFactor;
 
   @override
   int get maxLevel => constants.experienceGainMaxLevel;
@@ -782,7 +782,7 @@ class DodgeChancePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.dodgeChanceIncreasePermanent;
 
   @override
-  double get factor => constants.dodgeChanceFactor;
+  double get upgradeFactor => constants.dodgeChanceFactor;
 
   @override
   int get maxLevel => constants.dodgeChanceMaxLevel;
@@ -828,7 +828,7 @@ class CritChancePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.critChancePermanent;
 
   @override
-  double get factor => constants.critChanceFactor;
+  double get upgradeFactor => constants.critChanceFactor;
 
   @override
   int get maxLevel => constants.critChanceMaxLevel;
@@ -870,7 +870,7 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.critDamagePermanent;
 
   @override
-  double get factor => constants.critDamageFactor;
+  double get upgradeFactor => constants.critDamageFactor;
 
   @override
   int get maxLevel => constants.critDamageMaxLevel;
@@ -912,7 +912,7 @@ class DurationPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.durationPermanent;
 
   @override
-  double get factor => constants.durationFactor;
+  double get upgradeFactor => constants.durationFactor;
 
   @override
   int get maxLevel => constants.durationMaxLevel;
@@ -953,7 +953,7 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.essenceStealPermanent;
 
   @override
-  double get factor => constants.essenceStealFactor;
+  double get upgradeFactor => constants.essenceStealFactor;
 
   @override
   int get maxLevel => constants.essenceStealMaxLevel;
@@ -995,7 +995,7 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.attackRatePermanent;
 
   @override
-  double get factor => constants.attackRateFactor;
+  double get upgradeFactor => constants.attackRateFactor;
 
   @override
   int get maxLevel => constants.attackRateMaxLevel;
@@ -1038,7 +1038,7 @@ class DamagePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.damageIncreasePermanent;
 
   @override
-  double get factor => constants.damageIncreaseFactor;
+  double get upgradeFactor => constants.damageIncreaseFactor;
 
   @override
   int get maxLevel => constants.damageIncreaseMaxLevel;
@@ -1084,7 +1084,7 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.physical;
 
   @override
-  double get factor => constants.physicalDamageIncreaseFactor;
+  double get upgradeFactor => constants.physicalDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.physicalDamageIncreaseMaxLevel;
@@ -1131,7 +1131,7 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.magic;
 
   @override
-  double get factor => constants.magicDamageIncreaseFactor;
+  double get upgradeFactor => constants.magicDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.magicDamageIncreaseMaxLevel;
@@ -1178,7 +1178,7 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.fire;
 
   @override
-  double get factor => constants.fireDamageIncreaseFactor;
+  double get upgradeFactor => constants.fireDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.fireDamageIncreaseMaxLevel;
@@ -1225,7 +1225,7 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.psychic;
 
   @override
-  double get factor => constants.psychicDamageIncreaseFactor;
+  double get upgradeFactor => constants.psychicDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.psychicDamageIncreaseMaxLevel;
@@ -1271,7 +1271,7 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.energy;
 
   @override
-  double get factor => constants.energyDamageIncreaseFactor;
+  double get upgradeFactor => constants.energyDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.energyDamageIncreaseMaxLevel;
@@ -1317,7 +1317,7 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.frost;
 
   @override
-  double get factor => constants.frostDamageIncreaseFactor;
+  double get upgradeFactor => constants.frostDamageIncreaseFactor;
 
   @override
   int get maxLevel => constants.frostDamageIncreaseMaxLevel;
@@ -1365,7 +1365,7 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.physical;
 
   @override
-  double get factor => constants.physicalResistanceIncreaseFactor;
+  double get upgradeFactor => constants.physicalResistanceIncreaseFactor;
 
   @override
   int get maxLevel => constants.physicalResistanceIncreaseMaxLevel;
@@ -1412,7 +1412,7 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.magic;
 
   @override
-  double get factor => constants.magicResistanceIncreaseFactor;
+  double get upgradeFactor => constants.magicResistanceIncreaseFactor;
 
   @override
   int get maxLevel => constants.magicResistanceIncreaseMaxLevel;
@@ -1459,7 +1459,7 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.fire;
 
   @override
-  double get factor => constants.fireResistanceIncreaseFactor;
+  double get upgradeFactor => constants.fireResistanceIncreaseFactor;
 
   @override
   int get maxLevel => constants.fireResistanceIncreaseMaxLevel;
@@ -1507,7 +1507,7 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.psychic;
 
   @override
-  double get factor => constants.psychicResistanceIncreaseFactor;
+  double get upgradeFactor => constants.psychicResistanceIncreaseFactor;
 
   @override
   int get maxLevel => constants.psychicResistanceIncreaseMaxLevel;
@@ -1554,7 +1554,7 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.energy;
 
   @override
-  double get factor => constants.energyResistanceIncreaseFactor;
+  double get upgradeFactor => constants.energyResistanceIncreaseFactor;
 
   @override
   int get maxLevel => constants.energyResistanceIncreaseMaxLevel;
@@ -1601,7 +1601,7 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
   DamageType get damageType => DamageType.frost;
 
   @override
-  double get factor => constants.frostResistanceIncreaseFactor;
+  double get upgradeFactor => constants.frostResistanceIncreaseFactor;
 
   @override
   int get maxLevel => constants.frostResistanceIncreaseMaxLevel;
@@ -1644,7 +1644,7 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.reloadTimePermanent;
 
   @override
-  double get factor => constants.reloadTimeFactor;
+  double get upgradeFactor => constants.reloadTimeFactor;
 
   @override
   int get maxLevel => constants.reloadTimeMaxLevel;
@@ -1694,7 +1694,7 @@ class MaxLivesPermanentAttribute extends PermanentAttribute {
   AttributeType attributeType = AttributeType.maxLivesPermanent;
 
   @override
-  double get factor => constants.maxLivesFactor;
+  double get upgradeFactor => constants.maxLivesFactor;
 
   @override
   int get maxLevel => constants.maxLivesMaxLevel;

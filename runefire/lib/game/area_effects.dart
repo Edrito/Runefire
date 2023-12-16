@@ -12,9 +12,9 @@ import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:uuid/uuid.dart';
 
-import '../entities/entity_class.dart';
-import '../main.dart';
-import '../resources/data_classes/base.dart';
+import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 enum DurationType { instant, temporary, permanent }
@@ -24,6 +24,8 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   ///Declare a custom [areaId] if you are making multiple areas and want
   ///to prevent enemies getting super spammed with deeps
   AreaEffect({
+    required this.position,
+    required this.sourceEntity,
     this.animationComponent,
     this.radius = 3,
     this.duration = 5,
@@ -34,8 +36,6 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.damage,
     this.onTick,
     int? overridePriority,
-    required this.position,
-    required this.sourceEntity,
     this.isSolid = false,
     this.animationRandomlyFlipped = false,
   }) {
@@ -80,7 +80,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   Future<void> onLoad() async {
     if (animationComponent == null) {
       SpriteAnimation? spawnAnimation;
-      Anchor anchor = Anchor.center;
+      var anchor = Anchor.center;
 
       if (damage != null && damage!.isNotEmpty) {
         final damageType = damage!.keys.toList().random();
@@ -113,7 +113,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
         spawnAnimation:
             spawnAnimation ?? await spriteAnimations.fireExplosionMedium1,
         randomlyFlipped: animationRandomlyFlipped,
-        desiredWidth: (radius * 2),
+        desiredWidth: radius * 2,
       );
     }
 
@@ -123,10 +123,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       aliveTimer = TimerComponent(
         period: duration,
         removeOnFinish: true,
-        repeat: false,
-        onTick: () {
-          killArea();
-        },
+        onTick: killArea,
       )..addToParent(this);
     }
 
@@ -135,20 +132,23 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    bool shouldCalculate = other is Entity &&
+    final shouldCalculate = other is Entity &&
         other != sourceEntity &&
         !affectedEntities.containsKey(other);
-    if (!shouldCalculate) return super.beginContact(other, contact);
+    if (!shouldCalculate) {
+      return super.beginContact(other, contact);
+    }
 
     if (animationComponent?.durationType == DurationType.instant) {
       doOnTick(other);
     } else {
       affectedEntities[other] = TimerComponent(
-          period: tickRate,
-          repeat: true,
-          onTick: () {
-            doOnTick(other);
-          })
+        period: tickRate,
+        repeat: true,
+        onTick: () {
+          doOnTick(other);
+        },
+      )
         ..addToParent(this)
         ..onTick();
     }
@@ -159,12 +159,20 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   bool aliveForOneTick = false;
 
   void doOnTick(Entity other) {
-    if (isKilled) return;
+    if (isKilled) {
+      return;
+    }
     if (damage != null && other is HealthFunctionality) {
       other.hitCheck(
-          areaId,
-          damageCalculations(sourceEntity, other, damage!,
-              sourceAttack: this, damageKind: DamageKind.area));
+        areaId,
+        damageCalculations(
+          sourceEntity,
+          other,
+          damage!,
+          sourceAttack: this,
+          damageKind: DamageKind.area,
+        ),
+      );
     }
     onTick?.call(other, areaId);
   }
@@ -187,7 +195,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     super.update(dt);
   }
 
-  void killArea() async {
+  Future<void> killArea() async {
     isKilled = true;
     affectedEntities.clear();
     await animationComponent?.triggerEnding();
@@ -196,8 +204,12 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   @override
   void endContact(Object other, Contact contact) {
-    if (other is! Entity) return;
-    if (animationComponent?.durationType == DurationType.instant) return;
+    if (other is! Entity) {
+      return;
+    }
+    if (animationComponent?.durationType == DurationType.instant) {
+      return;
+    }
     affectedEntities[other]?.removeFromParent();
     affectedEntities.remove(other);
 
@@ -228,15 +240,16 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       }
     }
 
-    final fixtureDef = FixtureDef(shape,
-        userData: {"type": FixtureType.body, "object": this},
-        isSensor: !isSolid,
-        filter: filter);
+    final fixtureDef = FixtureDef(
+      shape,
+      userData: {'type': FixtureType.body, 'object': this},
+      isSensor: !isSolid,
+      filter: filter,
+    );
     final bodyDef = BodyDef(
       position: position,
       allowSleep: false,
       userData: this,
-      type: BodyType.static,
       fixedRotation: true,
     );
 

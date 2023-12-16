@@ -50,25 +50,14 @@ mixin ReloadFunctionality on Weapon {
   //Status of reloading
   int _spentAttacks = 0;
 
-  int get spentAttacks => _spentAttacks;
-
-  set spentAttacks(int value) {
-    _spentAttacks = value;
-    if (entityAncestor is AttributeCallbackFunctionality) {
-      final attributeFunctions =
-          entityAncestor! as AttributeCallbackFunctionality;
-      for (final attribute in attributeFunctions.onSpentAttack) {
-        attribute(this);
-      }
-    }
-  }
-
   double get percentReloaded =>
       (reloadTimer?.timer.current ?? reloadTime.parameter) /
       reloadTime.parameter;
 
   int? get remainingAttacks =>
       maxAttacks.parameter == 0 ? null : maxAttacks.parameter - spentAttacks;
+
+  int get spentAttacks => _spentAttacks;
 
   void createReloadBar() {
     if (entityAncestor == null) {
@@ -135,6 +124,17 @@ mixin ReloadFunctionality on Weapon {
   void removeReloadAnimation() {
     entityAncestor?.entityStatusWrapper
         .removeReloadAnimation(weaponId, isSecondaryWeapon);
+  }
+
+  set spentAttacks(int value) {
+    _spentAttacks = value;
+    if (entityAncestor is AttributeCallbackFunctionality) {
+      final attributeFunctions =
+          entityAncestor! as AttributeCallbackFunctionality;
+      for (final attribute in attributeFunctions.onSpentAttack) {
+        attribute(this);
+      }
+    }
   }
 
   void stopReloading() {
@@ -226,7 +226,7 @@ class MeleeAttack {
 
   ///Size, start percent, end percent
   ///Start percent = .1, end percent = .9 (example)
-  final (Vector2, (double, double)) attackHitboxSize;
+  final (Vector2 Function(), (double, double)) attackHitboxSize;
 }
 
 mixin MeleeFunctionality on Weapon {
@@ -401,7 +401,7 @@ mixin ProjectileFunctionality on Weapon {
     var increase = closeDamageIncreaseCurve.transform(
       1 - (distance / closeDamageIncreaseDistanceCutoff).clamp(0, 1),
     );
-    increase = (increase * (closeDamageIncreaseAmount - 1)) + 1;
+    increase = (increase * closeDamageIncreaseAmount.parameter) + 1;
 
     damage.damageMap.forEach((key, value) {
       damage.damageMap[key] = value * increase;
@@ -439,7 +439,9 @@ mixin ProjectileFunctionality on Weapon {
 
   List<Projectile> activeProjectiles = [];
   bool allowProjectileRotation = false;
-  double closeDamageIncreaseAmount = 2.5;
+  DoubleParameterManager closeDamageIncreaseAmount =
+      DoubleParameterManager(baseParameter: 1.5);
+
   Curve closeDamageIncreaseCurve = Curves.easeInCubic;
   double closeDamageIncreaseDistanceCutoff = 8;
   double farDamageIncreaseAmount = 2.5;
@@ -449,6 +451,7 @@ mixin ProjectileFunctionality on Weapon {
   double particleLifespan = .5;
   DoubleParameterManager projectileSize =
       DoubleParameterManager(baseParameter: .3);
+
   //META
   abstract ProjectileType? projectileType;
 
@@ -512,7 +515,6 @@ mixin ProjectileFunctionality on Weapon {
       generator: (i) => AcceleratedParticle(
         position: generateGlobalPosition(
           SourceAttackLocation.weaponTip,
-          tipPercent: .8,
         ),
         speed: (entityAncestor?.body.linearVelocity ?? Vector2.zero()) +
             randomizeVector2Delta(
@@ -821,6 +823,12 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
     super.endAttacking();
   }
 
+@override
+  void weaponSwappedFrom() {
+    chargeAnimation?.removeFromParent();
+    
+    super.weaponSwappedFrom();
+  }
   @override
   double get particleLifespan => .2;
 
@@ -1168,16 +1176,21 @@ String buildWeaponDescription(
         returnString = '';
       }
       break;
+    case WeaponDescription.pierce:
+      returnString =
+          '${builtWeapon.pierce.parameter.toStringAsFixed(0)} enemies';
+
+      break;
     case WeaponDescription.staminaCost:
       if (builtWeapon is StaminaCostFunctionality) {
-        returnString = '${builtWeapon.weaponStaminaCost}/attack';
+        returnString = '${builtWeapon.weaponStaminaCost.baseParameter}/attack';
       } else {
         returnString = '';
       }
       break;
     case WeaponDescription.maxAmmo:
       if (builtWeapon is ReloadFunctionality) {
-        returnString = '${builtWeapon.maxAttacks}';
+        returnString = '${builtWeapon.maxAttacks.baseParameter}';
       } else {
         returnString = '';
       }

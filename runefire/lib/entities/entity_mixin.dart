@@ -523,7 +523,7 @@ mixin AimFunctionality on Entity {
 }
 
 mixin AttackFunctionality on AimFunctionality {
-  Map<int, Weapon> carriedWeapons = {};
+  List<Weapon> carriedWeapons = [];
   List<WeaponType> initialWeapons = [];
   bool isAltAttacking = false;
   bool isAttacking = false;
@@ -532,21 +532,8 @@ mixin AttackFunctionality on AimFunctionality {
 
   List<Function(Weapon? from, Weapon to)> onWeaponSwap = [];
 
-  void removeWeapons() {
-    carriedWeapons.forEach((key, value) {
-      value.removeFromParent();
-    });
-    handJoint.removePreviousComponents();
-    mouseJoint?.removePreviousComponents();
-    backJoint?.removePreviousComponents();
-  }
-
   Weapon? get currentWeapon {
-    // if (!weaponsInitialized) {
-    //   initializeWeapons();
-    // }
-
-    return carriedWeapons[weaponIndex];
+    return carriedWeapons.elementAtOrNull(weaponIndex);
   }
 
   Future<void> endPrimaryAttacking() async {
@@ -572,37 +559,51 @@ mixin AttackFunctionality on AimFunctionality {
     }
   }
 
+  void clearWeapons() {
+    weaponsInitialized = false;
+    handJoint.removePreviousComponents();
+    mouseJoint?.removePreviousComponents();
+    backJoint?.removePreviousComponents();
+    carriedWeapons.forEach((value) {
+      value.removeFromParent();
+    });
+    carriedWeapons.clear();
+    weaponIndex = 0;
+  }
+
   void initializeWeapons() {
     if (isPlayer && !isChildEntity && (this as Player).isDisplay) {
       return;
     }
-
-    weaponsInitialized = false;
-
-    carriedWeapons.clear();
+    clearWeapons();
 
     if (isPlayer && !isChildEntity) {
       final player = this as Player;
       final playerData = player.playerData;
       for (var i = 0; i < player.playerData.selectedWeapons.length; i++) {
         final element = playerData.selectedWeapons[i]!;
-        carriedWeapons[i] =
-            element.build(this, player.playerData.selectedSecondaries[i], game);
+        carriedWeapons.add(
+          element.build(
+            this,
+            player.playerData.selectedSecondaries[i],
+            game,
+          ),
+        );
       }
     } else {
-      var i = 0;
       for (final element in initialWeapons) {
-        carriedWeapons[i] = element.build(this, null, game, 1);
-        i++;
+        carriedWeapons.add(element.build(this, null, game, 1));
       }
     }
-
+    if (currentWeapon != null) {
+      _setWeapon(currentWeapon!);
+    }
     weaponsInitialized = true;
   }
 
-  Future<void> setWeapon(Weapon weapon) async {
+  Future<void> _setWeapon(Weapon weapon) async {
+    weapon.spritesHidden = false;
     await handJoint.loaded.whenComplete(() => handJoint.addWeaponClass(weapon));
-
     if (enviroment is GameEnviroment && isPlayer) {
       await enviroment.loaded;
       gameEnviroment.hud.toggleStaminaColor(weapon.weaponType.attackType);
@@ -629,8 +630,9 @@ mixin AttackFunctionality on AimFunctionality {
     currentWeapon?.startAltAttacking();
   }
 
-  Future<void> swapWeapon() async {
-    if (carriedWeapons.isEmpty || carriedWeapons.length == 1) {
+  Future<void> swapWeapon([Weapon? weapon]) async {
+    if ((carriedWeapons.isEmpty || carriedWeapons.length == 1) &&
+        weapon == null) {
       return;
     }
     final previousWeapon = currentWeapon;
@@ -642,10 +644,12 @@ mixin AttackFunctionality on AimFunctionality {
     }
     previousWeapon?.weaponSwappedFrom();
 
-    incrementWeaponIndex();
-    final newWeapon = currentWeapon;
+    if (weapon == null) {
+      incrementWeaponIndex();
+    }
+    final newWeapon = weapon ?? currentWeapon;
 
-    await setWeapon(newWeapon!);
+    await _setWeapon(newWeapon!);
 
     newWeapon.weaponSwappedTo();
 
@@ -666,13 +670,16 @@ mixin AttackFunctionality on AimFunctionality {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-
+    height.addListener((value) {
+      // handJoint.weaponSpriteAnimation?.resize();
+      // mouseJoint?.weaponSpriteAnimation?.resize();
+      // backJoint?.weaponSpriteAnimation?.resize();
+      if (currentWeapon != null) {
+        _setWeapon(currentWeapon!)
+            .then((value) => currentWeapon?.spriteVisibilityCheck());
+      }
+    });
     initializeWeapons();
-    final weapon = currentWeapon;
-    if (weapon != null) {
-      await setWeapon(weapon);
-    }
-
     onDeath.add((_) {
       endPrimaryAttacking();
     });
@@ -680,8 +687,7 @@ mixin AttackFunctionality on AimFunctionality {
 
   @override
   void onRemove() {
-    carriedWeapons.forEach((key, value) => value.removeFromParent());
-
+    carriedWeapons.forEach((value) => value.removeFromParent());
     super.onRemove();
   }
 

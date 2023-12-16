@@ -20,6 +20,9 @@ const laserLineAngleThreshold = .05;
 
 //UI
 
+//Level up select delay
+const levelUpSelectDelay = Duration(seconds: 1);
+
 const uiWidthMax = 1700.0;
 
 const double menuBaseBarHeight = 75;

@@ -91,7 +91,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     body.setActive(isEnabled);
   }
 
-  final (Vector2, (double, double)) size;
+  final (Vector2 Function(), (double, double)) size;
 
   void onHitFunctions(DamageInstance instance) {
     if (meleeAttackAncestor.weaponAncestor
@@ -124,13 +124,13 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       hitboxPoints.clear();
       latestSwingRef = ref.last;
     }
-
-    final halfWidth = size.$1.x / 2;
+    final vectorSize = size.$1.call();
+    final halfWidth = vectorSize.x / 2;
 
     final topCenter = newPositionRad(
       latestSwingRef.swingPosition,
       -latestSwingRef.swingAngle,
-      size.$1.y,
+      vectorSize.y,
     );
     final top1 = newPositionRad(
       topCenter,
@@ -201,34 +201,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       [],
       (previousValue, element) => [...previousValue, element.$1, element.$2],
     );
-    // if (rng.nextDouble() < .03) {
-    //   add(
-    //     PolygonComponent(
-    //       [...List<Vector2>.from(newPoints)],
-    //       position: Vector2.zero(),
-    //       paint: Paint()..color = Colors.red.withOpacity(.5),
-    //     ),
-    //   );
-    //   newPoints = sortPointsInCircle(List<Vector2>.from(newPoints));
-    //   const color = Colors.blue;
-    //   for (final element in newPoints) {
-    //     add(
-    //       CircleComponent(
-    //         radius: .2,
-    //         position: element as Vector2,
-    //         paint: Paint()..color = color.withOpacity(.5),
-    //       ),
-    //     );
-    //   }
-    //   add(
-    //     PolygonComponent(
-    //       [...List<Vector2>.from(newPoints)],
-    //       position: Vector2.zero(),
-    //       paint: Paint()..color = color.withOpacity(.5),
-    //     ),
-    //   );
-    // }
-    //
+
     modifyFixture(sortPointsInCircle(List<Vector2>.from(newPoints)));
   }
 
@@ -264,7 +237,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       bullet: true,
       allowSleep: false,
     );
-    renderBody = false;
+    renderBody = true;
     final returnBody = world.createBody(bodyDef);
     return returnBody;
   }
@@ -380,16 +353,12 @@ class MeleeAttackSprite extends PositionComponent {
       weaponSpriteAnimation!.position,
       // Vector2.zero(),
       -swingAngle,
-      handler.weaponAncestor.tipOffset.y *
-          handler.weaponAncestor.weaponLength *
-          topStartFromTipPercent,
+      handler.weaponAncestor.tipOffset.y * topStartFromTipPercent,
     ).toOffset();
     final midPos = newPositionRad(
       weaponSpriteAnimation!.position,
       -swingAngle,
-      handler.weaponAncestor.tipOffset.y *
-          handler.weaponAncestor.weaponLength *
-          bottomStartFromTipPercent,
+      handler.weaponAncestor.tipOffset.y * bottomStartFromTipPercent,
     ).toOffset();
 
     points.addAll([tipPos, midPos]);
@@ -426,8 +395,7 @@ class MeleeAttackSprite extends PositionComponent {
     bottomStartFromTipPercent =
         weaponTrailConfig?.bottomStartFromTipPercent ?? .3;
 
-    widthOfTrail = (handler.weaponAncestor.tipOffset.y *
-            handler.weaponAncestor.weaponLength) *
+    widthOfTrail = (handler.weaponAncestor.tipOffset.y) *
         (topStartFromTipPercent - bottomStartFromTipPercent);
     drawPaint = Paint()..color = color.withOpacity(1);
     final centerPoint =

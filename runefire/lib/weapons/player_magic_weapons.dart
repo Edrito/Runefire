@@ -109,13 +109,15 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   ) {
     maxAttacks.baseParameter = 1;
     reloadTime.baseParameter = 2;
-    _setWord();
 
     critDamage.baseParameter = 2.5;
     baseDamage.damageBase[DamageType.magic] = (10, 20);
     critChance.baseParameter = 0.0;
 
-    entityAncestor?.loaded.then((value) => toggleTextComponent(true));
+    entityAncestor?.loaded.then((value) {
+      toggleTextComponent(true);
+      _setWord();
+    });
   }
   @override
   WeaponType weaponType = WeaponType.powerWord;

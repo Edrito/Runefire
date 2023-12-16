@@ -215,7 +215,9 @@ abstract class Projectile extends BodyComponent<GameRouter>
 
   @override
   void endContact(Object other, Contact contact) {
-    if (other is! HealthFunctionality) return;
+    if (other is! HealthFunctionality) {
+      return;
+    }
     final isHomingSensor =
         (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor ||
             (contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/player/player_mixin.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -49,9 +51,12 @@ class _AttributeSelectionState extends State<AttributeSelection> {
     for (final element in currentAttributeSelection) {
       cardSelected[element] ??= false;
     }
-
+    Future.delayed(levelUpSelectDelay)
+        .then((value) => allowSelection.complete());
     super.initState();
   }
+
+  Completer allowSelection = Completer();
 
   bool ignoring = false;
   static const double loadInDuration = .2;
@@ -72,6 +77,9 @@ class _AttributeSelectionState extends State<AttributeSelection> {
   }
 
   void onSelectAttribute(Attribute attribute, {DamageType? damageType}) {
+    if (!allowSelection.isCompleted) {
+      return;
+    }
     setState(() {
       ignoring = true;
       cardSelected[attribute] = true;

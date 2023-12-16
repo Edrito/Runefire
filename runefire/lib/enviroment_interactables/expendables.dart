@@ -26,7 +26,7 @@ enum ExpendableType {
   const ExpendableType({this.iconName = 'fear_enemies.png'});
   final String iconName;
   Future<Sprite> buildSprite({WeaponType? weaponType}) async {
-    return await Sprite.load(weaponType?.flameImage ?? 'expendables/$iconName');
+    return await Sprite.load(weaponType?.flamePath ?? 'expendables/$iconName');
   }
 }
 
