@@ -189,7 +189,7 @@ typedef WeaponSpriteAnimationBuilder = Future<WeaponSpriteAnimation> Function();
 
 class MeleeAttack {
   MeleeAttack({
-    required this.attackHitboxSize,
+    required this.attackHitboxSizeBuild,
     required this.entitySpriteAnimation,
     required this.attackSpriteAnimationBuild,
     required this.chargePattern,
@@ -226,7 +226,7 @@ class MeleeAttack {
 
   ///Size, start percent, end percent
   ///Start percent = .1, end percent = .9 (example)
-  final (Vector2 Function(), (double, double)) attackHitboxSize;
+  final (Vector2 Function(), (double, double)) attackHitboxSizeBuild;
 }
 
 mixin MeleeFunctionality on Weapon {
@@ -823,12 +823,18 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
     super.endAttacking();
   }
 
-@override
+  @override
+  void onRemove() {
+    chargeAnimation?.removeFromParent();
+    super.onRemove();
+  }
+
+  @override
   void weaponSwappedFrom() {
     chargeAnimation?.removeFromParent();
-    
     super.weaponSwappedFrom();
   }
+
   @override
   double get particleLifespan => .2;
 

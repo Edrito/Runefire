@@ -425,7 +425,11 @@ class SpriteAnimations {
   //Swords
 
   late Future<SpriteAnimation> phaseDaggerIdle1 = loadSpriteAnimation(
-      1, ImagesAssetsWeapons.phaseDagger.flamePath, 1, true);
+    1,
+    ImagesAssetsWeapons.phaseDagger.flamePath,
+    1,
+    true,
+  );
 
   late Future<SpriteAnimation> crystalSwordIdle1 =
       loadSpriteAnimation(1, 'weapons/crystal_sword.png', 1, true);
@@ -440,7 +444,7 @@ class SpriteAnimations {
   );
 
   late Future<SpriteAnimation> fireSwordIdle1 =
-      loadSpriteAnimation(1, 'weapons/fire_sword.png', 1, true);
+      loadSpriteAnimation(1, ImagesAssetsWeapons.flameSword.flamePath, 1, true);
 
   late Future<SpriteAnimation> largeSwordIdle1 =
       loadSpriteAnimation(1, 'weapons/large_sword.png', 1, true);

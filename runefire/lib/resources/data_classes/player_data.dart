@@ -66,7 +66,7 @@ class PlayerData extends DataClass with PlayerStatistics {
   };
 
   //XP
-  int _experiencePoints = 6000;
+  int _experiencePoints = 600000;
 
   int get experiencePoints => _experiencePoints;
 

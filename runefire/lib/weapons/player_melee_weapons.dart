@@ -24,15 +24,9 @@ class PhaseDagger extends PlayerWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.physical] = (1, 3);
-    baseDamage.damageBase[DamageType.psychic] = (1, 2);
-    attackTickRate.baseParameter = .25;
-    pierce.baseParameter = 2;
-    chainingTargets.baseParameter = 4;
-
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(.5, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(.5, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         attackSpriteAnimationBuild: () async {
@@ -56,7 +50,7 @@ class PhaseDagger extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(.5, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(.5, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         attackSpriteAnimationBuild: () async {
@@ -128,7 +122,25 @@ class PhaseDagger extends PlayerWeapon
 
   @override
   void mapUpgrade() {
-    unMapUpgrade();
+    baseDamage.damageBase[DamageType.physical] = (
+      increasePercentOfBase(2, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(4, customUpgradeFactor: .2, includeBase: true)
+          .toDouble()
+    );
+    baseDamage.damageBase[DamageType.psychic] =
+        baseDamage.damageBase[DamageType.physical]!;
+
+    attackTickRate.baseParameter =
+        increasePercentOfBase(.3, customUpgradeFactor: -.05, includeBase: true)
+            .toDouble();
+
+    pierce.baseParameter =
+        increasePercentOfBase(2, customUpgradeFactor: .5 / 2, includeBase: true)
+            .round();
+    chainingTargets.baseParameter =
+        increasePercentOfBase(1, customUpgradeFactor: 1, includeBase: true)
+            .round();
 
     super.mapUpgrade();
   }
@@ -137,16 +149,13 @@ class PhaseDagger extends PlayerWeapon
   bool get removeSpriteOnAttack => true;
 
   @override
-  set setSecondaryFunctionality(item) {
+  set setSecondaryFunctionality(dynamic item) {
     super.setSecondaryFunctionality = item;
     if (secondaryIsWeapon) {
       spirteComponentPositions.add(WeaponSpritePosition.hand);
       spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
-
-  @override
-  void unMapUpgrade() {}
 }
 
 class CrystalSword extends PlayerWeapon
@@ -160,7 +169,7 @@ class CrystalSword extends PlayerWeapon
     pierce.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (
+        attackHitboxSizeBuild: (
           () => Vector2(weaponLength / 3.5, weaponLength),
           (.1, .9)
         ),
@@ -183,7 +192,7 @@ class CrystalSword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (
+        attackHitboxSizeBuild: (
           () => Vector2(weaponLength / 3.5, weaponLength),
           (.1, .9)
         ),
@@ -205,7 +214,7 @@ class CrystalSword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (
+        attackHitboxSizeBuild: (
           () => Vector2(weaponLength / 3.5, weaponLength),
           (.1, .9)
         ),
@@ -316,7 +325,7 @@ class AethertideSpear extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
         meleeAttackType: MeleeType.stab,
         entitySpriteAnimation: null,
@@ -338,7 +347,7 @@ class AethertideSpear extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         meleeAttackType: MeleeType.stab,
         weaponTrailConfig: WeaponTrailConfig(disableTrail: true),
@@ -360,7 +369,7 @@ class AethertideSpear extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(3, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(3, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -471,7 +480,7 @@ class HolySword extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -497,7 +506,7 @@ class HolySword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -626,7 +635,7 @@ class FlameSword extends PlayerWeapon
     // baseAttackCount.baseParameter = 5;
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         weaponTrailConfig:
             WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
@@ -647,7 +656,7 @@ class FlameSword extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         weaponTrailConfig:
             WeaponTrailConfig(color: DamageType.fire.color.withOpacity(.75)),
         entitySpriteAnimation: null,
@@ -670,7 +679,9 @@ class FlameSword extends PlayerWeapon
       ),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
-    if (ancestor == null) return;
+    if (ancestor == null) {
+      return;
+    }
   }
 
   @override
@@ -688,9 +699,6 @@ class FlameSword extends PlayerWeapon
 
   @override
   WeaponType weaponType = WeaponType.flameSword;
-
-  // @override
-  // Vector2 get baseOffset => Vector2(5, .25);
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -752,7 +760,7 @@ class LargeSword extends PlayerWeapon
     baseDamage.damageBase[DamageType.physical] = (12, 20);
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (() => Vector2.all(1), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2.all(1), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -883,7 +891,7 @@ class FrostKatana extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (() => Vector2(1, weaponLength), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         weaponTrailConfig: WeaponTrailConfig(
           bottomStartFromTipPercent: .25,
@@ -1008,7 +1016,7 @@ class SwordOfJustice extends PlayerWeapon
 
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSize: (
+        attackHitboxSizeBuild: (
           () => Vector2(weaponLength / 3.5, weaponLength),
           (.1, .9)
         ),
@@ -1033,7 +1041,7 @@ class SwordOfJustice extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (
+        attackHitboxSizeBuild: (
           () => Vector2(weaponLength / 3.5, weaponLength),
           (.1, .9)
         ),
@@ -1057,7 +1065,7 @@ class SwordOfJustice extends PlayerWeapon
         ],
       ),
       MeleeAttack(
-        attackHitboxSize: (
+        attackHitboxSizeBuild: (
           () => Vector2(weaponLength / 3.5, weaponLength),
           (.1, .9)
         ),

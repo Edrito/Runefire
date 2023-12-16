@@ -483,8 +483,8 @@ class MeleeAttackHandler extends Component {
       initAngle = 0;
     }
     hitboxBeginEnd = (
-      currentAttack.attackHitboxSize.$2.$1 * duration,
-      currentAttack.attackHitboxSize.$2.$2 * duration
+      currentAttack.attackHitboxSizeBuild.$2.$1 * duration,
+      currentAttack.attackHitboxSizeBuild.$2.$2 * duration
     );
   }
 
@@ -669,6 +669,9 @@ class MeleeAttackHandler extends Component {
   }
 
   void kill() {
+    activeSwings.forEach((element) {
+      element.removeFromParent();
+    });
     activeSwings.clear();
     removeSwing();
     isDead = true;
@@ -690,7 +693,7 @@ class MeleeAttackHandler extends Component {
   Future<void> onLoad() async {
     weaponAncestor.activeSwings.add(this);
     weaponAncestor.spriteVisibilityCheck();
-    final hitboxSize = currentAttack.attackHitboxSize;
+    final hitboxSize = currentAttack.attackHitboxSizeBuild;
 
     await initSwing(initAngle, initPosition);
     if (!isCharging) {
@@ -698,6 +701,12 @@ class MeleeAttackHandler extends Component {
       weaponAncestor.entityAncestor?.enviroment.addPhysicsComponent([hitbox!]);
     }
     return super.onLoad();
+  }
+
+  @override
+  void onRemove() {
+    kill();
+    super.onRemove();
   }
 
   @override
