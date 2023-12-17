@@ -115,8 +115,8 @@ class MagicalProjectile extends SpriteBullet {
     }
   }
   late CustomParticleGenerator particleGenerator = CustomParticleGenerator(
-    minSize: .05,
-    maxSize: (power * .2) + .15,
+    minSize: .02,
+    maxSize: (power * .07) + .05,
     lifespan: 2,
     parentBody: body,
     frequency: 2,

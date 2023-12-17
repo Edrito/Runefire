@@ -873,11 +873,7 @@ static const FileDataClass emberBow =
 static const FileDataClass flameSword = 
 (path:"assets/images/weapons/flame_sword.png",flamePath:"weapons/flame_sword.png", size:(42.0,103.0)  );///frost_katana.png
 static const FileDataClass frostKatana = 
-(path:"assets/images/weapons/frost_katana.png",flamePath:"weapons/frost_katana.png", size:(28.0,152.0)  );///holy_sword.png
-static const FileDataClass holySword = 
-(path:"assets/images/weapons/holy_sword.png",flamePath:"weapons/holy_sword.png", size:(54.0,142.0)  );///holy_sword_idle.png
-static const FileDataClass holySwordIdle = 
-(path:"assets/images/weapons/holy_sword_idle.png",flamePath:"weapons/holy_sword_idle.png", size:(162.0,142.0)  );///large_sword.png
+(path:"assets/images/weapons/frost_katana.png",flamePath:"weapons/frost_katana.png", size:(28.0,152.0)  );///large_sword.png
 static const FileDataClass largeSword = 
 (path:"assets/images/weapons/large_sword.png",flamePath:"weapons/large_sword.png", size:(26.0,90.0)  );///muzzle_flash.png
 static const FileDataClass muzzleFlash = 
@@ -887,7 +883,11 @@ static const FileDataClass phaseDagger =
 static const FileDataClass prismaticBeam = 
 (path:"assets/images/weapons/prismatic_beam.png",flamePath:"weapons/prismatic_beam.png", size:(32.0,74.0)  );///railspire.png
 static const FileDataClass railspire = 
-(path:"assets/images/weapons/railspire.png",flamePath:"weapons/railspire.png", size:(36.0,89.0)  );///scatter_blast.png
+(path:"assets/images/weapons/railspire.png",flamePath:"weapons/railspire.png", size:(36.0,89.0)  );///sanctified_edge.png
+static const FileDataClass sanctifiedEdge = 
+(path:"assets/images/weapons/sanctified_edge.png",flamePath:"weapons/sanctified_edge.png", size:(54.0,142.0)  );///sanctified_edge_idle.png
+static const FileDataClass sanctifiedEdgeIdle = 
+(path:"assets/images/weapons/sanctified_edge_idle.png",flamePath:"weapons/sanctified_edge_idle.png", size:(162.0,142.0)  );///scatter_blast.png
 static const FileDataClass scatterBlast = 
 (path:"assets/images/weapons/scatter_blast.png",flamePath:"weapons/scatter_blast.png", size:(18.0,102.0)  );///scryshot.png
 static const FileDataClass scryshot = 
@@ -910,13 +910,13 @@ eldritchRunner.path,
 emberBow.path,
 flameSword.path,
 frostKatana.path,
-holySword.path,
-holySwordIdle.path,
 largeSword.path,
 muzzleFlash.path,
 phaseDagger.path,
 prismaticBeam.path,
 railspire.path,
+sanctifiedEdge.path,
+sanctifiedEdgeIdle.path,
 scatterBlast.path,
 scryshot.path,
 scryshotAttack.path,
@@ -934,13 +934,13 @@ eldritchRunner.flamePath,
 emberBow.flamePath,
 flameSword.flamePath,
 frostKatana.flamePath,
-holySword.flamePath,
-holySwordIdle.flamePath,
 largeSword.flamePath,
 muzzleFlash.flamePath,
 phaseDagger.flamePath,
 prismaticBeam.flamePath,
 railspire.flamePath,
+sanctifiedEdge.flamePath,
+sanctifiedEdgeIdle.flamePath,
 scatterBlast.flamePath,
 scryshot.flamePath,
 scryshotAttack.flamePath,
@@ -1175,7 +1175,7 @@ static const FileDataClass firePlay =
 static const FileDataClass firePlayBig = 
 (path:"assets/images/weapons/projectiles/magic/fire_play_big.png",flamePath:"weapons/projectiles/magic/fire_play_big.png", size:(64.0,32.0)  );///frost_hit.png
 static const FileDataClass frostHit = 
-(path:"assets/images/weapons/projectiles/magic/frost_hit.png",flamePath:"weapons/projectiles/magic/frost_hit.png", size:(288.0,48.0)  );///frost_play.png
+(path:"assets/images/weapons/projectiles/magic/frost_hit.png",flamePath:"weapons/projectiles/magic/frost_hit.png", size:(144.0,24.0)  );///frost_play.png
 static const FileDataClass frostPlay = 
 (path:"assets/images/weapons/projectiles/magic/frost_play.png",flamePath:"weapons/projectiles/magic/frost_play.png", size:(48.0,32.0)  );///frost_play_big.png
 static const FileDataClass frostPlayBig = 

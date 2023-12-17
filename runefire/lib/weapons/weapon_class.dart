@@ -227,6 +227,13 @@ abstract class Weapon extends Component with UpgradeFunctions {
       this is ReloadFunctionality &&
       (this as ReloadFunctionality).reloadTimer != null;
 
+  int get pierceParameter {
+    return max(
+      chainingTargets.parameter + maxHomingTargets.parameter,
+      pierce.parameter,
+    );
+  }
+
   Vector2 get tipOffset => Vector2(pngSize.x / 2, pngSize.y * .9)
     ..scaledToHeight(
       entityAncestor,
@@ -235,9 +242,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   bool get weaponCanChain => chainingTargets.parameter > 0;
   bool get weaponCanHome => maxHomingTargets.parameter > 0;
-  double get weaponLength => entityAncestor == null
-      ? 0
-      : (pngSize.clone()..scaledToHeight(entityAncestor, weapon: this)).y;
+  double get weaponLength {
+    return entityAncestor == null
+        ? 0
+        : (pngSize.clone()..scaledToHeight(entityAncestor, weapon: this)).y;
+  }
 
   void addAdditionalWeapon(Weapon newWeapon) {
     additionalWeapons[newWeapon.weaponId] = newWeapon;

@@ -23,6 +23,7 @@ import 'package:runefire/resources/constants/damage_values.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/weapons/melee_swing_manager.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:flutter_animate/flutter_animate.dart'
@@ -50,22 +51,9 @@ import 'package:runefire/attributes/attributes_mixin.dart';
 //     baseCollisionWhileDashing, collisionWhileDashingIncrease);
 mixin ElementalPower {
   final Map<DamageType, double> _elementalPower = {};
-  Map<DamageType, double> get elementalPower => _elementalPower;
-
   final Map<DamageType, Map<double, bool>> _forceElementalAttribute = {};
 
-  DamageType? shouldForceElementalAttribute() {
-    for (final element in _forceElementalAttribute.entries) {
-      for (final damageTypeEntry in element.value.entries) {
-        if (damageTypeEntry.value) {
-          element.value[damageTypeEntry.key] = false;
-          return element.key;
-        }
-      }
-    }
-
-    return null;
-  }
+  Map<DamageType, double> get elementalPower => _elementalPower;
 
   ///Positive to increase, negative to decrease
   ///out of 1
@@ -88,6 +76,19 @@ mixin ElementalPower {
         _forceElementalAttribute[type]![1.0] ??= true;
       }
     }
+  }
+
+  DamageType? shouldForceElementalAttribute() {
+    for (final element in _forceElementalAttribute.entries) {
+      for (final damageTypeEntry in element.value.entries) {
+        if (damageTypeEntry.value) {
+          element.value[damageTypeEntry.key] = false;
+          return element.key;
+        }
+      }
+    }
+
+    return null;
   }
 }
 
@@ -228,15 +229,15 @@ mixin BaseAttributes {
 }
 
 mixin MovementFunctionality on Entity {
-  Map<String, Entity> entitiesFeared = {};
-  //Speed
-  late final DoubleParameterManager speed;
-
   final List<int> _currentMoveVelocityPriorities = [];
 
   ///Priority, higher is more important
   ///Then detla
   final Map<int, Vector2> _moveVelocities = {};
+
+  Map<String, Entity> entitiesFeared = {};
+  //Speed
+  late final DoubleParameterManager speed;
 
   Vector2 get currentMoveDelta {
     if (entitiesFeared.isNotEmpty) {
@@ -315,7 +316,15 @@ mixin MovementFunctionality on Entity {
 
   @override
   void initializeChildEntityParameters(ChildEntity childEntity) {
-    speed = (childEntity.parentEntity as MovementFunctionality).speed;
+    if (childEntity.parentEntity is MovementFunctionality) {
+      speed = DoubleParameterManager(
+        baseParameter: 500,
+        parentParameterManager:
+            (childEntity.parentEntity as MovementFunctionality).speed,
+      );
+    } else {
+      speed = DoubleParameterManager(baseParameter: 500);
+    }
     super.initializeChildEntityParameters(childEntity);
   }
 
@@ -327,6 +336,11 @@ mixin MovementFunctionality on Entity {
 }
 
 mixin AimFunctionality on Entity {
+  final Map<int, Vector2> _aimAngles = {};
+  final Map<int, Vector2> _aimPositions = {};
+  final List<int> _currentAimAnglePriorities = [];
+  final List<int> _currentAimPositionPriorities = [];
+
   DoubleParameterManager aimingInterpolationAmount =
       DoubleParameterManager(baseParameter: .065);
 
@@ -341,11 +355,6 @@ mixin AimFunctionality on Entity {
 
   PlayerAttachmentJointComponent? backJoint;
   PlayerAttachmentJointComponent? mouseJoint;
-
-  final Map<int, Vector2> _aimAngles = {};
-  final Map<int, Vector2> _aimPositions = {};
-  final List<int> _currentAimAnglePriorities = [];
-  final List<int> _currentAimPositionPriorities = [];
 
   Vector2? get aimPosition {
     if (isDead) {
@@ -536,6 +545,18 @@ mixin AttackFunctionality on AimFunctionality {
     return carriedWeapons.elementAtOrNull(weaponIndex);
   }
 
+  void clearWeapons() {
+    weaponsInitialized = false;
+    handJoint.removePreviousComponents();
+    mouseJoint?.removePreviousComponents();
+    backJoint?.removePreviousComponents();
+    carriedWeapons.forEach((value) {
+      value.removeFromParent();
+    });
+    carriedWeapons.clear();
+    weaponIndex = 0;
+  }
+
   Future<void> endPrimaryAttacking() async {
     if (!isAttacking) {
       return;
@@ -557,18 +578,6 @@ mixin AttackFunctionality on AimFunctionality {
     if (weaponIndex >= carriedWeapons.length) {
       weaponIndex = 0;
     }
-  }
-
-  void clearWeapons() {
-    weaponsInitialized = false;
-    handJoint.removePreviousComponents();
-    mouseJoint?.removePreviousComponents();
-    backJoint?.removePreviousComponents();
-    carriedWeapons.forEach((value) {
-      value.removeFromParent();
-    });
-    carriedWeapons.clear();
-    weaponIndex = 0;
   }
 
   void initializeWeapons() {
@@ -599,19 +608,6 @@ mixin AttackFunctionality on AimFunctionality {
       _setWeapon(currentWeapon!);
     }
     weaponsInitialized = true;
-  }
-
-  Future<void> _setWeapon(Weapon weapon) async {
-    weapon.spritesHidden = false;
-    await handJoint.loaded.whenComplete(() => handJoint.addWeaponClass(weapon));
-    if (enviroment is GameEnviroment && isPlayer) {
-      await enviroment.loaded;
-      gameEnviroment.hud.toggleStaminaColor(weapon.weaponType.attackType);
-      await mouseJoint?.loaded
-          .whenComplete(() => mouseJoint?.addWeaponClass(weapon));
-      await backJoint?.loaded
-          .whenComplete(() => backJoint?.addWeaponClass(weapon));
-    }
   }
 
   Future<void> startPrimaryAttacking() async {
@@ -665,6 +661,7 @@ mixin AttackFunctionality on AimFunctionality {
     if (isAltAttacking) {
       newWeapon.startAltAttacking();
     }
+    newWeapon.spriteVisibilityCheck();
   }
 
   @override
@@ -703,6 +700,19 @@ mixin AttackFunctionality on AimFunctionality {
     }
 
     super.permanentlyDisableEntity();
+  }
+
+  Future<void> _setWeapon(Weapon weapon) async {
+    weapon.spritesHidden = false;
+    await handJoint.loaded.whenComplete(() => handJoint.addWeaponClass(weapon));
+    if (enviroment is GameEnviroment && isPlayer) {
+      await enviroment.loaded;
+      gameEnviroment.hud.toggleStaminaColor(weapon.weaponType.attackType);
+      await mouseJoint?.loaded
+          .whenComplete(() => mouseJoint?.addWeaponClass(weapon));
+      await backJoint?.loaded
+          .whenComplete(() => backJoint?.addWeaponClass(weapon));
+    }
   }
 }
 
@@ -826,27 +836,18 @@ mixin HealthRegenFunctionality on HealthFunctionality {
 }
 
 mixin HealthFunctionality on Entity {
-  void _deadFunctionsCall(DamageInstance instance) {
-    final attr = attributeFunctionsFunctionality;
-    if (attr != null && onDeath.isNotEmpty) {
-      for (final element in onDeath) {
-        element.call(instance);
-      }
-    }
-  }
-
   late final BoolParameterManager isMarked;
   late final DoubleParameterManager maxHealth;
 
-  List<DamageInstance> damageInstancesRecieved = [];
-  double damageTaken = 0;
   //HEALTH
   Map<DamageType, (TextComponent, double)> damageTexts = {};
-  Map<DamageType, double> damageTextsTimer = {};
 
+  List<DamageInstance> damageInstancesRecieved = [];
+  double damageTaken = 0;
   double damageTextLifespan = 2;
-
+  Map<DamageType, double> damageTextsTimer = {};
   Map<String, double> hitSourceInvincibility = {};
+  double iFrameDuration = 0;
   //health
   late final DoubleParameterManager invincibilityDuration;
 
@@ -859,7 +860,6 @@ mixin HealthFunctionality on Entity {
   Vector2? baseTextSize;
   ColorEffect? currentColorEffect;
   SizeEffect? currentScaleEffect;
-  double iFrameDuration = 0;
 
   bool get canBeHit => !isInvincible && !isDead;
   double get healthPercentage => remainingHealth / maxHealth.parameter;
@@ -892,25 +892,6 @@ mixin HealthFunctionality on Entity {
       Offset(0.0, color.opacity),
       reversedController,
     )..addToParent(entityAnimationsGroup);
-  }
-
-  String _buildTextFromDamage(
-    DamageType damageType,
-    double damage,
-    String? customText,
-  ) {
-    var damageString = '';
-
-    if (customText != null) {
-      damageString = customText;
-    } else {
-      damageString = !damage.isFinite ? 'X' : damage.ceil().toString();
-
-      if (damageType == DamageType.healing) {
-        damageString = '+ $damageString';
-      }
-    }
-    return damageString;
   }
 
   void addFloatingText(DamageInstance damage, [String? customText]) {
@@ -988,6 +969,20 @@ mixin HealthFunctionality on Entity {
     // }
   }
 
+  Future<void> addOpacityFlashEffect(double duration) async {
+    late final OpacityEffect flashEffect;
+    final previousOpacity = entityAnimationsGroup.opacity;
+    entityAnimationsGroup.add(
+      flashEffect = OpacityEffect.by(
+        .5,
+        InfiniteEffectController(SineEffectController(period: .2)),
+      ),
+    );
+    await Future.delayed(duration.seconds);
+    entityAnimationsGroup.opacity = previousOpacity;
+    flashEffect.removeFromParent();
+  }
+
   void applyDamage(DamageInstance damage) {
     damageTaken += damage.damage;
     // recentDamage += damage.damage;
@@ -1027,29 +1022,6 @@ mixin HealthFunctionality on Entity {
       damageTaken.clamp(0, maxHealth.parameter);
       damage.damageMap.remove(DamageType.healing);
     }
-  }
-
-  @override
-  void update(double dt) {
-    for (final element in [...hitSourceInvincibility.keys]) {
-      if (hitSourceInvincibility[element]! <= dt) {
-        hitSourceInvincibility.remove(element);
-        continue;
-      }
-      hitSourceInvincibility[element] = hitSourceInvincibility[element]! - dt;
-    }
-    for (final element in [...damageTextsTimer.keys]) {
-      damageTextsTimer[element] = damageTextsTimer[element]! - dt;
-      if (damageTextsTimer[element]! <= 0) {
-        damageTextsTimer.remove(element);
-        damageTexts[element]?.$1.removeFromParent();
-        damageTexts.remove(element);
-      }
-    }
-    if (iFrameDuration > 0) {
-      iFrameDuration -= dt;
-    }
-    super.update(dt);
   }
 
   void applyIFrameTimer(String id) {
@@ -1151,6 +1123,32 @@ mixin HealthFunctionality on Entity {
     }
   }
 
+  Future<void> die(
+    DamageInstance damage, [
+    EndGameState endGameState = EndGameState.playerDeath,
+  ]) async {
+    isDead = true;
+
+    permanentlyDisableEntity();
+    entityStatusWrapper.removeAllAnimations();
+    await setEntityAnimation(EntityStatus.dead, finalAnimation: true);
+    entityAnimationsGroup.add(
+      OpacityEffect.fadeOut(
+        EffectController(
+          startDelay: rng.nextDouble() * .5,
+          duration: 1.0,
+          onMax: removeFromParent,
+          curve: Curves.easeIn,
+        ),
+      ),
+    );
+
+    if (this is Player) {
+      game.gameStateComponent.gameState
+          .killPlayer(endGameState, this as Player, damage);
+    }
+  }
+
   Future<void> dieThenRevive() async {
     // entityStatusWrapper.removeAllAnimations();
 
@@ -1188,43 +1186,93 @@ mixin HealthFunctionality on Entity {
     heal(damageTaken);
   }
 
-  Future<void> addOpacityFlashEffect(double duration) async {
-    late final OpacityEffect flashEffect;
-    final previousOpacity = entityAnimationsGroup.opacity;
-    entityAnimationsGroup.add(
-      flashEffect = OpacityEffect.by(
-        .5,
-        InfiniteEffectController(SineEffectController(period: .2)),
-      ),
-    );
-    await Future.delayed(duration.seconds);
-    entityAnimationsGroup.opacity = previousOpacity;
-    flashEffect.removeFromParent();
+  void doOtherEntityOnDamageFunctions(DamageInstance damage) {
+    final other = damage.source.isChildEntity
+        ? (damage.source as ChildEntity).parentEntity
+        : damage.source;
+    final otherFunctions = other.attributeFunctionsFunctionality;
+    if (otherFunctions != null) {
+      for (final element in otherFunctions.onPostDamageOtherEntity) {
+        element(damage);
+      }
+    }
+
+    if (damage.sourceWeapon is AttributeWeaponFunctionsFunctionality) {
+      (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+          .onDamage
+          .forEach((element) {
+        element(damage);
+      });
+      switch (damage.sourceWeapon?.weaponType.attackType) {
+        case AttackType.melee:
+          (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+              .onDamageMelee
+              .forEach((element) {
+            element(damage);
+          });
+          break;
+        case AttackType.guns:
+          (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+              .onDamageProjectile
+              .forEach((element) {
+            element(damage);
+          });
+          break;
+        case AttackType.magic:
+          (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+              .onDamageMagic
+              .forEach((element) {
+            element(damage);
+          });
+          break;
+        default:
+      }
+    }
   }
 
-  Future<void> die(
-    DamageInstance damage, [
-    EndGameState endGameState = EndGameState.playerDeath,
-  ]) async {
-    isDead = true;
+  void doOtherEntityOnHitFunctions(DamageInstance damage) {
+    final other = damage.source.isChildEntity
+        ? (damage.source as ChildEntity).parentEntity
+        : damage.source;
 
-    permanentlyDisableEntity();
-    entityStatusWrapper.removeAllAnimations();
-    await setEntityAnimation(EntityStatus.dead, finalAnimation: true);
-    entityAnimationsGroup.add(
-      OpacityEffect.fadeOut(
-        EffectController(
-          startDelay: rng.nextDouble() * .5,
-          duration: 1.0,
-          onMax: removeFromParent,
-          curve: Curves.easeIn,
-        ),
-      ),
-    );
+    final otherFunctions = other.attributeFunctionsFunctionality;
+    if (otherFunctions != null) {
+      for (final element in otherFunctions.onHitOtherEntity) {
+        element(damage);
+      }
+    }
 
-    if (this is Player) {
-      game.gameStateComponent.gameState
-          .killPlayer(endGameState, this as Player, damage);
+    if (damage.sourceWeapon is AttributeWeaponFunctionsFunctionality) {
+      (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+          .onHit
+          .forEach((element) {
+        element(damage);
+      });
+
+      switch (damage.sourceWeapon?.weaponType.attackType) {
+        case AttackType.melee:
+          (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+              .onHitMelee
+              .forEach((element) {
+            element(damage);
+          });
+          break;
+        case AttackType.guns:
+          (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+              .onHitProjectile
+              .forEach((element) {
+            element(damage);
+          });
+          break;
+        case AttackType.magic:
+          (damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality)
+              .onHitMagic
+              .forEach((element) {
+            element(damage);
+          });
+          break;
+        default:
+      }
     }
   }
 
@@ -1265,7 +1313,7 @@ mixin HealthFunctionality on Entity {
     DamageInstance damage, [
     bool applyStatusEffect = true,
   ]) {
-    applyHealing(damage);
+    doOtherEntityOnHitFunctions(damage);
 
     if (hitSourceInvincibility.containsKey(id) || damage.damage == 0) {
       return false;
@@ -1337,11 +1385,7 @@ mixin HealthFunctionality on Entity {
       applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
       essenceStealChecker(damage);
     }
-    if (damage.source is AttributeCallbackFunctionality) {
-      (damage.source as AttributeCallbackFunctionality)
-          .onPostDamageOtherEntityFunctions
-          .call(damage);
-    }
+    doOtherEntityOnDamageFunctions(damage);
 
     applyDamage(damage);
     setEntityAnimation(EntityStatus.damage);
@@ -1371,6 +1415,57 @@ mixin HealthFunctionality on Entity {
 
   @override
   bool get isInvincible => super.isInvincible || iFrameDuration > 0;
+
+  @override
+  void update(double dt) {
+    for (final element in [...hitSourceInvincibility.keys]) {
+      if (hitSourceInvincibility[element]! <= dt) {
+        hitSourceInvincibility.remove(element);
+        continue;
+      }
+      hitSourceInvincibility[element] = hitSourceInvincibility[element]! - dt;
+    }
+    for (final element in [...damageTextsTimer.keys]) {
+      damageTextsTimer[element] = damageTextsTimer[element]! - dt;
+      if (damageTextsTimer[element]! <= 0) {
+        damageTextsTimer.remove(element);
+        damageTexts[element]?.$1.removeFromParent();
+        damageTexts.remove(element);
+      }
+    }
+    if (iFrameDuration > 0) {
+      iFrameDuration -= dt;
+    }
+    super.update(dt);
+  }
+
+  String _buildTextFromDamage(
+    DamageType damageType,
+    double damage,
+    String? customText,
+  ) {
+    var damageString = '';
+
+    if (customText != null) {
+      damageString = customText;
+    } else {
+      damageString = !damage.isFinite ? 'X' : damage.ceil().toString();
+
+      if (damageType == DamageType.healing) {
+        damageString = '+ $damageString';
+      }
+    }
+    return damageString;
+  }
+
+  void _deadFunctionsCall(DamageInstance instance) {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && onDeath.isNotEmpty) {
+      for (final element in onDeath) {
+        element.call(instance);
+      }
+    }
+  }
 }
 
 mixin DodgeFunctionality on HealthFunctionality {
@@ -1486,7 +1581,8 @@ mixin TouchDamageFunctionality on Entity, ContactCallbacks {
   late final DoubleParameterManager hitRate;
   late final DamageParameterManager touchDamage;
 
-  Map<Body, TimerComponent> objectsHitting = {};
+  List<Function(Entity other)> onTouchTick = [];
+  Map<Entity, double> objectsHitting = {};
 
   DamageInstance calculateTouchDamage(
     HealthFunctionality victim,
@@ -1531,31 +1627,13 @@ mixin TouchDamageFunctionality on Entity, ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     final shouldCalculate = !isDead &&
-        other is HealthFunctionality &&
+        other is Entity &&
         ((contact.fixtureA.userData! as Map)['type'] == FixtureType.body &&
             (contact.fixtureB.userData! as Map)['type'] == FixtureType.body);
     if (shouldCalculate) {
-      if (isPlayer && other is Enemy) {
-        objectsHitting[other.body] = TimerComponent(
-          period: hitRate.parameter,
-          repeat: true,
-          onTick: () {
-            damageOther(other.body);
-          },
-        )
-          ..addToParent(this)
-          ..onTick();
-        other.hitCheck(entityId, calculateTouchDamage(other, this));
-      } else if (!isPlayer && other is Player) {
-        objectsHitting[other.body] = TimerComponent(
-          period: hitRate.parameter,
-          repeat: true,
-          onTick: () {
-            damageOther(other.body);
-          },
-        )
-          ..addToParent(this)
-          ..onTick();
+      if ((isPlayer && other is Enemy) || (!isPlayer && other is Player)) {
+        objectsHitting[other] = 0.0;
+        _onTick(other);
       }
     }
 
@@ -1564,9 +1642,8 @@ mixin TouchDamageFunctionality on Entity, ContactCallbacks {
 
   @override
   void endContact(Object other, Contact contact) {
-    if (other is BodyComponent) {
-      objectsHitting[other.body]?.removeFromParent();
-      objectsHitting.remove(other.body);
+    if (other is Entity) {
+      objectsHitting.remove(other);
     }
 
     super.endContact(other, contact);
@@ -1591,65 +1668,38 @@ mixin TouchDamageFunctionality on Entity, ContactCallbacks {
     initTouchParameters();
     super.initializeParentParameters();
   }
+
+  @override
+  void update(double dt) {
+    final hitRateParameter = hitRate.parameter;
+
+    if (hitRateParameter > 0) {
+      objectsHitting.forEach((key, value) {
+        objectsHitting[key] = value + dt;
+        if (value >= hitRateParameter) {
+          _onTick(key);
+          objectsHitting[key] = 0;
+        }
+      });
+    } else {
+      objectsHitting.forEach((key, value) {
+        _onTick(key);
+      });
+    }
+
+    super.update(dt);
+  }
+
+  void _onTick(Entity entity) {
+    damageOther(entity.body);
+    onTouchTick.forEach((element) {
+      element(entity);
+    });
+  }
 }
 
 mixin DashFunctionality on StaminaFunctionality {
-  void _dashBeginFunctionsCall() {
-    final attr = attributeFunctionsFunctionality;
-    if (attr != null &&
-        attr.dashBeginFunctions.isNotEmpty &&
-        triggerFunctions) {
-      for (final element in attr.dashBeginFunctions) {
-        element();
-      }
-    }
-  }
-
-  bool _dashCheck() {
-    if (!canDash) {
-      return false;
-    }
-
-    beginDash();
-
-    return true;
-  }
-
-  void _dashEndFunctionsCall() {
-    final attr = attributeFunctionsFunctionality;
-    if (attr != null && attr.dashEndFunctions.isNotEmpty && triggerFunctions) {
-      for (final element in attr.dashEndFunctions) {
-        element();
-      }
-    }
-  }
-
-  void _dashOngoingFunctionsCall() {
-    final attr = attributeFunctionsFunctionality;
-    if (attr != null &&
-        attr.dashOngoingFunctions.isNotEmpty &&
-        triggerFunctions) {
-      for (final element in attr.dashOngoingFunctions) {
-        element();
-      }
-    }
-  }
-
-  void _finishDash() {
-    _dashEndFunctionsCall();
-    dashDelta = null;
-    _isDashing = false;
-    dashedDistance = 0;
-    // collision.removeKey(entityId);
-  }
-
-  void _teleport() {
-    body.setTransform(
-      body.position + (dashDelta!.normalized() * dashDistanceGoal!),
-      0,
-    );
-    _finishDash();
-  }
+  bool _isDashing = false;
 
   late final DoubleParameterManager dashDistance;
   late final DoubleParameterManager dashDuration;
@@ -1670,8 +1720,6 @@ mixin DashFunctionality on StaminaFunctionality {
 
   Vector2? dashDelta;
   double? dashDistanceGoal;
-
-  bool _isDashing = false;
 
   bool get canDash => !(dashTimerCooldown != null ||
       isJumping ||
@@ -1745,9 +1793,12 @@ mixin DashFunctionality on StaminaFunctionality {
     }
 
     dashDelta = dashDelta!.normalized();
-    dashDistanceGoal =
-        dashDistanceGoal?.clamp(0, dashDistance.parameter * power);
-
+    final max = (dashDistance.parameter * power).abs();
+    dashDistanceGoal = dashDistanceGoal?.clamp(
+      -max,
+      max,
+    );
+    print(dashDistanceGoal);
     if (!weaponSource) {
       dashTimerCooldown = TimerComponent(
         period: dashCooldown.parameter,
@@ -1784,17 +1835,17 @@ mixin DashFunctionality on StaminaFunctionality {
   }
 
   void dashMove(double dt) {
+    final absDashDistanceGoal = dashDistanceGoal!.abs();
     final distance = ((dashDistanceGoal! / dashDuration.parameter) * dt)
-        .clamp(0, dashDistanceGoal!)
-        .toDouble();
+        .clamp(-absDashDistanceGoal, absDashDistanceGoal);
     body.setTransform(body.position + (dashDelta! * distance), 0);
-    dashedDistance += distance;
+    dashedDistance += distance.abs();
     _dashOngoingFunctionsCall();
   }
 
   void dashMoveCheck(double dt) {
     if (isDashing && dashDelta != null) {
-      if (dashedDistance > dashDistanceGoal!) {
+      if (dashedDistance > dashDistanceGoal!.abs()) {
         _finishDash();
         return;
       }
@@ -1844,9 +1895,143 @@ mixin DashFunctionality on StaminaFunctionality {
     dashMoveCheck(dt);
     super.update(dt);
   }
+
+  void _dashBeginFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null &&
+        attr.dashBeginFunctions.isNotEmpty &&
+        triggerFunctions) {
+      for (final element in attr.dashBeginFunctions) {
+        element();
+      }
+    }
+  }
+
+  bool _dashCheck() {
+    if (!canDash) {
+      return false;
+    }
+
+    beginDash();
+
+    return true;
+  }
+
+  void _dashEndFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.dashEndFunctions.isNotEmpty && triggerFunctions) {
+      for (final element in attr.dashEndFunctions) {
+        element();
+      }
+    }
+  }
+
+  void _dashOngoingFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null &&
+        attr.dashOngoingFunctions.isNotEmpty &&
+        triggerFunctions) {
+      for (final element in attr.dashOngoingFunctions) {
+        element();
+      }
+    }
+  }
+
+  void _finishDash() {
+    _dashEndFunctionsCall();
+    dashDelta = null;
+    _isDashing = false;
+    dashedDistance = 0;
+    // collision.removeKey(entityId);
+  }
+
+  void _teleport() {
+    body.setTransform(
+      body.position + (dashDelta!.normalized() * dashDistanceGoal!),
+      0,
+    );
+    _finishDash();
+  }
 }
 
 mixin JumpFunctionality on Entity {
+  bool _isJumping = false;
+
+  late final DoubleParameterManager jumpDuration;
+  late final DoubleParameterManager jumpStaminaCost;
+  late final DoubleParameterManager jumpingInvinciblePercent;
+
+  bool allowJumpingInvincible = true;
+  bool isJumpingInvincible = false;
+  double jumpHeight = .5;
+
+  bool get cantJump =>
+      isJumping ||
+      isDashing ||
+      !enableMovement.parameter ||
+      isDead ||
+      (this is StaminaFunctionality
+          ? !(this as StaminaFunctionality)
+              .hasEnoughStamina(jumpStaminaCost.parameter)
+          : false);
+
+  Future<void> jump([bool forceJump = false]) async {
+    if (!_jumpCheck(forceJump)) {
+      return;
+    }
+    applyGroundAnimation(
+      await spriteAnimations.jumpEffect1,
+      false,
+      spriteHeight * .2,
+    );
+    final jumpDurationPar = jumpDuration.parameter;
+
+    final jumpAnimation = entityAnimationsGroup.animations?[EntityStatus.jump];
+
+    entityAnimationsGroup.animations?[EntityStatus.jump]?.stepTime =
+        jumpDurationPar / (1 + (jumpAnimation?.frames.length ?? 1));
+    setEntityAnimation(EntityStatus.jump);
+  }
+
+  void jumpOngoingFunctionsCall() {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.jumpOngoingFunctions.isNotEmpty) {
+      for (final element in attr.jumpOngoingFunctions) {
+        element();
+      }
+    }
+  }
+
+  @override
+  void initializeChildEntityParameters(ChildEntity childEntity) {
+    jumpDuration = (childEntity.parentEntity as JumpFunctionality).jumpDuration;
+    jumpStaminaCost =
+        (childEntity.parentEntity as JumpFunctionality).jumpStaminaCost;
+    jumpingInvinciblePercent = (childEntity.parentEntity as JumpFunctionality)
+        .jumpingInvinciblePercent;
+
+    super.initializeChildEntityParameters(childEntity);
+  }
+
+  @override
+  void initializeParentParameters() {
+    jumpDuration = DoubleParameterManager(baseParameter: .6, minParameter: 0);
+    jumpStaminaCost =
+        DoubleParameterManager(baseParameter: 10, minParameter: 0);
+    jumpingInvinciblePercent = DoubleParameterManager(
+      baseParameter: .5,
+      minParameter: 0,
+      maxParameter: 1,
+    );
+
+    super.initializeParentParameters();
+  }
+
+  //JUMP
+
+  @override
+  bool get isJumping => _isJumping;
+
   void _jumpBeginFunctionsCall() {
     final attr = attributeFunctionsFunctionality;
     if (attr != null && attr.jumpBeginFunctions.isNotEmpty) {
@@ -1934,83 +2119,6 @@ mixin JumpFunctionality on Entity {
 
     _jumpBeginFunctionsCall();
   }
-
-  late final DoubleParameterManager jumpDuration;
-  late final DoubleParameterManager jumpStaminaCost;
-  late final DoubleParameterManager jumpingInvinciblePercent;
-
-  bool allowJumpingInvincible = true;
-  bool isJumpingInvincible = false;
-  double jumpHeight = .5;
-
-  bool _isJumping = false;
-
-  bool get cantJump =>
-      isJumping ||
-      isDashing ||
-      !enableMovement.parameter ||
-      isDead ||
-      (this is StaminaFunctionality
-          ? !(this as StaminaFunctionality)
-              .hasEnoughStamina(jumpStaminaCost.parameter)
-          : false);
-
-  Future<void> jump([bool forceJump = false]) async {
-    if (!_jumpCheck(forceJump)) {
-      return;
-    }
-    applyGroundAnimation(
-      await spriteAnimations.jumpEffect1,
-      false,
-      spriteHeight * .2,
-    );
-    final jumpDurationPar = jumpDuration.parameter;
-
-    final jumpAnimation = entityAnimationsGroup.animations?[EntityStatus.jump];
-
-    entityAnimationsGroup.animations?[EntityStatus.jump]?.stepTime =
-        jumpDurationPar / (1 + (jumpAnimation?.frames.length ?? 1));
-    setEntityAnimation(EntityStatus.jump);
-  }
-
-  void jumpOngoingFunctionsCall() {
-    final attr = attributeFunctionsFunctionality;
-    if (attr != null && attr.jumpOngoingFunctions.isNotEmpty) {
-      for (final element in attr.jumpOngoingFunctions) {
-        element();
-      }
-    }
-  }
-
-  @override
-  void initializeChildEntityParameters(ChildEntity childEntity) {
-    jumpDuration = (childEntity.parentEntity as JumpFunctionality).jumpDuration;
-    jumpStaminaCost =
-        (childEntity.parentEntity as JumpFunctionality).jumpStaminaCost;
-    jumpingInvinciblePercent = (childEntity.parentEntity as JumpFunctionality)
-        .jumpingInvinciblePercent;
-
-    super.initializeChildEntityParameters(childEntity);
-  }
-
-  @override
-  void initializeParentParameters() {
-    jumpDuration = DoubleParameterManager(baseParameter: .6, minParameter: 0);
-    jumpStaminaCost =
-        DoubleParameterManager(baseParameter: 10, minParameter: 0);
-    jumpingInvinciblePercent = DoubleParameterManager(
-      baseParameter: .5,
-      minParameter: 0,
-      maxParameter: 1,
-    );
-
-    super.initializeParentParameters();
-  }
-
-  //JUMP
-
-  @override
-  bool get isJumping => _isJumping;
 }
 
 mixin ExpendableFunctionality on Entity {

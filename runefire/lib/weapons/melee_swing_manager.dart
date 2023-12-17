@@ -77,7 +77,6 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     hitEnemiesId.add(other.entityId);
     final damageInstance =
         meleeAttackAncestor.weaponAncestor.calculateDamage(other, this);
-    onHitFunctions(damageInstance);
     other.hitCheck(meleeAttackAncestor.meleeId, damageInstance);
     applyHitSpriteEffects(damageInstance);
     hitEnemies++;
@@ -93,25 +92,11 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
   final (Vector2 Function(), (double, double)) size;
 
-  void onHitFunctions(DamageInstance instance) {
-    if (meleeAttackAncestor.weaponAncestor
-        is AttributeWeaponFunctionsFunctionality) {
-      final weapon = meleeAttackAncestor.weaponAncestor
-          as AttributeWeaponFunctionsFunctionality;
-      for (final element in weapon.onHitMelee) {
-        element(instance);
-      }
-    }
-
-    meleeAttackAncestor
-        .weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
-        ?.onHitFunctions(instance);
-  }
-
   double trailStepDuration = .2;
   double backTrailStepDurationProgress = 0;
   double centerTrailStepDurationProgress = 0;
   late MeleeAttackSprite latestSwingRef;
+  late final Vector2 vectorSize = size.$1.call();
 
   Future<void> updatePosition(double dt) async {
     final ref = meleeAttackAncestor.activeSwings;
@@ -124,7 +109,6 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       hitboxPoints.clear();
       latestSwingRef = ref.last;
     }
-    final vectorSize = size.$1.call();
     final halfWidth = vectorSize.x / 2;
 
     final topCenter = newPositionRad(
@@ -216,7 +200,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
         if (hitEnemiesId.contains(other.entityId) || other.isDead) {
           return;
         }
-        if (hitEnemies > meleeAttackAncestor.weaponAncestor.pierce.parameter) {
+        if (hitEnemies > meleeAttackAncestor.weaponAncestor.pierceParameter) {
           // meleeAttackAncestor.kill();
           hitboxIsDead = true;
           return;

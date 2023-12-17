@@ -123,7 +123,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
   void bodyContact(HealthFunctionality other) {
     hitIds.add(other.entityId);
     final damageInstance = weaponAncestor.calculateDamage(other, this);
-    onHitFunctions(damageInstance, other);
     other.hitCheck(projectileId, damageInstance);
   }
 
@@ -151,22 +150,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
     }
     removeFromParent();
     callBulletKillFunctions();
-  }
-
-  void onHitFunctions(
-    DamageInstance damageInstance,
-    HealthFunctionality victim,
-  ) {
-    if (weaponAncestor is AttributeWeaponFunctionsFunctionality) {
-      final weapon = weaponAncestor as AttributeWeaponFunctionsFunctionality;
-      var result = false;
-
-      for (final element in weapon.onHitProjectile) {
-        result = result || element(damageInstance);
-      }
-    }
-    weaponAncestor.entityAncestor?.attributeFunctionsFunctionality
-        ?.onHitFunctions(damageInstance);
   }
 
   void sensorContact(HealthFunctionality other) {

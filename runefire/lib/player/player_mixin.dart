@@ -179,7 +179,9 @@ mixin PlayerStatisticsRecorder
     });
 
     onKillOtherEntity.add((instance) {
-      if (instance.victim is! Enemy) return;
+      if (instance.victim is! Enemy) {
+        return;
+      }
       final enemy = instance.victim as Enemy;
       enemiesKilled.update(
         enemy.enemyType,
@@ -263,7 +265,9 @@ mixin PlayerStatisticsRecorder
     });
 
     onStaminaModified.add((stamina) {
-      if (stamina >= 0) return;
+      if (stamina >= 0) {
+        return;
+      }
       totalStaminaUsed += stamina.abs();
     });
 

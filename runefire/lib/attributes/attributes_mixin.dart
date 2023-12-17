@@ -146,7 +146,13 @@ mixin AttributeFunctionality on Entity {
       if (currentAttributes.containsKey(attr)) {
         returnList.add(currentAttributes[attr]!);
       } else {
-        returnList.add(attr.buildAttribute(0, this));
+        returnList.add(
+          attr.buildAttribute(
+            0,
+            this,
+            perpetratorEntity: this,
+          ),
+        );
       }
     }
 
@@ -226,95 +232,16 @@ mixin AttributeFunctionality on Entity {
 }
 
 mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
-  void _checkFinishTimer() {
-    if (finishPulseTimer) {
-      pulseTimer?.removeFromParent();
-      pulseTimer = null;
-      finishPulseTimer = false;
-    }
-  }
+  final List<AttachedToBodyChildEntity> _bodyComponents = [];
+  final List<AttachedToBodyChildEntity> _headEntities = [];
+  final List<Function> _pulseFunctions = [];
 
-  void _processBodyEntities(
-    List<ChildEntity> bodyEntities,
-    double distance,
-    double dt,
-  ) {
-    if (bodyEntities.isEmpty) {
-      return; // Avoid division by zero
-    }
-
-    final offsetPosition = bodyEntityWrapper!.absolutePosition + center;
-    final distanceSteps = bodyEntities.fold<Set<double>>(
-      {},
-      (previousValue, element) => {...previousValue, element.distance},
-    );
-
-    for (final distanceStep in distanceSteps) {
-      final tempBodies = bodyEntities
-          .where((element) => element.distance == distanceStep)
-          .toList();
-
-      final numEntities = tempBodies.length;
-      final angleStep = 2 * pi / numEntities;
-      var currentAngle = (previousBodyAngle[distanceStep] ?? 0) +
-          (dt * (tempBodies.first.rotationSpeed ?? speedBody));
-
-      for (var i = 0; i < numEntities; i++) {
-        final body = tempBodies[i];
-
-        final x = distance * cos(currentAngle);
-        final y = distance * sin(currentAngle);
-        if (body.isLoaded) {
-          body.setTransform((Vector2(x, y) * distanceStep) + offsetPosition, 0);
-        }
-        currentAngle += angleStep;
-      }
-      previousBodyAngle[distanceStep] = currentAngle;
-    }
-  }
-
-  void _processHeadEntities(
-    List<ChildEntity> entities,
-    double distance,
-    double dt,
-  ) {
-    if (entities.isEmpty) {
-      return; // Avoid division by zero
-    }
-
-    final numEntities = entities.length;
-    final angleStep = 2 * pi / numEntities;
-    var currentAngle = previousHeadAngle += dt * speedHead;
-    final offsetPosition = headEntityWrapper!.absolutePosition + center;
-
-    for (var i = 0; i < numEntities; i++) {
-      if (numEntities != 1) {
-        final x = distance * cos(currentAngle);
-        final y = distance * sin(currentAngle);
-        if (entities[i].isLoaded) {
-          entities[i].setTransform(Vector2(x * 2, y * .75) + offsetPosition, 0);
-        }
-        currentAngle += angleStep;
-      } else {
-        if (entities[i].isLoaded) {
-          entities[i].setTransform(Vector2.zero() + offsetPosition, 0);
-        }
-      }
-    }
-
-    previousHeadAngle = currentAngle;
-  }
-
-  final List<Function(DamageInstance instance)> onKillOtherEntity = [];
-  final List<Function(DamageInstance instance)> onHeal = [];
   final List<Function(double stamina)> onStaminaModified = [];
   final List<Function(Expendable item)> onItemPickup = [];
   final List<Function(Expendable item)> onExpendableUsed = [];
   final List<Function(Weapon weapon)> onAttack = [];
   final List<Function(ReloadFunctionality weapon)> onReloadComplete = [];
   final List<Function(ReloadFunctionality weapon)> onReload = [];
-  final List<Function(DamageInstance instance)> onDodge = [];
-  final List<Function(HealthFunctionality other)> onTouch = [];
   final List<Function(double dt)> onUpdate = [];
   final List<Function()> dashBeginFunctions = [];
   final List<Function()> dashEndFunctions = [];
@@ -322,12 +249,16 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<Function()> jumpBeginFunctions = [];
   final List<Function()> jumpEndFunctions = [];
   final List<Function()> jumpOngoingFunctions = [];
-  final List<OnHitDef> onHitByOtherEntity = [];
-  final List<OnHitDef> onHitByProjectile = [];
-  final List<OnHitDef> onHitOtherEntity = [];
   final List<Function()> onLevelUp = [];
   final List<Function()> onMove = [];
   final List<Function(Weapon weapon)> onSpentAttack = [];
+  final List<Function(DamageInstance instance)> onDodge = [];
+  final List<Function(HealthFunctionality other)> onTouch = [];
+  final List<Function(DamageInstance instance)> onHeal = [];
+  final List<Function(DamageInstance instance)> onKillOtherEntity = [];
+  final List<OnHitDef> onHitByOtherEntity = [];
+  final List<OnHitDef> onHitByProjectile = [];
+  final List<OnHitDef> onHitOtherEntity = [];
 
   bool finishPulseTimer = false;
   //Only called when damage is 100% going to be applied
@@ -337,7 +268,9 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<OnHitDef> onPreDamageOtherEntity = [];
 
   Map<double, double> previousBodyAngle = {1: 0};
+
   double previousHeadAngle = 0;
+
   DoubleParameterManager pulsePeriod =
       DoubleParameterManager(baseParameter: 3, minParameter: 0.5);
 
@@ -348,13 +281,9 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   PositionComponent? headEntityWrapper;
   TimerComponent? pulseTimer;
 
-  final List<ChildEntity> _bodyComponents = [];
-  final List<ChildEntity> _headEntities = [];
-  final List<Function> _pulseFunctions = [];
-
   int get numHeadEntities => _headEntities.length;
 
-  void addBodyEntity(ChildEntity entity) {
+  void addBodyEntity(AttachedToBodyChildEntity entity) {
     bodyEntityWrapper ??= PositionComponent()..addToParent(this);
 
     _bodyComponents.add(entity);
@@ -363,7 +292,7 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     }
   }
 
-  void addHeadEntity(ChildEntity entity) {
+  void addHeadEntity(AttachedToBodyChildEntity entity) {
     headEntityWrapper ??= PositionComponent(
       position: Vector2(0, spriteHeight * -2),
     )..addToParent(this);
@@ -391,20 +320,6 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     )..addToParent(this);
     _pulseFunctions.add(function);
     finishPulseTimer = false;
-  }
-
-  void onHitFunctions(DamageInstance damage) {
-    for (final element in onHitOtherEntity) {
-      element(damage);
-    }
-  }
-
-  bool onPostDamageOtherEntityFunctions(DamageInstance damage) {
-    var returnVal = false;
-    for (final element in onPostDamageOtherEntity) {
-      returnVal = element(damage) || returnVal;
-    }
-    return returnVal;
   }
 
   bool onPreDamageOtherEntityFunctions(DamageInstance damage) {
@@ -474,6 +389,85 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     _processBodyEntities(_bodyComponents, spriteHeight * 1.3, dt);
     super.update(dt);
   }
+
+  void _checkFinishTimer() {
+    if (finishPulseTimer) {
+      pulseTimer?.removeFromParent();
+      pulseTimer = null;
+      finishPulseTimer = false;
+    }
+  }
+
+  void _processBodyEntities(
+    List<AttachedToBodyChildEntity> bodyEntities,
+    double distance,
+    double dt,
+  ) {
+    if (bodyEntities.isEmpty) {
+      return; // Avoid division by zero
+    }
+
+    final offsetPosition = bodyEntityWrapper!.absolutePosition + center;
+    final distanceSteps = bodyEntities.fold<Set<double>>(
+      {},
+      (previousValue, element) => {...previousValue, element.distance},
+    );
+
+    for (final distanceStep in distanceSteps) {
+      final tempBodies = bodyEntities
+          .where((element) => element.distance == distanceStep)
+          .toList();
+
+      final numEntities = tempBodies.length;
+      final angleStep = 2 * pi / numEntities;
+      var currentAngle = (previousBodyAngle[distanceStep] ?? 0) +
+          (dt * (tempBodies.first.rotationSpeed ?? speedBody));
+
+      for (var i = 0; i < numEntities; i++) {
+        final body = tempBodies[i];
+
+        final x = distance * cos(currentAngle);
+        final y = distance * sin(currentAngle);
+        if (body.isLoaded) {
+          body.setTransform((Vector2(x, y) * distanceStep) + offsetPosition, 0);
+        }
+        currentAngle += angleStep;
+      }
+      previousBodyAngle[distanceStep] = currentAngle;
+    }
+  }
+
+  void _processHeadEntities(
+    List<AttachedToBodyChildEntity> entities,
+    double distance,
+    double dt,
+  ) {
+    if (entities.isEmpty) {
+      return; // Avoid division by zero
+    }
+
+    final numEntities = entities.length;
+    final angleStep = 2 * pi / numEntities;
+    var currentAngle = previousHeadAngle += dt * speedHead;
+    final offsetPosition = headEntityWrapper!.absolutePosition + center;
+
+    for (var i = 0; i < numEntities; i++) {
+      if (numEntities != 1) {
+        final x = distance * cos(currentAngle);
+        final y = distance * sin(currentAngle);
+        if (entities[i].isLoaded) {
+          entities[i].setTransform(Vector2(x * 2, y * .75) + offsetPosition, 0);
+        }
+        currentAngle += angleStep;
+      } else {
+        if (entities[i].isLoaded) {
+          entities[i].setTransform(Vector2.zero() + offsetPosition, 0);
+        }
+      }
+    }
+
+    previousHeadAngle = currentAngle;
+  }
 }
 
 class StatusEffect extends PositionComponent {
@@ -502,55 +496,6 @@ class StatusEffect extends PositionComponent {
   }
 }
 
-// class HoldDuration extends PositionComponent {
-//   HoldDuration(this.duration);
-
-//   final double duration;
-//   final double spriteSize = .25;
-
-//   double get percentComplete => (durationProgressed / duration).clamp(0, 1);
-
-//   double durationProgressed = 0;
-
-//   @override
-//   FutureOr<void> onLoad() async {
-//     // size = Vector2.all(spriteSize);
-//     // anchor = Anchor.center;
-
-//     return super.onLoad();
-//   }
-
-//   @override
-//   void update(double dt) {
-//     durationProgressed += dt;
-//     super.update(dt);
-//   }
-
-//   @override
-//   void render(Canvas canvas) {
-//     // canvas.drawCircle(Offset.zero, spriteSize, BasicPalette.white.paint());
-//     canvas.drawCircle(
-//         Offset.zero,
-//         spriteSize,
-//         Paint()
-//           ..shader = ui.Gradient.sweep(
-//               Offset.zero,
-//               [
-//                 percentComplete == 1
-//                     ? ApolloColorPalette().secondaryColor
-//                     : ApolloColorPalette().primaryColor,
-//                 Colors.transparent
-//               ],
-//               [percentComplete, percentComplete],
-
-//               // null,
-//               TileMode.clamp,
-//               0,
-//               pi * 2 * percentComplete));
-//     super.render(canvas);
-//   }
-// }
-
 class EntityStatusEffectsWrapper {
   EntityStatusEffectsWrapper({required this.entity});
 
@@ -566,20 +511,6 @@ class EntityStatusEffectsWrapper {
   late double width = entity.entityAnimationsGroup.width * 1.5;
 
   SpriteAnimationComponent? markerAnimation;
-
-  // void addHoldDuration(double duration) {
-  //   if (removedAnimations) return;
-  //   holdDuration?.removeFromParent();
-  //   holdDuration = HoldDuration(duration);
-  //   holdDuration!.position.y = -.5;
-  //   holdDuration!.position.x = width / 2;
-  //   add(holdDuration!);
-  // }
-
-  // void removeHoldDuration() {
-  //   holdDuration?.removeFromParent();
-  //   holdDuration = null;
-  // }
 
   Future<void> addMarkedStatus() async {
     if (removedAnimations) {
@@ -735,7 +666,7 @@ class ReloadAnimation extends PositionComponent {
   }
 
   @override
-  render(Canvas canvas) {
+  void render(Canvas canvas) {
     if (!isOpaque) {
       buildProgressBar(
         canvas: canvas,

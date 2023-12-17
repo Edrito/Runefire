@@ -25,6 +25,9 @@ class BlankProjectileWeapon extends EnemyWeapon
   WeaponType weaponType = WeaponType.blankProjectileWeapon;
 
   @override
+  double get weaponLength => 2;
+
+  @override
   void mapUpgrade() {
     unMapUpgrade();
 
@@ -69,15 +72,8 @@ class BlankProjectileWeapon extends EnemyWeapon
   ProjectileType? projectileType = ProjectileType.paintBullet;
 
   @override
-  SemiAutoType semiAutoType = SemiAutoType.regular;
+  void endAltAttacking() {}
 
   @override
-  void endAltAttacking() {
-    // TODO: implement endAltAttacking
-  }
-
-  @override
-  void startAltAttacking() {
-    // TODO: implement startAltAttacking
-  }
+  void startAltAttacking() {}
 }

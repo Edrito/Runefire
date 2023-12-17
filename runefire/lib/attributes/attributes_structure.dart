@@ -732,6 +732,10 @@ abstract class Attribute extends UpgradeFunctions {
   void removeUpgrade() {
     if (damageType != null) {
       victimEntity?.modifyElementalPower(damageType!, -elementalWeighting);
+    } else if (attributeType.elementalRequirement.isNotEmpty) {
+      for (final element in attributeType.elementalRequirement) {
+        victimEntity?.modifyElementalPower(element, -elementalWeighting);
+      }
     }
 
     super.removeUpgrade();
@@ -741,7 +745,12 @@ abstract class Attribute extends UpgradeFunctions {
   void applyUpgrade() {
     if (damageType != null) {
       victimEntity?.modifyElementalPower(damageType!, elementalWeighting);
+    } else if (attributeType.elementalRequirement.isNotEmpty) {
+      for (final element in attributeType.elementalRequirement) {
+        victimEntity?.modifyElementalPower(element, elementalWeighting);
+      }
     }
+
     super.applyUpgrade();
   }
 

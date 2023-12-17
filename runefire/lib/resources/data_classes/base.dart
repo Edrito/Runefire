@@ -44,10 +44,22 @@ class DoubleParameterManager {
     required double baseParameter,
     this.minParameter,
     this.maxParameter,
-  }) : _baseParameter = baseParameter;
+    this.parentParameterManager,
+  }) : _baseParameter = baseParameter {
+    parentParameterManager?.addListener((parameter) {
+      _parameterFlatIncrease.addAll(
+        parentParameterManager!._parameterFlatIncrease,
+      );
+      _parameterPercentIncrease.addAll(
+        parentParameterManager!._parameterPercentIncrease,
+      );
+    });
+  }
 
   double? minParameter;
   double? maxParameter;
+
+  DoubleParameterManager? parentParameterManager;
 
   double _baseParameter;
 
@@ -315,7 +327,7 @@ class BoolParameterManager {
 class DamageParameterManager {
   DamageParameterManager({required this.damageBase});
   Random rng = Random();
-  final Map<DamageType, (double, double)> damageBase;
+  Map<DamageType, (double, double)> damageBase;
 
   ///Min damage is added to min damage calculation, same with max
   final Map<String, Map<DamageType, (double, double)>> _damageFlatIncrease = {};

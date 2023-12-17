@@ -32,7 +32,7 @@ class SystemData extends DataClass {
   double sfxVolume;
 
   @HiveField(10)
-  bool showFPS = false;
+  bool showFPS = true;
 
   @HiveField(11)
   bool showTimer = false;

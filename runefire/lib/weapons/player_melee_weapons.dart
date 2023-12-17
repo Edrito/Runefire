@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
@@ -18,155 +21,24 @@ import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/enums.dart';
 
-class PhaseDagger extends PlayerWeapon
-    with MeleeFunctionality, FullAutomatic, StaminaCostFunctionality {
-  PhaseDagger(
-    super.newUpgradeLevel,
-    super.ancestor,
-  ) {
-    meleeAttacks = [
-      MeleeAttack(
-        attackHitboxSizeBuild: (() => Vector2(.5, weaponLength), (.1, .9)),
-        entitySpriteAnimation: null,
-        meleeAttackType: MeleeType.stab,
-        attackSpriteAnimationBuild: () async {
-          return WeaponSpriteAnimation(
-            Vector2.zero(),
-            weapon: this,
-            parentJoint: null,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-            },
-          )..opacity = (.5 * rng.nextDouble()) + .5;
-        },
-        weaponTrailConfig: WeaponTrailConfig(
-          color: DamageType.psychic.color.withOpacity(.5),
-        ),
-        chargePattern: [],
-        attackPattern: [
-          (Vector2(.2, -.5), -20, 1),
-          (Vector2(0, 1.5), 30, 1),
-          // (Vector2(.25, 0), -35, 1),
-        ],
-      ),
-      MeleeAttack(
-        attackHitboxSizeBuild: (() => Vector2(.5, weaponLength), (.1, .9)),
-        entitySpriteAnimation: null,
-        meleeAttackType: MeleeType.stab,
-        attackSpriteAnimationBuild: () async {
-          return WeaponSpriteAnimation(
-            Vector2.zero(),
-            weapon: this,
-            parentJoint: null,
-            weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-            },
-          )..opacity = (.5 * rng.nextDouble()) + .5;
-        },
-        weaponTrailConfig: WeaponTrailConfig(color: DamageType.psychic.color),
-        chargePattern: [],
-        attackPattern: [
-          (Vector2(-.2, -.5), 20, 1),
-          (Vector2(0, 1.5), -30, 1),
-          // (Vector2(.25, 0), -35, 1),
-        ],
-      ),
-    ];
-
-    spirteComponentPositions.add(WeaponSpritePosition.back);
-  }
-
-  @override
-  double distanceFromPlayer = 0;
-
-  @override
-  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
-
-  @override
-  List<WeaponSpritePosition> spirteComponentPositions = [];
-
-  @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
-
-  @override
-  WeaponType weaponType = WeaponType.phaseDagger;
-
-  @override
-  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
-    PlayerAttachmentJointComponent parentJoint,
-  ) async {
-    switch (parentJoint.jointPosition) {
-      case WeaponSpritePosition.back:
-        return WeaponSpriteAnimation(
-          Vector2.zero(),
-          weapon: this,
-          parentJoint: parentJoint,
-          weaponAnimations: {
-            WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-          },
-        )
-          ..angle = radians(-15)
-          ..position = Vector2(.15, -.5);
-      default:
-        return WeaponSpriteAnimation(
-          Vector2.zero(),
-          weapon: this,
-          parentJoint: parentJoint,
-          weaponAnimations: {
-            WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
-          },
-        );
-    }
-  }
-
-  @override
-  void mapUpgrade() {
-    baseDamage.damageBase[DamageType.physical] = (
-      increasePercentOfBase(2, customUpgradeFactor: .2, includeBase: true)
-          .toDouble(),
-      increasePercentOfBase(4, customUpgradeFactor: .2, includeBase: true)
-          .toDouble()
-    );
-    baseDamage.damageBase[DamageType.psychic] =
-        baseDamage.damageBase[DamageType.physical]!;
-
-    attackTickRate.baseParameter =
-        increasePercentOfBase(.3, customUpgradeFactor: -.05, includeBase: true)
-            .toDouble();
-
-    pierce.baseParameter =
-        increasePercentOfBase(2, customUpgradeFactor: .5 / 2, includeBase: true)
-            .round();
-    chainingTargets.baseParameter =
-        increasePercentOfBase(1, customUpgradeFactor: 1, includeBase: true)
-            .round();
-
-    super.mapUpgrade();
-  }
-
-  @override
-  bool get removeSpriteOnAttack => true;
-
-  @override
-  set setSecondaryFunctionality(dynamic item) {
-    super.setSecondaryFunctionality = item;
-    if (secondaryIsWeapon) {
-      spirteComponentPositions.add(WeaponSpritePosition.hand);
-      spirteComponentPositions.remove(WeaponSpritePosition.back);
-    }
-  }
-}
-
 class CrystalSword extends PlayerWeapon
     with MeleeFunctionality, FullAutomatic, StaminaCostFunctionality {
   CrystalSword(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.physical] = (2, 5);
-    attackTickRate.baseParameter = .55;
-    pierce.baseParameter = 5;
+    // onHitMelee.add((damage) {
+    //   entityAncestor?.gameEnviroment.addPhysicsComponent([
+    //     SummonedChildEntity(
+    //       initialPosition: damage.victim.position,
+    //       parentEntity: entityAncestor!,
+    //       damageBase: {DamageType.psychic: (1, 2)},
+    //       upgradeLevel: upgradeLevel,
+    //     ),
+    //   ]);
+    //   return false;
+    // });
+
     meleeAttacks = [
       MeleeAttack(
         attackHitboxSizeBuild: (
@@ -251,7 +123,7 @@ class CrystalSword extends PlayerWeapon
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
-    // WeaponSpritePosition.back
+    WeaponSpritePosition.back,
   ];
 
   @override
@@ -291,8 +163,22 @@ class CrystalSword extends PlayerWeapon
 
   @override
   void mapUpgrade() {
-    unMapUpgrade();
-
+    baseDamage.damageBase[DamageType.physical] = (
+      increasePercentOfBase(2, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(5, customUpgradeFactor: .2, includeBase: true)
+          .toDouble()
+    );
+    attackTickRate.baseParameter = increasePercentOfBase(
+      .6,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
+    pierce.baseParameter = increasePercentOfBase(
+      4,
+      customUpgradeFactor: 1 / 4,
+      includeBase: true,
+    ).round();
     super.mapUpgrade();
   }
 
@@ -304,25 +190,183 @@ class CrystalSword extends PlayerWeapon
       spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
+}
+
+class PhaseDagger extends PlayerWeapon
+    with MeleeFunctionality, FullAutomatic, StaminaCostFunctionality {
+  PhaseDagger(
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
+    meleeAttacks = [
+      MeleeAttack(
+        attackHitboxSizeBuild: (() => Vector2(.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+            },
+          )..opacity = (.5 * rng.nextDouble()) + .5;
+        },
+        weaponTrailConfig: WeaponTrailConfig(
+          color: DamageType.psychic.color.withOpacity(.5),
+        ),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(.5, -.5), -5, 1),
+          (Vector2(0, 1.5), 5, 1),
+          // (Vector2(.25, 0), -35, 1)  ,
+        ],
+      ),
+      MeleeAttack(
+        attackHitboxSizeBuild: (() => Vector2(.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        meleeAttackType: MeleeType.stab,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+            },
+          )..opacity = (.5 * rng.nextDouble()) + .5;
+        },
+        weaponTrailConfig: WeaponTrailConfig(color: DamageType.psychic.color),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(-.5, -.5), 5, 1),
+          (Vector2(0, 1.5), -5, 1),
+          // (Vector2(.25, 0), -35, 1),
+        ],
+      ),
+      MeleeAttack(
+        attackHitboxSizeBuild: (() => Vector2(.5, weaponLength), (.1, .9)),
+        entitySpriteAnimation: null,
+        attackSpriteAnimationBuild: () async {
+          return WeaponSpriteAnimation(
+            Vector2.zero(),
+            weapon: this,
+            parentJoint: null,
+            weaponAnimations: {
+              WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+            },
+          )..opacity = (.5 * rng.nextDouble()) + .5;
+        },
+        weaponTrailConfig: WeaponTrailConfig(color: DamageType.psychic.color),
+        chargePattern: [],
+        attackPattern: [
+          (Vector2(-1.5, .5), 25, 1),
+          (Vector2(3, .5), -55, 1),
+          // (Vector2(.25, 0), -35, 1),
+        ],
+      ),
+    ];
+
+    spirteComponentPositions.add(WeaponSpritePosition.back);
+  }
 
   @override
-  void unMapUpgrade() {}
+  double distanceFromPlayer = 0;
+
+  @override
+  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+
+  @override
+  WeaponType weaponType = WeaponType.phaseDagger;
+
+  @override
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
+    switch (parentJoint.jointPosition) {
+      case WeaponSpritePosition.back:
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+          },
+        )
+          ..angle = radians(-15)
+          ..position = Vector2(.15, -.5);
+      default:
+        return WeaponSpriteAnimation(
+          Vector2.zero(),
+          weapon: this,
+          parentJoint: parentJoint,
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.phaseDaggerIdle1,
+          },
+        );
+    }
+  }
+
+  @override
+  void mapUpgrade() {
+    baseDamage.damageBase[DamageType.physical] = (
+      increasePercentOfBase(1, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(3, customUpgradeFactor: .2, includeBase: true)
+          .toDouble()
+    );
+    baseDamage.damageBase[DamageType.psychic] =
+        baseDamage.damageBase[DamageType.physical]!;
+
+    attackTickRate.baseParameter =
+        increasePercentOfBase(.3, customUpgradeFactor: -.05, includeBase: true)
+            .toDouble();
+
+    pierce.baseParameter =
+        increasePercentOfBase(2, customUpgradeFactor: .5 / 2, includeBase: true)
+            .round();
+    chainingTargets.baseParameter =
+        increasePercentOfBase(1, customUpgradeFactor: 1, includeBase: true)
+            .round();
+
+    weaponStaminaCost.baseParameter =
+        increasePercentOfBase(10, customUpgradeFactor: -0.05, includeBase: true)
+            .toDouble();
+
+    super.mapUpgrade();
+  }
+
+  @override
+  bool get removeSpriteOnAttack => true;
+
+  @override
+  set setSecondaryFunctionality(dynamic item) {
+    super.setSecondaryFunctionality = item;
+    if (secondaryIsWeapon) {
+      spirteComponentPositions.add(WeaponSpritePosition.hand);
+      spirteComponentPositions.remove(WeaponSpritePosition.back);
+    }
+  }
 }
 
 class AethertideSpear extends PlayerWeapon
     with
         MeleeFunctionality,
-        // ProjectileFunctionality,
         FullAutomatic,
-        StaminaCostFunctionality {
+        StaminaCostFunctionality,
+        ProjectileFunctionality {
   AethertideSpear(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.physical] = (8, 16);
-    attackTickRate.baseParameter = .8;
-    pierce.baseParameter = 100;
-
     meleeAttacks = [
       MeleeAttack(
         attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
@@ -381,6 +425,19 @@ class AethertideSpear extends PlayerWeapon
             },
           );
         },
+        onAttack: () {
+          if (entityAncestor is DashFunctionality) {
+            final dash = entityAncestor! as DashFunctionality;
+            pierce.setParameterFlatValue(weaponId, 999);
+            dash.beginDash(
+              power: -1,
+              weaponSource: true,
+              triggerFunctions: false,
+            );
+            Future.delayed(dash.dashDuration.parameter.seconds)
+                .then((value) => pierce.removeFlatKey(weaponId));
+          }
+        },
         chargePattern: [],
         attackPattern: [
           (Vector2(0, 3), 370, 1),
@@ -388,8 +445,7 @@ class AethertideSpear extends PlayerWeapon
         ],
       ),
     ];
-    pierce.baseParameter = 5;
-    chainingTargets.baseParameter = 6;
+
     spirteComponentPositions.add(WeaponSpritePosition.back);
   }
 
@@ -407,7 +463,7 @@ class AethertideSpear extends PlayerWeapon
       DoubleParameterManager(minParameter: 0, baseParameter: .5);
 
   @override
-  WeaponType weaponType = WeaponType.spear;
+  WeaponType weaponType = WeaponType.aethertideSpear;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -438,8 +494,30 @@ class AethertideSpear extends PlayerWeapon
   }
 
   @override
+  DamageType? get primaryDamageType => DamageType.magic;
+
+  @override
   void mapUpgrade() {
-    unMapUpgrade();
+    baseDamage.damageBase[DamageType.magic] = (
+      increasePercentOfBase(8, customUpgradeFactor: .1, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(14, customUpgradeFactor: .1, includeBase: true)
+          .toDouble()
+    );
+
+    attackTickRate.baseParameter = increasePercentOfBase(
+      .8,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
+    pierce.baseParameter = increasePercentOfBase(
+      4,
+      customUpgradeFactor: 1 / 4,
+      includeBase: true,
+    ).round();
+    weaponStaminaCost.baseParameter =
+        increasePercentOfBase(20, customUpgradeFactor: -0.05, includeBase: true)
+            .toDouble();
 
     super.mapUpgrade();
   }
@@ -457,27 +535,29 @@ class AethertideSpear extends PlayerWeapon
   }
 
   @override
-  void unMapUpgrade() {}
+  Future<void> shootProjectile([double chargeAmount = 1]) async {
+    if (upgradeLevel < 3) {
+      return;
+    }
+    return super.shootProjectile(chargeAmount);
+  }
+
+  @override
+  ProjectileType? projectileType = ProjectileType.magicProjectile;
 }
 
-class HolySword extends PlayerWeapon
+class SanctifiedEdge extends PlayerWeapon
     with
         MeleeFunctionality,
         ProjectileFunctionality,
         SemiAutomatic,
         StaminaCostFunctionality,
-        MeleeChargeReady {
-  HolySword(
+        MeleeChargeReady,
+        ChargeEffect {
+  SanctifiedEdge(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.energy] = (5, 12);
-    attackTickRate.baseParameter = .7;
-    projectileVelocity.baseParameter = 15;
-    pierce.baseParameter = 6;
-
-    // attackOnChargeComplete = true;
-
     meleeAttacks = [
       MeleeAttack(
         attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
@@ -488,7 +568,7 @@ class HolySword extends PlayerWeapon
             weapon: this,
             parentJoint: null,
             weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+              WeaponStatus.idle: await spriteAnimations.sanctifiedEdgeIdle1,
             },
           );
         },
@@ -514,7 +594,7 @@ class HolySword extends PlayerWeapon
             weapon: this,
             parentJoint: null,
             weaponAnimations: {
-              WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+              WeaponStatus.idle: await spriteAnimations.sanctifiedEdgeIdle1,
             },
           );
         },
@@ -554,7 +634,7 @@ class HolySword extends PlayerWeapon
       DoubleParameterManager(minParameter: 0, baseParameter: .5);
 
   @override
-  WeaponType weaponType = WeaponType.holySword;
+  WeaponType weaponType = WeaponType.sanctifiedSword;
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -567,7 +647,7 @@ class HolySword extends PlayerWeapon
           weapon: this,
           parentJoint: parentJoint,
           weaponAnimations: {
-            WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+            WeaponStatus.idle: await spriteAnimations.sanctifiedEdgeIdle1,
           },
         )
           ..position = Vector2(weaponLength / 3, .35)
@@ -578,27 +658,46 @@ class HolySword extends PlayerWeapon
           weapon: this,
           parentJoint: parentJoint,
           weaponAnimations: {
-            WeaponStatus.idle: await spriteAnimations.holySwordIdle1,
+            WeaponStatus.idle: await spriteAnimations.sanctifiedEdgeIdle1,
           },
         );
     }
   }
 
   @override
-  List<Projectile> generateMultipleProjectileFunction([
-    double chargeAmount = 1,
-  ]) {
-    if (chargeAmount < .7) return [];
-    return super.generateMultipleProjectileFunction(chargeAmount)
-      ..forEach((element) {
-        element.size = weaponLength / 2;
-      });
+  Future<void> shootProjectile([double chargeAmount = 1]) async {
+    if (chargeAmount < .75) {
+      return;
+    }
+    return super.shootProjectile(chargeAmount);
   }
 
   @override
   void mapUpgrade() {
-    unMapUpgrade();
+    baseDamage.damageBase[DamageType.energy] = (
+      increasePercentOfBase(4, customUpgradeFactor: .1, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(10, customUpgradeFactor: .1, includeBase: true)
+          .toDouble()
+    );
 
+    attackTickRate.baseParameter = increasePercentOfBase(
+      .7,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
+
+    pierce.baseParameter = increasePercentOfBase(
+      5,
+      customUpgradeFactor: 1 / 4,
+      includeBase: true,
+    ).round();
+
+    weaponStaminaCost.baseParameter =
+        increasePercentOfBase(12, customUpgradeFactor: -0.05, includeBase: true)
+            .toDouble();
+
+    projectileSize.baseParameter = 1.5;
     super.mapUpgrade();
   }
 
@@ -628,9 +727,6 @@ class FlameSword extends PlayerWeapon
     int? newUpgradeLevel,
     AimFunctionality? ancestor,
   ) : super(newUpgradeLevel, ancestor) {
-    attackTickRate.baseParameter = .6;
-    baseDamage.damageBase[DamageType.fire] = (20, 25);
-    pierce.baseParameter = 5;
     // maxChainingTargets.baseParameter = 6;
     // baseAttackCount.baseParameter = 5;
     meleeAttacks = [
@@ -730,7 +826,25 @@ class FlameSword extends PlayerWeapon
 
   @override
   void mapUpgrade() {
-    unMapUpgrade();
+    baseDamage.damageBase[DamageType.fire] = (
+      increasePercentOfBase(20, customUpgradeFactor: .1, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(25, customUpgradeFactor: .1, includeBase: true)
+          .toDouble()
+    );
+    attackTickRate.baseParameter = increasePercentOfBase(
+      .6,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
+    pierce.baseParameter = increasePercentOfBase(
+      5,
+      customUpgradeFactor: 1 / 4,
+      includeBase: true,
+    ).round();
+    weaponStaminaCost.baseParameter =
+        increasePercentOfBase(25, customUpgradeFactor: -0.05, includeBase: true)
+            .toDouble();
 
     super.mapUpgrade();
   }
@@ -746,21 +860,21 @@ class FlameSword extends PlayerWeapon
       spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
-
-  @override
-  void unMapUpgrade() {}
 }
 
 class LargeSword extends PlayerWeapon
-    with MeleeFunctionality, SemiAutomatic, StaminaCostFunctionality {
+    with
+        MeleeFunctionality,
+        SemiAutomatic,
+        MeleeChargeReady,
+        StaminaCostFunctionality {
   LargeSword(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.physical] = (12, 20);
     meleeAttacks = [
       MeleeAttack(
-        attackHitboxSizeBuild: (() => Vector2.all(1), (.1, .9)),
+        attackHitboxSizeBuild: (() => Vector2(1, weaponLength), (.1, .9)),
         entitySpriteAnimation: null,
         attackSpriteAnimationBuild: () async {
           return WeaponSpriteAnimation(
@@ -772,16 +886,18 @@ class LargeSword extends PlayerWeapon
             },
           );
         },
-        chargePattern: [],
+        chargePattern: [
+          (Vector2(0, .3), -20, .8),
+          (Vector2(.2, .3), -40, 1),
+          (Vector2(.1, .3), -60, 1.2),
+        ],
         attackPattern: [
-          (Vector2(.2, 0), 0, 1),
-          (Vector2(.2, 1), 0, 1),
+          (Vector2(0, -.2), 140, 1),
+          (Vector2(1, .2), -45, 1.1),
         ],
       ),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
-    attackTickRate.baseParameter = 2;
-    chainingTargets.baseParameter = 5;
   }
 
   @override
@@ -836,7 +952,25 @@ class LargeSword extends PlayerWeapon
 
   @override
   void mapUpgrade() {
-    unMapUpgrade();
+    baseDamage.damageBase[DamageType.physical] = (
+      increasePercentOfBase(25, customUpgradeFactor: .1, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(45, customUpgradeFactor: .1, includeBase: true)
+          .toDouble()
+    );
+    attackTickRate.baseParameter = increasePercentOfBase(
+      2,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
+    pierce.baseParameter = increasePercentOfBase(
+      10,
+      customUpgradeFactor: 1 / 4,
+      includeBase: true,
+    ).round();
+    weaponStaminaCost.baseParameter =
+        increasePercentOfBase(35, customUpgradeFactor: -0.05, includeBase: true)
+            .toDouble();
 
     super.mapUpgrade();
   }
@@ -846,16 +980,13 @@ class LargeSword extends PlayerWeapon
 
   @override
   @override
-  set setSecondaryFunctionality(item) {
+  set setSecondaryFunctionality(dynamic item) {
     super.setSecondaryFunctionality = item;
     if (secondaryIsWeapon) {
       spirteComponentPositions.add(WeaponSpritePosition.hand);
       spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
-
-  @override
-  void unMapUpgrade() {}
 }
 
 class FrostKatana extends PlayerWeapon
@@ -868,16 +999,12 @@ class FrostKatana extends PlayerWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.frost] = (5, 12);
-    attackTickRate.baseParameter = .5;
-    pierce.baseParameter = 5;
-
-    customChargeDuration = 1;
-
     onAttackMelee.add((holdDurationPercent) {
       if (entityAncestor is DashFunctionality) {
         final dash = entityAncestor! as DashFunctionality;
-        if (holdDurationPercent < .6) return;
+        if (holdDurationPercent < .6) {
+          return;
+        }
         pierce.setParameterFlatValue(weaponId, 999);
         dash.beginDash(
           power: holdDurationPercent * 2.5,
@@ -972,7 +1099,27 @@ class FrostKatana extends PlayerWeapon
 
   @override
   void mapUpgrade() {
-    unMapUpgrade();
+    customChargeDuration = 1;
+
+    baseDamage.damageBase[DamageType.frost] = (
+      increasePercentOfBase(5, customUpgradeFactor: .1, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(15, customUpgradeFactor: .1, includeBase: true)
+          .toDouble()
+    );
+    attackTickRate.baseParameter = increasePercentOfBase(
+      .5,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
+    pierce.baseParameter = increasePercentOfBase(
+      5,
+      customUpgradeFactor: 1 / 4,
+      includeBase: true,
+    ).round();
+    weaponStaminaCost.baseParameter =
+        increasePercentOfBase(35, customUpgradeFactor: -0.05, includeBase: true)
+            .toDouble();
 
     super.mapUpgrade();
   }
@@ -981,16 +1128,13 @@ class FrostKatana extends PlayerWeapon
   bool get removeSpriteOnAttack => true;
 
   @override
-  set setSecondaryFunctionality(item) {
+  set setSecondaryFunctionality(dynamic item) {
     super.setSecondaryFunctionality = item;
     if (secondaryIsWeapon) {
       spirteComponentPositions.add(WeaponSpritePosition.hand);
       spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
-
-  @override
-  void unMapUpgrade() {}
 }
 
 class SwordOfJustice extends PlayerWeapon
@@ -999,20 +1143,7 @@ class SwordOfJustice extends PlayerWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.physical] = (2, 5);
-    baseDamage.damageBase[DamageType.fire] = (2, 5);
-    attackTickRate.baseParameter = .4;
-    pierce.baseParameter = 5;
     // maxChainingTargets.baseParameter = 3;
-
-    onHitMelee.add((damage) {
-      if (damage.victim.healthPercentage < .2) {
-        damage.damageMap.clear();
-        damage.damageMap[DamageType.fire] = double.infinity;
-        damage.checkCrit(true);
-      }
-      return false;
-    });
 
     meleeAttacks = [
       MeleeAttack(
@@ -1143,7 +1274,43 @@ class SwordOfJustice extends PlayerWeapon
 
   @override
   void mapUpgrade() {
-    unMapUpgrade();
+    onHitMelee.add((damage) {
+      if (damage.victim.healthPercentage <
+          increasePercentOfBase(
+            .1,
+            customUpgradeFactor: .15,
+            includeBase: true,
+          ).toDouble()) {
+        damage.damageMap.clear();
+        damage.damageMap[DamageType.fire] = double.infinity;
+        damage.checkCrit(true);
+      }
+      return false;
+    });
+
+    baseDamage.damageBase[DamageType.physical] = (
+      increasePercentOfBase(2, customUpgradeFactor: .1, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(5, customUpgradeFactor: .1, includeBase: true)
+          .toDouble()
+    );
+
+    baseDamage.damageBase[DamageType.fire] =
+        baseDamage.damageBase[DamageType.physical]!;
+
+    attackTickRate.baseParameter = increasePercentOfBase(
+      .4,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
+    pierce.baseParameter = increasePercentOfBase(
+      5,
+      customUpgradeFactor: 1 / 4,
+      includeBase: true,
+    ).round();
+    weaponStaminaCost.baseParameter =
+        increasePercentOfBase(15, customUpgradeFactor: -0.05, includeBase: true)
+            .toDouble();
 
     super.mapUpgrade();
   }
@@ -1156,7 +1323,4 @@ class SwordOfJustice extends PlayerWeapon
       spirteComponentPositions.remove(WeaponSpritePosition.back);
     }
   }
-
-  @override
-  void unMapUpgrade() {}
 }

@@ -194,6 +194,7 @@ class MeleeAttack {
     required this.attackSpriteAnimationBuild,
     required this.chargePattern,
     required this.attackPattern,
+    this.onAttack,
     this.weaponTrailConfig,
     this.meleeAttackType = MeleeType.slash,
     this.flippedDuringAttack = false,
@@ -201,7 +202,7 @@ class MeleeAttack {
   });
 
   final SpriteAnimation? entitySpriteAnimation;
-
+  Function()? onAttack;
   bool customStartAngle;
   bool flippedDuringAttack;
   List<WeaponSpriteAnimation> latestAttackSpriteAnimation = [];
@@ -266,6 +267,7 @@ mixin MeleeFunctionality on Weapon {
     for (final deltaDirection in temp) {
       final customPosition =
           generateGlobalPosition(sourceAttackLocation!, melee: true);
+
       returnList.add(
         MeleeAttackHandler(
           initPosition: customPosition,
@@ -273,7 +275,7 @@ mixin MeleeFunctionality on Weapon {
           attachmentPoint: sourceAttackLocation != SourceAttackLocation.mouse
               ? entityAncestor
               : null,
-          currentAttack: meleeAttacks[indexUsed],
+          currentAttack: meleeAttacks[indexUsed]..onAttack?.call(),
           weaponAncestor: this,
         ),
       );
@@ -450,7 +452,7 @@ mixin ProjectileFunctionality on Weapon {
   double farDamageIncreaseDistanceCutoff = 30;
   double particleLifespan = .5;
   DoubleParameterManager projectileSize =
-      DoubleParameterManager(baseParameter: .3);
+      DoubleParameterManager(baseParameter: 1);
 
   //META
   abstract ProjectileType? projectileType;
@@ -462,6 +464,7 @@ mixin ProjectileFunctionality on Weapon {
         (this as SemiAutomatic).increaseSizeWhenCharged) {
       newSize *= 1 + chargeAmount;
     }
+    newSize *= weaponLength / 3;
 
     return projectileType!.generateProjectile(
       delta: delta,
@@ -663,6 +666,8 @@ mixin MeleeChargeReady on MeleeFunctionality, SemiAutomatic {
   @override
   void onRemove() {
     entityAncestor?.onBodyFlip.remove(onBodyFlip);
+    chargeAttackHandler?.kill();
+    chargeAttackHandler = null;
     super.onRemove();
   }
 
@@ -1116,17 +1121,21 @@ typedef OnHitDef = bool Function(DamageInstance damage);
 mixin AttributeWeaponFunctionsFunctionality on Weapon {
   //Event functions that are modified from attributes
   List<Function(HealthFunctionality other)> onKill = [];
-
   List<Function(Projectile projectile)> onProjectileDeath = [];
   List<Function(Projectile projectile)> onAttackProjectile = [];
   List<Function(double holdDuration)> onAttackMelee = [];
+  List<Function(double holdDuration)> onAttackMagic = [];
   List<Function(double holdDuration)> onAttack = [];
   List<Function()> onReload = [];
   List<Function(Weapon weapon)> onAttackingFinish = [];
   List<OnHitDef> onHit = [];
+  List<OnHitDef> onHitMagic = [];
   List<OnHitDef> onHitMelee = [];
   List<OnHitDef> onHitProjectile = [];
-
+  List<OnHitDef> onDamage = [];
+  List<OnHitDef> onDamageMagic = [];
+  List<OnHitDef> onDamageMelee = [];
+  List<OnHitDef> onDamageProjectile = [];
   @override
   void standardAttack([
     double holdDurationPercent = 1,
@@ -1184,7 +1193,7 @@ String buildWeaponDescription(
       break;
     case WeaponDescription.pierce:
       returnString =
-          '${builtWeapon.pierce.parameter.toStringAsFixed(0)} enemies';
+          '${builtWeapon.pierceParameter.toStringAsFixed(0)} enemies';
 
       break;
     case WeaponDescription.staminaCost:

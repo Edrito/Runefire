@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
@@ -15,7 +16,8 @@ enum AimPattern {
   closestEnemyToPlayer,
   randomEntity,
   randomEnemy,
-  target
+  target,
+  enemy
 }
 
 mixin DropItemFunctionality on HealthFunctionality {
@@ -163,12 +165,38 @@ mixin AimControlFunctionality on AimFunctionality {
   }
 }
 
-mixin DumbFollowAI on Enemy, MovementFunctionality {
+mixin DumbFollowAI on MovementFunctionality {
   double targetUpdateFrequency = .25;
+  AimPattern aimPattern = AimPattern.player;
 
   Future<void> _dumbFollowTargetTick() async {
     await loaded;
-    final newPosition = gameEnviroment.player!.center - body.position;
+
+    Vector2 newPosition;
+    switch (aimPattern) {
+      case AimPattern.player:
+        newPosition = gameEnviroment.player!.center - body.position;
+        break;
+      case AimPattern.enemy:
+        final closeEnemy = gameEnviroment.player!.closestEnemy;
+        if (closeEnemy == null) {
+          newPosition = gameEnviroment.player!.center - body.position;
+        } else {
+          newPosition = closeEnemy.center - body.position;
+        }
+      case AimPattern.randomEnemy:
+        final enemies =
+            gameEnviroment.activeEntites.whereType<Enemy>().toList();
+        if (enemies.isEmpty) {
+          newPosition = gameEnviroment.player!.center - body.position;
+        } else {
+          newPosition = enemies.random().center - body.position;
+        }
+
+      default:
+        newPosition = gameEnviroment.player!.center - body.position;
+    }
+
     addMoveVelocity(newPosition, aiInputPriority);
   }
 

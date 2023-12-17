@@ -436,9 +436,9 @@ class SpriteAnimations {
 
   late Future<SpriteAnimation> aethertideSpearIdle1 =
       loadSpriteAnimation(1, 'weapons/spear.png', 1, true);
-  late Future<SpriteAnimation> holySwordIdle1 = loadSpriteAnimation(
+  late Future<SpriteAnimation> sanctifiedEdgeIdle1 = loadSpriteAnimation(
     3,
-    ImagesAssetsWeapons.holySwordIdle.flamePath,
+    ImagesAssetsWeapons.sanctifiedEdge.flamePath,
     1,
     true,
   );

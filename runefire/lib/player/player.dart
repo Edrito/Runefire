@@ -84,7 +84,7 @@ class Player extends Entity
         for (final element in instance.damageMap.entries) {
           modifyElementalPower(
             element.key,
-            (element.value.isFinite ? element.value : 100) / 50000,
+            (element.value.isFinite ? element.value : 100) / 20000,
           );
         }
       });

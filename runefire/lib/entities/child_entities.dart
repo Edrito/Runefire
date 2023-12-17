@@ -32,8 +32,6 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
     required super.initialPosition,
     required this.parentEntity,
     required int upgradeLevel,
-    this.distance = 1,
-    this.rotationSpeed,
   }) : super(
           eventManagement: parentEntity.eventManagement,
           enviroment: parentEntity.enviroment,
@@ -43,8 +41,6 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
   }
 
   Entity parentEntity;
-  double distance;
-  double? rotationSpeed;
 
   @override
   EntityType entityType = EntityType.child;
@@ -115,7 +111,89 @@ abstract class ChildEntity extends Entity with UpgradeFunctions {
   int? maxLevel = 5;
 }
 
-abstract class MovingSentry extends ChildEntity with MovementFunctionality {
+abstract class AttachedToBodyChildEntity extends ChildEntity {
+  AttachedToBodyChildEntity({
+    required super.initialPosition,
+    required super.parentEntity,
+    required super.upgradeLevel,
+    this.distance = 1,
+    this.rotationSpeed = 1,
+  });
+
+  double rotationSpeed;
+  double distance;
+}
+
+class SummonedChildEntity extends ChildEntity
+    with MovementFunctionality, TouchDamageFunctionality, DumbFollowAI {
+  SummonedChildEntity({
+    required super.initialPosition,
+    required super.parentEntity,
+    required super.upgradeLevel,
+    List<Function(Entity other)>? onHitOtherEntity,
+    Map<DamageType, (double, double)>? damageBase,
+  }) {
+    if (onHitOtherEntity != null) {
+      onTouchTick.addAll(onHitOtherEntity);
+    }
+    onTouchTick = onHitOtherEntity ?? [];
+    touchDamage.damageBase = damageBase ?? {};
+
+    speed.baseParameter = 15;
+  }
+  @override
+  void onRemove() {
+    parentEntity.childrenEntities.remove(entityId);
+    super.onRemove();
+  }
+
+  @override
+  Body createBody() {
+    final fixture = FixtureDef(
+      CircleShape()..radius = spriteHeight / 2,
+      filter: Filter()
+        ..maskBits = !isPlayer ? playerCategory : enemyCategory
+        ..categoryBits = isPlayer ? playerCategory : enemyCategory,
+      isSensor: true,
+      userData: {'type': FixtureType.body, 'object': this},
+      density: .8,
+    );
+    renderBody = false;
+    return super.createBody()
+      ..createFixture(fixture)
+      ..setType(BodyType.dynamic)
+      ..linearDamping = 12;
+  }
+
+  @override
+  void update(double dt) {
+    moveCharacter();
+    super.update(dt);
+  }
+
+  @override
+  AimPattern aimPattern = AimPattern.randomEnemy;
+
+  @override
+  late final List<Function(Entity other)> onTouchTick;
+
+  @override
+  Future<void> onLoad() {
+    onTouchTick.length = 0;
+    return super.onLoad();
+  }
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    entityAnimations[EntityStatus.idle] =
+        await spriteAnimations.energyElementalIdle1;
+    entityAnimations[EntityStatus.run] =
+        await spriteAnimations.energyElementalRun1;
+  }
+}
+
+abstract class MovingSentry extends AttachedToBodyChildEntity
+    with MovementFunctionality {
   MovingSentry({
     required super.initialPosition,
     required super.upgradeLevel,
@@ -173,7 +251,7 @@ abstract class MovingSentry extends ChildEntity with MovementFunctionality {
   }
 }
 
-class TeslaCrystal extends ChildEntity
+class TeslaCrystal extends AttachedToBodyChildEntity
     with
         AimFunctionality,
         AttackFunctionality,
@@ -206,7 +284,7 @@ class TeslaCrystal extends ChildEntity
   AimPattern aimPattern = AimPattern.closestEnemyToPlayer;
 }
 
-class MarkEnemySentry extends ChildEntity {
+class MarkEnemySentry extends AttachedToBodyChildEntity {
   MarkEnemySentry({
     required super.initialPosition,
     required super.upgradeLevel,
@@ -291,7 +369,7 @@ class MarkEnemySentry extends ChildEntity {
   AimPattern aimPattern = AimPattern.randomEnemy;
 }
 
-class RangedAttackSentry extends ChildEntity
+class RangedAttackSentry extends AttachedToBodyChildEntity
     with
         AimFunctionality,
         AttackFunctionality,
@@ -510,7 +588,7 @@ class ElementalAttackSentry extends MovingSentry
   set maskBits(int maskBits) {}
 }
 
-class ElementalCaptureBulletSentry extends ChildEntity
+class ElementalCaptureBulletSentry extends AttachedToBodyChildEntity
     with
         ContactCallbacks,
         AimFunctionality,
@@ -616,7 +694,7 @@ class ElementalCaptureBulletSentry extends ChildEntity
   AimPattern aimPattern = AimPattern.target;
 }
 
-class MirrorOrbSentry extends ChildEntity
+class MirrorOrbSentry extends AttachedToBodyChildEntity
     with ContactCallbacks, AimFunctionality, AttackFunctionality {
   MirrorOrbSentry({
     required super.initialPosition,
@@ -721,7 +799,7 @@ class MirrorOrbSentry extends ChildEntity
   }
 }
 
-class ShieldSentry extends ChildEntity
+class ShieldSentry extends AttachedToBodyChildEntity
     with ContactCallbacks, HealthFunctionality {
   ShieldSentry({
     required super.initialPosition,
@@ -769,7 +847,7 @@ class ShieldSentry extends ChildEntity
   }
 }
 
-class SwordSentry extends ChildEntity
+class SwordSentry extends AttachedToBodyChildEntity
     with ContactCallbacks, HealthFunctionality, TouchDamageFunctionality {
   SwordSentry({
     required super.initialPosition,
@@ -778,9 +856,7 @@ class SwordSentry extends ChildEntity
     super.distance = 2.5,
     super.rotationSpeed = .5,
   }) {
-    if (rotationSpeed != null) {
-      rotationSpeed = rotationSpeed! * upgradeLevel;
-    }
+    rotationSpeed = rotationSpeed * upgradeLevel;
 
     height.baseParameter = 2;
     invincible.baseParameter = true;

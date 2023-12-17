@@ -162,7 +162,7 @@ mixin StandardProjectile on Projectile {
 
   void incrementHits() {
     enemiesHit++;
-    projectileHasExpired = enemiesHit > weaponAncestor.pierce.parameter;
+    projectileHasExpired = enemiesHit > weaponAncestor.pierceParameter;
   }
 
   late Shape shape;

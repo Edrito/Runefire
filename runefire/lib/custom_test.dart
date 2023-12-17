@@ -32,36 +32,36 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
 
   // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
 
-  for (final element in WeaponType.values) {
-    await Future.delayed(5.seconds);
+  // for (final element in WeaponType.values) {
+  //   await Future.delayed(5.seconds);
 
-    player?.clearWeapons();
-    player?.carriedWeapons.add(
-      element.build(
-        player,
-        null,
-        gameEnviroment.gameRef,
-      ),
-    );
-    // player?.carriedWeapons.add(
-    //   WeaponType.shimmerRifle.build(
-    //     player,
-    //     null,
-    //     gameEnviroment.gameRef,
-    //   ),
-    // );
-    player?.swapWeapon(
-      player.currentWeapon,
-    );
-  }
+  player?.clearWeapons();
+  // player?.carriedWeapons.add(
+  //   element.build(
+  //     player,
+  //     null,
+  //     gameEnviroment.gameRef,
+  //   ),
+  // );
+  player?.carriedWeapons.add(
+    WeaponType.aethertideSpear.build(
+      player,
+      null,
+      gameEnviroment.gameRef,
+    ),
+  );
+  player?.swapWeapon(
+    player.currentWeapon,
+  );
+  // }
 
-  while (true) {
-    if (!gameEnviroment.gameRef.paused) {
-      player?.height.setParameterFlatValue('t', (rng.nextDouble() * 3).round());
-    }
-    player?.applyHeightToSprite();
-    await Future.delayed(2.seconds);
-  }
+  // while (true) {
+  //   if (!gameEnviroment.gameRef.paused) {
+  //     player?.height.setParameterFlatValue('t', (rng.nextDouble() * 3).round());
+  //   }
+  //   player?.applyHeightToSprite();
+  //   await Future.delayed(2.seconds);
+  // }
 }
 
 //   await Future.delayed(5.seconds);

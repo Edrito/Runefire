@@ -615,14 +615,14 @@ enum WeaponType {
     100,
   ),
   phaseDagger(5, AttackType.melee, 0),
-  spear(5, AttackType.melee, 0),
+  aethertideSpear(5, AttackType.melee, 0),
   largeSword(5, AttackType.melee, 600),
   frostKatana(
     5,
     AttackType.melee,
     500,
   ),
-  holySword(5, AttackType.melee, 500),
+  sanctifiedSword(5, AttackType.melee, 500),
   flameSword(5, AttackType.melee, 500),
 
   swordOfJustice(
@@ -681,14 +681,14 @@ enum WeaponType {
         return ImagesAssetsWeapons.crystalSword;
       case WeaponType.phaseDagger:
         return ImagesAssetsWeapons.phaseDagger;
-      case WeaponType.spear:
+      case WeaponType.aethertideSpear:
         return ImagesAssetsWeapons.spear;
       case WeaponType.largeSword:
         return ImagesAssetsWeapons.largeSword;
       case WeaponType.frostKatana:
         return ImagesAssetsWeapons.frostKatana;
-      case WeaponType.holySword:
-        return ImagesAssetsWeapons.holySword;
+      case WeaponType.sanctifiedSword:
+        return ImagesAssetsWeapons.sanctifiedEdge;
       case WeaponType.flameSword:
         return ImagesAssetsWeapons.flameSword;
       case WeaponType.swordOfJustice:
@@ -791,11 +791,11 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.magicBlast:
         returnWeapon = MagicBlast(upgradeLevel, ancestor);
         break;
-      case WeaponType.spear:
+      case WeaponType.aethertideSpear:
         returnWeapon = AethertideSpear(upgradeLevel, ancestor);
         break;
-      case WeaponType.holySword:
-        returnWeapon = HolySword(upgradeLevel, ancestor);
+      case WeaponType.sanctifiedSword:
+        returnWeapon = SanctifiedEdge(upgradeLevel, ancestor);
       case WeaponType.crystalSword:
         returnWeapon = CrystalSword(upgradeLevel, ancestor);
 
@@ -887,11 +887,11 @@ extension WeaponTypeFilename on WeaponType {
         returnWeapon = Icecicle(upgradeLevel, null);
         break;
 
-      case WeaponType.spear:
+      case WeaponType.aethertideSpear:
         returnWeapon = AethertideSpear(upgradeLevel, null);
         break;
-      case WeaponType.holySword:
-        returnWeapon = HolySword(upgradeLevel, null);
+      case WeaponType.sanctifiedSword:
+        returnWeapon = SanctifiedEdge(upgradeLevel, null);
 
         break;
       case WeaponType.flameSword:

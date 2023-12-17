@@ -2818,7 +2818,7 @@ class DaggerSwingAttribute extends Attribute {
         if (weapon is! ProjectileFunctionality) {
           return;
         }
-        final newWeapon = WeaponType.holySword
+        final newWeapon = WeaponType.sanctifiedSword
             .build(weapon.entityAncestor!, null, victimEntity!.game, 0);
 
         if (newWeapon is StaminaCostFunctionality) {
