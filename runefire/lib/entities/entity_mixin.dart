@@ -593,15 +593,16 @@ mixin AttackFunctionality on AimFunctionality {
         final element = playerData.selectedWeapons[i]!;
         carriedWeapons.add(
           element.build(
-            this,
-            player.playerData.selectedSecondaries[i],
-            game,
+            ancestor: this,
+            secondaryWeaponType: player.playerData.selectedSecondaries[i],
+            gameRouter: game,
           ),
         );
       }
     } else {
       for (final element in initialWeapons) {
-        carriedWeapons.add(element.build(this, null, game, 1));
+        carriedWeapons.add(element.build(
+            ancestor: this, gameRouter: game, customWeaponLevel: 1));
       }
     }
     if (currentWeapon != null) {

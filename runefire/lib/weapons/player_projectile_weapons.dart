@@ -56,7 +56,7 @@ class CrystalPistol extends PlayerWeapon
       customUpgradeFactor: .5 / 2,
       includeBase: true,
     ).round();
-    projectileSize.baseParameter = .75;
+    projectileRelativeSize.baseParameter = .75;
 
     super.mapUpgrade();
   }
@@ -130,7 +130,7 @@ class Shotgun extends PlayerWeapon
       customUpgradeFactor: 1 / 2,
       includeBase: true,
     ).round();
-    projectileSize.baseParameter = 1.2;
+    projectileRelativeSize.baseParameter = 1.2;
 
     closeDamageIncreaseAmount.baseParameter =
         increasePercentOfBase(1.5, customUpgradeFactor: .1, includeBase: true)
@@ -312,7 +312,7 @@ class ArcaneBlaster extends PlayerWeapon
 
     weaponRandomnessPercent.baseParameter = .025;
     projectileVelocity.baseParameter = 20;
-    projectileSize.baseParameter = .5;
+    projectileRelativeSize.baseParameter = .5;
     super.mapUpgrade();
   }
 
@@ -401,7 +401,7 @@ class PrismaticBeam extends PlayerWeapon
     attackCountIncrease.baseParameter = 1 + upgradeLevel;
 
     projectileVelocity.baseParameter = 7;
-    projectileSize.baseParameter = .1;
+    projectileRelativeSize.baseParameter = .1;
     super.mapUpgrade();
   }
 
@@ -509,7 +509,7 @@ class EldritchRunner extends PlayerWeapon
     pierce.baseParameter = 1;
 
     attackTickRate.baseParameter = 2;
-    projectileSize.baseParameter =
+    projectileRelativeSize.baseParameter =
         increasePercentOfBase(1.5, includeBase: true).toDouble();
 
     super.mapUpgrade();
@@ -666,7 +666,7 @@ class ShimmerRifle extends PlayerWeapon
     weaponRandomnessPercent.baseParameter = .01;
     projectileVelocity.baseParameter = 25;
     pierce.baseParameter = 2;
-    projectileSize.baseParameter = .7;
+    projectileRelativeSize.baseParameter = .7;
     super.mapUpgrade();
   }
 
@@ -760,7 +760,7 @@ class EmberBow extends PlayerWeapon
     ).toDouble();
 
     pierce.baseParameter = 3;
-    projectileSize.baseParameter = .5;
+    projectileRelativeSize.baseParameter = .5;
     super.mapUpgrade();
   }
 

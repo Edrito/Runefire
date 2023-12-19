@@ -875,7 +875,9 @@ static const FileDataClass flameSword =
 static const FileDataClass frostKatana = 
 (path:"assets/images/weapons/frost_katana.png",flamePath:"weapons/frost_katana.png", size:(28.0,152.0)  );///large_sword.png
 static const FileDataClass largeSword = 
-(path:"assets/images/weapons/large_sword.png",flamePath:"weapons/large_sword.png", size:(26.0,90.0)  );///muzzle_flash.png
+(path:"assets/images/weapons/large_sword.png",flamePath:"weapons/large_sword.png", size:(26.0,90.0)  );///mind_staff.png
+static const FileDataClass mindStaff = 
+(path:"assets/images/weapons/mind_staff.png",flamePath:"weapons/mind_staff.png", size:(32.0,96.0)  );///muzzle_flash.png
 static const FileDataClass muzzleFlash = 
 (path:"assets/images/weapons/muzzle_flash.png",flamePath:"weapons/muzzle_flash.png", size:(32.0,32.0)  );///phase_dagger.png
 static const FileDataClass phaseDagger = 
@@ -899,9 +901,13 @@ static const FileDataClass scryshotIdle =
 static const FileDataClass shotgun = 
 (path:"assets/images/weapons/shotgun.png",flamePath:"weapons/shotgun.png", size:(189.0,365.0)  );///spear.png
 static const FileDataClass spear = 
-(path:"assets/images/weapons/spear.png",flamePath:"weapons/spear.png", size:(15.0,152.0)  );///sword_of_justice.png
+(path:"assets/images/weapons/spear.png",flamePath:"weapons/spear.png", size:(15.0,152.0)  );///sword_kladenets.png
+static const FileDataClass swordKladenets = 
+(path:"assets/images/weapons/sword_kladenets.png",flamePath:"weapons/sword_kladenets.png", size:(35.0,114.0)  );///sword_of_justice.png
 static const FileDataClass swordOfJustice = 
-(path:"assets/images/weapons/sword_of_justice.png",flamePath:"weapons/sword_of_justice.png", size:(46.0,135.0)  );static  List<String> allFiles = [arcaneBlaster.path,
+(path:"assets/images/weapons/sword_of_justice.png",flamePath:"weapons/sword_of_justice.png", size:(46.0,135.0)  );///tui_camai.png
+static const FileDataClass tuiCamai = 
+(path:"assets/images/weapons/tui_camai.png",flamePath:"weapons/tui_camai.png", size:(35.0,114.0)  );static  List<String> allFiles = [arcaneBlaster.path,
 bookFire.path,
 bookIdle.path,
 crystalPistol.path,
@@ -911,6 +917,7 @@ emberBow.path,
 flameSword.path,
 frostKatana.path,
 largeSword.path,
+mindStaff.path,
 muzzleFlash.path,
 phaseDagger.path,
 prismaticBeam.path,
@@ -923,7 +930,9 @@ scryshotAttack.path,
 scryshotIdle.path,
 shotgun.path,
 spear.path,
+swordKladenets.path,
 swordOfJustice.path,
+tuiCamai.path,
 ];
 static  List<String> allFilesFlame = [arcaneBlaster.flamePath,
 bookFire.flamePath,
@@ -935,6 +944,7 @@ emberBow.flamePath,
 flameSword.flamePath,
 frostKatana.flamePath,
 largeSword.flamePath,
+mindStaff.flamePath,
 muzzleFlash.flamePath,
 phaseDagger.flamePath,
 prismaticBeam.flamePath,
@@ -947,7 +957,9 @@ scryshotAttack.flamePath,
 scryshotIdle.flamePath,
 shotgun.flamePath,
 spear.flamePath,
+swordKladenets.flamePath,
 swordOfJustice.flamePath,
+tuiCamai.flamePath,
 ];
 }
 class ImagesAssetsCharge {

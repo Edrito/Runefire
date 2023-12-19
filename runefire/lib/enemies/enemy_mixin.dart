@@ -14,6 +14,7 @@ import 'package:runefire/resources/enums.dart';
 enum AimPattern {
   player,
   closestEnemyToPlayer,
+  mouse,
   randomEntity,
   randomEnemy,
   target,
@@ -165,7 +166,7 @@ mixin AimControlFunctionality on AimFunctionality {
   }
 }
 
-mixin DumbFollowAI on MovementFunctionality {
+mixin SimpleFollowAI on MovementFunctionality {
   double targetUpdateFrequency = .25;
   AimPattern aimPattern = AimPattern.player;
 
@@ -192,6 +193,12 @@ mixin DumbFollowAI on MovementFunctionality {
         } else {
           newPosition = enemies.random().center - body.position;
         }
+      case AimPattern.mouse:
+        newPosition = (gameEnviroment.player!.aimPosition ?? Vector2.zero()) +
+            gameEnviroment.player!.center -
+            body.position;
+
+        break;
 
       default:
         newPosition = gameEnviroment.player!.center - body.position;
@@ -222,7 +229,7 @@ mixin DumbFollowAI on MovementFunctionality {
   }
 }
 
-mixin DumbShoot on AttackFunctionality {
+mixin SimpleShoot on AttackFunctionality {
   double shootInterval = 2;
 
   void onTick() {
@@ -248,7 +255,7 @@ mixin DumbShoot on AttackFunctionality {
   }
 }
 
-mixin DumbFollowRangeAI on MovementFunctionality {
+mixin SimpleFollowRangeAI on MovementFunctionality {
   double targetUpdateFrequency = .2;
   double zoningDistance = 6;
 
@@ -288,7 +295,7 @@ mixin DumbFollowRangeAI on MovementFunctionality {
   }
 }
 
-mixin DumbFollowScaredAI on MovementFunctionality, HealthFunctionality {
+mixin SimpleFollowScaredAI on MovementFunctionality, HealthFunctionality {
   double targetUpdateFrequency = .3;
   bool inverse = false;
 

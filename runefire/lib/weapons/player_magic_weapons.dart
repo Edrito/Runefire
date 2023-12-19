@@ -32,35 +32,50 @@ class Icecicle extends PlayerWeapon
     with
         ProjectileFunctionality,
         ReloadFunctionality,
+        StaminaCostFunctionality,
         SemiAutomatic,
         ChargeEffect {
   Icecicle(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.frost] = (7, 15);
-    maxAttacks.baseParameter = 3;
-    attackTickRate.baseParameter = .35;
-    pierce.baseParameter = 5;
     primaryDamageType = DamageType.frost;
-    projectileSize.baseParameter = .6;
+    attackTickRate.baseParameter = .35;
+    projectileRelativeSize.baseParameter = 1;
   }
   @override
   WeaponType weaponType = WeaponType.icecicleMagic;
 
-  // @override
-  // void mapUpgrade() {
-  //   unMapUpgrade();
+  @override
+  void mapUpgrade() {
+    baseDamage.damageBase[DamageType.frost] = (
+      increasePercentOfBase(3, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(8, customUpgradeFactor: .2, includeBase: true)
+          .toDouble()
+    );
 
-  //   super.mapUpgrade();
-  // }
+    maxAttacks.baseParameter = increasePercentOfBase(
+      3,
+      customUpgradeFactor: 1 / maxLevel!,
+      includeBase: true,
+    ).floor();
 
-  // @override
-  // void unMapUpgrade() {}
+    pierce.baseParameter = increasePercentOfBase(
+      3,
+      customUpgradeFactor: 1 / 2,
+      includeBase: true,
+    ).round();
+
+    projectileVelocity.baseParameter = 15;
+
+    super.mapUpgrade();
+  }
 
   @override
-  // TODO: implement removeSpriteOnAttack
-  bool get removeSpriteOnAttack => true;
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -102,23 +117,40 @@ class Icecicle extends PlayerWeapon
   SemiAutoType semiAutoType = SemiAutoType.charge;
 }
 
-class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
+class PowerWord extends PlayerWeapon
+    with ReloadFunctionality, StaminaCostFunctionality, SemiAutomatic {
   PowerWord(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    maxAttacks.baseParameter = 1;
-    reloadTime.baseParameter = 2;
-
-    critDamage.baseParameter = 2.5;
-    baseDamage.damageBase[DamageType.magic] = (10, 20);
-    critChance.baseParameter = 0.0;
-
     entityAncestor?.loaded.then((value) {
       toggleTextComponent(true);
       _setWord();
     });
   }
+
+  @override
+  void mapUpgrade() {
+    maxAttacks.baseParameter = increasePercentOfBase(
+      1,
+      customUpgradeFactor: 1 / maxLevel!,
+      includeBase: true,
+    ).round();
+    reloadTime.baseParameter = 2;
+
+    critDamage.baseParameter = 2.5;
+    baseDamage.damageBase[DamageType.magic] = (
+      increasePercentOfBase(3, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(8, customUpgradeFactor: .2, includeBase: true)
+          .toDouble()
+    );
+
+    critChance.baseParameter = 0.0;
+
+    super.mapUpgrade();
+  }
+
   @override
   WeaponType weaponType = WeaponType.powerWord;
   @override
@@ -300,7 +332,9 @@ class PowerWord extends PlayerWeapon with ReloadFunctionality, SemiAutomatic {
   }
 
   @override
-  bool get removeSpriteOnAttack => true;
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -340,25 +374,42 @@ class FireballMagic extends PlayerWeapon
     with
         ProjectileFunctionality,
         ReloadFunctionality,
+        StaminaCostFunctionality,
         SemiAutomatic,
         ChargeEffect {
   FireballMagic(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.fire] = (3, 7);
-    maxAttacks.baseParameter = 3;
-    attackTickRate.baseParameter = 1;
-    pierce.baseParameter = 0;
     primaryDamageType = DamageType.fire;
-    projectileSize.baseParameter = .7;
+  }
 
+  @override
+  WeaponType weaponType = WeaponType.fireballMagic;
+
+  @override
+  void mapUpgrade() {
+    baseDamage.damageBase[DamageType.fire] = (
+      increasePercentOfBase(7, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(18, customUpgradeFactor: .3, includeBase: true)
+          .toDouble()
+    );
+
+    maxAttacks.baseParameter = increasePercentOfBase(
+      3,
+      customUpgradeFactor: 1 / 3,
+      includeBase: true,
+    ).floor();
     onProjectileDeath.add((projectile) {
       final area = AreaEffect(
         sourceEntity: entityAncestor!,
         position: projectile.center,
+        radius:
+            increasePercentOfBase(3, customUpgradeFactor: .2, includeBase: true)
+                .toDouble(),
         animationRandomlyFlipped: true,
-        damage: {DamageType.fire: (10, 25)},
+        damage: baseDamage.damageBase,
       );
       final particleGenerator = CustomParticleGenerator(
         minSize: .05,
@@ -375,22 +426,13 @@ class FireballMagic extends PlayerWeapon
 
       entityAncestor?.enviroment.addPhysicsComponent([area, particleGenerator]);
     });
+    super.mapUpgrade();
   }
-  @override
-  WeaponType weaponType = WeaponType.fireballMagic;
-
-  // @override
-  // void mapUpgrade() {
-  //   unMapUpgrade();
-
-  //   super.mapUpgrade();
-  // }
-
-  // @override
-  // void unMapUpgrade() {}
 
   @override
-  bool get removeSpriteOnAttack => true;
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        // WeaponSpritePosition.back,
+      };
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -436,45 +478,57 @@ class FireballMagic extends PlayerWeapon
 class EnergyMagic extends PlayerWeapon
     with
         ProjectileFunctionality,
+        StaminaCostFunctionality,
         ReloadFunctionality,
-        // FullAutomatic,
         SemiAutomatic,
-        // ChargeFullAutomatic,
         ChargeEffect {
   EnergyMagic(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
     chainingTargets.baseParameter = 3;
-    baseDamage.damageBase[DamageType.energy] = (1, 2);
-    maxAttacks.baseParameter = 20;
-    attackCountIncrease.baseParameter = 1;
-    attackTickRate.baseParameter = .35;
-    pierce.baseParameter = 4;
-    projectileVelocity.baseParameter = 5;
     primaryDamageType = DamageType.energy;
-    projectileSize.baseParameter = .065;
 
     attackOnRelease = false;
-
     attackOnChargeComplete = true;
   }
   @override
   WeaponType weaponType = WeaponType.energyMagic;
 
-  // @override
-  // void mapUpgrade() {
-  //   unMapUpgrade();
+  @override
+  void mapUpgrade() {
+    baseDamage.damageBase[DamageType.energy] = (
+      increasePercentOfBase(.5, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(1, customUpgradeFactor: .3, includeBase: true)
+          .toDouble()
+    );
 
-  //   super.mapUpgrade();
-  // }
+    maxAttacks.baseParameter = increasePercentOfBase(
+      20,
+      customUpgradeFactor: 1 / 10,
+      includeBase: true,
+    ).floor();
 
-  // @override
-  // void unMapUpgrade() {}
+    attackCountIncrease.baseParameter = increasePercentOfBase(
+      1,
+      customUpgradeFactor: 1 / 5,
+      includeBase: true,
+    ).round();
+
+    pierce.baseParameter = 4;
+
+    projectileVelocity.baseParameter = 5;
+
+    projectileRelativeSize.baseParameter = .065;
+
+    super.mapUpgrade();
+  }
 
   @override
-  // TODO: implement removeSpriteOnAttack
-  bool get removeSpriteOnAttack => true;
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -518,24 +572,45 @@ class EnergyMagic extends PlayerWeapon
 }
 
 class PsychicMagic extends PlayerWeapon
-    with ProjectileFunctionality, ReloadFunctionality, FullAutomatic {
+    with
+        ProjectileFunctionality,
+        StaminaCostFunctionality,
+        ReloadFunctionality,
+        SemiAutomatic,
+        ChargeEffect {
   PsychicMagic(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    // chainingTargets.baseParameter = 3;
-    maxHomingTargets.baseParameter = 1;
-    baseDamage.damageBase[DamageType.psychic] = (3, 7);
-    maxAttacks.baseParameter = 20;
-    attackTickRate.baseParameter = .35;
-    pierce.baseParameter = 5;
-
     primaryDamageType = DamageType.psychic;
-    projectileSize.baseParameter = 1.25;
+    increaseSizeWhenCharged = true;
   }
 
   @override
   WeaponType weaponType = WeaponType.psychicMagic;
+
+  @override
+  void mapUpgrade() {
+    baseDamage.damageBase[DamageType.psychic] = (
+      increasePercentOfBase(2, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(7, customUpgradeFactor: .2, includeBase: true)
+          .toDouble()
+    );
+
+    maxAttacks.baseParameter = 2;
+    attackTickRate.baseParameter = 2;
+    pierce.baseParameter = 10;
+
+    projectileVelocity.baseParameter = 5;
+
+    projectileRelativeSize.baseParameter =
+        increasePercentOfBase(4, customUpgradeFactor: .5, includeBase: true)
+            .toDouble();
+
+    projectileLifeSpan.baseParameter = 5;
+    super.mapUpgrade();
+  }
 
   // @override
   // void mapUpgrade() {
@@ -548,7 +623,9 @@ class PsychicMagic extends PlayerWeapon
   // void unMapUpgrade() {}
 
   @override
-  bool get removeSpriteOnAttack => true;
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -586,12 +663,16 @@ class PsychicMagic extends PlayerWeapon
       DoubleParameterManager(minParameter: 0, baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.charge;
 }
 
 class MagicBlast extends PlayerWeapon
     with
         ProjectileFunctionality,
         ReloadFunctionality,
+        StaminaCostFunctionality,
         SemiAutomatic,
         ChargeEffect {
   MagicBlast(
@@ -604,7 +685,7 @@ class MagicBlast extends PlayerWeapon
     pierce.baseParameter = 5;
 
     primaryDamageType = DamageType.magic;
-    projectileSize.baseParameter = 1.25;
+    projectileRelativeSize.baseParameter = 1.25;
 
     attackOnRelease = false;
     attackOnChargeComplete = true;
@@ -615,7 +696,9 @@ class MagicBlast extends PlayerWeapon
   WeaponType weaponType = WeaponType.magicBlast;
 
   @override
-  bool get removeSpriteOnAttack => true;
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -660,6 +743,7 @@ class MagicBlast extends PlayerWeapon
 
 class MagicMissile extends PlayerWeapon
     with
+        StaminaCostFunctionality,
         ProjectileFunctionality,
         ReloadFunctionality,
         SemiAutomatic,
@@ -668,24 +752,47 @@ class MagicMissile extends PlayerWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.magic] = (3, 7);
-    maxAttacks.baseParameter = 3;
-    attackTickRate.baseParameter = .5;
-    pierce.baseParameter = 0;
     primaryDamageType = DamageType.psychic;
-    projectileSize.baseParameter = .2;
-    maxHomingTargets.baseParameter = 1;
     increaseAttackCountWhenCharged = true;
     increaseWhenFullyCharged.baseParameter = 3;
+    projectileRelativeSize.baseParameter = .2;
+    maxHomingTargets.baseParameter = 1;
+  }
+
+  @override
+  void mapUpgrade() {
+    baseDamage.damageBase[DamageType.magic] = (
+      increasePercentOfBase(3, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(7, customUpgradeFactor: .2, includeBase: true)
+          .toDouble()
+    );
+
+    maxAttacks.baseParameter = increasePercentOfBase(
+      3,
+      customUpgradeFactor: 1 / maxLevel!,
+      includeBase: true,
+    ).floor();
+    attackTickRate.baseParameter = .5;
+    pierce.baseParameter = 0 +
+        increasePercentOfBase(
+          1,
+          customUpgradeFactor: 1 / (maxLevel ?? 100),
+        ).floor();
 
     attackSplitFunctions[AttackSpreadType.regular] =
         (angle, attackCount) => regularAttackSpread(angle, attackCount, 90);
+
+    super.mapUpgrade();
   }
+
   @override
   WeaponType weaponType = WeaponType.magicMissile;
 
   @override
-  bool get removeSpriteOnAttack => true;
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -724,4 +831,110 @@ class MagicMissile extends PlayerWeapon
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
+}
+
+class BreathOfFire extends PlayerWeapon
+    with
+        ProjectileFunctionality,
+        ReloadFunctionality,
+        StaminaCostFunctionality,
+        FullAutomatic,
+        SemiAutomatic,
+        ChargeEffect,
+        ChargeFullAutomatic {
+  BreathOfFire(
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
+    primaryDamageType = DamageType.fire;
+  }
+
+  @override
+  double get attackRateDelay => 0;
+  @override
+  double get customChargeDuration => attackTickRate.parameter * 5;
+
+  @override
+  WeaponType weaponType = WeaponType.breathOfFire;
+
+  @override
+  double get particleAddSpeed => 0.1;
+
+  @override
+  void mapUpgrade() {
+    baseDamage.damageBase[DamageType.fire] = (
+      increasePercentOfBase(.1, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(.5, customUpgradeFactor: .3, includeBase: true)
+          .toDouble()
+    );
+
+    weaponRandomnessPercent.baseParameter = .2;
+
+    maxAttacks.baseParameter = increasePercentOfBase(
+      30,
+      customUpgradeFactor: 1 / 3,
+      includeBase: true,
+    ).floor();
+
+    projectileRelativeSize.baseParameter = 2;
+
+    projectileVelocity.baseParameter = 5;
+
+    attackTickRate.baseParameter = .1;
+
+    attackSplitFunctions[AttackSpreadType.regular] =
+        (angle, attackCount) => regularAttackSpread(angle, attackCount, 45);
+
+    attackCountIncrease.baseParameter = 3;
+
+    pierce.baseParameter = 5 +
+        increasePercentOfBase(
+          5,
+          customUpgradeFactor: 1 / (maxLevel ?? 100),
+        ).floor();
+    super.mapUpgrade();
+  }
+
+  @override
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        // WeaponSpritePosition.back,
+      };
+
+  @override
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          weaponAnimations: {
+            'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
+            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
+            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 1;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    // WeaponSpritePosition.back,
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  ProjectileType? projectileType = ProjectileType.slowFire;
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+  @override
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 }

@@ -433,6 +433,8 @@ class SpriteAnimations {
 
   late Future<SpriteAnimation> crystalSwordIdle1 =
       loadSpriteAnimation(1, 'weapons/crystal_sword.png', 1, true);
+  late Future<SpriteAnimation> mindStaffIdle1 =
+      loadSpriteAnimation(1, ImagesAssetsWeapons.mindStaff.flamePath, 1, true);
 
   late Future<SpriteAnimation> aethertideSpearIdle1 =
       loadSpriteAnimation(1, 'weapons/spear.png', 1, true);

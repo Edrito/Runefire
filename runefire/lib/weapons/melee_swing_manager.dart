@@ -409,6 +409,7 @@ class MeleeAttackSprite extends PositionComponent {
       weaponSpriteAnimation?.weaponCharging();
     }
     add(weaponSpriteAnimation!);
+
     initSwingTrail();
     return super.onLoad();
   }
@@ -680,7 +681,17 @@ class MeleeAttackHandler extends Component {
     final hitboxSize = currentAttack.attackHitboxSizeBuild;
 
     await initSwing(initAngle, initPosition);
+
     if (!isCharging) {
+      if (currentAttack.entitySpriteAnimation != null) {
+        weaponAncestor.entityAncestor?.entityAnimationsGroup
+                .animations?['swordAttack'] ??=
+            await currentAttack.entitySpriteAnimation!;
+        weaponAncestor.entityAncestor?.setEntityAnimation(
+          EntityStatus.dash,
+        );
+      }
+
       hitbox = MeleeAttackHitbox(hitboxSize, this);
       weaponAncestor.entityAncestor?.enviroment.addPhysicsComponent([hitbox!]);
     }

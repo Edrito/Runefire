@@ -14,11 +14,13 @@ import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
 
 class MagicalProjectile extends SpriteBullet {
+  final bool showParticles;
   MagicalProjectile({
     required super.delta,
     required super.originPosition,
     required super.weaponAncestor,
     required super.size,
+    this.showParticles = true,
     super.primaryDamageType,
     super.power,
   }) : super(useDefaults: false) {
@@ -128,15 +130,18 @@ class MagicalProjectile extends SpriteBullet {
 
   @override
   void onRemove() {
-    particleGenerator.removeFromParent();
+    if (showParticles) {
+      particleGenerator.removeFromParent();
+    }
     super.onRemove();
   }
 
   @override
   void onMount() {
-    weaponAncestor.entityAncestor?.enviroment
-        .addPhysicsComponent([particleGenerator]);
-
+    if (showParticles) {
+      weaponAncestor.entityAncestor?.enviroment
+          .addPhysicsComponent([particleGenerator]);
+    }
     super.onMount();
   }
 }
@@ -267,13 +272,7 @@ class PaintLaser extends Projectile with FadeOutProjectile, LaserProjectile {
   ProjectileType projectileType = ProjectileType.laser;
 
   @override
-  late final double ttl = weaponAncestor.attackTickRate.parameter * 2;
-
-  @override
   double baseWidth = .3;
-
-  @override
-  set ttl(double val) {}
 }
 
 class FollowLaser extends Projectile with FadeOutProjectile, LaserProjectile {
@@ -292,10 +291,4 @@ class FollowLaser extends Projectile with FadeOutProjectile, LaserProjectile {
   }
   @override
   ProjectileType projectileType = ProjectileType.laser;
-
-  @override
-  late final double ttl = weaponAncestor.attackTickRate.parameter * 2;
-
-  @override
-  set ttl(double val) {}
 }

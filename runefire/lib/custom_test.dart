@@ -26,33 +26,32 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
   await player?.loaded;
   await Future.delayed(1.seconds);
+  player?.stamina.baseParameter = 40000;
   player?.maxLives.baseParameter = 2;
   // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
   // player?.swapWeapon();
 
   // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
 
-  // for (final element in WeaponType.values) {
-  //   await Future.delayed(5.seconds);
-
+  // for (final element in WeaponType.values
+  //     .where((element) => element.attackType == AttackType.magic)) {
   player?.clearWeapons();
   // player?.carriedWeapons.add(
   //   element.build(
-  //     player,
-  //     null,
-  //     gameEnviroment.gameRef,
+  //     ancestor: player,
+  //     gameRouter: gameEnviroment.gameRef,
   //   ),
   // );
   player?.carriedWeapons.add(
-    WeaponType.aethertideSpear.build(
-      player,
-      null,
-      gameEnviroment.gameRef,
+    WeaponType.psychicMagic.build(
+      ancestor: player,
+      gameRouter: gameEnviroment.gameRef,
     ),
   );
   player?.swapWeapon(
     player.currentWeapon,
   );
+  // await Future.delayed(20.seconds);
   // }
 
   // while (true) {

@@ -39,9 +39,6 @@ abstract class Bullet extends Projectile with StandardProjectile {
     super.primaryDamageType,
     super.power,
   });
-
-  @override
-  double ttl = 2;
 }
 
 mixin FadeOutProjectile on Projectile {
@@ -109,7 +106,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   bool removeOnEndAttack = false;
   Random rng = Random();
   double size;
-  abstract double ttl;
+  double get ttl => weaponAncestor.projectileLifeSpan.parameter;
   //Structure
   ProjectileFunctionality weaponAncestor;
 

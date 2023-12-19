@@ -168,7 +168,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
   bool isSecondaryWeapon = false;
   IntParameterManager maxHomingTargets = IntParameterManager(baseParameter: 0);
   abstract Vector2 pngSize;
-  bool removeSpriteOnAttack = false;
+  Set<WeaponSpritePosition> removeSpriteOnAttack = {};
   Random rng = Random();
   //VISUAL
   abstract List<WeaponSpritePosition> spirteComponentPositions;
@@ -376,16 +376,20 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   void spriteVisibilityCheck() {
-    if (!removeSpriteOnAttack || isAdditionalWeapon) {
+    if (removeSpriteOnAttack.isEmpty || isAdditionalWeapon) {
       return;
     }
     if (attacksAreActive && !spritesHidden) {
-      entityAncestor?.backJoint?.weaponSpriteAnimation?.opacity = 0;
-      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 0;
+      for (final element in removeSpriteOnAttack) {
+        weaponAttachmentPoints[element]?.weaponSpriteAnimation?.opacity = 0;
+      }
+
       spritesHidden = true;
     } else if (!attacksAreActive && spritesHidden) {
-      entityAncestor?.backJoint?.weaponSpriteAnimation?.opacity = 1;
-      entityAncestor?.handJoint.weaponSpriteAnimation?.opacity = 1;
+      for (final element in removeSpriteOnAttack) {
+        weaponAttachmentPoints[element]?.weaponSpriteAnimation?.opacity = 1;
+      }
+
       spritesHidden = false;
     }
   }

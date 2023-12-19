@@ -467,7 +467,8 @@ enum ProjectileType {
   followLaser,
   magicProjectile,
   holyBullet,
-  blackSpriteBullet
+  blackSpriteBullet,
+  slowFire
 }
 
 extension ProjectileTypeExtension on ProjectileType {
@@ -522,6 +523,16 @@ extension ProjectileTypeExtension on ProjectileType {
           delta: delta,
           primaryDamageType: primaryDamageType,
           size: size,
+          power: chargeAmount,
+        );
+      case ProjectileType.slowFire:
+        return MagicalProjectile(
+          weaponAncestor: ancestorVar,
+          originPosition: originPositionVar,
+          delta: delta,
+          primaryDamageType: primaryDamageType,
+          size: size,
+          showParticles: false,
           power: chargeAmount,
         );
       case ProjectileType.paintBullet:
@@ -614,6 +625,21 @@ enum WeaponType {
     AttackType.melee,
     100,
   ),
+  tuiCamai(
+    5,
+    AttackType.melee,
+    100,
+  ),
+  swordKladenets(
+    5,
+    AttackType.melee,
+    100,
+  ),
+  mindStaff(
+    5,
+    AttackType.melee,
+    100,
+  ),
   phaseDagger(5, AttackType.melee, 0),
   aethertideSpear(5, AttackType.melee, 0),
   largeSword(5, AttackType.melee, 600),
@@ -622,8 +648,8 @@ enum WeaponType {
     AttackType.melee,
     500,
   ),
-  sanctifiedSword(5, AttackType.melee, 500),
-  flameSword(5, AttackType.melee, 500),
+  sanctifiedEdge(5, AttackType.melee, 500),
+  fireSword(5, AttackType.melee, 500),
 
   swordOfJustice(
     5,
@@ -639,6 +665,11 @@ enum WeaponType {
   energyMagic(5, AttackType.magic, 0),
   magicBlast(5, AttackType.magic, 0),
   powerWord(5, AttackType.magic, 1500),
+  breathOfFire(
+    5,
+    AttackType.magic,
+    0,
+  ),
 
   ///MISC
   blankProjectileWeapon(
@@ -669,6 +700,7 @@ enum WeaponType {
         return ImagesAssetsWeapons.emberBow;
       case WeaponType.shimmerRifle:
         return ImagesAssetsWeapons.scryshot;
+
       case WeaponType.crystalPistol:
         return ImagesAssetsWeapons.crystalPistol;
       case WeaponType.scatterBlast:
@@ -683,16 +715,23 @@ enum WeaponType {
         return ImagesAssetsWeapons.phaseDagger;
       case WeaponType.aethertideSpear:
         return ImagesAssetsWeapons.spear;
+      case WeaponType.mindStaff:
+        return ImagesAssetsWeapons.mindStaff;
       case WeaponType.largeSword:
         return ImagesAssetsWeapons.largeSword;
       case WeaponType.frostKatana:
         return ImagesAssetsWeapons.frostKatana;
-      case WeaponType.sanctifiedSword:
+      case WeaponType.sanctifiedEdge:
         return ImagesAssetsWeapons.sanctifiedEdge;
-      case WeaponType.flameSword:
+      case WeaponType.fireSword:
         return ImagesAssetsWeapons.flameSword;
       case WeaponType.swordOfJustice:
         return ImagesAssetsWeapons.swordOfJustice;
+
+      case WeaponType.tuiCamai:
+        return ImagesAssetsWeapons.tuiCamai;
+      case WeaponType.swordKladenets:
+        return ImagesAssetsWeapons.swordKladenets;
       case WeaponType.magicMissile:
         return ImagesAssetsWeapons.bookIdle;
       case WeaponType.icecicleMagic:
@@ -702,6 +741,8 @@ enum WeaponType {
       case WeaponType.fireballMagic:
         return ImagesAssetsWeapons.bookIdle;
       case WeaponType.energyMagic:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.breathOfFire:
         return ImagesAssetsWeapons.bookIdle;
       case WeaponType.magicBlast:
         return ImagesAssetsWeapons.bookIdle;
@@ -722,15 +763,15 @@ enum WeaponType {
 }
 
 extension WeaponTypeFilename on WeaponType {
-  Weapon build(
-    AimFunctionality ancestor,
+  Weapon build({
+    AimFunctionality? ancestor,
     SecondaryType? secondaryWeaponType,
-    GameRouter gameRouter, [
+    GameRouter? gameRouter,
     int? customWeaponLevel,
-  ]) {
+  }) {
     Weapon? returnWeapon;
     final upgradeLevel = customWeaponLevel ??
-        gameRouter.playerDataComponent.dataObject.unlockedWeapons[this] ??
+        gameRouter?.playerDataComponent.dataObject.unlockedWeapons[this] ??
         0;
 
     switch (this) {
@@ -752,14 +793,23 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.fireballMagic:
         returnWeapon = FireballMagic(upgradeLevel, ancestor);
         break;
+      case WeaponType.swordKladenets:
+        returnWeapon = SwordKladenets(upgradeLevel, ancestor);
+        break;
       case WeaponType.powerWord:
         returnWeapon = PowerWord(upgradeLevel, ancestor);
+        break;
+      case WeaponType.tuiCamai:
+        returnWeapon = TuiCamai(upgradeLevel, ancestor);
         break;
       case WeaponType.blankProjectileWeapon:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
         break;
       case WeaponType.arcaneBlaster:
         returnWeapon = ArcaneBlaster(upgradeLevel, ancestor);
+        break;
+      case WeaponType.mindStaff:
+        returnWeapon = MindStaff(upgradeLevel, ancestor);
         break;
       case WeaponType.scryshot:
         returnWeapon = Scryshot(upgradeLevel, ancestor);
@@ -791,16 +841,19 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.magicBlast:
         returnWeapon = MagicBlast(upgradeLevel, ancestor);
         break;
+      case WeaponType.breathOfFire:
+        returnWeapon = BreathOfFire(upgradeLevel, ancestor);
+        break;
       case WeaponType.aethertideSpear:
         returnWeapon = AethertideSpear(upgradeLevel, ancestor);
         break;
-      case WeaponType.sanctifiedSword:
+      case WeaponType.sanctifiedEdge:
         returnWeapon = SanctifiedEdge(upgradeLevel, ancestor);
       case WeaponType.crystalSword:
         returnWeapon = CrystalSword(upgradeLevel, ancestor);
 
         break;
-      case WeaponType.flameSword:
+      case WeaponType.fireSword:
         returnWeapon = FlameSword(upgradeLevel, ancestor);
 
         break;
@@ -813,99 +866,20 @@ extension WeaponTypeFilename on WeaponType {
         break;
     }
     if (returnWeapon is SecondaryFunctionality && secondaryWeaponType != null) {
-      final secondaryWeaponUpgrade = gameRouter.playerDataComponent.dataObject
+      final secondaryWeaponUpgrade = gameRouter?.playerDataComponent.dataObject
               .unlockedSecondarys[secondaryWeaponType] ??
           0;
       returnWeapon.setSecondaryFunctionality =
           secondaryWeaponType.build(returnWeapon, secondaryWeaponUpgrade);
     }
-    ancestor.add(returnWeapon);
+    ancestor?.add(returnWeapon);
     return returnWeapon;
   }
 
   Weapon buildTemp(int upgradeLevel) {
-    Weapon? returnWeapon;
-
-    switch (this) {
-      case WeaponType.crystalPistol:
-        returnWeapon = CrystalPistol(upgradeLevel, null);
-        break;
-      case WeaponType.scatterBlast:
-        returnWeapon = Shotgun(upgradeLevel, null);
-        break;
-      case WeaponType.railspire:
-        returnWeapon = Railspire(upgradeLevel, null);
-        break;
-      case WeaponType.blankProjectileWeapon:
-        returnWeapon = BlankProjectileWeapon(upgradeLevel, null);
-        break;
-      case WeaponType.arcaneBlaster:
-        returnWeapon = ArcaneBlaster(upgradeLevel, null);
-        break;
-      case WeaponType.fireballMagic:
-        returnWeapon = FireballMagic(upgradeLevel, null);
-        break;
-      case WeaponType.frostKatana:
-        returnWeapon = FrostKatana(upgradeLevel, null);
-      case WeaponType.scryshot:
-        returnWeapon = Scryshot(upgradeLevel, null);
-        break;
-      case WeaponType.eldritchRunner:
-        returnWeapon = EldritchRunner(upgradeLevel, null);
-        break;
-      case WeaponType.crystalSword:
-        returnWeapon = CrystalSword(upgradeLevel, null);
-        break;
-      case WeaponType.magicMissile:
-        returnWeapon = MagicMissile(upgradeLevel, null);
-        break;
-      case WeaponType.prismaticBeam:
-        returnWeapon = PrismaticBeam(upgradeLevel, null);
-        break;
-      case WeaponType.psychicMagic:
-        returnWeapon = PsychicMagic(upgradeLevel, null);
-        break;
-      case WeaponType.magicBlast:
-        returnWeapon = MagicBlast(upgradeLevel, null);
-        break;
-      case WeaponType.energyMagic:
-        returnWeapon = EnergyMagic(upgradeLevel, null);
-        break;
-      case WeaponType.phaseDagger:
-        returnWeapon = PhaseDagger(upgradeLevel, null);
-      case WeaponType.swordOfJustice:
-        returnWeapon = SwordOfJustice(upgradeLevel, null);
-
-      case WeaponType.largeSword:
-        returnWeapon = LargeSword(upgradeLevel, null);
-
-        break;
-      case WeaponType.powerWord:
-        returnWeapon = PowerWord(upgradeLevel, null);
-        break;
-      case WeaponType.icecicleMagic:
-        returnWeapon = Icecicle(upgradeLevel, null);
-        break;
-
-      case WeaponType.aethertideSpear:
-        returnWeapon = AethertideSpear(upgradeLevel, null);
-        break;
-      case WeaponType.sanctifiedSword:
-        returnWeapon = SanctifiedEdge(upgradeLevel, null);
-
-        break;
-      case WeaponType.flameSword:
-        returnWeapon = FlameSword(upgradeLevel, null);
-
-        break;
-      case WeaponType.shimmerRifle:
-        returnWeapon = ShimmerRifle(upgradeLevel, null);
-
-      case WeaponType.emberBow:
-        returnWeapon = EmberBow(upgradeLevel, null);
-    }
-
-    return returnWeapon;
+    return build(
+      customWeaponLevel: upgradeLevel,
+    );
   }
 }
 

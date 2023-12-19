@@ -124,8 +124,20 @@ abstract class AttachedToBodyChildEntity extends ChildEntity {
   double distance;
 }
 
+class SummonedSwordEntityTest extends SummonedChildEntity {
+  SummonedSwordEntityTest({
+    required super.initialPosition,
+    required super.parentEntity,
+    required super.upgradeLevel,
+    super.onHitOtherEntity,
+    super.damageBase,
+  });
+  @override
+  AimPattern get aimPattern => AimPattern.mouse;
+}
+
 class SummonedChildEntity extends ChildEntity
-    with MovementFunctionality, TouchDamageFunctionality, DumbFollowAI {
+    with MovementFunctionality, TouchDamageFunctionality, SimpleFollowAI {
   SummonedChildEntity({
     required super.initialPosition,
     required super.parentEntity,
@@ -255,7 +267,7 @@ class TeslaCrystal extends AttachedToBodyChildEntity
     with
         AimFunctionality,
         AttackFunctionality,
-        DumbShoot,
+        SimpleShoot,
         AimControlFunctionality {
   TeslaCrystal({
     required super.initialPosition,
@@ -373,7 +385,7 @@ class RangedAttackSentry extends AttachedToBodyChildEntity
     with
         AimFunctionality,
         AttackFunctionality,
-        DumbShoot,
+        SimpleShoot,
         AimControlFunctionality {
   RangedAttackSentry({
     required super.initialPosition,
@@ -746,8 +758,11 @@ class MirrorOrbSentry extends AttachedToBodyChildEntity
       newWeapon.onAttack.add(mirrorAttack);
     }
 
-    final tempWeapon =
-        newWeapon.weaponType.build(this, null, game, newWeapon.upgradeLevel);
+    final tempWeapon = newWeapon.weaponType.build(
+      ancestor: this,
+      gameRouter: game,
+      customWeaponLevel: newWeapon.upgradeLevel,
+    );
     tempWeapon.weaponScale.baseParameter =
         tempWeapon.weaponScale.baseParameter / 2;
     tempWeapon.weaponAttachmentPoints.forEach((key, value) {

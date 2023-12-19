@@ -19,7 +19,7 @@ class BlankProjectileWeapon extends EnemyWeapon
     attackTickRate.baseParameter = 2;
     attackCountIncrease.baseParameter = 0;
     projectileVelocity.baseParameter = 10;
-    projectileSize.baseParameter = .5;
+    projectileRelativeSize.baseParameter = .5;
   }
   @override
   WeaponType weaponType = WeaponType.blankProjectileWeapon;

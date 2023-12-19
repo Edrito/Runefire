@@ -2754,8 +2754,11 @@ class SonicWaveAttribute extends Attribute {
         if (weapon is! MeleeFunctionality) {
           return;
         }
-        final newWeapon = WeaponType.blankProjectileWeapon
-            .build(weapon.entityAncestor!, null, victimEntity!.game, 0);
+        final newWeapon = WeaponType.blankProjectileWeapon.build(
+          ancestor: weapon.entityAncestor,
+          gameRouter: victimEntity!.game,
+          customWeaponLevel: 0,
+        );
         weapon.addAdditionalWeapon(newWeapon);
         newWeapons.add(newWeapon);
       },
@@ -2815,11 +2818,14 @@ class DaggerSwingAttribute extends Attribute {
   void mapUpgrade() {
     applyActionToWeapons(
       (weapon) {
-        if (weapon is! ProjectileFunctionality) {
+        if (weapon.weaponType.attackType == AttackType.melee) {
           return;
         }
-        final newWeapon = WeaponType.sanctifiedSword
-            .build(weapon.entityAncestor!, null, victimEntity!.game, 0);
+        final newWeapon = WeaponType.sanctifiedEdge.build(
+          ancestor: weapon.entityAncestor,
+          gameRouter: victimEntity!.game,
+          customWeaponLevel: 0,
+        );
 
         if (newWeapon is StaminaCostFunctionality) {
           newWeapon.weaponStaminaCost.setParameterPercentValue(attributeId, -1);

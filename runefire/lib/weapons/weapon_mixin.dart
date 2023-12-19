@@ -201,7 +201,7 @@ class MeleeAttack {
     this.customStartAngle = true,
   });
 
-  final SpriteAnimation? entitySpriteAnimation;
+  final Future<SpriteAnimation>? entitySpriteAnimation;
   Function()? onAttack;
   bool customStartAngle;
   bool flippedDuringAttack;
@@ -451,14 +451,17 @@ mixin ProjectileFunctionality on Weapon {
   double farDamageIncreaseDistanceBegin = 20;
   double farDamageIncreaseDistanceCutoff = 30;
   double particleLifespan = .5;
-  DoubleParameterManager projectileSize =
+  DoubleParameterManager projectileRelativeSize =
       DoubleParameterManager(baseParameter: 1);
+
+  DoubleParameterManager projectileLifeSpan =
+      DoubleParameterManager(baseParameter: 2);
 
   //META
   abstract ProjectileType? projectileType;
 
   Projectile buildProjectile(Vector2 delta, double chargeAmount) {
-    var newSize = projectileSize.parameter;
+    var newSize = projectileRelativeSize.parameter;
 
     if (this is SemiAutomatic &&
         (this as SemiAutomatic).increaseSizeWhenCharged) {
@@ -542,12 +545,12 @@ mixin ProjectileFunctionality on Weapon {
   }
 
   Vector2 randomVector2() => (Vector2.random(rng) - Vector2.random(rng)) * 100;
-
+  double get particleAddSpeed => 0.02;
   Future<void> shootProjectile([double chargeAmount = 1]) async {
     entityAncestor?.enviroment.addPhysicsComponent(
       generateMultipleProjectileFunction(chargeAmount),
       priority: 5,
-      duration: .03,
+      duration: particleAddSpeed,
     );
 
     entityAncestor?.enviroment.add(generateParticle());

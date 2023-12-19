@@ -69,7 +69,7 @@ class MushroomDummy extends Enemy with JumpFunctionality
 }
 
 class MushroomRunner extends Enemy
-    with MovementFunctionality, TouchDamageFunctionality, DumbFollowAI {
+    with MovementFunctionality, TouchDamageFunctionality, SimpleFollowAI {
   MushroomRunner({
     required super.initialPosition,
     required super.enviroment,
@@ -267,8 +267,8 @@ class MushroomShooter extends Enemy
         AimFunctionality,
         AimControlFunctionality,
         AttackFunctionality,
-        DumbShoot,
-        DumbFollowRangeAI {
+        SimpleShoot,
+        SimpleFollowRangeAI {
   MushroomShooter({
     required super.initialPosition,
     required super.enviroment,
@@ -335,7 +335,7 @@ class MushroomSpinner extends Enemy
         TouchDamageFunctionality,
         AimControlFunctionality,
         AttackFunctionality,
-        DumbFollowAI,
+        SimpleFollowAI,
         StateManagedAI {
   MushroomSpinner({
     required super.initialPosition,
