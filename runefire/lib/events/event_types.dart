@@ -40,7 +40,7 @@ class DeathHandEvent extends PositionEvent {
   Future<void> onGoingEvent() async {
     final positionOfHand =
         spawnPosition ?? spawnLocation!.grabNewPosition(gameEnviroment, 1);
-    final spriteAnimation = await spriteAnimations.ghostHandAttack1;
+    final spriteAnimation = await spriteAnimations.ghostHandAttackRed1;
 
     final spriteTickSpeed = fast ? .06 : .1;
     spriteAnimation.stepTime = spriteTickSpeed;

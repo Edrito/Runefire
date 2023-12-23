@@ -43,7 +43,7 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   //   ),
   // );
   player?.carriedWeapons.add(
-    WeaponType.psychicMagic.build(
+    WeaponType.hexwoodMaim.build(
       ancestor: player,
       gameRouter: gameEnviroment.gameRef,
     ),

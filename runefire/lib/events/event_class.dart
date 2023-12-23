@@ -7,13 +7,13 @@ import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:uuid/uuid.dart';
 
-import '../game/enviroment_mixin.dart';
-import '../resources/enums.dart';
-import '../resources/functions/vector_functions.dart';
-import '../game/enviroment.dart';
-import '../main.dart';
-import '../resources/constants/priorities.dart';
-import '../enemies/enemy.dart';
+import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/enemies/enemy.dart';
 
 enum SpawnLocation {
   inside,
@@ -31,7 +31,9 @@ extension SpawnLocationExtension on SpawnLocation {
     switch (this) {
       case SpawnLocation.both:
         position = generateRandomGamePositionInViewport(
-            rng.nextBool(), gameEnviroment);
+          rng.nextBool(),
+          gameEnviroment,
+        );
         break;
       case SpawnLocation.inside:
         position = generateRandomGamePositionInViewport(true, gameEnviroment);
@@ -54,12 +56,17 @@ extension SpawnLocationExtension on SpawnLocation {
                 Vector2.all(gameEnviroment.boundsDistanceFromCenter);
 
         break;
+      case SpawnLocation.mouse:
+        position =
+            gameEnviroment.player!.aimPosition! + gameEnviroment.player!.center;
+
+        break;
       default:
         position = Vector2.zero();
     }
 
     if (randomize != null) {
-      position += (((Vector2.random() * 2) - Vector2.all(1)) * randomize);
+      position += ((Vector2.random() * 2) - Vector2.all(1)) * randomize;
     }
 
     return position;
@@ -104,9 +111,9 @@ abstract class PositionEvent extends GameEvent {
     super.gameEnviroment,
     super.eventManagement, {
     required super.eventBeginEnd,
+    required super.eventTriggerInterval,
     this.spawnLocation,
     this.spawnPosition,
-    required super.eventTriggerInterval,
   });
 
   final SpawnLocation? spawnLocation;

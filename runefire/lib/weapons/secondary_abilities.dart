@@ -4,11 +4,11 @@ import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import '../entities/entity_mixin.dart';
-import '../game/area_effects.dart';
-import '../resources/enums.dart';
+import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/game/area_effects.dart';
+import 'package:runefire/resources/enums.dart';
 
-import '../resources/functions/custom.dart';
+import 'package:runefire/resources/functions/custom.dart';
 
 abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   SecondaryWeaponAbility(this.weapon, this.cooldown, int? newUpgradeLevel) {
@@ -34,20 +34,24 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   void startAbility();
 
   void startAbilityCheck() {
-    if (isCoolingDown || weapon?.entityAncestor == null) return;
+    if (isCoolingDown || weapon?.entityAncestor == null) {
+      return;
+    }
 
     cooldownTimer = TimerComponent(
       period: cooldown,
       removeOnFinish: true,
       onTick: () {
         entityStatusWrapper?.removeReloadAnimation(
-            weapon?.weaponId ?? "", true);
+          weapon?.weaponId ?? '',
+          true,
+        );
         cooldownTimer = null;
       },
     )..addToParent(this);
 
     entityStatusWrapper?.addReloadAnimation(
-      weapon?.weaponId ?? "",
+      weapon?.weaponId ?? '',
       cooldown,
       cooldownTimer!,
       true,
@@ -61,8 +65,12 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
 
 ///Reloads the weapon and mag dumps at a firerate of approx 5x original
 class RapidFire extends SecondaryWeaponAbility {
-  RapidFire(super.weapon, super.cooldown, super.level,
-      {this.baseAttackRateIncrease = 5});
+  RapidFire(
+    super.weapon,
+    super.cooldown,
+    super.level, {
+    this.baseAttackRateIncrease = 5,
+  });
   TimerComponent? rapidFireTimer;
   bool get isCurrentlyRunning => rapidFireTimer != null;
 
@@ -72,9 +80,7 @@ class RapidFire extends SecondaryWeaponAbility {
   double baseAttackRateIncrease;
   double attackRateIncreaseIncrease = 0;
 
-  int get loops => baseLoops + loopsIncrease;
-  int baseLoops = 1;
-  int loopsIncrease = 0;
+  int get baseLoops => upgradeLevel;
   int attacks = 0;
 
   @override
@@ -88,8 +94,8 @@ class RapidFire extends SecondaryWeaponAbility {
   }
 
   void onTick() {
-    final reload = weapon as ReloadFunctionality;
-    if ((weapon?.entityAncestor as AttackFunctionality).currentWeapon !=
+    final reload = weapon! as ReloadFunctionality;
+    if ((weapon!.entityAncestor! as AttackFunctionality).currentWeapon !=
         weapon) {
       cancelFire();
       return;
@@ -101,7 +107,7 @@ class RapidFire extends SecondaryWeaponAbility {
     } else {
       weapon?.attackAttempt();
     }
-    if (reload.remainingAttacks == 1 && completedLoops != loops) {
+    if (reload.remainingAttacks == 1 && completedLoops != baseLoops) {
       reload.spentAttacks = 0;
       completedLoops++;
       return;
@@ -117,15 +123,17 @@ class RapidFire extends SecondaryWeaponAbility {
   }
 
   @override
-  void startAbility() async {
-    if (isCurrentlyRunning) return;
+  Future<void> startAbility() async {
+    if (isCurrentlyRunning) {
+      return;
+    }
 
-    double weaponAttackRate = weapon?.attackTickRate.parameter ?? 0;
+    final weaponAttackRate = weapon?.attackTickRate.parameter ?? 0;
     if (weapon is! ReloadFunctionality) {
       return;
     }
 
-    final reload = weapon as ReloadFunctionality;
+    final reload = weapon! as ReloadFunctionality;
 
     if (reload.isReloading) {
       reload.stopReloading();
@@ -135,7 +143,6 @@ class RapidFire extends SecondaryWeaponAbility {
     rapidFireTimer = TimerComponent(
       repeat: true,
       period: weaponAttackRate / attackRateIncrease,
-      autoStart: true,
       onTick: onTick,
     );
     add(rapidFireTimer!);
@@ -148,11 +155,11 @@ class RapidFire extends SecondaryWeaponAbility {
 
   @override
   String get abilityDescription =>
-      "Instantly reloads weapon and shoots at an increased attack-rate!";
+      'Instantly reloads weapon and shoots at an increased attack-rate!';
 
   @override
   String get nextLevelStringDescription =>
-      "Increases attack rate and total mags dumped";
+      'Increases attack rate and total mags dumped';
 }
 
 ///Reloads the weapon and mag dumps at a firerate of approx 5x original
@@ -164,32 +171,34 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
 
   @override
   String get nextLevelStringDescription =>
-      "Increase explosion radius and damage";
+      'Increase explosion radius and damage';
 
   @override
   void endAbility() {}
 
   @override
   void startAbilityCheck() {
-    if (weapon is! ProjectileFunctionality) return;
+    if (weapon is! ProjectileFunctionality) {
+      return;
+    }
 
-    final projectile = weapon as ProjectileFunctionality;
-    if (projectile.activeProjectiles.isEmpty) return;
+    final projectile = weapon! as ProjectileFunctionality;
+    if (projectile.activeProjectiles.isEmpty) {
+      return;
+    }
 
     super.startAbilityCheck();
   }
 
   @override
-  void startAbility() async {
-    final projectile = weapon as ProjectileFunctionality;
+  Future<void> startAbility() async {
+    final projectile = weapon! as ProjectileFunctionality;
     final projectileListCopy = [...projectile.activeProjectiles.reversed];
-    for (var element in projectileListCopy) {
+    for (final element in projectileListCopy) {
       Future.delayed(const Duration(milliseconds: 10)).then((value) {
         final explosion = AreaEffect(
           sourceEntity: weapon!.entityAncestor!,
           position: element.center,
-          radius: 3,
-          durationType: DurationType.instant,
           damage: {DamageType.fire: (2, 5)},
         );
 
@@ -203,5 +212,5 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
   @override
   // TODO: implement attributeDescription
   String get abilityDescription =>
-      "Creates a firey explosion in the location of all currently active projectiles!";
+      'Creates a firey explosion in the location of all currently active projectiles!';
 }

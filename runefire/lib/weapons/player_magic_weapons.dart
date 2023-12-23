@@ -1,4 +1,5 @@
 // ignore_for_file: overridden_fields
+import 'package:runefire/events/event_class.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'dart:async';
@@ -21,6 +22,7 @@ import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
@@ -623,6 +625,15 @@ class PsychicMagic extends PlayerWeapon
   // void unMapUpgrade() {}
 
   @override
+  Projectile buildProjectile(Vector2 delta, double chargeAmount) {
+    projectileLifeSpan.setParameterPercentValue(
+      weaponId,
+      (chargeAmount.clamp(0.25, double.infinity)) - 1,
+    );
+    return super.buildProjectile(delta, chargeAmount);
+  }
+
+  @override
   Set<WeaponSpritePosition> get removeSpriteOnAttack => {
         WeaponSpritePosition.back,
       };
@@ -937,4 +948,265 @@ class BreathOfFire extends PlayerWeapon
       DoubleParameterManager(minParameter: 0, baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
+}
+
+class ElementalChannel extends PlayerWeapon
+    with StaminaCostFunctionality, FullAutomatic {
+  ElementalChannel(
+    super.newUpgradeLevel,
+    super.ancestor,
+  );
+
+  @override
+  void mapUpgrade() {
+    countIncreaseWithTime.baseParameter = true;
+    attackTickRate.baseParameter = .5;
+    baseDamage.damageBase = Map.fromEntries(
+      DamageType.values.map(
+        (e) => MapEntry(
+          e,
+          (
+            increasePercentOfBase(
+              2,
+              customUpgradeFactor: .2,
+              includeBase: true,
+            ).toDouble(),
+            increasePercentOfBase(
+              5,
+              customUpgradeFactor: .3,
+              includeBase: true,
+            ).toDouble()
+          ),
+        ),
+      ),
+    );
+    super.mapUpgrade();
+  }
+
+  @override
+  WeaponType weaponType = WeaponType.elementalChannel;
+
+  @override
+  void standardAttack([
+    double holdDurationPercent = 1,
+    bool callFunctions = true,
+  ]) {
+    final areaEffects = <AreaEffect>[];
+    final count = (durationHeld * rng.nextDouble())
+            .round()
+            .clamp(0, (3 + upgradeLevel) / 2) +
+        getAttackCount(holdDurationPercent) / 2;
+
+    weaponStaminaCost.setParameterPercentValue(
+      weaponId,
+      (durationHeld * .1).clamp(0, .5),
+    );
+    final entryList = baseDamage.damageBase.entries.toList();
+    final gameEnv = entityAncestor!.gameEnviroment;
+    final height =
+        gameEnv.gameCamera.viewport.size.y / gameEnv.gameCamera.viewfinder.zoom;
+    for (var i = 0; i < count; i++) {
+      final randomDamageEntry = entryList.random();
+      final area = AreaEffect(
+        position: SpawnLocation.mouse.grabNewPosition(
+          gameEnv,
+          height / 1.5,
+        ),
+        sourceEntity: entityAncestor!,
+        radius: increasePercentOfBase(
+              2,
+              customUpgradeFactor: .35,
+              includeBase: true,
+            ).toDouble() *
+            //allow a 30% variance
+            ((rng.nextDouble() * .3) + .85),
+        damage: {
+          randomDamageEntry.key: randomDamageEntry.value,
+        },
+        animationRandomlyFlipped: true,
+      );
+      areaEffects.add(area);
+    }
+
+    entityAncestor?.gameEnviroment
+        .addPhysicsComponent(areaEffects, duration: attackTickRate.parameter);
+
+    super.standardAttack(holdDurationPercent, callFunctions);
+  }
+
+  @override
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
+
+  @override
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          weaponAnimations: {
+            'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
+            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
+            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 1;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.back,
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  @override
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
+}
+
+class HexwoodMaim extends PlayerWeapon
+    with ReloadFunctionality, StaminaCostFunctionality, SemiAutomatic {
+  HexwoodMaim(
+    super.newUpgradeLevel,
+    super.ancestor,
+  );
+  late final SpriteAnimation attackAnimation;
+  @override
+  FutureOr<void> onLoad() async {
+    attackAnimation = await spriteAnimations.hexwoodMaim1;
+
+    return super.onLoad();
+  }
+
+  @override
+  void mapUpgrade() {
+    countIncreaseWithTime.baseParameter = true;
+    maxAttacks.baseParameter = increasePercentOfBase(
+      3,
+      customUpgradeFactor: 1 / maxLevel!,
+      includeBase: true,
+    ).floor();
+    attackTickRate.baseParameter = 1.4;
+    baseDamage.damageBase = {
+      DamageType.magic: (
+        increasePercentOfBase(
+          5,
+          customUpgradeFactor: .2,
+          includeBase: true,
+        ).toDouble(),
+        increasePercentOfBase(
+          10,
+          customUpgradeFactor: .3,
+          includeBase: true,
+        ).toDouble()
+      ),
+    };
+
+    super.mapUpgrade();
+  }
+
+  @override
+  WeaponType weaponType = WeaponType.hexwoodMaim;
+
+  @override
+  void standardAttack([
+    double holdDurationPercent = 1,
+    bool callFunctions = true,
+  ]) {
+    final areaEffects = <AreaEffect>[];
+    final count = getAttackCount(holdDurationPercent) + 1;
+
+    weaponStaminaCost.setParameterPercentValue(
+      weaponId,
+      (durationHeld * .1).clamp(0, .5),
+    );
+    final gameEnv = entityAncestor!.gameEnviroment;
+    final stepTime = attackTickRate.parameter / attackAnimation.frames.length;
+    attackAnimation.stepTime = stepTime;
+    setWeaponStatus(WeaponStatus.attack);
+    for (var i = 0; i < count; i++) {
+      final radius = 1.5 + (rng.nextDouble() * 1);
+      final area = AreaEffect(
+        position: SpawnLocation.mouse.grabNewPosition(
+          gameEnv,
+          count * radius / 2,
+        ),
+        overridePriority: 10,
+        radius: radius,
+        sourceEntity: entityAncestor!,
+        collisionDelay: stepTime * 10,
+        animationRandomlyFlipped: true,
+        onTick: (entity, areaId) async {
+          entity.applyHitAnimation(
+            await spriteAnimations.scratchEffect1,
+            entity.center,
+            DamageType.magic.color,
+          );
+        },
+        animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
+          spawnAnimation: attackAnimation,
+          durationType: DurationType.instant,
+        ),
+        damage: baseDamage.damageBase,
+      );
+
+      areaEffects.add(area);
+    }
+
+    entityAncestor?.gameEnviroment
+        .addPhysicsComponent(areaEffects, duration: attackTickRate.parameter);
+
+    super.standardAttack(holdDurationPercent, callFunctions);
+  }
+
+  @override
+  Set<WeaponSpritePosition> get removeSpriteOnAttack => {
+        WeaponSpritePosition.back,
+      };
+
+  @override
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          Vector2.all(0),
+          weaponAnimations: {
+            'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
+            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
+            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+          },
+          parentJoint: parentJoint,
+          weapon: this,
+        );
+    }
+  }
+
+  @override
+  double distanceFromPlayer = 1;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [
+    WeaponSpritePosition.hand,
+  ];
+
+  @override
+  DoubleParameterManager weaponScale =
+      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  @override
+  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
+
+  @override
+  SemiAutoType semiAutoType = SemiAutoType.regular;
 }

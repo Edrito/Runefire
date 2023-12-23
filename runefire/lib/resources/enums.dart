@@ -662,9 +662,11 @@ enum WeaponType {
   icecicleMagic(5, AttackType.magic, 0),
   psychicMagic(5, AttackType.magic, 0),
   fireballMagic(5, AttackType.magic, 0),
+  elementalChannel(5, AttackType.magic, 0),
   energyMagic(5, AttackType.magic, 0),
   magicBlast(5, AttackType.magic, 0),
   powerWord(5, AttackType.magic, 1500),
+  hexwoodMaim(5, AttackType.magic, 0),
   breathOfFire(
     5,
     AttackType.magic,
@@ -747,6 +749,10 @@ enum WeaponType {
       case WeaponType.magicBlast:
         return ImagesAssetsWeapons.bookIdle;
       case WeaponType.powerWord:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.elementalChannel:
+        return ImagesAssetsWeapons.bookIdle;
+      case WeaponType.hexwoodMaim:
         return ImagesAssetsWeapons.bookIdle;
       case WeaponType.blankProjectileWeapon:
         return ImagesAssetsWeapons.bookIdle;
@@ -831,6 +837,12 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.energyMagic:
         returnWeapon = EnergyMagic(upgradeLevel, ancestor);
+        break;
+      case WeaponType.hexwoodMaim:
+        returnWeapon = HexwoodMaim(upgradeLevel, ancestor);
+        break;
+      case WeaponType.elementalChannel:
+        returnWeapon = ElementalChannel(upgradeLevel, ancestor);
         break;
       case WeaponType.phaseDagger:
         returnWeapon = PhaseDagger(upgradeLevel, ancestor);
@@ -974,7 +986,7 @@ class DamageInstance {
 }
 
 enum SecondaryType {
-  reloadAndRapidFire(ImagesAssetsSecondaryIcons.rapidFire, 5, rapidReload, 500),
+  reloadAndRapidFire(ImagesAssetsSecondaryIcons.rapidFire, 2, rapidReload, 500),
   pistolAttachment(ImagesAssetsSecondaryIcons.blank, 5, alwaysCompatible, 500),
   explodeProjectiles(
     ImagesAssetsSecondaryIcons.explodeProjectiles,

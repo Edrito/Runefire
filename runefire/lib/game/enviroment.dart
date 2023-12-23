@@ -37,7 +37,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   double get zoom => gameCamera.viewfinder.zoom;
 
   //(int, double) is (priority, duration)
-  Map<(int, double), List<dynamic>> physicsEntitiesToAddQueue = {};
+  Map<(int, double), List<Component>> physicsEntitiesToAddQueue = {};
   List<Component> tempAddingEntities = [];
   double durationNoAdd = 0;
   late final TimerComponent physicsEntityAdding = TimerComponent(
@@ -74,7 +74,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
       final highestPriList = physicsEntitiesToAddQueue[key];
 
       if (highestPriList != null && highestPriList.isNotEmpty) {
-        tempAddingEntities.addAll(highestPriList as List<Component>);
+        tempAddingEntities.addAll(List<Component>.from(highestPriList));
         tempAddingEntities = [...tempAddingEntities.reversed];
         physicsEntityAdding.timer.limit = key.$2 / tempAddingEntities.length;
         addTempComponent();
@@ -148,7 +148,8 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
       }
       physicsEntitiesToAddQueue[(priority, duration)]?.addAll(components);
 
-      physicsEntitiesToAddQueue[(priority, duration)] ??= components;
+      physicsEntitiesToAddQueue[(priority, duration)] ??=
+          List<Component>.from([...components]);
 
       if (!physicsEntityAdding.timer.isRunning() || !firstTick) {
         physicsEntityAdding.timer.start();

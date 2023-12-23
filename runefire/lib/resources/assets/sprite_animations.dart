@@ -417,6 +417,13 @@ class SpriteAnimations {
 
 //Magic
 
+  late Future<SpriteAnimation> hexwoodMaim1 = loadSpriteAnimation(
+    17,
+    ImagesAssetsWeapons.hexwoodMaim.flamePath,
+    .1,
+    false,
+  );
+
   late Future<SpriteAnimation> satanicBookIdle1 =
       loadSpriteAnimation(1, 'weapons/book_idle.png', .2, true);
   late Future<SpriteAnimation> satanicBookAttack1 =
@@ -493,7 +500,7 @@ class SpriteAnimations {
   );
 
   //ENV EFFECTS
-  late Future<SpriteAnimation> ghostHandAttack1 = loadSpriteAnimation(
+  late Future<SpriteAnimation> ghostHandAttackRed1 = loadSpriteAnimation(
     20,
     ImagesAssetsEnemySprites.ghostHandAttackRed.flamePath,
     .1,

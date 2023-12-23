@@ -230,6 +230,14 @@ idle.flamePath,
 run.flamePath,
 ];
 }
+class ImagesAssetsGhostHand {
+///ghost_hand_attack_red.png
+static const FileDataClass ghostHandAttackRed = 
+(path:"assets/images/enemy_sprites/ghostHand/ghost_hand_attack_red.png",flamePath:"enemy_sprites/ghostHand/ghost_hand_attack_red.png", size:(960.0,48.0)  );static  List<String> allFiles = [ghostHandAttackRed.path,
+];
+static  List<String> allFilesFlame = [ghostHandAttackRed.flamePath,
+];
+}
 class ImagesAssetsMushroomBoomer {
 ///death.png
 static const FileDataClass death = 
@@ -873,7 +881,9 @@ static const FileDataClass emberBow =
 static const FileDataClass flameSword = 
 (path:"assets/images/weapons/flame_sword.png",flamePath:"weapons/flame_sword.png", size:(42.0,103.0)  );///frost_katana.png
 static const FileDataClass frostKatana = 
-(path:"assets/images/weapons/frost_katana.png",flamePath:"weapons/frost_katana.png", size:(28.0,152.0)  );///large_sword.png
+(path:"assets/images/weapons/frost_katana.png",flamePath:"weapons/frost_katana.png", size:(28.0,152.0)  );///hexwood_maim.png
+static const FileDataClass hexwoodMaim = 
+(path:"assets/images/weapons/hexwood_maim.png",flamePath:"weapons/hexwood_maim.png", size:(960.0,48.0)  );///large_sword.png
 static const FileDataClass largeSword = 
 (path:"assets/images/weapons/large_sword.png",flamePath:"weapons/large_sword.png", size:(26.0,90.0)  );///mind_staff.png
 static const FileDataClass mindStaff = 
@@ -916,6 +926,7 @@ eldritchRunner.path,
 emberBow.path,
 flameSword.path,
 frostKatana.path,
+hexwoodMaim.path,
 largeSword.path,
 mindStaff.path,
 muzzleFlash.path,
@@ -943,6 +954,7 @@ eldritchRunner.flamePath,
 emberBow.flamePath,
 flameSword.flamePath,
 frostKatana.flamePath,
+hexwoodMaim.flamePath,
 largeSword.flamePath,
 mindStaff.flamePath,
 muzzleFlash.flamePath,
