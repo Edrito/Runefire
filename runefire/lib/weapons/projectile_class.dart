@@ -8,6 +8,7 @@ import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/weapons/projectile_mixin.dart';
+import 'package:runefire/weapons/weapon_class.dart';
 import 'package:uuid/uuid.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
@@ -19,35 +20,11 @@ import 'package:runefire/weapons/weapon_mixin.dart';
 
 import 'package:runefire/resources/enums.dart';
 
-abstract class FadeOutBullet extends Bullet with FadeOutProjectile {
-  FadeOutBullet({
-    required super.delta,
-    required super.originPosition,
-    required super.weaponAncestor,
-    required super.size,
-    super.primaryDamageType,
-    super.power,
-  });
-}
-
-abstract class Bullet extends Projectile with StandardProjectile {
-  Bullet({
-    required super.delta,
-    required super.originPosition,
-    required super.weaponAncestor,
-    required super.size,
-    super.primaryDamageType,
-    super.power,
-  });
-}
-
-mixin FadeOutProjectile on Projectile {
+abstract class FadeOutBullet extends Projectile {
+  FadeOutBullet(super.projectileConfiguration);
   Curve fadeOutCurve = Curves.easeOut;
   double fadeOutDuration = .4;
   double timePassed = 0;
-
-  // @override
-  // void killBullet([bool withEffect = false]) async {}
 
   @override
   double get opacity => fadeOutCurve.transform(
@@ -55,8 +32,6 @@ mixin FadeOutProjectile on Projectile {
             .clamp(0, 1)
             .toDouble(),
       );
-  // @override
-  // double get opacity => 1;
 
   @override
   void update(double dt) {
@@ -67,48 +42,55 @@ mixin FadeOutProjectile on Projectile {
 
 abstract class Projectile extends BodyComponent<GameRouter>
     with ContactCallbacks {
-  Projectile({
-    required this.delta,
-    required this.originPosition,
-    required this.weaponAncestor,
-    required this.size,
-    DamageType? primaryDamageType,
-    this.power = 1,
-  }) {
+  Projectile(this.projectileConfiguration) {
     projectileId = const Uuid().v4();
-    damageType = primaryDamageType ??
-        weaponAncestor.baseDamage.damageBase.keys.toList().random();
   }
-
+  final ProjectileConfiguration projectileConfiguration;
   late final int targetsToChain = weaponAncestor.chainingTargets.parameter;
   late final int targetsToHome = weaponAncestor.maxHomingTargets.parameter;
 
   int chainedTargets = 0;
   List<HealthFunctionality> closeSensorBodies = [];
-  late DamageType damageType;
-  //Status
-  final Vector2 delta;
+  DamageType get damageType =>
+      projectileConfiguration.primaryDamageType ??
+      weaponAncestor.baseDamage.damageBase.keys.toList().random();
 
+  //Status
+  Vector2 get delta => projectileConfiguration.delta;
+  double get power => projectileConfiguration.power;
+  Vector2 get originPosition =>
+      customOriginPosition ?? projectileConfiguration.originPosition;
+  Vector2? customOriginPosition;
+  set originPosition(Vector2 newOriginPosition) {
+    customOriginPosition = newOriginPosition;
+  }
+
+  double get size => projectileConfiguration.size;
+  Weapon get weaponAncestor => projectileConfiguration.weaponAncestor;
+  ProjectileFunctionality? get parentProjectileFunctionality =>
+      weaponAncestor is ProjectileFunctionality
+          ? weaponAncestor as ProjectileFunctionality
+          : null;
+  double get projectileVelocity =>
+      parentProjectileFunctionality?.projectileVelocity.parameter ??
+      defaultProjectileVelocity;
   double durationPassed = 0;
   bool enableChaining = false;
   bool enableHoming = false;
   List<String> hitIds = [];
   int homedTargets = 0;
   bool isPlayer = false;
-  Vector2 originPosition;
-  //Attributes
-  double power;
 
   Vector2 previousDelta = Vector2.zero();
   bool projectileHasExpired = false;
   late String projectileId;
   abstract ProjectileType projectileType;
-  bool removeOnEndAttack = false;
+  bool get removeOnEndAttack => false;
   Random rng = Random();
-  double size;
-  double get ttl => weaponAncestor.projectileLifeSpan.parameter;
+  double get ttl => parentProjectileFunctionality != null
+      ? parentProjectileFunctionality!.projectileLifeSpan.parameter
+      : defaultTtl;
   //Structure
-  ProjectileFunctionality weaponAncestor;
 
   // TimerComponent? projectileDeathTimer;
   FixtureDef? sensorDef;
@@ -142,6 +124,7 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 
   Future<void> killBullet([bool withEffect = false]) async {
+    projectileHasExpired = true;
     if (!world.physicsWorld.isLocked) {
       body.setType(BodyType.static);
     }
@@ -209,36 +192,70 @@ abstract class Projectile extends BodyComponent<GameRouter>
     super.endContact(other, contact);
   }
 
+  bool parentWeaponHasStoppedAttacking = false;
+
+  void onParentWeaponAttackingFinish(Weapon weapon) {
+    parentWeaponHasStoppedAttacking = true;
+    if (removeOnEndAttack) {
+      killBullet(true);
+    }
+  }
+
   @override
   Future<void> onLoad() async {
-    if (removeOnEndAttack &&
-        weaponAncestor is AttributeWeaponFunctionsFunctionality) {
-      (weaponAncestor as AttributeWeaponFunctionsFunctionality)
-          .onAttackingFinish
-          .add((weapon) {
-        killBullet(true);
-      });
-    }
-
-    weaponAncestor.activeProjectiles.add(this);
+    parentProjectileFunctionality?.activeProjectiles.add(this);
     isPlayer = weaponAncestor.entityAncestor?.isPlayer ?? false;
     callOnProjectileAttackFunctions();
+    final future = projectileConfiguration.parentWeaponAttackingStopped?.future;
+
+    (future ?? projectileTtlExpired).then((value) {
+      onParentWeaponAttackingFinish(weaponAncestor);
+    });
+
     return super.onLoad();
   }
 
   @override
   void onRemove() {
-    weaponAncestor.activeProjectiles.remove(this);
+    parentProjectileFunctionality?.activeProjectiles.remove(this);
+
     super.onRemove();
   }
 
+  Completer<bool> projectileTtlExpiredCompleter = Completer<bool>();
+  Future<void> get projectileTtlExpired => projectileTtlExpiredCompleter.future;
   @override
   void update(double dt) {
     durationPassed += dt;
-    if (durationPassed > ttl && !projectileHasExpired && !removeOnEndAttack) {
-      projectileHasExpired = true;
+    if (durationPassed > ttl && !projectileTtlExpiredCompleter.isCompleted) {
+      projectileTtlExpiredCompleter.complete(true);
+    }
+
+    if (projectileTtlExpiredCompleter.isCompleted &&
+        !projectileHasExpired &&
+        !removeOnEndAttack) {
       killBullet(true);
     }
+
     super.update(dt);
   }
+}
+
+class ProjectileConfiguration {
+  Vector2 delta;
+  Vector2 originPosition;
+  Weapon weaponAncestor;
+  double size;
+  DamageType? primaryDamageType;
+  double power;
+  ProjectileConfiguration({
+    required this.delta,
+    required this.originPosition,
+    required this.weaponAncestor,
+    this.size = 1,
+    this.primaryDamageType,
+    this.parentWeaponAttackingStopped,
+    this.power = 1,
+  });
+  Completer<bool>? parentWeaponAttackingStopped;
 }

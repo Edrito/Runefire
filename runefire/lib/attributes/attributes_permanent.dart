@@ -1099,7 +1099,7 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypePercentIncrease,
+      victimEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1108,7 +1108,7 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypePercentIncrease.removePercentKey(attributeId);
+    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
 
   @override
@@ -1146,7 +1146,7 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypePercentIncrease,
+      victimEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1155,7 +1155,7 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypePercentIncrease.removePercentKey(attributeId);
+    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
 
   @override
@@ -1193,7 +1193,7 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypePercentIncrease,
+      victimEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1202,7 +1202,7 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypePercentIncrease.removePercentKey(attributeId);
+    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
 
   @override
@@ -1239,7 +1239,7 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypePercentIncrease,
+      victimEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1248,7 +1248,7 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypePercentIncrease.removePercentKey(attributeId);
+    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
 
   @override
@@ -1285,7 +1285,7 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypePercentIncrease,
+      victimEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1294,7 +1294,7 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypePercentIncrease.removePercentKey(attributeId);
+    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
 
   @override
@@ -1332,7 +1332,7 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypePercentIncrease,
+      victimEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1341,7 +1341,7 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypePercentIncrease.removePercentKey(attributeId);
+    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
 
   @override

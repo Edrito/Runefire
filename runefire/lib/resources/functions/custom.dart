@@ -544,3 +544,54 @@ class CustomRectClipper extends CustomClipper<Rect> {
     return false;
   }
 }
+
+mixin RechargeableStack on Component {
+  int maxStacks = 30;
+  int currentStacks = 50;
+  double rechargeTime = 1;
+  double currentRechargeTime = 0;
+  bool get isRecharging => currentRechargeTime > 0;
+  bool get isFull => currentStacks == maxStacks;
+  bool get hasStacks => currentStacks > 0;
+  bool get isEmpty => currentStacks == 0;
+  double get rechargePercent =>
+      (currentRechargeTime / rechargeTime).clamp(0, 1);
+
+  @override
+  void update(double dt) {
+    recharge(dt);
+    super.update(dt);
+  }
+
+  void recharge(double dt) {
+    if (isRecharging) {
+      currentRechargeTime -= dt;
+      if (currentRechargeTime <= 0) {
+        addStack();
+        if (isFull) {
+          reset();
+        } else {
+          currentRechargeTime = rechargeTime;
+        }
+      }
+    }
+  }
+
+  void addStack() {
+    if (!isFull) {
+      currentStacks++;
+    }
+  }
+
+  void useStack() {
+    if (!isEmpty) {
+      currentStacks--;
+      currentRechargeTime = rechargeTime;
+    }
+  }
+
+  void reset() {
+    currentStacks = maxStacks;
+    currentRechargeTime = 0;
+  }
+}

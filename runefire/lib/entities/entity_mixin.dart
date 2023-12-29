@@ -97,7 +97,7 @@ mixin BaseAttributes {
   late final IntParameterManager attackCount;
   late final DoubleParameterManager critDamage;
   late final DoubleParameterManager damagePercentIncrease;
-  late final DamagePercentParameterManager damageTypePercentIncrease;
+  late final DamagePercentParameterManager damageTypeDamagePercentIncrease;
   late final DoubleParameterManager essenceSteal;
   late final DoubleParameterManager knockBackIncreaseParameter;
   late final IntParameterManager maxLives;
@@ -165,8 +165,8 @@ mixin BaseAttributes {
     areaSizePercentIncrease = childEntity.parentEntity.areaSizePercentIncrease;
     critChance = childEntity.parentEntity.critChance;
     critDamage = childEntity.parentEntity.critDamage;
-    damageTypePercentIncrease =
-        childEntity.parentEntity.damageTypePercentIncrease;
+    damageTypeDamagePercentIncrease =
+        childEntity.parentEntity.damageTypeDamagePercentIncrease;
     damageTypeResistance = childEntity.parentEntity.damageTypeResistance;
     areaDamagePercentIncrease =
         childEntity.parentEntity.areaDamagePercentIncrease;
@@ -208,7 +208,7 @@ mixin BaseAttributes {
     );
     critDamage = DoubleParameterManager(baseParameter: 1.4, minParameter: 1);
     flatDamageIncrease = DamageParameterManager(damageBase: {});
-    damageTypePercentIncrease =
+    damageTypeDamagePercentIncrease =
         DamagePercentParameterManager(damagePercentBase: {});
     damageTypeResistance = DamagePercentParameterManager(
       damagePercentBase: {},
@@ -595,14 +595,18 @@ mixin AttackFunctionality on AimFunctionality {
           element.build(
             ancestor: this,
             secondaryWeaponType: player.playerData.selectedSecondaries[i],
-            gameRouter: game,
+            playerData: player.playerData,
           ),
         );
       }
     } else {
       for (final element in initialWeapons) {
-        carriedWeapons.add(element.build(
-            ancestor: this, gameRouter: game, customWeaponLevel: 1));
+        carriedWeapons.add(
+          element.build(
+            ancestor: this,
+            customWeaponLevel: 1,
+          ),
+        );
       }
     }
     if (currentWeapon != null) {
@@ -620,7 +624,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> startSecondaryAttacking() async {
-    if (isAltAttacking) {
+    if (isAltAttacking || isDead || isStunned) {
       return;
     }
     isAltAttacking = true;

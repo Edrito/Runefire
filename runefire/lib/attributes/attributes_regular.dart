@@ -1701,11 +1701,14 @@ class ProjectileSplitExplodeAttribute extends Attribute {
     final newProjectiles = <Projectile>[];
     for (final element in temp) {
       final newProjectile = projectile.projectileType.generateProjectile(
-        delta: element,
-        size: projectile.size,
-        originPositionVar: position,
-        ancestorVar: projectile.weaponAncestor,
-        chargeAmount: .5,
+        ProjectileConfiguration(
+          delta: element,
+          originPosition: position,
+          weaponAncestor: projectile.weaponAncestor,
+          size: projectile.size,
+          power: .5,
+          primaryDamageType: damageType,
+        ),
       );
 
       newProjectile.hitIds.addAll(projectile.hitIds);
@@ -2352,10 +2355,13 @@ class ReloadSprayAttribute extends Attribute {
     final newProjectiles = <Projectile>[];
     for (final element in temp) {
       final newProjectile = weapon.projectileType!.generateProjectile(
-        delta: element,
-        originPositionVar: position,
-        ancestorVar: weapon,
-        chargeAmount: .5,
+        ProjectileConfiguration(
+          delta: element,
+          originPosition: position,
+          weaponAncestor: weapon,
+          power: .5,
+          primaryDamageType: damageType,
+        ),
       );
 
       newProjectiles.add(newProjectile);
@@ -2756,7 +2762,6 @@ class SonicWaveAttribute extends Attribute {
         }
         final newWeapon = WeaponType.blankProjectileWeapon.build(
           ancestor: weapon.entityAncestor,
-          gameRouter: victimEntity!.game,
           customWeaponLevel: 0,
         );
         weapon.addAdditionalWeapon(newWeapon);
@@ -2823,7 +2828,6 @@ class DaggerSwingAttribute extends Attribute {
         }
         final newWeapon = WeaponType.sanctifiedEdge.build(
           ancestor: weapon.entityAncestor,
-          gameRouter: victimEntity!.game,
           customWeaponLevel: 0,
         );
 

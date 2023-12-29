@@ -472,88 +472,47 @@ enum ProjectileType {
 }
 
 extension ProjectileTypeExtension on ProjectileType {
-  Projectile generateProjectile({
-    required Vector2 delta,
-    required Vector2 originPositionVar,
-    required ProjectileFunctionality ancestorVar,
-    DamageType? primaryDamageType,
-    double size = .3,
-    double chargeAmount = 1,
-  }) {
+  Projectile generateProjectile(
+    ProjectileConfiguration projectileConfiguration,
+  ) {
     switch (this) {
       case ProjectileType.laser:
         return PaintLaser(
-          originPosition: originPositionVar,
-          size: size,
-          delta: delta,
-          weaponAncestor: ancestorVar,
-          power: chargeAmount,
+          projectileConfiguration,
         );
       case ProjectileType.followLaser:
         return FollowLaser(
-          originPosition: originPositionVar,
-          delta: delta,
-          size: size,
-          weaponAncestor: ancestorVar,
-          power: chargeAmount,
+          projectileConfiguration,
         );
       case ProjectileType.spriteBullet:
         return SpriteBullet(
-          originPosition: originPositionVar,
-          delta: delta,
-          size: size,
-          weaponAncestor: ancestorVar,
-          power: chargeAmount,
+          projectileConfiguration,
         );
       case ProjectileType.blackSpriteBullet:
         return SpriteBullet(
-          originPosition: originPositionVar,
-          delta: delta,
-          size: size,
+          projectileConfiguration,
           customBulletName: 'black',
-          weaponAncestor: ancestorVar,
-          // customHitAnimation: spriteAnimations.,
-          power: chargeAmount,
         );
 
       case ProjectileType.magicProjectile:
         return MagicalProjectile(
-          weaponAncestor: ancestorVar,
-          originPosition: originPositionVar,
-          delta: delta,
-          primaryDamageType: primaryDamageType,
-          size: size,
-          power: chargeAmount,
+          projectileConfiguration,
         );
       case ProjectileType.slowFire:
         return MagicalProjectile(
-          weaponAncestor: ancestorVar,
-          originPosition: originPositionVar,
-          delta: delta,
-          primaryDamageType: primaryDamageType,
-          size: size,
+          projectileConfiguration,
           showParticles: false,
-          power: chargeAmount,
         );
       case ProjectileType.paintBullet:
         return PaintBullet(
-          weaponAncestor: ancestorVar,
-          originPosition: originPositionVar,
-          delta: delta,
-          primaryDamageType: primaryDamageType,
-          size: size,
-          power: chargeAmount,
+          projectileConfiguration,
         );
 
       case ProjectileType.holyBullet:
         return SpriteBullet(
-          originPosition: originPositionVar,
-          delta: delta,
-          size: size,
-          weaponAncestor: ancestorVar,
+          projectileConfiguration,
           customSpawnAnimation: spriteAnimations.holyBulletSpawn1,
           customPlayAnimation: spriteAnimations.holyBulletPlay1,
-          power: chargeAmount,
         );
     }
   }
@@ -562,22 +521,6 @@ extension ProjectileTypeExtension on ProjectileType {
 enum WeaponSpritePosition { hand, mouse, back }
 
 // enum WeaponState { shooting, reloading, idle }
-
-extension SecondaryWeaponTypeExtension on SecondaryType {
-  dynamic build(Weapon? primaryWeaponAncestor, [int upgradeLevel = 0]) {
-    switch (this) {
-      case SecondaryType.reloadAndRapidFire:
-        return RapidFire(primaryWeaponAncestor, 5, upgradeLevel);
-      case SecondaryType.pistolAttachment:
-        return BlankProjectileWeapon(
-          upgradeLevel,
-          primaryWeaponAncestor?.entityAncestor,
-        );
-      case SecondaryType.explodeProjectiles:
-        return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
-    }
-  }
-}
 
 enum WeaponType {
   ///Guns
@@ -772,13 +715,12 @@ extension WeaponTypeFilename on WeaponType {
   Weapon build({
     AimFunctionality? ancestor,
     SecondaryType? secondaryWeaponType,
-    GameRouter? gameRouter,
+    PlayerData? playerData,
     int? customWeaponLevel,
   }) {
     Weapon? returnWeapon;
-    final upgradeLevel = customWeaponLevel ??
-        gameRouter?.playerDataComponent.dataObject.unlockedWeapons[this] ??
-        0;
+    final upgradeLevel =
+        customWeaponLevel ?? playerData?.unlockedWeapons[this] ?? 0;
 
     switch (this) {
       case WeaponType.crystalPistol:
@@ -878,9 +820,8 @@ extension WeaponTypeFilename on WeaponType {
         break;
     }
     if (returnWeapon is SecondaryFunctionality && secondaryWeaponType != null) {
-      final secondaryWeaponUpgrade = gameRouter?.playerDataComponent.dataObject
-              .unlockedSecondarys[secondaryWeaponType] ??
-          0;
+      final secondaryWeaponUpgrade =
+          playerData?.unlockedSecondarys[secondaryWeaponType] ?? 0;
       returnWeapon.setSecondaryFunctionality =
           secondaryWeaponType.build(returnWeapon, secondaryWeaponUpgrade);
     }
@@ -986,11 +927,41 @@ class DamageInstance {
 }
 
 enum SecondaryType {
-  reloadAndRapidFire(ImagesAssetsSecondaryIcons.rapidFire, 2, rapidReload, 500),
+  essentialFocus(ImagesAssetsSecondaryIcons.blank, 0, alwaysCompatible, 0),
+  reloadAndRapidFire(
+    ImagesAssetsSecondaryIcons.rapidFire,
+    2,
+    reloadFunctionality,
+    500,
+  ),
+  instantReload(
+    ImagesAssetsSecondaryIcons.rapidFire,
+    2,
+    reloadFunctionality,
+    500,
+  ),
   pistolAttachment(ImagesAssetsSecondaryIcons.blank, 5, alwaysCompatible, 500),
+  surroundAttack(
+    ImagesAssetsSecondaryIcons.blank,
+    1,
+    hasProjectileOrMeleeFunctionality,
+    500,
+  ),
+  shadowBlink(
+    ImagesAssetsSecondaryIcons.explodeProjectiles,
+    3,
+    weaponIsMelee,
+    500,
+  ),
+  bloodlust(
+    ImagesAssetsSecondaryIcons.explodeProjectiles,
+    2,
+    weaponIsMelee,
+    500,
+  ),
   explodeProjectiles(
     ImagesAssetsSecondaryIcons.explodeProjectiles,
-    5,
+    3,
     weaponShootsProjectiles,
     500,
   );
@@ -1017,12 +988,20 @@ typedef CompatibilityFunction = bool Function(Weapon);
 
 bool alwaysCompatible(Weapon weapon) => true;
 
+bool hasProjectileOrMeleeFunctionality(Weapon weapon) =>
+    weapon is ProjectileFunctionality || weapon is MeleeFunctionality;
+
 bool weaponIsReloadFunctionality(Weapon weapon) {
   final test = weapon is ReloadFunctionality;
   return test;
 }
 
-bool rapidReload(Weapon weapon) {
+bool weaponIsMelee(Weapon weapon) {
+  final test = weapon.weaponType.attackType == AttackType.melee;
+  return test;
+}
+
+bool reloadFunctionality(Weapon weapon) {
   if (weapon is! ReloadFunctionality) {
     return false;
   }
@@ -1044,4 +1023,31 @@ bool weaponShootsProjectiles(Weapon weapon) {
 bool weaponIsProjectileFunctionality(Weapon weapon) {
   final test = weapon is ProjectileFunctionality;
   return test;
+}
+
+extension SecondaryWeaponTypeExtension on SecondaryType {
+  dynamic build(Weapon? primaryWeaponAncestor, [int upgradeLevel = 0]) {
+    switch (this) {
+      case SecondaryType.reloadAndRapidFire:
+        return RapidFire(primaryWeaponAncestor, 5, upgradeLevel);
+      case SecondaryType.pistolAttachment:
+        return BlankProjectileWeapon(
+          upgradeLevel,
+          primaryWeaponAncestor?.entityAncestor,
+        );
+      case SecondaryType.surroundAttack:
+        return SurroundAttack(primaryWeaponAncestor, 5, upgradeLevel);
+
+      case SecondaryType.explodeProjectiles:
+        return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
+      case SecondaryType.shadowBlink:
+        return ShadowBlink(primaryWeaponAncestor, 5, upgradeLevel);
+      case SecondaryType.bloodlust:
+        return Bloodlust(primaryWeaponAncestor, 5, upgradeLevel);
+      case SecondaryType.essentialFocus:
+        return EssentialFocusSecondary(primaryWeaponAncestor, 0, upgradeLevel);
+      case SecondaryType.instantReload:
+        return InstantReload(primaryWeaponAncestor, 10, upgradeLevel);
+    }
+  }
 }

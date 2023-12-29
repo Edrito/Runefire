@@ -39,7 +39,6 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.isSolid = false,
     this.animationRandomlyFlipped = false,
   }) {
-    assert(onTick != null || damage != null);
     radius *= sourceEntity.areaSizePercentIncrease.parameter;
     priority = overridePriority ?? attackPriority;
 
@@ -52,6 +51,8 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.areaId = areaId ?? const Uuid().v4();
   }
   Map<DamageType, (double, double)>? damage;
+
+  bool get hasEffect => damage != null || onTick != null;
 
   bool animationRandomlyFlipped;
 
@@ -73,7 +74,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   late CircleComponent circleComponent;
 
-  Map<Entity, TimerComponent> affectedEntities = {};
+  Map<Entity, double> affectedEntities = {};
   bool isKilled = false;
 
   @override
@@ -140,17 +141,10 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     }
 
     if (animationComponent?.durationType == DurationType.instant) {
-      doOnTick(other);
+      affectEnemy(other);
     } else {
-      affectedEntities[other] = TimerComponent(
-        period: tickRate,
-        repeat: true,
-        onTick: () {
-          doOnTick(other);
-        },
-      )
-        ..addToParent(this)
-        ..onTick();
+      affectedEntities[other] = 0.0;
+      affectEnemy(other);
     }
 
     super.beginContact(other, contact);
@@ -158,10 +152,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   bool aliveForOneTick = false;
 
-  void doOnTick(Entity other) {
-    if (isKilled) {
-      return;
-    }
+  void affectEnemy(Entity other) {
     if (damage != null && other is HealthFunctionality) {
       other.hitCheck(
         areaId,
@@ -175,6 +166,22 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
       );
     }
     onTick?.call(other, areaId);
+  }
+
+  void calculateOnTick(double dt) {
+    for (final element in [...affectedEntities.entries]) {
+      if (isKilled) {
+        return;
+      }
+      final other = element.key;
+
+      if (element.value > tickRate) {
+        affectedEntities[other] = 0.0;
+        affectEnemy(other);
+      } else {
+        affectedEntities[other] = element.value + dt;
+      }
+    }
   }
 
   void instantChecker() {
@@ -192,6 +199,8 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   @override
   void update(double dt) {
     instantChecker();
+    calculateOnTick(dt);
+
     super.update(dt);
   }
 
@@ -210,7 +219,6 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     if (animationComponent?.durationType == DurationType.instant) {
       return;
     }
-    affectedEntities[other]?.removeFromParent();
     affectedEntities.remove(other);
 
     super.endContact(other, contact);
@@ -248,16 +256,18 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     );
     final bodyDef = BodyDef(
       position: position,
-      allowSleep: false,
+      allowSleep: !hasEffect,
       userData: this,
       fixedRotation: true,
     );
 
     final newBody = world.createBody(bodyDef);
-    Future.delayed((collisionDelay ?? 0).seconds).then((value) {
-      newBody.createFixture(fixtureDef);
-      collisionDelay = null;
-    });
+    if (hasEffect) {
+      Future.delayed((collisionDelay ?? 0).seconds).then((value) {
+        newBody.createFixture(fixtureDef);
+        collisionDelay = null;
+      });
+    }
     return newBody;
   }
 }

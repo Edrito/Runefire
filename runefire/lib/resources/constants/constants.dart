@@ -14,9 +14,12 @@ const enemyTextMaxActive = 20;
 const projectileHomingSpeedIncrease = 7.5;
 const projectileBigSizeThreshold = 1.0;
 
+const defaultTtl = 2.5;
+
 //Laser Chain
 const laserCheckPointsFrequency = 10;
 const laserLineAngleThreshold = .05;
+const defaultProjectileVelocity = 25.0;
 
 //UI
 

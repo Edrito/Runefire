@@ -75,8 +75,11 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
 
   void bodyContact(HealthFunctionality other) {
     hitEnemiesId.add(other.entityId);
-    final damageInstance =
-        meleeAttackAncestor.weaponAncestor.calculateDamage(other, this);
+    final damageInstance = meleeAttackAncestor.weaponAncestor.calculateDamage(
+      other,
+      this,
+      forceCrit: meleeAttackAncestor.forceCrit,
+    );
     other.hitCheck(meleeAttackAncestor.meleeId, damageInstance);
     applyHitSpriteEffects(damageInstance);
     hitEnemies++;
@@ -439,11 +442,11 @@ class MeleeAttackSprite extends PositionComponent {
 
 class MeleeAttackHandler extends Component {
   MeleeAttackHandler({
-    // required this.chargeAmount,
     required this.currentAttack,
     required this.initPosition,
     required this.initAngle,
     required this.weaponAncestor,
+    this.forceCrit = false,
     this.isCharging = false,
     this.attachmentPoint,
   }) {
@@ -472,7 +475,7 @@ class MeleeAttackHandler extends Component {
       currentAttack.attackHitboxSizeBuild.$2.$2 * duration
     );
   }
-
+  bool forceCrit;
   List<MeleeAttackSprite> activeSwings = [];
   late double attackStepDuration;
   Map<MeleeAttackSprite, double> attackStepTimer = {};

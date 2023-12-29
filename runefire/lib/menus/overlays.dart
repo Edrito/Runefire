@@ -65,21 +65,24 @@ class HintOverlayWidget extends StatelessWidget {
               ),
             Column(
               crossAxisAlignment: alignment ?? CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  message.title,
-                  style: defaultStyle.copyWith(
-                    fontSize: 16 * hudScaleIncrease,
+                if (message.title.isNotEmpty)
+                  Text(
+                    message.title,
+                    style: defaultStyle.copyWith(
+                      fontSize: 16 * hudScaleIncrease,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                Text(
-                  message.description,
-                  style: defaultStyle.copyWith(
-                    fontSize: 12 * hudScaleIncrease,
+                if (message.description.isNotEmpty)
+                  Text(
+                    message.description,
+                    style: defaultStyle.copyWith(
+                      fontSize: 12 * hudScaleIncrease,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
               ],
             ),
           ],

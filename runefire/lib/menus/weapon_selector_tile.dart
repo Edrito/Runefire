@@ -364,7 +364,6 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab>
         },
         zIndex: 1,
         rowId: 2 + rowIdIncrease,
-        // scrollController: widget.scrollController,
         onPrimary: isMaxLevel || !isAvailable
             ? null
             : () {
@@ -399,7 +398,7 @@ class _WeaponSelectorTabState extends State<WeaponSelectorTab>
                   style:
                       defaultStyle.copyWith(fontSize: 24, color: equippedColor),
                 ),
-              ] else if (isAvailable)
+              ] else if (isAvailable && maxLevel != 0)
                 Text(
                   'MAX',
                   style:

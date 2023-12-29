@@ -238,10 +238,7 @@ class PowerWord extends PlayerWeapon
   }
 
   @override
-  void standardAttack([
-    double holdDurationPercent = 1,
-    bool callFunctions = true,
-  ]) {
+  void standardAttack(AttackConfiguration attackConfiguration) {
     toggleTextComponent(false);
 
     GameState().playAudio(
@@ -330,7 +327,9 @@ class PowerWord extends PlayerWeapon
         break;
       default:
     }
-    super.standardAttack(holdDurationPercent, callFunctions);
+    super.standardAttack(
+      attackConfiguration,
+    );
   }
 
   @override
@@ -625,12 +624,16 @@ class PsychicMagic extends PlayerWeapon
   // void unMapUpgrade() {}
 
   @override
-  Projectile buildProjectile(Vector2 delta, double chargeAmount) {
+  Projectile buildProjectile(
+    Vector2 delta,
+    AttackConfiguration attackConfiguration,
+  ) {
     projectileLifeSpan.setParameterPercentValue(
       weaponId,
-      (chargeAmount.clamp(0.25, double.infinity)) - 1,
+      (attackConfiguration.holdDurationPercent.clamp(0.25, double.infinity)) -
+          1,
     );
-    return super.buildProjectile(delta, chargeAmount);
+    return super.buildProjectile(delta, attackConfiguration);
   }
 
   @override
@@ -987,15 +990,12 @@ class ElementalChannel extends PlayerWeapon
   WeaponType weaponType = WeaponType.elementalChannel;
 
   @override
-  void standardAttack([
-    double holdDurationPercent = 1,
-    bool callFunctions = true,
-  ]) {
+  void standardAttack(AttackConfiguration attackConfiguration) {
     final areaEffects = <AreaEffect>[];
     final count = (durationHeld * rng.nextDouble())
             .round()
             .clamp(0, (3 + upgradeLevel) / 2) +
-        getAttackCount(holdDurationPercent) / 2;
+        getAttackCount(attackConfiguration.holdDurationPercent) / 2;
 
     weaponStaminaCost.setParameterPercentValue(
       weaponId,
@@ -1031,7 +1031,9 @@ class ElementalChannel extends PlayerWeapon
     entityAncestor?.gameEnviroment
         .addPhysicsComponent(areaEffects, duration: attackTickRate.parameter);
 
-    super.standardAttack(holdDurationPercent, callFunctions);
+    super.standardAttack(
+      attackConfiguration,
+    );
   }
 
   @override
@@ -1119,10 +1121,7 @@ class HexwoodMaim extends PlayerWeapon
   WeaponType weaponType = WeaponType.hexwoodMaim;
 
   @override
-  void standardAttack([
-    double holdDurationPercent = 1,
-    bool callFunctions = true,
-  ]) {
+  void standardAttack(AttackConfiguration attackConfiguration) {
     final areaEffects = <AreaEffect>[];
     final count = getAttackCount(holdDurationPercent) + 1;
 
@@ -1166,7 +1165,9 @@ class HexwoodMaim extends PlayerWeapon
     entityAncestor?.gameEnviroment
         .addPhysicsComponent(areaEffects, duration: attackTickRate.parameter);
 
-    super.standardAttack(holdDurationPercent, callFunctions);
+    super.standardAttack(
+      attackConfiguration,
+    );
   }
 
   @override

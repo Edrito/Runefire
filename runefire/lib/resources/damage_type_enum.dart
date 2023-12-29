@@ -153,7 +153,7 @@ class ElementalPowerListDisplay extends StatelessWidget {
                                 // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Icon(
-                                    Icons.circle,
+                                    Icons.square,
                                     color: color,
                                   ),
                                   const SizedBox(

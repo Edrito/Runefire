@@ -517,9 +517,9 @@ DamageInstance damageCalculations(
       max *= damagePercentIncrease[element.key]?.$2 ?? 1;
     }
 
-    final percentIncreaseValue =
-        source.damageTypePercentIncrease.damagePercentIncrease[element.key] ??
-            1;
+    final percentIncreaseValue = source.damageTypeDamagePercentIncrease
+            .damagePercentIncrease[element.key] ??
+        1;
 
     returnMap[element.key] =
         ((rng.nextDouble() * (max - min)) + min) * percentIncreaseValue;

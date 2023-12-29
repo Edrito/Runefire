@@ -682,7 +682,7 @@ class ElementalCaptureBulletSentry extends AttachedToBodyChildEntity
         bulletFireDelayTimer = null;
         capturedBullet = null;
         target = null;
-        currentWeapon?.standardAttack();
+        currentWeapon?.standardAttack(AttackConfiguration());
         setEntityAnimation(EntityStatus.attack);
         addCooldown();
       },
@@ -726,7 +726,7 @@ class MirrorOrbSentry extends AttachedToBodyChildEntity
         await spriteAnimations.hoveringCrystalAttack1;
   }
 
-  void mirrorAttack(double holdDuration) {
+  void mirrorAttack(AttackConfiguration attackConfiguration) {
     if (parentEntity is! AttackFunctionality || currentWeapon == null) {
       return;
     }
@@ -745,7 +745,7 @@ class MirrorOrbSentry extends AttachedToBodyChildEntity
     }
 
     isFlipped = parentAttackFunctionality.isFlipped;
-    currentWeapon!.standardAttack(holdDuration);
+    currentWeapon!.standardAttack(attackConfiguration);
 
     setEntityAnimation(EntityStatus.attack);
   }
@@ -760,7 +760,6 @@ class MirrorOrbSentry extends AttachedToBodyChildEntity
 
     final tempWeapon = newWeapon.weaponType.build(
       ancestor: this,
-      gameRouter: game,
       customWeaponLevel: newWeapon.upgradeLevel,
     );
     tempWeapon.weaponScale.baseParameter =

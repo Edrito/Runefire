@@ -15,14 +15,9 @@ import 'package:runefire/resources/functions/functions.dart';
 
 class MagicalProjectile extends SpriteBullet {
   final bool showParticles;
-  MagicalProjectile({
-    required super.delta,
-    required super.originPosition,
-    required super.weaponAncestor,
-    required super.size,
+  MagicalProjectile(
+    super.projectileConfiguration, {
     this.showParticles = true,
-    super.primaryDamageType,
-    super.power,
   }) : super(useDefaults: false) {
     final isSmallProjectile = this.isSmallProjectile;
 
@@ -146,15 +141,11 @@ class MagicalProjectile extends SpriteBullet {
   }
 }
 
-class PaintBullet extends FadeOutBullet with PaintProjectile {
-  PaintBullet({
-    required super.delta,
-    required super.originPosition,
-    required super.weaponAncestor,
-    required super.size,
-    super.primaryDamageType,
-    super.power,
-  }) {
+class PaintBullet extends FadeOutBullet
+    with StandardProjectile, PaintProjectile {
+  PaintBullet(
+    super.projectileConfiguration,
+  ) {
     defaultLinearDamping = .3;
   }
 
@@ -162,25 +153,21 @@ class PaintBullet extends FadeOutBullet with PaintProjectile {
   ProjectileType projectileType = ProjectileType.paintBullet;
 }
 
-class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
+class SpriteBullet extends Projectile
+    with StandardProjectile, ProjectileSpriteLifecycle {
   Future<SpriteAnimation>? customSpawnAnimation;
   Future<SpriteAnimation>? customPlayAnimation;
   Future<SpriteAnimation>? customEndAnimation;
   Future<SpriteAnimation>? customHitAnimation;
 
-  SpriteBullet({
-    required super.delta,
-    required super.originPosition,
-    required super.weaponAncestor,
-    required super.size,
+  SpriteBullet(
+    super.projectileConfiguration, {
     this.useDefaults = true,
     this.customBulletName,
-    super.primaryDamageType,
     this.customSpawnAnimation,
     this.customPlayAnimation,
     this.customEndAnimation,
     this.customHitAnimation,
-    super.power,
   });
 
   @override
@@ -260,35 +247,26 @@ class SpriteBullet extends Bullet with ProjectileSpriteLifecycle {
   ProjectileType projectileType = ProjectileType.spriteBullet;
 }
 
-class PaintLaser extends Projectile with FadeOutProjectile, LaserProjectile {
-  PaintLaser({
-    required super.delta,
-    required super.originPosition,
-    required super.weaponAncestor,
-    super.size = 1.5,
-    super.power,
-  });
+class PaintLaser extends FadeOutBullet with LaserProjectile {
+  PaintLaser(
+    super.projectileConfiguration,
+  );
   @override
   ProjectileType projectileType = ProjectileType.laser;
-
-  @override
-  double baseWidth = .3;
 }
 
-class FollowLaser extends Projectile with FadeOutProjectile, LaserProjectile {
-  FollowLaser({
-    required super.delta,
-    required super.originPosition,
-    required super.weaponAncestor,
-    super.size = 1.5,
-    super.power,
-  }) {
+class FollowLaser extends FadeOutBullet with LaserProjectile {
+  FollowLaser(
+    super.projectileConfiguration,
+  ) {
     followWeapon = true;
-    removeOnEndAttack = true;
     allowChainingOrHoming = true;
     rememberTargets = true;
     lightningEffect = true;
   }
+
+  @override
+  bool get removeOnEndAttack => true;
   @override
   ProjectileType projectileType = ProjectileType.laser;
 }

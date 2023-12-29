@@ -112,6 +112,7 @@ class CrystalSword extends PlayerWeapon
       ),
     ];
     removeSpriteOnAttack.add(WeaponSpritePosition.back);
+    removeSpriteOnAttack.add(WeaponSpritePosition.hand);
     spirteComponentPositions.add(WeaponSpritePosition.back);
   }
 
@@ -122,9 +123,7 @@ class CrystalSword extends PlayerWeapon
   late Vector2 pngSize = ImagesAssetsWeapons.crystalSword.size.asVector2;
 
   @override
-  List<WeaponSpritePosition> spirteComponentPositions = [
-    WeaponSpritePosition.back,
-  ];
+  List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
   DoubleParameterManager weaponScale =
@@ -539,11 +538,13 @@ class AethertideSpear extends PlayerWeapon
   }
 
   @override
-  Future<void> shootProjectile([double chargeAmount = 1]) async {
+  Future<void> shootProjectile(AttackConfiguration attackConfiguration) async {
     if (upgradeLevel < 3) {
       return;
     }
-    return super.shootProjectile(chargeAmount);
+    return super.shootProjectile(
+      attackConfiguration,
+    );
   }
 
   @override
@@ -669,11 +670,15 @@ class SanctifiedEdge extends PlayerWeapon
   }
 
   @override
-  Future<void> shootProjectile([double chargeAmount = 1]) async {
-    if (chargeAmount < .75) {
+  Future<void> shootProjectile(
+    AttackConfiguration attackConfiguration,
+  ) async {
+    if (attackConfiguration.holdDurationPercent < .75) {
       return;
     }
-    return super.shootProjectile(chargeAmount);
+    return super.shootProjectile(
+      attackConfiguration,
+    );
   }
 
   @override
@@ -915,12 +920,21 @@ class LargeSword extends PlayerWeapon
   SemiAutoType semiAutoType = SemiAutoType.charge;
 
   @override
-  void meleeAttack(int? index, [double chargeAmount = 1]) {
-    if (chargeAmount < .6) {
+  void meleeAttack(
+    int? index, {
+    required AttackConfiguration attackConfiguration,
+    double? angle,
+    bool forceCrit = false,
+  }) {
+    if (attackConfiguration.holdDurationPercent < .6) {
       return;
     }
 
-    super.meleeAttack(index, chargeAmount);
+    super.meleeAttack(
+      index,
+      forceCrit: forceCrit,
+      attackConfiguration: attackConfiguration,
+    );
   }
 
   @override
@@ -1015,15 +1029,15 @@ class FrostKatana extends PlayerWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    onAttackMelee.add((holdDurationPercent) {
+    onAttackMelee.add((attackConfiguration) {
       if (entityAncestor is DashFunctionality) {
         final dash = entityAncestor! as DashFunctionality;
-        if (holdDurationPercent < .6) {
+        if (attackConfiguration.holdDurationPercent < .6) {
           return;
         }
         pierce.setParameterFlatValue(weaponId, 999);
         dash.beginDash(
-          power: holdDurationPercent * 2.5,
+          power: attackConfiguration.holdDurationPercent * 2.5,
           weaponSource: true,
           triggerFunctions: false,
         );

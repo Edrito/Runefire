@@ -1,14 +1,25 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/functions/vector_functions.dart';
+import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
-
+import 'dart:math';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/resources/enums.dart';
 
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:uuid/uuid.dart';
 
 abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   SecondaryWeaponAbility(this.weapon, this.cooldown, int? newUpgradeLevel) {
@@ -18,12 +29,50 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
     maxLevel = secondaryType.maxLevel;
     changeLevel(newUpgradeLevel);
   }
+  bool endAbilityOnSecondaryRelease = true;
+  @override
+  FutureOr<void> onLoad() {
+    if (weapon is AttributeWeaponFunctionsFunctionality?) {
+      final attributeWeapon = weapon as AttributeWeaponFunctionsFunctionality?;
+
+      attributeWeapon?.onSwappedFrom.add(
+        onSwappedFrom,
+      );
+      attributeWeapon?.onSwappedTo.add(
+        onSwappedFrom,
+      );
+    }
+
+    return super.onLoad();
+  }
+
+  @override
+  void onRemove() {
+    if (weapon is AttributeWeaponFunctionsFunctionality?) {
+      final attributeWeapon = weapon as AttributeWeaponFunctionsFunctionality?;
+
+      attributeWeapon?.onSwappedFrom.add(
+        onSwappedFrom,
+      );
+      attributeWeapon?.onSwappedTo.add(
+        onSwappedFrom,
+      );
+    }
+    super.onRemove();
+  }
+
   late final EntityStatusEffectsWrapper? entityStatusWrapper;
   Weapon? weapon;
   double cooldown;
   TimerComponent? cooldownTimer;
-  bool get isCoolingDown => cooldownTimer != null;
+  bool get isCoolingDown => cooldownTimer?.timer.isRunning() ?? false;
 
+  void onSwappedTo(Weapon weapon) {}
+  void onSwappedFrom(Weapon weapon) {
+    endAbility();
+  }
+
+  late final String id = const Uuid().v4();
   abstract SecondaryType secondaryType;
   @override
   late int? maxLevel;
@@ -37,21 +86,21 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
     if (isCoolingDown || weapon?.entityAncestor == null) {
       return;
     }
-
-    cooldownTimer = TimerComponent(
+    cooldownTimer?.timer.start();
+    cooldownTimer ??= TimerComponent(
       period: cooldown,
       removeOnFinish: true,
       onTick: () {
         entityStatusWrapper?.removeReloadAnimation(
-          weapon?.weaponId ?? '',
+          id,
           true,
         );
-        cooldownTimer = null;
+        cooldownTimer?.timer.stop();
       },
     )..addToParent(this);
 
     entityStatusWrapper?.addReloadAnimation(
-      weapon?.weaponId ?? '',
+      id,
       cooldown,
       cooldownTimer!,
       true,
@@ -61,6 +110,73 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   }
 
   void endAbility();
+}
+
+class EssentialFocusSecondary extends SecondaryWeaponAbility {
+  EssentialFocusSecondary(super.weapon, super.cooldown, super.level);
+
+  @override
+  void onSwappedTo(Weapon weapon) {
+    switch (weapon.weaponType.attackType) {
+      case AttackType.guns:
+        weapon.attackTickRate.setParameterPercentValue(id, -0.05);
+        break;
+      case AttackType.magic:
+        if (weapon.entityAncestor is StaminaFunctionality?) {
+          final staminaCost = weapon.entityAncestor as StaminaFunctionality?;
+          staminaCost?.staminaRegen.setParameterPercentValue(id, 0.15);
+        }
+
+        break;
+      case AttackType.melee:
+        if (weapon.entityAncestor is MovementFunctionality?) {
+          final move = weapon.entityAncestor as MovementFunctionality?;
+          move?.speed.setParameterPercentValue(id, 0.1);
+        }
+        break;
+      default:
+    }
+  }
+
+  @override
+  void onSwappedFrom(Weapon weapon) {
+    switch (weapon.weaponType.attackType) {
+      case AttackType.guns:
+        weapon.attackTickRate.removeKey(id);
+        break;
+      case AttackType.magic:
+        if (weapon.entityAncestor is StaminaFunctionality?) {
+          final staminaCost = weapon.entityAncestor as StaminaFunctionality?;
+          staminaCost?.staminaRegen.removeKey(id);
+        }
+
+        break;
+      case AttackType.melee:
+        if (weapon.entityAncestor is MovementFunctionality?) {
+          final move = weapon.entityAncestor as MovementFunctionality?;
+          move?.speed.removeKey(id);
+        }
+        break;
+      default:
+    }
+  }
+
+  @override
+  SecondaryType secondaryType = SecondaryType.essentialFocus;
+
+  @override
+  String get nextLevelStringDescription => '';
+
+  @override
+  void endAbility() {}
+
+  @override
+  Future<void> startAbility() async {}
+
+  @override
+  String get abilityDescription => 'Increase attack speed if using a gun.\n'
+      'Increase stamina regen if using magic.\n'
+      'Increase movement speed if using melee.\n';
 }
 
 ///Reloads the weapon and mag dumps at a firerate of approx 5x original
@@ -94,27 +210,29 @@ class RapidFire extends SecondaryWeaponAbility {
   }
 
   void onTick() {
-    final reload = weapon! as ReloadFunctionality;
-    if ((weapon!.entityAncestor! as AttackFunctionality).currentWeapon !=
-        weapon) {
+    final reload = weapon as ReloadFunctionality?;
+    if ((reload?.entityAncestor as AttackFunctionality?)
+            ?.currentWeapon
+            ?.weaponId !=
+        weapon?.weaponId) {
       cancelFire();
       return;
     }
 
     if (weapon is SemiAutomatic) {
-      weapon?.attackAttempt(.5);
+      weapon?.attackAttempt(AttackConfiguration(holdDurationPercent: .5));
       attacks++;
     } else {
-      weapon?.attackAttempt();
+      weapon?.attackAttempt(AttackConfiguration());
     }
-    if (reload.remainingAttacks == 1 && completedLoops != baseLoops) {
-      reload.spentAttacks = 0;
+    if (reload?.remainingAttacks == 1 && completedLoops != baseLoops) {
+      reload?.spentAttacks = 0;
       completedLoops++;
       return;
     }
 
-    reload.reloadCheck();
-    if (reload.isReloading) {
+    reload?.reloadCheck();
+    if (reload?.isReloading ?? false) {
       rapidFireTimer?.timer.stop();
       rapidFireTimer?.removeFromParent();
       rapidFireTimer = null;
@@ -128,13 +246,12 @@ class RapidFire extends SecondaryWeaponAbility {
       return;
     }
 
-    final weaponAttackRate = weapon?.attackTickRate.parameter ?? 0;
     if (weapon is! ReloadFunctionality) {
       return;
     }
 
+    final weaponAttackRate = weapon?.attackTickRate.parameter ?? 0;
     final reload = weapon! as ReloadFunctionality;
-
     if (reload.isReloading) {
       reload.stopReloading();
     } else {
@@ -194,23 +311,355 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
   Future<void> startAbility() async {
     final projectile = weapon! as ProjectileFunctionality;
     final projectileListCopy = [...projectile.activeProjectiles.reversed];
+    final explosionList = <AreaEffect>[];
     for (final element in projectileListCopy) {
-      Future.delayed(const Duration(milliseconds: 10)).then((value) {
-        final explosion = AreaEffect(
-          sourceEntity: weapon!.entityAncestor!,
-          position: element.center,
-          damage: {DamageType.fire: (2, 5)},
-        );
-
-        weapon?.entityAncestor?.enviroment.addPhysicsComponent([explosion]);
-      });
+      final explosion = AreaEffect(
+        sourceEntity: weapon!.entityAncestor!,
+        position: element.center,
+        damage: {
+          weapon?.baseDamage.damageBase.keys.toList().random() ??
+              DamageType.fire: (
+            increasePercentOfBase(
+              1,
+              includeBase: true,
+              customUpgradeFactor: .1,
+            ).toDouble(),
+            increasePercentOfBase(
+              2,
+              includeBase: true,
+              customUpgradeFactor: .1,
+            ).toDouble(),
+          ),
+        },
+      );
+      explosionList.add(explosion);
 
       element.killBullet();
+    }
+
+    weapon?.entityAncestor?.enviroment.addPhysicsComponent(
+      explosionList..shuffle(),
+    );
+  }
+
+  @override
+  String get abilityDescription =>
+      'Creates a firey explosion in the location of all currently active projectiles!';
+}
+
+class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
+  ShadowBlink(super.weapon, super.cooldown, super.level);
+
+  @override
+  SecondaryType secondaryType = SecondaryType.shadowBlink;
+
+  @override
+  double get rechargeTime => cooldown;
+
+  @override
+  String get nextLevelStringDescription => 'Increase charge count!';
+
+  @override
+  void endAbility() {}
+
+  @override
+  void startAbilityCheck() {
+    if (weapon is! MeleeFunctionality) {
+      return;
+    }
+
+    // super.startAbilityCheck();
+    if (hasStacks) {
+      useStack();
+      startAbility();
     }
   }
 
   @override
-  // TODO: implement attributeDescription
+  void render(Canvas canvas) {
+    buildProgressBar(
+      canvas: canvas,
+      percentProgress: rechargePercent,
+      color: Colors.red,
+      size: Vector2(5, 5),
+    );
+
+    super.render(canvas);
+  }
+
+  @override
+  Future<void> startAbility() async {
+    if (weapon is! MeleeFunctionality) {
+      return;
+    }
+
+    final melee = weapon! as MeleeFunctionality;
+    final player = melee.entityAncestor as Player?;
+    final enemy = player?.closestEnemyToMouse;
+    if (player == null || enemy == null) {
+      return;
+    }
+
+    final playerPosition = player.position;
+    final enemyPosition = enemy.position;
+
+    final distance = playerPosition.distanceTo(enemyPosition);
+    final direction =
+        radiansBetweenPoints(Vector2(0, 1), enemyPosition - playerPosition);
+    final calcPos = newPositionRad(
+      playerPosition,
+      direction,
+      distance + melee.weaponLength / 2,
+    );
+
+    player.body.setTransform(calcPos, player.body.angle);
+
+    // await Future.delayed(.3.seconds);
+    final randomId = const Uuid().v4();
+    player.invincible.setIncrease(randomId, true);
+    player.addAttribute(
+      AttributeType.empowered,
+      perpetratorEntity: player,
+    );
+    Future.delayed(1.seconds).then((value) {
+      player.invincible.removeKey(randomId);
+    });
+    melee.meleeAttack(
+      0,
+      angle: -direction - pi,
+      forceCrit: true,
+      attackConfiguration: AttackConfiguration(
+        customAttackLocation: SourceAttackLocation.body,
+      ),
+    );
+  }
+
+  @override
   String get abilityDescription =>
-      'Creates a firey explosion in the location of all currently active projectiles!';
+      'Teleport behind the enemy and crit them with your weapon!';
+}
+
+class InstantReload extends SecondaryWeaponAbility {
+  InstantReload(super.weapon, super.cooldown, super.level);
+
+  @override
+  SecondaryType secondaryType = SecondaryType.instantReload;
+
+  @override
+  String get nextLevelStringDescription => 'Increase reload speed!';
+
+  @override
+  void endAbility() {}
+
+  @override
+  void startAbilityCheck() {
+    if (weapon is! ReloadFunctionality) {
+      return;
+    }
+
+    super.startAbilityCheck();
+  }
+
+  @override
+  Future<void> startAbility() async {
+    if (weapon is! ReloadFunctionality) {
+      return;
+    }
+
+    final reload = weapon! as ReloadFunctionality;
+    if (reload.spentAttacks == 0) {
+      return;
+    }
+    reload.reload(instant: true);
+    if (weapon?.entityAncestor is AttributeFunctionality) {
+      final attribute = weapon?.entityAncestor as AttributeFunctionality?;
+      attribute?.addAttribute(
+        AttributeType.empowered,
+        perpetratorEntity: weapon?.entityAncestor,
+      );
+    }
+  }
+
+  @override
+  String get abilityDescription =>
+      'Reloads your weapon instantly, empowering your next attack.';
+}
+
+class Bloodlust extends SecondaryWeaponAbility {
+  Bloodlust(super.weapon, super.cooldown, super.level);
+
+  @override
+  SecondaryType secondaryType = SecondaryType.bloodlust;
+
+  @override
+  String get nextLevelStringDescription =>
+      'Increase duration and damage dealt.';
+
+  @override
+  void endAbility() {
+    removeBuff();
+  }
+
+  @override
+  bool get endAbilityOnSecondaryRelease => false;
+
+  void removeBuff() {
+    final entity = weapon?.entityAncestor;
+
+    entity?.damageTypeResistance.removePercentKey(id);
+
+    entity?.damagePercentIncrease.removeKey(
+      id,
+    );
+    entity?.essenceSteal.removeKey(
+      id,
+    );
+  }
+
+  @override
+  void startAbilityCheck() {
+    if (weapon is! MeleeFunctionality) {
+      return;
+    }
+
+    super.startAbilityCheck();
+  }
+
+  TimerComponent? timer;
+  final double duration = 4;
+
+  @override
+  Future<void> startAbility() async {
+    if (weapon is! MeleeFunctionality) {
+      return;
+    }
+    timer = TimerComponent(
+      period: duration,
+      onTick: () {
+        removeBuff();
+        timer?.removeFromParent();
+      },
+    )..addToParent(this);
+
+    final entity = weapon?.entityAncestor;
+    entity?.damageTypeResistance.setDamagePercentIncrease(
+      id,
+      Map.fromEntries(DamageType.values.map((e) => MapEntry(e, 1.25))),
+    );
+
+    entity?.damagePercentIncrease.setParameterPercentValue(
+      id,
+      increasePercentOfBase(
+        .5,
+        includeBase: true,
+        customUpgradeFactor: .5,
+      ).toDouble(),
+    );
+    entity?.essenceSteal.setParameterFlatValue(
+      id,
+      increasePercentOfBase(
+        .15,
+        includeBase: true,
+        customUpgradeFactor: .5,
+      ).toDouble(),
+    );
+  }
+
+  @override
+  String get abilityDescription =>
+      'Increase damage dealt and gain lifesteal for a short duration, while also'
+      ' increasing damage taken.';
+}
+
+class SurroundAttack extends SecondaryWeaponAbility {
+  SurroundAttack(super.weapon, super.cooldown, super.level);
+
+  @override
+  SecondaryType secondaryType = SecondaryType.surroundAttack;
+
+  @override
+  String get nextLevelStringDescription =>
+      'Increase duration and damage dealt.';
+
+  @override
+  void endAbility() {}
+
+  List<double> pattern(double angle, int count) {
+    var newCount = increasePercentOfBase(
+      3,
+      includeBase: true,
+      customUpgradeFactor: 1,
+    ).round();
+    if (weapon is ReloadFunctionality) {
+      final reload = weapon! as ReloadFunctionality;
+      if ((reload.maxAttacks.parameter) > 10) {
+        newCount += 3;
+      }
+    }
+    return crossAttackSpread(newCount + count);
+  }
+
+  @override
+  Future<void> startAbility() async {
+    weapon?.standardAttack(
+      AttackConfiguration(
+        holdDurationPercent: .5,
+        customAttackLocation: SourceAttackLocation.body,
+        customAttackSpreadPattern: {AttackSpreadType.cross: pattern},
+      ),
+    );
+  }
+
+  @override
+  String get abilityDescription =>
+      'Attack in a pattern around the player, dealing damage to all enemies hit.';
+}
+
+// class StaminaRecharge extends SecondaryWeaponAbility {
+//   StaminaRecharge(super.weapon, super.cooldown, super.level);
+
+//   @override
+//   SecondaryType secondaryType = SecondaryType.instantReload;
+
+//   @override
+//   String get nextLevelStringDescription => '';
+
+//   @override
+//   void endAbility() {}
+
+//   @override
+//   Future<void> startAbility() async {
+//     if (weapon?.entityAncestor is StaminaFunctionality) {
+//       final stamina = weapon?.entityAncestor as StaminaFunctionality?;
+//       stamina?.modifyStamina(stamina.staminaUsed);
+//     }
+//   }
+
+//   @override
+//   String get abilityDescription =>
+//       'Reloads your weapon instantly, empowering your next attack.';
+// }
+
+class ElementalBlast extends SecondaryWeaponAbility {
+  ElementalBlast(super.weapon, super.cooldown, super.level);
+
+  @override
+  SecondaryType secondaryType = SecondaryType.instantReload;
+
+  @override
+  String get nextLevelStringDescription => '';
+
+  @override
+  void endAbility() {}
+
+  @override
+  Future<void> startAbility() async {
+    if (weapon?.entityAncestor is StaminaFunctionality) {
+      final stamina = weapon?.entityAncestor as StaminaFunctionality?;
+      stamina?.modifyStamina(stamina.staminaUsed);
+    }
+  }
+
+  @override
+  String get abilityDescription => 'Generates a forceful blast of energy.';
 }

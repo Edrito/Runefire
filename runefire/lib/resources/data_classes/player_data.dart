@@ -57,6 +57,7 @@ class PlayerData extends DataClass with PlayerStatistics {
   Map<SecondaryType, int> unlockedSecondarys = {
     SecondaryType.pistolAttachment: 0,
     SecondaryType.reloadAndRapidFire: 0,
+    SecondaryType.essentialFocus: 0,
   };
 
   Map<WeaponType, int> unlockedWeapons = {

@@ -187,8 +187,11 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   Vector2? customOffset;
   AimFunctionality? entityAncestor;
+  Weapon? parentWeapon;
   DamageType? primaryDamageType;
   SourceAttackLocation? sourceAttackLocation;
+  Completer<bool>? weaponPrimaryAttackingCompleter;
+  Completer<bool>? weaponSecondaryAttackingCompleter;
 
   //Weapon state info
   double get attackRateSecondComparison => 1 / attackTickRate.parameter;
@@ -198,6 +201,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
       this is AttributeWeaponFunctionsFunctionality
           ? this as AttributeWeaponFunctionsFunctionality
           : null;
+
+  AttributeWeaponFunctionsFunctionality?
+      get attributeWeaponFunctionsFunctionality =>
+          this is AttributeWeaponFunctionsFunctionality
+              ? this as AttributeWeaponFunctionsFunctionality
+              : null;
 
   double get durationHeld;
   SecondaryWeaponAbility? get getSecondaryAbility {
@@ -248,17 +257,22 @@ abstract class Weapon extends Component with UpgradeFunctions {
         : (pngSize.clone()..scaledToHeight(entityAncestor, weapon: this)).y;
   }
 
+  Future<void> get weaponPrimaryAttackingFuture =>
+      weaponPrimaryAttackingCompleter?.future ?? Future.value();
+
   void addAdditionalWeapon(Weapon newWeapon) {
     additionalWeapons[newWeapon.weaponId] = newWeapon;
     newWeapon.isAdditionalWeapon = true;
+    newWeapon.addToParent(this);
+    newWeapon.parentWeapon = this;
   }
 
   /// Returns true if an attack occured, otherwise false.
-  Future<void> attackAttempt([double holdDurationPercent = 1]) async {
+  Future<void> attackAttempt(AttackConfiguration attackConfiguration) async {
     if (entityAncestor?.isDead ?? false) {
       return;
     }
-    standardAttack(holdDurationPercent);
+    standardAttack(attackConfiguration);
   }
 
   FutureOr<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -267,8 +281,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
 
   DamageInstance calculateDamage(
     HealthFunctionality victim,
-    dynamic sourceAttack,
-  ) =>
+    dynamic sourceAttack, {
+    bool forceCrit = false,
+  }) =>
       damageCalculations(
         entityAncestor!,
         victim,
@@ -276,9 +291,14 @@ abstract class Weapon extends Component with UpgradeFunctions {
         sourceWeapon: this,
         sourceAttack: sourceAttack,
         damageSource: baseDamage,
+        forceCrit: forceCrit,
       );
 
-  void endAltAttacking();
+  void endAltAttacking() {
+    if (weaponSecondaryAttackingCompleter?.isCompleted != true) {
+      weaponSecondaryAttackingCompleter?.complete(true);
+    }
+  }
 
   void endAttacking() {
     spriteVisibilityCheck();
@@ -290,6 +310,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
         element.call(this);
       }
     }
+    if (weaponPrimaryAttackingCompleter?.isCompleted != true) {
+      weaponPrimaryAttackingCompleter?.complete(true);
+    }
   }
 
   Vector2 generateGlobalPosition(
@@ -298,6 +321,14 @@ abstract class Weapon extends Component with UpgradeFunctions {
     bool melee = false,
     double? tipPercent,
   }) {
+    if (parentWeapon != null) {
+      return parentWeapon!.generateGlobalPosition(
+        attackLocation,
+        delta: delta,
+        melee: melee,
+        tipPercent: tipPercent,
+      );
+    }
     var center = Vector2.zero();
 
     switch (attackLocation) {
@@ -395,16 +426,14 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   @mustCallSuper
-  void standardAttack([
-    double holdDurationPercent = 1,
-    bool callFunctions = true,
-  ]) {
+  void standardAttack(AttackConfiguration attackConfiguration) {
     muzzleFlash();
 
     for (final element in additionalWeapons.entries) {
-      element.value.attackAttempt(holdDurationPercent);
+      element.value.attackAttempt(attackConfiguration);
     }
-    if (callFunctions && entityAncestor is AttributeCallbackFunctionality) {
+    if (attackConfiguration.callFunctions &&
+        entityAncestor is AttributeCallbackFunctionality) {
       for (final element
           in (entityAncestor! as AttributeCallbackFunctionality).onAttack) {
         element.call(this);
@@ -412,10 +441,13 @@ abstract class Weapon extends Component with UpgradeFunctions {
     }
   }
 
-  void startAltAttacking();
+  void startAltAttacking() {
+    weaponSecondaryAttackingCompleter = Completer<bool>();
+  }
 
   void startAttacking() {
     isAttacking = true;
+    weaponPrimaryAttackingCompleter = Completer<bool>();
   }
 
   void weaponSwappedFrom() {}
@@ -449,13 +481,10 @@ abstract class PlayerWeapon extends Weapon
   PlayerWeapon(super.newUpgradeLevel, super.entityAncestor);
 
   @override
-  void standardAttack([
-    double holdDurationPercent = 1,
-    bool callFunctions = true,
-  ]) {
+  void standardAttack(AttackConfiguration attackConfiguration) {
     InputManager().applyVibration(.1, .25);
 
-    super.standardAttack(holdDurationPercent, callFunctions);
+    super.standardAttack(attackConfiguration);
   }
 }
 
@@ -654,5 +683,41 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     applyAnimation(WeaponStatus.charge);
 
     statusQueue = WeaponStatus.chargeIdle;
+  }
+}
+
+@immutable
+class AttackConfiguration {
+  const AttackConfiguration({
+    this.holdDurationPercent = 1,
+    this.callFunctions = true,
+    this.customAttackSpreadPattern,
+    this.customAttackLocation,
+    this.isAltAttack = false,
+  });
+
+  final bool callFunctions;
+  final double holdDurationPercent;
+  final bool isAltAttack;
+  final Map<AttackSpreadType, List<double> Function(double, int)>?
+      customAttackSpreadPattern;
+  final SourceAttackLocation? customAttackLocation;
+
+  AttackConfiguration copyWith({
+    bool? callFunctions,
+    double? holdDurationPercent,
+    bool? isAltAttack,
+    Map<AttackSpreadType, List<double> Function(double, int)>?
+        customAttackSpreadPattern,
+    SourceAttackLocation? customAttackLocation,
+  }) {
+    return AttackConfiguration(
+      callFunctions: callFunctions ?? this.callFunctions,
+      holdDurationPercent: holdDurationPercent ?? this.holdDurationPercent,
+      isAltAttack: isAltAttack ?? this.isAltAttack,
+      customAttackSpreadPattern:
+          customAttackSpreadPattern ?? customAttackSpreadPattern,
+      customAttackLocation: customAttackLocation ?? customAttackLocation,
+    );
   }
 }

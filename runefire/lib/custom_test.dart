@@ -43,23 +43,16 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   //   ),
   // );
   player?.carriedWeapons.add(
-    WeaponType.hexwoodMaim.build(
+    WeaponType.energyMagic.build(
       ancestor: player,
-      gameRouter: gameEnviroment.gameRef,
+      playerData: gameEnviroment.gameRef.playerDataComponent.dataObject,
+      secondaryWeaponType: SecondaryType.surroundAttack,
     ),
   );
   player?.swapWeapon(
     player.currentWeapon,
   );
   // await Future.delayed(20.seconds);
-  // }
-
-  // while (true) {
-  //   if (!gameEnviroment.gameRef.paused) {
-  //     player?.height.setParameterFlatValue('t', (rng.nextDouble() * 3).round());
-  //   }
-  //   player?.applyHeightToSprite();
-  //   await Future.delayed(2.seconds);
   // }
 }
 
