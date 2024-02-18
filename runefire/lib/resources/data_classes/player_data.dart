@@ -21,8 +21,7 @@ class PlayerDataComponent extends DataComponent {
 class PlayerData extends DataClass with PlayerStatistics {
   Set<WeaponType> availableWeapons = {
     WeaponType.crystalPistol,
-    // WeaponType.phaseDagger,
-    WeaponType.scryshot,
+    WeaponType.crystalSword,
     // WeaponType.flameSword,
     ...WeaponType.values,
   };
@@ -32,7 +31,7 @@ class PlayerData extends DataClass with PlayerStatistics {
   CharacterType selectedPlayer = CharacterType.regular;
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,
-    1: SecondaryType.reloadAndRapidFire,
+    1: SecondaryType.elementalBlast,
   };
 
   Map<int, WeaponType> selectedWeapons = {
@@ -63,7 +62,6 @@ class PlayerData extends DataClass with PlayerStatistics {
   Map<WeaponType, int> unlockedWeapons = {
     WeaponType.crystalPistol: 0,
     WeaponType.crystalSword: 0,
-    WeaponType.icecicleMagic: 0,
   };
 
   //XP
@@ -133,6 +131,7 @@ class PlayerData extends DataClass with PlayerStatistics {
     final currentAttribute = attributeType.buildAttribute(
       currentLevel,
       null,
+      builtForInfo: true,
     );
     if ((currentAttribute.upgradeLevel == currentAttribute.maxLevel) ||
         currentAttribute is! PermanentAttribute) {

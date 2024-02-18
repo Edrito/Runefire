@@ -18,48 +18,70 @@ import 'package:runefire/enemies/enemy.dart';
 abstract class EventManagement extends Component {
   EventManagement(this.enviroment);
 
+  final Map<String, TimerComponent> _activeEventConfigTimers = {};
+  final List<GameEvent> _eventsCurrentlyActive = [];
+  final List<GameEvent> _eventsFinished = [];
+
   ///Current function index
-  Map<double, int> activeAiFunctionIndex = {};
+  final Map<double, int> _activeAiFunctionIndex = {};
+
+  ///Ids of entities/objects that are added to the timers
+  final Map<double, List<String>> _activeAiIds = {};
+
+  ///Active timers
+  final Map<double, TimerComponent> _activeAiTimers = {};
+
+  void pauseOnBigBoss() {
+    _eventTimer?.timer.pause();
+    gameEnviroment.pauseGameTimer();
+
+    for (final element in _activeEventConfigTimers.entries) {
+      element.value.timer.pause();
+    }
+  }
+
+  void resumeOnBigBoss() {
+    _eventTimer?.timer.resume();
+    for (final element in _activeEventConfigTimers.entries) {
+      element.value.timer.resume();
+    }
+    gameEnviroment.customFollow.enable();
+    gameEnviroment.unPauseGameTimer();
+    gameEnviroment.removeBossBounds();
+  }
+
+  List<double> _spawnTimes = [];
+
+  TimerComponent? _eventTimer;
 
   ///Total functions to call
-  Map<double, List<Function()>> activeAiFunctions = {};
+  final Map<double, List<Function()>> _activeAiFunctions = {};
 
   ///Copied functions to call
   final Map<double, List<Function()>> _tempAiFunctionsToCall = {};
 
-  ///Ids of entities/objects that are added to the timers
-  Map<double, List<String>> activeAiIds = {};
-
-  ///Active timers
-  Map<double, TimerComponent> activeAiTimers = {};
-
-  Map<String, TimerComponent> activeEventConfigTimers = {};
-  List<GameEvent> eventsCurrentlyActive = [];
-  List<GameEvent> eventsFinished = [];
-  abstract List<GameEvent> eventsToDo;
   Enviroment enviroment;
-  GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
-  List<double> spawnTimes = [];
+  abstract List<GameEvent> eventsToDo;
 
-  TimerComponent? eventTimer;
+  GameEnviroment get gameEnviroment => enviroment as GameEnviroment;
 
   void addAiTimer(Function() function, String id, double time) {
-    activeAiIds[time] ??= [];
-    activeAiFunctions[time] ??= [];
-    activeAiFunctionIndex[time] ??= 0;
+    _activeAiIds[time] ??= [];
+    _activeAiFunctions[time] ??= [];
+    _activeAiFunctionIndex[time] ??= 0;
 
-    activeAiIds[time]?.add(id);
-    activeAiFunctions[time]?.add(function);
+    _activeAiIds[time]?.add(id);
+    _activeAiFunctions[time]?.add(function);
     recalculateAiTimer(time);
   }
 
   void buildOngoingEventTimer(GameEvent event) {
-    activeEventConfigTimers[event.eventId] ??= TimerComponent(
+    _activeEventConfigTimers[event.eventId] ??= TimerComponent(
       period: getRandomValue(event.eventTriggerInterval),
       repeat: true,
       onTick: () async {
         await event.onGoingEvent();
-        activeEventConfigTimers[event.eventId]?.timer.limit =
+        _activeEventConfigTimers[event.eventId]?.timer.limit =
             getRandomValue(event.eventTriggerInterval);
       },
     )..addToParent(this);
@@ -80,7 +102,7 @@ abstract class EventManagement extends Component {
       element.startEvent();
     }
 
-    eventsCurrentlyActive.addAll(eventsToParse);
+    _eventsCurrentlyActive.addAll(eventsToParse);
   }
 
   void conductEvents() {
@@ -92,7 +114,7 @@ abstract class EventManagement extends Component {
   ///Check if any events should be ended
   void endActiveEvents(double currentTime) {
     final eventsToParse = [
-      ...eventsCurrentlyActive.where((element) {
+      ..._eventsCurrentlyActive.where((element) {
         final endInterval = element.eventBeginEnd.$2;
         if (endInterval == null) {
           return true;
@@ -105,19 +127,19 @@ abstract class EventManagement extends Component {
     ];
 
     final listOfIds = eventsToParse.map((e) => e.eventId);
-    final activeTimers = activeEventConfigTimers.entries
+    final activeTimers = _activeEventConfigTimers.entries
         .where((element) => listOfIds.contains(element.key))
         .map((e) => e.value);
     for (final element in activeTimers) {
       element.removeFromParent();
     }
-    activeEventConfigTimers
+    _activeEventConfigTimers
         .removeWhere((key, value) => listOfIds.contains(key));
-    eventsCurrentlyActive.removeWhere(eventsToParse.contains);
+    _eventsCurrentlyActive.removeWhere(eventsToParse.contains);
     for (final element in eventsToParse) {
       element.hasCompleted = true;
     }
-    eventsFinished.addAll(eventsToParse);
+    _eventsFinished.addAll(eventsToParse);
   }
 
   ///Get a random value between [(double,double)]
@@ -128,7 +150,7 @@ abstract class EventManagement extends Component {
 
   ///Grab each interval the enemy management should create/remove timers
   void initEventTimes() {
-    spawnTimes = [
+    _spawnTimes = [
       ...eventsToDo.fold<List<double>>(
         [],
         (previousValue, element) => [
@@ -140,20 +162,20 @@ abstract class EventManagement extends Component {
         ],
       ),
     ];
-    spawnTimes.sort();
+    _spawnTimes.sort();
   }
 
   void initTimer() {
     // try {
     final times =
-        spawnTimes.where((element) => element > gameEnviroment.timePassed);
+        _spawnTimes.where((element) => element > gameEnviroment.timePassed);
     if (times.isEmpty) {
       return;
     }
     final period = times.first - gameEnviroment.timePassed;
-    eventTimer?.timer.limit = period;
+    _eventTimer?.timer.limit = period;
 
-    eventTimer ??= TimerComponent(
+    _eventTimer ??= TimerComponent(
       period: period,
       onTick: () {
         initTimer();
@@ -165,25 +187,25 @@ abstract class EventManagement extends Component {
   }
 
   void recalculateAiTimer(double timeKey) {
-    final functionsAmount = activeAiFunctions[timeKey]?.length ?? 0;
+    final functionsAmount = _activeAiFunctions[timeKey]?.length ?? 0;
     if (functionsAmount == 0) {
-      activeAiTimers[timeKey]?.removeFromParent();
+      _activeAiTimers[timeKey]?.removeFromParent();
       return;
     }
 
     final stepTime = timeKey / functionsAmount;
-    activeAiTimers[timeKey]?.timer.limit = stepTime;
-    activeAiTimers[timeKey] ??= TimerComponent(
+    _activeAiTimers[timeKey]?.timer.limit = stepTime;
+    _activeAiTimers[timeKey] ??= TimerComponent(
       period: stepTime,
       repeat: true,
       onTick: () {
         //Create timer that calls function over the difference between ticks
         // so there are no lag spikes...
-        if ((activeAiFunctionIndex[timeKey] ?? double.infinity) >=
+        if ((_activeAiFunctionIndex[timeKey] ?? double.infinity) >=
             (_tempAiFunctionsToCall[timeKey]?.length ?? 0)) {
-          activeAiFunctionIndex[timeKey] = 0;
+          _activeAiFunctionIndex[timeKey] = 0;
           _tempAiFunctionsToCall[timeKey] = [
-            ...activeAiFunctions[timeKey] ?? [],
+            ..._activeAiFunctions[timeKey] ?? [],
           ];
         }
         if (_tempAiFunctionsToCall[timeKey] == null) {
@@ -194,21 +216,21 @@ abstract class EventManagement extends Component {
           recalculateAiTimer(timeKey);
           return;
         }
-        _tempAiFunctionsToCall[timeKey]?[activeAiFunctionIndex[timeKey]!]
+        _tempAiFunctionsToCall[timeKey]?[_activeAiFunctionIndex[timeKey]!]
             .call();
-        activeAiFunctionIndex[timeKey] = activeAiFunctionIndex[timeKey]! + 1;
+        _activeAiFunctionIndex[timeKey] = _activeAiFunctionIndex[timeKey]! + 1;
       },
     )..addToParent(this);
   }
 
   Future<void> removeAiTimer(Function function, String id, double time) async {
-    activeAiIds[time]?.remove(id);
-    activeAiFunctions[time]?.remove(function);
+    _activeAiIds[time]?.remove(id);
+    _activeAiFunctions[time]?.remove(function);
 
-    if (activeAiIds[time]?.isEmpty ?? false) {
-      activeAiTimers[time]?.removeFromParent();
-      activeAiTimers.remove(time);
-      activeAiFunctions[time]?.clear();
+    if (_activeAiIds[time]?.isEmpty ?? false) {
+      _activeAiTimers[time]?.removeFromParent();
+      _activeAiTimers.remove(time);
+      _activeAiFunctions[time]?.clear();
     }
 
     recalculateAiTimer(time);

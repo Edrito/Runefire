@@ -39,10 +39,10 @@ void elementalForceTest(Player player) {
       ) {
         player.modifyElementalPower(damageType, modifyAmount);
 
-        result = player.shouldForceElementalAttribute();
+        result = player.shouldForceElementalAttributeSelection();
         expect(expectDamageType ? damageType : null, result);
 
-        result = player.shouldForceElementalAttribute();
+        result = player.shouldForceElementalAttributeSelection();
         expect(null, result);
 
         expect(player.elementalPower[damageType], shouldBe);

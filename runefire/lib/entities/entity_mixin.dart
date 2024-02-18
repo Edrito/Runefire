@@ -60,10 +60,10 @@ mixin ElementalPower {
   ///.1 == 10% increase to a max of 100%
   void modifyElementalPower(DamageType type, double amount) {
     _elementalPower[type] = ((_elementalPower[type] ?? 0) + amount).clamp(0, 1);
-
+    _forceElementalAttribute[type] ??= {};
+    checkIfAutoAssignElementalAttribute();
     final newPower = _elementalPower[type]!;
     if (newPower > 0) {
-      _forceElementalAttribute[type] ??= {};
       if (newPower < .25) {
         return;
       } else if (newPower < .5) {
@@ -78,7 +78,27 @@ mixin ElementalPower {
     }
   }
 
-  DamageType? shouldForceElementalAttribute() {
+  void checkIfAutoAssignElementalAttribute() {
+    if (this is! AttributeFunctionality && this is! Entity) {
+      return;
+    }
+    final toAdd = AttributeType.values.where((element) {
+      final isAutoAssign = element.autoAssigned;
+      final isNotAssigned =
+          !(this as AttributeFunctionality).hasAttribute(element);
+      final isEligible = element.isEligible(this as Entity);
+
+      return isAutoAssign && isEligible && isNotAssigned;
+    });
+
+    for (final element in toAdd) {
+      (this as AttributeFunctionality).addAttribute(
+        element,
+      );
+    }
+  }
+
+  DamageType? shouldForceElementalAttributeSelection() {
     for (final element in _forceElementalAttribute.entries) {
       for (final damageTypeEntry in element.value.entries) {
         if (damageTypeEntry.value) {
@@ -125,12 +145,16 @@ mixin BaseAttributes {
   ///2 = Take double damage
   late final DamagePercentParameterManager damageTypeResistance;
 
-  int deathCount = 0;
+  final IntParameterManager deathCount =
+      IntParameterManager(baseParameter: 0, minParameter: 0);
   //Duration
   late final DoubleParameterManager durationPercentIncrease;
 
   //Movement
   late final BoolParameterManager enableMovement;
+
+  //Movement
+  late final BoolParameterManager isStunned;
 
   ///Good if a specfic damage type has been added to attacks
   ///maybe fire?
@@ -148,7 +172,7 @@ mixin BaseAttributes {
   bool get isDashing => false;
   bool get isInvincible => invincible.parameter;
   bool get isJumping => false;
-  int get remainingLives => maxLives.parameter - deathCount;
+  int get remainingLives => maxLives.parameter - deathCount.parameter;
 
   void forceInitializeParameters() {
     invincible = BoolParameterManager(baseParameter: false);
@@ -184,6 +208,7 @@ mixin BaseAttributes {
     spellDamagePercentIncrease =
         childEntity.parentEntity.spellDamagePercentIncrease;
     staminaSteal = childEntity.parentEntity.staminaSteal;
+    isStunned = childEntity.parentEntity.isStunned;
   }
 
   void initializeParameterManagers() {
@@ -225,6 +250,8 @@ mixin BaseAttributes {
     meleeDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
     projectileDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
     spellDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
+    isStunned =
+        BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
   }
 }
 
@@ -250,6 +277,15 @@ mixin MovementFunctionality on Entity {
 
     return _moveVelocities[_currentMoveVelocityPriorities.firstOrNull] ??
         Vector2.zero();
+  }
+
+  void applyKnockback({
+    ///2000 is what would be expected for a strong knockback from a weapon
+    ///dealing 30 ish damage
+    required double amount,
+    required Vector2 direction,
+  }) {
+    body.applyLinearImpulse(direction * amount);
   }
 
   bool get hasMoveVelocities => _moveVelocities.isNotEmpty;
@@ -616,7 +652,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> startPrimaryAttacking() async {
-    if (isAttacking || isDead || isStunned) {
+    if (isAttacking || isDead || isStunned.parameter) {
       return;
     }
     isAttacking = true;
@@ -624,7 +660,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> startSecondaryAttacking() async {
-    if (isAltAttacking || isDead || isStunned) {
+    if (isAltAttacking || isDead || isStunned.parameter) {
       return;
     }
     isAltAttacking = true;
@@ -684,6 +720,7 @@ mixin AttackFunctionality on AimFunctionality {
     initializeWeapons();
     onDeath.add((_) {
       endPrimaryAttacking();
+      return null;
     });
   }
 
@@ -1035,51 +1072,48 @@ mixin HealthFunctionality on Entity {
     iFrameDuration = invincibilityDuration.parameter;
   }
 
-  void applyKnockback(DamageInstance damage) {
-    final amount = (damage.damage / 30).clamp(0, 1);
-    final impulse = damage.source.knockBackIncreaseParameter.parameter *
-        amount *
-        (damage.sourceWeapon?.knockBackAmount.parameter ?? 0);
-
-    body.applyLinearImpulse(
-      (center - damage.source.center).normalized() * impulse,
-    );
+  void applyKnockbackFromDamageInstance(DamageInstance damage) {
+    if (this is MovementFunctionality) {
+      final move = this as MovementFunctionality;
+      final amount = (damage.damage / 30).clamp(0, 1);
+      final impulse = damage.source.knockBackIncreaseParameter.parameter *
+          amount *
+          (damage.sourceWeapon?.knockBackAmount.parameter ?? 0);
+      move.applyKnockback(
+        amount: impulse,
+        direction: (center - damage.source.center).normalized(),
+      );
+    }
   }
 
   void applyStatusEffectFromDamageChecker(
     DamageInstance damage,
-    bool applyStatusEffect,
   ) {
-    if (!applyStatusEffect) {
-      return;
-    }
     if (this is! AttributeFunctionality) {
       return;
     }
+
     final attr = this as AttributeFunctionality;
-    for (final element in damage.damageMap.entries) {
-      final damageType = element.key;
 
-      switch (damageType) {
-        case DamageType.fire:
-          final chance = damage.statusEffectChance?[StatusEffects.burn] ??
-              defaultStatusEffectChance;
+    if (damage.statusEffectChance == null) {
+      return;
+    }
+    for (final element in damage.statusEffectChance!.entries) {
+      final chance = element.value;
+      final statusEffect = element.key;
 
-          if (chance <= rng.nextDouble()) {
-            continue;
-          }
-
-          attr.addAttribute(
-            AttributeType.burn,
-            level: 1,
-            duration: 3,
-            perpetratorEntity: damage.source,
-            damageType: DamageType.fire,
-            isTemporary: true,
-          );
-          break;
-        default:
+      if (chance <= rng.nextDouble()) {
+        continue;
       }
+
+      attr.addAttribute(
+        statusEffect.getCorrospondingAttribute,
+        // level: 1,
+        // duration: 3,
+        perpetratorEntity: damage.source,
+        damageType: damage.damageMap.keys.first,
+        isTemporary: true,
+      );
     }
   }
 
@@ -1096,6 +1130,9 @@ mixin HealthFunctionality on Entity {
     }
     final other = damage.source;
     final otherFunctions = other.attributeFunctionsFunctionality;
+    if (this is AttributeFunctionality) {
+      final attr = this as AttributeFunctionality;
+    }
     if (otherFunctions != null) {
       for (final element in otherFunctions.onKillOtherEntity) {
         element(damage);
@@ -1115,10 +1152,15 @@ mixin HealthFunctionality on Entity {
   void deathChecker(DamageInstance damage) {
     if ((remainingHealth <= 0 || !remainingHealth.isFinite) && !isDead) {
       final remainingLives = this.remainingLives;
-      deathCount++;
+      deathCount.setParameterFlatValue(entityId, deathCount.parameter + 1);
 
-      _deadFunctionsCall(damage);
       callOtherWeaponOnKillFunctions(damage);
+      if (_deadFunctionsCall(damage)) {
+        deathCount.setParameterFlatValue(entityId, deathCount.parameter - 1);
+
+        dieThenRevive();
+        return;
+      }
 
       if (remainingLives > 1) {
         dieThenRevive();
@@ -1387,14 +1429,16 @@ mixin HealthFunctionality on Entity {
 
     if (largestEntry.value.isFinite) {
       damage.applyResistances(this);
-      applyStatusEffectFromDamageChecker(damage, applyStatusEffect);
+      if (applyStatusEffect) {
+        applyStatusEffectFromDamageChecker(damage);
+      }
       essenceStealChecker(damage);
     }
     doOtherEntityOnDamageFunctions(damage);
 
     applyDamage(damage);
     setEntityAnimation(EntityStatus.damage);
-    applyKnockback(damage);
+    applyKnockbackFromDamageInstance(damage);
     deathChecker(damage);
     return true;
   }
@@ -1463,13 +1507,15 @@ mixin HealthFunctionality on Entity {
     return damageString;
   }
 
-  void _deadFunctionsCall(DamageInstance instance) {
+  bool _deadFunctionsCall(DamageInstance instance) {
     final attr = attributeFunctionsFunctionality;
+    var shouldLive = false;
     if (attr != null && onDeath.isNotEmpty) {
       for (final element in onDeath) {
-        element.call(instance);
+        shouldLive = shouldLive || (element.call(instance) ?? false);
       }
     }
+    return shouldLive;
   }
 }
 
@@ -1736,13 +1782,11 @@ mixin DashFunctionality on StaminaFunctionality {
   Future<void> applyGroundAnimationDash() async {
     final attr = this as AttributeFunctionality;
     final shouldApplyGroundAnimation = this is! AttributeFunctionality ||
-        !attr.currentAttributes.keys.any(
-          (element) => [
-            AttributeType.gravityDash,
-            AttributeType.teleportDash,
-            AttributeType.explosiveDash,
-          ].contains(element),
-        );
+        !attr.hasAnyAttribute([
+          AttributeType.gravityDash,
+          AttributeType.teleportDash,
+          AttributeType.explosiveDash,
+        ]);
 
     if (!shouldApplyGroundAnimation) {
       return;
@@ -1803,7 +1847,6 @@ mixin DashFunctionality on StaminaFunctionality {
       -max,
       max,
     );
-    print(dashDistanceGoal);
     if (!weaponSource) {
       dashTimerCooldown = TimerComponent(
         period: dashCooldown.parameter,

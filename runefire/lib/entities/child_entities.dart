@@ -342,7 +342,7 @@ class MarkEnemySentry extends AttachedToBodyChildEntity {
               (element) =>
                   (isPlayer
                       ? element.userData is Enemy
-                      : element.userData is Player) &&
+                      : element.userData is AttributeFunctionality) &&
                   element.userData is AttributeFunctionality &&
                   !(element.userData! as HealthFunctionality)
                       .isMarked
@@ -575,7 +575,7 @@ class ElementalAttackSentry extends MovingSentry
           (element) =>
               (isPlayer
                   ? element.userData is Enemy
-                  : element.userData is Player) &&
+                  : element.userData is AttributeFunctionality) &&
               target != element &&
               element.userData is HealthFunctionality &&
               element.worldCenter.distanceTo(parentEntity.center) < 10,
@@ -682,7 +682,7 @@ class ElementalCaptureBulletSentry extends AttachedToBodyChildEntity
         bulletFireDelayTimer = null;
         capturedBullet = null;
         target = null;
-        currentWeapon?.standardAttack(AttackConfiguration());
+        currentWeapon?.standardAttack(const AttackConfiguration());
         setEntityAnimation(EntityStatus.attack);
         addCooldown();
       },
@@ -732,16 +732,10 @@ class MirrorOrbSentry extends AttachedToBodyChildEntity
     }
     final parentAttackFunctionality = parentEntity as AttackFunctionality;
     final parentWeapon = parentAttackFunctionality.currentWeapon;
-
-    // currentWeapon!.sourceAttackLocation = SourceAttackLocation.customOffset;
-    // currentWeapon!.customOffset = center - parentAttackFunctionality.center;
-
     if (parentWeapon is MeleeFunctionality &&
         currentWeapon is MeleeFunctionality) {
       final melee = currentWeapon! as MeleeFunctionality;
       melee.currentAttackIndex = parentWeapon.currentAttackIndex - 1;
-      // print(parentWeapon.currentAttackIndex);
-      // print(melee.currentAttackIndex);
     }
 
     isFlipped = parentAttackFunctionality.isFlipped;

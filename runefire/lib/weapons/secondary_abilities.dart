@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/visuals.dart';
@@ -220,10 +221,10 @@ class RapidFire extends SecondaryWeaponAbility {
     }
 
     if (weapon is SemiAutomatic) {
-      weapon?.attackAttempt(AttackConfiguration(holdDurationPercent: .5));
+      weapon?.attackAttempt(const AttackConfiguration(holdDurationPercent: .5));
       attacks++;
     } else {
-      weapon?.attackAttempt(AttackConfiguration());
+      weapon?.attackAttempt(const AttackConfiguration());
     }
     if (reload?.remainingAttacks == 1 && completedLoops != baseLoops) {
       reload?.spentAttacks = 0;
@@ -420,6 +421,8 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
     player.addAttribute(
       AttributeType.empowered,
       perpetratorEntity: player,
+      isTemporary: true,
+      duration: 2,
     );
     Future.delayed(1.seconds).then((value) {
       player.invincible.removeKey(randomId);
@@ -428,7 +431,7 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
       0,
       angle: -direction - pi,
       forceCrit: true,
-      attackConfiguration: AttackConfiguration(
+      attackConfiguration: const AttackConfiguration(
         customAttackLocation: SourceAttackLocation.body,
       ),
     );
@@ -475,6 +478,7 @@ class InstantReload extends SecondaryWeaponAbility {
       final attribute = weapon?.entityAncestor as AttributeFunctionality?;
       attribute?.addAttribute(
         AttributeType.empowered,
+        isTemporary: true,
         perpetratorEntity: weapon?.entityAncestor,
       );
     }
@@ -644,7 +648,7 @@ class ElementalBlast extends SecondaryWeaponAbility {
   ElementalBlast(super.weapon, super.cooldown, super.level);
 
   @override
-  SecondaryType secondaryType = SecondaryType.instantReload;
+  SecondaryType secondaryType = SecondaryType.elementalBlast;
 
   @override
   String get nextLevelStringDescription => '';
@@ -654,12 +658,54 @@ class ElementalBlast extends SecondaryWeaponAbility {
 
   @override
   Future<void> startAbility() async {
-    if (weapon?.entityAncestor is StaminaFunctionality) {
-      final stamina = weapon?.entityAncestor as StaminaFunctionality?;
-      stamina?.modifyStamina(stamina.staminaUsed);
-    }
+    final damageTypeList = weapon?.baseDamage.damageBase.keys.toList() ?? [];
+    final areaPosition = weapon?.entityAncestor?.center ?? Vector2.zero();
+    final area = AreaEffect(
+      position: areaPosition,
+      radius: increasePercentOfBase(
+        5,
+        includeBase: true,
+        customUpgradeFactor: .3,
+      ).toDouble(),
+      damage: {
+        weapon?.primaryDamageType ??
+            (damageTypeList.isEmpty
+                ? DamageType.values.random()
+                : damageTypeList.random()): (
+          increasePercentOfBase(
+            2,
+            includeBase: true,
+            customUpgradeFactor: .1,
+          ).toDouble(),
+          increasePercentOfBase(
+            3,
+            includeBase: true,
+            customUpgradeFactor: .1,
+          ).toDouble(),
+        ),
+      },
+      sourceEntity: weapon!.entityAncestor!,
+      collisionDelay: 0,
+      onTick: (entity, areaId) {
+        if (entity is MovementFunctionality) {
+          entity.applyKnockback(
+            amount: increasePercentOfBase(
+              3500,
+              includeBase: true,
+              customUpgradeFactor: .35,
+            ).toDouble(),
+            direction: (entity.position - areaPosition).normalized(),
+          );
+        }
+      },
+    );
+
+    weapon?.entityAncestor?.enviroment.addPhysicsComponent(
+      [area],
+    );
   }
 
   @override
-  String get abilityDescription => 'Generates a forceful blast of energy.';
+  String get abilityDescription =>
+      'Generates a forceful blast of energy. Knocking away enemies.';
 }

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/attributes/attributes_status_effect.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
@@ -43,7 +45,10 @@ abstract class Entity extends BodyComponent<GameRouter>
   }
 
   List<Function(bool isFlipped)> onBodyFlip = [];
-  List<Function(DamageInstance instance)> onDeath = [];
+
+  ///Return true if shouldnt die
+  List<bool? Function(DamageInstance instance)> onDeath = [];
+
   Map<dynamic, ChildEntity> childrenEntities = {};
 
   Set<Projectile> closeProjectiles = {};
@@ -411,18 +416,12 @@ extension EntityClassGetterrs on Entity {
       EntityType.player == entityType ||
       (isChildEntity && (this as ChildEntity).parentEntity.isPlayer);
 
-  bool get isStunned {
-    if (isChildEntity) {
-      return (this as ChildEntity).parentEntity.isStunned;
-    }
-    return statusEffects.contains(StatusEffects.frozen);
-  }
-
   PlayerFunctionality get playerFunctionality =>
       enviroment as PlayerFunctionality;
 
   double get spriteHeight => spriteSize.y;
   Vector2 get spriteOffset => Vector2.zero();
+
   Set<StatusEffects> get statusEffects {
     if (isChildEntity) {
       return (this as ChildEntity).parentEntity.statusEffects;
@@ -430,12 +429,25 @@ extension EntityClassGetterrs on Entity {
 
     final thisIsAttr = this is AttributeFunctionality;
     if (thisIsAttr) {
-      return (this as AttributeFunctionality)
-          .currentAttributes
-          .values
-          .whereType<StatusEffectAttribute>()
-          .map((e) => e.statusEffect)
-          .toSet();
+      final currentAttributes =
+          (this as AttributeFunctionality).currentAttributes;
+      final returnSet = {
+        ...currentAttributes
+            .whereType<StatusEffectAttribute>()
+            .map((e) => e.statusEffect)
+            .toSet(),
+        ...currentAttributes
+            .whereType<TemporaryAttribute>()
+            .where(
+              (element) => element.managedAttribute is StatusEffectAttribute,
+            )
+            .map(
+              (e) => (e.managedAttribute as StatusEffectAttribute).statusEffect,
+            )
+            .toSet(),
+      };
+
+      return returnSet;
     }
 
     return {};

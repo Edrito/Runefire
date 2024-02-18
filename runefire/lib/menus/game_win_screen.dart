@@ -20,10 +20,10 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:numerus/numerus.dart';
-import '../game/enviroment.dart';
-import '../main.dart';
-import '../resources/visuals.dart';
-import 'custom_button.dart';
+import 'package:runefire/game/enviroment.dart';
+import 'package:runefire/main.dart';
+import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/menus/custom_button.dart';
 
 class GameWinDisplay extends StatefulWidget {
   const GameWinDisplay(this.gameRef, {super.key});
@@ -40,11 +40,11 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
   bool displayStats = false;
 
   bool fetchAttributeLogicChecker(Attribute element, bool isTemp) {
-    final tempChecker =
-        ((element.attributeType.territory == AttributeTerritory.temporary &&
-                isTemp) ||
-            (element.attributeType.territory != AttributeTerritory.temporary &&
-                !isTemp));
+    final tempChecker = (element.attributeType.territory ==
+                AttributeTerritory.statusEffect &&
+            isTemp) ||
+        (element.attributeType.territory != AttributeTerritory.statusEffect &&
+            !isTemp);
 
     final permanentChecker =
         element.attributeType.territory != AttributeTerritory.permanent;
@@ -57,7 +57,7 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
     node.requestFocus();
     gameRouter = widget.gameRef;
     gameState = gameRouter.gameStateComponent.gameState;
-    env = gameState.currentEnviroment as GameEnviroment;
+    env = gameState.currentEnviroment! as GameEnviroment;
   }
 
   final Size cardSize = const Size(128, 96);
@@ -65,15 +65,17 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
   bool optionsEnabled = false;
   @override
   Widget build(BuildContext context) {
-    var entries = env.player?.currentAttributes;
+    final entries = env.player?.currentAttributes;
 
-    var nonTempEntries = entries?.values
-            .where((element) => fetchAttributeLogicChecker(element, false))
+    final nonTempEntries = entries
+            ?.where((element) => fetchAttributeLogicChecker(element, false))
             .toList() ??
         [];
 
-    nonTempEntries.sort((a, b) =>
-        a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index));
+    nonTempEntries.sort(
+      (a, b) =>
+          a.attributeType.rarity.index.compareTo(b.attributeType.rarity.index),
+    );
 
     nonTempEntries.sort((b, a) => a.upgradeLevel.compareTo(b.upgradeLevel));
 
@@ -83,10 +85,9 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 900),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CustomButton(
-                displayStats ? "Hide Stats" : "Show Stats",
+                displayStats ? 'Hide Stats' : 'Show Stats',
                 gameRef: gameRouter,
                 rowId: 1,
                 onPrimary: () {
@@ -102,15 +103,16 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
                       child: displayStats
                           ? Center(
                               child: Padding(
-                                  padding: const EdgeInsets.all(32),
-                                  child: OverlayWidgetDisplay(
-                                    gameRouter,
-                                    child: StatsDisplay(
-                                      gameRef: gameRouter,
-                                      statStrings:
-                                          env.player?.buildStatStrings(false),
-                                    ),
-                                  )),
+                                padding: const EdgeInsets.all(32),
+                                child: OverlayWidgetDisplay(
+                                  gameRouter,
+                                  child: StatsDisplay(
+                                    gameRef: gameRouter,
+                                    statStrings:
+                                        env.player?.buildStatStrings(false),
+                                  ),
+                                ),
+                              ),
                             )
                           : Center(
                               child: Padding(
@@ -128,21 +130,22 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
                     Expanded(
                       child: Center(
                         child: Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: OverlayWidgetDisplay(
-                              gameRouter,
-                              child: AttributeDisplay(
-                                gameRef: gameRouter,
-                                attributes: nonTempEntries,
-                              ),
-                            )),
+                          padding: const EdgeInsets.all(32),
+                          child: OverlayWidgetDisplay(
+                            gameRouter,
+                            child: AttributeDisplay(
+                              gameRef: gameRouter,
+                              attributes: nonTempEntries,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               CustomButton(
-                "Continue",
+                'Continue',
                 gameRef: gameRouter,
                 upDownColor: (
                   colorPalette.primaryColor.brighten(.5),
@@ -153,7 +156,7 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
                   gameState.resumeGame();
                   gameState.endGame(EndGameState.win);
                 },
-              )
+              ),
             ],
           ),
         ),
@@ -163,8 +166,11 @@ class _GameWinDisplayState extends State<GameWinDisplay> {
 }
 
 class EndGameDisplay extends StatefulWidget {
-  const EndGameDisplay(
-      {required this.gameRef, required this.player, super.key});
+  const EndGameDisplay({
+    required this.gameRef,
+    required this.player,
+    super.key,
+  });
   final GameRouter gameRef;
   final Player player;
   @override
@@ -177,7 +183,9 @@ class _EndGameDisplayState extends State<EndGameDisplay> {
   final Map<String, (Timer, double)> timers = {};
 
   void initExperienceEntryTimer(
-      EndGameExperienceEntry data, Function statefulSetState) {
+    EndGameExperienceEntry data,
+    Function statefulSetState,
+  ) {
     timers[data.label] ??= (
       Timer.periodic((duration / (duration * textTicksPerSecond)).seconds,
           (timer) {
@@ -191,9 +199,9 @@ class _EndGameDisplayState extends State<EndGameDisplay> {
               numberAnimationCompleteAnimation[data.label] = true;
             });
             if (timers.values.fold(
-                true,
-                (previousValue, element) =>
-                    previousValue && !element.$1.isActive)) {
+              true,
+              (previousValue, element) => previousValue && !element.$1.isActive,
+            )) {
               setState(() {
                 totalWidget =
                     buildTextWidget(totalEntry).animate().moveX().fadeIn();
@@ -217,77 +225,83 @@ class _EndGameDisplayState extends State<EndGameDisplay> {
   Map<String, bool> numberAnimationCompleteAnimation = {};
 
   Widget buildTextWidget(EndGameExperienceEntry data) {
-    return StatefulBuilder(builder: (context, setStateBuilder) {
-      initExperienceEntryTimer(data, setStateBuilder);
-      numberAnimationCompleteAnimation[data.label] ??= false;
-      String number = timers[data.label]?.$2.toStringAsFixed(1) ?? "0";
-      var style = defaultStyle;
-      if (data.damageType != null) {
-        style = style.copyWith(color: data.damageType!.color);
-      }
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Text(
-              data.label,
-              style: style,
+    return StatefulBuilder(
+      builder: (context, setStateBuilder) {
+        initExperienceEntryTimer(data, setStateBuilder);
+        numberAnimationCompleteAnimation[data.label] ??= false;
+        final number = timers[data.label]?.$2.toStringAsFixed(1) ?? '0';
+        var style = defaultStyle;
+        if (data.damageType != null) {
+          style = style.copyWith(color: data.damageType!.color);
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Text(
+                data.label,
+                style: style,
+              ),
             ),
-          ),
-          Text(
-            number,
-            style: style,
-          )
-              .animate(
-                target: (numberAnimationCompleteAnimation[data.label] ?? false)
-                    ? 1
-                    : 0,
-                onComplete: (controller) => controller.reverse(),
-              )
-              .scaleXY(
+            Text(
+              number,
+              style: style,
+            )
+                .animate(
+                  target:
+                      (numberAnimationCompleteAnimation[data.label] ?? false)
+                          ? 1
+                          : 0,
+                  onComplete: (controller) => controller.reverse(),
+                )
+                .scaleXY(
                   begin: 1,
                   end: 1.2,
                   duration: .1.seconds,
-                  curve: Curves.easeInOut),
-          if (data.rating != null) ...[
-            // const SizedBox(
-            //   width: 12,
-            // ),
-            // SizedBox.square(
-            //   dimension: 64,
-            //   child: buildImageAsset(
-            //     ImagesAssetsExperience.all.path,
-            //     fit: BoxFit.fitHeight,
-            //   ),
-            // ),
-            const SizedBox(
-              width: 64,
-            ),
-            Container(
-              transform: Matrix4.identity()..rotateZ(12 * 3.1415927 / 180),
-              child: Text(
-                data.rating!.toString(),
-                style: style.copyWith(
+                  curve: Curves.easeInOut,
+                ),
+            if (data.rating != null) ...[
+              // const SizedBox(
+              //   width: 12,
+              // ),
+              // SizedBox.square(
+              //   dimension: 64,
+              //   child: buildImageAsset(
+              //     ImagesAssetsExperience.all.path,
+              //     fit: BoxFit.fitHeight,
+              //   ),
+              // ),
+              const SizedBox(
+                width: 64,
+              ),
+              Container(
+                transform: Matrix4.identity()..rotateZ(12 * 3.1415927 / 180),
+                child: Text(
+                  data.rating!,
+                  style: style.copyWith(
                     fontSize: style.fontSize! * 3,
-                    color: colorPalette.secondaryColor),
-              )
-                  .animate(
-                    target:
-                        (numberAnimationCompleteAnimation[data.label] ?? false)
-                            ? 1
-                            : 0,
-                  )
-                  .scaleXY(
+                    color: colorPalette.secondaryColor,
+                  ),
+                )
+                    .animate(
+                      target: (numberAnimationCompleteAnimation[data.label] ??
+                              false)
+                          ? 1
+                          : 0,
+                    )
+                    .scaleXY(
                       begin: 3,
                       end: 1,
                       duration: .5.seconds,
-                      curve: Curves.bounceOut)
-                  .fadeIn(),
-            ),
-          ]
-        ],
-      );
-    });
+                      curve: Curves.bounceOut,
+                    )
+                    .fadeIn(),
+              ),
+            ],
+          ],
+        );
+      },
+    );
   }
 
   late final Timer addEntryTimer;
@@ -329,7 +343,7 @@ class _EndGameDisplayState extends State<EndGameDisplay> {
             ),
           ),
         ),
-        if (totalWidget != null) totalWidget!
+        if (totalWidget != null) totalWidget!,
       ],
     );
   }

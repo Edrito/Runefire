@@ -343,7 +343,7 @@ class Bounds extends BodyComponent<GameRouter> with ContactCallbacks {
   Body createBody() {
     currentBounds = createBounds();
 
-    renderBody = true;
+    renderBody = false;
 
     final fixtureDef = FixtureDef(
       currentBounds,

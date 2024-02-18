@@ -23,9 +23,26 @@ import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/resources/visuals.dart';
 
 mixin AttributeFunctionality on Entity {
-  Map<AttributeType, Attribute> currentAttributes = {};
+  final Map<AttributeType, Attribute> _currentAttributes = {};
   bool initalized = false;
   Random rng = Random();
+
+  bool hasAttribute(AttributeType attribute) =>
+      _currentAttributes.containsKey(attribute);
+
+  bool hasAnyAttribute(List<AttributeType> attributes) =>
+      attributes.any(_currentAttributes.containsKey);
+
+  List<Attribute> get currentAttributes => _currentAttributes.values.toList();
+  List<AttributeType> get currentAttributeTypes =>
+      _currentAttributes.keys.toList();
+
+  Attribute? getAttribute(AttributeType attribute) {
+    if (_currentAttributes.containsKey(attribute)) {
+      return _currentAttributes[attribute]!;
+    }
+    return null;
+  }
 
   void addAttribute(
     AttributeType attribute, {
@@ -37,12 +54,12 @@ mixin AttributeFunctionality on Entity {
     double? duration,
   }) {
     //Already has it
-    if (currentAttributes.containsKey(attribute)) {
-      currentAttributes[attribute]?.incrementLevel(level ?? 1);
+    if (_currentAttributes.containsKey(attribute)) {
+      _currentAttributes[attribute]?.incrementLevel(level ?? 1);
 
       //Doesnt have it
     } else {
-      currentAttributes[attribute] = attribute.buildAttribute(
+      _currentAttributes[attribute] = attribute.buildAttribute(
         level ?? 1,
         this,
         perpetratorEntity: perpetratorEntity,
@@ -51,7 +68,7 @@ mixin AttributeFunctionality on Entity {
         isTemporary: isTemporary,
       );
       if (applyUpgrade) {
-        currentAttributes[attribute]?.applyUpgrade();
+        _currentAttributes[attribute]?.applyUpgrade();
       }
     }
   }
@@ -63,7 +80,8 @@ mixin AttributeFunctionality on Entity {
 
     final player = this as Player;
     final returnList = <Attribute>[];
-    var elementalDamageTypeForced = player.shouldForceElementalAttribute();
+    var elementalDamageTypeForced =
+        player.shouldForceElementalAttributeSelection();
     var attempts = 0;
 
     while (returnList.length < 3 && attempts < 1000) {
@@ -78,9 +96,9 @@ mixin AttributeFunctionality on Entity {
               (element) =>
                   //Attribute is game attribute and not permanenet
                   element.territory == AttributeTerritory.game &&
+                  !element.autoAssigned &&
                   //Player is not max level
-
-                  player.currentAttributes[element]?.isMaxLevel != true &&
+                  player._currentAttributes[element]?.isMaxLevel != true &&
                   //if forced selection is active, only show those attributes
                   element.attributeMeetsForcedElementalRequest(
                     player,
@@ -143,8 +161,8 @@ mixin AttributeFunctionality on Entity {
       final attr = tempPotentialCandidates
           .elementAt(rng.nextInt(tempPotentialCandidates.length));
 
-      if (currentAttributes.containsKey(attr)) {
-        returnList.add(currentAttributes[attr]!);
+      if (_currentAttributes.containsKey(attr)) {
+        returnList.add(_currentAttributes[attr]!);
       } else {
         returnList.add(
           attr.buildAttribute(
@@ -162,8 +180,8 @@ mixin AttributeFunctionality on Entity {
   Attribute buildXpAttribute() {
     const attr = AttributeType.experienceGainPermanent;
     late Attribute returnAttrib;
-    if (currentAttributes.containsKey(attr)) {
-      returnAttrib = currentAttributes[attr]!;
+    if (_currentAttributes.containsKey(attr)) {
+      returnAttrib = _currentAttributes[attr]!;
     } else {
       returnAttrib = attr.buildAttribute(0, this);
     }
@@ -172,10 +190,10 @@ mixin AttributeFunctionality on Entity {
   }
 
   void clearAttributes() {
-    for (final element in currentAttributes.entries) {
+    for (final element in _currentAttributes.entries) {
       element.value.removeUpgrade();
     }
-    currentAttributes.clear();
+    _currentAttributes.clear();
     initalized = false;
   }
 
@@ -188,7 +206,7 @@ mixin AttributeFunctionality on Entity {
     final attributeTypes = attributesToAdd.keys.toList();
     attributeTypes.sort((a, b) => a.priority.compareTo(b.priority));
     for (final element in attributeTypes) {
-      currentAttributes[element] = element.buildAttribute(
+      _currentAttributes[element] = element.buildAttribute(
         attributesToAdd[element]!,
         this,
         perpetratorEntity: this,
@@ -201,15 +219,15 @@ mixin AttributeFunctionality on Entity {
   void loadPlayerConfig(Map<String, dynamic> config) {}
 
   void modifyLevel(AttributeType attributeEnum, [int amount = 0]) {
-    if (currentAttributes.containsKey(attributeEnum)) {
-      final attr = currentAttributes[attributeEnum]!;
+    if (_currentAttributes.containsKey(attributeEnum)) {
+      final attr = _currentAttributes[attributeEnum]!;
       attr.changeLevel(amount);
     }
   }
 
   void remapAttributes() {
     final tempList = <Attribute>[];
-    for (final element in currentAttributes.values) {
+    for (final element in _currentAttributes.values) {
       if (element.upgradeApplied) {
         element.unMapUpgrade();
         tempList.add(element);
@@ -226,8 +244,8 @@ mixin AttributeFunctionality on Entity {
   }
 
   void removeAttribute(AttributeType attributeType) {
-    currentAttributes[attributeType]?.removeUpgrade();
-    currentAttributes.remove(attributeType);
+    _currentAttributes[attributeType]?.removeUpgrade();
+    _currentAttributes.remove(attributeType);
   }
 }
 
@@ -551,13 +569,17 @@ class EntityStatusEffectsWrapper {
     if (removedAnimations) {
       return;
     }
-    activeStatusEffects[effect]?.removeFromParent();
+    if (effect.isStatusBar) {
+      activeStatusEffects[effect]?.removeFromParent();
 
-    activeStatusEffects[effect] = StatusEffect(effect, level);
-    final posX = getXPosition(effect);
-    activeStatusEffects[effect]!.position.x = posX;
-    activeStatusEffects[effect]!.position.y = -.2 - (entity.spriteHeight);
-    activeStatusEffects[effect]?.addToParent(entity);
+      activeStatusEffects[effect] = StatusEffect(effect, level);
+      final posX = getXPosition(effect);
+      activeStatusEffects[effect]!.position.x = posX;
+      activeStatusEffects[effect]!.position.y = -.2 - (entity.spriteHeight);
+      activeStatusEffects[effect]?.addToParent(entity);
+    } else if (effect == StatusEffects.marked) {
+      addMarkedStatus();
+    }
   }
 
   String generateKey(String sourceId, bool isSecondary) =>
@@ -611,6 +633,10 @@ class EntityStatusEffectsWrapper {
   void removeStatusEffect(StatusEffects statusEffects) {
     activeStatusEffects[statusEffects]?.removeFromParent();
     activeStatusEffects.remove(statusEffects);
+
+    if (statusEffects == StatusEffects.marked) {
+      removeMarked();
+    }
   }
 
   void showReloadAnimations(String sourceId) {

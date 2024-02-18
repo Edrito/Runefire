@@ -49,7 +49,7 @@ class CustomFollowBehavior extends Component {
       camera.viewport.size.y / zoom,
     );
 
-    final cutoff = (distanceToCorner / 2);
+    final cutoff = distanceToCorner / 2;
 
     distance = position?.distanceTo(Vector2.zero()) ?? 0;
     distanceIncrease = (distance - distanceStart) / cutoff;
@@ -57,7 +57,7 @@ class CustomFollowBehavior extends Component {
     distanceIncrease = Curves.easeIn.transform(distanceIncrease);
     // distanceIncrease = distanceIncrease.clamp(0, 1);a
     if (position != null) {
-      return (position.normalized() * increase * distanceIncrease);
+      return position.normalized() * increase * distanceIncrease;
     }
     return Vector2.zero();
   }
@@ -71,11 +71,11 @@ class CustomFollowBehavior extends Component {
   CameraComponent camera;
   Vector2 target = Vector2.zero();
   double interpolationAmount = 1.0;
-  String formatedNumber = "";
+  String formatedNumber = '';
 
   late final InputManager inputManagerInstance = InputManager();
 
-  void followTarget() async {
+  Future<void> followTarget() async {
     target.setFrom(player.center);
     if (inputManagerInstance.externalInputType ==
         ExternalInputType.mouseKeyboard) {
@@ -94,8 +94,8 @@ class CustomFollowBehavior extends Component {
     if (interpolationAmount == 0 ||
         (disableTimer != null && !disableTimer!.timer.isRunning())) return;
 
-    target = (camera.viewfinder.position +
-        ((target - camera.viewfinder.position) * interpolationAmount));
+    target = camera.viewfinder.position +
+        ((target - camera.viewfinder.position) * interpolationAmount);
     target.clamp(-Vector2(maxX, maxY), Vector2(maxX, maxY));
 
     camera.viewfinder.position = target;

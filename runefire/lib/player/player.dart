@@ -76,7 +76,7 @@ class Player extends Entity
       maxLives.addListener((parameter) {
         gameEnviroment.hud.buildRemainingLives(this);
       });
-      onDeath.add((instance) {
+      deathCount.addListener((instance) {
         gameEnviroment.hud.buildRemainingLives(this);
       });
 
@@ -207,7 +207,7 @@ class Player extends Entity
     instance.removeGameActionListener(GameAction.primary, primaryAction);
     instance.removeGameActionListener(GameAction.secondary, secondaryAction);
     instance.removeGamepadEventListener(parseGamepadJoy);
-    instance.removeKeyListener(onKeyEvent);
+    // instance.removeKeyListener(onKeyEvent);
     instance.onPointerMoveList.remove(pointerMoveAction);
 
     super.onRemove();
@@ -318,7 +318,7 @@ class Player extends Entity
     instance.addGameActionListener(GameAction.primary, primaryAction);
     instance.addGameActionListener(GameAction.secondary, secondaryAction);
     instance.addGamepadEventListener(parseGamepadJoy);
-    instance.addKeyListener(onKeyEvent);
+    // instance.addKeyListener(onKeyEvent);
     instance.onPointerMoveList.add(pointerMoveAction);
 
     initialWeapons.addAll(playerData.selectedWeapons.values);
@@ -353,14 +353,14 @@ class Player extends Entity
         ;
   }
 
-  void onKeyEvent(KeyEvent event) {
-    if (event is KeyUpEvent) {
-      return;
-    }
-    if (event.logicalKey == (LogicalKeyboardKey.keyL)) {
-      levelUp();
-    }
-  }
+  // void onKeyEvent(KeyEvent event) {
+  //   if (event is KeyUpEvent) {
+  //     return;
+  //   }
+  //   if (event.logicalKey == (LogicalKeyboardKey.keyL)) {
+  //     levelUp();
+  //   }
+  // }
 
   @override
   void update(double dt) {

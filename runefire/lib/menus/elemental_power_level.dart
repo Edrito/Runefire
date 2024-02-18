@@ -103,7 +103,7 @@ class _TotalPowerGraphState extends State<TotalPowerGraph> {
                             width: width - (padding * 2),
                             bottom: width * .25,
                             child: SizedBox.expand(
-                              child: ElementalPowerBack(damageType),
+                              child: ElementalPowerBack(damageType, percent),
                             ),
                           ),
                           Positioned.fill(

@@ -236,9 +236,6 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Area Size';
 }
 
@@ -276,9 +273,6 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.meleeDamagePercentIncrease.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Melee Damage';
@@ -320,9 +314,6 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Gun Damage';
 }
 
@@ -360,9 +351,6 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.spellDamagePercentIncrease.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Spell Damage';
@@ -404,9 +392,6 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Tick Damage';
 }
 
@@ -444,9 +429,6 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.areaDamagePercentIncrease.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Area Damage';
@@ -488,9 +470,6 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Effect Potency';
 }
 
@@ -530,9 +509,6 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
       (victimEntity! as MovementFunctionality).speed.removeKey(attributeId);
     }
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Move Speed';
@@ -578,9 +554,6 @@ class MaxStaminaPermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Max Stamina';
 }
 
@@ -621,9 +594,6 @@ class MaxHealthPermanentAttribute extends PermanentAttribute {
       (victimEntity! as HealthFunctionality).maxHealth.removeKey(attributeId);
     }
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Max Health';
@@ -671,9 +641,6 @@ class StaminaRegenPermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Stamina Regen';
 }
 
@@ -717,9 +684,6 @@ class HealthRegenPermanentAttribute extends PermanentAttribute {
           .removeKey(attributeId);
     }
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Health Regen';
@@ -767,9 +731,6 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'XP Gained';
 }
 
@@ -813,9 +774,6 @@ class DodgeChancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Dodge Chance';
 }
 
@@ -853,9 +811,6 @@ class CritChancePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.critChance.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Crit Chance';
@@ -897,9 +852,6 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Crit Damage';
 }
 
@@ -936,9 +888,6 @@ class DurationPermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.durationPercentIncrease.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Effect Duration';
@@ -978,9 +927,6 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.essenceSteal.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Essence Steal';
@@ -1026,9 +972,6 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Attack Speed';
 }
 
@@ -1063,9 +1006,6 @@ class DamagePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.damagePercentIncrease.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'All Damage';
@@ -1112,9 +1052,6 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Physical Damage';
 }
 
@@ -1157,9 +1094,6 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Magic Damage';
@@ -1206,9 +1140,6 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Fire Damage';
 }
 
@@ -1250,9 +1181,6 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Psychic Damage';
@@ -1298,9 +1226,6 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Energy Damage';
 }
 
@@ -1343,9 +1268,6 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Frost Damage';
@@ -1393,9 +1315,6 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Physical Res';
 }
 
@@ -1440,9 +1359,6 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Magic Res';
 }
 
@@ -1485,9 +1401,6 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Fire Res';
@@ -1535,9 +1448,6 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Psychic Res';
 }
 
@@ -1582,9 +1492,6 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Energy Res';
 }
 
@@ -1627,9 +1534,6 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
   void unMapUpgrade() {
     victimEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Frost Res';
@@ -1679,9 +1583,6 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
   String title = 'Attack Speed';
 }
 
@@ -1717,9 +1618,6 @@ class MaxLivesPermanentAttribute extends PermanentAttribute {
   Future<void> unMapUpgrade() async {
     victimEntity?.maxLives.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Max Lives';

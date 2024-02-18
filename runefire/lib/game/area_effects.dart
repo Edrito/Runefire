@@ -5,6 +5,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
@@ -74,7 +75,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   late CircleComponent circleComponent;
 
-  Map<Entity, double> affectedEntities = {};
+  Map<Entity, double> entityTimers = {};
   bool isKilled = false;
 
   @override
@@ -135,18 +136,13 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   void beginContact(Object other, Contact contact) {
     final shouldCalculate = other is Entity &&
         other != sourceEntity &&
-        !affectedEntities.containsKey(other);
+        !currentEntities.contains(other);
+
     if (!shouldCalculate) {
       return super.beginContact(other, contact);
     }
-
-    if (animationComponent?.durationType == DurationType.instant) {
-      affectEnemy(other);
-    } else {
-      affectedEntities[other] = 0.0;
-      affectEnemy(other);
-    }
-
+    currentEntities.add(other);
+    entityTimers[other] ??= tickRate;
     super.beginContact(other, contact);
   }
 
@@ -169,17 +165,34 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   }
 
   void calculateOnTick(double dt) {
-    for (final element in [...affectedEntities.entries]) {
+    if (durationType == DurationType.instant) {
+      for (final element in [...entityTimers.entries]) {
+        if (isKilled) {
+          return;
+        }
+        final other = element.key;
+
+        if (currentEntities.contains(other) && element.value >= tickRate) {
+          affectEnemy(other);
+          entityTimers[other] = 0.0;
+        }
+      }
+      return;
+    }
+
+    for (final element in [...entityTimers.entries]) {
       if (isKilled) {
         return;
       }
       final other = element.key;
 
-      if (element.value > tickRate) {
-        affectedEntities[other] = 0.0;
-        affectEnemy(other);
+      if (element.value >= tickRate) {
+        if (currentEntities.contains(other)) {
+          entityTimers[other] = 0.0;
+          affectEnemy(other);
+        }
       } else {
-        affectedEntities[other] = element.value + dt;
+        entityTimers[other] = element.value + dt;
       }
     }
   }
@@ -206,10 +219,14 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
   Future<void> killArea() async {
     isKilled = true;
-    affectedEntities.clear();
+    entityTimers.clear();
     await animationComponent?.triggerEnding();
     removeFromParent();
   }
+
+  Set<Entity> currentEntities = {};
+
+  void onExit(Entity other) {}
 
   @override
   void endContact(Object other, Contact contact) {
@@ -219,7 +236,8 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     if (animationComponent?.durationType == DurationType.instant) {
       return;
     }
-    affectedEntities.remove(other);
+    currentEntities.remove(other);
+    onExit(other);
 
     super.endContact(other, contact);
   }

@@ -263,7 +263,7 @@ class PowerWord extends PlayerWeapon
 
           enemy.hitCheck(
             weaponId,
-            calculateDamage(enemy, this)..checkCrit(true),
+            calculateDamage(enemy, this)..checkCrit(force: true),
           );
           // enemy.addFloatingText(DamageType.physical, -1, false, currentWord);
         }
@@ -316,7 +316,7 @@ class PowerWord extends PlayerWeapon
           final enemy = body.userData! as Enemy;
 
           enemy.addAttribute(
-            AttributeType.psychic,
+            AttributeType.confused,
             isTemporary: true,
             duration: 6,
             perpetratorEntity: entityAncestor,
@@ -963,7 +963,7 @@ class ElementalChannel extends PlayerWeapon
   @override
   void mapUpgrade() {
     countIncreaseWithTime.baseParameter = true;
-    attackTickRate.baseParameter = .5;
+    attackTickRate.baseParameter = 1;
     baseDamage.damageBase = Map.fromEntries(
       DamageType.values.map(
         (e) => MapEntry(
@@ -1014,8 +1014,8 @@ class ElementalChannel extends PlayerWeapon
         ),
         sourceEntity: entityAncestor!,
         radius: increasePercentOfBase(
-              2,
-              customUpgradeFactor: .35,
+              1,
+              customUpgradeFactor: .25,
               includeBase: true,
             ).toDouble() *
             //allow a 30% variance

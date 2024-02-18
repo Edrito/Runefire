@@ -225,8 +225,13 @@ class _ArrowButtonCustomState extends State<ArrowButtonCustom> {
 }
 
 class ElementalPowerBack extends StatefulWidget {
-  const ElementalPowerBack(this.damageType, {super.key});
+  const ElementalPowerBack(
+    this.damageType,
+    this.powerLevel, {
+    super.key,
+  });
   final DamageType damageType;
+  final double powerLevel;
 
   @override
   State<ElementalPowerBack> createState() => _ElementalPowerBackState();
@@ -238,7 +243,7 @@ class _ElementalPowerBackState extends State<ElementalPowerBack> {
 
   bool firstTick = true;
 
-  double rate = 0.1;
+  double rate = 0.05;
 
   Duration totalElapsed = Duration.zero;
 
@@ -246,13 +251,28 @@ class _ElementalPowerBackState extends State<ElementalPowerBack> {
   void initState() {
     super.initState();
 
+    final info = switch (widget.damageType) {
+      DamageType.fire => ImagesAssetsDamageEffects.fire,
+      DamageType.energy => ImagesAssetsDamageEffects.energy,
+      //frost
+      DamageType.frost => ImagesAssetsDamageEffects.frost,
+      //magic
+      DamageType.magic => ImagesAssetsDamageEffects.magic,
+      //physical
+      DamageType.physical => ImagesAssetsDamageEffects.physical,
+      //psychic
+      DamageType.psychic => ImagesAssetsDamageEffects.psychic,
+      //healing
+      DamageType.healing => ImagesAssetsDamageEffects.magic,
+    };
+    const increaseSpeed = .05;
     field = ParticleField(
       spriteSheet: SpriteSheet(
-        image: const AssetImage('assets/images/effects/star_5.png'),
-        frameWidth: 16,
-        frameHeight: 16,
-        scale: .4,
-        length: 5,
+        image: AssetImage(info.path),
+        frameWidth: info.size!.$2.round(),
+        frameHeight: info.size!.$2.round(),
+        length: info.potentialFrameCount ?? 1,
+        scale: 3,
       ),
       // top left will be 0,0:
       origin: Alignment.bottomLeft,
@@ -262,7 +282,7 @@ class _ElementalPowerBackState extends State<ElementalPowerBack> {
         final particles = controller.particles;
         if (firstTick) {
           controller.particles.addAll([
-            for (int i = 0; i < 100 * rate; i++)
+            for (int i = 0; i < 200 * rate; i++)
               Particle(
                 x: rnd(size.width),
                 y: -rnd(size.height),
@@ -274,13 +294,18 @@ class _ElementalPowerBackState extends State<ElementalPowerBack> {
 
         // add a new particle each frame:
         if (rate > rng.nextDouble()) {
-          particles.add(Particle(x: rnd(size.width), vy: -rnd(0.1, 1)));
+          particles.add(
+            Particle(
+              x: rnd(size.width),
+              vy: -rnd(widget.powerLevel, .5 + (widget.powerLevel * 4)),
+            ),
+          );
         }
         totalElapsed += elapsed;
-        final increase = totalElapsed.inSeconds % 500 == 0;
-
+        var increase = false;
         // update existing particles:
         for (var i = particles.length - 1; i >= 0; i--) {
+          increase = rng.nextDouble() < increaseSpeed;
           final particle = particles[i];
           // call update, which automatically adds vx/vy to x/y
           // add some gravity (ie. increase vertical velocity)

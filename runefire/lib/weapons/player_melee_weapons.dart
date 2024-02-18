@@ -1315,7 +1315,7 @@ class SwordOfJustice extends PlayerWeapon
           ).toDouble()) {
         damage.damageMap.clear();
         damage.damageMap[DamageType.fire] = double.infinity;
-        damage.checkCrit(true);
+        damage.checkCrit(force: true);
       }
       return false;
     });

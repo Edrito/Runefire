@@ -10,6 +10,8 @@ const hitAnimationLimit = 3;
 const closeBodiesSensorRadius = 4.0;
 const enemyTextMaxActive = 20;
 
+//weapon
+const defaultKnockbackAmount = 2000.0;
 //Projectiles
 const projectileHomingSpeedIncrease = 7.5;
 const projectileBigSizeThreshold = 1.0;
@@ -47,3 +49,7 @@ List<String> endGameMessages = [
   "You're not going anywhere.",
   "You're not going to make it.",
 ];
+
+//attributes
+
+const defaultIconLocation = 'attributes/default.png';

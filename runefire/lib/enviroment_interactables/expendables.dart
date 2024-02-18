@@ -82,14 +82,14 @@ abstract class Expendable {
 class InteractableWeaponPickup extends InteractableRunePickup {
   InteractableWeaponPickup({
     required this.weaponType,
-    required super.expendableType,
     required super.initialPosition,
     required super.gameEnviroment,
+    super.expendableType = ExpendableType.weapon,
   });
   WeaponType weaponType;
   @override
   Future<Sprite> buildSprite() async {
-    return await expendableType.buildSprite(weaponType: weaponType);
+    return expendableType.buildSprite(weaponType: weaponType);
   }
 }
 
@@ -101,7 +101,7 @@ class InteractableRunePickup extends InteractableComponent {
   });
 
   Future<Sprite> buildSprite() async {
-    return await expendableType.buildSprite();
+    return expendableType.buildSprite();
   }
 
   @override

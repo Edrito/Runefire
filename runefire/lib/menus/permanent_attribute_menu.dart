@@ -343,7 +343,8 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
         final level =
             playerDataComponent.dataObject.unlockedPermanentAttributes[e] ?? 0;
 
-        final attr = e.buildAttribute(level, null) as PermanentAttribute;
+        final attr = e.buildAttribute(level, null, builtForInfo: true)
+            as PermanentAttribute;
         Function? setStateMiniCopy;
         return Padding(
           padding: const EdgeInsets.all(8.0),

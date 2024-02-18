@@ -6,6 +6,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 
@@ -14,8 +15,8 @@ import 'package:runefire/main.dart';
 PerpetratorAttribute? perpetratorAttributeBuilder(
   AttributeType type,
   int level,
-  AttributeFunctionality victimEntity,
-  Entity perpetratorEntity,
+  AttributeFunctionality? victimEntity,
+  Entity? perpetratorEntity,
 ) {
   switch (type) {
     // case AttributeType.burn:
@@ -39,21 +40,40 @@ abstract class PerpetratorAttribute extends Attribute {
     super.damageType,
   });
 
-  Entity perpetratorEntity;
+  Entity? perpetratorEntity;
 }
 
 ///Removes itself after [duration] seconds.
-mixin TemporaryAttribute on Attribute {
-  abstract double duration;
+class TemporaryAttribute extends Attribute {
+  TemporaryAttribute({
+    required this.managedAttribute,
+    this.duration = 4,
+  });
+
+  final Attribute managedAttribute;
+  @override
+  bool get reApplyOnAddition => managedAttribute.reApplyOnAddition;
+
+  double duration;
   double timePassed = 0;
 
   @override
-  void reMapUpgrade() {
-    resetTimer();
-    super.reMapUpgrade();
+  AttributeFunctionality? get victimEntity => managedAttribute.victimEntity;
+
+  void applyTimer({required bool removeTimer}) {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final func = victimEntity! as AttributeCallbackFunctionality;
+      if (reApplyOnAddition) {
+        resetTimer();
+      }
+      if (removeTimer) {
+        func.onUpdate.remove(incrementTimer);
+      } else {
+        func.onUpdate.add(incrementTimer);
+      }
+    }
   }
 
-  void resetTimer() => timePassed = 0;
   void incrementTimer(double dt) {
     timePassed += dt;
     if (timePassed >= duration) {
@@ -62,69 +82,102 @@ mixin TemporaryAttribute on Attribute {
     }
   }
 
+  void resetTimer() => timePassed = 0;
+
+  @override
+  Set<DamageType> get allowedDamageTypes => managedAttribute.allowedDamageTypes;
+
   @override
   void applyUpgrade() {
-    applyTimer(false);
-
-    super.applyUpgrade();
+    applyTimer(removeTimer: false);
+    managedAttribute.applyUpgrade();
   }
 
-  void applyTimer(bool removeTimer) {
-    if (victimEntity is! AttributeCallbackFunctionality) {
-      return;
-    }
-    final func = victimEntity! as AttributeCallbackFunctionality;
+  @override
+  AttributeType get attributeType => managedAttribute.attributeType;
+
+  @override
+  void changeLevel(int newUpgradeLevel) {
+    managedAttribute.changeLevel(newUpgradeLevel);
+  }
+
+  @override
+  DamageType? get damageType => managedAttribute.damageType;
+
+  @override
+  String description() {
+    return managedAttribute.description();
+  }
+
+  @override
+  bool get hasRandomDamageType => managedAttribute.hasRandomDamageType;
+
+  @override
+  bool get hasRandomStatusEffect => managedAttribute.hasRandomStatusEffect;
+
+  @override
+  String help() {
+    return managedAttribute.help();
+  }
+
+  @override
+  String get icon => managedAttribute.icon;
+
+  @override
+  bool get increaseFromBaseParameter =>
+      managedAttribute.increaseFromBaseParameter;
+
+  @override
+  set increaseFromBaseParameter(bool increaseFromBaseParameter) {}
+
+  @override
+  void incrementLevel(int increment) {
+    managedAttribute.incrementLevel(increment);
+  }
+
+  @override
+  void mapUpgrade() {
+    managedAttribute.mapUpgrade();
+  }
+
+  @override
+  int? get maxLevel => managedAttribute.maxLevel;
+
+  @override
+  void reMapUpgrade() {
     resetTimer();
-    if (removeTimer) {
-      func.onUpdate.remove(incrementTimer);
-    } else {
-      func.onUpdate.add(incrementTimer);
-    }
+    managedAttribute.reMapUpgrade();
   }
 
   @override
   void removeUpgrade() {
-    applyTimer(true);
-    super.removeUpgrade();
+    applyTimer(removeTimer: true);
+    managedAttribute.removeUpgrade();
+  }
+
+  @override
+  Future<Sprite> get sprite => managedAttribute.sprite;
+
+  @override
+  String get title => managedAttribute.title;
+
+  @override
+  set title(String title) {}
+
+  @override
+  void unMapUpgrade() {
+    managedAttribute.unMapUpgrade();
   }
 }
 
 class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
   PowerupItem(this.powerup, this.originPosition);
 
-  TemporaryAttribute powerup;
-  late SpriteComponent spriteComponent;
-  double size = 1;
   Vector2 originPosition;
-
-  @override
-  Future<void> onLoad() async {
-    spriteComponent = SpriteComponent(
-      sprite: await Sprite.load(powerup.icon),
-      size: Vector2.all(size),
-      anchor: Anchor.center,
-    );
-    spriteComponent.add(
-      MoveEffect.by(
-        Vector2(0, .25),
-        InfiniteEffectController(
-          EffectController(
-            duration: .5,
-            reverseDuration: .5,
-            curve: Curves.easeInOut,
-            reverseCurve: Curves.easeInOut,
-          ),
-        ),
-      ),
-    );
-    add(spriteComponent);
-    return super.onLoad();
-  }
-
+  TemporaryAttribute powerup;
   late PolygonShape shape;
-
-  @override
-  void render(Canvas canvas) {}
+  double size = 1;
+  late SpriteComponent spriteComponent;
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -166,4 +219,31 @@ class PowerupItem extends BodyComponent<GameRouter> with ContactCallbacks {
 
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
+
+  @override
+  Future<void> onLoad() async {
+    spriteComponent = SpriteComponent(
+      sprite: await powerup.sprite,
+      size: Vector2.all(size),
+      anchor: Anchor.center,
+    );
+    spriteComponent.add(
+      MoveEffect.by(
+        Vector2(0, .25),
+        InfiniteEffectController(
+          EffectController(
+            duration: .5,
+            reverseDuration: .5,
+            curve: Curves.easeInOut,
+            reverseCurve: Curves.easeInOut,
+          ),
+        ),
+      ),
+    );
+    add(spriteComponent);
+    return super.onLoad();
+  }
+
+  @override
+  void render(Canvas canvas) {}
 }

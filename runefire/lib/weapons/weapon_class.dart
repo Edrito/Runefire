@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
@@ -130,7 +131,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
       DoubleParameterManager(baseParameter: 1.4, minParameter: 1);
 
   final DoubleParameterManager knockBackAmount =
-      DoubleParameterManager(baseParameter: 0.005);
+      DoubleParameterManager(baseParameter: defaultKnockbackAmount);
 
   final IntParameterManager pierce = IntParameterManager(baseParameter: 0);
   final BoolParameterManager reverseHoming =
@@ -294,10 +295,20 @@ abstract class Weapon extends Component with UpgradeFunctions {
         forceCrit: forceCrit,
       );
 
-  void endAltAttacking() {
-    if (weaponSecondaryAttackingCompleter?.isCompleted != true) {
-      weaponSecondaryAttackingCompleter?.complete(true);
+  void completeAttackCompleter({bool isAltAttack = false}) {
+    if (isAltAttack) {
+      if (weaponSecondaryAttackingCompleter?.isCompleted != true) {
+        weaponSecondaryAttackingCompleter?.complete(true);
+      }
+    } else {
+      if (weaponPrimaryAttackingCompleter?.isCompleted != true) {
+        weaponPrimaryAttackingCompleter?.complete(true);
+      }
     }
+  }
+
+  void endAltAttacking() {
+    completeAttackCompleter(isAltAttack: true);
   }
 
   void endAttacking() {
@@ -310,9 +321,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
         element.call(this);
       }
     }
-    if (weaponPrimaryAttackingCompleter?.isCompleted != true) {
-      weaponPrimaryAttackingCompleter?.complete(true);
-    }
+    completeAttackCompleter();
   }
 
   Vector2 generateGlobalPosition(
@@ -442,10 +451,12 @@ abstract class Weapon extends Component with UpgradeFunctions {
   }
 
   void startAltAttacking() {
+    completeAttackCompleter(isAltAttack: true);
     weaponSecondaryAttackingCompleter = Completer<bool>();
   }
 
   void startAttacking() {
+    completeAttackCompleter();
     isAttacking = true;
     weaponPrimaryAttackingCompleter = Completer<bool>();
   }

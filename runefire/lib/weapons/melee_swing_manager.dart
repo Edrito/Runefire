@@ -224,7 +224,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
       bullet: true,
       allowSleep: false,
     );
-    renderBody = true;
+    renderBody = false;
     final returnBody = world.createBody(bodyDef);
     return returnBody;
   }

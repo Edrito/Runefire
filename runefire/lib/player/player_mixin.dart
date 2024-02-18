@@ -120,6 +120,11 @@ mixin ExperienceFunctionality on Entity {
   }
 
   void gainExperience(double newExperience) {
+    if (newExperience == 0 ||
+        !newExperience.isFinite ||
+        newExperience.isNegative) {
+      return;
+    }
     final nextLevelExperienceRequired = this.nextLevelExperienceRequired;
     final experience = xpIncreasePercent.parameter * newExperience;
 
@@ -127,9 +132,11 @@ mixin ExperienceFunctionality on Entity {
       final remainingExperience =
           (experience + experiencePointsGained) - nextLevelExperienceRequired;
       experiencePointsGained = nextLevelExperienceRequired.toDouble();
+
+      currentLevel += 1;
+      gameEnviroment.hud.setLevel(currentLevel);
+
       if (!isDead) {
-        currentLevel += 1;
-        gameEnviroment.hud.setLevel(currentLevel);
         preLevelUp();
       }
 

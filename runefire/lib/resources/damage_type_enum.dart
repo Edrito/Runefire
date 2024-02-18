@@ -1,12 +1,24 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/menus/custom_widgets.dart';
 import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/visuals.dart';
 
-enum DamageType { physical, magic, fire, psychic, energy, frost, healing }
+enum DamageType {
+  physical,
+  magic,
+  fire,
+  psychic,
+  energy,
+  frost,
+  healing;
+
+  static Iterable<DamageType> get getValuesWithoutHealing =>
+      values.where((element) => element != DamageType.healing);
+}
 
 extension DamageTypeExtension on DamageType {
   Color get color {
@@ -49,44 +61,16 @@ extension DamageTypeExtension on DamageType {
   }
 
   List<(double, String)> buildElementalPowerBonus() {
-    final returnList = <(double, String)>[];
-
-    switch (this) {
-      case DamageType.physical:
-        returnList.addAll([]);
-        break;
-      case DamageType.energy:
-        returnList.addAll([]);
-        break;
-      case DamageType.psychic:
-        returnList.addAll([]);
-        break;
-      case DamageType.magic:
-        returnList.addAll([]);
-        break;
-      case DamageType.fire:
-        returnList.addAll([
-          (
-            .6,
-            'Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt.'
-          ),
-          (
-            .25,
-            'Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt.'
-          ),
-          (
-            .1,
-            'Fire spreads, when an enemy dies from a fire-based attack, nearby enemies may get burnt.'
-          ),
-        ]);
-        break;
-      case DamageType.frost:
-        returnList.addAll([]);
-        break;
-      default:
-    }
-
-    return returnList;
+    return [
+      for (final attribute in AttributeType.values.where(
+        (element) =>
+            element.autoAssigned && element.elementalRequirement.contains(this),
+      ))
+        (
+          attribute.elementalRequirementValue(this),
+          attribute.buildAttribute(0, null, builtForInfo: true).description()
+        ),
+    ]..sort((b, a) => a.$1.compareTo(b.$1));
   }
 }
 
@@ -123,7 +107,7 @@ class ElementalPowerListDisplay extends StatelessWidget {
                     height: straints.maxHeight * powerLevel,
                     // color: damageType.color,
                     width: 50,
-                    child: ElementalPowerBack(damageType),
+                    child: ElementalPowerBack(damageType, powerLevel),
                   ),
                 ],
               );
@@ -161,7 +145,9 @@ class ElementalPowerListDisplay extends StatelessWidget {
                                   ),
                                   Text(
                                     '${element.$1 * 100}%',
-                                    style: style,
+                                    style: style.copyWith(
+                                      fontSize: style.fontSize! / 1.5,
+                                    ),
                                   ),
                                 ],
                               ),

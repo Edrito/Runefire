@@ -492,17 +492,20 @@ DamageInstance damageCalculations(
   StatusEffects? statusEffect,
 }) {
   final returnMap = <DamageType, double>{};
-  damageBase = {...damageBase, ...source.flatDamageIncrease.damageFlatIncrease};
+  final modifiedDamageBase = {
+    ...damageBase,
+    ...source.flatDamageIncrease.damageFlatIncrease,
+  };
 
   for (final element in source.flatDamageIncrease.damageFlatIncrease.entries) {
-    damageBase.update(
+    modifiedDamageBase.update(
       element.key,
       (value) => (value.$1 + element.value.$1, value.$2 + element.value.$2),
       ifAbsent: () => element.value,
     );
   }
 
-  for (final element in damageBase.entries) {
+  for (final element in modifiedDamageBase.entries) {
     var min = element.value.$1;
     var max = element.value.$2;
 
@@ -577,7 +580,7 @@ DamageInstance damageCalculations(
         damageKindIncrease,
   );
 
-  returnInstance.checkCrit(forceCrit);
+  returnInstance.checkCrit(force: forceCrit);
 
   return returnInstance;
 }

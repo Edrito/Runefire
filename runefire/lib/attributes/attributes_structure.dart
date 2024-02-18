@@ -1,8 +1,14 @@
 import 'dart:async';
 
+import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:runefire/attributes/attributes_elemental/base.dart';
 import 'package:runefire/attributes/attributes_perpetrator.dart';
+import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/constants/constants.dart';
+import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
@@ -65,19 +71,25 @@ enum AttributeCategory {
   utility,
 }
 
-enum AttributeTerritory { permanent, game, temporary }
+enum AttributeTerritory { permanent, game, statusEffect, passive }
 
 enum AttributeType {
   //Debuffs
-  burn(territory: AttributeTerritory.temporary),
-  bleed(territory: AttributeTerritory.temporary),
-  chill(territory: AttributeTerritory.temporary),
-  electrified(territory: AttributeTerritory.temporary),
-  stun(territory: AttributeTerritory.temporary),
-  psychic(territory: AttributeTerritory.temporary),
-  fear(territory: AttributeTerritory.temporary),
-  empowered(territory: AttributeTerritory.temporary),
-  marked(territory: AttributeTerritory.temporary),
+  burn(territory: AttributeTerritory.statusEffect),
+  bleed(territory: AttributeTerritory.statusEffect),
+
+  chill(territory: AttributeTerritory.statusEffect),
+  electrified(territory: AttributeTerritory.statusEffect),
+  slow(territory: AttributeTerritory.statusEffect),
+
+  stun(territory: AttributeTerritory.statusEffect),
+  confused(territory: AttributeTerritory.statusEffect),
+
+  frozen(territory: AttributeTerritory.statusEffect),
+
+  fear(territory: AttributeTerritory.statusEffect),
+  empowered(territory: AttributeTerritory.statusEffect),
+  marked(territory: AttributeTerritory.statusEffect),
 
   //Permanent
   areaSizePermanent,
@@ -499,6 +511,43 @@ enum AttributeType {
     territory: AttributeTerritory.game,
   ),
 
+  //Elemental
+
+  //Fire
+  fireIncreaseDamage(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.fire: .25,
+    },
+  ),
+  chanceToBurnNeighbouringEnemies(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.fire: .5,
+    },
+  ),
+  killFireEmpower(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.fire: .75,
+    },
+  ),
+
+  chanceToRevive(
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.fire: 1,
+    },
+  ),
+
   slugTrail(
     rarity: AttributeRarity.uncommon,
     category: AttributeCategory.offence,
@@ -510,10 +559,12 @@ enum AttributeType {
     this.rarity = AttributeRarity.standard,
     this.category = AttributeCategory.utility,
     this.territory = AttributeTerritory.permanent,
+    // ignore: unused_element
+    this.autoAssigned = false,
 
     ///A higher priority means the attribute will be processed last
     this.priority = 0,
-    bool Function(Player) attributeEligibilityTest =
+    bool Function(Entity) attributeEligibilityTest =
         defaultAttributeEligibilityTest,
     // ignore: unused_element
     Map<DamageType, double>? elementalRequirement,
@@ -523,6 +574,7 @@ enum AttributeType {
   final AttributeRarity rarity;
   final AttributeCategory category;
   final AttributeTerritory territory;
+  final bool autoAssigned;
   final int priority;
   final AttributeEligibilityTest _attributeEligibilityTest;
   final Map<DamageType, double>? _elementalRequirement;
@@ -531,6 +583,12 @@ enum AttributeType {
       _elementalRequirement?.keys.toList() ?? [];
 
   bool get requiresElementalPower => _elementalRequirement != null;
+
+  double elementalRequirementValue(DamageType damageType) {
+    return _elementalRequirement?[damageType] ?? 0;
+  }
+
+  String get icon => 'attributes/$name';
 
   bool attributeMeetsForcedElementalRequest(
     Player player,
@@ -557,99 +615,94 @@ enum AttributeType {
         _elementalRequirement!.length < 2;
   }
 
-  bool isEligible(Player player) {
+  bool isEligible(Entity entity) {
     if (_elementalRequirement != null) {
-      final playerElementalLevel = player.elementalPower;
-      var elementalRequirementMet = true;
-      for (final element in _elementalRequirement!.entries) {
-        //current player power level
-        final playerEntry = playerElementalLevel[element.key];
-        //if player has no power or not enough power from previous loop, return [false]
-        if (playerEntry == null || !elementalRequirementMet) {
-          return false;
-        } else {
-          elementalRequirementMet =
-              elementalRequirementMet && playerEntry >= element.value;
-        }
+      final playerElementalLevel = entity.elementalPower;
+
+      //remade using .any
+      if (_elementalRequirement!.keys.any((element) =>
+          playerElementalLevel[element] == null ||
+          playerElementalLevel[element]! < _elementalRequirement![element]!,)) {
+        return false;
       }
     }
 
-    return _attributeEligibilityTest(player);
+    return _attributeEligibilityTest(entity);
   }
 }
 
-bool teleportDashTest(Player player) {
-  return player.currentAttributes
-              .containsKey(AttributeType.dashSpeedDistance) &&
-          player.currentAttributes.containsKey(AttributeType.dashAttackEmpower)
+bool teleportDashTest(Entity player) {
+  return player is AttributeFunctionality &&
+          player.hasAttribute(AttributeType.dashSpeedDistance) &&
+          player.hasAttribute(AttributeType.dashAttackEmpower)
       //  &&
       // player.currentAttributes.containsKey(AttributeType.invincibleDashing)
       ;
 }
 
-bool standStillTest(Player player) {
-  return player.currentAttributes
-          .containsKey(AttributeType.damageStandStillIncrease) &&
-      player.currentAttributes
-          .containsKey(AttributeType.defenceStandStillIncrease) &&
-      player.currentAttributes
-          .containsKey(AttributeType.dodgeStandStillIncrease);
+bool standStillTest(Entity player) {
+  return player is AttributeFunctionality &&
+      player.hasAttribute(AttributeType.damageStandStillIncrease) &&
+      player.hasAttribute(AttributeType.defenceStandStillIncrease) &&
+      player.hasAttribute(AttributeType.dodgeStandStillIncrease);
 }
 
-bool sentryCombinationTest(Player player) {
-  if (player.currentAttributes.containsKey(AttributeType.sentryCombination) ||
-      player.currentAttributes.containsKey(AttributeType.mirrorOrb)) {
+bool sentryCombinationTest(Entity player) {
+  if (player is! AttributeFunctionality) return false;
+  if (player.hasAttribute(AttributeType.sentryCombination) ||
+      player.hasAttribute(AttributeType.mirrorOrb)) {
     return false;
   }
 
   var good = 0;
-  if (player.currentAttributes.containsKey(AttributeType.sentryRangedAttack)) {
+  if (player.hasAttribute(AttributeType.sentryRangedAttack)) {
     good++;
   }
-  if (player.currentAttributes.containsKey(AttributeType.sentryGrabItems)) {
+  if (player.hasAttribute(AttributeType.sentryGrabItems)) {
     good++;
   }
-  if (player.currentAttributes.containsKey(AttributeType.sentryMarkEnemy)) {
+  if (player.hasAttribute(AttributeType.sentryMarkEnemy)) {
     good++;
   }
-  if (player.currentAttributes.containsKey(AttributeType.sentryElementalFly)) {
+  if (player.hasAttribute(AttributeType.sentryElementalFly)) {
     good++;
   }
 
   return good > 2;
 }
 
-bool negativeCombinePulseTest(Player player) {
-  return !player.currentAttributes
-      .containsKey(AttributeType.combinePeriodicPulse);
+bool negativeCombinePulseTest(Entity player) {
+  if (player is! AttributeFunctionality) return false;
+  return !player.hasAttribute(AttributeType.combinePeriodicPulse);
 }
 
-bool playerIsReloadFunctionality(Player player) {
+bool playerIsReloadFunctionality(Entity player) {
   return player is ReloadFunctionality;
 }
 
-bool combinePulseTest(Player player) {
-  return player.currentAttributes
-          .containsKey(AttributeType.periodicMagicPulse) &&
-      player.currentAttributes.containsKey(AttributeType.periodicPush) &&
-      player.currentAttributes.containsKey(AttributeType.periodicStun);
+bool combinePulseTest(Entity player) {
+  if (player is! AttributeFunctionality) return false;
+  return player.hasAttribute(AttributeType.periodicMagicPulse) &&
+      player.hasAttribute(AttributeType.periodicPush) &&
+      player.hasAttribute(AttributeType.periodicStun);
 }
 
-bool playerHasMeleeWeapon(Player player) {
+bool playerHasMeleeWeapon(Entity player) {
+  if (player is! AttackFunctionality) return false;
   return player.carriedWeapons.any((element) => element is MeleeFunctionality);
 }
 
-bool playerHasProjectileWeapon(Player player) {
+bool playerHasProjectileWeapon(Entity player) {
   return player
       .getAllWeaponItems(false, true)
       .any((element) => element is ProjectileFunctionality);
 }
 
-bool defaultAttributeEligibilityTest(Player _) {
+bool defaultAttributeEligibilityTest(Entity _) {
   return true;
 }
 
-typedef AttributeEligibilityTest = bool Function(Player player);
+typedef AttributeEligibilityTest = bool Function(Entity player);
 
 extension AllAttributesExtension on AttributeType {
   Attribute buildAttribute(
@@ -659,13 +712,27 @@ extension AllAttributesExtension on AttributeType {
     DamageType? damageType,
     bool isTemporary = false,
     double? duration,
+    bool builtForInfo = false,
   }) {
+    if (isTemporary) {
+      final managedAttribute = buildAttribute(
+        level,
+        victimEntity,
+        perpetratorEntity: perpetratorEntity,
+        damageType: damageType,
+        builtForInfo: builtForInfo,
+      );
+      return TemporaryAttribute(
+        managedAttribute: managedAttribute,
+        duration: duration ?? 4,
+      );
+    }
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);
     if (permanentAttr != null) {
       return permanentAttr;
     }
 
-    if (victimEntity == null) {
+    if (victimEntity == null && !builtForInfo) {
       throw Exception('Victim entity required for $this!');
     }
 
@@ -675,8 +742,14 @@ extension AllAttributesExtension on AttributeType {
     if (regularAttr != null) {
       return regularAttr;
     }
+    final elementalAttr =
+        damageTypeAttributeBuilder(this, level, victimEntity, damageType);
 
-    if (perpetratorEntity == null) {
+    if (elementalAttr != null) {
+      return elementalAttr;
+    }
+
+    if (perpetratorEntity == null && !builtForInfo) {
       throw Exception('Perpetrator entity required for $this!');
     }
 
@@ -696,8 +769,6 @@ extension AllAttributesExtension on AttributeType {
       level,
       victimEntity,
       perpetratorEntity: perpetratorEntity,
-      isTemporary: isTemporary,
-      duration: duration,
     );
 
     if (statusEffectAttr != null) {
@@ -727,6 +798,8 @@ abstract class Attribute extends UpgradeFunctions {
   }
 
   double get elementalWeighting => .025;
+
+  bool reApplyOnAddition = true;
 
   @override
   void removeUpgrade() {
@@ -764,7 +837,7 @@ abstract class Attribute extends UpgradeFunctions {
 
   Set<DamageType> allowedDamageTypes = {};
 
-  bool get isTemporary => this is TemporaryAttribute;
+  // bool get isTemporary => this is TemporaryAttribute;
   AttributeTerritory get attributeTerritory => attributeType.territory;
 
   String description() {
@@ -799,7 +872,23 @@ abstract class Attribute extends UpgradeFunctions {
   }
 
   late String attributeId;
-  abstract String icon;
+
+  String get icon {
+    if (_iconExists()) {
+      return attributeType.icon;
+    } else {
+      return defaultIconLocation;
+    }
+  }
+
+  bool _iconExists() {
+    return assetExists('assets/images/${attributeType.icon}');
+  }
+
+  Future<Sprite> get sprite {
+    return Sprite.load(icon);
+  }
+
   abstract String title;
   abstract bool increaseFromBaseParameter;
   AttributeFunctionality? victimEntity;

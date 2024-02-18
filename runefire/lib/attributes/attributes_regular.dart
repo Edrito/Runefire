@@ -22,7 +22,7 @@ import 'package:runefire/resources/enums.dart';
 Attribute? regularAttributeBuilder(
   AttributeType type,
   int level,
-  AttributeFunctionality victimEntity,
+  AttributeFunctionality? victimEntity,
   DamageType? damageType,
 ) {
   switch (type) {
@@ -184,22 +184,27 @@ Attribute? regularAttributeBuilder(
       );
     case AttributeType.reloadPush:
       return ReloadPushAttribute(level: level, victimEntity: victimEntity);
+
     case AttributeType.focus:
       return FocusAttribute(level: level, victimEntity: victimEntity);
-    case AttributeType.battleScars:
-      return BattleScarsAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.sonicWave:
       return SonicWaveAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.daggerSwing:
       return DaggerSwingAttribute(level: level, victimEntity: victimEntity);
-    case AttributeType.forbiddenMagic:
-      return ForbiddenMagicAttribute(level: level, victimEntity: victimEntity);
-    case AttributeType.glassWand:
-      return GlassWandAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.chainingAttacks:
       return ChainingAttacksAttribute(level: level, victimEntity: victimEntity);
     case AttributeType.homingProjectiles:
       return ChainingAttacksAttribute(level: level, victimEntity: victimEntity);
+
+    ///DIFFERENT
+
+    case AttributeType.battleScars:
+      return BattleScarsAttribute(level: level, victimEntity: victimEntity);
+
+    case AttributeType.forbiddenMagic:
+      return ForbiddenMagicAttribute(level: level, victimEntity: victimEntity);
+    case AttributeType.glassWand:
+      return GlassWandAttribute(level: level, victimEntity: victimEntity);
 
     case AttributeType.heavyHitter:
       return HeavyHitterAttribute(level: level, victimEntity: victimEntity);
@@ -275,26 +280,24 @@ class ExplosionOnKillAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.explosionOnKill;
+  double baseSize = 1;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.explosionOnKill;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes =>
-      {DamageType.fire, DamageType.frost, DamageType.energy};
+  String title = 'Exploding enemies!';
 
-  @override
-  int get maxLevel => 3;
-
-  double baseSize = 1;
+  late double chance;
 
   Future<void> onKill(DamageInstance damage) async {
     if (victimEntity == null) {
+      return;
+    }
+    if (rng.nextDouble() > chance) {
       return;
     }
     final explosion = AreaEffect(
@@ -314,33 +317,38 @@ class ExplosionOnKillAttribute extends Attribute {
   }
 
   @override
-  void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
-      return;
-    }
-    final attributeFunctions = victimEntity! as AttributeCallbackFunctionality;
-    attributeFunctions.onKillOtherEntity.add(onKill);
-  }
-
-  @override
-  void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
-      return;
-    }
-    final attributeFunctions = victimEntity! as AttributeCallbackFunctionality;
-    attributeFunctions.onKillOtherEntity.remove(onKill);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Exploding enemies!';
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.frost, DamageType.energy};
 
   @override
   String description() {
     return 'Something in that ammunition...';
   }
+
+  @override
+  void mapUpgrade() {
+    chance = increasePercentOfBase(.1, includeBase: true).toDouble();
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final attributeFunctions =
+          victimEntity! as AttributeCallbackFunctionality;
+      attributeFunctions.onKillOtherEntity.add(onKill);
+    }
+  }
+
+  @override
+  int get maxLevel => 3;
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final attributeFunctions =
+          victimEntity! as AttributeCallbackFunctionality;
+      attributeFunctions.onKillOtherEntity.remove(onKill);
+    }
+  }
+
+  @override
+  double get upgradeFactor => .25;
 }
 
 class ExplosiveDashAttribute extends Attribute {
@@ -350,23 +358,16 @@ class ExplosiveDashAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.explosiveDash;
+  double baseSize = 1;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.explosiveDash;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes =>
-      {DamageType.fire, DamageType.frost, DamageType.psychic};
-
-  @override
-  int get maxLevel => 3;
-
-  double baseSize = 1;
+  String title = 'Explosive Dash!';
 
   Future<void> onDash() async {
     if (victimEntity == null) {
@@ -390,6 +391,15 @@ class ExplosiveDashAttribute extends Attribute {
   }
 
   @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.frost, DamageType.psychic};
+
+  @override
+  String description() {
+    return 'Something in those beans...';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -397,6 +407,9 @@ class ExplosiveDashAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.dashBeginFunctions.add(onDash);
   }
+
+  @override
+  int get maxLevel => 3;
 
   @override
   void unMapUpgrade() {
@@ -408,15 +421,7 @@ class ExplosiveDashAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Explosive Dash!';
-
-  @override
-  String description() {
-    return 'Something in those beans...';
-  }
+  double get upgradeFactor => .25;
 }
 
 class GravityDashAttribute extends Attribute {
@@ -426,19 +431,16 @@ class GravityDashAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.gravityDash;
+  double baseSize = 4;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.gravityDash;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 3;
-
-  double baseSize = 4;
+  String title = 'Gravity Dash!';
 
   Future<void> onDash() async {
     if (victimEntity == null) {
@@ -461,6 +463,11 @@ class GravityDashAttribute extends Attribute {
   }
 
   @override
+  String description() {
+    return 'Something in those quantum equations...';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -468,6 +475,9 @@ class GravityDashAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.dashBeginFunctions.add(onDash);
   }
+
+  @override
+  int get maxLevel => 3;
 
   @override
   void unMapUpgrade() {
@@ -479,15 +489,7 @@ class GravityDashAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Gravity Dash!';
-
-  @override
-  String description() {
-    return 'Something in those quantum equations...';
-  }
+  double get upgradeFactor => .25;
 }
 
 class GroundSlamAttribute extends Attribute {
@@ -497,23 +499,16 @@ class GroundSlamAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.groundSlam;
+  double baseSize = 4;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.groundSlam;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes =>
-      {DamageType.physical, DamageType.magic};
-
-  @override
-  int get maxLevel => 3;
-
-  double baseSize = 4;
+  String title = 'Ground Slam!';
 
   Future<void> onJump() async {
     if (victimEntity == null) {
@@ -536,6 +531,15 @@ class GroundSlamAttribute extends Attribute {
   }
 
   @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.physical, DamageType.magic};
+
+  @override
+  String description() {
+    return 'Apprentice, bring me another Eclair!';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -543,6 +547,9 @@ class GroundSlamAttribute extends Attribute {
     final dashFunc = victimEntity! as AttributeCallbackFunctionality;
     dashFunc.jumpEndFunctions.add(onJump);
   }
+
+  @override
+  int get maxLevel => 3;
 
   @override
   void unMapUpgrade() {
@@ -554,15 +561,7 @@ class GroundSlamAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Ground Slam!';
-
-  @override
-  String description() {
-    return 'Apprentice, bring me another Eclair!';
-  }
+  double get upgradeFactor => .25;
 }
 
 class PsychicReachAttribute extends Attribute {
@@ -572,22 +571,24 @@ class PsychicReachAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.psychicReach;
+  List<SourceAttackLocation?> previousLocations = [];
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.psychicReach;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
+  String title = 'Psychic Reach';
+
+  @override
   Set<DamageType> get allowedDamageTypes => {};
 
   @override
-  int get maxLevel => 1;
-
-  List<SourceAttackLocation?> previousLocations = [];
+  String description() {
+    return 'Use your mind to swing your weapons even further!';
+  }
 
   @override
   void mapUpgrade() {
@@ -609,6 +610,9 @@ class PsychicReachAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttackFunctionality) {
       return;
@@ -627,15 +631,7 @@ class PsychicReachAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Psychic Reach';
-
-  @override
-  String description() {
-    return 'Use your mind to swing your weapons even further!';
-  }
+  double get upgradeFactor => .25;
 }
 
 class PeriodicPushAttribute extends Attribute {
@@ -645,23 +641,17 @@ class PeriodicPushAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.periodicPush;
+  double baseOomph = 8;
+  double baseSize = 5;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.periodicPush;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 5;
-  double baseOomph = 8;
+  String title = 'Periodic Push';
 
   @override
   Future<void> action() async {
@@ -692,6 +682,14 @@ class PeriodicPushAttribute extends Attribute {
   }
 
   @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  @override
+  String description() {
+    return 'Periodically push enemies away from you!';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -699,6 +697,9 @@ class PeriodicPushAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.addPulseFunction(action);
   }
+
+  @override
+  int get maxLevel => 2;
 
   @override
   void unMapUpgrade() {
@@ -709,15 +710,7 @@ class PeriodicPushAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Periodic Push';
-
-  @override
-  String description() {
-    return 'Periodically push enemies away from you!';
-  }
+  double get upgradeFactor => .25;
 }
 
 class PeriodicMagicPulseAttribute extends Attribute {
@@ -727,22 +720,16 @@ class PeriodicMagicPulseAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.periodicMagicPulse;
+  double baseSize = 4;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.periodicMagicPulse;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
+  String title = 'Magic Pulse';
 
   @override
   Future<void> action() async {
@@ -767,6 +754,14 @@ class PeriodicMagicPulseAttribute extends Attribute {
   }
 
   @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  @override
+  String description() {
+    return 'The power of the arcane flows through you, maybe a little too much though...';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -774,6 +769,9 @@ class PeriodicMagicPulseAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.addPulseFunction(action);
   }
+
+  @override
+  int get maxLevel => 2;
 
   @override
   void unMapUpgrade() {
@@ -785,15 +783,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Magic Pulse';
-
-  @override
-  String description() {
-    return 'The power of the arcane flows through you, maybe a little too much though...';
-  }
+  double get upgradeFactor => .25;
 }
 
 // aaa
@@ -804,22 +794,16 @@ class PeriodicStunAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.periodicStun;
+  double baseSize = 4;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.periodicStun;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
+  String title = 'Stun Pulse';
 
   @override
   Future<void> action() async {
@@ -848,6 +832,14 @@ class PeriodicStunAttribute extends Attribute {
   }
 
   @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  @override
+  String description() {
+    return 'Stun your enemies!';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -855,6 +847,9 @@ class PeriodicStunAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.addPulseFunction(action);
   }
+
+  @override
+  int get maxLevel => 2;
 
   @override
   void unMapUpgrade() {
@@ -866,15 +861,7 @@ class PeriodicStunAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Stun Pulse';
-
-  @override
-  String description() {
-    return 'Stun your enemies!';
-  }
+  double get upgradeFactor => .25;
 }
 
 // aaa
@@ -885,24 +872,17 @@ class CombinePeriodicPulseAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.combinePeriodicPulse;
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.combinePeriodicPulse;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  List<Attribute> pulseAttributes = [];
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
+  String title = 'Combined pulse';
 
   @override
   Future<void> action() async {
@@ -943,6 +923,14 @@ class CombinePeriodicPulseAttribute extends Attribute {
   }
 
   @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  @override
+  String description() {
+    return 'Concentrate your magic into a singular powerful pulse!';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -950,11 +938,9 @@ class CombinePeriodicPulseAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
 
     final periodicMagicPulse =
-        victimEntity?.currentAttributes[AttributeType.periodicMagicPulse];
-    final periodicPush =
-        victimEntity?.currentAttributes[AttributeType.periodicPush];
-    final periodicStun =
-        victimEntity?.currentAttributes[AttributeType.periodicStun];
+        victimEntity?.getAttribute(AttributeType.periodicMagicPulse);
+    final periodicPush = victimEntity?.getAttribute(AttributeType.periodicPush);
+    final periodicStun = victimEntity?.getAttribute(AttributeType.periodicStun);
 
     attr.addPulseFunction(action);
 
@@ -964,6 +950,9 @@ class CombinePeriodicPulseAttribute extends Attribute {
       if (periodicStun != null) periodicStun..unMapUpgrade(),
     ]);
   }
+
+  @override
+  int get maxLevel => 2;
 
   @override
   void unMapUpgrade() {
@@ -978,15 +967,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Combined pulse';
-
-  @override
-  String description() {
-    return 'Concentrate your magic into a singular powerful pulse!';
-  }
+  double get upgradeFactor => .25;
 }
 
 // aaa
@@ -997,27 +978,28 @@ class IncreaseExperienceGrabAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.increaseXpGrabRadius;
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.increaseXpGrabRadius;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  List<Attribute> pulseAttributes = [];
-
-  @override
-  int get maxLevel => 1;
-
-  double baseSize = 4;
+  String title = 'Increase experience grab radius';
 
   @override
   Future<void> action() async {}
+
+  @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  @override
+  String description() {
+    return 'Double experience grab radius';
+  }
 
   @override
   void mapUpgrade() {
@@ -1030,6 +1012,9 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! Player) {
       return;
@@ -1040,15 +1025,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Increase experience grab radius';
-
-  @override
-  String description() {
-    return 'Double experience grab radius';
-  }
+  double get upgradeFactor => .25;
 }
 
 class MarkSentryAttribute extends Attribute {
@@ -1058,29 +1035,29 @@ class MarkSentryAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.sentryMarkEnemy;
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.sentryMarkEnemy;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  List<Attribute> pulseAttributes = [];
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  @override
+  String description() {
+    return 'Mark enemies for crit';
+  }
 
   @override
   void mapUpgrade() {
@@ -1100,6 +1077,9 @@ class MarkSentryAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1112,15 +1092,7 @@ class MarkSentryAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Mark enemies for crit';
-  }
+  double get upgradeFactor => .25;
 }
 
 class RangedAttackSentryAttribute extends Attribute {
@@ -1130,30 +1102,30 @@ class RangedAttackSentryAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.sentryRangedAttack;
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.sentryRangedAttack;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes =>
-      {DamageType.fire, DamageType.frost, DamageType.energy, DamageType.magic};
-
-  List<Attribute> pulseAttributes = [];
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.frost, DamageType.energy, DamageType.magic};
+
+  @override
+  String description() {
+    return 'Periodically attack enemies';
+  }
 
   @override
   void mapUpgrade() {
@@ -1173,6 +1145,9 @@ class RangedAttackSentryAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1185,15 +1160,7 @@ class RangedAttackSentryAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Periodically attack enemies';
-  }
+  double get upgradeFactor => .25;
 }
 
 class GrabItemsSentryAttribute extends Attribute {
@@ -1203,29 +1170,29 @@ class GrabItemsSentryAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.sentryGrabItems;
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.sentryGrabItems;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  List<Attribute> pulseAttributes = [];
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  Set<DamageType> get allowedDamageTypes => {};
+
+  @override
+  String description() {
+    return 'Grab dropped items scattered across the world';
+  }
 
   @override
   void mapUpgrade() {
@@ -1245,6 +1212,9 @@ class GrabItemsSentryAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1257,15 +1227,7 @@ class GrabItemsSentryAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Grab dropped items scattered across the world';
-  }
+  double get upgradeFactor => .25;
 }
 
 class ElementalSentryAttribute extends Attribute {
@@ -1275,30 +1237,30 @@ class ElementalSentryAttribute extends Attribute {
     super.damageType,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.sentryElementalFly;
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.sentryElementalFly;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes =>
-      {DamageType.fire, DamageType.psychic};
-
-  List<Attribute> pulseAttributes = [];
-
-  @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.psychic};
+
+  @override
+  String description() {
+    return 'Attacks enemies';
+  }
 
   @override
   void mapUpgrade() {
@@ -1319,6 +1281,9 @@ class ElementalSentryAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1331,15 +1296,7 @@ class ElementalSentryAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Attacks enemies';
-  }
+  double get upgradeFactor => .25;
 }
 
 class CaptureBulletSentryAttribute extends Attribute {
@@ -1348,26 +1305,26 @@ class CaptureBulletSentryAttribute extends Attribute {
     required super.victimEntity,
   });
 
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
+
   @override
   AttributeType attributeType = AttributeType.sentryCaptureBullet;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
-  List<Attribute> pulseAttributes = [];
-
   @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  String description() {
+    return 'Redirect';
+  }
 
   @override
   void mapUpgrade() {
@@ -1387,6 +1344,9 @@ class CaptureBulletSentryAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1399,40 +1359,32 @@ class CaptureBulletSentryAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Redirect';
-  }
+  double get upgradeFactor => .25;
 }
 
 class MirrorOrbAttribute extends Attribute {
   MirrorOrbAttribute({required super.level, required super.victimEntity});
 
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
+
   @override
   AttributeType attributeType = AttributeType.mirrorOrb;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
-  List<Attribute> pulseAttributes = [];
-
   @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  String description() {
+    return 'Redirect';
+  }
 
   @override
   void mapUpgrade() {
@@ -1454,6 +1406,9 @@ class MirrorOrbAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1466,40 +1421,32 @@ class MirrorOrbAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Redirect';
-  }
+  double get upgradeFactor => .25;
 }
 
 class ShieldSentryAttribute extends Attribute {
   ShieldSentryAttribute({required super.level, required super.victimEntity});
 
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
+
   @override
   AttributeType attributeType = AttributeType.shieldSurround;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
-  List<Attribute> pulseAttributes = [];
-
   @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  String description() {
+    return 'Shield';
+  }
 
   @override
   void mapUpgrade() {
@@ -1521,6 +1468,9 @@ class ShieldSentryAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1533,40 +1483,32 @@ class ShieldSentryAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Shield';
-  }
+  double get upgradeFactor => .25;
 }
 
 class SwordSentryAttribute extends Attribute {
   SwordSentryAttribute({required super.level, required super.victimEntity});
 
+  double baseSize = 4;
+  List<Attribute> pulseAttributes = [];
+  List<ChildEntity> sentries = [];
+
   @override
   AttributeType attributeType = AttributeType.swordSurround;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
-  List<Attribute> pulseAttributes = [];
-
   @override
-  int get maxLevel => 2;
-
-  double baseSize = 4;
-
-  List<ChildEntity> sentries = [];
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  String description() {
+    return 'Shield';
+  }
 
   @override
   void mapUpgrade() {
@@ -1588,6 +1530,9 @@ class SwordSentryAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -1600,15 +1545,7 @@ class SwordSentryAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Shield';
-  }
+  double get upgradeFactor => .25;
 }
 
 class ReverseKnockbackAttribute extends Attribute {
@@ -1621,16 +1558,18 @@ class ReverseKnockbackAttribute extends Attribute {
   AttributeType attributeType = AttributeType.reverseKnockback;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  String description() {
+    return 'Reverse Knockback';
+  }
 
   @override
   void mapUpgrade() {
@@ -1639,20 +1578,15 @@ class ReverseKnockbackAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.knockBackIncreaseParameter.removeKey(attributeId);
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Reverse Knockback';
-  }
+  double get upgradeFactor => .25;
 }
 
 class ProjectileSplitExplodeAttribute extends Attribute {
@@ -1661,24 +1595,19 @@ class ProjectileSplitExplodeAttribute extends Attribute {
     required super.victimEntity,
   });
 
-  @override
-  AttributeType attributeType = AttributeType.projectileSplitExplode;
+  double cooldown = 3;
+  int count = 6;
+
+  TimerComponent? cooldownTimer;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.projectileSplitExplode;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
-
-  @override
-  Future<void> action() async {}
-
-  double cooldown = 3;
-  TimerComponent? cooldownTimer;
-  int count = 6;
+  String title = 'Keep a watchful eye';
 
   void projectileExplode(Projectile projectile) {
     if (cooldownTimer != null || projectile.hitIds.isEmpty) {
@@ -1718,6 +1647,14 @@ class ProjectileSplitExplodeAttribute extends Attribute {
   }
 
   @override
+  Future<void> action() async {}
+
+  @override
+  String description() {
+    return 'Projectile explode';
+  }
+
+  @override
   void mapUpgrade() {
     applyActionToWeapons(
       (weapon) {
@@ -1731,6 +1668,9 @@ class ProjectileSplitExplodeAttribute extends Attribute {
       true,
     );
   }
+
+  @override
+  int get maxLevel => 1;
 
   @override
   void unMapUpgrade() {
@@ -1747,31 +1687,25 @@ class ProjectileSplitExplodeAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Projectile explode';
-  }
+  double get upgradeFactor => .25;
 }
 
 abstract class StandStillAttribute extends Attribute {
   StandStillAttribute({required super.level, required super.victimEntity});
 
-  @override
-  Future<void> action() async {}
-
+  late TimerComponent checkTimer;
   double checkTimerDuration = .3;
   double delay = 3;
-  late TimerComponent checkTimer;
-  TimerComponent? delayTimer;
   bool isMapped = false;
   double notMovingSpeed = .01;
 
+  TimerComponent? delayTimer;
+
   void applyStandStillEffect(bool apply);
+
+  void dashFunction() {
+    mapDodgeIncrease(false);
+  }
 
   void mapDodgeIncrease(bool apply) {
     if (apply) {
@@ -1785,6 +1719,9 @@ abstract class StandStillAttribute extends Attribute {
       isMapped = false;
     }
   }
+
+  @override
+  Future<void> action() async {}
 
   @override
   void mapUpgrade() {
@@ -1818,10 +1755,6 @@ abstract class StandStillAttribute extends Attribute {
     }
   }
 
-  void dashFunction() {
-    mapDodgeIncrease(false);
-  }
-
   @override
   void unMapUpgrade() {
     checkTimer.timer.stop();
@@ -1845,13 +1778,10 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
   AttributeType attributeType = AttributeType.dodgeStandStillIncrease;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
   @override
   void applyStandStillEffect(bool apply) {
@@ -1869,15 +1799,15 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
   String description() {
     return 'Dodge increase stand still';
   }
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  double get upgradeFactor => .25;
 }
 
 class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
@@ -1890,13 +1820,10 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
   AttributeType attributeType = AttributeType.defenceStandStillIncrease;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
@@ -1916,15 +1843,15 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
   String description() {
     return 'Defence increase stand still';
   }
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  double get upgradeFactor => .25;
 }
 
 class DamageIncreaseStandStillAttribute extends StandStillAttribute {
@@ -1937,13 +1864,10 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   AttributeType attributeType = AttributeType.damageStandStillIncrease;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
@@ -1959,15 +1883,15 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
   String description() {
     return 'Damage increase stand still';
   }
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  double get upgradeFactor => .25;
 }
 
 // class InvincibleDashAttribute extends Attribute {
@@ -2024,16 +1948,18 @@ class DashSpeedDistanceAttribute extends Attribute {
   AttributeType attributeType = AttributeType.dashSpeedDistance;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {}
+
+  @override
+  String description() {
+    return 'Dash distance speed';
+  }
 
   @override
   void mapUpgrade() {
@@ -2046,6 +1972,9 @@ class DashSpeedDistanceAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! DashFunctionality) {
       return;
@@ -2056,15 +1985,7 @@ class DashSpeedDistanceAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Dash distance speed';
-  }
+  double get upgradeFactor => .25;
 }
 
 class DashAttackEmpowerAttribute extends Attribute {
@@ -2077,13 +1998,10 @@ class DashAttackEmpowerAttribute extends Attribute {
   AttributeType attributeType = AttributeType.dashAttackEmpower;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
   @override
   Future<void> action() async {
@@ -2092,6 +2010,11 @@ class DashAttackEmpowerAttribute extends Attribute {
       isTemporary: true,
       perpetratorEntity: victimEntity,
     );
+  }
+
+  @override
+  String description() {
+    return 'Empower dash attack';
   }
 
   @override
@@ -2104,6 +2027,9 @@ class DashAttackEmpowerAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -2113,15 +2039,7 @@ class DashAttackEmpowerAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Empower dash attack';
-  }
+  double get upgradeFactor => .25;
 }
 
 class TeleportDashAttribute extends Attribute {
@@ -2131,13 +2049,15 @@ class TeleportDashAttribute extends Attribute {
   AttributeType attributeType = AttributeType.teleportDash;
 
   @override
-  double get upgradeFactor => .25;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
+
+  @override
+  String description() {
+    return 'Teleport';
+  }
 
   @override
   void mapUpgrade() {
@@ -2149,6 +2069,9 @@ class TeleportDashAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! DashFunctionality) {
       return;
@@ -2158,19 +2081,13 @@ class TeleportDashAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Teleport';
-  }
+  double get upgradeFactor => .25;
 }
 
 class WeaponMergeAttribute extends Attribute {
   WeaponMergeAttribute({required super.level, required super.victimEntity});
+
+  List<Weapon> movedWeapons = [];
 
   @override
   AttributeType attributeType = AttributeType.weaponMerge;
@@ -2182,9 +2099,12 @@ class WeaponMergeAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Merge Weapons';
 
-  List<Weapon> movedWeapons = [];
+  @override
+  String description() {
+    return 'Merge Weapons';
+  }
 
   @override
   void mapUpgrade() {
@@ -2213,6 +2133,9 @@ class WeaponMergeAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttackFunctionality) {
       return;
@@ -2233,21 +2156,12 @@ class WeaponMergeAttribute extends Attribute {
           movedWeapons.any((element) => element.weaponId == value.weaponId),
     );
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Merge Weapons';
-
-  @override
-  String description() {
-    return 'Merge Weapons';
-  }
 }
 
 class ThornsAttribute extends Attribute {
   ThornsAttribute({required super.level, required super.victimEntity});
+
+  List<Weapon> movedWeapons = [];
 
   @override
   AttributeType attributeType = AttributeType.thorns;
@@ -2259,9 +2173,7 @@ class ThornsAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
-
-  List<Weapon> movedWeapons = [];
+  String title = 'Keep a watchful eye';
 
   void onTouchBleed(HealthFunctionality other) {
     if (other is AttributeFunctionality) {
@@ -2272,6 +2184,11 @@ class ThornsAttribute extends Attribute {
         perpetratorEntity: victimEntity,
       );
     }
+  }
+
+  @override
+  String description() {
+    return 'Touch Damage';
   }
 
   @override
@@ -2297,6 +2214,9 @@ class ThornsAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! TouchDamageFunctionality) {
       return;
@@ -2311,21 +2231,15 @@ class ThornsAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.onTouch.remove(onTouchBleed);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Touch Damage';
-  }
 }
 
 class ReloadSprayAttribute extends Attribute {
   ReloadSprayAttribute({required super.level, required super.victimEntity});
+
+  double cooldown = 3;
+  Map<String, int> weaponBulletCount = {};
+
+  TimerComponent? cooldownTimer;
 
   @override
   AttributeType attributeType = AttributeType.reloadSpray;
@@ -2337,36 +2251,14 @@ class ReloadSprayAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Keep a watchful eye';
 
-  Map<String, int> weaponBulletCount = {};
-
-  double cooldown = 3;
-  TimerComponent? cooldownTimer;
-
-  void projectileExplode(ProjectileFunctionality weapon) {
-    final count = weaponBulletCount[weapon.weaponId] ?? 0;
-    if (count == 0) {
+  void incrementCounter(Weapon weapon) {
+    if (weapon is! ReloadFunctionality) {
       return;
     }
-    final position = victimEntity?.center.clone() ?? Vector2.zero();
-    final temp =
-        splitVector2DeltaIntoArea(Vector2.zero(), count, 360 - (360 / count));
-    final newProjectiles = <Projectile>[];
-    for (final element in temp) {
-      final newProjectile = weapon.projectileType!.generateProjectile(
-        ProjectileConfiguration(
-          delta: element,
-          originPosition: position,
-          weaponAncestor: weapon,
-          power: .5,
-          primaryDamageType: damageType,
-        ),
-      );
 
-      newProjectiles.add(newProjectile);
-    }
-    victimEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
+    weaponBulletCount[weapon.weaponId] = weapon.spentAttacks;
   }
 
   void meleeExplode(MeleeFunctionality weapon) {
@@ -2394,12 +2286,29 @@ class ReloadSprayAttribute extends Attribute {
     victimEntity?.gameEnviroment.addPhysicsComponent(newSwings);
   }
 
-  void incrementCounter(Weapon weapon) {
-    if (weapon is! ReloadFunctionality) {
+  void projectileExplode(ProjectileFunctionality weapon) {
+    final count = weaponBulletCount[weapon.weaponId] ?? 0;
+    if (count == 0) {
       return;
     }
+    final position = victimEntity?.center.clone() ?? Vector2.zero();
+    final temp =
+        splitVector2DeltaIntoArea(Vector2.zero(), count, 360 - (360 / count));
+    final newProjectiles = <Projectile>[];
+    for (final element in temp) {
+      final newProjectile = weapon.projectileType!.generateProjectile(
+        ProjectileConfiguration(
+          delta: element,
+          originPosition: position,
+          weaponAncestor: weapon,
+          power: .5,
+          primaryDamageType: damageType,
+        ),
+      );
 
-    weaponBulletCount[weapon.weaponId] = weapon.spentAttacks;
+      newProjectiles.add(newProjectile);
+    }
+    victimEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
   }
 
   void shootAttacks(Weapon weapon) {
@@ -2421,6 +2330,11 @@ class ReloadSprayAttribute extends Attribute {
   }
 
   @override
+  String description() {
+    return 'Reload Spray';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -2432,6 +2346,9 @@ class ReloadSprayAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -2441,21 +2358,13 @@ class ReloadSprayAttribute extends Attribute {
     attr.onAttack.remove(incrementCounter);
     attr.onReload.remove(shootAttacks);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Reload Spray';
-  }
 }
 
 class ReloadPushAttribute extends Attribute {
   ReloadPushAttribute({required super.level, required super.victimEntity});
+
+  double baseOomph = 7;
+  double baseSize = 4;
 
   @override
   AttributeType attributeType = AttributeType.reloadPush;
@@ -2467,10 +2376,7 @@ class ReloadPushAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
-
-  double baseSize = 4;
-  double baseOomph = 7;
+  String title = 'Keep a watchful eye';
 
   void push(Weapon _) {
     if (victimEntity == null) {
@@ -2500,6 +2406,11 @@ class ReloadPushAttribute extends Attribute {
   }
 
   @override
+  String description() {
+    return 'Reload Push';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -2509,23 +2420,15 @@ class ReloadPushAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
     }
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.onReload.remove(push);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Reload Push';
   }
 }
 
@@ -2534,6 +2437,10 @@ class ReloadInvincibilityAttribute extends Attribute {
     required super.level,
     required super.victimEntity,
   });
+
+  Map<String, double> weaponBulletSpentPercent = {};
+
+  TimerComponent? invincibilityDuration;
 
   @override
   AttributeType attributeType = AttributeType.reloadPush;
@@ -2545,10 +2452,7 @@ class ReloadInvincibilityAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
-  Map<String, double> weaponBulletSpentPercent = {};
-
-  TimerComponent? invincibilityDuration;
+  String title = 'Keep a watchful eye';
 
   void incrementCounter(Weapon weapon) {
     if (weapon is! ReloadFunctionality) {
@@ -2573,6 +2477,11 @@ class ReloadInvincibilityAttribute extends Attribute {
   }
 
   @override
+  String description() {
+    return 'Reload Invincible';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -2583,6 +2492,9 @@ class ReloadInvincibilityAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -2591,21 +2503,15 @@ class ReloadInvincibilityAttribute extends Attribute {
     attr.onReload.remove(onReload);
     attr.onAttack.remove(incrementCounter);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Reload Invincible';
-  }
 }
 
 class FocusAttribute extends Attribute {
   FocusAttribute({required super.level, required super.victimEntity});
+
+  Map<String, int> additionalCount = {};
+  Map<String, TimerComponent> delayCheckers = {};
+  int max = 2;
+  Map<String, int> successiveCounts = {};
 
   @override
   AttributeType attributeType = AttributeType.focus;
@@ -2617,13 +2523,7 @@ class FocusAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
-
-  Map<String, int> additionalCount = {};
-  Map<String, int> successiveCounts = {};
-  Map<String, TimerComponent> delayCheckers = {};
-
-  int max = 2;
+  String title = 'Keep a watchful eye';
 
   void applyWeaponIncrease(Weapon weapon, bool remove) {
     if (remove) {
@@ -2658,6 +2558,11 @@ class FocusAttribute extends Attribute {
   }
 
   @override
+  String description() {
+    return 'Focus';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -2667,23 +2572,15 @@ class FocusAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
     }
     final attr = victimEntity! as AttributeCallbackFunctionality;
     attr.onAttack.remove(incrementCount);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Focus';
   }
 }
 
@@ -2700,7 +2597,12 @@ class ChainingAttacksAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 3;
+  String title = 'Keep a watchful eye';
+
+  @override
+  String description() {
+    return 'Increase chain count';
+  }
 
   @override
   void mapUpgrade() {
@@ -2714,6 +2616,9 @@ class ChainingAttacksAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 3;
+
+  @override
   void unMapUpgrade() {
     applyActionToWeapons(
       (weapon) {
@@ -2723,21 +2628,12 @@ class ChainingAttacksAttribute extends Attribute {
       false,
     );
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Increase chain count';
-  }
 }
 
 class SonicWaveAttribute extends Attribute {
   SonicWaveAttribute({required super.level, required super.victimEntity});
+
+  List<Weapon> newWeapons = [];
 
   @override
   AttributeType attributeType = AttributeType.sonicWave;
@@ -2749,9 +2645,12 @@ class SonicWaveAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
-  List<Weapon> newWeapons = [];
+  @override
+  String description() {
+    return 'add a sonic wave to your melee attacks';
+  }
 
   @override
   void mapUpgrade() {
@@ -2773,6 +2672,9 @@ class SonicWaveAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     applyActionToWeapons(
       (weapon) {
@@ -2789,21 +2691,12 @@ class SonicWaveAttribute extends Attribute {
 
     newWeapons.clear();
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'add a sonic wave to your melee attacks';
-  }
 }
 
 class DaggerSwingAttribute extends Attribute {
   DaggerSwingAttribute({required super.level, required super.victimEntity});
+
+  List<Weapon> newWeapons = [];
 
   @override
   AttributeType attributeType = AttributeType.daggerSwing;
@@ -2815,9 +2708,12 @@ class DaggerSwingAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Keep a watchful eye';
 
-  List<Weapon> newWeapons = [];
+  @override
+  String description() {
+    return 'Dagger attack to ranged weapons';
+  }
 
   @override
   void mapUpgrade() {
@@ -2845,6 +2741,9 @@ class DaggerSwingAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     applyActionToWeapons(
       (weapon) {
@@ -2860,17 +2759,6 @@ class DaggerSwingAttribute extends Attribute {
     );
 
     newWeapons.clear();
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Dagger attack to ranged weapons';
   }
 }
 
@@ -2890,7 +2778,12 @@ class HomingProjectileAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Keep a watchful eye';
+
+  @override
+  String description() {
+    return 'Homing projectiles';
+  }
 
   @override
   void mapUpgrade() {
@@ -2908,6 +2801,9 @@ class HomingProjectileAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     applyActionToWeapons(
       (weapon) {
@@ -2919,17 +2815,6 @@ class HomingProjectileAttribute extends Attribute {
       false,
       true,
     );
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Keep a watchful eye';
-
-  @override
-  String description() {
-    return 'Homing projectiles';
   }
 }
 
@@ -2946,7 +2831,12 @@ class HeavyHitterAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Heavy Hitter';
+
+  @override
+  String description() {
+    return 'Reduce attack speed while increasing damage';
+  }
 
   @override
   void mapUpgrade() {
@@ -2963,6 +2853,9 @@ class HeavyHitterAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.damagePercentIncrease.removeKey(attributeId);
     applyActionToWeapons(
@@ -2972,17 +2865,6 @@ class HeavyHitterAttribute extends Attribute {
       false,
       true,
     );
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Heavy Hitter';
-
-  @override
-  String description() {
-    return 'Reduce attack speed while increasing damage';
   }
 }
 
@@ -2999,7 +2881,12 @@ class QuickShotAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Quick Shot';
+
+  @override
+  String description() {
+    return 'Increase attack speed while decreasing damage';
+  }
 
   @override
   void mapUpgrade() {
@@ -3015,6 +2902,9 @@ class QuickShotAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.damagePercentIncrease.removeKey(attributeId);
 
@@ -3025,17 +2915,6 @@ class QuickShotAttribute extends Attribute {
       false,
       true,
     );
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Quick Shot';
-
-  @override
-  String description() {
-    return 'Increase attack speed while decreasing damage';
   }
 }
 
@@ -3052,7 +2931,12 @@ class RapidFireAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Quick Shot';
+
+  @override
+  String description() {
+    return 'Increase attack speed while decreasing damage';
+  }
 
   @override
   void mapUpgrade() {
@@ -3074,6 +2958,9 @@ class RapidFireAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.damagePercentIncrease.removeKey(attributeId);
 
@@ -3087,17 +2974,6 @@ class RapidFireAttribute extends Attribute {
       false,
       true,
     );
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Quick Shot';
-
-  @override
-  String description() {
-    return 'Increase attack speed while decreasing damage';
   }
 }
 
@@ -3114,7 +2990,12 @@ class BigPocketsAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Bag of Holding';
+
+  @override
+  String description() {
+    return 'Increase max ammo, reduce movement speed';
+  }
 
   @override
   void mapUpgrade() {
@@ -3141,6 +3022,9 @@ class BigPocketsAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttackFunctionality) {
       return;
@@ -3162,17 +3046,6 @@ class BigPocketsAttribute extends Attribute {
     final move = victimEntity! as MovementFunctionality;
     move.speed.removeKey(attributeId);
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Bag of Holding';
-
-  @override
-  String description() {
-    return 'Increase max ammo, reduce movement speed';
-  }
 }
 
 class SecondsPleaseAttribute extends Attribute {
@@ -3188,7 +3061,12 @@ class SecondsPleaseAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Seconds Please';
+
+  @override
+  String description() {
+    return 'Increase health, reduce movement speed, increase max health';
+  }
 
   @override
   void mapUpgrade() {
@@ -3207,6 +3085,9 @@ class SecondsPleaseAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! MovementFunctionality) {
       return;
@@ -3221,17 +3102,6 @@ class SecondsPleaseAttribute extends Attribute {
     health.maxHealth.removeKey(attributeId);
     victimEntity?.height.removeKey(attributeId);
     victimEntity?.applyHeightToSprite();
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Seconds Please';
-
-  @override
-  String description() {
-    return 'Increase health, reduce movement speed, increase max health';
   }
 }
 
@@ -3248,7 +3118,12 @@ class PrimalMagicAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Primal Magic';
+
+  @override
+  String description() {
+    return 'Increase Stamina Regen';
+  }
 
   @override
   void mapUpgrade() {
@@ -3261,23 +3136,15 @@ class PrimalMagicAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! StaminaFunctionality) {
       return;
     }
     final stamina = victimEntity! as StaminaFunctionality;
     stamina.staminaRegen.removeKey(attributeId);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Primal Magic';
-
-  @override
-  String description() {
-    return 'Increase Stamina Regen';
   }
 }
 
@@ -3294,7 +3161,12 @@ class AppleADayAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Primal Magic';
+
+  @override
+  String description() {
+    return 'Increase Stamina Regen';
+  }
 
   @override
   void mapUpgrade() {
@@ -3307,23 +3179,15 @@ class AppleADayAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! HealthRegenFunctionality) {
       return;
     }
     final health = victimEntity! as HealthRegenFunctionality;
     health.healthRegen.removeKey(attributeId);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Primal Magic';
-
-  @override
-  String description() {
-    return 'Increase Stamina Regen';
   }
 }
 
@@ -3343,7 +3207,12 @@ class CritChanceDecreaseDamageAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Critical Switch';
+
+  @override
+  String description() {
+    return 'Increase Crit Chance while also Decrease Crit Damage';
+  }
 
   @override
   void mapUpgrade() {
@@ -3352,20 +3221,12 @@ class CritChanceDecreaseDamageAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.critChance.removeKey(attributeId);
     victimEntity?.critDamage.removeKey(attributeId);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Critical Switch';
-
-  @override
-  String description() {
-    return 'Increase Crit Chance while also Decrease Crit Damage';
   }
 }
 
@@ -3385,7 +3246,7 @@ class PutYourBackIntoItAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Put your back into it';
 
   bool increaseDamage(DamageInstance instance) {
     final health = victimEntity! as HealthFunctionality;
@@ -3393,6 +3254,11 @@ class PutYourBackIntoItAttribute extends Attribute {
         ((health.maxHealth.parameter / 100) / 2).clamp(1.0, double.infinity);
     instance.increaseByPercent(increase);
     return true;
+  }
+
+  @override
+  String description() {
+    return 'Melee attacks deal more damage the more health you have';
   }
 
   @override
@@ -3408,6 +3274,9 @@ class PutYourBackIntoItAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! AttributeCallbackFunctionality) {
       return;
@@ -3416,17 +3285,6 @@ class PutYourBackIntoItAttribute extends Attribute {
     final attr = victimEntity! as AttributeCallbackFunctionality;
 
     attr.onHitOtherEntity.remove(increaseDamage);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Put your back into it';
-
-  @override
-  String description() {
-    return 'Melee attacks deal more damage the more health you have';
   }
 }
 
@@ -3443,7 +3301,12 @@ class AgileAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Agile';
+
+  @override
+  String description() {
+    return 'Reduce max health by X and increase speed';
+  }
 
   @override
   void mapUpgrade() {
@@ -3465,6 +3328,9 @@ class AgileAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is! HealthFunctionality) {
       return;
@@ -3481,17 +3347,6 @@ class AgileAttribute extends Attribute {
     final move = victimEntity! as MovementFunctionality;
 
     move.speed.removeKey(attributeId);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Agile';
-
-  @override
-  String description() {
-    return 'Reduce max health by X and increase speed';
   }
 }
 
@@ -3511,7 +3366,12 @@ class AreaSizeDecreaseDamageAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Area Size Decrease Damage';
+
+  @override
+  String description() {
+    return 'Reduce area damage and increase area size';
+  }
 
   @override
   void mapUpgrade() {
@@ -3522,20 +3382,12 @@ class AreaSizeDecreaseDamageAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.areaSizePercentIncrease.removeKey(attributeId);
     victimEntity?.areaDamagePercentIncrease.removeKey(attributeId);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Area Size Decrease Damage';
-
-  @override
-  String description() {
-    return 'Reduce area damage and increase area size';
   }
 }
 
@@ -3556,7 +3408,12 @@ class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Decrease Max Ammo Increase Reload Speed';
+
+  @override
+  String description() {
+    return 'Reduce max ammo while increase attack rate';
+  }
 
   @override
   void mapUpgrade() {
@@ -3574,6 +3431,9 @@ class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     applyActionToWeapons(
       (weapon) {
@@ -3586,17 +3446,6 @@ class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
       false,
       true,
     );
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Decrease Max Ammo Increase Reload Speed';
-
-  @override
-  String description() {
-    return 'Reduce max ammo while increase attack rate';
   }
 }
 
@@ -3613,7 +3462,12 @@ class PotionSellerAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Potion Seller';
+
+  @override
+  String description() {
+    return 'Increase the effects of status effects and dots, while reducing regular damage.';
+  }
 
   @override
   void mapUpgrade() {
@@ -3628,21 +3482,13 @@ class PotionSellerAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.damagePercentIncrease.removeKey(attributeId);
     victimEntity?.tickDamageIncrease.removeKey(attributeId);
     victimEntity?.statusEffectsPercentIncrease.removePercentKey(attributeId);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Potion Seller';
-
-  @override
-  String description() {
-    return 'Increase the effects of status effects and dots, while reducing regular damage.';
   }
 }
 
@@ -3659,7 +3505,12 @@ class BattleScarsAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Battle Scars';
+
+  @override
+  String description() {
+    return 'Reducing dash effectivness, while increasing health by 200%';
+  }
 
   @override
   void mapUpgrade() {
@@ -3675,6 +3526,9 @@ class BattleScarsAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is HealthFunctionality) {
       final health = victimEntity! as HealthFunctionality;
@@ -3686,21 +3540,12 @@ class BattleScarsAttribute extends Attribute {
       dash.dashCooldown.removeKey(attributeId);
     }
   }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Battle Scars';
-
-  @override
-  String description() {
-    return 'Reducing dash effectivness, while increasing health by 200%';
-  }
 }
 
 class ForbiddenMagicAttribute extends Attribute {
   ForbiddenMagicAttribute({required super.level, required super.victimEntity});
+
+  bool previousValue = false;
 
   @override
   AttributeType attributeType = AttributeType.forbiddenMagic;
@@ -3712,9 +3557,12 @@ class ForbiddenMagicAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 1;
+  String title = 'Forbidden Magic';
 
-  bool previousValue = false;
+  @override
+  String description() {
+    return 'Remove stamina, stamina actions reduce health, increase health regen by 100% for each stamina consuming weapon possessed';
+  }
 
   @override
   void mapUpgrade() {
@@ -3745,6 +3593,9 @@ class ForbiddenMagicAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 1;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is HealthRegenFunctionality) {
       final health = victimEntity! as HealthRegenFunctionality;
@@ -3755,17 +3606,6 @@ class ForbiddenMagicAttribute extends Attribute {
       stamina.stamina.removeKey(attributeId);
       stamina.isForbiddenMagic = previousValue;
     }
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Forbidden Magic';
-
-  @override
-  String description() {
-    return 'Remove stamina, stamina actions reduce health, increase health regen by 100% for each stamina consuming weapon possessed';
   }
 }
 
@@ -3779,13 +3619,15 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
   AttributeType attributeType = AttributeType.reduceHealthIncreaseLifeSteal;
 
   @override
-  double get upgradeFactor => .035;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Reduce Health Increase Life Steal';
+
+  @override
+  String description() {
+    return 'Reduce max health, increase life steal';
+  }
 
   @override
   void mapUpgrade() {
@@ -3800,6 +3642,9 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     if (victimEntity is HealthFunctionality) {
       final health = victimEntity! as HealthFunctionality;
@@ -3810,15 +3655,7 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Reduce Health Increase Life Steal';
-
-  @override
-  String description() {
-    return 'Reduce max health, increase life steal';
-  }
+  double get upgradeFactor => .035;
 }
 
 class StaminaStealAttribute extends Attribute {
@@ -3828,26 +3665,7 @@ class StaminaStealAttribute extends Attribute {
   AttributeType attributeType = AttributeType.staminaSteal;
 
   @override
-  double get upgradeFactor => .035;
-
-  @override
   bool increaseFromBaseParameter = false;
-
-  @override
-  int get maxLevel => 2;
-
-  @override
-  void mapUpgrade() {
-    victimEntity?.staminaSteal.setIncrease(attributeId, true);
-  }
-
-  @override
-  void unMapUpgrade() {
-    victimEntity?.staminaSteal.removeKey(attributeId);
-  }
-
-  @override
-  String icon = 'attributes/topSpeed.png';
 
   @override
   String title = 'Stamina Steal';
@@ -3856,6 +3674,22 @@ class StaminaStealAttribute extends Attribute {
   String description() {
     return 'Converts life steal to stamina steal';
   }
+
+  @override
+  void mapUpgrade() {
+    victimEntity?.staminaSteal.setIncrease(attributeId, true);
+  }
+
+  @override
+  int get maxLevel => 2;
+
+  @override
+  void unMapUpgrade() {
+    victimEntity?.staminaSteal.removeKey(attributeId);
+  }
+
+  @override
+  double get upgradeFactor => .035;
 }
 
 class SplitDamageAttribute extends Attribute {
@@ -3865,13 +3699,10 @@ class SplitDamageAttribute extends Attribute {
   AttributeType attributeType = AttributeType.splitDamage;
 
   @override
-  double get upgradeFactor => .035;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Damage Split';
 
   bool splitDamage(DamageInstance instance) {
     final count = DamageType.values.length;
@@ -3894,12 +3725,20 @@ class SplitDamageAttribute extends Attribute {
   }
 
   @override
+  String description() {
+    return 'Evenly distributes damage across all damage types';
+  }
+
+  @override
   void mapUpgrade() {
     if (victimEntity is AttributeCallbackFunctionality) {
       final attr = victimEntity! as AttributeCallbackFunctionality;
       attr.onHitOtherEntity.add(splitDamage);
     }
   }
+
+  @override
+  int get maxLevel => 2;
 
   @override
   void unMapUpgrade() {
@@ -3910,15 +3749,7 @@ class SplitDamageAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Damage Split';
-
-  @override
-  String description() {
-    return 'Evenly distributes damage across all damage types';
-  }
+  double get upgradeFactor => .035;
 }
 
 class RollTheDiceAttribute extends Attribute {
@@ -3928,13 +3759,15 @@ class RollTheDiceAttribute extends Attribute {
   AttributeType attributeType = AttributeType.rollTheDice;
 
   @override
-  double get upgradeFactor => .035;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Increase crit chance and damage, while reducing damage';
+
+  @override
+  String description() {
+    return 'Increase crit chance and damage by 25%, while reducing base damage by 50%';
+  }
 
   @override
   void mapUpgrade() {
@@ -3945,6 +3778,9 @@ class RollTheDiceAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {
     victimEntity?.critChance.removeKey(attributeId);
     victimEntity?.critDamage.removeKey(attributeId);
@@ -3952,15 +3788,7 @@ class RollTheDiceAttribute extends Attribute {
   }
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Increase crit chance and damage, while reducing damage';
-
-  @override
-  String description() {
-    return 'Increase crit chance and damage by 25%, while reducing base damage by 50%';
-  }
+  double get upgradeFactor => .035;
 }
 
 class GlassWandAttribute extends Attribute {
@@ -3970,13 +3798,15 @@ class GlassWandAttribute extends Attribute {
   AttributeType attributeType = AttributeType.glassWand;
 
   @override
-  double get upgradeFactor => .035;
-
-  @override
   bool increaseFromBaseParameter = false;
 
   @override
-  int get maxLevel => 2;
+  String title = 'Glass Wand';
+
+  @override
+  String description() {
+    return 'Doubling damage, adding 10 lives but reducing max health to 1.';
+  }
 
   @override
   void mapUpgrade() {
@@ -3991,40 +3821,32 @@ class GlassWandAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 2;
+
+  @override
   void unMapUpgrade() {}
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Glass Wand';
-
-  @override
-  String description() {
-    return 'Doubling damage, adding 10 lives but reducing max health to 1.';
-  }
+  double get upgradeFactor => .035;
 }
 
 class SlugTrailAttribute extends Attribute {
   SlugTrailAttribute({required super.level, required super.victimEntity});
 
-  @override
-  AttributeType attributeType = AttributeType.slugTrail;
+  double baseSize = 2.5;
+  double interval = 2.0;
+  double notMovingSpeed = .01;
+
+  TimerComponent? timer;
 
   @override
-  double get upgradeFactor => .25;
+  AttributeType attributeType = AttributeType.slugTrail;
 
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  Set<DamageType> get allowedDamageTypes =>
-      {DamageType.fire, DamageType.energy};
-
-  @override
-  int get maxLevel => 3;
-
-  double baseSize = 2.5;
+  String title = 'Slug trail';
 
   @override
   void action() {
@@ -4047,9 +3869,14 @@ class SlugTrailAttribute extends Attribute {
     victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
-  TimerComponent? timer;
-  double interval = 2.0;
-  double notMovingSpeed = .01;
+  @override
+  Set<DamageType> get allowedDamageTypes =>
+      {DamageType.fire, DamageType.energy};
+
+  @override
+  String description() {
+    return 'While moving, leave a damaging area effect';
+  }
 
   @override
   void mapUpgrade() {
@@ -4071,16 +3898,11 @@ class SlugTrailAttribute extends Attribute {
   }
 
   @override
+  int get maxLevel => 3;
+
+  @override
   void unMapUpgrade() {}
 
   @override
-  String icon = 'attributes/topSpeed.png';
-
-  @override
-  String title = 'Slug trail';
-
-  @override
-  String description() {
-    return 'While moving, leave a damaging area effect';
-  }
+  double get upgradeFactor => .25;
 }

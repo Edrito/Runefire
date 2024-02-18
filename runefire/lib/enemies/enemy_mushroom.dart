@@ -195,21 +195,29 @@ class MushroomBoomer extends Enemy
     maxHealth.baseParameter = mushroomBoomerBaseMaxHealth;
     speed.baseParameter = mushroomBoomerBaseSpeed;
 
-    onDeath.add((instance) async {
+    onDeath.add((instance) {
       if (instance.damageMap.keys.contains(DamageType.fire)) {
         entityAnimationsGroup.animationTickers?[EntityStatus.dead]?.completed;
+        final temp = AreaEffect(
+          position: body.worldCenter,
+          sourceEntity: this,
+          radius: 4 * ((upgradeLevel / 2)) + 2,
+          damage: {DamageType.fire: (2, 15)},
+        );
+        gameEnviroment.addPhysicsComponent([temp]);
       } else {
-        await entityAnimationsGroup
-            .animationTickers?[EntityStatus.dead]?.completed;
+        entityAnimationsGroup.animationTickers?[EntityStatus.dead]?.completed
+            .then((_) {
+          final temp = AreaEffect(
+            position: body.worldCenter,
+            sourceEntity: this,
+            radius: 4 * ((upgradeLevel / 2)) + 2,
+            damage: {DamageType.fire: (2, 15)},
+          );
+          gameEnviroment.addPhysicsComponent([temp]);
+        });
       }
-
-      final temp = AreaEffect(
-        position: body.worldCenter,
-        sourceEntity: this,
-        radius: 4 * ((upgradeLevel / 2)) + 2,
-        damage: {DamageType.fire: (2, 15)},
-      );
-      gameEnviroment.addPhysicsComponent([temp]);
+      return null;
     });
   }
 
@@ -364,6 +372,7 @@ class MushroomSpinner extends Enemy
     RotateEffect? rotateEffect;
     onDeath.add((instance) {
       rotateEffect?.removeFromParent();
+      return null;
     });
     enemyStates = {
       //Walking

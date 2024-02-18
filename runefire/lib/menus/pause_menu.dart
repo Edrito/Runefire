@@ -276,15 +276,18 @@ class _PauseMenuState extends State<PauseMenu> {
   late final GameRouter gameRouter;
 
   bool fetchAttributeLogicChecker(Attribute element, bool isTemp) {
-    final tempChecker =
-        (element.attributeType.territory == AttributeTerritory.temporary &&
-                isTemp) ||
-            (element.attributeType.territory != AttributeTerritory.temporary &&
-                !isTemp);
+    final tempChecker = (element.attributeType.territory ==
+                AttributeTerritory.statusEffect &&
+            isTemp) ||
+        (element.attributeType.territory != AttributeTerritory.statusEffect &&
+            !isTemp);
 
     final permanentChecker =
         element.attributeType.territory != AttributeTerritory.permanent;
-    return tempChecker && permanentChecker;
+
+    final passiveChecker =
+        element.attributeType.territory != AttributeTerritory.passive;
+    return tempChecker && permanentChecker && passiveChecker;
   }
 
   @override
@@ -304,8 +307,8 @@ class _PauseMenuState extends State<PauseMenu> {
     final size = MediaQuery.of(context).size;
     final entries = env.player?.currentAttributes;
 
-    final nonTempEntries = entries?.values
-            .where((element) => fetchAttributeLogicChecker(element, false))
+    final nonTempEntries = entries
+            ?.where((element) => fetchAttributeLogicChecker(element, false))
             .toList() ??
         [];
 

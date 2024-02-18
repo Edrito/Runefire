@@ -97,13 +97,14 @@ mixin DropItemFunctionality on HealthFunctionality {
     return null;
   }
 
-  void _calculateDeathDrops(DamageInstance instance) {
+  bool? _calculateDeathDrops(DamageInstance instance) {
     final temp = _calculateExperienceDrop();
     gameEnviroment.addPhysicsComponent(temp);
     final tempTwo = _calculateExpendableDrop();
     if (tempTwo != null) {
       gameEnviroment.addPhysicsComponent([tempTwo]);
     }
+    return false;
   }
 
   @override

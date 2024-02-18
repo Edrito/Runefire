@@ -133,24 +133,12 @@ class EnemyEvent extends PositionEvent {
 
   void onBigBoss(bool isDead) {
     if (isDead) {
-      eventManagement.eventTimer?.timer.resume();
-      gameEnviroment.customFollow.enable();
-      gameEnviroment.unPauseGameTimer();
-      for (final element in eventManagement.activeEventConfigTimers.entries) {
-        element.value.timer.resume();
-      }
-      gameEnviroment.removeBossBounds();
+      eventManagement.resumeOnBigBoss();
     } else {
+      eventManagement.pauseOnBigBoss();
       spawnEnemies();
-      eventManagement.eventTimer?.timer.pause();
-      gameEnviroment.pauseGameTimer();
-
       if (boundsScope == BossBoundsScope.viewportSize) {
         gameEnviroment.customFollow.disable();
-      }
-
-      for (final element in eventManagement.activeEventConfigTimers.entries) {
-        element.value.timer.pause();
       }
       gameEnviroment.createBossBounds(bossBoundsIsCircular, this);
     }

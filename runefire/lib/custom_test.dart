@@ -9,8 +9,10 @@ import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/enviroment_interactables/areas.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/enviroment_interactables/runes.dart';
+import 'package:runefire/events/event_class.dart';
 import 'package:runefire/events/event_management.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/main.dart';
@@ -25,39 +27,60 @@ bool disableEnemies = false;
 Future<void> conductTests(GameEnviroment gameEnviroment) async {
   final player = gameEnviroment.player;
   await player?.loaded;
-  await Future.delayed(1.seconds);
-  player?.stamina.baseParameter = 40000;
+  // await Future.delayed(1.seconds);
+  // player?.stamina.baseParameter = 40000;
   player?.maxLives.baseParameter = 2;
-  // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
-  // player?.swapWeapon();
 
-  // player?.currentWeapon?.attackCountIncrease.setParameterFlatValue('a', 5);
+  // player?.onHitOtherEntity.add((damage) {
+  //   if (damage.victim is Enemy) {
+  //     (damage.victim as Enemy).addAttribute(
+  //       AttributeType.burn,
+  //       perpetratorEntity: player,
+  //       isTemporary: true,
+  //     );
+  //   }
+  //   return false;
+  // });
+  for (final element in DamageType.getValuesWithoutHealing) {
+    player?.modifyElementalPower(element, .5);
+  }
 
-  // for (final element in WeaponType.values
-  //     .where((element) => element.attackType == AttackType.magic)) {
-  player?.clearWeapons();
+  while (true) {
+    await Future.delayed(.5.seconds);
+    print(player?.currentAttributeTypes);
+  }
+  // player?.addAttribute(
+  //   AttributeType.chanceToRevive,
+  // );
+
+  // gameEnviroment.addPhysicsComponent([
+  //   InteractableWeaponPickup(
+  //     weaponType: WeaponType.emberBow,
+  //     initialPosition: SpawnLocation.inside.grabNewPosition(gameEnviroment),
+  //     gameEnviroment: gameEnviroment,
+  //   ),
+  // ]);
+  // gameEnviroment.addPhysicsComponent([
+  //   MushroomSpores(
+  //     gameEnviroment: gameEnviroment,
+  //     position: SpawnLocation.inside.grabNewPosition(gameEnviroment),
+  //     upgradeLevel: 2,
+  //   ),
+  // ]);
+  // return;
+
+  // player?.clearWeapons();
   // player?.carriedWeapons.add(
-  //   element.build(
+  //   WeaponType.crystalSword.build(
   //     ancestor: player,
-  //     gameRouter: gameEnviroment.gameRef,
+  //     playerData: gameEnviroment.gameRef.playerDataComponent.dataObject,
+  //     secondaryWeaponType: SecondaryType.elementalBlast,
   //   ),
   // );
-  player?.carriedWeapons.add(
-    WeaponType.energyMagic.build(
-      ancestor: player,
-      playerData: gameEnviroment.gameRef.playerDataComponent.dataObject,
-      secondaryWeaponType: SecondaryType.surroundAttack,
-    ),
-  );
-  player?.swapWeapon(
-    player.currentWeapon,
-  );
-  // await Future.delayed(20.seconds);
-  // }
+  // player?.swapWeapon(
+  //   player.currentWeapon,
+  // );
 }
-
-//   await Future.delayed(5.seconds);
-// }
 
 void updateFunction(Enviroment enviroment, double dt) {
   // if (enviroment is GameEnviroment) {

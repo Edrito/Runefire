@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/events/event_management.dart';
 import 'package:runefire/player/player_constants.dart' as player_constants;
@@ -150,14 +151,19 @@ enum SemiAutoType { regular, release, charge }
 enum StatusEffects {
   burn,
   bleed,
-  slowed,
+  chill,
   electrified,
-  stunned,
+  slow,
+  stun,
   confused,
   fear,
   marked(isStatusBar: false),
   frozen(isStatusBar: false),
   empowered(isStatusBar: false);
+
+  AttributeType get getCorrospondingAttribute {
+    return AttributeType.values.firstWhere((element) => element.name == name);
+  }
 
   const StatusEffects({this.isStatusBar = true});
   final bool isStatusBar;
@@ -199,7 +205,11 @@ enum JoystickDirection {
 }
 
 ///All have a mage theme
-enum CharacterType { regular, sorcerer, warlock, wizard, witch, unknown }
+enum CharacterType {
+  regular,
+  //  sorcerer,
+  //  warlock, wizard, witch, unknown
+}
 
 //Unlock cost
 extension CharacterTypeUnlockCost on CharacterType {
@@ -225,7 +235,7 @@ extension CharacterTypeUnlockCost on CharacterType {
       case CharacterType.regular:
         return 'No notable features, just a regular mage.';
       default:
-        return 'misc ${rng.nextDouble()}';
+        return 'misc';
     }
   }
 
@@ -234,7 +244,7 @@ extension CharacterTypeUnlockCost on CharacterType {
       case CharacterType.regular:
         return '...';
       default:
-        return 'find them lol! ${rng.nextDouble()}';
+        return '...';
     }
   }
 }
@@ -844,9 +854,28 @@ class DamageInstance {
     required this.sourceAttack,
     this.sourceWeapon,
     this.isCrit = false,
+    this.canBeDodgedWithJump = false,
     this.damageKind = DamageKind.regular,
     this.statusEffectChance,
   });
+
+  final bool canBeDodgedWithJump;
+  final DamageKind damageKind;
+  final Map<DamageType, double> damageMap;
+  bool isCrit;
+  final Entity source;
+  final dynamic sourceAttack;
+  final HealthFunctionality victim;
+
+  final Weapon? sourceWeapon;
+  final Map<StatusEffects, double>? statusEffectChance;
+
+  AttackType get attackType =>
+      sourceWeapon?.weaponType.attackType ?? AttackType.guns;
+
+  double get damage => damageMap.entries
+      .where((element) => element.key != DamageType.healing)
+      .fold(0, (previousValue, element) => previousValue + element.value);
 
   ///Modifies [damageMap] based on entity resistances
   void applyResistances(Entity other) {
@@ -861,45 +890,25 @@ class DamageInstance {
     }
   }
 
-  void checkCrit(bool force) {
+  void checkCrit({bool force = false}) {
     final rngCrit = rng.nextDouble();
     var critDamageIncrease = 1.0;
-    if (!force && victim.consumeMark()) {
-      force = true;
+    var forceModified = force;
+
+    if (!forceModified && victim.consumeMark()) {
+      forceModified = true;
     }
     if (rngCrit <=
             source.critChance.parameter +
                 (sourceWeapon?.critChance.parameter ?? 0) ||
-        force) {
+        forceModified) {
       isCrit = true;
       critDamageIncrease = max(
         source.critDamage.parameter,
         sourceWeapon?.critDamage.parameter ?? 1,
       );
     }
-
     increaseByPercent(critDamageIncrease);
-  }
-
-  dynamic sourceAttack;
-  Map<StatusEffects, double>? statusEffectChance;
-  Entity source;
-  HealthFunctionality victim;
-  Weapon? sourceWeapon;
-  DamageKind damageKind;
-  AttackType get attackType =>
-      sourceWeapon?.weaponType.attackType ?? AttackType.guns;
-  Map<DamageType, double> damageMap;
-
-  double get damage => damageMap.entries
-      .where((element) => element.key != DamageType.healing)
-      .fold(0, (previousValue, element) => previousValue + element.value);
-  bool isCrit;
-
-  void increaseByPercent(double percent) {
-    for (final element in damageMap.entries) {
-      damageMap[element.key] = element.value * percent;
-    }
   }
 
   // The copyWith function to create a new DamageInstance with updated properties
@@ -924,6 +933,12 @@ class DamageInstance {
       isCrit: isCrit ?? this.isCrit,
     );
   }
+
+  void increaseByPercent(double percent) {
+    for (final element in damageMap.entries) {
+      damageMap[element.key] = element.value * percent;
+    }
+  }
 }
 
 enum SecondaryType {
@@ -941,6 +956,7 @@ enum SecondaryType {
     500,
   ),
   pistolAttachment(ImagesAssetsSecondaryIcons.blank, 5, alwaysCompatible, 500),
+  elementalBlast(ImagesAssetsSecondaryIcons.blank, 3, alwaysCompatible, 500),
   surroundAttack(
     ImagesAssetsSecondaryIcons.blank,
     1,
@@ -1037,6 +1053,8 @@ extension SecondaryWeaponTypeExtension on SecondaryType {
         );
       case SecondaryType.surroundAttack:
         return SurroundAttack(primaryWeaponAncestor, 5, upgradeLevel);
+      case SecondaryType.elementalBlast:
+        return ElementalBlast(primaryWeaponAncestor, 5, upgradeLevel);
 
       case SecondaryType.explodeProjectiles:
         return ExplodeProjectile(primaryWeaponAncestor, 5, upgradeLevel);
