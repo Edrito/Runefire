@@ -153,11 +153,6 @@ class SummonedChildEntity extends ChildEntity
 
     speed.baseParameter = 15;
   }
-  @override
-  void onRemove() {
-    parentEntity.childrenEntities.remove(entityId);
-    super.onRemove();
-  }
 
   @override
   Body createBody() {
@@ -726,7 +721,7 @@ class MirrorOrbSentry extends AttachedToBodyChildEntity
         await spriteAnimations.hoveringCrystalAttack1;
   }
 
-  void mirrorAttack(AttackConfiguration attackConfiguration) {
+  void mirrorAttack(AttackConfiguration attackConfiguration, Weapon weapon) {
     if (parentEntity is! AttackFunctionality || currentWeapon == null) {
       return;
     }

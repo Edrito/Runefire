@@ -364,6 +364,12 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
   void endAbility() {}
 
   @override
+  void update(double dt) {
+    recharge(dt);
+    super.update(dt);
+  }
+
+  @override
   void startAbilityCheck() {
     if (weapon is! MeleeFunctionality) {
       return;

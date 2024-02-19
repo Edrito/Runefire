@@ -213,18 +213,18 @@ mixin SimpleFollowAI on MovementFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      (
+        function: _dumbFollowTargetTick,
+        id: '${entityId}SimpleFollowAI',
+        time: targetUpdateFrequency,
+      ),
     );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      id: '${entityId}SimpleFollowAI',
     );
     super.onRemove();
   }
@@ -246,12 +246,20 @@ mixin SimpleShoot on AttackFunctionality {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    eventManagement.addAiTimer(onTick, entityId, shootInterval);
+    eventManagement.addAiTimer(
+      (
+        function: onTick,
+        id: '${entityId}SimpleShoot',
+        time: shootInterval,
+      ),
+    );
   }
 
   @override
   void onRemove() {
-    eventManagement.removeAiTimer(onTick, entityId, shootInterval);
+    eventManagement.removeAiTimer(
+      id: '${entityId}SimpleShoot',
+    );
     super.onRemove();
   }
 }
@@ -279,18 +287,18 @@ mixin SimpleFollowRangeAI on MovementFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-      _dumbFollowRangeTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      (
+        function: _dumbFollowRangeTargetTick,
+        id: '${entityId}SimpleFollowRangeAI',
+        time: targetUpdateFrequency,
+      ),
     );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-      _dumbFollowRangeTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      id: '${entityId}SimpleFollowRangeAI',
     );
     super.onRemove();
   }
@@ -340,18 +348,18 @@ mixin SimpleFollowScaredAI on MovementFunctionality, HealthFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      (
+        function: _dumbFollowTargetTick,
+        id: '${entityId}SimpleFollowScaredAI',
+        time: targetUpdateFrequency,
+      ),
     );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      id: '${entityId}SimpleFollowScaredAI',
     );
     super.onRemove();
   }
@@ -380,18 +388,18 @@ mixin HopFollowAI on MovementFunctionality, JumpFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      (
+        function: _dumbFollowTargetTick,
+        id: '${entityId}hop_follow',
+        time: targetUpdateFrequency,
+      ),
     );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      id: '${entityId}hop_follow',
     );
     super.onRemove();
   }
@@ -404,9 +412,7 @@ mixin FollowThenSuicideAI on MovementFunctionality, HealthFunctionality {
   Future<void> _dumbFollowTargetTick() async {
     if (isDead) {
       eventManagement.removeAiTimer(
-        _dumbFollowTargetTick,
-        entityId,
-        targetUpdateFrequency,
+        id: '${entityId}follow_then_suicide',
       );
       return;
     }
@@ -429,18 +435,18 @@ mixin FollowThenSuicideAI on MovementFunctionality, HealthFunctionality {
     await super.onLoad();
 
     eventManagement.addAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      (
+        function: _dumbFollowTargetTick,
+        id: '${entityId}follow_then_suicide',
+        time: targetUpdateFrequency,
+      ),
     );
   }
 
   @override
   void onRemove() {
     eventManagement.removeAiTimer(
-      _dumbFollowTargetTick,
-      entityId,
-      targetUpdateFrequency,
+      id: '${entityId}follow_then_suicide',
     );
     super.onRemove();
   }

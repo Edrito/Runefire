@@ -548,6 +548,71 @@ enum AttributeType {
     },
   ),
 
+  //fire types
+
+  overheatingMissile(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.uncommon,
+    elementalRequirement: {
+      DamageType.fire: .05,
+    },
+  ),
+
+  fireyAura(
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.uncommon,
+    elementalRequirement: {
+      DamageType.fire: .25,
+    },
+  ),
+
+  essenceOfThePheonix(
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.rare,
+    elementalRequirement: {
+      DamageType.fire: 1,
+    },
+  ),
+
+  //Energy
+
+  energySpeedBoost(
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.energy: .25,
+    },
+  ),
+
+  energyArcAura(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.energy: .5,
+    },
+  ),
+
+  reducedEffectDurations(
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.energy: .75,
+    },
+  ),
+
+  instantReflex(
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.energy: 1,
+    },
+  ),
+
   slugTrail(
     rarity: AttributeRarity.uncommon,
     category: AttributeCategory.offence,
@@ -620,9 +685,11 @@ enum AttributeType {
       final playerElementalLevel = entity.elementalPower;
 
       //remade using .any
-      if (_elementalRequirement!.keys.any((element) =>
-          playerElementalLevel[element] == null ||
-          playerElementalLevel[element]! < _elementalRequirement![element]!,)) {
+      if (_elementalRequirement!.keys.any(
+        (element) =>
+            playerElementalLevel[element] == null ||
+            playerElementalLevel[element]! < _elementalRequirement![element]!,
+      )) {
         return false;
       }
     }
@@ -722,9 +789,14 @@ extension AllAttributesExtension on AttributeType {
         damageType: damageType,
         builtForInfo: builtForInfo,
       );
+
       return TemporaryAttribute(
         managedAttribute: managedAttribute,
-        duration: duration ?? 4,
+        duration: applyDurationModifications(
+          perpertrator: perpetratorEntity,
+          victim: victimEntity,
+          time: duration ?? 4,
+        ),
       );
     }
     final permanentAttr = permanentAttributeBuilder(this, level, victimEntity);

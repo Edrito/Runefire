@@ -147,15 +147,13 @@ abstract mixin class UpgradeFunctions {
       (upgradeLevel + (upgradeLevel == maxLevel ? 1 : 0));
 
   void changeLevel(int newUpgradeLevel) {
-    removeUpgrade();
-
     upgradeLevel = newUpgradeLevel;
 
     if (maxLevel != null) {
       upgradeLevel = upgradeLevel.clamp(0, maxLevel!);
     }
 
-    applyUpgrade();
+    reMapUpgrade();
   }
 
   void incrementLevel(int increment) {
@@ -545,8 +543,8 @@ class CustomRectClipper extends CustomClipper<Rect> {
   }
 }
 
-mixin RechargeableStack on Component {
-  int maxStacks = 30;
+mixin RechargeableStack {
+  int maxStacks = 3;
   int currentStacks = 50;
   double rechargeTime = 1;
   double currentRechargeTime = 0;
@@ -556,12 +554,6 @@ mixin RechargeableStack on Component {
   bool get isEmpty => currentStacks == 0;
   double get rechargePercent =>
       (currentRechargeTime / rechargeTime).clamp(0, 1);
-
-  @override
-  void update(double dt) {
-    recharge(dt);
-    super.update(dt);
-  }
 
   void recharge(double dt) {
     if (isRecharging) {

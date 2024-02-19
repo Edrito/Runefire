@@ -268,5 +268,5 @@ class FollowLaser extends FadeOutBullet with LaserProjectile {
   @override
   bool get removeOnEndAttack => true;
   @override
-  ProjectileType projectileType = ProjectileType.laser;
+  ProjectileType projectileType = ProjectileType.followLaser;
 }

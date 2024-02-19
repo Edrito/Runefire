@@ -8,7 +8,7 @@ import 'package:runefire/achievements/achievements.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/enviroment_interactables/areas.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/enviroment_interactables/runes.dart';
@@ -45,10 +45,13 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
     player?.modifyElementalPower(element, .5);
   }
 
-  while (true) {
-    await Future.delayed(.5.seconds);
-    print(player?.currentAttributeTypes);
-  }
+  // player?.addAttribute(AttributeType.energyArcAura);
+
+  // while (true) {
+  //   await Future.delayed(.5.seconds);
+  //   print(player?.currentAttributeTypes);
+  // }
+
   // player?.addAttribute(
   //   AttributeType.chanceToRevive,
   // );

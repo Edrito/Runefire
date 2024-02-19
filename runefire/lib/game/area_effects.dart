@@ -47,7 +47,10 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     animationComponent?.durationType = durationType;
     animationComponent?.randomlyFlipped = animationRandomlyFlipped;
 
-    duration *= sourceEntity.durationPercentIncrease.parameter;
+    duration= applyDurationModifications(
+      perpertrator: sourceEntity,
+      time: duration,
+    );
 
     this.areaId = areaId ?? const Uuid().v4();
   }

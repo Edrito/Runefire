@@ -8,7 +8,7 @@ import 'package:flame/game.dart';
 import 'package:flame/text.dart';
 import 'package:flame_forge2d/flame_forge2d.dart' hide Timer;
 import 'package:flutter/material.dart';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
@@ -149,7 +149,8 @@ mixin BaseAttributes {
       IntParameterManager(baseParameter: 0, minParameter: 0);
   //Duration
   late final DoubleParameterManager durationPercentIncrease;
-
+  //Duration
+  late final DoubleParameterManager durationPercentReduction;
   //Movement
   late final BoolParameterManager enableMovement;
 
@@ -185,6 +186,8 @@ mixin BaseAttributes {
     flatDamageIncrease = childEntity.parentEntity.flatDamageIncrease;
     attackCount = childEntity.parentEntity.attackCount;
     durationPercentIncrease = childEntity.parentEntity.durationPercentIncrease;
+    durationPercentReduction =
+        childEntity.parentEntity.durationPercentReduction;
     tickDamageIncrease = childEntity.parentEntity.tickDamageIncrease;
     areaSizePercentIncrease = childEntity.parentEntity.areaSizePercentIncrease;
     critChance = childEntity.parentEntity.critChance;
@@ -224,6 +227,7 @@ mixin BaseAttributes {
   void initializeParentParameters() {
     attackCount = IntParameterManager(baseParameter: 0);
     durationPercentIncrease = DoubleParameterManager(baseParameter: 1);
+    durationPercentReduction = DoubleParameterManager(baseParameter: 1);
     tickDamageIncrease = DoubleParameterManager(baseParameter: 1);
     areaSizePercentIncrease = DoubleParameterManager(baseParameter: 1);
     critChance = DoubleParameterManager(
@@ -1094,11 +1098,7 @@ mixin HealthFunctionality on Entity {
     }
 
     final attr = this as AttributeFunctionality;
-
-    if (damage.statusEffectChance == null) {
-      return;
-    }
-    for (final element in damage.statusEffectChance!.entries) {
+    for (final element in damage.statusEffectChance.entries) {
       final chance = element.value;
       final statusEffect = element.key;
 

@@ -6,7 +6,7 @@ import 'package:flame/extensions.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/resources/constants/constants.dart';
@@ -441,9 +441,10 @@ mixin LaserProjectile on FadeOutBullet {
   void createLaserPath() {
     final lineThroughEnemies = <Vector2>[];
     lineThroughEnemies.add(Vector2.zero());
-    originPosition = weaponAncestor
-        .generateGlobalPosition(weaponAncestor.sourceAttackLocation!);
-
+    if (weaponAncestor.sourceAttackLocation != null) {
+      originPosition = weaponAncestor
+          .generateGlobalPosition(weaponAncestor.sourceAttackLocation!);
+    }
     if (isMounted) {
       body.setTransform(originPosition, angle);
       setDelta(

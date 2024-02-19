@@ -437,7 +437,6 @@ abstract class Weapon extends Component with UpgradeFunctions {
   @mustCallSuper
   void standardAttack(AttackConfiguration attackConfiguration) {
     muzzleFlash();
-
     for (final element in additionalWeapons.entries) {
       element.value.attackAttempt(attackConfiguration);
     }
@@ -707,12 +706,13 @@ class AttackConfiguration {
     this.isAltAttack = false,
   });
 
-  final bool callFunctions;
-  final double holdDurationPercent;
-  final bool isAltAttack;
   final Map<AttackSpreadType, List<double> Function(double, int)>?
       customAttackSpreadPattern;
+
+  final bool callFunctions;
   final SourceAttackLocation? customAttackLocation;
+  final double holdDurationPercent;
+  final bool isAltAttack;
 
   AttackConfiguration copyWith({
     bool? callFunctions,

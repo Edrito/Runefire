@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/enemies/enemy.dart';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
@@ -235,6 +235,186 @@ class ChanceToReviveAttribute extends Attribute {
       final attr = victimEntity! as AttributeCallbackFunctionality;
       attr.onKillOtherEntity.remove(determineIfShouldDie);
     }
+    super.unMapUpgrade();
+  }
+}
+
+class OverheatingMissileAttribute extends Attribute {
+  OverheatingMissileAttribute({
+    required super.level,
+    required super.victimEntity,
+    super.damageType,
+  });
+
+  @override
+  AttributeType attributeType = AttributeType.overheatingMissile;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  String title = 'Superheated Missiles';
+
+  Set<String> shouldAlight = {};
+  //weaponid, damage instance id
+  Map<String, String> continueToAlight = {};
+
+  void initiateAlight(Weapon weapon) {
+    shouldAlight.add(weapon.weaponId);
+    continueToAlight.remove(weapon.weaponId);
+    initiateWeaponFunction(weapon);
+    print('~~~');
+  }
+
+  void initiateWeaponFunction(Weapon weapon) {
+    if (weapon is AttributeWeaponFunctionsFunctionality) {
+      if (!weapon.onHit.contains(doAlight)) {
+        weapon.onHit.add(doAlight);
+      }
+    }
+  }
+
+  bool doAlight(DamageInstance instance) {
+    if (shouldAlight.contains(instance.sourceWeapon?.weaponId)) {
+      continueToAlight[instance.sourceWeapon!.weaponId] =
+          instance.sourceAttackId;
+      shouldAlight.remove(instance.sourceWeapon!.weaponId);
+    }
+    if (continueToAlight[instance.sourceWeapon?.weaponId] ==
+        instance.sourceAttackId) {
+      instance.statusEffectChance[StatusEffects.burn] = 1;
+    }
+    return false;
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final call = victimEntity! as AttributeCallbackFunctionality;
+      call.onReload.add(initiateAlight);
+    }
+    super.mapUpgrade();
+  }
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final call = victimEntity! as AttributeCallbackFunctionality;
+      call.onReload.remove(initiateAlight);
+    }
+
+    for (final element in victimEntity?.getAllWeaponItems(true, true) ??
+        const Iterable.empty()) {
+      if (element is AttributeWeaponFunctionsFunctionality) {
+        element.onHit.remove(doAlight);
+      }
+    }
+    super.unMapUpgrade();
+  }
+}
+
+class FireyAuraAttribute extends Attribute {
+  FireyAuraAttribute({
+    required super.level,
+    required super.victimEntity,
+    super.damageType,
+  });
+
+  @override
+  AttributeType attributeType = AttributeType.fireyAura;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  String title = 'Firey Aura';
+
+  final double damageIncrease = 1.25;
+
+  final double radius = 4;
+
+  bool checkDistanceApplyDamageIncrease(DamageInstance other) {
+    final isClose =
+        other.victim.position.distanceTo(other.source.position) < radius;
+    if (isClose) {
+      other.damageMap.updateAll((key, value) => value * damageIncrease);
+    }
+    return false;
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final call = victimEntity! as AttributeCallbackFunctionality;
+      call.onHitOtherEntity.add(checkDistanceApplyDamageIncrease);
+    }
+    super.mapUpgrade();
+  }
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final call = victimEntity! as AttributeCallbackFunctionality;
+      call.onReload.remove(checkDistanceApplyDamageIncrease);
+    }
+
+    super.unMapUpgrade();
+  }
+}
+
+class EssenceOfThePheonixAttribute extends Attribute {
+  EssenceOfThePheonixAttribute({
+    required super.level,
+    required super.victimEntity,
+    super.damageType,
+  });
+
+  @override
+  AttributeType attributeType = AttributeType.essenceOfThePheonix;
+
+  @override
+  bool increaseFromBaseParameter = false;
+
+  @override
+  String title = 'Essence of the Pheonix';
+
+  bool modifyDamage(DamageInstance other) {
+    var totalDamage = 0.0;
+    for (final element in other.damageMap.entries) {
+      totalDamage += element.value;
+    }
+    other.damageMap.clear();
+    other.damageMap[DamageType.fire] = totalDamage;
+    other.statusEffectChance[StatusEffects.burn] =
+        (other.statusEffectChance[StatusEffects.burn] ?? 0.0) + .25;
+    return false;
+  }
+
+  @override
+  void mapUpgrade() {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final call = victimEntity! as AttributeCallbackFunctionality;
+      call.onHitOtherEntity.add(modifyDamage);
+    }
+    super.mapUpgrade();
+  }
+
+  @override
+  int get maxLevel => 1;
+
+  @override
+  void unMapUpgrade() {
+    if (victimEntity is AttributeCallbackFunctionality) {
+      final call = victimEntity! as AttributeCallbackFunctionality;
+      call.onReload.remove(modifyDamage);
+    }
+
     super.unMapUpgrade();
   }
 }

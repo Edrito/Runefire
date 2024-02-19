@@ -61,8 +61,9 @@ class EnemyState {
 
   /// Initialize the event timer to call random functions periodically.
   void initEventTimer() {
-    stateManagedAI.eventManagement
-        .addAiTimer(callRandomFunction, stateId, eventPeriodDuration);
+    stateManagedAI.eventManagement.addAiTimer(
+      (function: callRandomFunction, id: stateId, time: eventPeriodDuration),
+    );
   }
 
   double initDurationTimer() {
@@ -92,8 +93,7 @@ class EnemyState {
 
   /// Call the onStateEnd function and remove the event timer.
   void onStateEndCall() {
-    stateManagedAI.eventManagement
-        .removeAiTimer(callRandomFunction, stateId, eventPeriodDuration);
+    stateManagedAI.eventManagement.removeAiTimer(id: stateId);
     onStateEnd?.call();
   }
 
@@ -247,16 +247,18 @@ mixin StateManagedAI
     baseState.onStateStartCall();
     onDeath.add((_) {
       baseState.onStateEndCall();
+      return null;
     });
 
-    eventManagement.addAiTimer(stateChecker, entityId, period);
+    eventManagement.addAiTimer(
+        (function: stateChecker, id: '${entityId}state_checker', time: period));
 
     stateChecker();
   }
 
   @override
   void onRemove() {
-    eventManagement.removeAiTimer(stateChecker, entityId, period);
+    eventManagement.removeAiTimer(id: '${entityId}state_checker');
     super.onRemove();
   }
 

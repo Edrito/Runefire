@@ -445,10 +445,12 @@ class ConfusedStatusEffectAttribute extends StatusEffectAttribute {
   void mapUpgrade() {
     super.mapUpgrade();
     (victimEntity!).gameEnviroment.eventManagement.addAiTimer(
-          action,
-          attributeId,
-          1.5,
-        );
+      (
+        function: action,
+        id: attributeId,
+        time: 1.5,
+      ),
+    );
     action();
   }
 
@@ -456,9 +458,7 @@ class ConfusedStatusEffectAttribute extends StatusEffectAttribute {
   void unMapUpgrade() {
     super.unMapUpgrade();
     (victimEntity!).gameEnviroment.eventManagement.removeAiTimer(
-          action,
-          attributeId,
-          1.5,
+          id: attributeId,
         );
     if (victimEntity is MovementFunctionality) {
       final move = victimEntity! as MovementFunctionality;

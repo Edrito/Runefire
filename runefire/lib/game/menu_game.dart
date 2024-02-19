@@ -8,9 +8,9 @@ import 'package:runefire/game/hexed_forest_game.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/enums.dart';
-import '../resources/data_classes/player_data.dart';
-import 'enviroment_mixin.dart';
-import '../resources/visuals.dart';
+import 'package:runefire/resources/data_classes/player_data.dart';
+import 'package:runefire/game/enviroment_mixin.dart';
+import 'package:runefire/resources/visuals.dart';
 
 class MenuGame extends Enviroment with PlayerFunctionality {
   bool initAddAttempt = false;
@@ -19,14 +19,18 @@ class MenuGame extends Enviroment with PlayerFunctionality {
   late String weaponHash;
 
   String reduceWeapons() {
-    return game.playerDataComponent.dataObject.selectedWeapons.entries.fold("",
-            (previousValue, element) => previousValue + element.value.name) +
+    return game.playerDataComponent.dataObject.selectedWeapons.entries.fold(
+          '',
+          (previousValue, element) => previousValue + element.value.name,
+        ) +
         game.playerDataComponent.dataObject.selectedSecondaries.entries.fold(
-            "", (previousValue, element) => previousValue + element.value.name);
+          '',
+          (previousValue, element) => previousValue + element.value.name,
+        );
   }
 
   @override
-  void onLoad() async {
+  Future<void> onLoad() async {
     game.componentsNotifier<PlayerDataComponent>().addListener(reAddPlayer);
     currentPlayer = game.playerDataComponent.dataObject.selectedPlayer;
     weaponHash = reduceWeapons();
@@ -53,12 +57,14 @@ class MenuGame extends Enviroment with PlayerFunctionality {
   }
 
   @override
-  void addPlayer(EventManagement? eventManagement) async {
+  Future<void> addPlayer(EventManagement? eventManagement) async {
     if (!initAddAttempt) {
       initAddAttempt = true;
       return;
     }
-    if (playerAdded) return;
+    if (playerAdded) {
+      return;
+    }
     super.addPlayer(eventManagement);
     player?.isDisplay = true;
     // player?.height = 2;
@@ -71,7 +77,7 @@ class MenuGame extends Enviroment with PlayerFunctionality {
     // initPlatforms();
   }
 
-  void reAddPlayer() async {
+  Future<void> reAddPlayer() async {
     if (currentPlayer != game.playerDataComponent.dataObject.selectedPlayer) {
       currentPlayer = game.playerDataComponent.dataObject.selectedPlayer;
       removePlayer(false);

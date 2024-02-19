@@ -17,6 +17,16 @@ double hypotenuse(double x, double y) {
   return sqrt(pow(x, 2) + pow(y, 2));
 }
 
+double applyDurationModifications({
+  Entity? perpertrator,
+  Entity? victim,
+  double? time,
+}) {
+  final durationIncrease = perpertrator?.durationPercentIncrease.parameter ?? 1;
+  final durationReduction = victim?.durationPercentReduction.parameter ?? 1;
+  return durationIncrease * durationReduction * (time ?? 1);
+}
+
 ///Takes a double tuple and returns a random value between the two
 
 double randomBetween((double, double) val) {

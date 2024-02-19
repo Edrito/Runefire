@@ -103,6 +103,8 @@ class DoubleParameterManager {
         (previousValue, element) => previousValue * (element + 1),
       );
 
+  ///If you want to increase the parameter by 5, you would pass 5
+  ///If you want to decrease the parameter by 5, you would pass -5
   void setParameterFlatValue(String sourceId, double value) {
     _parameterFlatIncrease[sourceId] = value;
     _listeners.forEach((element) {

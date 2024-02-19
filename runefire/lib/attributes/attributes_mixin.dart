@@ -17,10 +17,11 @@ import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:runefire/resources/enums.dart';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/resources/visuals.dart';
+import 'package:uuid/uuid.dart';
 
 mixin AttributeFunctionality on Entity {
   final Map<AttributeType, Attribute> _currentAttributes = {};
@@ -278,7 +279,6 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<OnHitDef> onHitByProjectile = [];
   final List<OnHitDef> onHitOtherEntity = [];
 
-  bool finishPulseTimer = false;
   //Only called when damage is 100% going to be applied
   final List<OnHitDef> onPostDamageOtherEntity = [];
 
@@ -297,7 +297,6 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
 
   PositionComponent? bodyEntityWrapper;
   PositionComponent? headEntityWrapper;
-  TimerComponent? pulseTimer;
 
   int get numHeadEntities => _headEntities.length;
 
@@ -321,23 +320,48 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     }
   }
 
+  void removePulseFunction(Function function) {
+    _pulseFunctions.remove(function);
+  }
+
+  int _currentPulseIndex = 0;
+
+  void _processPulseFunctions(double dt) {
+    if (_pulseFunctions.isEmpty) {
+      return;
+    }
+
+    _currentPulseIndex =
+        ((_currentPulseIndex + 1) % _pulseFunctions.length).clamp(
+      0,
+      _pulseFunctions.length - 1,
+    );
+    _pulseFunctions[_currentPulseIndex].call();
+  }
+
+  late final pulseFunctionId = const Uuid().v4();
+
+  // @override
+  // Future<void> onLoad() {
+  //   pulsePeriod.addListener(rebuildPulseTimer);
+  //   return super.onLoad();
+  // }
+
+  // @override
+  // void onRemove() {
+  //   pulsePeriod.removeListener(rebuildPulseTimer);
+  //   super.onRemove();
+  // }
+
+  // void rebuildPulseTimer(double newPeriod) {
+  //   gameEnviroment.eventManagement.removeAiTimer(id: pulseFunctionId);
+  //   gameEnviroment.eventManagement.addAiTimer(
+  //     (function: _onPulse, id: pulseFunctionId, time: newPeriod),
+  //   );
+  // }
+
   void addPulseFunction(Function function) {
-    pulseTimer ??= TimerComponent(
-      period: pulsePeriod.parameter,
-      repeat: true,
-      onTick: () async {
-        _checkFinishTimer();
-        for (final element in _pulseFunctions) {
-          await Future.delayed(.1.seconds).then((_) {
-            element();
-          });
-          _checkFinishTimer();
-          pulseTimer?.timer.reset();
-        }
-      },
-    )..addToParent(this);
     _pulseFunctions.add(function);
-    finishPulseTimer = false;
   }
 
   bool onPreDamageOtherEntityFunctions(DamageInstance damage) {
@@ -377,13 +401,6 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     _headEntities.removeAt(index);
   }
 
-  void removePulseFunction(Function function) {
-    _pulseFunctions.remove(function);
-    if (_pulseFunctions.isEmpty) {
-      finishPulseTimer = true;
-    }
-  }
-
   void touchFunctions(HealthFunctionality other) {
     for (final element in onTouch) {
       element(other);
@@ -403,17 +420,10 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     for (final element in [...onUpdate]) {
       element(dt);
     }
+    _processPulseFunctions(dt);
     _processHeadEntities(_headEntities, .5, dt);
     _processBodyEntities(_bodyComponents, spriteHeight * 1.3, dt);
     super.update(dt);
-  }
-
-  void _checkFinishTimer() {
-    if (finishPulseTimer) {
-      pulseTimer?.removeFromParent();
-      pulseTimer = null;
-      finishPulseTimer = false;
-    }
   }
 
   void _processBodyEntities(

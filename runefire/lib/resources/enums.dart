@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/events/event_management.dart';
+import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/player/player_constants.dart' as player_constants;
 import 'package:runefire/main.dart';
 import 'package:runefire/resources/assets/assets.dart';
@@ -15,6 +16,7 @@ import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/visuals.dart';
+import 'package:runefire/weapons/custom_weapons.dart';
 import 'package:runefire/weapons/player_magic_weapons.dart';
 import 'package:runefire/weapons/player_melee_weapons.dart';
 import 'package:runefire/weapons/projectile_class.dart';
@@ -33,6 +35,7 @@ import 'package:runefire/weapons/enemy_weapons.dart';
 import 'package:runefire/weapons/projectiles.dart';
 import 'package:runefire/weapons/secondary_abilities.dart';
 import 'package:runefire/weapons/weapon_class.dart';
+import 'package:uuid/uuid.dart';
 
 enum AudioType {
   sfx,
@@ -627,6 +630,34 @@ enum WeaponType {
   ),
 
   ///MISC
+  ///
+
+  blankGun(
+    5,
+    AttackType.guns,
+    0,
+    isPlayerWeapon: false,
+  ),
+  blankMelee(
+    5,
+    AttackType.melee,
+    0,
+    isPlayerWeapon: false,
+  ),
+  blankMagic(
+    5,
+    AttackType.magic,
+    0,
+    isPlayerWeapon: false,
+  ),
+
+  hiddenArcingWeapon(
+    3,
+    AttackType.guns,
+    0,
+    isPlayerWeapon: false,
+  ),
+
   blankProjectileWeapon(
     5,
     AttackType.guns,
@@ -717,6 +748,9 @@ enum WeaponType {
         return ImagesAssetsWeapons.scryshot;
       case WeaponType.prismaticBeam:
         return ImagesAssetsWeapons.prismaticBeam;
+
+      default:
+        return ImagesAssetsWeapons.bookIdle;
     }
   }
 }
@@ -751,6 +785,7 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.fireballMagic:
         returnWeapon = FireballMagic(upgradeLevel, ancestor);
         break;
+
       case WeaponType.swordKladenets:
         returnWeapon = SwordKladenets(upgradeLevel, ancestor);
         break;
@@ -760,9 +795,7 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.tuiCamai:
         returnWeapon = TuiCamai(upgradeLevel, ancestor);
         break;
-      case WeaponType.blankProjectileWeapon:
-        returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
-        break;
+
       case WeaponType.arcaneBlaster:
         returnWeapon = ArcaneBlaster(upgradeLevel, ancestor);
         break;
@@ -828,6 +861,17 @@ extension WeaponTypeFilename on WeaponType {
       case WeaponType.emberBow:
         returnWeapon = EmberBow(upgradeLevel, ancestor);
         break;
+
+      //Misc
+
+      case WeaponType.hiddenArcingWeapon:
+        returnWeapon = HiddenArcingWeapon(upgradeLevel, ancestor);
+        break;
+      case WeaponType.blankProjectileWeapon:
+        returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
+        break;
+      default:
+        returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
     }
     if (returnWeapon is SecondaryFunctionality && secondaryWeaponType != null) {
       final secondaryWeaponUpgrade =
@@ -856,8 +900,26 @@ class DamageInstance {
     this.isCrit = false,
     this.canBeDodgedWithJump = false,
     this.damageKind = DamageKind.regular,
-    this.statusEffectChance,
-  });
+    Map<StatusEffects, double>? statusEffectChance,
+  }) {
+    if (statusEffectChance != null) {
+      this.statusEffectChance.addAll(statusEffectChance);
+    }
+  }
+  late final id = const Uuid().v4();
+  String get sourceAttackId {
+    if (sourceAttack is Projectile) {
+      return (sourceAttack as Projectile).projectileId;
+    } else if (sourceAttack is Weapon) {
+      return (sourceAttack as Weapon).weaponId;
+    } else if (sourceAttack is Entity) {
+      return (sourceAttack as Entity).entityId;
+    } else if (sourceAttack is AreaEffect) {
+      return (sourceAttack as AreaEffect).areaId;
+    } else {
+      return id;
+    }
+  }
 
   final bool canBeDodgedWithJump;
   final DamageKind damageKind;
@@ -868,7 +930,7 @@ class DamageInstance {
   final HealthFunctionality victim;
 
   final Weapon? sourceWeapon;
-  final Map<StatusEffects, double>? statusEffectChance;
+  final Map<StatusEffects, double> statusEffectChance = {};
 
   AttackType get attackType =>
       sourceWeapon?.weaponType.attackType ?? AttackType.guns;

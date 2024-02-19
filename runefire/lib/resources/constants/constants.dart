@@ -52,4 +52,4 @@ List<String> endGameMessages = [
 
 //attributes
 
-const defaultIconLocation = 'attributes/default.png';
+const defaultIconLocation = 'attributes/standard.png';

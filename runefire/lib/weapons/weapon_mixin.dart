@@ -1161,10 +1161,13 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
 
   List<Function(Projectile projectile)> onProjectileDeath = [];
   List<Function(Projectile projectile)> onAttackProjectile = [];
-  List<Function(AttackConfiguration attackConfiguration)> onAttackMelee = [];
-  List<Function(AttackConfiguration attackConfiguration)> onAttackMagic = [];
-  List<Function(AttackConfiguration attackConfiguration)> onAttack = [];
-  List<Function()> onReload = [];
+  List<Function(AttackConfiguration attackConfiguration, Weapon weapon)>
+      onAttackMelee = [];
+  List<Function(AttackConfiguration attackConfiguration, Weapon weapon)>
+      onAttackMagic = [];
+  List<Function(AttackConfiguration attackConfiguration, Weapon weapon)>
+      onAttack = [];
+  List<Function(Weapon weapon)> onReload = [];
   List<Function(Weapon weapon)> onAttackingFinish = [];
   List<Function(Weapon weapon)> onSwappedTo = [];
   List<Function(Weapon weapon)> onSwappedFrom = [];
@@ -1181,11 +1184,11 @@ mixin AttributeWeaponFunctionsFunctionality on Weapon {
   void standardAttack(AttackConfiguration attackConfiguration) {
     if (this is MeleeFunctionality) {
       for (final element in onAttackMelee) {
-        element(attackConfiguration);
+        element(attackConfiguration, this);
       }
     }
     for (final element in onAttack) {
-      element(attackConfiguration);
+      element(attackConfiguration, this);
     }
     super.standardAttack(
       attackConfiguration,

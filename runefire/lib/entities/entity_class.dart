@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/attributes/attributes_status_effect.dart';
 import 'package:runefire/enemies/enemy.dart';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/events/event_management.dart';
 import 'package:runefire/player/player.dart';

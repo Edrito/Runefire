@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
@@ -305,7 +305,7 @@ class ExplosionOnKillAttribute extends Attribute {
       position: damage.victim.center,
       animationRandomlyFlipped: true,
       radius: baseSize + increasePercentOfBase(baseSize),
-      duration: victimEntity!.durationPercentIncrease.parameter,
+      // duration: victimEntity!.durationPercentIncrease.parameter,
       damage: {
         damageType ?? allowedDamageTypes.first: (
           increase(true, 5).toDouble(),
@@ -379,7 +379,7 @@ class ExplosiveDashAttribute extends Attribute {
       animationRandomlyFlipped: true,
       collisionDelay: .35,
       radius: baseSize + increasePercentOfBase(baseSize),
-      duration: victimEntity!.durationPercentIncrease.parameter,
+      duration: 1,
       damage: {
         damageType ?? allowedDamageTypes.first: (
           increase(true, 5).toDouble(),
@@ -454,7 +454,7 @@ class GravityDashAttribute extends Attribute {
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       durationType: DurationType.temporary,
-      duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
+      duration: 2.5,
       onTick: (entity, areaId) {
         entity.body.applyForce((playerPos - entity.center).normalized() / 5);
       },
@@ -519,7 +519,7 @@ class GroundSlamAttribute extends Attribute {
       position: victimEntity!.center,
       animationRandomlyFlipped: true,
       radius: baseSize + increasePercentOfBase(baseSize),
-      duration: victimEntity!.durationPercentIncrease.parameter,
+      duration: 1,
       damage: {
         damageType ?? allowedDamageTypes.first: (
           increase(true, 5).toDouble(),
@@ -666,7 +666,7 @@ class PeriodicPushAttribute extends Attribute {
       animationRandomlyFlipped: true,
       radius: radius,
       tickRate: .05,
-      duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
+      duration: 2.5,
       onTick: (entity, areaId) {
         final increaseRes = increase(true, baseOomph);
         final distanceScaled =
@@ -742,7 +742,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
       animationRandomlyFlipped: true,
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
-      duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
+      duration: 2.5,
       damage: {
         DamageType.magic: (
           increase(true, 5).toDouble(),
@@ -816,12 +816,12 @@ class PeriodicStunAttribute extends Attribute {
       animationRandomlyFlipped: true,
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
-      duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
+      duration: 2.5,
       onTick: (entity, areaId) {
         if (entity is AttributeFunctionality) {
           entity.addAttribute(
             AttributeType.stun,
-            duration: victimEntity!.durationPercentIncrease.parameter * 1,
+            duration: 1,
             perpetratorEntity: victimEntity,
             isTemporary: true,
           );
@@ -896,7 +896,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
       animationRandomlyFlipped: true,
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
-      duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
+      duration: 2.5,
       damage: {
         DamageType.magic: (
           increase(true, 5).toDouble(),
@@ -907,7 +907,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
         if (entity is AttributeFunctionality) {
           entity.addAttribute(
             AttributeType.stun,
-            duration: victimEntity!.durationPercentIncrease.parameter * 1,
+            duration: 1,
             perpetratorEntity: victimEntity,
             isTemporary: true,
           );
@@ -2390,7 +2390,7 @@ class ReloadPushAttribute extends Attribute {
       animationRandomlyFlipped: true,
       radius: radius,
       tickRate: .05,
-      duration: victimEntity!.durationPercentIncrease.parameter * 2.5,
+      duration: 2.5,
       onTick: (entity, areaId) {
         final increaseRes = increase(true, baseOomph);
         final distanceScaled =
@@ -3856,7 +3856,7 @@ class SlugTrailAttribute extends Attribute {
       animationRandomlyFlipped: true,
       radius: baseSize + increasePercentOfBase(baseSize),
       durationType: DurationType.temporary,
-      duration: victimEntity!.durationPercentIncrease.parameter * 2,
+      duration: 2,
 
       ///Map<DamageType, (double, double)>>>>
       damage: {

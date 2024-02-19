@@ -37,7 +37,7 @@ class MushroomDummy extends Enemy with JumpFunctionality
     height.baseParameter = mushroomHopperBaseHeight;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
-    maxHealth.baseParameter = 1000;
+    maxHealth.baseParameter = 5;
   }
 
   @override

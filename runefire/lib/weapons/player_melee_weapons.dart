@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
@@ -1029,7 +1029,7 @@ class FrostKatana extends PlayerWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    onAttackMelee.add((attackConfiguration) {
+    onAttackMelee.add((attackConfiguration, weapon) {
       if (entityAncestor is DashFunctionality) {
         final dash = entityAncestor! as DashFunctionality;
         if (attackConfiguration.holdDurationPercent < .6) {

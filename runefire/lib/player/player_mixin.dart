@@ -16,7 +16,7 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
-import 'package:runefire/entities/child_entities.dart';
+import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/menus/overlays.dart';
