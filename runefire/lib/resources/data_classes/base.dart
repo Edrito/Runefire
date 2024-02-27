@@ -20,7 +20,11 @@ abstract class DataComponent extends Component with Notifier {
   DataComponent(this._dataObject) {
     _dataObject.parentComponent = this;
   }
-  final DataClass _dataObject;
+  DataClass _dataObject;
+
+  void reset(DataClass newClass) {
+    _dataObject = newClass;
+  }
 
   DataClass get dataObject => _dataObject;
 }
@@ -42,7 +46,7 @@ abstract class DataComponent extends Component with Notifier {
 class DoubleParameterManager {
   DoubleParameterManager({
     required double baseParameter,
-    this.minParameter,
+    this.minParameter = 0,
     this.maxParameter,
     this.parentParameterManager,
   }) : _baseParameter = baseParameter {
@@ -56,7 +60,7 @@ class DoubleParameterManager {
     });
   }
 
-  double? minParameter;
+  double minParameter;
   double? maxParameter;
 
   DoubleParameterManager? parentParameterManager;
@@ -100,7 +104,7 @@ class DoubleParameterManager {
   double get parameterPercentIncrease =>
       _parameterPercentIncrease.values.fold<double>(
         1,
-        (previousValue, element) => previousValue * (element + 1),
+        (previousValue, element) => previousValue + element,
       );
 
   ///If you want to increase the parameter by 5, you would pass 5
@@ -114,6 +118,9 @@ class DoubleParameterManager {
 
   ///If you want to increase the parameter by %10, you would pass 0.1
   ///If you want to decrease the parameter by %10, you would pass -0.1
+  ///
+  ///All percent parameters are added together before multiplying the base parameter
+  ///that has been increased by the flat increase
   void setParameterPercentValue(String sourceId, double value) {
     _parameterPercentIncrease[sourceId] = value;
     _listeners.forEach((element) {
@@ -262,11 +269,19 @@ class IntParameterManager {
 }
 
 class BoolParameterManager {
+  ///Base parameter is the default value of the parameter
+  ///if [frequencyDeterminesTruth] the parameter will be true if the frequency of [True] values
+  ///is closer to the frequency of [False] values. If the values are equal, then [equalFrequencyDefaultsToTrue] is used.
+  ///If [frequencyDeterminesTruth] is false, the parameter will be true if there are any [True] values
   BoolParameterManager({
     required bool baseParameter,
-    this.isFoldOfIncreases = true,
+    this.frequencyDeterminesTruth = true,
+    this.equalFrequencyDefaultsToTrue = true,
+    this.customParameterFunction,
   }) : _baseParameter = baseParameter;
   bool _baseParameter;
+  bool equalFrequencyDefaultsToTrue;
+  bool Function(List<bool> values, bool baseParameter)? customParameterFunction;
 
   bool get baseParameter => _baseParameter;
 
@@ -277,10 +292,16 @@ class BoolParameterManager {
     });
   }
 
-  bool isFoldOfIncreases;
+  bool frequencyDeterminesTruth;
   final Map<String, bool> _parameterIncrease = {};
   bool get parameter {
-    if (isFoldOfIncreases) {
+    if (customParameterFunction != null) {
+      return customParameterFunction!.call(
+        _parameterIncrease.values.toList(),
+        baseParameter,
+      );
+    }
+    if (frequencyDeterminesTruth) {
       return boolAbilityDecipher();
     } else {
       return _parameterIncrease.values.contains(true) || baseParameter;
@@ -318,7 +339,7 @@ class BoolParameterManager {
           0,
           (previousValue, element) => previousValue + (element ? 1 : -1),
         ) >=
-        0;
+        (equalFrequencyDefaultsToTrue ? 0 : 1);
   }
 
   void removeKey(String sourceId) {
@@ -338,13 +359,36 @@ class DamageParameterManager {
   final Map<String, Map<DamageType, (double, double)>> _damagePercentIncrease =
       {};
 
+  Map<DamageType, (double, double)> get parameter {
+    final returnMap = <DamageType, (double, double)>{};
+    for (final element in damageBase.entries) {
+      returnMap[element.key] = element.value;
+    }
+    for (final element in damageFlatIncrease.entries) {
+      returnMap[element.key] = (
+        (returnMap[element.key]?.$1 ?? 0) + (element.value.$1),
+        (returnMap[element.key]?.$2 ?? 0) + (element.value.$2)
+      );
+    }
+    for (final element in damagePercentIncrease.entries) {
+      returnMap[element.key] = (
+        (returnMap[element.key]?.$1 ?? 0) * (element.value.$1),
+        (returnMap[element.key]?.$2 ?? 0) * (element.value.$2)
+      );
+    }
+    return returnMap;
+  }
+
   void setDamagePercentIncrease(
     String sourceId,
     DamageType damageType,
     double min,
     double max,
   ) {
-    _damagePercentIncrease[sourceId] = {damageType: (min, max)};
+    _damagePercentIncrease[sourceId] ??= {damageType: (min, max)};
+    if (_damagePercentIncrease.containsKey(sourceId)) {
+      _damagePercentIncrease[sourceId]![damageType] = (min, max);
+    }
   }
 
   void setDamageFlatIncrease(
@@ -353,7 +397,10 @@ class DamageParameterManager {
     double min,
     double max,
   ) {
-    _damageFlatIncrease[sourceId] = {damageType: (min, max)};
+    _damageFlatIncrease[sourceId] ??= {damageType: (min, max)};
+    if (_damageFlatIncrease.containsKey(sourceId)) {
+      _damageFlatIncrease[sourceId]![damageType] = (min, max);
+    }
   }
 
   void removePercentKey(String sourceId) {
@@ -532,7 +579,7 @@ DamageInstance damageCalculations(
 
   final returnInstance = DamageInstance(
     source: source,
-    damageMap: returnMap,
+    damageMap: returnMap..removeWhere((key, value) => value == 0),
     sourceAttack: sourceAttack,
     victim: victim,
     sourceWeapon: sourceWeapon,

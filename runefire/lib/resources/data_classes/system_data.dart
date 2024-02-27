@@ -25,23 +25,147 @@ class SystemDataComponent extends DataComponent {
 class SystemData extends DataClass {
   SystemData({this.musicVolume = 0, this.sfxVolume = 0});
 
+  final Map<GameAction, Set<LogicalKeyboardKey>> constantKeyboardMappings = {
+    GameAction.pause: {LogicalKeyboardKey.escape},
+  };
+
+  @HiveField(100)
+  Map<GameAction, (LogicalKeyboardKey?, LogicalKeyboardKey?)> keyboardMappings =
+      {
+    GameAction.moveUp: (LogicalKeyboardKey.keyW, LogicalKeyboardKey.arrowUp),
+    GameAction.moveLeft: (
+      LogicalKeyboardKey.keyA,
+      LogicalKeyboardKey.arrowLeft
+    ),
+    GameAction.moveDown: (
+      LogicalKeyboardKey.keyS,
+      LogicalKeyboardKey.arrowDown
+    ),
+    GameAction.moveRight: (
+      LogicalKeyboardKey.keyD,
+      LogicalKeyboardKey.arrowRight
+    ),
+    GameAction.reload: (LogicalKeyboardKey.keyR, null),
+    GameAction.interact: (LogicalKeyboardKey.keyE, null),
+    GameAction.useExpendable: (LogicalKeyboardKey.keyQ, null),
+    GameAction.jump: (LogicalKeyboardKey.space, null),
+    GameAction.swapWeapon: (LogicalKeyboardKey.tab, null),
+    GameAction.dash: (LogicalKeyboardKey.shiftLeft, null),
+    GameAction.pause: (LogicalKeyboardKey.keyP, null),
+  };
+
+  @HiveField(105)
+  Map<GameAction, (int?, int?)> mouseButtonMappings = {
+    GameAction.primary: (1, null),
+    GameAction.secondary: (2, null),
+  };
+
+  @HiveField(110)
+  Map<GameAction, (GamepadButtons?, GamepadButtons?)> gamePadMappings = {
+    GameAction.moveUp: (GamepadButtons.dpadUp, null),
+    GameAction.moveLeft: (GamepadButtons.dpadLeft, null),
+    GameAction.moveDown: (GamepadButtons.dpadDown, null),
+    GameAction.moveRight: (GamepadButtons.dpadRight, null),
+    GameAction.reload: (GamepadButtons.rightShoulder, null),
+    GameAction.interact: (GamepadButtons.buttonX, null),
+    GameAction.useExpendable: (
+      GamepadButtons.leftShoulder,
+      GamepadButtons.rightThumb
+    ),
+    GameAction.jump: (GamepadButtons.buttonA, null),
+    GameAction.swapWeapon: (GamepadButtons.buttonY, null),
+    GameAction.dash: (GamepadButtons.buttonB, null),
+    GameAction.pause: (GamepadButtons.buttonStart, null),
+    GameAction.primary: (GamepadButtons.rightTrigger, null),
+    GameAction.secondary: (GamepadButtons.leftTrigger, null),
+  };
+
+  @HiveField(120)
+  AimAssistStrength aimAssistStrength = AimAssistStrength.none;
+
+  List<GameDifficulty> availableDifficulties = [
+    GameDifficulty.regular,
+    GameDifficulty.quick,
+  ];
+
+  List<GameLevel> availableLevels = [GameLevel.hexedForest];
+  Map<GameAction, GamepadButtons> constantGamePadMappings = {
+    GameAction.pause: GamepadButtons.buttonStart,
+  };
+
+  //Move is right, aim is left, if true
+  @HiveField(116)
+  bool flipJoystickControl = false;
+
+  @HiveField(117)
+  bool gamepadVibrationEnabled = true;
+
+  @HiveField(20)
+  HudScale hudScale = HudScale.medium;
+
+  @HiveField(115)
+  bool invertYAxis = false;
+
   @HiveField(0)
   double musicVolume;
 
   @HiveField(1)
   double sfxVolume;
 
+  @HiveField(12)
+  bool showDamageText = true;
+
   @HiveField(10)
   bool showFPS = true;
-
-  @HiveField(11)
-  bool showTimer = false;
 
   @HiveField(12)
   bool showStaminaHealthText = false;
 
-  @HiveField(20)
-  HudScale hudScale = HudScale.medium;
+  @HiveField(11)
+  bool showTimer = false;
+
+  set setAimAssist(AimAssistStrength value) {
+    aimAssistStrength = value;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
+  set setFlipJoystickControl(bool value) {
+    flipJoystickControl = value;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
+  void setGamepadMapping(
+    GameAction action,
+    GamepadButtons? button,
+    bool isPrimary,
+  ) {
+    var newGamepadMapping = gamePadMappings[action];
+
+    if (newGamepadMapping != null) {
+      if (isPrimary) {
+        newGamepadMapping = (button, newGamepadMapping.$2);
+      } else {
+        newGamepadMapping = (newGamepadMapping.$1, button);
+      }
+    } else {
+      newGamepadMapping = (
+        isPrimary ? button : null,
+        isPrimary ? null : button,
+      );
+    }
+
+    gamePadMappings[action] = newGamepadMapping;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
+  set setHudScale(HudScale value) {
+    hudScale = value;
+    parentComponent?.notifyListeners();
+    save();
+  }
 
   void setKeyboardMapping(
     GameAction action,
@@ -114,123 +238,8 @@ class SystemData extends DataClass {
     save();
   }
 
-  void setGamepadMapping(
-    GameAction action,
-    GamepadButtons? button,
-    bool isPrimary,
-  ) {
-    var newGamepadMapping = gamePadMappings[action];
-
-    if (newGamepadMapping != null) {
-      if (isPrimary) {
-        newGamepadMapping = (button, newGamepadMapping.$2);
-      } else {
-        newGamepadMapping = (newGamepadMapping.$1, button);
-      }
-    } else {
-      newGamepadMapping = (
-        isPrimary ? button : null,
-        isPrimary ? null : button,
-      );
-    }
-
-    gamePadMappings[action] = newGamepadMapping;
-    parentComponent?.notifyListeners();
-    save();
-  }
-
-  final Map<GameAction, Set<LogicalKeyboardKey>> constantKeyboardMappings = {
-    GameAction.pause: {LogicalKeyboardKey.escape},
-  };
-
-  @HiveField(100)
-  Map<GameAction, (LogicalKeyboardKey?, LogicalKeyboardKey?)> keyboardMappings =
-      {
-    GameAction.moveUp: (LogicalKeyboardKey.keyW, LogicalKeyboardKey.arrowUp),
-    GameAction.moveLeft: (
-      LogicalKeyboardKey.keyA,
-      LogicalKeyboardKey.arrowLeft
-    ),
-    GameAction.moveDown: (
-      LogicalKeyboardKey.keyS,
-      LogicalKeyboardKey.arrowDown
-    ),
-    GameAction.moveRight: (
-      LogicalKeyboardKey.keyD,
-      LogicalKeyboardKey.arrowRight
-    ),
-    GameAction.reload: (LogicalKeyboardKey.keyR, null),
-    GameAction.interact: (LogicalKeyboardKey.keyE, null),
-    GameAction.useExpendable: (LogicalKeyboardKey.keyQ, null),
-    GameAction.jump: (LogicalKeyboardKey.space, null),
-    GameAction.swapWeapon: (LogicalKeyboardKey.tab, null),
-    GameAction.dash: (LogicalKeyboardKey.shiftLeft, null),
-    GameAction.pause: (LogicalKeyboardKey.keyP, null),
-  };
-
-  @HiveField(105)
-  Map<GameAction, (int?, int?)> mouseButtonMappings = {
-    GameAction.primary: (1, null),
-    GameAction.secondary: (2, null),
-  };
-
-  @HiveField(110)
-  Map<GameAction, (GamepadButtons?, GamepadButtons?)> gamePadMappings = {
-    GameAction.moveUp: (GamepadButtons.dpadUp, null),
-    GameAction.moveLeft: (GamepadButtons.dpadLeft, null),
-    GameAction.moveDown: (GamepadButtons.dpadDown, null),
-    GameAction.moveRight: (GamepadButtons.dpadRight, null),
-    GameAction.reload: (GamepadButtons.rightShoulder, null),
-    GameAction.interact: (GamepadButtons.buttonX, null),
-    GameAction.useExpendable: (
-      GamepadButtons.leftShoulder,
-      GamepadButtons.rightThumb
-    ),
-    GameAction.jump: (GamepadButtons.buttonA, null),
-    GameAction.swapWeapon: (GamepadButtons.buttonY, null),
-    GameAction.dash: (GamepadButtons.buttonB, null),
-    GameAction.pause: (GamepadButtons.buttonStart, null),
-    GameAction.primary: (GamepadButtons.rightTrigger, null),
-    GameAction.secondary: (GamepadButtons.leftTrigger, null),
-  };
-
-  @HiveField(115)
-  bool invertYAxis = false;
-
-  //Move is right, aim is left, if true
-  @HiveField(116)
-  bool flipJoystickControl = false;
-
-  @HiveField(117)
-  bool gamepadVibrationEnabled = true;
-
-  @HiveField(120)
-  AimAssistStrength aimAssistStrength = AimAssistStrength.none;
-
-  Map<GameAction, GamepadButtons> constantGamePadMappings = {
-    GameAction.pause: GamepadButtons.buttonStart,
-  };
-
-  set setFlipJoystickControl(bool value) {
-    flipJoystickControl = value;
-    parentComponent?.notifyListeners();
-    save();
-  }
-
   set setMusicVolume(double value) {
     musicVolume = value;
-    parentComponent?.notifyListeners();
-    save();
-  }
-
-  set setHudScale(HudScale value) {
-    hudScale = value;
-    parentComponent?.notifyListeners();
-    save();
-  }
-
-  set setAimAssist(AimAssistStrength value) {
-    aimAssistStrength = value;
     parentComponent?.notifyListeners();
     save();
   }
@@ -241,17 +250,17 @@ class SystemData extends DataClass {
     save();
   }
 
+  set setShowDamageText(bool value) {
+    showDamageText = value;
+    parentComponent?.notifyListeners();
+    save();
+  }
+
   set setShowFPS(bool value) {
     showFPS = value;
     parentComponent?.notifyListeners();
     save();
   }
-
-  List<GameLevel> availableLevels = [GameLevel.hexedForest];
-  List<GameDifficulty> availableDifficulties = [
-    GameDifficulty.regular,
-    GameDifficulty.quick,
-  ];
 }
 
 enum MouseButtons { primaryClick, scrollClick, secondaryClick, misc }
@@ -305,15 +314,14 @@ enum PressState { pressed, released, held }
 
 class GamepadEvent {
   GamepadEvent(this.button, this.xyValue, this.singleValue, this.pressState);
+
   GamepadButtons button;
-  Offset xyValue;
-  double singleValue;
   PressState pressState;
+  double singleValue;
+  Offset xyValue;
+
   bool get isAnalog => xyValue.distance != 0;
 
-  @override
-  String toString() =>
-      'GamepadEvent(button: $button, xyValue: $xyValue, value: $singleValue, isPressed: $pressState)';
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -329,6 +337,10 @@ class GamepadEvent {
       xyValue.hashCode ^
       singleValue.hashCode ^
       pressState.hashCode;
+
+  @override
+  String toString() =>
+      'GamepadEvent(button: $button, xyValue: $xyValue, value: $singleValue, isPressed: $pressState)';
 }
 
 MouseButtons getMouseButton(int listenerButtonId) {

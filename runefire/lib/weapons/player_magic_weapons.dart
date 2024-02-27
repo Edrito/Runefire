@@ -111,7 +111,7 @@ class Icecicle extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -201,7 +201,7 @@ class PowerWord extends PlayerWeapon
         Vector2.all(4),
         EffectController(
           onMax: () {
-            Future.delayed(.2.seconds).then((value) {
+            entityAncestor?.game.gameAwait(.2).then((value) {
               text.add(
                 ScaleEffect.to(
                   Vector2.all(0),
@@ -362,8 +362,7 @@ class PowerWord extends PlayerWeapon
   ];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -409,7 +408,6 @@ class FireballMagic extends PlayerWeapon
         radius:
             increasePercentOfBase(3, customUpgradeFactor: .2, includeBase: true)
                 .toDouble(),
-        animationRandomlyFlipped: true,
         damage: baseDamage.damageBase,
       );
       final particleGenerator = CustomParticleGenerator(
@@ -467,8 +465,7 @@ class FireballMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -563,8 +560,7 @@ class EnergyMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -673,8 +669,7 @@ class PsychicMagic extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -746,8 +741,7 @@ class MagicBlast extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.followLaser;
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -772,6 +766,9 @@ class MagicMissile extends PlayerWeapon
     projectileRelativeSize.baseParameter = .2;
     maxHomingTargets.baseParameter = 1;
   }
+  List<double> pattern(double angle, int count) {
+    return regularAttackSpread(angle, count, 90);
+  }
 
   @override
   void mapUpgrade() {
@@ -794,11 +791,15 @@ class MagicMissile extends PlayerWeapon
           customUpgradeFactor: 1 / (maxLevel ?? 100),
         ).floor();
 
-    attackSplitFunctions[AttackSpreadType.regular] =
-        (angle, attackCount) => regularAttackSpread(angle, attackCount, 90);
+    attackSpreadPatterns.add(pattern);
 
     super.mapUpgrade();
   }
+
+  @override
+  Set<AttackSplitFunction> attackSpreadPatterns = {
+    (double angle, int attackCount) => [angle],
+  };
 
   @override
   WeaponType weaponType = WeaponType.magicMissile;
@@ -838,8 +839,7 @@ class MagicMissile extends PlayerWeapon
   @override
   ProjectileType? projectileType = ProjectileType.paintBullet;
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
@@ -897,8 +897,9 @@ class BreathOfFire extends PlayerWeapon
 
     attackTickRate.baseParameter = .1;
 
-    attackSplitFunctions[AttackSpreadType.regular] =
-        (angle, attackCount) => regularAttackSpread(angle, attackCount, 45);
+    attackSpreadPatterns.add(
+      (angle, attackCount) => regularAttackSpread(angle, attackCount, 45),
+    );
 
     attackCountIncrease.baseParameter = 3;
 
@@ -909,6 +910,11 @@ class BreathOfFire extends PlayerWeapon
         ).floor();
     super.mapUpgrade();
   }
+
+  @override
+  Set<AttackSplitFunction> attackSpreadPatterns = {
+    (double angle, int attackCount) => [angle],
+  };
 
   @override
   Set<WeaponSpritePosition> get removeSpriteOnAttack => {
@@ -948,7 +954,7 @@ class BreathOfFire extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 }
@@ -1023,7 +1029,6 @@ class ElementalChannel extends PlayerWeapon
         damage: {
           randomDamageEntry.key: randomDamageEntry.value,
         },
-        animationRandomlyFlipped: true,
       );
       areaEffects.add(area);
     }
@@ -1070,8 +1075,7 @@ class ElementalChannel extends PlayerWeapon
   ];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 }
@@ -1144,7 +1148,6 @@ class HexwoodMaim extends PlayerWeapon
         radius: radius,
         sourceEntity: entityAncestor!,
         collisionDelay: stepTime * 10,
-        animationRandomlyFlipped: true,
         onTick: (entity, areaId) async {
           entity.applyHitAnimation(
             await spriteAnimations.scratchEffect1,
@@ -1203,8 +1206,7 @@ class HexwoodMaim extends PlayerWeapon
   ];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 

@@ -118,12 +118,13 @@ abstract class Weapon extends Component with UpgradeFunctions {
   final IntParameterManager chainingTargets =
       IntParameterManager(baseParameter: 0);
 
-  final BoolParameterManager countIncreaseWithTime =
-      BoolParameterManager(baseParameter: false);
+  final BoolParameterManager countIncreaseWithTime = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
   final DoubleParameterManager critChance = DoubleParameterManager(
     baseParameter: 0.05,
-    minParameter: 0,
     maxParameter: 1,
   );
 
@@ -134,12 +135,13 @@ abstract class Weapon extends Component with UpgradeFunctions {
       DoubleParameterManager(baseParameter: defaultKnockbackAmount);
 
   final IntParameterManager pierce = IntParameterManager(baseParameter: 0);
-  final BoolParameterManager reverseHoming =
-      BoolParameterManager(baseParameter: false, isFoldOfIncreases: false);
+  final BoolParameterManager reverseHoming = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
   final DoubleParameterManager weaponRandomnessPercent = DoubleParameterManager(
     baseParameter: 0,
-    minParameter: 0,
     maxParameter: 1,
   );
 
@@ -157,9 +159,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
   //META INFORMATION
   bool attackOnAnimationFinish = false;
 
-  Map<AttackSpreadType, AttackSplitFunction> attackSplitFunctions = {
-    AttackSpreadType.base: (double angle, int attackCount) => [angle],
-    AttackSpreadType.regular: regularAttackSpread,
+  Set<AttackSplitFunction> attackSpreadPatterns = {
+    (double angle, int attackCount) => [angle],
+    regularAttackSpread,
   };
 
   Vector2 baseOffset = Vector2.zero();
@@ -288,7 +290,7 @@ abstract class Weapon extends Component with UpgradeFunctions {
       damageCalculations(
         entityAncestor!,
         victim,
-        baseDamage.damageBase,
+        baseDamage.parameter,
         sourceWeapon: this,
         sourceAttack: sourceAttack,
         damageSource: baseDamage,
@@ -663,7 +665,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
             ),
           ),
         );
-        await Future.delayed(duration.seconds);
+        await weapon.entityAncestor?.game.gameAwait(duration);
       }
     }
 
@@ -703,29 +705,33 @@ class AttackConfiguration {
     this.callFunctions = true,
     this.customAttackSpreadPattern,
     this.customAttackLocation,
+    this.customAttackPosition,
+    this.useAmmo = true,
     this.isAltAttack = false,
   });
 
-  final Map<AttackSpreadType, List<double> Function(double, int)>?
-      customAttackSpreadPattern;
+  final Set<List<double> Function(double, int)>? customAttackSpreadPattern;
 
   final bool callFunctions;
   final SourceAttackLocation? customAttackLocation;
   final double holdDurationPercent;
+  final bool useAmmo;
   final bool isAltAttack;
+  final Vector2? customAttackPosition;
 
   AttackConfiguration copyWith({
     bool? callFunctions,
     double? holdDurationPercent,
+    Vector2? customAttackPosition,
     bool? isAltAttack,
-    Map<AttackSpreadType, List<double> Function(double, int)>?
-        customAttackSpreadPattern,
+    Set<List<double> Function(double, int)>? customAttackSpreadPattern,
     SourceAttackLocation? customAttackLocation,
   }) {
     return AttackConfiguration(
       callFunctions: callFunctions ?? this.callFunctions,
       holdDurationPercent: holdDurationPercent ?? this.holdDurationPercent,
       isAltAttack: isAltAttack ?? this.isAltAttack,
+      customAttackPosition: customAttackPosition ?? this.customAttackPosition,
       customAttackSpreadPattern:
           customAttackSpreadPattern ?? customAttackSpreadPattern,
       customAttackLocation: customAttackLocation ?? customAttackLocation,

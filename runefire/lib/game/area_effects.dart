@@ -38,7 +38,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.onTick,
     int? overridePriority,
     this.isSolid = false,
-    this.animationRandomlyFlipped = false,
+    this.animationRandomlyFlipped = true,
   }) {
     radius *= sourceEntity.areaSizePercentIncrease.parameter;
     priority = overridePriority ?? attackPriority;
@@ -47,7 +47,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     animationComponent?.durationType = durationType;
     animationComponent?.randomlyFlipped = animationRandomlyFlipped;
 
-    duration= applyDurationModifications(
+    duration = applyDurationModifications(
       perpertrator: sourceEntity,
       time: duration,
     );
@@ -124,16 +124,10 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
     animationComponent?.addToParent(this);
 
-    if (animationComponent?.durationType == DurationType.temporary) {
-      aliveTimer = TimerComponent(
-        period: duration,
-        removeOnFinish: true,
-        onTick: killArea,
-      )..addToParent(this);
-    }
-
     return super.onLoad();
   }
+
+  double durationPassed = 0;
 
   @override
   void beginContact(Object other, Contact contact) {
@@ -216,7 +210,10 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   void update(double dt) {
     instantChecker();
     calculateOnTick(dt);
-
+    durationPassed += dt;
+    if (durationPassed > duration && durationType == DurationType.temporary) {
+      killArea();
+    }
     super.update(dt);
   }
 
@@ -262,7 +259,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     if (sourceEntity.isPlayer) {
       filter.maskBits = enemyCategory;
     } else {
-      if (sourceEntity.affectsAllEntities) {
+      if (sourceEntity.affectsAllEntities.parameter) {
         filter.maskBits = 0xFFFF;
       } else {
         filter.maskBits = playerCategory;
@@ -284,7 +281,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
     final newBody = world.createBody(bodyDef);
     if (hasEffect) {
-      Future.delayed((collisionDelay ?? 0).seconds).then((value) {
+      game.gameAwait(collisionDelay ?? 0).then((value) {
         newBody.createFixture(fixtureDef);
         collisionDelay = null;
       });

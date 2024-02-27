@@ -3,6 +3,7 @@ import 'package:forge2d/src/dynamics/body.dart';
 import 'package:forge2d/src/dynamics/filter.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 
@@ -11,7 +12,7 @@ class GodEntity extends Entity with BaseAttributes {
       : super(
           initialPosition: Vector2.all(666),
         ) {
-    affectsAllEntities = true;
+    affectsAllEntities.baseParameter = true;
   }
   @override
   EntityType entityType = EntityType.npc;
@@ -19,7 +20,7 @@ class GodEntity extends Entity with BaseAttributes {
   @override
   Body createBody() {
     final body = super.createBody();
-    for (var element in [...body.fixtures]) {
+    for (final element in [...body.fixtures]) {
       body.destroyFixture(element);
     }
     return body;

@@ -36,7 +36,7 @@ abstract class PerpetratorAttribute extends Attribute {
   PerpetratorAttribute({
     required this.perpetratorEntity,
     super.level,
-    super.victimEntity,
+    super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -58,11 +58,12 @@ class TemporaryAttribute extends Attribute {
   double timePassed = 0;
 
   @override
-  AttributeFunctionality? get victimEntity => managedAttribute.victimEntity;
+  AttributeFunctionality? get attributeOwnerEntity =>
+      managedAttribute.attributeOwnerEntity;
 
   void applyTimer({required bool removeTimer}) {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final func = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final func = attributeOwnerEntity! as AttributeCallbackFunctionality;
       if (reApplyOnAddition) {
         resetTimer();
       }
@@ -78,7 +79,7 @@ class TemporaryAttribute extends Attribute {
     timePassed += dt;
     if (timePassed >= duration) {
       removeUpgrade();
-      victimEntity!.removeAttribute(attributeType);
+      attributeOwnerEntity!.removeAttribute(attributeType);
     }
   }
 

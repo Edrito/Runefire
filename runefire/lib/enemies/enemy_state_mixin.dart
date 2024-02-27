@@ -78,14 +78,11 @@ class EnemyState {
   /// Call the onStateStart function and start the event timer.
   Future<void> onStateStartCall() async {
     var durationOfState = 0.0;
+    onStateStart?.call(durationOfState);
     if (stateDuration.$2 != 0) {
       durationOfState = initDurationTimer();
       initEventTimer();
-    }
-
-    onStateStart?.call(durationOfState);
-
-    if (stateDuration.$2 == 0 && !isBaseState) {
+    } else if (stateDuration.$2 == 0 && !isBaseState) {
       await callRandomFunction();
       onStateEndCall();
     }
@@ -251,7 +248,8 @@ mixin StateManagedAI
     });
 
     eventManagement.addAiTimer(
-        (function: stateChecker, id: '${entityId}state_checker', time: period));
+      (function: stateChecker, id: '${entityId}state_checker', time: period),
+    );
 
     stateChecker();
   }

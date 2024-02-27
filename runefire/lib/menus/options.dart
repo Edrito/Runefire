@@ -225,6 +225,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
   late HudScale hudScale;
   late AimAssistStrength aimAssistStrength;
   late bool showFPS;
+  late bool showDamageText;
   // late CustomButton keyboardBindingsButton;
   late double musicVolume;
   late double sfxVolume;
@@ -267,6 +268,20 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
       },
       onSecondary: () {
         toggleFps = !showFPS;
+      },
+    );
+  }
+
+  CustomButton buildShowDamageTextButton() {
+    return CustomButton(
+      'Show Damage Text: ${showDamageText.toString().titleCase}',
+      gameRef: widget.gameRef,
+      rowId: 9,
+      onPrimary: () {
+        toggleShowDamageText = !showDamageText;
+      },
+      onSecondary: () {
+        toggleShowDamageText = !showDamageText;
       },
     );
   }
@@ -327,6 +342,10 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
     systemData.setShowFPS = increment;
   }
 
+  set toggleShowDamageText(bool increment) {
+    systemData.setShowDamageText = increment;
+  }
+
   void incrementHudScale(bool increment) {
     var currentIndex = HudScale.values.indexOf(hudScale);
     if (increment) {
@@ -382,6 +401,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
     hudScale = systemData.hudScale;
     aimAssistStrength = systemData.aimAssistStrength;
     showFPS = systemData.showFPS;
+    showDamageText = systemData.showDamageText;
   }
 
   @override
@@ -400,6 +420,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
           buildMusicButton(),
           buildHudScaleButton(),
           buildAimAssistButton(),
+          buildShowDamageTextButton(),
           buildShowFpsButton(),
         ],
       ),

@@ -267,7 +267,7 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<Function()> dashOngoingFunctions = [];
   final List<Function()> jumpBeginFunctions = [];
   final List<Function()> jumpEndFunctions = [];
-  final List<Function()> jumpOngoingFunctions = [];
+  final List<Function(double percentComplete)> jumpOngoingFunctions = [];
   final List<Function()> onLevelUp = [];
   final List<Function()> onMove = [];
   final List<Function(Weapon weapon)> onSpentAttack = [];

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:runefire/attributes/attributes_elemental/base.dart';
 import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/functions.dart';
@@ -142,27 +143,10 @@ enum AttributeType {
     territory: AttributeTerritory.game,
   ),
 
-  gravityDash(
-    rarity: AttributeRarity.rare,
-    territory: AttributeTerritory.game,
-    elementalRequirement: {
-      DamageType.psychic: .4,
-    },
-  ),
-
   groundSlam(
     rarity: AttributeRarity.uncommon,
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
-  ),
-
-  psychicReach(
-    rarity: AttributeRarity.rare,
-    territory: AttributeTerritory.game,
-    attributeEligibilityTest: playerHasMeleeWeapon,
-    elementalRequirement: {
-      DamageType.psychic: .6,
-    },
   ),
 
   periodicPush(
@@ -299,30 +283,12 @@ enum AttributeType {
     territory: AttributeTerritory.game,
   ),
 
-  dashAttackEmpower(
-    rarity: AttributeRarity.uncommon,
-    category: AttributeCategory.offence,
-    territory: AttributeTerritory.game,
-    elementalRequirement: {
-      DamageType.physical: .10,
-    },
-  ),
-
   teleportDash(
     rarity: AttributeRarity.unique,
     category: AttributeCategory.mobility,
     territory: AttributeTerritory.game,
     priority: 5,
     attributeEligibilityTest: teleportDashTest,
-  ),
-
-  weaponMerge(
-    rarity: AttributeRarity.unique,
-    category: AttributeCategory.offence,
-    territory: AttributeTerritory.game,
-    elementalRequirement: {
-      DamageType.physical: 1,
-    },
   ),
 
   thorns(
@@ -571,7 +537,7 @@ enum AttributeType {
   essenceOfThePheonix(
     category: AttributeCategory.defence,
     territory: AttributeTerritory.game,
-    rarity: AttributeRarity.rare,
+    rarity: AttributeRarity.unique,
     elementalRequirement: {
       DamageType.fire: 1,
     },
@@ -610,6 +576,293 @@ enum AttributeType {
     autoAssigned: true,
     elementalRequirement: {
       DamageType.energy: 1,
+    },
+  ),
+
+  staticDischarge(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.uncommon,
+    elementalRequirement: {
+      DamageType.energy: .05,
+    },
+  ),
+
+  hyperActivity(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.uncommon,
+    elementalRequirement: {
+      DamageType.energy: .1,
+    },
+  ),
+
+  crossTribute(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.rare,
+    elementalRequirement: {
+      DamageType.energy: .25,
+    },
+  ),
+
+  reflectDamage(
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.rare,
+    elementalRequirement: {
+      DamageType.energy: .5,
+    },
+  ),
+
+  randomDashing(
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.rare,
+    elementalRequirement: {
+      DamageType.energy: .6,
+    },
+  ),
+
+  energeticAffinity(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    rarity: AttributeRarity.unique,
+    elementalRequirement: {
+      DamageType.energy: 1,
+    },
+  ),
+
+  psychicReflection(
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.passive,
+    rarity: AttributeRarity.rare,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.psychic: .25,
+    },
+  ),
+
+  onHitEnemyConfused(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    rarity: AttributeRarity.rare,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.psychic: .5,
+    },
+  ),
+
+  hoverJump(
+    category: AttributeCategory.mobility,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.psychic: .05,
+    },
+  ),
+
+  gravityDash(
+    rarity: AttributeRarity.rare,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.psychic: .4,
+    },
+  ),
+
+  defensivePulse(
+    rarity: AttributeRarity.rare,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.psychic: .4,
+    },
+  ),
+
+  singuarity(
+    category: AttributeCategory.offence,
+    rarity: AttributeRarity.rare,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.psychic: .5,
+    },
+  ),
+  psychicReach(
+    rarity: AttributeRarity.rare,
+    territory: AttributeTerritory.game,
+    attributeEligibilityTest: playerHasMeleeWeapon,
+    elementalRequirement: {
+      DamageType.psychic: .75,
+    },
+  ),
+
+  strengthOfTheStars(
+    category: AttributeCategory.offence,
+    rarity: AttributeRarity.unique,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.psychic: 1,
+    },
+  ),
+
+//Phyiscal
+
+  dodgeChancePhysicalIncrease(
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.physical: .25,
+    },
+  ),
+
+  critChancePhysicalIncrease(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.physical: .5,
+    },
+  ),
+
+  bloodPool(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.physical: .75,
+    },
+  ),
+
+  bleedStunAttribute(
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.physical: 1,
+    },
+  ),
+
+  dashAttackEmpower(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.physical: .05,
+    },
+  ),
+
+  bleedingCrits(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.physical: .15,
+    },
+  ),
+
+  bleedChanceIncrease(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.physical: .25,
+    },
+  ),
+
+  weaponMerge(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.physical: .6,
+    },
+  ),
+
+  physicalProwess(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.physical: 1,
+    },
+  ),
+
+  //frost
+
+  frostDamageIncreaseChillChance(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.frost: .25,
+    },
+  ),
+
+  slowCloseEnemies(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.frost: .5,
+    },
+  ),
+  explodeFrozenEnemies(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.frost: .75,
+    },
+  ),
+
+  expendableFreezesNearbyEnemy(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.frost: 1,
+    },
+  ),
+
+  meleeAttackFrozenEnemyShove(
+    rarity: AttributeRarity.rare,
+    category: AttributeCategory.offence,
+    attributeEligibilityTest: playerHasMeleeWeapon,
+    elementalRequirement: {
+      DamageType.frost: .6,
+    },
+  ),
+
+  oneWithTheCold(
+    rarity: AttributeRarity.unique,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
+    elementalRequirement: {
+      DamageType.frost: 1,
+    },
+  ),
+
+  //magic
+  staminaUseHeal(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.defence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.magic: .25,
+    },
+  ),
+
+  doubleCast(
+    rarity: AttributeRarity.uncommon,
+    category: AttributeCategory.offence,
+    territory: AttributeTerritory.passive,
+    autoAssigned: true,
+    elementalRequirement: {
+      DamageType.magic: .5,
     },
   ),
 
@@ -715,7 +968,9 @@ bool standStillTest(Entity player) {
 }
 
 bool sentryCombinationTest(Entity player) {
-  if (player is! AttributeFunctionality) return false;
+  if (player is! AttributeFunctionality) {
+    return false;
+  }
   if (player.hasAttribute(AttributeType.sentryCombination) ||
       player.hasAttribute(AttributeType.mirrorOrb)) {
     return false;
@@ -739,7 +994,9 @@ bool sentryCombinationTest(Entity player) {
 }
 
 bool negativeCombinePulseTest(Entity player) {
-  if (player is! AttributeFunctionality) return false;
+  if (player is! AttributeFunctionality) {
+    return false;
+  }
   return !player.hasAttribute(AttributeType.combinePeriodicPulse);
 }
 
@@ -748,14 +1005,18 @@ bool playerIsReloadFunctionality(Entity player) {
 }
 
 bool combinePulseTest(Entity player) {
-  if (player is! AttributeFunctionality) return false;
+  if (player is! AttributeFunctionality) {
+    return false;
+  }
   return player.hasAttribute(AttributeType.periodicMagicPulse) &&
       player.hasAttribute(AttributeType.periodicPush) &&
       player.hasAttribute(AttributeType.periodicStun);
 }
 
 bool playerHasMeleeWeapon(Entity player) {
-  if (player is! AttackFunctionality) return false;
+  if (player is! AttackFunctionality) {
+    return false;
+  }
   return player.carriedWeapons.any((element) => element is MeleeFunctionality);
 }
 
@@ -857,7 +1118,7 @@ extension AllAttributesExtension on AttributeType {
 ///The attribute is applied to the victimEntity
 ///The perpetratorEntity may be a source of a negitive attribute
 abstract class Attribute extends UpgradeFunctions {
-  Attribute({int level = 0, this.victimEntity, this.damageType}) {
+  Attribute({int level = 0, this.attributeOwnerEntity, this.damageType}) {
     upgradeLevel = level;
     if (maxLevel != null) {
       upgradeLevel = upgradeLevel.clamp(0, maxLevel!);
@@ -866,20 +1127,28 @@ abstract class Attribute extends UpgradeFunctions {
   }
 
   void removeAttribute() {
-    victimEntity?.removeAttribute(attributeType);
+    attributeOwnerEntity?.removeAttribute(attributeType);
   }
 
   double get elementalWeighting => .025;
 
   bool reApplyOnAddition = true;
 
+  GameEnviroment? get gameEnviroment => attributeOwnerEntity?.gameEnviroment;
+
   @override
   void removeUpgrade() {
     if (damageType != null) {
-      victimEntity?.modifyElementalPower(damageType!, -elementalWeighting);
+      attributeOwnerEntity?.modifyElementalPower(
+        damageType!,
+        -elementalWeighting,
+      );
     } else if (attributeType.elementalRequirement.isNotEmpty) {
       for (final element in attributeType.elementalRequirement) {
-        victimEntity?.modifyElementalPower(element, -elementalWeighting);
+        attributeOwnerEntity?.modifyElementalPower(
+          element,
+          -elementalWeighting,
+        );
       }
     }
 
@@ -889,10 +1158,13 @@ abstract class Attribute extends UpgradeFunctions {
   @override
   void applyUpgrade() {
     if (damageType != null) {
-      victimEntity?.modifyElementalPower(damageType!, elementalWeighting);
+      attributeOwnerEntity?.modifyElementalPower(
+        damageType!,
+        elementalWeighting,
+      );
     } else if (attributeType.elementalRequirement.isNotEmpty) {
       for (final element in attributeType.elementalRequirement) {
-        victimEntity?.modifyElementalPower(element, elementalWeighting);
+        attributeOwnerEntity?.modifyElementalPower(element, elementalWeighting);
       }
     }
 
@@ -926,7 +1198,7 @@ abstract class Attribute extends UpgradeFunctions {
     bool includeSecondaries,
     bool includeAdditionalPrimaries,
   ) {
-    final weapons = victimEntity?.getAllWeaponItems(
+    final weapons = attributeOwnerEntity?.getAllWeaponItems(
       includeSecondaries,
       includeAdditionalPrimaries,
     );
@@ -963,7 +1235,7 @@ abstract class Attribute extends UpgradeFunctions {
 
   abstract String title;
   abstract bool increaseFromBaseParameter;
-  AttributeFunctionality? victimEntity;
+  AttributeFunctionality? attributeOwnerEntity;
 
   int get remainingLevels => (maxLevel ?? upgradeLevel) - upgradeLevel;
 

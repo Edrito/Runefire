@@ -87,98 +87,6 @@ class EventDetectedException implements Exception {}
 // }
 
 class GamepadInputManager {
-  bool _checkAnalogStick(int x, int y, GamepadButtons stickToCheck) {
-    final capabilities = GamepadCapabilities(0);
-    int deadzone;
-    if (stickToCheck == GamepadButtons.leftJoy) {
-      deadzone = capabilities.leftThumbDeadzone;
-    } else {
-      deadzone = capabilities.rightThumbDeadzone;
-    }
-    // deadzone = 20000;
-    final isInDeadZone = x.abs() < deadzone && y.abs() < deadzone;
-    final eventActive = _gamepadEvents.containsKey(stickToCheck);
-
-    if (eventActive && isInDeadZone) {
-      _gamepadEvents.remove(stickToCheck);
-      tempPressState = PressState.released;
-      tempGamepadButton = stickToCheck;
-      return true;
-    } else if (!isInDeadZone) {
-      final xClamped = (x / 32777).clamp(-1, 1).toDouble();
-      var yClamped = (y / 32777).clamp(-1, 1).toDouble();
-      if (!parentInputManager._systemDataReference.invertYAxis) {
-        yClamped *= -1;
-      }
-      tempXyValue = Offset(xClamped, yClamped);
-
-      tempPressState = eventActive ? PressState.held : PressState.pressed;
-      tempGamepadButton = stickToCheck;
-      return true;
-    }
-    return false;
-  }
-
-  bool _checkSimpleButton(bool state, GamepadButtons buttonToCheck) {
-    if (_gamepadEvents.containsKey(buttonToCheck)) {
-      if (!state) {
-        _gamepadEvents.remove(buttonToCheck);
-        tempPressState = PressState.released;
-
-        tempGamepadButton = buttonToCheck;
-        return true;
-      } else {
-        tempPressState = PressState.held;
-
-        tempGamepadButton = buttonToCheck;
-        return true;
-      }
-    } else if (state) {
-      tempPressState = PressState.pressed;
-
-      tempGamepadButton = buttonToCheck;
-      return true;
-    }
-    return false;
-  }
-
-  bool _checkTrigger(int value, GamepadButtons triggerToCheck) {
-    final capabilities = GamepadCapabilities(0);
-
-    final isInDeadZone = value < capabilities.triggerThreshold;
-    final eventActive = _gamepadEvents.containsKey(triggerToCheck);
-    if (eventActive && isInDeadZone) {
-      _gamepadEvents.remove(triggerToCheck);
-      tempSingleValue = 0;
-      tempPressState = PressState.released;
-
-      tempGamepadButton = triggerToCheck;
-      return true;
-    } else if (!isInDeadZone) {
-      final valueClamped = (value / 255).clamp(0, 1);
-      tempSingleValue = valueClamped.toDouble();
-      tempPressState = eventActive ? PressState.held : PressState.pressed;
-
-      tempGamepadButton = triggerToCheck;
-      return true;
-    }
-    return false;
-  }
-
-  void _initCheckGamepadTimer() {
-    _checkGamepadTimer ??=
-        ac.Timer.periodic(_updateGamepadTimerDuration * 20, (timer) {
-      updateState();
-    });
-  }
-
-  void _initGamepadTimer() {
-    _updateGamepadTimer ??=
-        ac.Timer.periodic(_updateGamepadTimerDuration, (timer) {
-      updateState();
-    });
-  }
-
   GamepadInputManager(
     this.parentInputManager,
     this.onGamepadEvent,
@@ -186,17 +94,6 @@ class GamepadInputManager {
   ) {
     _initCheckGamepadTimer();
   }
-
-  final gamepad = Gamepad(0); // primary controller
-  final Function(GamepadEvent event) onGamepadEvent;
-  final InputManager parentInputManager;
-
-  GamepadButtons tempGamepadButton = GamepadButtons.buttonBack;
-  PressState tempPressState = PressState.released;
-  double tempSingleValue = 0;
-
-  ///dont need to make new variables each tick
-  Offset tempXyValue = Offset.zero;
 
   static const Duration _updateGamepadTimerDuration =
       Duration(milliseconds: 10);
@@ -208,6 +105,17 @@ class GamepadInputManager {
 
   ac.Timer? _checkGamepadTimer;
   ac.Timer? _updateGamepadTimer;
+
+  final gamepad = Gamepad(0); // primary controller
+  final Function(GamepadEvent event) onGamepadEvent;
+  final InputManager parentInputManager;
+
+  GamepadButtons tempGamepadButton = GamepadButtons.buttonBack;
+  PressState tempPressState = PressState.released;
+  double tempSingleValue = 0;
+
+  ///dont need to make new variables each tick
+  Offset tempXyValue = Offset.zero;
 
   void createEvent() {
     late final GamepadEvent gamepadEvent;
@@ -363,12 +271,101 @@ class GamepadInputManager {
       parseGameState();
     }
   }
+
+  bool _checkAnalogStick(int x, int y, GamepadButtons stickToCheck) {
+    final capabilities = GamepadCapabilities(0);
+    int deadzone;
+    if (stickToCheck == GamepadButtons.leftJoy) {
+      deadzone = capabilities.leftThumbDeadzone;
+    } else {
+      deadzone = capabilities.rightThumbDeadzone;
+    }
+    // deadzone = 20000;
+    final isInDeadZone = x.abs() < deadzone && y.abs() < deadzone;
+    final eventActive = _gamepadEvents.containsKey(stickToCheck);
+
+    if (eventActive && isInDeadZone) {
+      _gamepadEvents.remove(stickToCheck);
+      tempPressState = PressState.released;
+      tempGamepadButton = stickToCheck;
+      return true;
+    } else if (!isInDeadZone) {
+      final xClamped = (x / 32777).clamp(-1, 1).toDouble();
+      var yClamped = (y / 32777).clamp(-1, 1).toDouble();
+      if (!parentInputManager._systemDataReference.invertYAxis) {
+        yClamped *= -1;
+      }
+      tempXyValue = Offset(xClamped, yClamped);
+
+      tempPressState = eventActive ? PressState.held : PressState.pressed;
+      tempGamepadButton = stickToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  bool _checkSimpleButton(bool state, GamepadButtons buttonToCheck) {
+    if (_gamepadEvents.containsKey(buttonToCheck)) {
+      if (!state) {
+        _gamepadEvents.remove(buttonToCheck);
+        tempPressState = PressState.released;
+
+        tempGamepadButton = buttonToCheck;
+        return true;
+      } else {
+        tempPressState = PressState.held;
+
+        tempGamepadButton = buttonToCheck;
+        return true;
+      }
+    } else if (state) {
+      tempPressState = PressState.pressed;
+
+      tempGamepadButton = buttonToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  bool _checkTrigger(int value, GamepadButtons triggerToCheck) {
+    final capabilities = GamepadCapabilities(0);
+
+    final isInDeadZone = value < capabilities.triggerThreshold;
+    final eventActive = _gamepadEvents.containsKey(triggerToCheck);
+    if (eventActive && isInDeadZone) {
+      _gamepadEvents.remove(triggerToCheck);
+      tempSingleValue = 0;
+      tempPressState = PressState.released;
+
+      tempGamepadButton = triggerToCheck;
+      return true;
+    } else if (!isInDeadZone) {
+      final valueClamped = (value / 255).clamp(0, 1);
+      tempSingleValue = valueClamped.toDouble();
+      tempPressState = eventActive ? PressState.held : PressState.pressed;
+
+      tempGamepadButton = triggerToCheck;
+      return true;
+    }
+    return false;
+  }
+
+  void _initCheckGamepadTimer() {
+    _checkGamepadTimer ??=
+        ac.Timer.periodic(_updateGamepadTimerDuration * 20, (timer) {
+      updateState();
+    });
+  }
+
+  void _initGamepadTimer() {
+    _updateGamepadTimer ??=
+        ac.Timer.periodic(_updateGamepadTimerDuration, (timer) {
+      updateState();
+    });
+  }
 }
 
 class InputManager with WindowListener {
-  //Const duration for the primary and secondary hold tick rate
-  static const Duration incrementDuration = Duration(milliseconds: 50);
-
   //singleton goodies
   factory InputManager() {
     return _instance;
@@ -378,7 +375,46 @@ class InputManager with WindowListener {
     if (!kIsWeb && Platform.isWindows) {
       windowManager.addListener(this);
     }
+    buildTimer();
   }
+
+  void buildTimer() {
+    timeoutTimer?.cancel();
+    timeoutTimer = ac.Timer(
+      const Duration(seconds: 3),
+      () {
+        _onTimeoutList.forEach((element) => element.call());
+      },
+    );
+  }
+
+  ac.Timer? timeoutTimer;
+
+  void addOnTimeoutListener(Function() onTimeout) {
+    _onTimeoutList.add(onTimeout);
+  }
+
+  void removeOnTimeoutListener(Function() onTimeout) {
+    _onTimeoutList.remove(onTimeout);
+  }
+
+  final List<Function()> _onTimeoutList = [];
+
+  void _setVibrationZero() => gamepadInputManager.gamepad.vibrate();
+
+  //singleton
+  static final InputManager _instance = InputManager._internal();
+
+  late final GameRouter _gameRouterReference;
+  late final SystemData _systemDataReference;
+
+  //for icons
+  ExternalInputType _externalInputType = ExternalInputType.touch;
+
+  //callbacks
+  final Map<GameAction, Set<GameActionCallback>> _onGameActionMap = {};
+
+  Offset? _gamepadCursorPosition;
 
   late final CustomInputWatcherManager customInputWatcherManager;
   late final GamepadInputManager gamepadInputManager;
@@ -386,26 +422,8 @@ class InputManager with WindowListener {
   //Keyboard
   final List<Function(KeyEvent event)> _keyEventList = [];
 
-  void addKeyListener(Function(KeyEvent event) newListener) {
-    _keyEventList.add(newListener);
-  }
-
-  void removeKeyListener(Function(KeyEvent event) listenerToRemove) {
-    _keyEventList.remove(listenerToRemove);
-  }
-
   // Keyboard
   final List<Function(GamepadEvent event)> _gamepadEventList = [];
-
-  void addGamepadEventListener(Function(GamepadEvent event) newListener) {
-    _gamepadEventList.add(newListener);
-  }
-
-  void removeGamepadEventListener(
-    Function(GamepadEvent event) listenerToRemove,
-  ) {
-    _gamepadEventList.remove(listenerToRemove);
-  }
 
   List<Function(PointerDownEvent event)> pointerDownList = [];
   // Callbacks for pointer moving
@@ -421,14 +439,6 @@ class InputManager with WindowListener {
   //for secondary pointer if using mobile
   Set<int> activePointers = {};
 
-  //for icons
-  ExternalInputType _externalInputType = ExternalInputType.touch;
-
-  ExternalInputType get externalInputType => _externalInputType;
-  set externalInputType(ExternalInputType value) {
-    _externalInputType = value;
-  }
-
   //tick rate faker for primary and secondary mouse/pointer holding
   ac.Timer? holdCallTimer;
 
@@ -439,22 +449,18 @@ class InputManager with WindowListener {
   //easy access to pointer locations
   Map<int, Offset> pointerLocalPositions = {};
 
-  Offset? latestPointerPosition;
-
   //You can only determine if a input click is a secondary click on the pointer down event
   //so we use this to determine what pointer is the secondary when the various "pointer down" etc functions are called
   int? secondaryPointerId;
 
-  Offset? _gamepadCursorPosition;
+  Offset? latestPointerPosition;
+  String? vibrationId;
 
-  //singleton
-  static final InputManager _instance = InputManager._internal();
+  //Const duration for the primary and secondary hold tick rate
+  static const Duration incrementDuration = Duration(milliseconds: 50);
 
-  late final GameRouter _gameRouterReference;
-  late final SystemData _systemDataReference;
-
-  //callbacks
-  final Map<GameAction, Set<GameActionCallback>> _onGameActionMap = {};
+  ExternalInputType get externalInputType => _externalInputType;
+  Offset? get getGamepadCursorPosition => _gamepadCursorPosition;
 
   //Game components use this to add new callbacks
   void addGameActionListener(
@@ -463,6 +469,44 @@ class InputManager with WindowListener {
   ) {
     _onGameActionMap[gameAction] ??= {};
     _onGameActionMap[gameAction]!.add(callback);
+  }
+
+  void addGamepadEventListener(Function(GamepadEvent event) newListener) {
+    _gamepadEventList.add(newListener);
+  }
+
+  void addKeyListener(Function(KeyEvent event) newListener) {
+    _keyEventList.add(newListener);
+  }
+
+  Future<void> applyVibration(
+    double? duration,
+    double intensity, {
+    bool? leftOnly,
+  }) async {
+    if (kIsWeb || !Platform.isWindows) {
+      return;
+    }
+    if (!_systemDataReference.gamepadVibrationEnabled ||
+        !gamepadInputManager.gamepad.isConnected) {
+      return;
+    }
+
+    final mappedIntensity = (65535 * intensity).clamp(0, 65535).toInt();
+    final id = const Uuid().v1();
+    vibrationId = id;
+    gamepadInputManager.gamepad.vibrate(
+      leftMotorSpeed: leftOnly == true ? 0 : mappedIntensity,
+      rightMotorSpeed: leftOnly == false ? 0 : mappedIntensity,
+    );
+    if (duration != null) {
+      await Future.delayed(duration.seconds, () {
+        if (vibrationId != id) {
+          return;
+        }
+        _setVibrationZero();
+      });
+    }
   }
 
   //custom hold ticks for primary and secondary clicks
@@ -493,9 +537,6 @@ class InputManager with WindowListener {
     });
   }
 
-  void clearGamepadCursorPosition() => _gamepadCursorPosition = null;
-  Offset? get getGamepadCursorPosition => _gamepadCursorPosition;
-
   void buildGamepadCursor(GamepadEvent event) {
     final buttonToWatch = _systemDataReference.flipJoystickControl
         ? GamepadButtons.leftJoy
@@ -518,47 +559,19 @@ class InputManager with WindowListener {
     // customInputWatcherManager.onPointerMove();
   }
 
-  Offset? fetchJoyState(GamepadButtons joy) {
-    return gamepadInputManager.fetchJoyState(joy);
-  }
-
-  String? vibrationId;
-
   void cancelVibration() {
     vibrationId = null;
     _setVibrationZero();
   }
 
-  void _setVibrationZero() => gamepadInputManager.gamepad.vibrate();
+  void clearGamepadCursorPosition() => _gamepadCursorPosition = null;
 
-  Future<void> applyVibration(
-    double? duration,
-    double intensity, {
-    bool? leftOnly,
-  }) async {
-    if (kIsWeb || !Platform.isWindows) {
-      return;
-    }
-    if (!_systemDataReference.gamepadVibrationEnabled ||
-        !gamepadInputManager.gamepad.isConnected) {
-      return;
-    }
+  set externalInputType(ExternalInputType value) {
+    _externalInputType = value;
+  }
 
-    final mappedIntensity = (65535 * intensity).clamp(0, 65535).toInt();
-    final id = const Uuid().v1();
-    vibrationId = id;
-    gamepadInputManager.gamepad.vibrate(
-      leftMotorSpeed: leftOnly == true ? 0 : mappedIntensity,
-      rightMotorSpeed: leftOnly == false ? 0 : mappedIntensity,
-    );
-    if (duration != null) {
-      await Future.delayed(duration.seconds, () {
-        if (vibrationId != id) {
-          return;
-        }
-        _setVibrationZero();
-      });
-    }
+  Offset? fetchJoyState(GamepadButtons joy) {
+    return gamepadInputManager.fetchJoyState(joy);
   }
 
   bool keyboardEventHandler(KeyEvent keyEvent) {
@@ -601,6 +614,7 @@ class InputManager with WindowListener {
   }
 
   void onGameActionCall(GameActionEvent event) {
+    buildTimer();
     if (event.pressState != PressState.released) {
       activeGameActions.add(event.gameAction);
     } else {
@@ -660,16 +674,6 @@ class InputManager with WindowListener {
     }
   }
 
-  void onPointerMove(PointerMoveEvent event) {
-    pointerFunnel(
-      event.position,
-      event.kind == PointerDeviceKind.mouse
-          ? ExternalInputType.mouseKeyboard
-          : ExternalInputType.touch,
-      event.pointer,
-    );
-  }
-
   void onPointerHover(PointerHoverEvent event) {
     pointerFunnel(
       event.position,
@@ -680,15 +684,14 @@ class InputManager with WindowListener {
     );
   }
 
-  void pointerFunnel(Offset position, ExternalInputType inputType, int id) {
-    externalInputType = inputType;
-
-    pointerLocalPositions[id] = position;
-    latestPointerPosition = position;
-    for (final element in onPointerMoveList) {
-      element.call(inputType, position);
-    }
-    customInputWatcherManager.checkStatesHovered();
+  void onPointerMove(PointerMoveEvent event) {
+    pointerFunnel(
+      event.position,
+      event.kind == PointerDeviceKind.mouse
+          ? ExternalInputType.mouseKeyboard
+          : ExternalInputType.touch,
+      event.pointer,
+    );
   }
 
   void onPointerPanZoomEnd(event) {}
@@ -805,11 +808,33 @@ class InputManager with WindowListener {
     // }
   }
 
+  void pointerFunnel(Offset position, ExternalInputType inputType, int id) {
+    buildTimer();
+    externalInputType = inputType;
+
+    pointerLocalPositions[id] = position;
+    latestPointerPosition = position;
+    for (final element in onPointerMoveList) {
+      element.call(inputType, position);
+    }
+    customInputWatcherManager.checkStatesHovered();
+  }
+
   void removeGameActionListener(
     GameAction gameAction,
     GameActionCallback callback,
   ) {
     _onGameActionMap[gameAction]?.remove(callback);
+  }
+
+  void removeGamepadEventListener(
+    Function(GamepadEvent event) listenerToRemove,
+  ) {
+    _gamepadEventList.remove(listenerToRemove);
+  }
+
+  void removeKeyListener(Function(KeyEvent event) listenerToRemove) {
+    _keyEventList.remove(listenerToRemove);
   }
 
   void setInitReferences(GameRouter gameRouter) {
@@ -871,11 +896,6 @@ class CustomInputWatcherManager {
         .add((windowEvent) => updateCustomInputWatcherRectangles());
   }
 
-  final InputManager parentInputManager;
-
-  //only one active widget at a time
-  State<CustomInputWatcher>? currentlyHoveredWidget;
-
   late final SystemData _systemDataReference;
 
   //to check if pointer is inside widgets, custom hover implementation
@@ -894,6 +914,28 @@ class CustomInputWatcherManager {
   final Map<State<CustomInputWatcher>,
           StreamController<CustomInputWatcherEvents>>
       _customInputWatcherStreams = {};
+
+  final InputManager parentInputManager;
+
+  (
+    StreamController<CustomInputWatcherEvents>,
+    StreamController<(Offset, Widget)?>
+  ) addHoverOverlay(State<GamepadCursorDisplay> hoverOverlayState) {
+    final eventController = StreamController<CustomInputWatcherEvents>();
+    final hoveredWidgetEventController = StreamController<(Offset, Widget)?>();
+    hoverOverlayWidget =
+        (hoverOverlayState, eventController, hoveredWidgetEventController);
+    return (eventController, hoveredWidgetEventController);
+  }
+
+  //only one active widget at a time
+  State<CustomInputWatcher>? currentlyHoveredWidget;
+
+  (
+    State<GamepadCursorDisplay>,
+    StreamController<CustomInputWatcherEvents>,
+    StreamController<(Offset, Widget)?>,
+  )? hoverOverlayWidget;
 
   //add a new widget to the input manager
   StreamController<CustomInputWatcherEvents> addCustomInputWatcher(
@@ -1076,42 +1118,17 @@ class CustomInputWatcherManager {
     }
   }
 
-  bool _checkIfStateHovered(State<CustomInputWatcher> widget) {
-    if (
-        //there is a widget currently being hovered
-        currentlyHoveredWidget != null &&
-            //the widget being checked is not the currently hovered widget
-            currentlyHoveredWidget != widget &&
-            //the widget being checked is not in the same group as the currently hovered widget
-            widget.widget.zHeight <= currentlyHoveredWidget!.widget.zHeight) {
-      return false;
+  void checkStatesHovered() {
+    if (_customInputWatcherRows.isEmpty) {
+      return;
     }
-    final rect = _customInputWatcherRectangles[widget];
-    if (rect == null) {
-      return false;
+    final maxIndex = _customInputWatcherRows.keys.reduce(max);
+    for (final element in _customInputWatcherStreams.entries
+        .where((element) => element.key.widget.zIndex == maxIndex)) {
+      if (_checkIfStateHovered(element.key)) {
+        break;
+      }
     }
-    final mousePosition = parentInputManager.latestPointerPosition ??
-        parentInputManager.pointerLocalPositions.values.firstOrNull ??
-        Offset.zero;
-    final contains = rect.contains(mousePosition);
-
-    if (!contains && currentlyHoveredWidget == null) {
-      return false;
-    }
-    if (contains && currentlyHoveredWidget == widget) {
-      return false;
-    }
-
-    if (!contains && currentlyHoveredWidget != widget) {
-      return false;
-    }
-
-    if (contains) {
-      setHoveredState(widget);
-    } else {
-      removeHoveredState();
-    }
-    return contains;
   }
 
   void handleGamepadInput(GamepadEvent event) {
@@ -1262,19 +1279,6 @@ class CustomInputWatcherManager {
     }
   }
 
-  void checkStatesHovered() {
-    if (_customInputWatcherRows.isEmpty) {
-      return;
-    }
-    final maxIndex = _customInputWatcherRows.keys.reduce(max);
-    for (final element in _customInputWatcherStreams.entries
-        .where((element) => element.key.widget.zIndex == maxIndex)) {
-      if (_checkIfStateHovered(element.key)) {
-        break;
-      }
-    }
-  }
-
   void onPrimary() {
     sendStreamEvent(currentlyHoveredWidget, CustomInputWatcherEvents.onPrimary);
   }
@@ -1363,6 +1367,12 @@ class CustomInputWatcherManager {
     }
   }
 
+  void removeHoverOverlay() {
+    hoverOverlayWidget?.$2.close();
+    hoverOverlayWidget?.$3.close();
+    hoverOverlayWidget = null;
+  }
+
   void removeHoveredState() {
     sendStreamEvent(currentlyHoveredWidget, CustomInputWatcherEvents.hoverOff);
     updateOverlayHoverWidget(null, Offset.zero);
@@ -1396,37 +1406,6 @@ class CustomInputWatcherManager {
 
     hoverOverlayWidget?.$2.add(event);
   }
-
-  (
-    StreamController<CustomInputWatcherEvents>,
-    StreamController<(Offset, Widget)?>
-  ) addHoverOverlay(State<GamepadCursorDisplay> hoverOverlayState) {
-    final eventController = StreamController<CustomInputWatcherEvents>();
-    final hoveredWidgetEventController = StreamController<(Offset, Widget)?>();
-    hoverOverlayWidget =
-        (hoverOverlayState, eventController, hoveredWidgetEventController);
-    return (eventController, hoveredWidgetEventController);
-  }
-
-  void updateOverlayHoverWidget(Widget? widget, Offset? position) {
-    if (widget == null || position == null) {
-      hoverOverlayWidget?.$3.add(null);
-    } else {
-      hoverOverlayWidget?.$3.add((position, widget));
-    }
-  }
-
-  void removeHoverOverlay() {
-    hoverOverlayWidget?.$2.close();
-    hoverOverlayWidget?.$3.close();
-    hoverOverlayWidget = null;
-  }
-
-  (
-    State<GamepadCursorDisplay>,
-    StreamController<CustomInputWatcherEvents>,
-    StreamController<(Offset, Widget)?>,
-  )? hoverOverlayWidget;
 
   void setHoveredState(State<CustomInputWatcher> widget) {
     removeHoveredState();
@@ -1571,6 +1550,52 @@ class CustomInputWatcherManager {
         CustomInputWatcherEvents.updateOnPostFrameCallback,
       );
     }
+  }
+
+  void updateOverlayHoverWidget(Widget? widget, Offset? position) {
+    if (widget == null || position == null) {
+      hoverOverlayWidget?.$3.add(null);
+    } else {
+      hoverOverlayWidget?.$3.add((position, widget));
+    }
+  }
+
+  bool _checkIfStateHovered(State<CustomInputWatcher> widget) {
+    if (
+        //there is a widget currently being hovered
+        currentlyHoveredWidget != null &&
+            //the widget being checked is not the currently hovered widget
+            currentlyHoveredWidget != widget &&
+            //the widget being checked is not in the same group as the currently hovered widget
+            widget.widget.zHeight <= currentlyHoveredWidget!.widget.zHeight) {
+      return false;
+    }
+    final rect = _customInputWatcherRectangles[widget];
+    if (rect == null) {
+      return false;
+    }
+    final mousePosition = parentInputManager.latestPointerPosition ??
+        parentInputManager.pointerLocalPositions.values.firstOrNull ??
+        Offset.zero;
+    final contains = rect.contains(mousePosition);
+
+    if (!contains && currentlyHoveredWidget == null) {
+      return false;
+    }
+    if (contains && currentlyHoveredWidget == widget) {
+      return false;
+    }
+
+    if (!contains && currentlyHoveredWidget != widget) {
+      return false;
+    }
+
+    if (contains) {
+      setHoveredState(widget);
+    } else {
+      removeHoveredState();
+    }
+    return contains;
   }
 }
 

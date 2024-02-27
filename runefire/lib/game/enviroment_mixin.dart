@@ -200,12 +200,18 @@ mixin BoundsFunctionality on Enviroment {
   final double boundsDistanceFromCenter = 70;
 
   Future<void> resizeBossBounds(String windowEvent) async {
-    if (bossBounds == null) return;
+    if (bossBounds == null) {
+      return;
+    }
     if (!bossBounds!.isMounted ||
         bossBounds!.isCircle ||
-        bossBounds!.scope != BossBoundsScope.viewportSize) return;
+        bossBounds!.scope != BossBoundsScope.viewportSize) {
+      return;
+    }
 
-    if (windowEvent.contains('maximize')) await Future.delayed(.2.seconds);
+    if (windowEvent.contains('maximize')) {
+      await game.gameAwait(.2);
+    }
 
     bossBounds?.boundsSize = getViewportSize();
     bossBounds?.createBounds();

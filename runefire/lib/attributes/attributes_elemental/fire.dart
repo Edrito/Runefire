@@ -23,7 +23,7 @@ import 'package:runefire/resources/enums.dart';
 class FireIncreaseDamageTenPercentAttribute extends Attribute {
   FireIncreaseDamageTenPercentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -48,8 +48,8 @@ class FireIncreaseDamageTenPercentAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onPreDamageOtherEntity.add(addDamage);
     }
     super.mapUpgrade();
@@ -60,8 +60,8 @@ class FireIncreaseDamageTenPercentAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onPreDamageOtherEntity.remove(addDamage);
     }
     super.unMapUpgrade();
@@ -71,7 +71,7 @@ class FireIncreaseDamageTenPercentAttribute extends Attribute {
 class KillFireEmpowerAttackAttribute extends Attribute {
   KillFireEmpowerAttackAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -88,11 +88,11 @@ class KillFireEmpowerAttackAttribute extends Attribute {
     if (damage.victim is AttributeFunctionality) {
       final attr = damage.victim as AttributeFunctionality;
       if (attr.statusEffects.contains(StatusEffects.burn)) {
-        victimEntity!.addAttribute(
+        attributeOwnerEntity!.addAttribute(
           AttributeType.empowered,
           isTemporary: true,
           duration: 10,
-          perpetratorEntity: victimEntity,
+          perpetratorEntity: attributeOwnerEntity,
         );
       }
     }
@@ -101,8 +101,8 @@ class KillFireEmpowerAttackAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onKillOtherEntity.add(determineIfShouldEmpower);
     }
     super.mapUpgrade();
@@ -113,8 +113,8 @@ class KillFireEmpowerAttackAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onKillOtherEntity.remove(determineIfShouldEmpower);
     }
     super.unMapUpgrade();
@@ -124,7 +124,7 @@ class KillFireEmpowerAttackAttribute extends Attribute {
 class ChanceToBurnNeighbouringEnemiesAttribute extends Attribute {
   ChanceToBurnNeighbouringEnemiesAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -145,10 +145,10 @@ class ChanceToBurnNeighbouringEnemiesAttribute extends Attribute {
       final attr = damage.victim as AttributeFunctionality;
       if (attr.statusEffects.contains(StatusEffects.burn)) {
         final entities = getEntitiesInRadius(
-          victimEntity!,
+          attributeOwnerEntity!,
           distance,
-          victimEntity!.gameEnviroment,
-          test: (entity) => victimEntity!.isPlayer
+          attributeOwnerEntity!.gameEnviroment,
+          test: (entity) => attributeOwnerEntity!.isPlayer
               ? entity is Enemy
               : entity is AttributeFunctionality,
         );
@@ -160,7 +160,7 @@ class ChanceToBurnNeighbouringEnemiesAttribute extends Attribute {
             entity.addAttribute(
               AttributeType.burn,
               isTemporary: true,
-              perpetratorEntity: victimEntity,
+              perpetratorEntity: attributeOwnerEntity,
             );
           }
         }
@@ -171,8 +171,8 @@ class ChanceToBurnNeighbouringEnemiesAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onKillOtherEntity.add(determineIfShouldBurnOtherEnemies);
     }
     super.mapUpgrade();
@@ -183,8 +183,8 @@ class ChanceToBurnNeighbouringEnemiesAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onKillOtherEntity.remove(determineIfShouldBurnOtherEnemies);
     }
     super.unMapUpgrade();
@@ -194,7 +194,7 @@ class ChanceToBurnNeighbouringEnemiesAttribute extends Attribute {
 class ChanceToReviveAttribute extends Attribute {
   ChanceToReviveAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -211,16 +211,13 @@ class ChanceToReviveAttribute extends Attribute {
 
   bool determineIfShouldDie(DamageInstance damage) {
     final shouldLive = rng.nextDouble() < chance;
-    if (shouldLive) {
-      print('REVIVED');
-    }
     return shouldLive;
   }
 
   @override
   void mapUpgrade() {
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity! as HealthFunctionality;
+    if (attributeOwnerEntity is HealthFunctionality) {
+      final health = attributeOwnerEntity! as HealthFunctionality;
       health.onDeath.add(determineIfShouldDie);
     }
     super.mapUpgrade();
@@ -231,8 +228,8 @@ class ChanceToReviveAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onKillOtherEntity.remove(determineIfShouldDie);
     }
     super.unMapUpgrade();
@@ -242,7 +239,7 @@ class ChanceToReviveAttribute extends Attribute {
 class OverheatingMissileAttribute extends Attribute {
   OverheatingMissileAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -263,7 +260,6 @@ class OverheatingMissileAttribute extends Attribute {
     shouldAlight.add(weapon.weaponId);
     continueToAlight.remove(weapon.weaponId);
     initiateWeaponFunction(weapon);
-    print('~~~');
   }
 
   void initiateWeaponFunction(Weapon weapon) {
@@ -289,8 +285,8 @@ class OverheatingMissileAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final call = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final call = attributeOwnerEntity! as AttributeCallbackFunctionality;
       call.onReload.add(initiateAlight);
     }
     super.mapUpgrade();
@@ -301,12 +297,12 @@ class OverheatingMissileAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final call = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final call = attributeOwnerEntity! as AttributeCallbackFunctionality;
       call.onReload.remove(initiateAlight);
     }
 
-    for (final element in victimEntity?.getAllWeaponItems(true, true) ??
+    for (final element in attributeOwnerEntity?.getAllWeaponItems(true, true) ??
         const Iterable.empty()) {
       if (element is AttributeWeaponFunctionsFunctionality) {
         element.onHit.remove(doAlight);
@@ -319,7 +315,7 @@ class OverheatingMissileAttribute extends Attribute {
 class FireyAuraAttribute extends Attribute {
   FireyAuraAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -347,8 +343,8 @@ class FireyAuraAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final call = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final call = attributeOwnerEntity! as AttributeCallbackFunctionality;
       call.onHitOtherEntity.add(checkDistanceApplyDamageIncrease);
     }
     super.mapUpgrade();
@@ -359,8 +355,8 @@ class FireyAuraAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final call = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final call = attributeOwnerEntity! as AttributeCallbackFunctionality;
       call.onReload.remove(checkDistanceApplyDamageIncrease);
     }
 
@@ -371,7 +367,7 @@ class FireyAuraAttribute extends Attribute {
 class EssenceOfThePheonixAttribute extends Attribute {
   EssenceOfThePheonixAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -398,8 +394,8 @@ class EssenceOfThePheonixAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final call = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final call = attributeOwnerEntity! as AttributeCallbackFunctionality;
       call.onHitOtherEntity.add(modifyDamage);
     }
     super.mapUpgrade();
@@ -410,8 +406,8 @@ class EssenceOfThePheonixAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final call = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final call = attributeOwnerEntity! as AttributeCallbackFunctionality;
       call.onReload.remove(modifyDamage);
     }
 

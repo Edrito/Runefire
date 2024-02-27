@@ -14,6 +14,7 @@ import 'package:runefire/events/event_management.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
@@ -222,7 +223,8 @@ class MushroomBoomer extends Enemy
   }
 
   @override
-  bool get affectsAllEntities => true;
+  BoolParameterManager affectsAllEntities = BoolParameterManager(
+      baseParameter: true, frequencyDeterminesTruth: false);
 
   @override
   void update(double dt) {
@@ -290,9 +292,6 @@ class MushroomShooter extends Enemy
     speed.baseParameter = mushroomShooterBaseSpeed;
     initialWeapons.add(WeaponType.blankProjectileWeapon);
   }
-
-  @override
-  bool get affectsAllEntities => false;
 
   @override
   void update(double dt) {
@@ -433,9 +432,6 @@ class MushroomSpinner extends Enemy
       ),
     };
   }
-
-  @override
-  bool get affectsAllEntities => false;
 
   @override
   void update(double dt) {
@@ -601,9 +597,6 @@ class MushroomBurrower extends Enemy
       ),
     };
   }
-
-  @override
-  bool get affectsAllEntities => false;
 
   double get burrowSpeed => 1.0;
 

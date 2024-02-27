@@ -14,6 +14,7 @@ import 'package:runefire/menus/level_up_screen.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/player/player_mixin.dart';
+import 'package:runefire/resources/constants/routes.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/game_state_class.dart';
@@ -650,14 +651,15 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
     return IgnorePointer(
       child: Stack(
         children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            child: Text(
-              'Pre-Alpha Development Build',
-              style: defaultStyle.copyWith(fontSize: 32),
+          if (GameState().currentRoute != gameplay)
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Text(
+                'Wireframe Demo Build',
+                style: defaultStyle.copyWith(fontSize: 32),
+              ),
             ),
-          ),
           if (activeMessage != null)
             DisplayTextWidget(
               activeMessage!,

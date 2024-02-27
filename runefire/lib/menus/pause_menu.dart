@@ -73,6 +73,7 @@ class CustomBorderBox extends StatelessWidget {
     this.hideBaseBorder = false,
     this.lightColor = false,
     this.attributeType,
+    this.damageType,
     super.key,
   });
   final Widget? child;
@@ -81,6 +82,7 @@ class CustomBorderBox extends StatelessWidget {
   final bool hideBaseBorder;
   final bool lightColor;
   final AttributeType? attributeType;
+  final DamageType? damageType;
 
   @override
   Widget build(BuildContext context) {
@@ -101,44 +103,52 @@ class CustomBorderBox extends StatelessWidget {
 
     final elementalPowerBorder = attributeType?.elementalRequirement ?? [];
 
-    if (elementalPowerBorder.isNotEmpty) {
-      borderImage.clear();
-      for (final element in elementalPowerBorder) {
-        switch (element) {
-          case DamageType.energy:
-            borderImage.add(
-              ImagesAssetsUi.attributeBorderEnergy.path,
-            );
-            break;
-          case DamageType.fire:
-            borderImage.add(
-              ImagesAssetsUi.attributeBorderFire.path,
-            );
-            break;
-          case DamageType.frost:
-            borderImage.add(
-              ImagesAssetsUi.attributeBorderFrost.path,
-            );
-            break;
-          case DamageType.psychic:
-            borderImage.add(
-              ImagesAssetsUi.attributeBorderPsychic.path,
-            );
-            break;
-          case DamageType.magic:
-            borderImage.add(
-              ImagesAssetsUi.attributeBorderMagic.path,
-            );
-            break;
-          case DamageType.physical:
-            borderImage.add(
-              ImagesAssetsUi.attributeBorderPhysical.path,
-            );
-            break;
-          default:
-        }
+    void addDamageTypeImage(DamageType type) {
+      switch (type) {
+        case DamageType.energy:
+          borderImage.add(
+            ImagesAssetsUi.attributeBorderEnergy.path,
+          );
+          break;
+        case DamageType.fire:
+          borderImage.add(
+            ImagesAssetsUi.attributeBorderFire.path,
+          );
+          break;
+        case DamageType.frost:
+          borderImage.add(
+            ImagesAssetsUi.attributeBorderFrost.path,
+          );
+          break;
+        case DamageType.psychic:
+          borderImage.add(
+            ImagesAssetsUi.attributeBorderPsychic.path,
+          );
+          break;
+        case DamageType.magic:
+          borderImage.add(
+            ImagesAssetsUi.attributeBorderMagic.path,
+          );
+          break;
+        case DamageType.physical:
+          borderImage.add(
+            ImagesAssetsUi.attributeBorderPhysical.path,
+          );
+          break;
+        default:
       }
     }
+
+    if (damageType != null) {
+      borderImage.clear();
+      addDamageTypeImage(damageType!);
+    } else if (elementalPowerBorder.isNotEmpty) {
+      borderImage.clear();
+      for (final element in elementalPowerBorder) {
+        addDamageTypeImage(element);
+      }
+    }
+    print(borderImage.length);
     final cardSize = small ? smallCardSize : largeCardSize;
 
     final borderMidImage = small
@@ -169,8 +179,9 @@ class CustomBorderBox extends StatelessWidget {
                     child: buildImageAsset(
                       borderImage[i],
                       fit: BoxFit.fitWidth,
-                      color:
-                          elementalPowerBorder.isEmpty ? borderColorTop : null,
+                      color: elementalPowerBorder.isEmpty && damageType == null
+                          ? borderColorTop
+                          : null,
                     ),
                   ),
                 ),

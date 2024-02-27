@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
@@ -20,6 +21,7 @@ import 'package:runefire/game/background.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/menus.dart';
+import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/assets/sprite_animations.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
@@ -30,6 +32,7 @@ import 'package:runefire/resources/visuals.dart';
 // import 'package:win32_gamepad/win32_gamepad.dart';
 import 'package:runefire/game/menu_game.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:uuid/uuid.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/resources/constants/routes.dart' as routes;
@@ -58,13 +61,13 @@ void main() async {
 
   final playerData = PlayerData();
   late final SystemData systemData;
-  final box = await Hive.openBox<SystemData>('systemData');
-  if (!box.containsKey(0)) {
-    systemData = SystemData();
-    box.put(0, systemData);
-  } else {
-    systemData = box.get(0)!;
-  }
+  // final box = await Hive.openBox<SystemData>('systemData');
+  // if (!box.containsKey(0)) {
+  systemData = SystemData();
+  // box.put(0, systemData);
+  // } else {
+  //   systemData = box.get(0)!;
+  // }
 
   final toLoad = <String>[
     ...ImagesAssetsUi.allFiles,
@@ -104,7 +107,13 @@ void main() async {
 
   final inputManagerState = InputManager();
   inputManagerState.setInitReferences(gameRouter);
-
+  inputManagerState.addOnTimeoutListener(() {
+    //FOR DEMO
+    if (GameState().currentRoute == routes.gameplay) {
+      GameState().endGame(EndGameState.quit, false, MenuPageType.demoScreen);
+      gameRouter.resetSettings();
+    }
+  });
   ServicesBinding.instance.keyboard
       .addHandler(inputManagerState.keyboardEventHandler);
 
@@ -197,6 +206,11 @@ class GameRouter extends Forge2DGame {
     super.onRemove();
   }
 
+  void resetSettings() {
+    systemDataComponent.reset(SystemData());
+    playerDataComponent.reset(PlayerData());
+  }
+
   @override
   Future<void> onLoad() async {
     // debugMode = true;
@@ -231,8 +245,28 @@ class GameRouter extends Forge2DGame {
       gamepadInputManager.gamepad.updateState();
       gamepadInputManager.parseGameState();
     }
+    for (final future in _futureTimers.entries) {
+      if (future.value <= dt) {
+        _futureCompleters[future.key]?.complete();
+      } else {
+        _futureTimers[future.key] = future.value - dt;
+      }
+    }
     super.update(dt);
   }
+
+  Future gameAwait(double seconds) async {
+    final id = const Uuid().v4();
+    _futureTimers[id] = seconds;
+    _futureCompleters[id] = Completer();
+
+    await _futureCompleters[id]!.future;
+    _futureCompleters.remove(id);
+    _futureTimers.remove(id);
+  }
+
+  final Map<String, double> _futureTimers = {};
+  final Map<String, Completer> _futureCompleters = {};
 
   @override
   bool containsLocalPoint(Vector2 p) {

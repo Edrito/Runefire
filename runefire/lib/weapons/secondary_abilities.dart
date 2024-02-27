@@ -421,7 +421,6 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
 
     player.body.setTransform(calcPos, player.body.angle);
 
-    // await Future.delayed(.3.seconds);
     final randomId = const Uuid().v4();
     player.invincible.setIncrease(randomId, true);
     player.addAttribute(
@@ -430,7 +429,7 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
       isTemporary: true,
       duration: 2,
     );
-    Future.delayed(1.seconds).then((value) {
+    weapon?.entityAncestor?.game.gameAwait(1).then((value) {
       player.invincible.removeKey(randomId);
     });
     melee.meleeAttack(
@@ -606,7 +605,7 @@ class SurroundAttack extends SecondaryWeaponAbility {
         newCount += 3;
       }
     }
-    return crossAttackSpread(newCount + count);
+    return crossAttackSpread(count: newCount + count, initialAngle: angle);
   }
 
   @override
@@ -615,7 +614,7 @@ class SurroundAttack extends SecondaryWeaponAbility {
       AttackConfiguration(
         holdDurationPercent: .5,
         customAttackLocation: SourceAttackLocation.body,
-        customAttackSpreadPattern: {AttackSpreadType.cross: pattern},
+        customAttackSpreadPattern: {pattern},
       ),
     );
   }

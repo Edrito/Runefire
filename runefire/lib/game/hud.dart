@@ -218,16 +218,6 @@ abstract class BaseHud extends PositionComponent {
       maxLivesWrapper.add((blankLives..add(heart)).last);
       c++;
     }
-
-    // final controller =
-    //     EffectController(duration: .5, curve: Curves.easeOutCirc);
-    // heart.add(OpacityEffect.fadeIn(controller));
-    // heart.add(MoveEffect.to(pos + Vector2(0, -10), controller));
-    // await Future.delayed(.5.seconds);
-    // heart.add(OpacityEffect.fadeOut(controller));
-    // heart.add(MoveEffect.to(pos + Vector2(0, -20), controller));
-    // await Future.delayed(.5.seconds);
-    // heart.removeFromParent();
   }
 
   Future<void> buildRemainingAmmo(Player player) async {
@@ -580,7 +570,7 @@ abstract class BaseHud extends PositionComponent {
     );
     //FPS
     if (fpsEnabled) {
-      Future.delayed(.25.seconds).then((_) {
+      gameEnviroment.game.gameAwait(.25).then((_) {
         add(fpsCounter);
       });
     }

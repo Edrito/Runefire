@@ -28,21 +28,27 @@ class PlayerData extends DataClass with PlayerStatistics {
 
   GameDifficulty selectedDifficulty = GameDifficulty.regular;
   GameLevel selectedLevel = GameLevel.hexedForest;
-  CharacterType selectedPlayer = CharacterType.regular;
+  CharacterType selectedPlayer = CharacterType.runeKnight;
+
+  void setSelectedCharacter(CharacterType characterType) {
+    selectedPlayer = characterType;
+    parentComponent?.notifyListeners();
+  }
+
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.reloadAndRapidFire,
     1: SecondaryType.elementalBlast,
   };
 
   Map<int, WeaponType> selectedWeapons = {
-    0: WeaponType.prismaticBeam,
+    0: WeaponType.crystalPistol,
     1: WeaponType.crystalSword,
   };
 
   int spentExperiencePoints = 0;
   Set<Achievements> unlockedAchievements = {};
   // List<GameLevel> completedLevels = [];
-  List<CharacterType> unlockedCharacters = [CharacterType.regular];
+  List<CharacterType> unlockedCharacters = [CharacterType.runeKnight];
 
   void addAchievement(Achievements achievement) {
     if (unlockedAchievements.contains(achievement)) {

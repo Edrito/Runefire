@@ -283,28 +283,34 @@ extension GameStateFunctions on GameState {
 
   ///null route = go to main menu
   ///string route = leave main menu to route
-  void toggleGameStart(String? route) {
-    gameRouter.router.pushReplacementNamed(routes.blank);
+  void toggleGameStart(String? newRoute) {
     resumeGame();
-    if (route != null) {
-      Future.delayed(const Duration(milliseconds: 50)).then((_) {
-        gameRouter.router.pushReplacementNamed(route!);
+    InputManager().buildTimer();
+    var tempRoute = newRoute;
+    if (tempRoute != null) {
+      Future.delayed(Duration.zero).then((_) {
+        gameRouter.router.pushReplacementNamed(tempRoute!);
         parentComponent.notifyListeners();
       });
     } else {
-      route = routes.blank;
-      Future.delayed(const Duration(milliseconds: 50)).then((_) {
+      gameRouter.router.pushReplacementNamed(routes.blank);
+      tempRoute = routes.blank;
+      Future.delayed(Duration.zero).then((_) {
         gameRouter.overlays.add(overlays.caveFront.key);
         gameRouter.overlays.add(overlays.mainMenu.key);
         parentComponent.notifyListeners();
       });
     }
-    currentRoute = route;
+    currentRoute = tempRoute;
   }
 
-  void endGame(EndGameState endGameState, [bool restart = false]) {
+  void endGame(
+    EndGameState endGameState, [
+    bool restart = false,
+    MenuPageType? customMenuPage,
+  ]) {
     final player = currentPlayer;
-    if (player != null) {
+    if (player != null && player.enviroment is GameEnviroment) {
       gameRouter.playerDataComponent.dataObject
           .modifyGameVariables(endGameState, player.gameEnviroment);
       gameRouter.playerDataComponent.dataObject.updateInformation(player);
@@ -313,9 +319,10 @@ extension GameStateFunctions on GameState {
     if (!restart) {
       toggleGameStart(null);
       changeMainMenuPage(
-        endGameState == EndGameState.win
-            ? MenuPageType.weaponMenu
-            : MenuPageType.startMenuPage,
+        customMenuPage ??
+            (endGameState == EndGameState.win && false
+                ? MenuPageType.weaponMenu
+                : MenuPageType.startMenuPage),
         false,
       );
     } else {
@@ -329,10 +336,12 @@ extension GameStateFunctions on GameState {
     Player player,
     DamageInstance instance,
   ) {
-    if (transitionOccuring) return;
+    if (transitionOccuring) {
+      return;
+    }
 
     transitionOccuring = true;
-    Future.delayed(2.seconds).then(
+    player.game.gameAwait(2).then(
       (value) {
         transitionOccuring = false;
         if (gameEndState == EndGameState.playerDeath) {

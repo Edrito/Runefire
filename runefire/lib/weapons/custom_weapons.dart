@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 
-class DefaultGun extends Weapon with ProjectileFunctionality {
-  DefaultGun(
+class EnergyArcGun extends Weapon with ProjectileFunctionality {
+  EnergyArcGun(
     super.newUpgradeLevel,
     super.entityAncestor,
   );
@@ -22,8 +23,7 @@ class DefaultGun extends Weapon with ProjectileFunctionality {
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 0);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 0);
 
   @override
   WeaponType weaponType = WeaponType.blankGun;
@@ -47,8 +47,12 @@ class DefaultGun extends Weapon with ProjectileFunctionality {
   ProjectileType? projectileType = ProjectileType.followLaser;
 }
 
-class DefaultMagic extends Weapon {
-  DefaultMagic(super.newUpgradeLevel, super.entityAncestor);
+class ExplodeEnemiesIceShardsGun extends Weapon with ProjectileFunctionality {
+  ExplodeEnemiesIceShardsGun(super.newUpgradeLevel, super.entityAncestor) {
+    baseDamage.damageBase[DamageType.frost] = (1, 1.5);
+    sourceAttackLocation = SourceAttackLocation.body;
+    primaryDamageType = DamageType.frost;
+  }
 
   @override
   double distanceFromPlayer = 0;
@@ -60,8 +64,7 @@ class DefaultMagic extends Weapon {
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 0);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 0);
 
   @override
   WeaponType weaponType = WeaponType.blankMagic;
@@ -80,6 +83,9 @@ class DefaultMagic extends Weapon {
 
   @override
   double get durationHeld => 0;
+
+  @override
+  ProjectileType? projectileType = ProjectileType.magicProjectile;
 }
 
 class DefaultMelee extends Weapon {
@@ -95,8 +101,7 @@ class DefaultMelee extends Weapon {
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 0);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 0);
 
   @override
   WeaponType weaponType = WeaponType.blankMelee;
@@ -143,8 +148,7 @@ class HiddenArcingWeapon extends Weapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 0);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 0);
 
   @override
   WeaponType weaponType = WeaponType.hiddenArcingWeapon;

@@ -9,7 +9,8 @@ import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 abstract class PermanentAttribute extends Attribute {
-  PermanentAttribute({required super.level, required super.victimEntity});
+  PermanentAttribute(
+      {required super.level, required super.attributeOwnerEntity});
 
   abstract int baseCost;
 
@@ -22,179 +23,179 @@ abstract class PermanentAttribute extends Attribute {
 PermanentAttribute? permanentAttributeBuilder(
   AttributeType type,
   int level,
-  AttributeFunctionality? victimEntity,
+  AttributeFunctionality? attributeOwnerEntity,
 ) {
   switch (type) {
     case AttributeType.speedPermanent:
       return BaseSpeedPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.attackRatePermanent:
       return AttackRatePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.areaSizePermanent:
       return AreaSizePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.areaDamageIncreasePermanent:
       return AreaDamageIncreasePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.meleeDamageIncreasePermanent:
       return MeleeDamageIncreasePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.projectileDamageIncreasePermanent:
       return ProjectileDamageIncreasePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.spellDamageIncreasePermanent:
       return SpellDamageIncreasePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.tickDamageIncreasePermanent:
       return TickDamageIncreasePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.statusEffectPotencyPermanent:
       return StatusEffectPotencyPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.maxStaminaPermanent:
       return MaxStaminaPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.maxHealthPermanent:
       return MaxHealthPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.staminaRegenPermanent:
       return StaminaRegenPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.healthRegenPermanent:
       return HealthRegenPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.experienceGainPermanent:
       return ExperienceGainPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.dodgeChanceIncreasePermanent:
       return DodgeChancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.critChancePermanent:
       return CritChancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.critDamagePermanent:
       return CritDamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.durationPermanent:
       return DurationPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.essenceStealPermanent:
       return EssenceStealPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
 
     case AttributeType.damageIncreasePermanent:
       return DamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.physicalDamageIncreasePermanent:
       return PhysicalDamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.magicDamageIncreasePermanent:
       return MagicDamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.fireDamageIncreasePermanent:
       return FireDamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.psychicDamageIncreasePermanent:
       return PsychicDamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.energyDamageIncreasePermanent:
       return EnergyDamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.frostDamageIncreasePermanent:
       return FrostDamagePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.physicalResistanceIncreasePermanent:
       return PhysicalResistancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.magicResistanceIncreasePermanent:
       return MagicResistancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.fireResistanceIncreasePermanent:
       return FireResistancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.psychicResistanceIncreasePermanent:
       return PsychicResistancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.energyResistanceIncreasePermanent:
       return EnergyResistancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.frostResistanceIncreasePermanent:
       return FrostResistancePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.reloadTimePermanent:
       return ReloadTimePermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.maxLivesPermanent:
       return MaxLivesPermanentAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     default:
       return null;
@@ -204,7 +205,7 @@ PermanentAttribute? permanentAttributeBuilder(
 class AreaSizePermanentAttribute extends PermanentAttribute {
   AreaSizePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.areaSizePermanent;
@@ -224,7 +225,7 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.areaSizePercentIncrease,
+      attributeOwnerEntity?.areaSizePercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -232,7 +233,7 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.areaSizePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.areaSizePercentIncrease.removeKey(attributeId);
   }
 
   @override
@@ -242,7 +243,7 @@ class AreaSizePermanentAttribute extends PermanentAttribute {
 class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
   MeleeDamageIncreasePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.meleeDamageIncreasePermanent;
@@ -263,7 +264,7 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.meleeDamagePercentIncrease,
+      attributeOwnerEntity?.meleeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -271,7 +272,7 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.meleeDamagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.meleeDamagePercentIncrease.removeKey(attributeId);
   }
 
   @override
@@ -281,7 +282,7 @@ class MeleeDamageIncreasePermanentAttribute extends PermanentAttribute {
 class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
   ProjectileDamageIncreasePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.projectileDamageIncreasePermanent;
@@ -302,7 +303,7 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.projectileDamagePercentIncrease,
+      attributeOwnerEntity?.projectileDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -310,7 +311,8 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.projectileDamagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.projectileDamagePercentIncrease
+        .removeKey(attributeId);
   }
 
   @override
@@ -320,7 +322,7 @@ class ProjectileDamageIncreasePermanentAttribute extends PermanentAttribute {
 class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
   SpellDamageIncreasePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.spellDamageIncreasePermanent;
@@ -341,7 +343,7 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.spellDamagePercentIncrease,
+      attributeOwnerEntity?.spellDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -349,7 +351,7 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.spellDamagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.spellDamagePercentIncrease.removeKey(attributeId);
   }
 
   @override
@@ -359,7 +361,7 @@ class SpellDamageIncreasePermanentAttribute extends PermanentAttribute {
 class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
   TickDamageIncreasePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.tickDamageIncreasePermanent;
@@ -380,7 +382,7 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.tickDamageIncrease,
+      attributeOwnerEntity?.tickDamageIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -388,7 +390,7 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.tickDamageIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.tickDamageIncrease.removeKey(attributeId);
   }
 
   @override
@@ -398,7 +400,7 @@ class TickDamageIncreasePermanentAttribute extends PermanentAttribute {
 class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
   AreaDamageIncreasePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.areaDamageIncreasePermanent;
@@ -419,7 +421,7 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.areaDamagePercentIncrease,
+      attributeOwnerEntity?.areaDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -427,7 +429,7 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.areaDamagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.areaDamagePercentIncrease.removeKey(attributeId);
   }
 
   @override
@@ -437,7 +439,7 @@ class AreaDamageIncreasePermanentAttribute extends PermanentAttribute {
 class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
   StatusEffectPotencyPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.statusEffectPotencyPermanent;
@@ -458,7 +460,7 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.statusEffectsPercentIncrease,
+      attributeOwnerEntity?.statusEffectsPercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -466,7 +468,8 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.statusEffectsPercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.statusEffectsPercentIncrease
+        .removePercentKey(attributeId);
   }
 
   @override
@@ -476,7 +479,7 @@ class StatusEffectPotencyPermanentAttribute extends PermanentAttribute {
 class BaseSpeedPermanentAttribute extends PermanentAttribute {
   BaseSpeedPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.speedPermanent;
@@ -494,9 +497,9 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is MovementFunctionality) {
+    if (attributeOwnerEntity is MovementFunctionality) {
       genericAttributeIncrease(
-        (victimEntity! as MovementFunctionality).speed,
+        (attributeOwnerEntity! as MovementFunctionality).speed,
         increaseFromBaseParameter,
         false,
       );
@@ -505,8 +508,10 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is MovementFunctionality) {
-      (victimEntity! as MovementFunctionality).speed.removeKey(attributeId);
+    if (attributeOwnerEntity is MovementFunctionality) {
+      (attributeOwnerEntity! as MovementFunctionality)
+          .speed
+          .removeKey(attributeId);
     }
   }
 
@@ -517,7 +522,7 @@ class BaseSpeedPermanentAttribute extends PermanentAttribute {
 class MaxStaminaPermanentAttribute extends PermanentAttribute {
   MaxStaminaPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.maxStaminaPermanent;
@@ -537,9 +542,9 @@ class MaxStaminaPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is StaminaFunctionality) {
+    if (attributeOwnerEntity is StaminaFunctionality) {
       genericAttributeIncrease(
-        (victimEntity! as StaminaFunctionality).stamina,
+        (attributeOwnerEntity! as StaminaFunctionality).stamina,
         increaseFromBaseParameter,
         false,
       );
@@ -548,8 +553,10 @@ class MaxStaminaPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is StaminaFunctionality) {
-      (victimEntity! as StaminaFunctionality).stamina.removeKey(attributeId);
+    if (attributeOwnerEntity is StaminaFunctionality) {
+      (attributeOwnerEntity! as StaminaFunctionality)
+          .stamina
+          .removeKey(attributeId);
     }
   }
 
@@ -560,7 +567,7 @@ class MaxStaminaPermanentAttribute extends PermanentAttribute {
 class MaxHealthPermanentAttribute extends PermanentAttribute {
   MaxHealthPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.maxHealthPermanent;
@@ -579,9 +586,9 @@ class MaxHealthPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is HealthFunctionality) {
+    if (attributeOwnerEntity is HealthFunctionality) {
       genericAttributeIncrease(
-        (victimEntity! as HealthFunctionality).maxHealth,
+        (attributeOwnerEntity! as HealthFunctionality).maxHealth,
         increaseFromBaseParameter,
         false,
       );
@@ -590,8 +597,10 @@ class MaxHealthPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is HealthFunctionality) {
-      (victimEntity! as HealthFunctionality).maxHealth.removeKey(attributeId);
+    if (attributeOwnerEntity is HealthFunctionality) {
+      (attributeOwnerEntity! as HealthFunctionality)
+          .maxHealth
+          .removeKey(attributeId);
     }
   }
 
@@ -602,7 +611,7 @@ class MaxHealthPermanentAttribute extends PermanentAttribute {
 class StaminaRegenPermanentAttribute extends PermanentAttribute {
   StaminaRegenPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.staminaRegenPermanent;
@@ -622,9 +631,9 @@ class StaminaRegenPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is StaminaFunctionality) {
+    if (attributeOwnerEntity is StaminaFunctionality) {
       genericAttributeIncrease(
-        (victimEntity! as StaminaFunctionality).staminaRegen,
+        (attributeOwnerEntity! as StaminaFunctionality).staminaRegen,
         increaseFromBaseParameter,
         false,
       );
@@ -633,8 +642,8 @@ class StaminaRegenPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is StaminaFunctionality) {
-      (victimEntity! as StaminaFunctionality)
+    if (attributeOwnerEntity is StaminaFunctionality) {
+      (attributeOwnerEntity! as StaminaFunctionality)
           .staminaRegen
           .removeKey(attributeId);
     }
@@ -647,7 +656,7 @@ class StaminaRegenPermanentAttribute extends PermanentAttribute {
 class HealthRegenPermanentAttribute extends PermanentAttribute {
   HealthRegenPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.healthRegenPermanent;
@@ -667,9 +676,9 @@ class HealthRegenPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is HealthRegenFunctionality) {
+    if (attributeOwnerEntity is HealthRegenFunctionality) {
       genericAttributeIncrease(
-        (victimEntity! as HealthRegenFunctionality).healthRegen,
+        (attributeOwnerEntity! as HealthRegenFunctionality).healthRegen,
         increaseFromBaseParameter,
         false,
       );
@@ -678,8 +687,8 @@ class HealthRegenPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is HealthRegenFunctionality) {
-      (victimEntity! as HealthRegenFunctionality)
+    if (attributeOwnerEntity is HealthRegenFunctionality) {
+      (attributeOwnerEntity! as HealthRegenFunctionality)
           .healthRegen
           .removeKey(attributeId);
     }
@@ -692,7 +701,7 @@ class HealthRegenPermanentAttribute extends PermanentAttribute {
 class ExperienceGainPermanentAttribute extends PermanentAttribute {
   ExperienceGainPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.experienceGainPermanent;
@@ -712,9 +721,9 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is ExperienceFunctionality) {
+    if (attributeOwnerEntity is ExperienceFunctionality) {
       genericAttributeIncrease(
-        (victimEntity! as ExperienceFunctionality).xpIncreasePercent,
+        (attributeOwnerEntity! as ExperienceFunctionality).xpIncreasePercent,
         increaseFromBaseParameter,
         false,
       );
@@ -723,8 +732,8 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is ExperienceFunctionality) {
-      (victimEntity! as ExperienceFunctionality)
+    if (attributeOwnerEntity is ExperienceFunctionality) {
+      (attributeOwnerEntity! as ExperienceFunctionality)
           .xpIncreasePercent
           .removeKey(attributeId);
     }
@@ -737,7 +746,7 @@ class ExperienceGainPermanentAttribute extends PermanentAttribute {
 class DodgeChancePermanentAttribute extends PermanentAttribute {
   DodgeChancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.dodgeChanceIncreasePermanent;
@@ -757,9 +766,9 @@ class DodgeChancePermanentAttribute extends PermanentAttribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is DodgeFunctionality) {
+    if (attributeOwnerEntity is DodgeFunctionality) {
       genericAttributeIncrease(
-        (victimEntity! as DodgeFunctionality).dodgeChance,
+        (attributeOwnerEntity! as DodgeFunctionality).dodgeChance,
         increaseFromBaseParameter,
         false,
       );
@@ -768,8 +777,10 @@ class DodgeChancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is DodgeFunctionality) {
-      (victimEntity! as DodgeFunctionality).dodgeChance.removeKey(attributeId);
+    if (attributeOwnerEntity is DodgeFunctionality) {
+      (attributeOwnerEntity! as DodgeFunctionality)
+          .dodgeChance
+          .removeKey(attributeId);
     }
   }
 
@@ -780,7 +791,7 @@ class DodgeChancePermanentAttribute extends PermanentAttribute {
 class CritChancePermanentAttribute extends PermanentAttribute {
   CritChancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.critChancePermanent;
@@ -801,7 +812,7 @@ class CritChancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.critChance,
+      attributeOwnerEntity?.critChance,
       increaseFromBaseParameter,
       false,
     );
@@ -809,7 +820,7 @@ class CritChancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.critChance.removeKey(attributeId);
+    attributeOwnerEntity?.critChance.removeKey(attributeId);
   }
 
   @override
@@ -819,7 +830,7 @@ class CritChancePermanentAttribute extends PermanentAttribute {
 class CritDamagePermanentAttribute extends PermanentAttribute {
   CritDamagePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.critDamagePermanent;
@@ -840,7 +851,7 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.critDamage,
+      attributeOwnerEntity?.critDamage,
       increaseFromBaseParameter,
       false,
     );
@@ -848,7 +859,7 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.critDamage.removeKey(attributeId);
+    attributeOwnerEntity?.critDamage.removeKey(attributeId);
   }
 
   @override
@@ -858,7 +869,7 @@ class CritDamagePermanentAttribute extends PermanentAttribute {
 class DurationPermanentAttribute extends PermanentAttribute {
   DurationPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.durationPermanent;
@@ -878,7 +889,7 @@ class DurationPermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.durationPercentIncrease,
+      attributeOwnerEntity?.durationPercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -886,7 +897,7 @@ class DurationPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.durationPercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.durationPercentIncrease.removeKey(attributeId);
   }
 
   @override
@@ -896,7 +907,7 @@ class DurationPermanentAttribute extends PermanentAttribute {
 class EssenceStealPermanentAttribute extends PermanentAttribute {
   EssenceStealPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.essenceStealPermanent;
@@ -917,7 +928,7 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.essenceSteal,
+      attributeOwnerEntity?.essenceSteal,
       increaseFromBaseParameter,
       false,
     );
@@ -925,7 +936,7 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.essenceSteal.removeKey(attributeId);
+    attributeOwnerEntity?.essenceSteal.removeKey(attributeId);
   }
 
   @override
@@ -935,7 +946,7 @@ class EssenceStealPermanentAttribute extends PermanentAttribute {
 class AttackRatePermanentAttribute extends PermanentAttribute {
   AttackRatePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.attackRatePermanent;
@@ -955,7 +966,8 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
 
   @override
   Future<void> mapUpgrade() async {
-    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
+    for (final element
+        in attributeOwnerEntity!.getAllWeaponItems(true, false)) {
       genericAttributeIncrease(
         element.attackTickRate,
         increaseFromBaseParameter,
@@ -966,7 +978,8 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
 
   @override
   Future<void> unMapUpgrade() async {
-    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
+    for (final element
+        in attributeOwnerEntity!.getAllWeaponItems(true, false)) {
       element.attackTickRate.removeKey(attributeId);
     }
   }
@@ -976,7 +989,7 @@ class AttackRatePermanentAttribute extends PermanentAttribute {
 }
 
 class DamagePermanentAttribute extends PermanentAttribute {
-  DamagePermanentAttribute({required super.level, required super.victimEntity});
+  DamagePermanentAttribute({required super.level, required super.attributeOwnerEntity});
   @override
   AttributeType attributeType = AttributeType.damageIncreasePermanent;
 
@@ -996,7 +1009,7 @@ class DamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damagePercentIncrease,
+      attributeOwnerEntity?.damagePercentIncrease,
       increaseFromBaseParameter,
       false,
     );
@@ -1004,7 +1017,7 @@ class DamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.damagePercentIncrease.removeKey(attributeId);
   }
 
   @override
@@ -1014,7 +1027,7 @@ class DamagePermanentAttribute extends PermanentAttribute {
 class PhysicalDamagePermanentAttribute extends PermanentAttribute {
   PhysicalDamagePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1039,7 +1052,7 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeDamagePercentIncrease,
+      attributeOwnerEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1048,7 +1061,8 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeDamagePercentIncrease
+        .removePercentKey(attributeId);
   }
 
   @override
@@ -1058,7 +1072,7 @@ class PhysicalDamagePermanentAttribute extends PermanentAttribute {
 class MagicDamagePermanentAttribute extends PermanentAttribute {
   MagicDamagePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1083,7 +1097,7 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeDamagePercentIncrease,
+      attributeOwnerEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1092,7 +1106,8 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeDamagePercentIncrease
+        .removePercentKey(attributeId);
   }
 
   @override
@@ -1102,7 +1117,7 @@ class MagicDamagePermanentAttribute extends PermanentAttribute {
 class FireDamagePermanentAttribute extends PermanentAttribute {
   FireDamagePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1127,7 +1142,7 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeDamagePercentIncrease,
+      attributeOwnerEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1136,7 +1151,8 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeDamagePercentIncrease
+        .removePercentKey(attributeId);
   }
 
   @override
@@ -1146,7 +1162,7 @@ class FireDamagePermanentAttribute extends PermanentAttribute {
 class PsychicDamagePermanentAttribute extends PermanentAttribute {
   PsychicDamagePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1170,7 +1186,7 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeDamagePercentIncrease,
+      attributeOwnerEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1179,7 +1195,8 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeDamagePercentIncrease
+        .removePercentKey(attributeId);
   }
 
   @override
@@ -1189,7 +1206,7 @@ class PsychicDamagePermanentAttribute extends PermanentAttribute {
 class EnergyDamagePermanentAttribute extends PermanentAttribute {
   EnergyDamagePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1213,7 +1230,7 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeDamagePercentIncrease,
+      attributeOwnerEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1222,7 +1239,8 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeDamagePercentIncrease
+        .removePercentKey(attributeId);
   }
 
   @override
@@ -1232,7 +1250,7 @@ class EnergyDamagePermanentAttribute extends PermanentAttribute {
 class FrostDamagePermanentAttribute extends PermanentAttribute {
   FrostDamagePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1257,7 +1275,7 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeDamagePercentIncrease,
+      attributeOwnerEntity?.damageTypeDamagePercentIncrease,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1266,7 +1284,8 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeDamagePercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeDamagePercentIncrease
+        .removePercentKey(attributeId);
   }
 
   @override
@@ -1276,7 +1295,7 @@ class FrostDamagePermanentAttribute extends PermanentAttribute {
 class PhysicalResistancePermanentAttribute extends PermanentAttribute {
   PhysicalResistancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1302,7 +1321,7 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeResistance,
+      attributeOwnerEntity?.damageTypeResistance,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1311,7 +1330,7 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeResistance.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
 
   @override
@@ -1321,7 +1340,7 @@ class PhysicalResistancePermanentAttribute extends PermanentAttribute {
 class MagicResistancePermanentAttribute extends PermanentAttribute {
   MagicResistancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1346,7 +1365,7 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeResistance,
+      attributeOwnerEntity?.damageTypeResistance,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1355,7 +1374,7 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeResistance.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
 
   @override
@@ -1365,7 +1384,7 @@ class MagicResistancePermanentAttribute extends PermanentAttribute {
 class FireResistancePermanentAttribute extends PermanentAttribute {
   FireResistancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1390,7 +1409,7 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeResistance,
+      attributeOwnerEntity?.damageTypeResistance,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1399,7 +1418,7 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeResistance.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
 
   @override
@@ -1409,7 +1428,7 @@ class FireResistancePermanentAttribute extends PermanentAttribute {
 class PsychicResistancePermanentAttribute extends PermanentAttribute {
   PsychicResistancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1435,7 +1454,7 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeResistance,
+      attributeOwnerEntity?.damageTypeResistance,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1444,7 +1463,7 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeResistance.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
 
   @override
@@ -1454,7 +1473,7 @@ class PsychicResistancePermanentAttribute extends PermanentAttribute {
 class EnergyResistancePermanentAttribute extends PermanentAttribute {
   EnergyResistancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1479,7 +1498,7 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeResistance,
+      attributeOwnerEntity?.damageTypeResistance,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1488,7 +1507,7 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeResistance.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
 
   @override
@@ -1498,7 +1517,7 @@ class EnergyResistancePermanentAttribute extends PermanentAttribute {
 class FrostResistancePermanentAttribute extends PermanentAttribute {
   FrostResistancePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1523,7 +1542,7 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
   @override
   void mapUpgrade() {
     genericAttributeIncrease(
-      victimEntity?.damageTypeResistance,
+      attributeOwnerEntity?.damageTypeResistance,
       increaseFromBaseParameter,
       false,
       damageType,
@@ -1532,7 +1551,7 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damageTypeResistance.removePercentKey(attributeId);
+    attributeOwnerEntity?.damageTypeResistance.removePercentKey(attributeId);
   }
 
   @override
@@ -1542,7 +1561,7 @@ class FrostResistancePermanentAttribute extends PermanentAttribute {
 class ReloadTimePermanentAttribute extends PermanentAttribute {
   ReloadTimePermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.reloadTimePermanent;
@@ -1562,7 +1581,8 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
 
   @override
   Future<void> mapUpgrade() async {
-    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
+    for (final element
+        in attributeOwnerEntity!.getAllWeaponItems(true, false)) {
       if (element is ReloadFunctionality) {
         genericAttributeIncrease(
           element.reloadTime,
@@ -1575,7 +1595,8 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
 
   @override
   Future<void> unMapUpgrade() async {
-    for (final element in victimEntity!.getAllWeaponItems(true, false)) {
+    for (final element
+        in attributeOwnerEntity!.getAllWeaponItems(true, false)) {
       if (element is ReloadFunctionality) {
         element.reloadTime.removeKey(attributeId);
       }
@@ -1589,7 +1610,7 @@ class ReloadTimePermanentAttribute extends PermanentAttribute {
 class MaxLivesPermanentAttribute extends PermanentAttribute {
   MaxLivesPermanentAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
   @override
   AttributeType attributeType = AttributeType.maxLivesPermanent;
@@ -1608,7 +1629,7 @@ class MaxLivesPermanentAttribute extends PermanentAttribute {
 
   @override
   Future<void> mapUpgrade() async {
-    victimEntity?.maxLives.setParameterFlatValue(
+    attributeOwnerEntity?.maxLives.setParameterFlatValue(
       attributeId,
       increase(increaseFromBaseParameter).round(),
     );
@@ -1616,7 +1637,7 @@ class MaxLivesPermanentAttribute extends PermanentAttribute {
 
   @override
   Future<void> unMapUpgrade() async {
-    victimEntity?.maxLives.removeKey(attributeId);
+    attributeOwnerEntity?.maxLives.removeKey(attributeId);
   }
 
   @override

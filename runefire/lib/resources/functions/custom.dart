@@ -201,8 +201,9 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
 
   @override
   void update(double dt) {
-    changeSpriteAngle();
-
+    if (isLoaded) {
+      changeSpriteAngle();
+    }
     super.update(dt);
   }
 
@@ -283,7 +284,8 @@ class SimpleStartPlayEndSpriteAnimationComponent
 
     final animationsToSet = <dynamic, SpriteAnimation>{
       if (spawnAnimation != null) EntityStatus.spawn: spawnAnimation!,
-      EntityStatus.idle: playAnimation ?? spawnAnimation!,
+      EntityStatus.idle:
+          playAnimation ?? (spawnAnimation!.clone()..loop = true),
       if (endAnimation != null) EntityStatus.dead: endAnimation!,
     };
     animations = animationsToSet;
@@ -351,7 +353,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
   }
 }
 
-class CustomParticleGenerator extends Component {
+class CustomParticleGenerator extends Component with HasGameRef<GameRouter> {
   CustomParticleGenerator({
     required this.minSize,
     required this.maxSize,
@@ -462,7 +464,7 @@ class CustomParticleGenerator extends Component {
       ),
     );
     add(particleSystem);
-    await Future.delayed(randomLifespan.seconds).then((value) {
+    await game.gameAwait(randomLifespan).then((value) {
       particleSystem.removeFromParent();
     });
   }

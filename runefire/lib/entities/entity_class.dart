@@ -14,6 +14,7 @@ import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/constants/routes.dart';
+import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
@@ -28,7 +29,11 @@ import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 
 abstract class Entity extends BodyComponent<GameRouter>
-    with BaseAttributes, ContactCallbacks, ElementalPower {
+    with
+        BaseAttributes,
+        ContactCallbacks,
+        ElementalPower,
+        UpdateFunctionsThenRemove {
   static const dupeStatusCheckerList = [
     EntityStatus.run,
     EntityStatus.walk,
@@ -51,8 +56,9 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   Map<dynamic, ChildEntity> childrenEntities = {};
 
-  Set<Projectile> closeProjectiles = {};
+  Set<Projectile> closeSensorProjectiles = {};
   Set<Entity> closeSensorBodies = {};
+  Set<Object> closeSensorObjects = {};
   bool collisionOnDeath = false;
   int currentHitAnimations = 0;
   Map<dynamic, SpriteAnimation> entityAnimations = {};
@@ -251,17 +257,40 @@ abstract class Entity extends BodyComponent<GameRouter>
     entityAnimationStatusQueue = null;
   }
 
+  List<Function(Projectile projectile, Set<Projectile> currentProjectiles)>
+      onProjectileSensorContact = [];
+  List<Function(Projectile projectile, Set<Projectile> currentProjectiles)>
+      onProjectileSensorEndContact = [];
+
+  List<Function(Entity entity, Set<Entity> currentEntities)>
+      onBodySensorContact = [];
+  List<Function(Entity entity, Set<Entity> currentEntities)>
+      onBodySensorEndContact = [];
+  List<Function(Object object, Set<Object> currentObjects)>
+      onObjectSensorContact = [];
+  List<Function(Object object, Set<Object> currentObjects)>
+      onObjectSensorEndContact = [];
+
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is Entity) {
-      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
-        closeSensorBodies.add(other);
-      }
-    } else if (other is Projectile) {
-      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
-        closeProjectiles.add(other);
+    final otherObject = other is Map ? other['object'] as Object : other;
+    if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
+        (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
+      if (otherObject is Entity) {
+        closeSensorBodies.add(otherObject);
+        onBodySensorContact.forEach((element) {
+          element.call(otherObject, closeSensorBodies);
+        });
+      } else if (otherObject is Projectile) {
+        closeSensorProjectiles.add(otherObject);
+        onProjectileSensorContact.forEach((element) {
+          element.call(otherObject, closeSensorProjectiles);
+        });
+      } else {
+        closeSensorObjects.add(otherObject);
+        onObjectSensorContact.forEach((element) {
+          element.call(otherObject, closeSensorObjects);
+        });
       }
     }
     super.beginContact(other, contact);
@@ -287,9 +316,7 @@ abstract class Entity extends BodyComponent<GameRouter>
       density: .8,
       filter: Filter()
         ..categoryBits = sensorCategory
-        ..maskBits =
-            // enemyCategory + playerCategory +
-            projectileCategory,
+        ..maskBits = 0xFFFF,
     );
 
     final bodyDef = BodyDef(
@@ -308,18 +335,26 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   @override
   void endContact(Object other, Contact contact) {
-    if (other is Entity) {
-      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
-        closeSensorBodies.remove(other);
-      }
-    } else if (other is Projectile) {
-      if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
-          (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
-        closeProjectiles.remove(other);
+    final otherObject = other is Map ? other['object'] as Object : other;
+    if ((contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor ||
+        (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor) {
+      if (otherObject is Entity) {
+        closeSensorBodies.remove(otherObject);
+        onBodySensorEndContact.forEach((element) {
+          element.call(otherObject, closeSensorBodies);
+        });
+      } else if (otherObject is Projectile) {
+        closeSensorProjectiles.remove(otherObject);
+        onProjectileSensorEndContact.forEach((element) {
+          element.call(otherObject, closeSensorProjectiles);
+        });
+      } else {
+        closeSensorObjects.remove(otherObject);
+        onObjectSensorEndContact.forEach((element) {
+          element.call(otherObject, closeSensorObjects);
+        });
       }
     }
-
     super.endContact(other, contact);
   }
 

@@ -46,7 +46,7 @@ mixin ReloadFunctionality on Weapon {
 
   ///How long in seconds to reload
   final DoubleParameterManager reloadTime =
-      DoubleParameterManager(baseParameter: 1, minParameter: 0);
+      DoubleParameterManager(baseParameter: 1);
 
   ///Timer that when completes finishes reload
   TimerComponent? reloadTimer;
@@ -158,6 +158,11 @@ mixin ReloadFunctionality on Weapon {
 
   @override
   Future<void> attackAttempt(AttackConfiguration attackConfiguration) async {
+    if (!attackConfiguration.useAmmo) {
+      super.attackAttempt(attackConfiguration);
+      return;
+    }
+
     //Do not attack if reloading
     if (isReloading) {
       return;
@@ -174,7 +179,6 @@ mixin ReloadFunctionality on Weapon {
 mixin StaminaCostFunctionality on Weapon {
   final DoubleParameterManager weaponStaminaCost = DoubleParameterManager(
     baseParameter: 10,
-    minParameter: 0,
     maxParameter: 200,
   );
 
@@ -238,8 +242,10 @@ class MeleeAttack {
 }
 
 mixin MeleeFunctionality on Weapon {
-  final BoolParameterManager meleeAttacksCollision =
-      BoolParameterManager(baseParameter: false);
+  final BoolParameterManager meleeAttacksCollision = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
   List<MeleeAttackHandler> activeSwings = [];
   int _currentAttackIndex = 0;
@@ -285,13 +291,12 @@ mixin MeleeFunctionality on Weapon {
     final indexUsed = index ?? currentAttackIndex;
 
     final temp =
-        (attackConfiguration.customAttackSpreadPattern ?? attackSplitFunctions)
-            .entries
+        (attackConfiguration.customAttackSpreadPattern ?? attackSpreadPatterns)
             .fold<List<double>>(
       [],
       (previousValue, element) => [
         ...previousValue,
-        ...element.value.call(
+        ...element.call(
           currentSwingAngle,
           getAttackCount(attackConfiguration.holdDurationPercent),
         ),
@@ -299,10 +304,11 @@ mixin MeleeFunctionality on Weapon {
     );
 
     for (final deltaDirection in temp) {
-      final customPosition = generateGlobalPosition(
-        attackConfiguration.customAttackLocation ?? sourceAttackLocation!,
-        melee: true,
-      );
+      final customPosition = attackConfiguration.customAttackPosition ??
+          generateGlobalPosition(
+            attackConfiguration.customAttackLocation ?? sourceAttackLocation!,
+            melee: true,
+          );
 
       returnList.add(
         MeleeAttackHandler(
@@ -437,11 +443,15 @@ mixin SecondaryFunctionality on Weapon {
 }
 
 mixin ProjectileFunctionality on Weapon {
-  final BoolParameterManager increaseCloseDamage =
-      BoolParameterManager(baseParameter: false);
+  final BoolParameterManager increaseCloseDamage = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
-  final BoolParameterManager increaseFarDamage =
-      BoolParameterManager(baseParameter: false);
+  final BoolParameterManager increaseFarDamage = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
   final bool originateFromCenter = false;
   final DoubleParameterManager projectileVelocity =
@@ -480,13 +490,16 @@ mixin ProjectileFunctionality on Weapon {
         (this as SemiAutomatic).increaseSizeWhenCharged) {
       newSize *= 1 + attackConfiguration.holdDurationPercent;
     }
-    newSize *= weaponLength / 3;
+    if (weaponLength != 0 && weaponLength.isFinite) {
+      newSize *= weaponLength / 3;
+    }
     return projectileType!.generateProjectile(
       ProjectileConfiguration(
         delta: delta,
-        originPosition: generateGlobalPosition(
-          attackConfiguration.customAttackLocation ?? sourceAttackLocation!,
-        ),
+        originPosition: attackConfiguration.customAttackPosition ??
+            generateGlobalPosition(
+              attackConfiguration.customAttackLocation ?? sourceAttackLocation!,
+            ),
         weaponAncestor: this,
         size: newSize,
         parentWeaponAttackingStopped: attackConfiguration.isAltAttack
@@ -504,13 +517,12 @@ mixin ProjectileFunctionality on Weapon {
     final returnList = <Projectile>[];
 
     final temp =
-        (attackConfiguration.customAttackSpreadPattern ?? attackSplitFunctions)
-            .entries
+        (attackConfiguration.customAttackSpreadPattern ?? attackSpreadPatterns)
             .fold<List<double>>(
       [],
       (previousValue, element) => [
         ...previousValue,
-        ...element.value.call(
+        ...element.call(
           entityAncestor!.handJoint.angle,
           getAttackCount(attackConfiguration.holdDurationPercent),
         ),
@@ -524,7 +536,6 @@ mixin ProjectileFunctionality on Weapon {
       var converted = newPositionRad(Vector2(0, 0), -radDirection, 1);
       converted =
           randomizeVector2Delta(converted, weaponRandomnessPercent.parameter);
-
       returnList.add(
         buildProjectile(
           converted,
@@ -1316,8 +1327,6 @@ String buildWeaponDescription(
   return returnString;
 }
 
-enum AttackSpreadType { base, regular, cross, back }
-
 // extension AttackSpreadTypeExtension on AttackSpreadType {
 //   List<double> buildAttacks(double angle, int count,
 //       [double spreadDegrees = 60]) {
@@ -1333,13 +1342,14 @@ enum AttackSpreadType { base, regular, cross, back }
 //   }
 // }
 
-List<double> crossAttackSpread(
-  int count,
-) {
+List<double> crossAttackSpread({
+  double? initialAngle,
+  int count = 4,
+}) {
   final returnList = <double>[];
   final angle = pi * 2 / count;
   for (var i = 0; i < count; i++) {
-    returnList.add(angle * i);
+    returnList.add((angle * i) + (initialAngle ?? 0));
   }
   return returnList;
 }

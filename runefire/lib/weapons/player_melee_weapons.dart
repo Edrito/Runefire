@@ -127,7 +127,7 @@ class CrystalSword extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 2 / 3);
+      DoubleParameterManager(baseParameter: 2 / 3);
 
   @override
   WeaponType weaponType = WeaponType.crystalSword;
@@ -280,8 +280,7 @@ class PhaseDagger extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
 
   @override
   WeaponType weaponType = WeaponType.phaseDagger;
@@ -435,7 +434,8 @@ class AethertideSpear extends PlayerWeapon
               weaponSource: true,
               triggerFunctions: false,
             );
-            Future.delayed(dash.dashDuration.parameter.seconds)
+            entityAncestor?.game
+                .gameAwait(dash.dashDuration.parameter)
                 .then((value) => pierce.removeFlatKey(weaponId));
           }
         },
@@ -461,7 +461,7 @@ class AethertideSpear extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
 
   @override
   WeaponType weaponType = WeaponType.aethertideSpear;
@@ -636,7 +636,7 @@ class SanctifiedEdge extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
 
   @override
   WeaponType weaponType = WeaponType.sanctifiedEdge;
@@ -799,7 +799,7 @@ class FlameSword extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
 
   @override
   WeaponType weaponType = WeaponType.fireSword;
@@ -941,8 +941,7 @@ class LargeSword extends PlayerWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
 
   @override
   WeaponType weaponType = WeaponType.largeSword;
@@ -1041,7 +1040,8 @@ class FrostKatana extends PlayerWeapon
           weaponSource: true,
           triggerFunctions: false,
         );
-        Future.delayed(dash.dashDuration.parameter.seconds)
+        entityAncestor?.game
+            .gameAwait(dash.dashDuration.parameter)
             .then((value) => pierce.removeFlatKey(weaponId));
       }
     });
@@ -1091,7 +1091,7 @@ class FrostKatana extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
 
   @override
   WeaponType weaponType = WeaponType.frostKatana;
@@ -1271,7 +1271,7 @@ class SwordOfJustice extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
 
   @override
   WeaponType weaponType = WeaponType.swordOfJustice;
@@ -1440,7 +1440,7 @@ class TuiCamai extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 2 / 3);
+      DoubleParameterManager(baseParameter: 2 / 3);
 
   @override
   WeaponType weaponType = WeaponType.tuiCamai;
@@ -1544,7 +1544,7 @@ class SwordKladenets extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 2 / 3);
+      DoubleParameterManager(baseParameter: 2 / 3);
 
   @override
   WeaponType weaponType = WeaponType.swordKladenets;
@@ -1678,8 +1678,7 @@ class MindStaff extends PlayerWeapon
   ];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
 
   @override
   WeaponType weaponType = WeaponType.mindStaff;

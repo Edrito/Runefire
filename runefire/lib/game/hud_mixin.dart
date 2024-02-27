@@ -232,7 +232,10 @@ mixin BossBar on BaseHud {
     } else {
       bossBarHitPaint.color = ApolloColorPalette.nearlyWhite.color;
     }
-    await Future.delayed(.06.seconds).then((value) => displayBossHit = false);
+
+    await gameEnviroment.game
+        .gameAwait(.06)
+        .then((value) => displayBossHit = false);
   }
 
   void buildBossPaint() {

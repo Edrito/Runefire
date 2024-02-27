@@ -266,7 +266,7 @@ mixin SimpleShoot on AttackFunctionality {
 
 mixin SimpleFollowRangeAI on MovementFunctionality {
   double targetUpdateFrequency = .2;
-  double zoningDistance = 6;
+  double zoningDistance = 10;
 
   void _dumbFollowRangeTargetTick() {
     final newPosition = (gameEnviroment.player!.center - body.position) -

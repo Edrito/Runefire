@@ -22,251 +22,319 @@ import 'package:runefire/resources/enums.dart';
 Attribute? regularAttributeBuilder(
   AttributeType type,
   int level,
-  AttributeFunctionality? victimEntity,
+  AttributeFunctionality? attributeOwnerEntity,
   DamageType? damageType,
 ) {
   switch (type) {
     case AttributeType.explosionOnKill:
       return ExplosionOnKillAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
     case AttributeType.explosiveDash:
       return ExplosiveDashAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
-    case AttributeType.gravityDash:
-      return GravityDashAttribute(
-        level: level,
-        victimEntity: victimEntity,
-        damageType: damageType,
-      );
+
     case AttributeType.groundSlam:
       return GroundSlamAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
-    case AttributeType.psychicReach:
-      return PsychicReachAttribute(
-        level: level,
-        victimEntity: victimEntity,
-        damageType: damageType,
-      );
+
     case AttributeType.periodicPush:
       return PeriodicPushAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
     case AttributeType.periodicMagicPulse:
       return PeriodicMagicPulseAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
     case AttributeType.periodicStun:
       return PeriodicStunAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
 
     case AttributeType.combinePeriodicPulse:
       return CombinePeriodicPulseAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
 
     case AttributeType.increaseXpGrabRadius:
       return IncreaseExperienceGrabAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
 
     case AttributeType.sentryMarkEnemy:
       return MarkSentryAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
     case AttributeType.sentryRangedAttack:
       return RangedAttackSentryAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
     case AttributeType.sentryGrabItems:
       return GrabItemsSentryAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
     case AttributeType.sentryElementalFly:
       return ElementalSentryAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
         damageType: damageType,
       );
 
     case AttributeType.sentryCaptureBullet:
       return CaptureBulletSentryAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
 
     //TODO Sentry Combinations
 
     case AttributeType.mirrorOrb:
-      return MirrorOrbAttribute(level: level, victimEntity: victimEntity);
+      return MirrorOrbAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.shieldSurround:
-      return ShieldSentryAttribute(level: level, victimEntity: victimEntity);
+      return ShieldSentryAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.swordSurround:
-      return SwordSentryAttribute(level: level, victimEntity: victimEntity);
+      return SwordSentryAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.reverseKnockback:
       return ReverseKnockbackAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.projectileSplitExplode:
       return ProjectileSplitExplodeAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.dodgeStandStillIncrease:
       return DodgeIncreaseStandStillAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.damageStandStillIncrease:
       return DamageIncreaseStandStillAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.defenceStandStillIncrease:
       return DefenceIncreaseStandStillAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     //TODO Combination Standstill
 
     // case AttributeType.invincibleDashing:
-    //   return InvincibleDashAttribute(level: level, victimEntity: victimEntity);
+    //   return InvincibleDashAttribute(level: level, attributeOwnerEntity: attributeOwnerEntity);
     case AttributeType.dashSpeedDistance:
       return DashSpeedDistanceAttribute(
         level: level,
-        victimEntity: victimEntity,
-      );
-    case AttributeType.dashAttackEmpower:
-      return DashAttackEmpowerAttribute(
-        level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
 
     case AttributeType.teleportDash:
-      return TeleportDashAttribute(level: level, victimEntity: victimEntity);
-    case AttributeType.weaponMerge:
-      return WeaponMergeAttribute(level: level, victimEntity: victimEntity);
+      return TeleportDashAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
+
     case AttributeType.thorns:
-      return ThornsAttribute(level: level, victimEntity: victimEntity);
+      return ThornsAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.reloadSpray:
-      return ReloadSprayAttribute(level: level, victimEntity: victimEntity);
+      return ReloadSprayAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.reloadInvincibility:
       return ReloadInvincibilityAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.reloadPush:
-      return ReloadPushAttribute(level: level, victimEntity: victimEntity);
+      return ReloadPushAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.focus:
-      return FocusAttribute(level: level, victimEntity: victimEntity);
+      return FocusAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.sonicWave:
-      return SonicWaveAttribute(level: level, victimEntity: victimEntity);
+      return SonicWaveAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.daggerSwing:
-      return DaggerSwingAttribute(level: level, victimEntity: victimEntity);
+      return DaggerSwingAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.chainingAttacks:
-      return ChainingAttacksAttribute(level: level, victimEntity: victimEntity);
+      return ChainingAttacksAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.homingProjectiles:
-      return ChainingAttacksAttribute(level: level, victimEntity: victimEntity);
+      return ChainingAttacksAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     ///DIFFERENT
 
     case AttributeType.battleScars:
-      return BattleScarsAttribute(level: level, victimEntity: victimEntity);
+      return BattleScarsAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.forbiddenMagic:
-      return ForbiddenMagicAttribute(level: level, victimEntity: victimEntity);
+      return ForbiddenMagicAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.glassWand:
-      return GlassWandAttribute(level: level, victimEntity: victimEntity);
+      return GlassWandAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.heavyHitter:
-      return HeavyHitterAttribute(level: level, victimEntity: victimEntity);
+      return HeavyHitterAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.quickShot:
-      return QuickShotAttribute(level: level, victimEntity: victimEntity);
+      return QuickShotAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.rapidFire:
-      return RapidFireAttribute(level: level, victimEntity: victimEntity);
+      return RapidFireAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.bigPockets:
-      return BigPocketsAttribute(level: level, victimEntity: victimEntity);
+      return BigPocketsAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.secondsPlease:
-      return SecondsPleaseAttribute(level: level, victimEntity: victimEntity);
+      return SecondsPleaseAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
     case AttributeType.primalMagic:
-      return PrimalMagicAttribute(level: level, victimEntity: victimEntity);
+      return PrimalMagicAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.appleADay:
-      return AppleADayAttribute(level: level, victimEntity: victimEntity);
+      return AppleADayAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.critChanceDecreaseDamage:
       return CritChanceDecreaseDamageAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.putYourBackIntoIt:
       return PutYourBackIntoItAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.agile:
-      return AgileAttribute(level: level, victimEntity: victimEntity);
+      return AgileAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.areaSizeDecreaseDamage:
       return AreaSizeDecreaseDamageAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
 
     case AttributeType.decreaseMaxAmmoIncreaseReloadSpeed:
       return DecreaseMaxAmmoIncreaseReloadSpeedAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
 
     case AttributeType.potionSeller:
-      return PotionSellerAttribute(level: level, victimEntity: victimEntity);
+      return PotionSellerAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.reduceHealthIncreaseLifeSteal:
       return ReduceHealthIncreaseLifeStealAttribute(
         level: level,
-        victimEntity: victimEntity,
+        attributeOwnerEntity: attributeOwnerEntity,
       );
     case AttributeType.staminaSteal:
-      return StaminaStealAttribute(level: level, victimEntity: victimEntity);
+      return StaminaStealAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.splitDamage:
-      return SplitDamageAttribute(level: level, victimEntity: victimEntity);
+      return SplitDamageAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.rollTheDice:
-      return RollTheDiceAttribute(level: level, victimEntity: victimEntity);
+      return RollTheDiceAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     case AttributeType.slugTrail:
-      return SlugTrailAttribute(level: level, victimEntity: victimEntity);
+      return SlugTrailAttribute(
+        level: level,
+        attributeOwnerEntity: attributeOwnerEntity,
+      );
 
     default:
       return null;
@@ -276,7 +344,7 @@ Attribute? regularAttributeBuilder(
 class ExplosionOnKillAttribute extends Attribute {
   ExplosionOnKillAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -294,18 +362,17 @@ class ExplosionOnKillAttribute extends Attribute {
   late double chance;
 
   Future<void> onKill(DamageInstance damage) async {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
     if (rng.nextDouble() > chance) {
       return;
     }
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
+      sourceEntity: attributeOwnerEntity!,
       position: damage.victim.center,
-      animationRandomlyFlipped: true,
       radius: baseSize + increasePercentOfBase(baseSize),
-      // duration: victimEntity!.durationPercentIncrease.parameter,
+      // duration: attributeOwnerEntity!.durationPercentIncrease.parameter,
       damage: {
         damageType ?? allowedDamageTypes.first: (
           increase(true, 5).toDouble(),
@@ -313,7 +380,7 @@ class ExplosionOnKillAttribute extends Attribute {
         ),
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -328,9 +395,9 @@ class ExplosionOnKillAttribute extends Attribute {
   @override
   void mapUpgrade() {
     chance = increasePercentOfBase(.1, includeBase: true).toDouble();
-    if (victimEntity is AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attributeFunctions =
-          victimEntity! as AttributeCallbackFunctionality;
+          attributeOwnerEntity! as AttributeCallbackFunctionality;
       attributeFunctions.onKillOtherEntity.add(onKill);
     }
   }
@@ -340,9 +407,9 @@ class ExplosionOnKillAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attributeFunctions =
-          victimEntity! as AttributeCallbackFunctionality;
+          attributeOwnerEntity! as AttributeCallbackFunctionality;
       attributeFunctions.onKillOtherEntity.remove(onKill);
     }
   }
@@ -354,7 +421,7 @@ class ExplosionOnKillAttribute extends Attribute {
 class ExplosiveDashAttribute extends Attribute {
   ExplosiveDashAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -370,13 +437,12 @@ class ExplosiveDashAttribute extends Attribute {
   String title = 'Explosive Dash!';
 
   Future<void> onDash() async {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       collisionDelay: .35,
       radius: baseSize + increasePercentOfBase(baseSize),
       duration: 1,
@@ -387,7 +453,7 @@ class ExplosiveDashAttribute extends Attribute {
         ),
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -401,10 +467,10 @@ class ExplosiveDashAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.dashBeginFunctions.add(onDash);
   }
 
@@ -413,79 +479,11 @@ class ExplosiveDashAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.dashBeginFunctions.remove(onDash);
-  }
-
-  @override
-  double get upgradeFactor => .25;
-}
-
-class GravityDashAttribute extends Attribute {
-  GravityDashAttribute({
-    required super.level,
-    required super.victimEntity,
-    super.damageType,
-  });
-
-  double baseSize = 4;
-
-  @override
-  AttributeType attributeType = AttributeType.gravityDash;
-
-  @override
-  bool increaseFromBaseParameter = false;
-
-  @override
-  String title = 'Gravity Dash!';
-
-  Future<void> onDash() async {
-    if (victimEntity == null) {
-      return;
-    }
-    final playerPos = victimEntity!.center.clone();
-    final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
-      radius: baseSize + increasePercentOfBase(baseSize),
-      tickRate: .05,
-      durationType: DurationType.temporary,
-      duration: 2.5,
-      onTick: (entity, areaId) {
-        entity.body.applyForce((playerPos - entity.center).normalized() / 5);
-      },
-    );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
-  }
-
-  @override
-  String description() {
-    return 'Something in those quantum equations...';
-  }
-
-  @override
-  void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
-      return;
-    }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
-    attr.dashBeginFunctions.add(onDash);
-  }
-
-  @override
-  int get maxLevel => 3;
-
-  @override
-  void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
-      return;
-    }
-    final dashFunc = victimEntity! as AttributeCallbackFunctionality;
-    dashFunc.dashBeginFunctions.remove(onDash);
   }
 
   @override
@@ -495,7 +493,7 @@ class GravityDashAttribute extends Attribute {
 class GroundSlamAttribute extends Attribute {
   GroundSlamAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -511,13 +509,12 @@ class GroundSlamAttribute extends Attribute {
   String title = 'Ground Slam!';
 
   Future<void> onJump() async {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       radius: baseSize + increasePercentOfBase(baseSize),
       duration: 1,
       damage: {
@@ -527,7 +524,7 @@ class GroundSlamAttribute extends Attribute {
         ),
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -541,10 +538,10 @@ class GroundSlamAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final dashFunc = victimEntity! as AttributeCallbackFunctionality;
+    final dashFunc = attributeOwnerEntity! as AttributeCallbackFunctionality;
     dashFunc.jumpEndFunctions.add(onJump);
   }
 
@@ -553,81 +550,11 @@ class GroundSlamAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final dashFunc = victimEntity! as AttributeCallbackFunctionality;
+    final dashFunc = attributeOwnerEntity! as AttributeCallbackFunctionality;
     dashFunc.jumpEndFunctions.remove(onJump);
-  }
-
-  @override
-  double get upgradeFactor => .25;
-}
-
-class PsychicReachAttribute extends Attribute {
-  PsychicReachAttribute({
-    required super.level,
-    required super.victimEntity,
-    super.damageType,
-  });
-
-  List<SourceAttackLocation?> previousLocations = [];
-
-  @override
-  AttributeType attributeType = AttributeType.psychicReach;
-
-  @override
-  bool increaseFromBaseParameter = false;
-
-  @override
-  String title = 'Psychic Reach';
-
-  @override
-  Set<DamageType> get allowedDamageTypes => {};
-
-  @override
-  String description() {
-    return 'Use your mind to swing your weapons even further!';
-  }
-
-  @override
-  void mapUpgrade() {
-    if (victimEntity is! AttackFunctionality) {
-      return;
-    }
-    final att = victimEntity! as AttackFunctionality;
-
-    for (final element in att.carriedWeapons.whereType<MeleeFunctionality>()) {
-      final weapon = element;
-      previousLocations.add(weapon.sourceAttackLocation);
-      weapon.sourceAttackLocation = SourceAttackLocation.mouse;
-      if (weapon is StaminaCostFunctionality) {
-        (weapon as StaminaCostFunctionality)
-            .weaponStaminaCost
-            .setParameterPercentValue(attributeId, 1);
-      }
-    }
-  }
-
-  @override
-  int get maxLevel => 1;
-
-  @override
-  void unMapUpgrade() {
-    if (victimEntity is! AttackFunctionality) {
-      return;
-    }
-    final att = victimEntity! as AttackFunctionality;
-    var i = 0;
-    for (final element in att.carriedWeapons.whereType<MeleeFunctionality>()) {
-      final weapon = element;
-      weapon.sourceAttackLocation = previousLocations[i++];
-      if (weapon is StaminaCostFunctionality) {
-        (weapon as StaminaCostFunctionality)
-            .weaponStaminaCost
-            .removeKey(attributeId);
-      }
-    }
   }
 
   @override
@@ -637,7 +564,7 @@ class PsychicReachAttribute extends Attribute {
 class PeriodicPushAttribute extends Attribute {
   PeriodicPushAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -655,15 +582,14 @@ class PeriodicPushAttribute extends Attribute {
 
   @override
   Future<void> action() async {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
     final radius = baseSize + increasePercentOfBase(baseSize);
-    final playerPos = victimEntity!.center.clone();
+    final playerPos = attributeOwnerEntity!.center.clone();
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       radius: radius,
       tickRate: .05,
       duration: 2.5,
@@ -678,7 +604,7 @@ class PeriodicPushAttribute extends Attribute {
         );
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -691,10 +617,10 @@ class PeriodicPushAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.addPulseFunction(action);
   }
 
@@ -703,8 +629,8 @@ class PeriodicPushAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.removePulseFunction(action);
     }
   }
@@ -716,7 +642,7 @@ class PeriodicPushAttribute extends Attribute {
 class PeriodicMagicPulseAttribute extends Attribute {
   PeriodicMagicPulseAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -733,13 +659,12 @@ class PeriodicMagicPulseAttribute extends Attribute {
 
   @override
   Future<void> action() async {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       duration: 2.5,
@@ -750,7 +675,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
         ),
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -763,10 +688,10 @@ class PeriodicMagicPulseAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.addPulseFunction(action);
   }
 
@@ -775,10 +700,10 @@ class PeriodicMagicPulseAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.removePulseFunction(action);
   }
 
@@ -790,7 +715,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
 class PeriodicStunAttribute extends Attribute {
   PeriodicStunAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -807,13 +732,12 @@ class PeriodicStunAttribute extends Attribute {
 
   @override
   Future<void> action() async {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       duration: 2.5,
@@ -822,13 +746,13 @@ class PeriodicStunAttribute extends Attribute {
           entity.addAttribute(
             AttributeType.stun,
             duration: 1,
-            perpetratorEntity: victimEntity,
+            perpetratorEntity: attributeOwnerEntity,
             isTemporary: true,
           );
         }
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -841,10 +765,10 @@ class PeriodicStunAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.addPulseFunction(action);
   }
 
@@ -853,10 +777,10 @@ class PeriodicStunAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.removePulseFunction(action);
   }
 
@@ -868,7 +792,7 @@ class PeriodicStunAttribute extends Attribute {
 class CombinePeriodicPulseAttribute extends Attribute {
   CombinePeriodicPulseAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -886,14 +810,13 @@ class CombinePeriodicPulseAttribute extends Attribute {
 
   @override
   Future<void> action() async {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
-    final playerPos = victimEntity!.center.clone();
+    final playerPos = attributeOwnerEntity!.center.clone();
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       radius: baseSize + increasePercentOfBase(baseSize),
       tickRate: .05,
       duration: 2.5,
@@ -908,7 +831,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
           entity.addAttribute(
             AttributeType.stun,
             duration: 1,
-            perpetratorEntity: victimEntity,
+            perpetratorEntity: attributeOwnerEntity,
             isTemporary: true,
           );
         }
@@ -919,7 +842,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
         );
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -932,15 +855,17 @@ class CombinePeriodicPulseAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
 
     final periodicMagicPulse =
-        victimEntity?.getAttribute(AttributeType.periodicMagicPulse);
-    final periodicPush = victimEntity?.getAttribute(AttributeType.periodicPush);
-    final periodicStun = victimEntity?.getAttribute(AttributeType.periodicStun);
+        attributeOwnerEntity?.getAttribute(AttributeType.periodicMagicPulse);
+    final periodicPush =
+        attributeOwnerEntity?.getAttribute(AttributeType.periodicPush);
+    final periodicStun =
+        attributeOwnerEntity?.getAttribute(AttributeType.periodicStun);
 
     attr.addPulseFunction(action);
 
@@ -956,10 +881,10 @@ class CombinePeriodicPulseAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in pulseAttributes) {
       element.mapUpgrade();
     }
@@ -974,7 +899,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
 class IncreaseExperienceGrabAttribute extends Attribute {
   IncreaseExperienceGrabAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -1003,10 +928,10 @@ class IncreaseExperienceGrabAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! Player) {
+    if (attributeOwnerEntity is! Player) {
       return;
     }
-    final player = victimEntity! as Player;
+    final player = attributeOwnerEntity! as Player;
     player.xpSensorRadius.setParameterFlatValue(attributeId, 5);
     player.xpGrabRadiusFixture.shape.radius = player.xpSensorRadius.parameter;
   }
@@ -1016,10 +941,10 @@ class IncreaseExperienceGrabAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! Player) {
+    if (attributeOwnerEntity is! Player) {
       return;
     }
-    final player = victimEntity! as Player;
+    final player = attributeOwnerEntity! as Player;
     player.xpSensorRadius.removeKey(attributeId);
     player.xpGrabRadiusFixture.shape.radius = player.xpSensorRadius.parameter;
   }
@@ -1031,7 +956,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
 class MarkSentryAttribute extends Attribute {
   MarkSentryAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -1061,10 +986,10 @@ class MarkSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = MarkEnemySentry(
         initialPosition: Vector2.zero(),
@@ -1081,10 +1006,10 @@ class MarkSentryAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeHeadEntity(element.entityId);
     }
@@ -1098,7 +1023,7 @@ class MarkSentryAttribute extends Attribute {
 class RangedAttackSentryAttribute extends Attribute {
   RangedAttackSentryAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -1129,8 +1054,8 @@ class RangedAttackSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       for (var i = 0; i < upgradeLevel; i++) {
         final temp = RangedAttackSentry(
           initialPosition: Vector2.zero(),
@@ -1149,10 +1074,10 @@ class RangedAttackSentryAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeHeadEntity(element.entityId);
     }
@@ -1166,7 +1091,7 @@ class RangedAttackSentryAttribute extends Attribute {
 class GrabItemsSentryAttribute extends Attribute {
   GrabItemsSentryAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -1196,10 +1121,10 @@ class GrabItemsSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = GrabItemsSentry(
         initialPosition: Vector2.zero(),
@@ -1216,10 +1141,10 @@ class GrabItemsSentryAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeHeadEntity(element.entityId);
     }
@@ -1233,7 +1158,7 @@ class GrabItemsSentryAttribute extends Attribute {
 class ElementalSentryAttribute extends Attribute {
   ElementalSentryAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
     super.damageType,
   });
 
@@ -1264,10 +1189,10 @@ class ElementalSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = ElementalAttackSentry(
         initialPosition: Vector2.zero(),
@@ -1285,10 +1210,10 @@ class ElementalSentryAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeHeadEntity(element.entityId);
     }
@@ -1302,7 +1227,7 @@ class ElementalSentryAttribute extends Attribute {
 class CaptureBulletSentryAttribute extends Attribute {
   CaptureBulletSentryAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   double baseSize = 4;
@@ -1328,10 +1253,10 @@ class CaptureBulletSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (var i = 0; i < upgradeLevel; i++) {
       final temp = ElementalCaptureBulletSentry(
         initialPosition: Vector2.zero(),
@@ -1348,10 +1273,10 @@ class CaptureBulletSentryAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeHeadEntity(element.entityId);
     }
@@ -1363,7 +1288,10 @@ class CaptureBulletSentryAttribute extends Attribute {
 }
 
 class MirrorOrbAttribute extends Attribute {
-  MirrorOrbAttribute({required super.level, required super.victimEntity});
+  MirrorOrbAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   double baseSize = 4;
   List<Attribute> pulseAttributes = [];
@@ -1388,10 +1316,10 @@ class MirrorOrbAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.removeAllHeadEntities();
 
     for (var i = 0; i < upgradeLevel; i++) {
@@ -1410,10 +1338,10 @@ class MirrorOrbAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeBodyEntity(element.entityId);
     }
@@ -1425,7 +1353,10 @@ class MirrorOrbAttribute extends Attribute {
 }
 
 class ShieldSentryAttribute extends Attribute {
-  ShieldSentryAttribute({required super.level, required super.victimEntity});
+  ShieldSentryAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   double baseSize = 4;
   List<Attribute> pulseAttributes = [];
@@ -1450,10 +1381,10 @@ class ShieldSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     // attr.removeAllHeadEntities();
 
     for (var i = 0; i < upgradeLevel; i++) {
@@ -1472,10 +1403,10 @@ class ShieldSentryAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeBodyEntity(element.entityId);
     }
@@ -1487,7 +1418,10 @@ class ShieldSentryAttribute extends Attribute {
 }
 
 class SwordSentryAttribute extends Attribute {
-  SwordSentryAttribute({required super.level, required super.victimEntity});
+  SwordSentryAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   double baseSize = 4;
   List<Attribute> pulseAttributes = [];
@@ -1512,10 +1446,10 @@ class SwordSentryAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     // attr.removeAllHeadEntities();
 
     for (var i = 0; i < upgradeLevel; i++) {
@@ -1534,10 +1468,10 @@ class SwordSentryAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     for (final element in sentries) {
       attr.removeBodyEntity(element.entityId);
     }
@@ -1551,7 +1485,7 @@ class SwordSentryAttribute extends Attribute {
 class ReverseKnockbackAttribute extends Attribute {
   ReverseKnockbackAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1573,7 +1507,7 @@ class ReverseKnockbackAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.knockBackIncreaseParameter
+    attributeOwnerEntity?.knockBackIncreaseParameter
         .setParameterPercentValue(attributeId, -2);
   }
 
@@ -1582,7 +1516,7 @@ class ReverseKnockbackAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.knockBackIncreaseParameter.removeKey(attributeId);
+    attributeOwnerEntity?.knockBackIncreaseParameter.removeKey(attributeId);
   }
 
   @override
@@ -1592,7 +1526,7 @@ class ReverseKnockbackAttribute extends Attribute {
 class ProjectileSplitExplodeAttribute extends Attribute {
   ProjectileSplitExplodeAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   double cooldown = 3;
@@ -1617,7 +1551,7 @@ class ProjectileSplitExplodeAttribute extends Attribute {
       period: cooldown,
       removeOnFinish: true,
       onTick: () => cooldownTimer = null,
-    )..addToParent(victimEntity!);
+    )..addToParent(attributeOwnerEntity!);
 
     var position = projectile.center.clone();
     if (projectile.projectileType == ProjectileType.laser) {
@@ -1643,7 +1577,7 @@ class ProjectileSplitExplodeAttribute extends Attribute {
       newProjectile.hitIds.addAll(projectile.hitIds);
       newProjectiles.add(newProjectile);
     }
-    victimEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
   }
 
   @override
@@ -1691,7 +1625,10 @@ class ProjectileSplitExplodeAttribute extends Attribute {
 }
 
 abstract class StandStillAttribute extends Attribute {
-  StandStillAttribute({required super.level, required super.victimEntity});
+  StandStillAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   late TimerComponent checkTimer;
   double checkTimerDuration = .3;
@@ -1725,14 +1662,14 @@ abstract class StandStillAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! MovementFunctionality) {
+    if (attributeOwnerEntity is! MovementFunctionality) {
       return;
     }
     checkTimer = TimerComponent(
       period: checkTimerDuration,
       repeat: true,
       onTick: () {
-        final currentSpeed = (victimEntity! as MovementFunctionality)
+        final currentSpeed = (attributeOwnerEntity! as MovementFunctionality)
             .currentMoveDelta
             .normalize();
         if (!isMapped && currentSpeed < notMovingSpeed && delayTimer == null) {
@@ -1742,15 +1679,15 @@ abstract class StandStillAttribute extends Attribute {
               mapDodgeIncrease(true);
             },
             removeOnFinish: true,
-          )..addToParent(victimEntity!);
+          )..addToParent(attributeOwnerEntity!);
         } else if (isMapped && currentSpeed >= notMovingSpeed) {
           mapDodgeIncrease(false);
         }
       },
-    )..addToParent(victimEntity!);
+    )..addToParent(attributeOwnerEntity!);
 
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.dashBeginFunctions.add(dashFunction);
     }
   }
@@ -1761,8 +1698,8 @@ abstract class StandStillAttribute extends Attribute {
     checkTimer.removeFromParent();
     mapDodgeIncrease(false);
 
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.dashBeginFunctions.remove(dashFunction);
     }
   }
@@ -1771,7 +1708,7 @@ abstract class StandStillAttribute extends Attribute {
 class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
   DodgeIncreaseStandStillAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1786,13 +1723,13 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
   @override
   void applyStandStillEffect(bool apply) {
     if (apply) {
-      if (victimEntity is DodgeFunctionality) {
-        final dodgeFunc = victimEntity! as DodgeFunctionality;
+      if (attributeOwnerEntity is DodgeFunctionality) {
+        final dodgeFunc = attributeOwnerEntity! as DodgeFunctionality;
         dodgeFunc.dodgeChance.setParameterFlatValue(attributeId, .5);
       }
     } else {
-      if (victimEntity is DodgeFunctionality) {
-        final dodgeFunc = victimEntity! as DodgeFunctionality;
+      if (attributeOwnerEntity is DodgeFunctionality) {
+        final dodgeFunc = attributeOwnerEntity! as DodgeFunctionality;
         dodgeFunc.dodgeChance.removeKey(attributeId);
       }
     }
@@ -1813,7 +1750,7 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
 class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
   DefenceIncreaseStandStillAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1835,10 +1772,10 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
       for (final element in DamageType.values) {
         returnMap[element] = -.5;
       }
-      victimEntity?.damageTypeResistance
+      attributeOwnerEntity?.damageTypeResistance
           .setDamagePercentIncrease(attributeId, returnMap);
     } else {
-      victimEntity?.damageTypeResistance.removePercentKey(attributeId);
+      attributeOwnerEntity?.damageTypeResistance.removePercentKey(attributeId);
     }
   }
 
@@ -1857,7 +1794,7 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
 class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   DamageIncreaseStandStillAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1875,10 +1812,10 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   @override
   void applyStandStillEffect(bool apply) {
     if (apply) {
-      victimEntity?.damagePercentIncrease
+      attributeOwnerEntity?.damagePercentIncrease
           .setParameterPercentValue(attributeId, .2);
     } else {
-      victimEntity?.damagePercentIncrease.removeKey(attributeId);
+      attributeOwnerEntity?.damagePercentIncrease.removeKey(attributeId);
     }
   }
 
@@ -1895,7 +1832,7 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
 }
 
 // class InvincibleDashAttribute extends Attribute {
-//   InvincibleDashAttribute({required super.level, required super.victimEntity});
+//   InvincibleDashAttribute({required super.level, required super.attributeOwnerEntity});
 
 //   @override
 //   AttributeType attributeType = AttributeType.invincibleDashing;
@@ -1914,15 +1851,15 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
 
 //   @override
 //   void mapUpgrade() {
-//     if (victimEntity is! DashFunctionality) return;
-//     final dashFunc = victimEntity as DashFunctionality;
+//     if (attributeOwnerEntity is! DashFunctionality) return;
+//     final dashFunc = attributeOwnerEntity as DashFunctionality;
 //     dashFunc.invincibleWhileDashing.setIncrease(attributeId, true);
 //   }
 
 //   @override
 //   void unMapUpgrade() {
-//     if (victimEntity is! DashFunctionality) return;
-//     final dashFunc = victimEntity as DashFunctionality;
+//     if (attributeOwnerEntity is! DashFunctionality) return;
+//     final dashFunc = attributeOwnerEntity as DashFunctionality;
 //     dashFunc.invincibleWhileDashing.removeKey(attributeId);
 //   }
 
@@ -1941,7 +1878,7 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
 class DashSpeedDistanceAttribute extends Attribute {
   DashSpeedDistanceAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -1963,10 +1900,10 @@ class DashSpeedDistanceAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! DashFunctionality) {
+    if (attributeOwnerEntity is! DashFunctionality) {
       return;
     }
-    final dashFunc = victimEntity! as DashFunctionality;
+    final dashFunc = attributeOwnerEntity! as DashFunctionality;
     dashFunc.dashDistance.setParameterPercentValue(attributeId, .5);
     dashFunc.dashDuration.setParameterPercentValue(attributeId, -.5);
   }
@@ -1976,10 +1913,10 @@ class DashSpeedDistanceAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! DashFunctionality) {
+    if (attributeOwnerEntity is! DashFunctionality) {
       return;
     }
-    final dashFunc = victimEntity! as DashFunctionality;
+    final dashFunc = attributeOwnerEntity! as DashFunctionality;
     dashFunc.dashDistance.removeKey(attributeId);
     dashFunc.dashDuration.removeKey(attributeId);
   }
@@ -1991,7 +1928,7 @@ class DashSpeedDistanceAttribute extends Attribute {
 class DashAttackEmpowerAttribute extends Attribute {
   DashAttackEmpowerAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -2005,10 +1942,10 @@ class DashAttackEmpowerAttribute extends Attribute {
 
   @override
   Future<void> action() async {
-    victimEntity?.addAttribute(
+    attributeOwnerEntity?.addAttribute(
       AttributeType.empowered,
       isTemporary: true,
-      perpetratorEntity: victimEntity,
+      perpetratorEntity: attributeOwnerEntity,
     );
   }
 
@@ -2019,10 +1956,10 @@ class DashAttackEmpowerAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.dashEndFunctions.add(action);
   }
 
@@ -2031,10 +1968,10 @@ class DashAttackEmpowerAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.dashEndFunctions.remove(action);
   }
 
@@ -2043,7 +1980,10 @@ class DashAttackEmpowerAttribute extends Attribute {
 }
 
 class TeleportDashAttribute extends Attribute {
-  TeleportDashAttribute({required super.level, required super.victimEntity});
+  TeleportDashAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.teleportDash;
@@ -2061,10 +2001,10 @@ class TeleportDashAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! DashFunctionality) {
+    if (attributeOwnerEntity is! DashFunctionality) {
       return;
     }
-    final dash = victimEntity! as DashFunctionality;
+    final dash = attributeOwnerEntity! as DashFunctionality;
     dash.teleportDash.setIncrease(attributeId, true);
   }
 
@@ -2073,10 +2013,10 @@ class TeleportDashAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! DashFunctionality) {
+    if (attributeOwnerEntity is! DashFunctionality) {
       return;
     }
-    final dash = victimEntity! as DashFunctionality;
+    final dash = attributeOwnerEntity! as DashFunctionality;
     dash.teleportDash.removeKey(attributeId);
   }
 
@@ -2084,87 +2024,16 @@ class TeleportDashAttribute extends Attribute {
   double get upgradeFactor => .25;
 }
 
-class WeaponMergeAttribute extends Attribute {
-  WeaponMergeAttribute({required super.level, required super.victimEntity});
-
-  List<Weapon> movedWeapons = [];
-
-  @override
-  AttributeType attributeType = AttributeType.weaponMerge;
-
-  // @override
-  // double get factor => .25;
-
-  @override
-  bool increaseFromBaseParameter = false;
-
-  @override
-  String title = 'Merge Weapons';
-
-  @override
-  String description() {
-    return 'Merge Weapons';
-  }
-
-  @override
-  void mapUpgrade() {
-    if (victimEntity is! AttackFunctionality) {
-      return;
-    }
-    final attackEntity = victimEntity! as AttackFunctionality;
-    final otherWeapons = victimEntity?.getAllWeaponItems(false, false);
-    final currentWeapon = attackEntity.currentWeapon;
-    if (otherWeapons == null || currentWeapon == null) {
-      return;
-    }
-
-    for (final element in otherWeapons
-        .where((element) => element.weaponId != currentWeapon.weaponId)) {
-      attackEntity.currentWeapon?.addAdditionalWeapon(element);
-      movedWeapons.add(element);
-    }
-
-    attackEntity.carriedWeapons.removeWhere(
-      (value) =>
-          movedWeapons.any((element) => element.weaponId == value.weaponId),
-    );
-
-    attackEntity.swapWeapon(currentWeapon);
-  }
-
-  @override
-  int get maxLevel => 1;
-
-  @override
-  void unMapUpgrade() {
-    if (victimEntity is! AttackFunctionality) {
-      return;
-    }
-    final attack = victimEntity! as AttackFunctionality;
-    final otherWeapons = victimEntity?.getAllWeaponItems(false, false);
-    final currentWeapon = attack.currentWeapon;
-    if (otherWeapons == null || currentWeapon == null) {
-      return;
-    }
-
-    attack.carriedWeapons.addAll([currentWeapon, ...movedWeapons]);
-
-    attack.swapWeapon(attack.currentWeapon);
-
-    currentWeapon.additionalWeapons.removeWhere(
-      (key, value) =>
-          movedWeapons.any((element) => element.weaponId == value.weaponId),
-    );
-  }
-}
-
 class ThornsAttribute extends Attribute {
-  ThornsAttribute({required super.level, required super.victimEntity});
+  ThornsAttribute({required super.level, required super.attributeOwnerEntity});
 
   List<Weapon> movedWeapons = [];
 
   @override
   AttributeType attributeType = AttributeType.thorns;
+
+  @override
+  DamageType? damageType = DamageType.physical;
 
   // @override
   // double get factor => .25;
@@ -2181,7 +2050,7 @@ class ThornsAttribute extends Attribute {
       attr.addAttribute(
         AttributeType.bleed,
         isTemporary: true,
-        perpetratorEntity: victimEntity,
+        perpetratorEntity: attributeOwnerEntity,
       );
     }
   }
@@ -2193,24 +2062,22 @@ class ThornsAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! TouchDamageFunctionality) {
-      return;
-    }
-    final touch = victimEntity! as TouchDamageFunctionality;
+    if (attributeOwnerEntity is TouchDamageFunctionality) {
+      final touch = attributeOwnerEntity! as TouchDamageFunctionality;
 
-    touch.touchDamage.setDamageFlatIncrease(
-      attributeId,
-      DamageType.physical,
-      1.0 * upgradeLevel,
-      5.0 * upgradeLevel,
-    );
-
-    if (upgradeLevel != 2 || victimEntity is! AttributeCallbackFunctionality) {
-      return;
+      touch.touchDamage.setDamageFlatIncrease(
+        attributeId,
+        DamageType.physical,
+        1.0 * upgradeLevel,
+        5.0 * upgradeLevel,
+      );
     }
 
-    final attr = victimEntity! as AttributeCallbackFunctionality;
-    attr.onTouch.add(onTouchBleed);
+    if (upgradeLevel == 2 &&
+        attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
+      attr.onTouch.add(onTouchBleed);
+    }
   }
 
   @override
@@ -2218,23 +2085,23 @@ class ThornsAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! TouchDamageFunctionality) {
-      return;
-    }
-    final touch = victimEntity! as TouchDamageFunctionality;
-
-    touch.touchDamage.removeKey(attributeId);
-    if (victimEntity is! AttributeCallbackFunctionality) {
-      return;
+    if (attributeOwnerEntity is TouchDamageFunctionality) {
+      final touch = attributeOwnerEntity! as TouchDamageFunctionality;
+      touch.touchDamage.removeKey(attributeId);
     }
 
-    final attr = victimEntity! as AttributeCallbackFunctionality;
-    attr.onTouch.remove(onTouchBleed);
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
+      attr.onTouch.remove(onTouchBleed);
+    }
   }
 }
 
 class ReloadSprayAttribute extends Attribute {
-  ReloadSprayAttribute({required super.level, required super.victimEntity});
+  ReloadSprayAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   double cooldown = 3;
   Map<String, int> weaponBulletCount = {};
@@ -2266,7 +2133,7 @@ class ReloadSprayAttribute extends Attribute {
     if (count == 0) {
       return;
     }
-    final position = victimEntity?.center.clone() ?? Vector2.zero();
+    final position = attributeOwnerEntity?.center.clone() ?? Vector2.zero();
     final temp = splitRadInCone(0.0, count, 360 - (360 / count), false);
     var i = 0;
     final newSwings = <MeleeAttackHandler>[];
@@ -2274,7 +2141,7 @@ class ReloadSprayAttribute extends Attribute {
       final newSwing = MeleeAttackHandler(
         initPosition: position,
         initAngle: element,
-        attachmentPoint: victimEntity,
+        attachmentPoint: attributeOwnerEntity,
         currentAttack: weapon.meleeAttacks[i % weapon.getAttackCount(0)],
         weaponAncestor: weapon,
       );
@@ -2283,7 +2150,7 @@ class ReloadSprayAttribute extends Attribute {
       i++;
     }
 
-    victimEntity?.gameEnviroment.addPhysicsComponent(newSwings);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent(newSwings);
   }
 
   void projectileExplode(ProjectileFunctionality weapon) {
@@ -2291,7 +2158,7 @@ class ReloadSprayAttribute extends Attribute {
     if (count == 0) {
       return;
     }
-    final position = victimEntity?.center.clone() ?? Vector2.zero();
+    final position = attributeOwnerEntity?.center.clone() ?? Vector2.zero();
     final temp =
         splitVector2DeltaIntoArea(Vector2.zero(), count, 360 - (360 / count));
     final newProjectiles = <Projectile>[];
@@ -2308,7 +2175,7 @@ class ReloadSprayAttribute extends Attribute {
 
       newProjectiles.add(newProjectile);
     }
-    victimEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent(newProjectiles);
   }
 
   void shootAttacks(Weapon weapon) {
@@ -2326,7 +2193,7 @@ class ReloadSprayAttribute extends Attribute {
       period: cooldown,
       removeOnFinish: true,
       onTick: () => cooldownTimer = null,
-    )..addToParent(victimEntity!);
+    )..addToParent(attributeOwnerEntity!);
   }
 
   @override
@@ -2336,10 +2203,10 @@ class ReloadSprayAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
 
     attr.onAttack.add(incrementCounter);
     attr.onReload.add(shootAttacks);
@@ -2350,10 +2217,10 @@ class ReloadSprayAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
 
     attr.onAttack.remove(incrementCounter);
     attr.onReload.remove(shootAttacks);
@@ -2361,7 +2228,10 @@ class ReloadSprayAttribute extends Attribute {
 }
 
 class ReloadPushAttribute extends Attribute {
-  ReloadPushAttribute({required super.level, required super.victimEntity});
+  ReloadPushAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   double baseOomph = 7;
   double baseSize = 4;
@@ -2379,15 +2249,14 @@ class ReloadPushAttribute extends Attribute {
   String title = 'Keep a watchful eye';
 
   void push(Weapon _) {
-    if (victimEntity == null) {
+    if (attributeOwnerEntity == null) {
       return;
     }
     final radius = baseSize + increasePercentOfBase(baseSize);
-    final playerPos = victimEntity!.center.clone();
+    final playerPos = attributeOwnerEntity!.center.clone();
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       radius: radius,
       tickRate: .05,
       duration: 2.5,
@@ -2402,7 +2271,7 @@ class ReloadPushAttribute extends Attribute {
         );
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -2412,10 +2281,10 @@ class ReloadPushAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.onReload.add(push);
   }
 
@@ -2424,10 +2293,10 @@ class ReloadPushAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.onReload.remove(push);
   }
 }
@@ -2435,7 +2304,7 @@ class ReloadPushAttribute extends Attribute {
 class ReloadInvincibilityAttribute extends Attribute {
   ReloadInvincibilityAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   Map<String, double> weaponBulletSpentPercent = {};
@@ -2463,7 +2332,7 @@ class ReloadInvincibilityAttribute extends Attribute {
   }
 
   void onReload(ReloadFunctionality weapon) {
-    victimEntity?.invincible.setIncrease(attributeId, true);
+    attributeOwnerEntity?.invincible.setIncrease(attributeId, true);
     invincibilityDuration?.timer.stop();
     invincibilityDuration?.removeFromParent();
     invincibilityDuration = TimerComponent(
@@ -2471,9 +2340,9 @@ class ReloadInvincibilityAttribute extends Attribute {
           weaponBulletSpentPercent[weapon.weaponId]!,
       removeOnFinish: true,
       onTick: () {
-        victimEntity?.invincible.removeKey(attributeId);
+        attributeOwnerEntity?.invincible.removeKey(attributeId);
       },
-    )..addToParent(victimEntity!);
+    )..addToParent(attributeOwnerEntity!);
   }
 
   @override
@@ -2483,10 +2352,10 @@ class ReloadInvincibilityAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.onReload.add(onReload);
     attr.onAttack.add(incrementCounter);
   }
@@ -2496,17 +2365,17 @@ class ReloadInvincibilityAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.onReload.remove(onReload);
     attr.onAttack.remove(incrementCounter);
   }
 }
 
 class FocusAttribute extends Attribute {
-  FocusAttribute({required super.level, required super.victimEntity});
+  FocusAttribute({required super.level, required super.attributeOwnerEntity});
 
   Map<String, int> additionalCount = {};
   Map<String, TimerComponent> delayCheckers = {};
@@ -2564,10 +2433,10 @@ class FocusAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.onAttack.add(incrementCount);
   }
 
@@ -2576,16 +2445,19 @@ class FocusAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
     attr.onAttack.remove(incrementCount);
   }
 }
 
 class ChainingAttacksAttribute extends Attribute {
-  ChainingAttacksAttribute({required super.level, required super.victimEntity});
+  ChainingAttacksAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.chainingAttacks;
@@ -2631,7 +2503,10 @@ class ChainingAttacksAttribute extends Attribute {
 }
 
 class SonicWaveAttribute extends Attribute {
-  SonicWaveAttribute({required super.level, required super.victimEntity});
+  SonicWaveAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   List<Weapon> newWeapons = [];
 
@@ -2694,7 +2569,10 @@ class SonicWaveAttribute extends Attribute {
 }
 
 class DaggerSwingAttribute extends Attribute {
-  DaggerSwingAttribute({required super.level, required super.victimEntity});
+  DaggerSwingAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   List<Weapon> newWeapons = [];
 
@@ -2765,7 +2643,7 @@ class DaggerSwingAttribute extends Attribute {
 class HomingProjectileAttribute extends Attribute {
   HomingProjectileAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -2819,7 +2697,10 @@ class HomingProjectileAttribute extends Attribute {
 }
 
 class HeavyHitterAttribute extends Attribute {
-  HeavyHitterAttribute({required super.level, required super.victimEntity});
+  HeavyHitterAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.heavyHitter;
@@ -2840,7 +2721,7 @@ class HeavyHitterAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.damagePercentIncrease
+    attributeOwnerEntity?.damagePercentIncrease
         .setParameterPercentValue(attributeId, .25);
 
     applyActionToWeapons(
@@ -2857,7 +2738,7 @@ class HeavyHitterAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.damagePercentIncrease.removeKey(attributeId);
     applyActionToWeapons(
       (weapon) {
         weapon.attackTickRate.removeKey(attributeId);
@@ -2869,7 +2750,10 @@ class HeavyHitterAttribute extends Attribute {
 }
 
 class QuickShotAttribute extends Attribute {
-  QuickShotAttribute({required super.level, required super.victimEntity});
+  QuickShotAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.quickShot;
@@ -2890,7 +2774,7 @@ class QuickShotAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.damagePercentIncrease
+    attributeOwnerEntity?.damagePercentIncrease
         .setParameterPercentValue(attributeId, -.35);
     applyActionToWeapons(
       (weapon) {
@@ -2906,7 +2790,7 @@ class QuickShotAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.damagePercentIncrease.removeKey(attributeId);
 
     applyActionToWeapons(
       (weapon) {
@@ -2919,7 +2803,10 @@ class QuickShotAttribute extends Attribute {
 }
 
 class RapidFireAttribute extends Attribute {
-  RapidFireAttribute({required super.level, required super.victimEntity});
+  RapidFireAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.rapidFire;
@@ -2940,7 +2827,7 @@ class RapidFireAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.damagePercentIncrease
+    attributeOwnerEntity?.damagePercentIncrease
         .setParameterPercentValue(attributeId, -.15 * upgradeLevel);
 
     applyActionToWeapons(
@@ -2962,7 +2849,7 @@ class RapidFireAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.damagePercentIncrease.removeKey(attributeId);
 
     applyActionToWeapons(
       (weapon) {
@@ -2978,7 +2865,10 @@ class RapidFireAttribute extends Attribute {
 }
 
 class BigPocketsAttribute extends Attribute {
-  BigPocketsAttribute({required super.level, required super.victimEntity});
+  BigPocketsAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.bigPockets;
@@ -2999,10 +2889,10 @@ class BigPocketsAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttackFunctionality) {
+    if (attributeOwnerEntity is! AttackFunctionality) {
       return;
     }
-    final attack = victimEntity! as AttackFunctionality;
+    final attack = attributeOwnerEntity! as AttackFunctionality;
 
     applyActionToWeapons(
       (weapon) {
@@ -3014,10 +2904,10 @@ class BigPocketsAttribute extends Attribute {
       true,
     );
 
-    if (victimEntity is! MovementFunctionality) {
+    if (attributeOwnerEntity is! MovementFunctionality) {
       return;
     }
-    final move = victimEntity! as MovementFunctionality;
+    final move = attributeOwnerEntity! as MovementFunctionality;
     move.speed.setParameterPercentValue(attributeId, -.25);
   }
 
@@ -3026,7 +2916,7 @@ class BigPocketsAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttackFunctionality) {
+    if (attributeOwnerEntity is! AttackFunctionality) {
       return;
     }
 
@@ -3040,16 +2930,19 @@ class BigPocketsAttribute extends Attribute {
       true,
     );
 
-    if (victimEntity is! MovementFunctionality) {
+    if (attributeOwnerEntity is! MovementFunctionality) {
       return;
     }
-    final move = victimEntity! as MovementFunctionality;
+    final move = attributeOwnerEntity! as MovementFunctionality;
     move.speed.removeKey(attributeId);
   }
 }
 
 class SecondsPleaseAttribute extends Attribute {
-  SecondsPleaseAttribute({required super.level, required super.victimEntity});
+  SecondsPleaseAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.secondsPlease;
@@ -3070,18 +2963,18 @@ class SecondsPleaseAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is MovementFunctionality) {
-      final move = victimEntity! as MovementFunctionality;
+    if (attributeOwnerEntity is MovementFunctionality) {
+      final move = attributeOwnerEntity! as MovementFunctionality;
       move.speed.setParameterPercentValue(attributeId, -.2);
     }
 
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity! as HealthFunctionality;
+    if (attributeOwnerEntity is HealthFunctionality) {
+      final health = attributeOwnerEntity! as HealthFunctionality;
       health.maxHealth.setParameterPercentValue(attributeId, .5);
     }
 
-    victimEntity?.height.setParameterFlatValue(attributeId, 1);
-    victimEntity?.applyHeightToSprite();
+    attributeOwnerEntity?.height.setParameterFlatValue(attributeId, 1);
+    attributeOwnerEntity?.applyHeightToSprite();
   }
 
   @override
@@ -3089,24 +2982,27 @@ class SecondsPleaseAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! MovementFunctionality) {
+    if (attributeOwnerEntity is! MovementFunctionality) {
       return;
     }
-    final move = victimEntity! as MovementFunctionality;
+    final move = attributeOwnerEntity! as MovementFunctionality;
     move.speed.removeKey(attributeId);
 
-    if (victimEntity is! HealthFunctionality) {
+    if (attributeOwnerEntity is! HealthFunctionality) {
       return;
     }
-    final health = victimEntity! as HealthFunctionality;
+    final health = attributeOwnerEntity! as HealthFunctionality;
     health.maxHealth.removeKey(attributeId);
-    victimEntity?.height.removeKey(attributeId);
-    victimEntity?.applyHeightToSprite();
+    attributeOwnerEntity?.height.removeKey(attributeId);
+    attributeOwnerEntity?.applyHeightToSprite();
   }
 }
 
 class PrimalMagicAttribute extends Attribute {
-  PrimalMagicAttribute({required super.level, required super.victimEntity});
+  PrimalMagicAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.primalMagic;
@@ -3127,10 +3023,10 @@ class PrimalMagicAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! StaminaFunctionality) {
+    if (attributeOwnerEntity is! StaminaFunctionality) {
       return;
     }
-    final stamina = victimEntity! as StaminaFunctionality;
+    final stamina = attributeOwnerEntity! as StaminaFunctionality;
     stamina.staminaRegen
         .setParameterPercentValue(attributeId, .25 * upgradeLevel);
   }
@@ -3140,16 +3036,19 @@ class PrimalMagicAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! StaminaFunctionality) {
+    if (attributeOwnerEntity is! StaminaFunctionality) {
       return;
     }
-    final stamina = victimEntity! as StaminaFunctionality;
+    final stamina = attributeOwnerEntity! as StaminaFunctionality;
     stamina.staminaRegen.removeKey(attributeId);
   }
 }
 
 class AppleADayAttribute extends Attribute {
-  AppleADayAttribute({required super.level, required super.victimEntity});
+  AppleADayAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.appleADay;
@@ -3170,10 +3069,10 @@ class AppleADayAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! HealthRegenFunctionality) {
+    if (attributeOwnerEntity is! HealthRegenFunctionality) {
       return;
     }
-    final health = victimEntity! as HealthRegenFunctionality;
+    final health = attributeOwnerEntity! as HealthRegenFunctionality;
     health.healthRegen
         .setParameterPercentValue(attributeId, .25 * upgradeLevel);
   }
@@ -3183,10 +3082,10 @@ class AppleADayAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! HealthRegenFunctionality) {
+    if (attributeOwnerEntity is! HealthRegenFunctionality) {
       return;
     }
-    final health = victimEntity! as HealthRegenFunctionality;
+    final health = attributeOwnerEntity! as HealthRegenFunctionality;
     health.healthRegen.removeKey(attributeId);
   }
 }
@@ -3194,7 +3093,7 @@ class AppleADayAttribute extends Attribute {
 class CritChanceDecreaseDamageAttribute extends Attribute {
   CritChanceDecreaseDamageAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -3216,8 +3115,9 @@ class CritChanceDecreaseDamageAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.critChance.setParameterFlatValue(attributeId, .4);
-    victimEntity?.critDamage.setParameterPercentValue(attributeId, -.25);
+    attributeOwnerEntity?.critChance.setParameterFlatValue(attributeId, .4);
+    attributeOwnerEntity?.critDamage
+        .setParameterPercentValue(attributeId, -.25);
   }
 
   @override
@@ -3225,15 +3125,15 @@ class CritChanceDecreaseDamageAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.critChance.removeKey(attributeId);
-    victimEntity?.critDamage.removeKey(attributeId);
+    attributeOwnerEntity?.critChance.removeKey(attributeId);
+    attributeOwnerEntity?.critDamage.removeKey(attributeId);
   }
 }
 
 class PutYourBackIntoItAttribute extends Attribute {
   PutYourBackIntoItAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -3249,7 +3149,7 @@ class PutYourBackIntoItAttribute extends Attribute {
   String title = 'Put your back into it';
 
   bool increaseDamage(DamageInstance instance) {
-    final health = victimEntity! as HealthFunctionality;
+    final health = attributeOwnerEntity! as HealthFunctionality;
     final increase =
         ((health.maxHealth.parameter / 100) / 2).clamp(1.0, double.infinity);
     instance.increaseByPercent(increase);
@@ -3263,12 +3163,12 @@ class PutYourBackIntoItAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality ||
-        victimEntity is! HealthFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality ||
+        attributeOwnerEntity is! HealthFunctionality) {
       return;
     }
 
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
 
     attr.onHitOtherEntity.add(increaseDamage);
   }
@@ -3278,18 +3178,18 @@ class PutYourBackIntoItAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! AttributeCallbackFunctionality) {
+    if (attributeOwnerEntity is! AttributeCallbackFunctionality) {
       return;
     }
 
-    final attr = victimEntity! as AttributeCallbackFunctionality;
+    final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
 
     attr.onHitOtherEntity.remove(increaseDamage);
   }
 }
 
 class AgileAttribute extends Attribute {
-  AgileAttribute({required super.level, required super.victimEntity});
+  AgileAttribute({required super.level, required super.attributeOwnerEntity});
 
   @override
   AttributeType attributeType = AttributeType.agile;
@@ -3310,19 +3210,19 @@ class AgileAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is! HealthFunctionality) {
+    if (attributeOwnerEntity is! HealthFunctionality) {
       return;
     }
 
-    final health = victimEntity! as HealthFunctionality;
+    final health = attributeOwnerEntity! as HealthFunctionality;
 
     health.maxHealth.setParameterPercentValue(attributeId, -.2);
 
-    if (victimEntity is! MovementFunctionality) {
+    if (attributeOwnerEntity is! MovementFunctionality) {
       return;
     }
 
-    final move = victimEntity! as MovementFunctionality;
+    final move = attributeOwnerEntity! as MovementFunctionality;
 
     move.speed.setParameterPercentValue(attributeId, .3);
   }
@@ -3332,19 +3232,19 @@ class AgileAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is! HealthFunctionality) {
+    if (attributeOwnerEntity is! HealthFunctionality) {
       return;
     }
 
-    final health = victimEntity! as HealthFunctionality;
+    final health = attributeOwnerEntity! as HealthFunctionality;
 
     health.maxHealth.removeKey(attributeId);
 
-    if (victimEntity is! MovementFunctionality) {
+    if (attributeOwnerEntity is! MovementFunctionality) {
       return;
     }
 
-    final move = victimEntity! as MovementFunctionality;
+    final move = attributeOwnerEntity! as MovementFunctionality;
 
     move.speed.removeKey(attributeId);
   }
@@ -3353,7 +3253,7 @@ class AgileAttribute extends Attribute {
 class AreaSizeDecreaseDamageAttribute extends Attribute {
   AreaSizeDecreaseDamageAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -3375,9 +3275,9 @@ class AreaSizeDecreaseDamageAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.areaSizePercentIncrease
+    attributeOwnerEntity?.areaSizePercentIncrease
         .setParameterPercentValue(attributeId, .5);
-    victimEntity?.areaDamagePercentIncrease
+    attributeOwnerEntity?.areaDamagePercentIncrease
         .setParameterPercentValue(attributeId, -.25);
   }
 
@@ -3386,15 +3286,15 @@ class AreaSizeDecreaseDamageAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.areaSizePercentIncrease.removeKey(attributeId);
-    victimEntity?.areaDamagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.areaSizePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.areaDamagePercentIncrease.removeKey(attributeId);
   }
 }
 
 class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
   DecreaseMaxAmmoIncreaseReloadSpeedAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -3450,7 +3350,10 @@ class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
 }
 
 class PotionSellerAttribute extends Attribute {
-  PotionSellerAttribute({required super.level, required super.victimEntity});
+  PotionSellerAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.potionSeller;
@@ -3471,12 +3374,13 @@ class PotionSellerAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.damagePercentIncrease
+    attributeOwnerEntity?.damagePercentIncrease
         .setParameterPercentValue(attributeId, -.2);
-    victimEntity?.tickDamageIncrease.setParameterPercentValue(attributeId, .5);
+    attributeOwnerEntity?.tickDamageIncrease
+        .setParameterPercentValue(attributeId, .5);
 
     for (final element in StatusEffects.values) {
-      victimEntity?.statusEffectsPercentIncrease
+      attributeOwnerEntity?.statusEffectsPercentIncrease
           .setDamagePercentIncrease(attributeId, element, .5);
     }
   }
@@ -3486,14 +3390,18 @@ class PotionSellerAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.damagePercentIncrease.removeKey(attributeId);
-    victimEntity?.tickDamageIncrease.removeKey(attributeId);
-    victimEntity?.statusEffectsPercentIncrease.removePercentKey(attributeId);
+    attributeOwnerEntity?.damagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.tickDamageIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.statusEffectsPercentIncrease
+        .removePercentKey(attributeId);
   }
 }
 
 class BattleScarsAttribute extends Attribute {
-  BattleScarsAttribute({required super.level, required super.victimEntity});
+  BattleScarsAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.battleScars;
@@ -3514,12 +3422,12 @@ class BattleScarsAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity! as HealthFunctionality;
+    if (attributeOwnerEntity is HealthFunctionality) {
+      final health = attributeOwnerEntity! as HealthFunctionality;
       health.maxHealth.setParameterPercentValue(attributeId, 1.0);
     }
-    if (victimEntity is DashFunctionality) {
-      final dash = victimEntity! as DashFunctionality;
+    if (attributeOwnerEntity is DashFunctionality) {
+      final dash = attributeOwnerEntity! as DashFunctionality;
       dash.dashDistance.setParameterPercentValue(attributeId, -.5);
       dash.dashCooldown.setParameterPercentValue(attributeId, .5);
     }
@@ -3530,12 +3438,12 @@ class BattleScarsAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity! as HealthFunctionality;
+    if (attributeOwnerEntity is HealthFunctionality) {
+      final health = attributeOwnerEntity! as HealthFunctionality;
       health.maxHealth.removeKey(attributeId);
     }
-    if (victimEntity is DashFunctionality) {
-      final dash = victimEntity! as DashFunctionality;
+    if (attributeOwnerEntity is DashFunctionality) {
+      final dash = attributeOwnerEntity! as DashFunctionality;
       dash.dashDistance.removeKey(attributeId);
       dash.dashCooldown.removeKey(attributeId);
     }
@@ -3543,7 +3451,10 @@ class BattleScarsAttribute extends Attribute {
 }
 
 class ForbiddenMagicAttribute extends Attribute {
-  ForbiddenMagicAttribute({required super.level, required super.victimEntity});
+  ForbiddenMagicAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   bool previousValue = false;
 
@@ -3577,15 +3488,15 @@ class ForbiddenMagicAttribute extends Attribute {
       true,
     );
 
-    if (victimEntity is HealthRegenFunctionality) {
-      final health = victimEntity! as HealthRegenFunctionality;
+    if (attributeOwnerEntity is HealthRegenFunctionality) {
+      final health = attributeOwnerEntity! as HealthRegenFunctionality;
       health.healthRegen.setParameterPercentValue(
         attributeId,
         amountOfStaminaWeapons.clamp(0.5, double.infinity).toDouble(),
       );
     }
-    if (victimEntity is StaminaFunctionality) {
-      final stamina = victimEntity! as StaminaFunctionality;
+    if (attributeOwnerEntity is StaminaFunctionality) {
+      final stamina = attributeOwnerEntity! as StaminaFunctionality;
       stamina.stamina.setParameterPercentValue(attributeId, -1);
       previousValue = stamina.isForbiddenMagic;
       stamina.isForbiddenMagic = true;
@@ -3597,12 +3508,12 @@ class ForbiddenMagicAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is HealthRegenFunctionality) {
-      final health = victimEntity! as HealthRegenFunctionality;
+    if (attributeOwnerEntity is HealthRegenFunctionality) {
+      final health = attributeOwnerEntity! as HealthRegenFunctionality;
       health.healthRegen.removeKey(attributeId);
     }
-    if (victimEntity is StaminaFunctionality) {
-      final stamina = victimEntity! as StaminaFunctionality;
+    if (attributeOwnerEntity is StaminaFunctionality) {
+      final stamina = attributeOwnerEntity! as StaminaFunctionality;
       stamina.stamina.removeKey(attributeId);
       stamina.isForbiddenMagic = previousValue;
     }
@@ -3612,7 +3523,7 @@ class ForbiddenMagicAttribute extends Attribute {
 class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
   ReduceHealthIncreaseLifeStealAttribute({
     required super.level,
-    required super.victimEntity,
+    required super.attributeOwnerEntity,
   });
 
   @override
@@ -3631,13 +3542,13 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity! as HealthFunctionality;
+    if (attributeOwnerEntity is HealthFunctionality) {
+      final health = attributeOwnerEntity! as HealthFunctionality;
       health.maxHealth
           .setParameterPercentValue(attributeId, -.1 * upgradeLevel);
     }
 
-    victimEntity?.essenceSteal
+    attributeOwnerEntity?.essenceSteal
         .setParameterPercentValue(attributeId, increase(false).toDouble());
   }
 
@@ -3646,12 +3557,12 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity! as HealthFunctionality;
+    if (attributeOwnerEntity is HealthFunctionality) {
+      final health = attributeOwnerEntity! as HealthFunctionality;
       health.maxHealth.removeKey(attributeId);
     }
 
-    victimEntity?.essenceSteal.removeKey(attributeId);
+    attributeOwnerEntity?.essenceSteal.removeKey(attributeId);
   }
 
   @override
@@ -3659,7 +3570,10 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
 }
 
 class StaminaStealAttribute extends Attribute {
-  StaminaStealAttribute({required super.level, required super.victimEntity});
+  StaminaStealAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.staminaSteal;
@@ -3677,7 +3591,7 @@ class StaminaStealAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.staminaSteal.setIncrease(attributeId, true);
+    attributeOwnerEntity?.staminaSteal.setIncrease(attributeId, true);
   }
 
   @override
@@ -3685,7 +3599,7 @@ class StaminaStealAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.staminaSteal.removeKey(attributeId);
+    attributeOwnerEntity?.staminaSteal.removeKey(attributeId);
   }
 
   @override
@@ -3693,7 +3607,10 @@ class StaminaStealAttribute extends Attribute {
 }
 
 class SplitDamageAttribute extends Attribute {
-  SplitDamageAttribute({required super.level, required super.victimEntity});
+  SplitDamageAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.splitDamage;
@@ -3731,8 +3648,8 @@ class SplitDamageAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onHitOtherEntity.add(splitDamage);
     }
   }
@@ -3742,8 +3659,8 @@ class SplitDamageAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    if (victimEntity is AttributeCallbackFunctionality) {
-      final attr = victimEntity! as AttributeCallbackFunctionality;
+    if (attributeOwnerEntity is AttributeCallbackFunctionality) {
+      final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onHitOtherEntity.remove(splitDamage);
     }
   }
@@ -3753,7 +3670,10 @@ class SplitDamageAttribute extends Attribute {
 }
 
 class RollTheDiceAttribute extends Attribute {
-  RollTheDiceAttribute({required super.level, required super.victimEntity});
+  RollTheDiceAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.rollTheDice;
@@ -3771,9 +3691,9 @@ class RollTheDiceAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.critChance.setParameterFlatValue(attributeId, .25);
-    victimEntity?.critDamage.setParameterFlatValue(attributeId, .25);
-    victimEntity?.damagePercentIncrease
+    attributeOwnerEntity?.critChance.setParameterFlatValue(attributeId, .25);
+    attributeOwnerEntity?.critDamage.setParameterFlatValue(attributeId, .25);
+    attributeOwnerEntity?.damagePercentIncrease
         .setParameterPercentValue(attributeId, -.5);
   }
 
@@ -3782,9 +3702,9 @@ class RollTheDiceAttribute extends Attribute {
 
   @override
   void unMapUpgrade() {
-    victimEntity?.critChance.removeKey(attributeId);
-    victimEntity?.critDamage.removeKey(attributeId);
-    victimEntity?.damagePercentIncrease.removeKey(attributeId);
+    attributeOwnerEntity?.critChance.removeKey(attributeId);
+    attributeOwnerEntity?.critDamage.removeKey(attributeId);
+    attributeOwnerEntity?.damagePercentIncrease.removeKey(attributeId);
   }
 
   @override
@@ -3792,7 +3712,10 @@ class RollTheDiceAttribute extends Attribute {
 }
 
 class GlassWandAttribute extends Attribute {
-  GlassWandAttribute({required super.level, required super.victimEntity});
+  GlassWandAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   @override
   AttributeType attributeType = AttributeType.glassWand;
@@ -3810,11 +3733,11 @@ class GlassWandAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    victimEntity?.maxLives.setParameterFlatValue(attributeId, 10);
-    victimEntity?.damagePercentIncrease
+    attributeOwnerEntity?.maxLives.setParameterFlatValue(attributeId, 10);
+    attributeOwnerEntity?.damagePercentIncrease
         .setParameterPercentValue(attributeId, 1);
-    if (victimEntity is HealthFunctionality) {
-      final health = victimEntity! as HealthFunctionality;
+    if (attributeOwnerEntity is HealthFunctionality) {
+      final health = attributeOwnerEntity! as HealthFunctionality;
 
       health.maxHealth.setParameterPercentValue(attributeId, -0.9999999);
     }
@@ -3831,7 +3754,10 @@ class GlassWandAttribute extends Attribute {
 }
 
 class SlugTrailAttribute extends Attribute {
-  SlugTrailAttribute({required super.level, required super.victimEntity});
+  SlugTrailAttribute({
+    required super.level,
+    required super.attributeOwnerEntity,
+  });
 
   double baseSize = 2.5;
   double interval = 2.0;
@@ -3851,9 +3777,8 @@ class SlugTrailAttribute extends Attribute {
   @override
   void action() {
     final explosion = AreaEffect(
-      sourceEntity: victimEntity!,
-      position: victimEntity!.center,
-      animationRandomlyFlipped: true,
+      sourceEntity: attributeOwnerEntity!,
+      position: attributeOwnerEntity!.center,
       radius: baseSize + increasePercentOfBase(baseSize),
       durationType: DurationType.temporary,
       duration: 2,
@@ -3866,7 +3791,7 @@ class SlugTrailAttribute extends Attribute {
         ),
       },
     );
-    victimEntity?.gameEnviroment.addPhysicsComponent([explosion]);
+    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
   }
 
   @override
@@ -3880,11 +3805,11 @@ class SlugTrailAttribute extends Attribute {
 
   @override
   void mapUpgrade() {
-    if (victimEntity is MovementFunctionality) {
+    if (attributeOwnerEntity is MovementFunctionality) {
       timer = TimerComponent(
         period: interval,
         onTick: () {
-          final move = victimEntity! as MovementFunctionality;
+          final move = attributeOwnerEntity! as MovementFunctionality;
           final speed = move.currentMoveDelta.clone().normalize();
 
           if (speed >= notMovingSpeed) {
@@ -3893,7 +3818,7 @@ class SlugTrailAttribute extends Attribute {
         },
         repeat: true,
       );
-      victimEntity?.add(timer!);
+      attributeOwnerEntity?.add(timer!);
     }
   }
 

@@ -91,7 +91,7 @@ class CrystalPistol extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .75);
+      DoubleParameterManager(baseParameter: .75);
   @override
   late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
   @override
@@ -136,11 +136,11 @@ class Shotgun extends PlayerWeapon
         increasePercentOfBase(1.5, customUpgradeFactor: .1, includeBase: true)
             .toDouble();
 
-    attackSplitFunctions.clear();
+    attackSpreadPatterns.clear();
 
-    attackSplitFunctions[AttackSpreadType.regular] = (one, two) {
+    attackSpreadPatterns.add((one, two) {
       return regularAttackSpread(one, two, 60, true);
-    };
+    });
 
     closeDamageIncreaseDistanceCutoff =
         increasePercentOfBase(5.5, customUpgradeFactor: .1, includeBase: true)
@@ -148,6 +148,11 @@ class Shotgun extends PlayerWeapon
 
     super.mapUpgrade();
   }
+
+  @override
+  Set<AttackSplitFunction> attackSpreadPatterns = {
+    (double angle, int attackCount) => [angle],
+  };
 
   @override
   WeaponType weaponType = WeaponType.scatterBlast;
@@ -181,8 +186,7 @@ class Shotgun extends PlayerWeapon
   ];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
@@ -256,8 +260,7 @@ class Scryshot extends PlayerWeapon
     WeaponSpritePosition.hand,
   ];
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
@@ -347,7 +350,7 @@ class ArcaneBlaster extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
   @override
@@ -436,8 +439,7 @@ class PrismaticBeam extends PlayerWeapon
     WeaponSpritePosition.hand,
   ];
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.prismaticBeam.size.asVector2;
 
@@ -541,8 +543,7 @@ class EldritchRunner extends PlayerWeapon
   ];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.eldritchRunner.size.asVector2;
 
@@ -624,8 +625,7 @@ class Railspire extends PlayerWeapon
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.railspire.size.asVector2;
 }
@@ -701,7 +701,7 @@ class ShimmerRifle extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
   @override
@@ -795,7 +795,7 @@ class EmberBow extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: .5);
+      DoubleParameterManager(baseParameter: .5);
   @override
   late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
   @override

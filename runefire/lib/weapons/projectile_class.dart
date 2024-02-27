@@ -7,6 +7,7 @@ import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/weapons/projectile_mixin.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:uuid/uuid.dart';
@@ -41,7 +42,7 @@ abstract class FadeOutBullet extends Projectile {
 }
 
 abstract class Projectile extends BodyComponent<GameRouter>
-    with ContactCallbacks {
+    with ContactCallbacks, UpdateFunctionsThenRemove {
   Projectile(this.projectileConfiguration) {
     projectileId = const Uuid().v4();
   }
@@ -79,7 +80,9 @@ abstract class Projectile extends BodyComponent<GameRouter>
   bool enableHoming = false;
   List<String> hitIds = [];
   int homedTargets = 0;
-  bool isPlayer = false;
+  bool get isPlayer => weaponAncestor.entityAncestor?.isPlayer ?? false;
+
+  bool canAffectOwner = false;
 
   Vector2 previousDelta = Vector2.zero();
   bool projectileHasExpired = false;
@@ -93,7 +96,13 @@ abstract class Projectile extends BodyComponent<GameRouter>
   //Structure
 
   // TimerComponent? projectileDeathTimer;
-  FixtureDef? sensorDef;
+
+  //Type declared is the target, such as Enemy, Player, or other.
+  void setTargetFixture(
+    Body body,
+    EntityType type, {
+    bool runFunction = false,
+  }) {}
 
   bool get chainingComplete => chainedTargets > targetsToChain;
   bool get homingComplete => homedTargets > targetsToHome;
@@ -153,12 +162,13 @@ abstract class Projectile extends BodyComponent<GameRouter>
       return super.beginContact(other, contact);
     }
 
-    if (isPlayer && other is Player) {
+    if (isPlayer && other is Player && !canAffectOwner) {
       return super.beginContact(other, contact);
     }
     if (!isPlayer &&
         other is Enemy &&
-        !weaponAncestor.entityAncestor!.affectsAllEntities) {
+        (!weaponAncestor.entityAncestor!.affectsAllEntities.parameter &&
+            !canAffectOwner)) {
       return super.beginContact(other, contact);
     }
 
@@ -204,7 +214,6 @@ abstract class Projectile extends BodyComponent<GameRouter>
   @override
   Future<void> onLoad() async {
     parentProjectileFunctionality?.activeProjectiles.add(this);
-    isPlayer = weaponAncestor.entityAncestor?.isPlayer ?? false;
     callOnProjectileAttackFunctions();
     final future = projectileConfiguration.parentWeaponAttackingStopped?.future;
 
@@ -241,14 +250,17 @@ abstract class Projectile extends BodyComponent<GameRouter>
   }
 }
 
+@immutable
 class ProjectileConfiguration {
-  Vector2 delta;
-  Vector2 originPosition;
-  Weapon weaponAncestor;
-  double size;
-  DamageType? primaryDamageType;
-  double power;
-  ProjectileConfiguration({
+  final Vector2 delta;
+  final Vector2 originPosition;
+  final Weapon weaponAncestor;
+  final double size;
+  final DamageType? primaryDamageType;
+  final double power;
+  final Completer<bool>? parentWeaponAttackingStopped;
+
+  const ProjectileConfiguration({
     required this.delta,
     required this.originPosition,
     required this.weaponAncestor,
@@ -257,5 +269,25 @@ class ProjectileConfiguration {
     this.parentWeaponAttackingStopped,
     this.power = 1,
   });
-  Completer<bool>? parentWeaponAttackingStopped;
+
+  ProjectileConfiguration copyWith({
+    Vector2? delta,
+    Vector2? originPosition,
+    Weapon? weaponAncestor,
+    double? size,
+    DamageType? primaryDamageType,
+    double? power,
+    Completer<bool>? parentWeaponAttackingStopped,
+  }) {
+    return ProjectileConfiguration(
+      delta: delta ?? this.delta,
+      originPosition: originPosition ?? this.originPosition,
+      weaponAncestor: weaponAncestor ?? this.weaponAncestor,
+      size: size ?? this.size,
+      primaryDamageType: primaryDamageType ?? this.primaryDamageType,
+      power: power ?? this.power,
+      parentWeaponAttackingStopped:
+          parentWeaponAttackingStopped ?? this.parentWeaponAttackingStopped,
+    );
+  }
 }

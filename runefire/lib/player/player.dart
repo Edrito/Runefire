@@ -135,8 +135,10 @@ class Player extends Entity
     return super.die(damage, endGameState);
   }
 
-  BoolParameterManager disableInput =
-      BoolParameterManager(baseParameter: false);
+  BoolParameterManager disableInput = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
   final ListQueue<InteractableComponent> _interactableComponents = ListQueue();
 
@@ -347,10 +349,8 @@ class Player extends Entity
         ..categoryBits = playerCategory
         ..maskBits = proximityCategory,
     );
-
-    return super.createBody()..createFixture(xpGrabRadiusFixture)
-        // ..setBullet(true)
-        ;
+    final returnBody = super.createBody()..createFixture(xpGrabRadiusFixture);
+    return returnBody;
   }
 
   // void onKeyEvent(KeyEvent event) {
@@ -695,20 +695,20 @@ class Player extends Entity
         onUpdate.remove(followPortal);
         addMoveVelocity(Vector2.zero(), absoluteOverrideInputPriority);
 
-        await Future.delayed(.5.seconds);
+        await game.gameAwait(.5);
 
         jump(true);
 
         collision.baseParameter = false;
+        await game.gameAwait(jumpDuration.parameter / 2);
 
-        await Future.delayed((jumpDuration.parameter / 2).seconds);
         final ctr = EffectController(
           duration: jumpDuration.parameter / 2,
           curve: Curves.easeIn,
         );
         entityAnimationsGroup.add(OpacityEffect.fadeOut(ctr));
         entityAnimationsGroup.add(ScaleEffect.to(Vector2.all(0.2), ctr));
-        await Future.delayed(2.seconds);
+        await game.gameAwait(2);
 
         GameState().pauseGame(
           gameWinDisplay.key,

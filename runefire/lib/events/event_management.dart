@@ -55,6 +55,12 @@ abstract class EventManagement extends Component {
 
   TimerComponent? _eventTimer;
 
+  @override
+  void update(double dt) {
+    // print('activeAiTimers: ${currentTimers.length}');
+    super.update(dt);
+  }
+
   ///Total functions to call
   // final Map<double, Set<Function()>> _activeAiFunctions = {};
 
@@ -233,12 +239,18 @@ abstract class EventManagement extends Component {
   }
 
   Future<void> removeAiTimer({AiTimerClass? config, String? id}) async {
-    late final AiTimerClass currentConfig;
+    AiTimerClass? currentConfig;
     if (id != null) {
-      currentConfig = currentTimers.firstWhere((element) => element.id == id);
+      currentConfig =
+          currentTimers.where((element) => element.id == id).firstOrNull;
     } else if (config != null) {
-      currentConfig = currentTimers.firstWhere((element) => element == config);
+      currentConfig =
+          currentTimers.where((element) => element == config).firstOrNull;
     } else {
+      return;
+    }
+
+    if (currentConfig == null) {
       return;
     }
 

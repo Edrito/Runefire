@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/menus/achievements_menu.dart';
+import 'package:runefire/menus/demo_screen.dart';
 import 'package:runefire/menus/start_menu.dart';
 import 'package:runefire/menus/weapon_select_menu.dart';
 
@@ -12,6 +13,7 @@ enum MenuPageType {
   startMenuPage,
   options,
   weaponMenu,
+  demoScreen,
   achievementsMenu,
   levelMenu
 }
@@ -31,6 +33,8 @@ extension MainMenuPagesExtension on MenuPageType {
           // key: Key(rng.nextDouble().toString()),
           gameRef: gameRef,
         );
+      case MenuPageType.demoScreen:
+        return DemoScreen(gameRef: gameRef);
       case MenuPageType.achievementsMenu:
         return AchievementsMenu(
           // key: Key(rng.nextDouble().toString()),

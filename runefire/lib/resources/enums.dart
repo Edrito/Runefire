@@ -209,7 +209,7 @@ enum JoystickDirection {
 
 ///All have a mage theme
 enum CharacterType {
-  regular,
+  runeKnight,
   //  sorcerer,
   //  warlock, wizard, witch, unknown
 }
@@ -233,9 +233,19 @@ extension CharacterTypeUnlockCost on CharacterType {
   //       return 20000;
   //   }
   // }
+
+  FileDataClass get assetObject {
+    switch (this) {
+      case CharacterType.runeKnight:
+        return ImagesAssetsRuneknight.runeknightIcon1;
+      default:
+        return ImagesAssetsRuneknight.runeknightIcon1;
+    }
+  }
+
   String get characterCharacteristics {
     switch (this) {
-      case CharacterType.regular:
+      case CharacterType.runeKnight:
         return 'No notable features, just a regular mage.';
       default:
         return 'misc';
@@ -244,7 +254,7 @@ extension CharacterTypeUnlockCost on CharacterType {
 
   String get howToUnlock {
     switch (this) {
-      case CharacterType.regular:
+      case CharacterType.runeKnight:
         return '...';
       default:
         return '...';
@@ -317,7 +327,7 @@ extension GameDifficultyExtension on GameDifficulty {
 extension CharacterTypeExtension on CharacterType {
   void applyBaseCharacterStats(Player player) {
     switch (this) {
-      case CharacterType.regular:
+      case CharacterType.runeKnight:
         player.dashCooldown.baseParameter =
             player_constants.regularDashCooldown;
         player.dashDistance.baseParameter =

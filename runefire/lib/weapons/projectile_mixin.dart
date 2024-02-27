@@ -51,7 +51,7 @@ mixin PaintProjectile on StandardProjectile {
     //   .1,
     //   1
     // ]);
-    // print(opacity);
+    // opacity);
     canvas.drawRect(
       Rect.fromCircle(center: Offset.zero, radius: size * opacity),
       glowPaint,
@@ -270,35 +270,62 @@ mixin StandardProjectile on Projectile {
     chain(other);
   }
 
+  bool targetFixtureChangeQueued = false;
+
   @override
-  Body createBody() {
-    createBodyShape();
-
-    renderBody = false;
-
-    final bulletFilter = Filter();
-    if (!isPlayer) {
-      bulletFilter
-        ..maskBits = playerCategory
-        ..categoryBits = projectileCategory;
-
-      if (weaponAncestor.entityAncestor!.affectsAllEntities) {
-        bulletFilter.maskBits = 0xFFFF;
+  void setTargetFixture(
+    Body body,
+    EntityType type, {
+    bool runFunction = false,
+  }) {
+    if (!runFunction) {
+      if (!targetFixtureChangeQueued) {
+        targetFixtureChangeQueued = true;
+        addTemporaryUpdateFunction((dt) {
+          setTargetFixture(body, type, runFunction: true);
+          targetFixtureChangeQueued = false;
+        });
+        return;
       }
-    } else {
-      bulletFilter
-        ..maskBits = enemyCategory
-        ..categoryBits = projectileCategory;
+
+      return;
     }
 
-    bulletFilter.maskBits += sensorCategory;
+    final bulletFilter = Filter();
 
+    [...body.fixtures].forEach((element) {
+      body.destroyFixture(element);
+    });
+
+    switch (type) {
+      case EntityType.player:
+        bulletFilter
+          ..maskBits = playerCategory + sensorCategory
+          ..categoryBits = projectileCategory;
+        if (weaponAncestor.entityAncestor!.affectsAllEntities.parameter) {
+          bulletFilter.maskBits = 0xFFFF;
+        }
+        break;
+      default:
+        bulletFilter
+          ..maskBits = enemyCategory + sensorCategory
+          ..categoryBits = projectileCategory;
+    }
     final fixtureDef = FixtureDef(
       shape,
       userData: {'type': FixtureType.body, 'object': this},
       isSensor: true,
       filter: bulletFilter,
     );
+
+    body.createFixture(fixtureDef);
+  }
+
+  @override
+  Body createBody() {
+    createBodyShape();
+
+    renderBody = false;
 
     final bodyDef = BodyDef(
       userData: this,
@@ -312,7 +339,12 @@ mixin StandardProjectile on Projectile {
     );
     Body returnBody;
 
-    returnBody = world.createBody(bodyDef)..createFixture(fixtureDef);
+    returnBody = world.createBody(bodyDef);
+    if (isPlayer) {
+      setTargetFixture(returnBody, EntityType.enemy, runFunction: true);
+    } else {
+      setTargetFixture(returnBody, EntityType.player, runFunction: true);
+    }
 
     return returnBody;
   }
@@ -329,9 +361,8 @@ mixin StandardProjectile on Projectile {
             .animationComponent
             ?.triggerEnding();
       } else if (this is FadeOutBullet) {
-        await Future.delayed(
-          (this as FadeOutBullet).fadeOutDuration.seconds,
-        );
+        await weaponAncestor.entityAncestor?.game
+            .gameAwait((this as FadeOutBullet).fadeOutDuration);
       }
 
       removeFromParent();
@@ -346,12 +377,9 @@ mixin StandardProjectile on Projectile {
     isReverseHoming = weaponAncestor.reverseHoming.parameter;
     enableHoming = weaponAncestor.weaponCanHome || isReverseHoming;
     enableChaining = weaponAncestor.weaponCanChain;
-
-    if (enableHoming || enableChaining) {
-      beginHoming =
-          Future.delayed(.1.seconds).then((value) => futureComplete = true);
-    }
-
+    beginHoming = weaponAncestor.entityAncestor!.game
+        .gameAwait(.1)
+        .then((value) => futureComplete = true);
     return super.onLoad();
   }
 
@@ -520,7 +548,6 @@ mixin LaserProjectile on FadeOutBullet {
 
     var previousStep = Vector2.zero();
     var tempStep = Vector2.zero();
-    // print(laserSteps);
 
     final bodies = <Entity>[
       ...world.physicsWorld.bodies
@@ -584,7 +611,6 @@ mixin LaserProjectile on FadeOutBullet {
       previousStep = newPointPosition.clone();
       lineThroughEnemies.add(newPointPosition);
     }
-    // print(lineThroughEnemies);
   }
 
   bool infrontWeaponCheck(Body element) {
