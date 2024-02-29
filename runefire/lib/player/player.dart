@@ -325,7 +325,7 @@ class Player extends Entity
 
     initialWeapons.addAll(playerData.selectedWeapons.values);
 
-    priority = playerPriority;
+    priority = entityPriority;
 
     await loadAnimationSprites();
 

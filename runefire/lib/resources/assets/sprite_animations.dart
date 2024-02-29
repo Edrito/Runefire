@@ -112,19 +112,32 @@ class SpriteAnimations {
 //Mushroom Boomer
 
   late Future<SpriteAnimation> mushroomBoomerIdle1 = loadSpriteAnimation(
-    10,
+    2,
     'enemy_sprites/mushroomBoomer/idle.png',
+    .15,
+    true,
+  );
+  late Future<SpriteAnimation> mushroomBoomerRun1 =
+      loadSpriteAnimation(4, 'enemy_sprites/mushroomBoomer/run.png', .1, true);
+  late Future<SpriteAnimation> mushroomBoomerDead1 = loadSpriteAnimation(
+    7,
+    'enemy_sprites/mushroomBoomer/death.png',
+    .15,
+    false,
+  );
+
+  late Future<SpriteAnimation> mushroomBoomerIdle2 = loadSpriteAnimation(
+    2,
+    'enemy_sprites/mushroomBoomer/idle2.png',
     .1,
     true,
   );
-  late Future<SpriteAnimation> mushroomBoomerWalk1 =
-      loadSpriteAnimation(8, 'enemy_sprites/mushroomBoomer/walk.png', .1, true);
-  late Future<SpriteAnimation> mushroomBoomerRun1 =
-      loadSpriteAnimation(8, 'enemy_sprites/mushroomBoomer/run.png', .1, true);
-  late Future<SpriteAnimation> mushroomBoomerDead1 = loadSpriteAnimation(
-    10,
-    'enemy_sprites/mushroomBoomer/death.png',
-    .1,
+  late Future<SpriteAnimation> mushroomBoomerRun2 =
+      loadSpriteAnimation(4, 'enemy_sprites/mushroomBoomer/run2.png', .1, true);
+  late Future<SpriteAnimation> mushroomBoomerDead2 = loadSpriteAnimation(
+    7,
+    'enemy_sprites/mushroomBoomer/death2.png',
+    .15,
     false,
   );
 
@@ -156,7 +169,7 @@ class SpriteAnimations {
   late Future<SpriteAnimation> mushroomSpinnerIdle1 = loadSpriteAnimation(
     2,
     'enemy_sprites/mushroomSpinner/idle.png',
-    .4,
+    .15,
     true,
   );
   late Future<SpriteAnimation> mushroomSpinnerSpinStart1 = loadSpriteAnimation(
@@ -191,9 +204,9 @@ class SpriteAnimations {
   );
 
   late Future<SpriteAnimation> mushroomBurrowerIdle1 = loadSpriteAnimation(
-    10,
+    2,
     'enemy_sprites/mushroomSpinner/idle.png',
-    .1,
+    .25,
     true,
   );
   late Future<SpriteAnimation> mushroomBurrowerDead1 = loadSpriteAnimation(

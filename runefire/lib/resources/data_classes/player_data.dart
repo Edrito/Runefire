@@ -36,7 +36,7 @@ class PlayerData extends DataClass with PlayerStatistics {
   }
 
   Map<int, SecondaryType> selectedSecondaries = {
-    0: SecondaryType.reloadAndRapidFire,
+    0: SecondaryType.rapidFire,
     1: SecondaryType.elementalBlast,
   };
 
@@ -61,7 +61,7 @@ class PlayerData extends DataClass with PlayerStatistics {
   Map<AttributeType, int> unlockedPermanentAttributes = {};
   Map<SecondaryType, int> unlockedSecondarys = {
     SecondaryType.pistolAttachment: 0,
-    SecondaryType.reloadAndRapidFire: 0,
+    SecondaryType.rapidFire: 0,
     SecondaryType.essentialFocus: 0,
   };
 

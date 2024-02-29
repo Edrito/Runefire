@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 
 mixin UpdateFunctionsThenRemove on Component {
   final List<void Function(double dt)> _updateFunctions = [];
@@ -14,5 +15,11 @@ mixin UpdateFunctionsThenRemove on Component {
     }
     _updateFunctions.clear();
     super.update(dt);
+  }
+}
+
+extension MapExpanded on List<Widget> {
+  List<Expanded> mapExpanded() {
+    return map((e) => Expanded(child: e)).toList();
   }
 }

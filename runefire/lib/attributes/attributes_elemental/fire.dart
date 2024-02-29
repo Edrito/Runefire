@@ -218,7 +218,7 @@ class ChanceToReviveAttribute extends Attribute {
   void mapUpgrade() {
     if (attributeOwnerEntity is HealthFunctionality) {
       final health = attributeOwnerEntity! as HealthFunctionality;
-      health.onDeath.add(determineIfShouldDie);
+      health.onPreDeath.add(determineIfShouldDie);
     }
     super.mapUpgrade();
   }

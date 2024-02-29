@@ -64,6 +64,21 @@ class SpriteShadows extends Component {
   late final Paint shadowPaint = colorPalette
       .buildPaint(ApolloColorPalette.darkestGray.color.withOpacity(.25));
 
+  @override
+  void update(double dt) {
+    env.activeEntites.forEach((element) {
+      switch (element.entityType) {
+        case EntityType.enemy:
+          element.priority = entityPriority + (element.position.y * 10).toInt();
+
+          break;
+        default:
+      }
+    });
+
+    super.update(dt);
+  }
+
   Enviroment env;
   @override
   void render(Canvas canvas) {

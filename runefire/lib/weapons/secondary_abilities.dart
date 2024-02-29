@@ -269,7 +269,7 @@ class RapidFire extends SecondaryWeaponAbility {
   int completedLoops = 0;
 
   @override
-  SecondaryType secondaryType = SecondaryType.reloadAndRapidFire;
+  SecondaryType secondaryType = SecondaryType.rapidFire;
 
   @override
   String get abilityDescription =>

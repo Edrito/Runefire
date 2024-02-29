@@ -57,10 +57,7 @@ enum BarType {
   staminaBar,
 }
 
-class GameHud extends BaseHud
-    with
-//  BossBar,
-        ExperienceBar {
+class GameHud extends BaseHud with BossBar, ExperienceBar {
   GameHud(super.gameEnviroment);
 }
 
@@ -146,14 +143,12 @@ abstract class BaseHud extends PositionComponent {
         healthBarEnd.add(
           ColorEffect(
             ApolloColorPalette.lightRed.color,
-            const Offset(0, 1),
             controller,
           ),
         );
         healthBarMid.add(
           ColorEffect(
             ApolloColorPalette.lightRed.color,
-            const Offset(0, 1),
             controller,
           ),
         );
@@ -164,8 +159,18 @@ abstract class BaseHud extends PositionComponent {
         final color = isMagic
             ? ApolloColorPalette.lightCyan.color
             : ApolloColorPalette.lightYellowGreen.color;
-        staminaBarEnd.add(ColorEffect(color, const Offset(0, 1), controller));
-        staminaBarMid.add(ColorEffect(color, const Offset(0, 1), controller));
+        staminaBarEnd.add(
+          ColorEffect(
+            color,
+            controller,
+          ),
+        );
+        staminaBarMid.add(
+          ColorEffect(
+            color,
+            controller,
+          ),
+        );
         break;
       default:
     }

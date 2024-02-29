@@ -57,7 +57,7 @@ void main() async {
 
   //load goodies from HIVE
 
-  Hive.registerAdapter(SystemDataAdapter());
+  // Hive.registerAdapter(SystemDataAdapter());
 
   final playerData = PlayerData();
   late final SystemData systemData;
@@ -66,7 +66,7 @@ void main() async {
   systemData = SystemData();
   // box.put(0, systemData);
   // } else {
-  //   systemData = box.get(0)!;
+  // systemData = box.get(0)!;
   // }
 
   final toLoad = <String>[

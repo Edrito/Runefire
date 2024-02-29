@@ -714,8 +714,6 @@ class FrozenAttribute extends StatusEffectAttribute {
   void mapUpgrade() {
     attributeOwnerEntity?.movementEnabled.setIncrease(attributeId, false);
     attributeOwnerEntity?.isStunned.setIncrease(attributeId, true);
-    print(attributeOwnerEntity?.movementEnabled.parameter);
-    print(attributeOwnerEntity?.isStunned.parameter);
     super.mapUpgrade();
   }
 

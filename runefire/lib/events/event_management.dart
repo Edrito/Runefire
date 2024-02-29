@@ -267,7 +267,6 @@ abstract class EventManagement extends Component {
 
   @override
   FutureOr<void> onLoad() {
-    priority = enemyPriority;
     if (eventsToDo.isNotEmpty) {
       _initEventTimes();
       _conductEvents();

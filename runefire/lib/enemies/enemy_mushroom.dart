@@ -196,35 +196,45 @@ class MushroomBoomer extends Enemy
     maxHealth.baseParameter = mushroomBoomerBaseMaxHealth;
     speed.baseParameter = mushroomBoomerBaseSpeed;
 
-    onDeath.add((instance) {
-      if (instance.damageMap.keys.contains(DamageType.fire)) {
-        entityAnimationsGroup.animationTickers?[EntityStatus.dead]?.completed;
-        final temp = AreaEffect(
-          position: body.worldCenter,
-          sourceEntity: this,
-          radius: 4 * ((upgradeLevel / 2)) + 2,
-          damage: {DamageType.fire: (2, 15)},
-        );
-        gameEnviroment.addPhysicsComponent([temp]);
+    onPermanentDeath.add((instance) {
+      if (instance.damageMap.keys.contains(
+            DamageType.fire,
+          ) ||
+          (upgradeLevel > 1 &&
+              instance.damageMap.keys.contains(
+                DamageType.psychic,
+              ))) {
+        bomb();
       } else {
-        entityAnimationsGroup.animationTickers?[EntityStatus.dead]?.completed
-            .then((_) {
-          final temp = AreaEffect(
-            position: body.worldCenter,
-            sourceEntity: this,
-            radius: 4 * ((upgradeLevel / 2)) + 2,
-            damage: {DamageType.fire: (2, 15)},
-          );
-          gameEnviroment.addPhysicsComponent([temp]);
+        entityAnimationsGroup.animationTicker?.completed.then((_) {
+          bomb();
         });
       }
       return null;
     });
   }
 
+  void bomb() {
+    final temp = AreaEffect(
+      position: body.worldCenter,
+      sourceEntity: this,
+      damage: {
+        if (upgradeLevel > 1)
+          DamageType.psychic: (4, 25)
+        else
+          DamageType.fire: (2, 15),
+      },
+    );
+    game.gameAwait(.1).then((value) => removeFromParent());
+
+    gameEnviroment.addPhysicsComponent([temp]);
+  }
+
   @override
   BoolParameterManager affectsAllEntities = BoolParameterManager(
-      baseParameter: true, frequencyDeterminesTruth: false);
+    baseParameter: true,
+    frequencyDeterminesTruth: false,
+  );
 
   @override
   void update(double dt) {
@@ -247,17 +257,25 @@ class MushroomBoomer extends Enemy
 
   @override
   Future<void> loadAnimationSprites() async {
-    entityAnimations[EntityStatus.idle] =
-        await spriteAnimations.mushroomBoomerIdle1;
+    if (upgradeLevel > 1) {
+      entityAnimations[EntityStatus.idle] =
+          await spriteAnimations.mushroomBoomerIdle2;
 
-    entityAnimations[EntityStatus.walk] =
-        await spriteAnimations.mushroomBoomerWalk1;
+      entityAnimations[EntityStatus.run] =
+          await spriteAnimations.mushroomBoomerRun2;
 
-    entityAnimations[EntityStatus.run] =
-        await spriteAnimations.mushroomBoomerRun1;
+      entityAnimations[EntityStatus.dead] =
+          await spriteAnimations.mushroomBoomerDead2;
+    } else {
+      entityAnimations[EntityStatus.idle] =
+          await spriteAnimations.mushroomBoomerIdle1;
 
-    entityAnimations[EntityStatus.dead] =
-        await spriteAnimations.mushroomBoomerDead1;
+      entityAnimations[EntityStatus.run] =
+          await spriteAnimations.mushroomBoomerRun1;
+
+      entityAnimations[EntityStatus.dead] =
+          await spriteAnimations.mushroomBoomerDead1;
+    }
   }
 
   @override
@@ -329,7 +347,7 @@ class MushroomShooter extends Enemy
   }
 
   @override
-  EnemyType enemyType = EnemyType.mushroomBoomer;
+  EnemyType enemyType = EnemyType.mushroomShooter;
 
   @override
   AimPattern aimPattern = AimPattern.player;

@@ -148,7 +148,6 @@ class CustomBorderBox extends StatelessWidget {
         addDamageTypeImage(element);
       }
     }
-    print(borderImage.length);
     final cardSize = small ? smallCardSize : largeCardSize;
 
     final borderMidImage = small

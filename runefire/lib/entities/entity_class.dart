@@ -53,6 +53,8 @@ abstract class Entity extends BodyComponent<GameRouter>
 
   ///Return true if shouldnt die
   List<bool? Function(DamageInstance instance)> onDeath = [];
+  List<bool? Function(DamageInstance instance)> onPreDeath = [];
+  List<bool? Function(DamageInstance instance)> onPermanentDeath = [];
 
   Map<dynamic, ChildEntity> childrenEntities = {};
 

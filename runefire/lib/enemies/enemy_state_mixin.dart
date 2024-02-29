@@ -242,7 +242,7 @@ mixin StateManagedAI
     await super.onLoad();
 
     baseState.onStateStartCall();
-    onDeath.add((_) {
+    onPermanentDeath.add((_) {
       baseState.onStateEndCall();
       return null;
     });

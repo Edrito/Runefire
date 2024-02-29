@@ -44,20 +44,20 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   // for (final element in DamageType.getValuesWithoutHealing) {
   //   player?.modifyElementalPower(element, .76);
   // }
-  player?.modifyElementalPower(DamageType.frost, 1);
+  // player?.modifyElementalPower(DamageType.frost, 1);
 
-  player?.addAttribute(AttributeType.meleeAttackFrozenEnemyShove);
+  // player?.addAttribute(AttributeType.meleeAttackFrozenEnemyShove);
 
-  Future.delayed(5.seconds).then((value) {
-    gameEnviroment.activeEntites.whereType<Enemy>().forEach((element) {
-      element.addAttribute(
-        AttributeType.frozen,
-        perpetratorEntity: player,
-        isTemporary: true,
-        duration: 10,
-      );
-    });
-  });
+  // Future.delayed(5.seconds).then((value) {
+  //   gameEnviroment.activeEntites.whereType<Enemy>().forEach((element) {
+  //     element.addAttribute(
+  //       AttributeType.frozen,
+  //       perpetratorEntity: player,
+  //       isTemporary: true,
+  //       duration: 10,
+  //     );
+  //   });
+  // });
 
   // while (true) {
   //   await Future.delayed(.5.seconds);

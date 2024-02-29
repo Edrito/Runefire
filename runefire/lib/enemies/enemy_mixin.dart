@@ -8,6 +8,7 @@ import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/enviroment_interactables/proximity_item.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:runefire/resources/enums.dart';
 
@@ -109,7 +110,7 @@ mixin DropItemFunctionality on HealthFunctionality {
 
   @override
   Future<void> onLoad() {
-    onDeath.add(_calculateDeathDrops);
+    onPermanentDeath.add(_calculateDeathDrops);
     return super.onLoad();
   }
 }

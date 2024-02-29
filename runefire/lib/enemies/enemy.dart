@@ -5,11 +5,11 @@ import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/events/event_management.dart';
 
-import '../resources/functions/custom.dart';
-import '../resources/constants/physics_filter.dart';
-import '../resources/enums.dart';
-import '../resources/constants/priorities.dart';
-import '../attributes/attributes_mixin.dart';
+import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/constants/physics_filter.dart';
+import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/constants/priorities.dart';
+import 'package:runefire/attributes/attributes_mixin.dart';
 
 abstract class Enemy extends Entity
     with
@@ -28,7 +28,7 @@ abstract class Enemy extends Entity
   }) {
     this.upgradeLevel = upgradeLevel;
 
-    priority = enemyPriority;
+    priority = entityPriority;
 
     applyUpgrade();
   }

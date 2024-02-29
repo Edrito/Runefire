@@ -293,40 +293,35 @@ static  List<String> allFilesFlame = [ghostHandAttackRed.flamePath,
 class ImagesAssetsMushroomBoomer {
 ///death.png
 static const FileDataClass death = 
-(path:"assets/images/enemy_sprites/mushroomBoomer/death.png",flamePath:"enemy_sprites/mushroomBoomer/death.png", size:(640.0,64.0),
- potentialFrameCount:10   );///idle.png
+(path:"assets/images/enemy_sprites/mushroomBoomer/death.png",flamePath:"enemy_sprites/mushroomBoomer/death.png", size:(336.0,48.0),
+ potentialFrameCount:7   );///death2.png
+static const FileDataClass death2 = 
+(path:"assets/images/enemy_sprites/mushroomBoomer/death2.png",flamePath:"enemy_sprites/mushroomBoomer/death2.png", size:(336.0,48.0),
+ potentialFrameCount:7   );///idle.png
 static const FileDataClass idle = 
-(path:"assets/images/enemy_sprites/mushroomBoomer/idle.png",flamePath:"enemy_sprites/mushroomBoomer/idle.png", size:(480.0,48.0),
- potentialFrameCount:10   );///jump.png
-static const FileDataClass jump = 
-(path:"assets/images/enemy_sprites/mushroomBoomer/jump.png",flamePath:"enemy_sprites/mushroomBoomer/jump.png", size:(144.0,48.0),
- potentialFrameCount:3   );///land.png
-static const FileDataClass land = 
-(path:"assets/images/enemy_sprites/mushroomBoomer/land.png",flamePath:"enemy_sprites/mushroomBoomer/land.png", size:(432.0,48.0),
- potentialFrameCount:9   );///roll.png
-static const FileDataClass roll = 
-(path:"assets/images/enemy_sprites/mushroomBoomer/roll.png",flamePath:"enemy_sprites/mushroomBoomer/roll.png", size:(336.0,48.0),
- potentialFrameCount:7   );///run.png
+(path:"assets/images/enemy_sprites/mushroomBoomer/idle.png",flamePath:"enemy_sprites/mushroomBoomer/idle.png", size:(96.0,48.0),
+ potentialFrameCount:2   );///idle2.png
+static const FileDataClass idle2 = 
+(path:"assets/images/enemy_sprites/mushroomBoomer/idle2.png",flamePath:"enemy_sprites/mushroomBoomer/idle2.png", size:(96.0,48.0),
+ potentialFrameCount:2   );///run.png
 static const FileDataClass run = 
-(path:"assets/images/enemy_sprites/mushroomBoomer/run.png",flamePath:"enemy_sprites/mushroomBoomer/run.png", size:(384.0,48.0),
- potentialFrameCount:8   );///walk.png
-static const FileDataClass walk = 
-(path:"assets/images/enemy_sprites/mushroomBoomer/walk.png",flamePath:"enemy_sprites/mushroomBoomer/walk.png", size:(384.0,48.0),
- potentialFrameCount:8   );static  List<String> allFiles = [death.path,
+(path:"assets/images/enemy_sprites/mushroomBoomer/run.png",flamePath:"enemy_sprites/mushroomBoomer/run.png", size:(192.0,48.0),
+ potentialFrameCount:4   );///run2.png
+static const FileDataClass run2 = 
+(path:"assets/images/enemy_sprites/mushroomBoomer/run2.png",flamePath:"enemy_sprites/mushroomBoomer/run2.png", size:(192.0,48.0),
+ potentialFrameCount:4   );static  List<String> allFiles = [death.path,
+death2.path,
 idle.path,
-jump.path,
-land.path,
-roll.path,
+idle2.path,
 run.path,
-walk.path,
+run2.path,
 ];
 static  List<String> allFilesFlame = [death.flamePath,
+death2.flamePath,
 idle.flamePath,
-jump.flamePath,
-land.flamePath,
-roll.flamePath,
+idle2.flamePath,
 run.flamePath,
-walk.flamePath,
+run2.flamePath,
 ];
 }
 class ImagesAssetsMushroomBurrower {

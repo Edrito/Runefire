@@ -5,6 +5,7 @@ import 'package:flame/extensions.dart';
 import 'package:runefire/enviroment_interactables/interactable.dart';
 import 'package:runefire/events/event_class.dart';
 import 'package:runefire/game/area_effects.dart';
+import 'package:runefire/game/hud_mixin.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/functions/custom.dart';
@@ -51,7 +52,6 @@ class DeathHandEvent extends PositionEvent {
       radius: 1.5 + (rng.nextDouble() * 1),
       sourceEntity: gameEnviroment.god!,
       collisionDelay: spriteTickSpeed * 13,
-      animationRandomlyFlipped: true,
       onTick: (entity, areaId) async {
         entity.applyHitAnimation(
           await spriteAnimations.scratchEffect1,
@@ -131,7 +131,7 @@ class EnemyEvent extends PositionEvent {
     }
   }
 
-  void onBigBoss(bool isDead) {
+  void onBigBoss({required bool isDead}) {
     if (isDead) {
       eventManagement.resumeOnBigBoss();
     } else {
@@ -144,7 +144,9 @@ class EnemyEvent extends PositionEvent {
     }
   }
 
-  void spawnEnemies() {
+  ///Future is when the enemies are loaded
+  Future<void> spawnEnemies() async {
+    final futures = <Future>[];
     for (var _ = 0; _ < numberOfClusters; _++) {
       final position =
           spawnLocation?.grabNewPosition(gameEnviroment) ?? spawnPosition;
@@ -161,23 +163,52 @@ class EnemyEvent extends PositionEvent {
 
           final enemy = cluster.enemyType
               .build(spreadPos, gameEnviroment, randomLevel, eventManagement);
-          enemy.onDeath.add((_) {
+
+          enemy.onPermanentDeath.add((_) {
             incrementEnemyCount([enemy], true);
+
+            return null;
           });
+
+          if (isBigBoss) {
+            final bossBar = gameEnviroment.hud as BossBar;
+            bossBar.addBosses([enemy]);
+            enemy.onPermanentDeath.add((_) {
+              bossBar.removeBoss(enemy);
+              return null;
+            });
+            enemy.onDamageTaken.add((DamageInstance damage) {
+              bossBar.setActiveBoss(enemy.entityId);
+              if (damage.damageMap.keys.isNotEmpty) {
+                bossBar.applyBossHitEffect(
+                  damage.damageMap.keys.toList().random(),
+                );
+              }
+              // else {
+              //   bossBar.applyBossHitEffect(DamageType.physical);
+              // }
+
+              return false;
+            });
+          }
+
           enemyCluster.add(enemy);
         }
 
         incrementEnemyCount(enemyCluster, false);
 
-        gameEnviroment.addPhysicsComponent(enemyCluster, duration: .5);
+        futures.add(
+          gameEnviroment.addPhysicsComponent(enemyCluster, duration: .5),
+        );
       }
     }
+    await Future.wait(futures);
   }
 
   @override
   void endEvent() {
     if (isBigBoss) {
-      onBigBoss(true);
+      onBigBoss(isDead: true);
     }
   }
 
@@ -191,7 +222,7 @@ class EnemyEvent extends PositionEvent {
   @override
   void startEvent() {
     if (isBigBoss) {
-      onBigBoss(false);
+      onBigBoss(isDead: false);
     } else {
       spawnEnemies();
     }

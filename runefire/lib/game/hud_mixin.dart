@@ -8,7 +8,10 @@ import 'package:flame/extensions.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ScaleEffect;
+import 'package:recase/recase.dart';
+import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
+import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/game/hud.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
@@ -174,24 +177,47 @@ mixin ElementalPowerIndicator on BaseHud {
 }
 
 mixin BossBar on BaseHud {
-  late final SpriteComponent bossBarLeftSprite;
-  late final SpriteComponent bossBarMidSprite;
-  late final SpriteComponent bossBarRightSprite;
+  SpriteComponent? bossBarLeftSprite;
+  SpriteComponent? bossBarMidSprite;
+  SpriteComponent? bossBarRightSprite;
 
   late Paint bossBarBackPaint;
   late Paint bossBarHitPaint;
   late Paint bossBarPaint;
-  late SpriteComponent bossBorderSprite;
+  SpriteComponent? bossBorderSprite;
+
   List<Entity> currentBosses = [];
   bool displayBossHit = false;
 
   TextComponent? bossText;
-  Entity? primaryBoss;
+  Entity? _activeBoss;
 
-  bool get bossBarActive => primaryBoss != null;
+  bool get bossBarActive => currentBosses.isNotEmpty;
 
-  void addBoss(Entity boss) {
-    currentBosses.add(boss);
+  void setActiveBoss(String? entityId) {
+    _activeBoss = currentBosses
+        .where((element) => element.entityId == entityId)
+        .firstOrNull;
+    buildBossText();
+  }
+
+  void addBosses(List<Entity> bosses, {String? primaryBossId}) {
+    currentBosses.addAll(bosses);
+    if (_activeBoss == null) {
+      initBossBorder();
+
+      if (primaryBossId != null) {
+        setActiveBoss(primaryBossId);
+      } else {
+        setActiveBoss(currentBosses.firstOrNull?.entityId);
+      }
+    }
+  }
+
+  void removeBosses(List<Entity> bosses) {
+    for (final boss in bosses) {
+      removeBoss(boss);
+    }
   }
 
   void applyBossBorderPositions() {
@@ -201,26 +227,26 @@ mixin BossBar on BaseHud {
     final widthPadding = bossBarWidthPadding(hudScale);
     final height = bossBarHeight(hudScale);
 
-    bossBarLeftSprite.position =
+    bossBarLeftSprite?.position =
         Vector2(widthPadding, gameSize.y - heightPadding);
-    bossBarRightSprite.position = Vector2(
+    bossBarRightSprite?.position = Vector2(
       gameEnviroment.gameCamera.viewport.size.x - widthPadding,
       gameSize.y - heightPadding,
     );
 
-    bossBarMidSprite.position = Vector2(
+    bossBarMidSprite?.position = Vector2(
       gameEnviroment.gameCamera.viewport.size.x / 2,
       gameSize.y - heightPadding,
     );
 
-    bossBorderSprite.position = Vector2(
+    bossBorderSprite?.position = Vector2(
       gameEnviroment.gameCamera.viewport.size.x / 2,
       gameSize.y - heightPadding,
     );
-    bossBorderSprite.size = Vector2(
+    bossBorderSprite?.size = Vector2(
       gameEnviroment.gameCamera.viewport.size.x -
           (widthPadding * 2) -
-          bossBarLeftSprite.width,
+          (bossBarLeftSprite?.width ?? 0),
       height,
     );
   }
@@ -302,7 +328,7 @@ mixin BossBar on BaseHud {
     final widthPadding = bossBarWidthPadding(hudScale);
     final height = bossBarHeight(hudScale);
 
-    if (primaryBoss != null || true) {
+    if (_activeBoss != null) {
       final y = gameSize.y - heightPadding - (height / 2);
       final xBegin = widthPadding + height / 2;
       final extraPadding = 1 * hudScale.scale;
@@ -311,22 +337,39 @@ mixin BossBar on BaseHud {
         Offset(gameSize.x - xBegin - extraPadding, y),
         bossBarBackPaint,
       );
+      final start = xBegin + extraPadding;
+      final end = gameSize.x - xBegin - extraPadding;
+      final length = end - start;
+      final halfLength = length / 2;
+      final primaryBossHealthPercent =
+          (_activeBoss! as HealthFunctionality).healthPercentage;
+      final offsetBegin =
+          xBegin + extraPadding + (halfLength * (1 - primaryBossHealthPercent));
+      final offsetEnd = gameSize.x -
+          xBegin -
+          extraPadding -
+          (halfLength * (1 - primaryBossHealthPercent));
       canvas.drawLine(
-        Offset(xBegin + extraPadding + 250, y),
-        Offset(gameSize.x - xBegin - extraPadding - 250, y),
+        Offset(
+          offsetBegin,
+          y,
+        ),
+        Offset(
+          offsetEnd,
+          y,
+        ),
         bossBarPaint,
       );
 
       if (displayBossHit) {
         canvas.drawLine(
-          Offset(widthPadding + 250, y),
-          Offset(gameSize.x - widthPadding - 250, y),
+          Offset(offsetBegin, y),
+          Offset(offsetEnd, y),
           bossBarHitPaint,
         );
       }
 
       bossText ??= TextComponent(
-        text: primaryBoss?.entityType.name ?? 'Placeholder Demon',
         anchor: Anchor.bottomCenter,
         textRenderer: colorPalette.buildTextPaint(
           hudFontSize * .75,
@@ -337,16 +380,19 @@ mixin BossBar on BaseHud {
         ..addToParent(this)
         ..loaded.then((value) {
           buildBossTextPosition();
+          buildBossText();
         });
-    } else if (currentBosses.isNotEmpty) {
-      primaryBoss = currentBosses.first;
-      drawBossHealthBar(canvas);
-      return;
-    } else {
-      return;
     }
     final bossWithoutPrimary =
-        currentBosses.where((element) => element != primaryBoss).toList();
+        currentBosses.where((element) => element != _activeBoss).toList();
+    if (bossWithoutPrimary.isNotEmpty) {}
+    //Todo add other boss bars
+  }
+
+  void buildBossText() {
+    bossText?.text = _activeBoss is Enemy
+        ? (_activeBoss! as Enemy).enemyType.enemyName
+        : (_activeBoss?.entityType.name.titleCase ?? 'Placeholder Demon');
   }
 
   Future<void> initBossBorder() async {
@@ -371,37 +417,49 @@ mixin BossBar on BaseHud {
       priority: -1,
     );
 
-    bossBarMidSprite.size = bossBarMidSprite.sprite!.srcSize
+    bossBarMidSprite?.size = bossBarMidSprite!.sprite!.srcSize
       ..scaledToDimension(true, heightBoss);
-    bossBarLeftSprite.size = bossBarLeftSprite.sprite!.srcSize
+    bossBarLeftSprite?.size = bossBarLeftSprite!.sprite!.srcSize
       ..scaledToDimension(true, heightBoss);
-    bossBarRightSprite.size = bossBarRightSprite.sprite!.srcSize
+    bossBarRightSprite?.size = bossBarRightSprite!.sprite!.srcSize
       ..scaledToDimension(true, heightBoss);
 
     applyBossBorderPositions();
-    addAll([
-      bossBarLeftSprite,
-      bossBorderSprite,
-      bossBarRightSprite,
-      bossBarMidSprite,
-    ]);
+    bossBarLeftSprite?.addToParent(this);
+    bossBorderSprite?.addToParent(this);
+    bossBarMidSprite?.addToParent(this);
+    bossBarRightSprite?.addToParent(this);
+  }
+
+  void _removeBossBorder() {
+    bossText?.removeFromParent();
+    bossBarLeftSprite?.removeFromParent();
+    bossBarRightSprite?.removeFromParent();
+    bossBarMidSprite?.removeFromParent();
+    bossBorderSprite?.removeFromParent();
+
+    bossText = null;
+    bossBarLeftSprite = null;
+    bossBarRightSprite = null;
+    bossBarMidSprite = null;
+    bossBorderSprite = null;
   }
 
   void removeBoss(Entity boss) {
     currentBosses.remove(boss);
+    if (boss.entityId == _activeBoss?.entityId) {
+      setActiveBoss(currentBosses.firstOrNull?.entityId);
+    }
+
+    if (_activeBoss == null) {
+      _removeBossBorder();
+    }
   }
 
   @override
   void initPaints() {
     super.initPaints();
     buildBossPaint();
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    await initBossBorder();
-
-    return super.onLoad();
   }
 
   @override

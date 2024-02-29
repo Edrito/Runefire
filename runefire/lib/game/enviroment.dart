@@ -126,12 +126,12 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
   }
 
   bool firstTick = false;
-  void addPhysicsComponent(
+  Future<void> addPhysicsComponent(
     List<Component> components, {
     bool instant = false,
     double duration = .2,
     int priority = 0,
-  }) {
+  }) async {
     if (components.isEmpty) {
       return;
     }
@@ -157,6 +157,7 @@ abstract class Enviroment extends Component with HasGameRef<GameRouter> {
         firstTick = true;
       }
     }
+    await Future.wait([for (final element in components) element.loaded]);
   }
 
   PlayerData get playerData => gameRef.playerDataComponent.dataObject;

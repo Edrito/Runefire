@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/body_component.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:recase/recase.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/events/event_management.dart';
@@ -68,6 +69,15 @@ enum EnemyType {
 }
 
 extension EnemyTypeExtension on EnemyType {
+  String get enemyName {
+    switch (this) {
+      case EnemyType.mushroomBoss:
+        return 'Mushroom Boss';
+      default:
+        return name.titleCase;
+    }
+  }
+
   Enemy build(
     Vector2 position,
     GameEnviroment gameEnviroment,
@@ -1015,7 +1025,7 @@ class DamageInstance {
 
 enum SecondaryType {
   essentialFocus(ImagesAssetsSecondaryIcons.blank, 0, alwaysCompatible, 0),
-  reloadAndRapidFire(
+  rapidFire(
     ImagesAssetsSecondaryIcons.rapidFire,
     2,
     reloadFunctionality,
@@ -1116,7 +1126,7 @@ bool weaponIsProjectileFunctionality(Weapon weapon) {
 extension SecondaryWeaponTypeExtension on SecondaryType {
   dynamic build(Weapon? primaryWeaponAncestor, [int upgradeLevel = 0]) {
     switch (this) {
-      case SecondaryType.reloadAndRapidFire:
+      case SecondaryType.rapidFire:
         return RapidFire(primaryWeaponAncestor, 5, upgradeLevel);
       case SecondaryType.pistolAttachment:
         return BlankProjectileWeapon(

@@ -952,8 +952,8 @@ mixin HealthFunctionality on Entity {
 
     currentColorEffect ??= ColorEffect(
       color,
-      Offset(0.0, color.opacity),
       reversedController,
+      opacityTo: color.opacity,
     )..addToParent(entityAnimationsGroup);
   }
 
@@ -1175,18 +1175,15 @@ mixin HealthFunctionality on Entity {
       deathCount.setParameterFlatValue(entityId, deathCount.parameter + 1);
 
       callOtherWeaponOnKillFunctions(damage);
-      if (_deadFunctionsCall(damage)) {
+      if (_preDeathFunctionsCall(damage)) {
         deathCount.setParameterFlatValue(entityId, deathCount.parameter - 1);
-
         dieThenRevive();
-        return;
-      }
-
-      if (remainingLives > 1) {
+      } else if (remainingLives > 1) {
         dieThenRevive();
       } else {
         die(damage);
       }
+      _deadFunctionsCall(damage);
     }
   }
 
@@ -1195,25 +1192,26 @@ mixin HealthFunctionality on Entity {
     EndGameState endGameState = EndGameState.playerDeath,
   ]) async {
     isDead = true;
-
     permanentlyDisableEntity();
     entityStatusWrapper.removeAllAnimations();
-    await setEntityAnimation(EntityStatus.dead, finalAnimation: true);
-    entityAnimationsGroup.add(
-      OpacityEffect.fadeOut(
-        EffectController(
-          startDelay: rng.nextDouble() * .5,
-          duration: 1.0,
-          onMax: removeFromParent,
-          curve: Curves.easeIn,
+    setEntityAnimation(EntityStatus.dead, finalAnimation: true).then((value) {
+      entityAnimationsGroup.add(
+        OpacityEffect.fadeOut(
+          EffectController(
+            startDelay: rng.nextDouble() * .5,
+            duration: 1.0,
+            onMax: removeFromParent,
+            curve: Curves.easeIn,
+          ),
         ),
-      ),
-    );
+      );
+      if (this is Player) {
+        game.gameStateComponent.gameState
+            .killPlayer(endGameState, this as Player, damage);
+      }
+    });
 
-    if (this is Player) {
-      game.gameStateComponent.gameState
-          .killPlayer(endGameState, this as Player, damage);
-    }
+    _permanentDeathFunctionsCall(damage);
   }
 
   Future<void> dieThenRevive() async {
@@ -1460,11 +1458,22 @@ mixin HealthFunctionality on Entity {
 
     doOtherEntityOnDamageFunctions(damage);
 
+    onDamageTakenFunctions(damage);
+
     applyDamage(damage);
     setEntityAnimation(EntityStatus.damage);
     applyKnockbackFromDamageInstance(damage);
     deathChecker(damage);
     return true;
+  }
+
+  void onDamageTakenFunctions(DamageInstance instance) {
+    final attr = attributeFunctionsFunctionality;
+    if (attr != null && attr.onDamageTaken.isNotEmpty) {
+      for (final element in attr.onDamageTaken) {
+        element(instance);
+      }
+    }
   }
 
   @override
@@ -1538,6 +1547,28 @@ mixin HealthFunctionality on Entity {
     var shouldLive = false;
     if (attr != null && onDeath.isNotEmpty) {
       for (final element in onDeath) {
+        shouldLive = shouldLive || (element.call(instance) ?? false);
+      }
+    }
+    return shouldLive;
+  }
+
+  bool _preDeathFunctionsCall(DamageInstance instance) {
+    final attr = attributeFunctionsFunctionality;
+    var shouldLive = false;
+    if (attr != null && onPreDeath.isNotEmpty) {
+      for (final element in onPreDeath) {
+        shouldLive = shouldLive || (element.call(instance) ?? false);
+      }
+    }
+    return shouldLive;
+  }
+
+  bool _permanentDeathFunctionsCall(DamageInstance instance) {
+    final attr = attributeFunctionsFunctionality;
+    var shouldLive = false;
+    if (attr != null && onPermanentDeath.isNotEmpty) {
+      for (final element in onPermanentDeath) {
         shouldLive = shouldLive || (element.call(instance) ?? false);
       }
     }

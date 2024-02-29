@@ -13,62 +13,89 @@ import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/routes.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/enums.dart';
+import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
+
+enum DemoBuilds {
+  starter,
+  mage,
+  glassCannon,
+  flameWarrior,
+  warlock,
+  frostWizard;
+}
 
 typedef DemoBuild = ({
   WeaponType weapon1,
   WeaponType weapon2,
   SecondaryType secondary1,
   SecondaryType secondary2,
-  CharacterType characterType
+  CharacterType characterType,
+  DamageType damageType,
 });
 
-Map<DamageType, DemoBuild> demoBuilds = {
-  DamageType.fire: (
-    weapon1: WeaponType.emberBow,
-    weapon2: WeaponType.breathOfFire,
-    secondary1: SecondaryType.surroundAttack,
-    secondary2: SecondaryType.reloadAndRapidFire,
-    characterType: CharacterType.runeKnight
-  ),
-  DamageType.psychic: (
-    weapon1: WeaponType.mindStaff,
-    weapon2: WeaponType.phaseDagger,
-    secondary1: SecondaryType.surroundAttack,
-    secondary2: SecondaryType.bloodlust,
-    characterType: CharacterType.runeKnight
-  ),
-  DamageType.physical: (
-    weapon1: WeaponType.arcaneBlaster,
-    weapon2: WeaponType.crystalSword,
-    secondary1: SecondaryType.reloadAndRapidFire,
-    secondary2: SecondaryType.shadowBlink,
-    characterType: CharacterType.runeKnight
-  ),
-  DamageType.energy: (
-    weapon1: WeaponType.energyMagic,
-    weapon2: WeaponType.sanctifiedEdge,
-    secondary1: SecondaryType.reloadAndRapidFire,
-    secondary2: SecondaryType.shadowBlink,
-    characterType: CharacterType.runeKnight
-  ),
-  DamageType.magic: (
-    weapon1: WeaponType.hexwoodMaim,
-    weapon2: WeaponType.aethertideSpear,
-    secondary1: SecondaryType.elementalBlast,
-    secondary2: SecondaryType.shadowBlink,
-    characterType: CharacterType.runeKnight
-  ),
-  DamageType.frost: (
-    weapon1: WeaponType.shimmerRifle,
-    weapon2: WeaponType.frostKatana,
-    secondary1: SecondaryType.reloadAndRapidFire,
-    secondary2: SecondaryType.shadowBlink,
-    characterType: CharacterType.runeKnight
-  ),
-};
+extension DemoBuildsExtension on DemoBuilds {
+  DemoBuild get getBuild {
+    switch (this) {
+      case DemoBuilds.starter:
+        return (
+          weapon1: WeaponType.crystalPistol,
+          weapon2: WeaponType.crystalSword,
+          secondary1: SecondaryType.rapidFire,
+          secondary2: SecondaryType.surroundAttack,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.physical,
+        );
+      case DemoBuilds.mage:
+        return (
+          weapon1: WeaponType.hexwoodMaim,
+          weapon2: WeaponType.aethertideSpear,
+          secondary1: SecondaryType.elementalBlast,
+          secondary2: SecondaryType.shadowBlink,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.magic,
+        );
+      case DemoBuilds.glassCannon:
+        return (
+          weapon1: WeaponType.scatterBlast,
+          weapon2: WeaponType.powerWord,
+          secondary1: SecondaryType.rapidFire,
+          secondary2: SecondaryType.elementalBlast,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.magic,
+        );
+      case DemoBuilds.flameWarrior:
+        return (
+          weapon1: WeaponType.fireSword,
+          weapon2: WeaponType.fireballMagic,
+          secondary1: SecondaryType.surroundAttack,
+          secondary2: SecondaryType.instantReload,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.fire,
+        );
+      case DemoBuilds.warlock:
+        return (
+          weapon1: WeaponType.swordKladenets,
+          weapon2: WeaponType.elementalChannel,
+          secondary1: SecondaryType.shadowBlink,
+          secondary2: SecondaryType.rapidFire,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.energy,
+        );
+      case DemoBuilds.frostWizard:
+        return (
+          weapon1: WeaponType.shimmerRifle,
+          weapon2: WeaponType.frostKatana,
+          secondary1: SecondaryType.rapidFire,
+          secondary2: SecondaryType.shadowBlink,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.frost,
+        );
+    }
+  }
+}
 
 class DemoScreen extends StatefulWidget {
   const DemoScreen({required this.gameRef, super.key});
@@ -78,12 +105,10 @@ class DemoScreen extends StatefulWidget {
 }
 
 class _DemoScreenState extends State<DemoScreen> {
-  void setSelectedBuild(DamageType damageType) {
+  void setSelectedBuild(DemoBuilds demoBuildSelected) {
     final playerData = widget.gameRef.playerDataComponent.dataObject;
-    final demoBuild = demoBuilds[damageType];
-    if (demoBuild == null) {
-      return;
-    }
+    final demoBuild = demoBuildSelected.getBuild;
+
     playerData.selectWeapon(
       primaryOrSecondarySlot: 0,
       weaponType: demoBuild.weapon1,
@@ -106,18 +131,154 @@ class _DemoScreenState extends State<DemoScreen> {
     GameState().toggleGameStart(gameplay);
   }
 
-  Widget buildWidget(DamageType damageType) {
+  Widget buildPairWidget({
+    required WeaponType weaponType,
+    required SecondaryType secondaryType,
+    required DamageType damageType,
+  }) {
+    final headerStyle = defaultStyle.copyWith(
+      fontSize: 18,
+      color: damageType.color,
+      shadows: [
+        BoxShadow(
+          color: damageType.color.darken(.45),
+          // blurRadius: 2,
+          offset: const Offset(1, 1),
+          // spreadRadius: 2,
+        ),
+      ],
+    );
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(3.0),
+                child: Text(
+                  weaponType.name.titleCase,
+                  style: headerStyle,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(3.0),
+                child: Text(
+                  secondaryType.name.titleCase,
+                  style: headerStyle,
+                ),
+              ),
+            ].mapExpanded(),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: damageType.color.withOpacity(.5),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: damageType.color,
+                      width: 3,
+                    ),
+                    left: BorderSide(
+                      color: damageType.color,
+                      width: 3,
+                    ),
+                    right: BorderSide(
+                      color: damageType.color,
+                      width: 3,
+                    ),
+                    top: BorderSide(
+                      color: damageType.color,
+                      width: 3,
+                    ),
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: damageType.color.darken(.5),
+                      width: 3,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Builder(
+                    builder: (context) {
+                      return Row(
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 5,
+                                  top: 5,
+                                ),
+                                child: buildImageAsset(
+                                  weaponType.path,
+                                  fit: BoxFit.contain,
+                                  color: damageType.color
+                                      .darken(.85)
+                                      .withOpacity(.5),
+                                ),
+                              ),
+                              buildImageAsset(
+                                weaponType.path,
+                                fit: BoxFit.contain,
+                              ),
+                            ],
+                          ),
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Positioned.fill(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 5,
+                                    top: 5,
+                                  ),
+                                  child: buildImageAsset(
+                                    secondaryType.icon.path,
+                                    fit: BoxFit.contain,
+                                    color: damageType.color
+                                        .darken(.85)
+                                        .withOpacity(.5),
+                                  ),
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: buildImageAsset(
+                                  secondaryType.icon.path,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ].mapExpanded(),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildWidget(DemoBuilds demoBuildSelected) {
     var hovering = false;
     var selected = false;
 
-    final demoBuild = demoBuilds[damageType];
+    final demoBuild = demoBuildSelected.getBuild;
+    final damageType = demoBuild.damageType;
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: StatefulBuilder(
         builder: (context, ss) {
-          final headerStyle =
-              defaultStyle.copyWith(fontSize: 18, color: damageType.color);
           return CustomInputWatcher(
             onHover: (isHover) {
               ss(() {
@@ -128,15 +289,18 @@ class _DemoScreenState extends State<DemoScreen> {
               ss(() {
                 selected = true;
                 Future.delayed(.3.seconds).then((value) {
-                  setSelectedBuild(damageType);
+                  setSelectedBuild(demoBuildSelected);
                 });
               });
             },
             child: Column(
               children: [
                 Text(
-                  damageType.name.titleCase,
+                  demoBuildSelected.name.titleCase,
                   style: defaultStyle.copyWith(color: damageType.color),
+                ),
+                const SizedBox(
+                  height: 7.5,
                 ),
                 Container(
                   height: 400 / largeCardSize.aspectRatio,
@@ -146,111 +310,23 @@ class _DemoScreenState extends State<DemoScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 24,
-                        left: 32,
+                        left: 24,
                         right: 24,
-                        bottom: 35,
+                        bottom: 24,
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (demoBuild != null)
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  // Expanded(
-                                  // child: Row(
-                                  //   children: [
-                                  Column(
-                                    children: [
-                                      Text(
-                                        demoBuild.weapon1.name.titleCase,
-                                        style: headerStyle,
-                                      ),
-                                      Container(
-                                        //Transform to rotate it 90 deg clockwise
-                                        //and to flip it horizontally
-                                        transform: Matrix4.rotationZ(pi / 2)
-                                          ..translate(
-                                            0.0,
-                                            -80.0,
-                                          ),
-                                        width: 80,
-                                        height: 80,
-                                        child: buildImageAsset(
-                                          demoBuild.weapon1.path,
-                                          fit: BoxFit.fitHeight,
-                                        ),
-                                      ),
-                                      Text(
-                                        demoBuild.weapon2.name.titleCase,
-                                        style: headerStyle,
-                                      ),
-                                      Container(
-                                        //Transform to rotate it 90 deg clockwise
-                                        //and to flip it horizontally
-                                        transform: Matrix4.rotationZ(pi / 2)
-                                          ..translate(
-                                            0.0,
-                                            -80.0,
-                                          ),
-                                        width: 80,
-                                        height: 80,
-                                        child: buildImageAsset(
-                                          demoBuild.weapon2.path,
-                                          fit: BoxFit.fitHeight,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    // crossAxisAlignment:
-                                    //     CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        demoBuild.secondary1.name.titleCase,
-                                        style: headerStyle,
-                                      ),
-                                      Container(
-                                        //Transform to rotate it 90 deg clockwise
-                                        //and to flip it horizontally
-
-                                        width: 80,
-                                        height: 80,
-                                        child: buildImageAsset(
-                                          demoBuild.secondary1.icon.path,
-                                          fit: BoxFit.fitHeight,
-                                        ),
-                                      ),
-                                      Text(
-                                        demoBuild.secondary2.name.titleCase,
-                                        style: headerStyle,
-                                      ),
-                                      Container(
-                                        //Transform to rotate it 90 deg clockwise
-                                        //and to flip it horizontally
-
-                                        width: 80,
-                                        height: 80,
-                                        child: buildImageAsset(
-                                          demoBuild.secondary2.icon.path,
-                                          fit: BoxFit.fitHeight,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  //   ],
-                                  // ),
-                                  // ),
-                                  // Expanded(
-                                  //   child: buildImageAsset(
-                                  //     demoBuild.characterType.assetObject.path,
-                                  //     fit: BoxFit.fitHeight,
-                                  //   ),
-                                  // ),
-                                ],
-                              ),
-                            ),
+                          buildPairWidget(
+                            weaponType: demoBuild.weapon1,
+                            secondaryType: demoBuild.secondary1,
+                            damageType: damageType,
+                          ),
+                          buildPairWidget(
+                            weaponType: demoBuild.weapon2,
+                            secondaryType: demoBuild.secondary2,
+                            damageType: damageType,
+                          ),
                         ],
                       ),
                     ),
@@ -298,7 +374,7 @@ class _DemoScreenState extends State<DemoScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'Demo Builds',
+                      'Wireframe Demo',
                       style: defaultStyle,
                     ),
                   ),
@@ -307,15 +383,12 @@ class _DemoScreenState extends State<DemoScreen> {
                       alignment: WrapAlignment.center,
                       runAlignment: WrapAlignment.center,
                       children: [
-                        for (var i = 0;
-                            i < DamageType.getValuesWithoutHealing.length;
-                            i++)
+                        for (var i = 0; i < DemoBuilds.values.length; i++)
                           Builder(
                             builder: (context) {
-                              final damageType = DamageType
-                                  .getValuesWithoutHealing
-                                  .elementAt(i);
-                              return buildWidget(damageType);
+                              return buildWidget(
+                                DemoBuilds.values.elementAt(i),
+                              );
                             },
                           ),
                       ].animate(interval: .05.seconds).moveY().fadeIn(),

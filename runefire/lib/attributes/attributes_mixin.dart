@@ -278,6 +278,7 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<OnHitDef> onHitByOtherEntity = [];
   final List<OnHitDef> onHitByProjectile = [];
   final List<OnHitDef> onHitOtherEntity = [];
+  final List<OnHitDef> onDamageTaken = [];
 
   //Only called when damage is 100% going to be applied
   final List<OnHitDef> onPostDamageOtherEntity = [];

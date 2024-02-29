@@ -6,6 +6,7 @@ import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:runefire/events/event_class.dart';
 import 'package:runefire/events/event_types.dart';
+import 'package:runefire/game/enviroment_mixin.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
@@ -122,31 +123,34 @@ class ForestEnemyManagement extends EventManagement {
       //   eventBeginEnd: (30, 120),
       //   spawnLocation: SpawnLocation.outside,
       // ),
-      // EnemyEvent(
-      //   gameEnviroment,
-      //   this,
-      //   isBigBoss: false,
-      //   clusterSpread: 4,
-      //   enemyClusters: [EnemyCluster(EnemyType.mushroomBoomer, 1)],
-      //   numberOfClusters: 1,
-      //   maxEnemies: 8,
-      //   eventTriggerInterval: (2, 10),
-      //   levels: (0, 1),
-      //   eventBeginEnd: (60, 600),
-      //   spawnLocation: SpawnLocation.outside,
-      // ),
       EnemyEvent(
-        //ONE ENEMI
         gameEnviroment,
         this,
         isBigBoss: false,
         clusterSpread: 4,
-        enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 1)],
-        numberOfClusters: 1,
-        maxEnemies: 1,
+        enemyClusters: [EnemyCluster(EnemyType.mushroomBoomer, 2)],
+        numberOfClusters: 3,
+        maxEnemies: 8,
+        eventTriggerInterval: (1, 2),
+        levels: (1, 2),
+        eventBeginEnd: (1, 600),
+        spawnLocation: SpawnLocation.outside,
+      ),
+      EnemyEvent(
+        //ONE ENEMI
+        gameEnviroment,
+        this,
+        isBigBoss: true,
+        clusterSpread: 4,
+        enemyClusters: [
+          EnemyCluster(EnemyType.mushroomRunner, 1),
+          EnemyCluster(EnemyType.mushroomSpinner, 1),
+        ],
+        numberOfClusters: 2,
+        maxEnemies: 2,
         eventTriggerInterval: (1, 5),
         levels: (0, 1),
-        eventBeginEnd: (2, 240),
+        eventBeginEnd: (2, 2),
         spawnLocation: SpawnLocation.outside,
       ),
       EnemyEvent(

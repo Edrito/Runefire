@@ -127,13 +127,13 @@ class SystemData extends DataClass {
   set setAimAssist(AimAssistStrength value) {
     aimAssistStrength = value;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   set setFlipJoystickControl(bool value) {
     flipJoystickControl = value;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   void setGamepadMapping(
@@ -158,13 +158,13 @@ class SystemData extends DataClass {
 
     gamePadMappings[action] = newGamepadMapping;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   set setHudScale(HudScale value) {
     hudScale = value;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   void setKeyboardMapping(
@@ -198,7 +198,7 @@ class SystemData extends DataClass {
 
     keyboardMappings[action] = newKeyboardMapping;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   void setMouseButtonMapping(
@@ -235,31 +235,31 @@ class SystemData extends DataClass {
 
     mouseButtonMappings[action] = newMouseButtonMapping;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   set setMusicVolume(double value) {
     musicVolume = value;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   set setSFXVolume(double value) {
     sfxVolume = value;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   set setShowDamageText(bool value) {
     showDamageText = value;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 
   set setShowFPS(bool value) {
     showFPS = value;
     parentComponent?.notifyListeners();
-    save();
+    // save();
   }
 }
 

@@ -381,7 +381,7 @@ class InputManager with WindowListener {
   void buildTimer() {
     timeoutTimer?.cancel();
     timeoutTimer = ac.Timer(
-      const Duration(seconds: 3),
+      const Duration(seconds: 15),
       () {
         _onTimeoutList.forEach((element) => element.call());
       },
