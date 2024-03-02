@@ -170,7 +170,9 @@ abstract class Weapon extends Component with UpgradeFunctions {
   bool isAttacking = false;
   bool isSecondaryWeapon = false;
   IntParameterManager maxHomingTargets = IntParameterManager(baseParameter: 0);
-  abstract Vector2 pngSize;
+
+  Vector2 get pngSize => weaponType.getImageClass.size.asVector2;
+
   Set<WeaponSpritePosition> removeSpriteOnAttack = {};
   Random rng = Random();
   //VISUAL

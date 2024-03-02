@@ -120,9 +120,6 @@ class CrystalSword extends PlayerWeapon
   double distanceFromPlayer = 1;
 
   @override
-  late Vector2 pngSize = ImagesAssetsWeapons.crystalSword.size.asVector2;
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
@@ -272,9 +269,6 @@ class PhaseDagger extends PlayerWeapon
 
   @override
   double distanceFromPlayer = 0;
-
-  @override
-  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
@@ -454,9 +448,6 @@ class AethertideSpear extends PlayerWeapon
   double distanceFromPlayer = .2;
 
   @override
-  late Vector2 pngSize = ImagesAssetsWeapons.spear.size.asVector2;
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
@@ -572,6 +563,7 @@ class SanctifiedEdge extends PlayerWeapon
             Vector2.zero(),
             weapon: this,
             parentJoint: null,
+            idleOnly: true,
             weaponAnimations: {
               WeaponStatus.idle: await spriteAnimations.sanctifiedEdgeIdle1,
             },
@@ -621,9 +613,6 @@ class SanctifiedEdge extends PlayerWeapon
 
   @override
   double distanceFromPlayer = .2;
-
-  @override
-  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.holyBullet;
@@ -792,9 +781,6 @@ class FlameSword extends PlayerWeapon
   double distanceFromPlayer = .2;
 
   @override
-  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
@@ -912,9 +898,6 @@ class LargeSword extends PlayerWeapon
 
   @override
   double distanceFromPlayer = .2;
-
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.largeSword.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -1079,9 +1062,6 @@ class FrostKatana extends PlayerWeapon
 
   @override
   double distanceFromPlayer = .2;
-
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.frostKatana.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -1262,9 +1242,6 @@ class SwordOfJustice extends PlayerWeapon
   double distanceFromPlayer = 0;
 
   @override
-  late Vector2 pngSize = ImagesAssetsWeapons.swordOfJustice.size.asVector2;
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [
     // WeaponSpritePosition.back
   ];
@@ -1431,9 +1408,6 @@ class TuiCamai extends PlayerWeapon
   double distanceFromPlayer = 1;
 
   @override
-  late Vector2 pngSize = ImagesAssetsWeapons.tuiCamai.size.asVector2;
-
-  @override
   List<WeaponSpritePosition> spirteComponentPositions = [
     WeaponSpritePosition.back,
   ];
@@ -1515,9 +1489,6 @@ class SwordKladenets extends PlayerWeapon
 
   @override
   double distanceFromPlayer = 1;
-
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.swordKladenets.size.asVector2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [];
@@ -1668,9 +1639,6 @@ class MindStaff extends PlayerWeapon
 
   @override
   double distanceFromPlayer = 1;
-
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.mindStaff.size.asVector2;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [

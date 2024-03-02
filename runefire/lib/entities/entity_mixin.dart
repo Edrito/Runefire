@@ -1193,7 +1193,7 @@ mixin HealthFunctionality on Entity {
   ]) async {
     isDead = true;
     permanentlyDisableEntity();
-    entityStatusWrapper.removeAllAnimations();
+    entityVisualEffectsWrapper.removeAllAnimations();
     setEntityAnimation(EntityStatus.dead, finalAnimation: true).then((value) {
       entityAnimationsGroup.add(
         OpacityEffect.fadeOut(
@@ -1379,6 +1379,9 @@ mixin HealthFunctionality on Entity {
     bool applyStatusEffect = true,
   ]) {
     doOtherEntityOnHitFunctions(damage);
+    if (onHitByOtherFunctionsCall(damage)) {
+      return false;
+    }
 
     if (hitSourceInvincibility.containsKey(id)) {
       return false;
@@ -1388,9 +1391,7 @@ mixin HealthFunctionality on Entity {
       return false;
     }
 
-    if (damage.damageMap.isEmpty ||
-        damage.damage == 0 ||
-        onHitByOtherFunctionsCall(damage)) {
+    if (damage.damageMap.isEmpty || damage.damage == 0) {
       return false;
     }
 
@@ -1849,11 +1850,12 @@ mixin DashFunctionality on StaminaFunctionality {
       return;
     }
 
-    applyGroundAnimation(
-      await spriteAnimations.dashEffect1,
-      false,
-      spriteHeight * .1,
-      true,
+    entityVisualEffectsWrapper.addGroundAnimation(
+      animation: await spriteAnimations.dashEffect1,
+      id: '${entityId}_dashEffect1',
+      followEntity: false,
+      yOffset: spriteHeight * .1,
+      moveDirection: true,
     );
   }
 
@@ -2093,10 +2095,11 @@ mixin JumpFunctionality on Entity, AttributeCallbackFunctionality {
     if (!_jumpCheck(forceJump)) {
       return;
     }
-    applyGroundAnimation(
-      await spriteAnimations.jumpEffect1,
-      false,
-      spriteHeight * .2,
+    entityVisualEffectsWrapper.addGroundAnimation(
+      animation: await spriteAnimations.jumpEffect1,
+      id: '${entityId}_jumpEffect1',
+      followEntity: false,
+      yOffset: spriteHeight * .2,
     );
     final jumpDurationPar = jumpDuration.parameter;
 

@@ -112,7 +112,7 @@ abstract class StatusEffectAttribute extends PerpetratorAttribute {
   @mustCallSuper
   void mapUpgrade() {
     super.mapUpgrade();
-    attributeOwnerEntity?.entityStatusWrapper
+    attributeOwnerEntity?.entityVisualEffectsWrapper
         .addStatusEffect(statusEffect, upgradeLevel);
   }
 
@@ -120,7 +120,8 @@ abstract class StatusEffectAttribute extends PerpetratorAttribute {
   @mustCallSuper
   void unMapUpgrade() {
     super.unMapUpgrade();
-    attributeOwnerEntity?.entityStatusWrapper.removeStatusEffect(statusEffect);
+    attributeOwnerEntity?.entityVisualEffectsWrapper
+        .removeStatusEffect(statusEffect);
   }
 
   abstract StatusEffects statusEffect;
@@ -445,11 +446,24 @@ class ConfusedStatusEffectAttribute extends StatusEffectAttribute {
       final move = attributeOwnerEntity! as MovementFunctionality;
       move.addMoveVelocity(Vector2.random(), attributeInputPriority);
     }
+    if (attributeOwnerEntity is AimFunctionality) {
+      final aim = attributeOwnerEntity! as AimFunctionality;
+      final aimTarget = (aim.closeSensorBodies.toList()
+            ..sort((a, b) => rng.nextInt(3) - 1))
+          .firstOrNull;
+      aim.addAimAngle(
+        aimTarget == null
+            ? Vector2.random()
+            : (aim.center - aimTarget.center).normalized(),
+        attributeInputPriority,
+      );
+    }
   }
 
   @override
   void mapUpgrade() {
     super.mapUpgrade();
+    attributeOwnerEntity?.affectsAllEntities.setIncrease(attributeId, true);
     (attributeOwnerEntity!).gameEnviroment.eventManagement.addAiTimer(
       (
         function: action,
@@ -466,9 +480,14 @@ class ConfusedStatusEffectAttribute extends StatusEffectAttribute {
     (attributeOwnerEntity!).gameEnviroment.eventManagement.removeAiTimer(
           id: attributeId,
         );
+    attributeOwnerEntity?.affectsAllEntities.removeKey(attributeId);
     if (attributeOwnerEntity is MovementFunctionality) {
       final move = attributeOwnerEntity! as MovementFunctionality;
       move.removeMoveVelocity(attributeInputPriority);
+    }
+    if (attributeOwnerEntity is AimFunctionality) {
+      final aim = attributeOwnerEntity! as AimFunctionality;
+      aim.removeAimAngle(attributeInputPriority);
     }
   }
 }

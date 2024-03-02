@@ -703,74 +703,75 @@ enum WeaponType {
   FileDataClass get getImageClass {
     switch (this) {
       case WeaponType.emberBow:
-        return ImagesAssetsWeapons.emberBow;
+        return ImagesAssetsEmberBow.emberBow;
       case WeaponType.shimmerRifle:
-        return ImagesAssetsWeapons.scryshot;
+        return ImagesAssetsScryshot.scryshot;
 
       case WeaponType.crystalPistol:
-        return ImagesAssetsWeapons.crystalPistol;
+        return ImagesAssetsCrystalPistol.crystalPistol;
       case WeaponType.scatterBlast:
-        return ImagesAssetsWeapons.scatterBlast;
+        return ImagesAssetsScatterBlast.scatterBlast;
+
       case WeaponType.railspire:
-        return ImagesAssetsWeapons.railspire;
+        return ImagesAssetsRailspire.railspire;
       case WeaponType.eldritchRunner:
-        return ImagesAssetsWeapons.eldritchRunner;
+        return ImagesAssetsEldritchRunner.eldritchRunner;
       case WeaponType.crystalSword:
-        return ImagesAssetsWeapons.crystalSword;
+        return ImagesAssetsCrystalSword.crystalSword;
       case WeaponType.phaseDagger:
-        return ImagesAssetsWeapons.phaseDagger;
+        return ImagesAssetsPhaseDagger.phaseDagger;
       case WeaponType.aethertideSpear:
-        return ImagesAssetsWeapons.spear;
+        return ImagesAssetsAethertideSpear.aethertideSpear;
       case WeaponType.mindStaff:
-        return ImagesAssetsWeapons.mindStaff;
+        return ImagesAssetsMindStaff.mindStaff;
       case WeaponType.largeSword:
-        return ImagesAssetsWeapons.largeSword;
+        return ImagesAssetsLargeSword.largeSword;
       case WeaponType.frostKatana:
-        return ImagesAssetsWeapons.frostKatana;
+        return ImagesAssetsFrostKatana.frostKatana;
       case WeaponType.sanctifiedEdge:
-        return ImagesAssetsWeapons.sanctifiedEdge;
+        return ImagesAssetsSanctifiedEdge.sanctifiedEdge;
       case WeaponType.fireSword:
-        return ImagesAssetsWeapons.flameSword;
+        return ImagesAssetsFlameSword.flameSword;
       case WeaponType.swordOfJustice:
-        return ImagesAssetsWeapons.swordOfJustice;
+        return ImagesAssetsSwordOfJustice.swordOfJustice;
 
       case WeaponType.tuiCamai:
-        return ImagesAssetsWeapons.tuiCamai;
+        return ImagesAssetsTuiCamai.tuiCamai;
       case WeaponType.swordKladenets:
-        return ImagesAssetsWeapons.swordKladenets;
-      case WeaponType.magicMissile:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.icecicleMagic:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.psychicMagic:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.fireballMagic:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.energyMagic:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.breathOfFire:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.magicBlast:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.powerWord:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.elementalChannel:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.hexwoodMaim:
-        return ImagesAssetsWeapons.bookIdle;
-      case WeaponType.blankProjectileWeapon:
-        return ImagesAssetsWeapons.bookIdle;
+        return ImagesAssetsSwordKladenets.swordKladenets;
+      // case WeaponType.magicMissile:
+      //   return ImagesAssetsMagicMissile.bookIdle;
+      // case WeaponType.icecicleMagic:
+      //   return ImagesAssetsIcecicleMagic.bookIdle;
+      // case WeaponType.psychicMagic:
+      //   return ImagesAssetsPsychicMagic.bookIdle;
+      // case WeaponType.fireballMagic:
+      //   return ImagesAssetsFireballMagic.bookIdle;
+      // case WeaponType.energyMagic:
+      //   return ImagesAssetsEnergyMagic.bookIdle;
+      // case WeaponType.breathOfFire:
+      //   return ImagesAssetsBreathOfFire.bookIdle;
+      // case WeaponType.magicBlast:
+      //   return ImagesAssetsMagicBlast.bookIdle;
+      // case WeaponType.powerWord:
+      //   return ImagesAssetsPowerWord.bookIdle;
+      // case WeaponType.elementalChannel:
+      //   return ImagesAssetsElementalChannel.bookIdle;
+      // case WeaponType.hexwoodMaim:
+      //   return ImagesAssetsHexwoodMaim.bookIdle;
+      // case WeaponType.blankProjectileWeapon:
+      //   return ImagesAssetsBlankProjectileWeapon.bookIdle;
 
       case WeaponType.arcaneBlaster:
-        return ImagesAssetsWeapons.arcaneBlaster;
+        return ImagesAssetsArcaneBlaster.arcaneBlaster;
 
       case WeaponType.scryshot:
-        return ImagesAssetsWeapons.scryshot;
+        return ImagesAssetsScryshot.scryshot;
       case WeaponType.prismaticBeam:
-        return ImagesAssetsWeapons.prismaticBeam;
+        return ImagesAssetsPrismaticBeam.prismaticBeam;
 
       default:
-        return ImagesAssetsWeapons.bookIdle;
+        return ImagesAssetsDefaultBook.bookIdle;
     }
   }
 }

@@ -258,27 +258,12 @@ static  List<String> allFilesFlame = [fireEffect.flamePath,
 ];
 }
 class ImagesAssetsEnemySprites {
-///death.png
-static const FileDataClass death = 
-(path:"assets/images/enemy_sprites/death.png",flamePath:"enemy_sprites/death.png", size:(640.0,64.0),
- potentialFrameCount:10   );///ghost_hand_attack_red.png
+///ghost_hand_attack_red.png
 static const FileDataClass ghostHandAttackRed = 
 (path:"assets/images/enemy_sprites/ghost_hand_attack_red.png",flamePath:"enemy_sprites/ghost_hand_attack_red.png", size:(960.0,48.0),
- potentialFrameCount:20   );///idle.png
-static const FileDataClass idle = 
-(path:"assets/images/enemy_sprites/idle.png",flamePath:"enemy_sprites/idle.png", size:(480.0,48.0),
- potentialFrameCount:10   );///run.png
-static const FileDataClass run = 
-(path:"assets/images/enemy_sprites/run.png",flamePath:"enemy_sprites/run.png", size:(384.0,48.0),
- potentialFrameCount:8   );static  List<String> allFiles = [death.path,
-ghostHandAttackRed.path,
-idle.path,
-run.path,
+ potentialFrameCount:20   );static  List<String> allFiles = [ghostHandAttackRed.path,
 ];
-static  List<String> allFilesFlame = [death.flamePath,
-ghostHandAttackRed.flamePath,
-idle.flamePath,
-run.flamePath,
+static  List<String> allFilesFlame = [ghostHandAttackRed.flamePath,
 ];
 }
 class ImagesAssetsGhostHand {
@@ -327,45 +312,25 @@ run2.flamePath,
 class ImagesAssetsMushroomBurrower {
 ///burrow_in.png
 static const FileDataClass burrowIn = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/burrow_in.png",flamePath:"enemy_sprites/mushroomBurrower/burrow_in.png", size:(432.0,48.0),
- potentialFrameCount:9   );///burrow_out.png
+(path:"assets/images/enemy_sprites/mushroomBurrower/burrow_in.png",flamePath:"enemy_sprites/mushroomBurrower/burrow_in.png", size:(192.0,48.0),
+ potentialFrameCount:4   );///burrow_out.png
 static const FileDataClass burrowOut = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/burrow_out.png",flamePath:"enemy_sprites/mushroomBurrower/burrow_out.png", size:(432.0,48.0),
- potentialFrameCount:9   );///death.png
-static const FileDataClass death = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/death.png",flamePath:"enemy_sprites/mushroomBurrower/death.png", size:(640.0,64.0),
- potentialFrameCount:10   );///idle.png
+(path:"assets/images/enemy_sprites/mushroomBurrower/burrow_out.png",flamePath:"enemy_sprites/mushroomBurrower/burrow_out.png", size:(192.0,48.0),
+ potentialFrameCount:4   );///idle.png
 static const FileDataClass idle = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/idle.png",flamePath:"enemy_sprites/mushroomBurrower/idle.png", size:(480.0,48.0),
- potentialFrameCount:10   );///jump.png
+(path:"assets/images/enemy_sprites/mushroomBurrower/idle.png",flamePath:"enemy_sprites/mushroomBurrower/idle.png", size:(96.0,48.0),
+ potentialFrameCount:2   );///jump.png
 static const FileDataClass jump = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/jump.png",flamePath:"enemy_sprites/mushroomBurrower/jump.png", size:(144.0,48.0),
- potentialFrameCount:3   );///roll.png
-static const FileDataClass roll = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/roll.png",flamePath:"enemy_sprites/mushroomBurrower/roll.png", size:(336.0,48.0),
- potentialFrameCount:7   );///run.png
-static const FileDataClass run = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/run.png",flamePath:"enemy_sprites/mushroomBurrower/run.png", size:(384.0,48.0),
- potentialFrameCount:8   );///walk.png
-static const FileDataClass walk = 
-(path:"assets/images/enemy_sprites/mushroomBurrower/walk.png",flamePath:"enemy_sprites/mushroomBurrower/walk.png", size:(384.0,48.0),
- potentialFrameCount:8   );static  List<String> allFiles = [burrowIn.path,
+(path:"assets/images/enemy_sprites/mushroomBurrower/jump.png",flamePath:"enemy_sprites/mushroomBurrower/jump.png", size:(192.0,48.0),
+ potentialFrameCount:4   );static  List<String> allFiles = [burrowIn.path,
 burrowOut.path,
-death.path,
 idle.path,
 jump.path,
-roll.path,
-run.path,
-walk.path,
 ];
 static  List<String> allFilesFlame = [burrowIn.flamePath,
 burrowOut.flamePath,
-death.flamePath,
 idle.flamePath,
 jump.flamePath,
-roll.flamePath,
-run.flamePath,
-walk.flamePath,
 ];
 }
 class ImagesAssetsMushroomHopper {
@@ -1016,142 +981,30 @@ utility.flamePath,
 ];
 }
 class ImagesAssetsWeapons {
-///arcane_blaster.png
-static const FileDataClass arcaneBlaster = 
-(path:"assets/images/weapons/arcane_blaster.png",flamePath:"weapons/arcane_blaster.png", size:(33.0,79.0),
- potentialFrameCount:0   );///book_fire.png
-static const FileDataClass bookFire = 
-(path:"assets/images/weapons/book_fire.png",flamePath:"weapons/book_fire.png", size:(63.0,32.0),
- potentialFrameCount:2   );///book_idle.png
-static const FileDataClass bookIdle = 
-(path:"assets/images/weapons/book_idle.png",flamePath:"weapons/book_idle.png", size:(62.0,41.0),
- potentialFrameCount:2   );///crystal_pistol.png
-static const FileDataClass crystalPistol = 
-(path:"assets/images/weapons/crystal_pistol.png",flamePath:"weapons/crystal_pistol.png", size:(28.0,44.0),
- potentialFrameCount:1   );///crystal_sword.png
-static const FileDataClass crystalSword = 
-(path:"assets/images/weapons/crystal_sword.png",flamePath:"weapons/crystal_sword.png", size:(35.0,114.0),
- potentialFrameCount:0   );///eldritch_runner.png
-static const FileDataClass eldritchRunner = 
-(path:"assets/images/weapons/eldritch_runner.png",flamePath:"weapons/eldritch_runner.png", size:(43.0,86.0),
- potentialFrameCount:1   );///ember_bow.png
-static const FileDataClass emberBow = 
-(path:"assets/images/weapons/ember_bow.png",flamePath:"weapons/ember_bow.png", size:(96.0,32.0),
- potentialFrameCount:3   );///flame_sword.png
-static const FileDataClass flameSword = 
-(path:"assets/images/weapons/flame_sword.png",flamePath:"weapons/flame_sword.png", size:(42.0,103.0),
- potentialFrameCount:0   );///frost_katana.png
-static const FileDataClass frostKatana = 
-(path:"assets/images/weapons/frost_katana.png",flamePath:"weapons/frost_katana.png", size:(28.0,152.0),
- potentialFrameCount:0   );///hexwood_maim.png
-static const FileDataClass hexwoodMaim = 
-(path:"assets/images/weapons/hexwood_maim.png",flamePath:"weapons/hexwood_maim.png", size:(817.0,48.0),
- potentialFrameCount:17   );///large_sword.png
-static const FileDataClass largeSword = 
-(path:"assets/images/weapons/large_sword.png",flamePath:"weapons/large_sword.png", size:(26.0,90.0),
- potentialFrameCount:0   );///mind_staff.png
-static const FileDataClass mindStaff = 
-(path:"assets/images/weapons/mind_staff.png",flamePath:"weapons/mind_staff.png", size:(32.0,96.0),
- potentialFrameCount:0   );///muzzle_flash.png
+///muzzle_flash.png
 static const FileDataClass muzzleFlash = 
 (path:"assets/images/weapons/muzzle_flash.png",flamePath:"weapons/muzzle_flash.png", size:(32.0,32.0),
- potentialFrameCount:1   );///phase_dagger.png
-static const FileDataClass phaseDagger = 
-(path:"assets/images/weapons/phase_dagger.png",flamePath:"weapons/phase_dagger.png", size:(22.0,51.0),
- potentialFrameCount:0   );///prismatic_beam.png
-static const FileDataClass prismaticBeam = 
-(path:"assets/images/weapons/prismatic_beam.png",flamePath:"weapons/prismatic_beam.png", size:(32.0,74.0),
- potentialFrameCount:0   );///railspire.png
-static const FileDataClass railspire = 
-(path:"assets/images/weapons/railspire.png",flamePath:"weapons/railspire.png", size:(36.0,89.0),
- potentialFrameCount:0   );///sanctified_edge.png
-static const FileDataClass sanctifiedEdge = 
-(path:"assets/images/weapons/sanctified_edge.png",flamePath:"weapons/sanctified_edge.png", size:(54.0,142.0),
- potentialFrameCount:0   );///sanctified_edge_idle.png
-static const FileDataClass sanctifiedEdgeIdle = 
-(path:"assets/images/weapons/sanctified_edge_idle.png",flamePath:"weapons/sanctified_edge_idle.png", size:(162.0,142.0),
- potentialFrameCount:1   );///scatter_blast.png
-static const FileDataClass scatterBlast = 
-(path:"assets/images/weapons/scatter_blast.png",flamePath:"weapons/scatter_blast.png", size:(18.0,102.0),
- potentialFrameCount:0   );///scryshot.png
-static const FileDataClass scryshot = 
-(path:"assets/images/weapons/scryshot.png",flamePath:"weapons/scryshot.png", size:(64.0,128.0),
- potentialFrameCount:1   );///scryshot_attack.png
-static const FileDataClass scryshotAttack = 
-(path:"assets/images/weapons/scryshot_attack.png",flamePath:"weapons/scryshot_attack.png", size:(192.0,64.0),
- potentialFrameCount:3   );///scryshot_idle.png
-static const FileDataClass scryshotIdle = 
-(path:"assets/images/weapons/scryshot_idle.png",flamePath:"weapons/scryshot_idle.png", size:(608.0,64.0),
- potentialFrameCount:10   );///shotgun.png
-static const FileDataClass shotgun = 
-(path:"assets/images/weapons/shotgun.png",flamePath:"weapons/shotgun.png", size:(189.0,365.0),
- potentialFrameCount:1   );///spear.png
-static const FileDataClass spear = 
-(path:"assets/images/weapons/spear.png",flamePath:"weapons/spear.png", size:(15.0,152.0),
- potentialFrameCount:0   );///sword_kladenets.png
-static const FileDataClass swordKladenets = 
-(path:"assets/images/weapons/sword_kladenets.png",flamePath:"weapons/sword_kladenets.png", size:(35.0,114.0),
- potentialFrameCount:0   );///sword_of_justice.png
-static const FileDataClass swordOfJustice = 
-(path:"assets/images/weapons/sword_of_justice.png",flamePath:"weapons/sword_of_justice.png", size:(46.0,135.0),
- potentialFrameCount:0   );///tui_camai.png
-static const FileDataClass tuiCamai = 
-(path:"assets/images/weapons/tui_camai.png",flamePath:"weapons/tui_camai.png", size:(35.0,114.0),
+ potentialFrameCount:1   );static  List<String> allFiles = [muzzleFlash.path,
+];
+static  List<String> allFilesFlame = [muzzleFlash.flamePath,
+];
+}
+class ImagesAssetsAethertideSpear {
+///aethertide_spear.png
+static const FileDataClass aethertideSpear = 
+(path:"assets/images/weapons/aethertide_spear/aethertide_spear.png",flamePath:"weapons/aethertide_spear/aethertide_spear.png", size:(15.0,152.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [aethertideSpear.path,
+];
+static  List<String> allFilesFlame = [aethertideSpear.flamePath,
+];
+}
+class ImagesAssetsArcaneBlaster {
+///arcane_blaster.png
+static const FileDataClass arcaneBlaster = 
+(path:"assets/images/weapons/arcane_blaster/arcane_blaster.png",flamePath:"weapons/arcane_blaster/arcane_blaster.png", size:(33.0,79.0),
  potentialFrameCount:0   );static  List<String> allFiles = [arcaneBlaster.path,
-bookFire.path,
-bookIdle.path,
-crystalPistol.path,
-crystalSword.path,
-eldritchRunner.path,
-emberBow.path,
-flameSword.path,
-frostKatana.path,
-hexwoodMaim.path,
-largeSword.path,
-mindStaff.path,
-muzzleFlash.path,
-phaseDagger.path,
-prismaticBeam.path,
-railspire.path,
-sanctifiedEdge.path,
-sanctifiedEdgeIdle.path,
-scatterBlast.path,
-scryshot.path,
-scryshotAttack.path,
-scryshotIdle.path,
-shotgun.path,
-spear.path,
-swordKladenets.path,
-swordOfJustice.path,
-tuiCamai.path,
 ];
 static  List<String> allFilesFlame = [arcaneBlaster.flamePath,
-bookFire.flamePath,
-bookIdle.flamePath,
-crystalPistol.flamePath,
-crystalSword.flamePath,
-eldritchRunner.flamePath,
-emberBow.flamePath,
-flameSword.flamePath,
-frostKatana.flamePath,
-hexwoodMaim.flamePath,
-largeSword.flamePath,
-mindStaff.flamePath,
-muzzleFlash.flamePath,
-phaseDagger.flamePath,
-prismaticBeam.flamePath,
-railspire.flamePath,
-sanctifiedEdge.flamePath,
-sanctifiedEdgeIdle.flamePath,
-scatterBlast.flamePath,
-scryshot.flamePath,
-scryshotAttack.flamePath,
-scryshotIdle.flamePath,
-shotgun.flamePath,
-spear.flamePath,
-swordKladenets.flamePath,
-swordOfJustice.flamePath,
-tuiCamai.flamePath,
 ];
 }
 class ImagesAssetsCharge {
@@ -1178,6 +1031,92 @@ fireChargePlay.flamePath,
 fireChargeSpawn.flamePath,
 ];
 }
+class ImagesAssetsCrystalPistol {
+///crystal_pistol.png
+static const FileDataClass crystalPistol = 
+(path:"assets/images/weapons/crystal_pistol/crystal_pistol.png",flamePath:"weapons/crystal_pistol/crystal_pistol.png", size:(28.0,44.0),
+ potentialFrameCount:1   );static  List<String> allFiles = [crystalPistol.path,
+];
+static  List<String> allFilesFlame = [crystalPistol.flamePath,
+];
+}
+class ImagesAssetsCrystalSword {
+///crystal_sword.png
+static const FileDataClass crystalSword = 
+(path:"assets/images/weapons/crystal_sword/crystal_sword.png",flamePath:"weapons/crystal_sword/crystal_sword.png", size:(35.0,114.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [crystalSword.path,
+];
+static  List<String> allFilesFlame = [crystalSword.flamePath,
+];
+}
+class ImagesAssetsDefaultBook {
+///book_fire.png
+static const FileDataClass bookFire = 
+(path:"assets/images/weapons/default_book/book_fire.png",flamePath:"weapons/default_book/book_fire.png", size:(63.0,32.0),
+ potentialFrameCount:2   );///book_idle.png
+static const FileDataClass bookIdle = 
+(path:"assets/images/weapons/default_book/book_idle.png",flamePath:"weapons/default_book/book_idle.png", size:(62.0,41.0),
+ potentialFrameCount:2   );static  List<String> allFiles = [bookFire.path,
+bookIdle.path,
+];
+static  List<String> allFilesFlame = [bookFire.flamePath,
+bookIdle.flamePath,
+];
+}
+class ImagesAssetsEldritchRunner {
+///eldritch_runner.png
+static const FileDataClass eldritchRunner = 
+(path:"assets/images/weapons/eldritch_runner/eldritch_runner.png",flamePath:"weapons/eldritch_runner/eldritch_runner.png", size:(43.0,86.0),
+ potentialFrameCount:1   );static  List<String> allFiles = [eldritchRunner.path,
+];
+static  List<String> allFilesFlame = [eldritchRunner.flamePath,
+];
+}
+class ImagesAssetsEmberBow {
+///ember_bow.png
+static const FileDataClass emberBow = 
+(path:"assets/images/weapons/ember_bow/ember_bow.png",flamePath:"weapons/ember_bow/ember_bow.png", size:(96.0,32.0),
+ potentialFrameCount:3   );static  List<String> allFiles = [emberBow.path,
+];
+static  List<String> allFilesFlame = [emberBow.flamePath,
+];
+}
+class ImagesAssetsFlameSword {
+///flame_sword.png
+static const FileDataClass flameSword = 
+(path:"assets/images/weapons/flame_sword/flame_sword.png",flamePath:"weapons/flame_sword/flame_sword.png", size:(42.0,103.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [flameSword.path,
+];
+static  List<String> allFilesFlame = [flameSword.flamePath,
+];
+}
+class ImagesAssetsFrostKatana {
+///frost_katana.png
+static const FileDataClass frostKatana = 
+(path:"assets/images/weapons/frost_katana/frost_katana.png",flamePath:"weapons/frost_katana/frost_katana.png", size:(28.0,152.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [frostKatana.path,
+];
+static  List<String> allFilesFlame = [frostKatana.flamePath,
+];
+}
+class ImagesAssetsHexwoodMaim {
+///hexwood_maim.png
+static const FileDataClass hexwoodMaim = 
+(path:"assets/images/weapons/hexwood_maim/hexwood_maim.png",flamePath:"weapons/hexwood_maim/hexwood_maim.png", size:(817.0,48.0),
+ potentialFrameCount:17   );static  List<String> allFiles = [hexwoodMaim.path,
+];
+static  List<String> allFilesFlame = [hexwoodMaim.flamePath,
+];
+}
+class ImagesAssetsLargeSword {
+///large_sword.png
+static const FileDataClass largeSword = 
+(path:"assets/images/weapons/large_sword/large_sword.png",flamePath:"weapons/large_sword/large_sword.png", size:(26.0,90.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [largeSword.path,
+];
+static  List<String> allFilesFlame = [largeSword.flamePath,
+];
+}
 class ImagesAssetsMelee {
 ///scratch_1.png
 static const FileDataClass scratch1 = 
@@ -1200,6 +1139,33 @@ static  List<String> allFilesFlame = [scratch1.flamePath,
 smallCrushEffect.flamePath,
 smallSlashEffect.flamePath,
 smallStabEffect.flamePath,
+];
+}
+class ImagesAssetsMindStaff {
+///mind_staff.png
+static const FileDataClass mindStaff = 
+(path:"assets/images/weapons/mind_staff/mind_staff.png",flamePath:"weapons/mind_staff/mind_staff.png", size:(32.0,96.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [mindStaff.path,
+];
+static  List<String> allFilesFlame = [mindStaff.flamePath,
+];
+}
+class ImagesAssetsPhaseDagger {
+///phase_dagger.png
+static const FileDataClass phaseDagger = 
+(path:"assets/images/weapons/phase_dagger/phase_dagger.png",flamePath:"weapons/phase_dagger/phase_dagger.png", size:(22.0,51.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [phaseDagger.path,
+];
+static  List<String> allFilesFlame = [phaseDagger.flamePath,
+];
+}
+class ImagesAssetsPrismaticBeam {
+///prismatic_beam.png
+static const FileDataClass prismaticBeam = 
+(path:"assets/images/weapons/prismatic_beam/prismatic_beam.png",flamePath:"weapons/prismatic_beam/prismatic_beam.png", size:(32.0,74.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [prismaticBeam.path,
+];
+static  List<String> allFilesFlame = [prismaticBeam.flamePath,
 ];
 }
 class ImagesAssetsProjectiles {
@@ -1496,6 +1462,84 @@ psychicHit.flamePath,
 psychicPlay.flamePath,
 psychicPlayBig.flamePath,
 psychicSpawnBig.flamePath,
+];
+}
+class ImagesAssetsRailspire {
+///railspire.png
+static const FileDataClass railspire = 
+(path:"assets/images/weapons/railspire/railspire.png",flamePath:"weapons/railspire/railspire.png", size:(36.0,89.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [railspire.path,
+];
+static  List<String> allFilesFlame = [railspire.flamePath,
+];
+}
+class ImagesAssetsSanctifiedEdge {
+///sanctified_edge.png
+static const FileDataClass sanctifiedEdge = 
+(path:"assets/images/weapons/sanctified_edge/sanctified_edge.png",flamePath:"weapons/sanctified_edge/sanctified_edge.png", size:(54.0,142.0),
+ potentialFrameCount:0   );///sanctified_edge_idle.png
+static const FileDataClass sanctifiedEdgeIdle = 
+(path:"assets/images/weapons/sanctified_edge/sanctified_edge_idle.png",flamePath:"weapons/sanctified_edge/sanctified_edge_idle.png", size:(162.0,142.0),
+ potentialFrameCount:1   );static  List<String> allFiles = [sanctifiedEdge.path,
+sanctifiedEdgeIdle.path,
+];
+static  List<String> allFilesFlame = [sanctifiedEdge.flamePath,
+sanctifiedEdgeIdle.flamePath,
+];
+}
+class ImagesAssetsScatterBlast {
+///scatter_blast.png
+static const FileDataClass scatterBlast = 
+(path:"assets/images/weapons/scatter_blast/scatter_blast.png",flamePath:"weapons/scatter_blast/scatter_blast.png", size:(18.0,102.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [scatterBlast.path,
+];
+static  List<String> allFilesFlame = [scatterBlast.flamePath,
+];
+}
+class ImagesAssetsScryshot {
+///scryshot.png
+static const FileDataClass scryshot = 
+(path:"assets/images/weapons/scryshot/scryshot.png",flamePath:"weapons/scryshot/scryshot.png", size:(64.0,128.0),
+ potentialFrameCount:1   );///scryshot_attack.png
+static const FileDataClass scryshotAttack = 
+(path:"assets/images/weapons/scryshot/scryshot_attack.png",flamePath:"weapons/scryshot/scryshot_attack.png", size:(192.0,64.0),
+ potentialFrameCount:3   );///scryshot_idle.png
+static const FileDataClass scryshotIdle = 
+(path:"assets/images/weapons/scryshot/scryshot_idle.png",flamePath:"weapons/scryshot/scryshot_idle.png", size:(608.0,64.0),
+ potentialFrameCount:10   );static  List<String> allFiles = [scryshot.path,
+scryshotAttack.path,
+scryshotIdle.path,
+];
+static  List<String> allFilesFlame = [scryshot.flamePath,
+scryshotAttack.flamePath,
+scryshotIdle.flamePath,
+];
+}
+class ImagesAssetsSwordKladenets {
+///sword_kladenets.png
+static const FileDataClass swordKladenets = 
+(path:"assets/images/weapons/sword_kladenets/sword_kladenets.png",flamePath:"weapons/sword_kladenets/sword_kladenets.png", size:(35.0,114.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [swordKladenets.path,
+];
+static  List<String> allFilesFlame = [swordKladenets.flamePath,
+];
+}
+class ImagesAssetsSwordOfJustice {
+///sword_of_justice.png
+static const FileDataClass swordOfJustice = 
+(path:"assets/images/weapons/sword_of_justice/sword_of_justice.png",flamePath:"weapons/sword_of_justice/sword_of_justice.png", size:(46.0,135.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [swordOfJustice.path,
+];
+static  List<String> allFilesFlame = [swordOfJustice.flamePath,
+];
+}
+class ImagesAssetsTuiCamai {
+///tui_camai.png
+static const FileDataClass tuiCamai = 
+(path:"assets/images/weapons/tui_camai/tui_camai.png",flamePath:"weapons/tui_camai/tui_camai.png", size:(35.0,114.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [tuiCamai.path,
+];
+static  List<String> allFilesFlame = [tuiCamai.flamePath,
 ];
 }
 class JsonsAssetsAudioMappings {

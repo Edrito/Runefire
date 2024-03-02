@@ -205,24 +205,30 @@ class SpriteAnimations {
 
   late Future<SpriteAnimation> mushroomBurrowerIdle1 = loadSpriteAnimation(
     2,
-    'enemy_sprites/mushroomSpinner/idle.png',
+    'enemy_sprites/mushroomBurrower/idle.png',
     .25,
     true,
   );
-  late Future<SpriteAnimation> mushroomBurrowerDead1 = loadSpriteAnimation(
-    10,
-    'enemy_sprites/mushroomBurrower/death.png',
+  // late Future<SpriteAnimation> mushroomBurrowerDead1 = loadSpriteAnimation(
+  //   10,
+  //   'enemy_sprites/mushroomBurrower/death.png',
+  //   .1,
+  //   false,
+  // );
+  late Future<SpriteAnimation> mushroomBurrowerJump1 = loadSpriteAnimation(
+    4,
+    'enemy_sprites/mushroomBurrower/jump.png',
     .1,
     false,
   );
   late Future<SpriteAnimation> mushroomBurrowerBurrowIn1 = loadSpriteAnimation(
-    9,
+    4,
     'enemy_sprites/mushroomBurrower/burrow_in.png',
     1,
     false,
   );
   late Future<SpriteAnimation> mushroomBurrowerBurrowOut1 = loadSpriteAnimation(
-    9,
+    4,
     'enemy_sprites/mushroomBurrower/burrow_out.png',
     1,
     false,
@@ -379,102 +385,142 @@ class SpriteAnimations {
 //Guns
   late Future<SpriteAnimation> arcaneBlasterIdle1 = loadSpriteAnimation(
     1,
-    ImagesAssetsWeapons.arcaneBlaster.flamePath,
+    ImagesAssetsArcaneBlaster.arcaneBlaster.flamePath,
     .2,
     true,
   );
 
   late Future<SpriteAnimation> crystalPistolIdle1 = loadSpriteAnimation(
     1,
-    ImagesAssetsWeapons.crystalPistol.flamePath,
+    ImagesAssetsCrystalPistol.crystalPistol.flamePath,
     1,
     true,
   );
 
   late Future<SpriteAnimation> scatterVineIdle1 = loadSpriteAnimation(
     1,
-    ImagesAssetsWeapons.scatterBlast.flamePath,
+    ImagesAssetsScatterBlast.scatterBlast.flamePath,
     1,
     true,
   );
 
   late Future<SpriteAnimation> scryshotAttack1 = loadSpriteAnimation(
     6,
-    ImagesAssetsWeapons.scryshotAttack.flamePath,
+    ImagesAssetsScryshot.scryshotAttack.flamePath,
     .02,
     false,
   );
   late Future<SpriteAnimation> scryshotIdle1 = loadSpriteAnimation(
     19,
-    ImagesAssetsWeapons.scryshotIdle.flamePath,
+    ImagesAssetsScryshot.scryshotIdle.flamePath,
     .2,
     true,
   );
   late Future<SpriteAnimation> prismaticBeamIdle1 = loadSpriteAnimation(
     1,
-    ImagesAssetsWeapons.prismaticBeam.flamePath,
+    ImagesAssetsPrismaticBeam.prismaticBeam.flamePath,
     .2,
     true,
   );
   late Future<SpriteAnimation> eldritchRunnerIdle1 = loadSpriteAnimation(
     1,
-    ImagesAssetsWeapons.eldritchRunner.flamePath,
+    ImagesAssetsEldritchRunner.eldritchRunner.flamePath,
     .2,
     true,
   );
-  late Future<SpriteAnimation> railspireIdle1 =
-      loadSpriteAnimation(1, ImagesAssetsWeapons.railspire.flamePath, .2, true);
+  late Future<SpriteAnimation> railspireIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsRailspire.railspire.flamePath,
+    .2,
+    true,
+  );
 
   late Future<SpriteAnimation> emberBowIdle1 =
-      loadSpriteAnimation(1, ImagesAssetsWeapons.emberBow.flamePath, .2, true);
+      loadSpriteAnimation(1, ImagesAssetsEmberBow.emberBow.flamePath, .2, true);
 
 //Magic
 
   late Future<SpriteAnimation> hexwoodMaim1 = loadSpriteAnimation(
     17,
-    ImagesAssetsWeapons.hexwoodMaim.flamePath,
+    ImagesAssetsHexwoodMaim.hexwoodMaim.flamePath,
     .1,
     false,
   );
 
-  late Future<SpriteAnimation> satanicBookIdle1 =
-      loadSpriteAnimation(1, 'weapons/book_idle.png', .2, true);
-  late Future<SpriteAnimation> satanicBookAttack1 =
-      loadSpriteAnimation(1, 'weapons/book_fire.png', 2, false);
+  late Future<SpriteAnimation> satanicBookIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsDefaultBook.bookIdle.flamePath,
+    .2,
+    true,
+  );
+  late Future<SpriteAnimation> satanicBookAttack1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsDefaultBook.bookFire.flamePath,
+    2,
+    false,
+  );
 
   //Swords
 
   late Future<SpriteAnimation> phaseDaggerIdle1 = loadSpriteAnimation(
     1,
-    ImagesAssetsWeapons.phaseDagger.flamePath,
+    ImagesAssetsPhaseDagger.phaseDagger.flamePath,
     1,
     true,
   );
 
-  late Future<SpriteAnimation> crystalSwordIdle1 =
-      loadSpriteAnimation(1, 'weapons/crystal_sword.png', 1, true);
-  late Future<SpriteAnimation> mindStaffIdle1 =
-      loadSpriteAnimation(1, ImagesAssetsWeapons.mindStaff.flamePath, 1, true);
+  late Future<SpriteAnimation> crystalSwordIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsCrystalSword.crystalSword.flamePath,
+    1,
+    true,
+  );
+  late Future<SpriteAnimation> mindStaffIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsMindStaff.mindStaff.flamePath,
+    1,
+    true,
+  );
 
-  late Future<SpriteAnimation> aethertideSpearIdle1 =
-      loadSpriteAnimation(1, 'weapons/spear.png', 1, true);
+  late Future<SpriteAnimation> aethertideSpearIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsAethertideSpear.aethertideSpear.flamePath,
+    1,
+    true,
+  );
   late Future<SpriteAnimation> sanctifiedEdgeIdle1 = loadSpriteAnimation(
     3,
-    ImagesAssetsWeapons.sanctifiedEdge.flamePath,
+    ImagesAssetsSanctifiedEdge.sanctifiedEdgeIdle.flamePath,
     1,
     true,
   );
 
-  late Future<SpriteAnimation> fireSwordIdle1 =
-      loadSpriteAnimation(1, ImagesAssetsWeapons.flameSword.flamePath, 1, true);
+  late Future<SpriteAnimation> fireSwordIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsFlameSword.flameSword.flamePath,
+    1,
+    true,
+  );
 
-  late Future<SpriteAnimation> largeSwordIdle1 =
-      loadSpriteAnimation(1, 'weapons/large_sword.png', 1, true);
+  late Future<SpriteAnimation> largeSwordIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsLargeSword.largeSword.flamePath,
+    1,
+    true,
+  );
 
-  late Future<SpriteAnimation> swordOfJusticeIdle1 =
-      loadSpriteAnimation(1, 'weapons/sword_of_justice.png', 1, true);
-  late Future<SpriteAnimation> frostKatanaIdle1 =
-      loadSpriteAnimation(1, 'weapons/frost_katana.png', 1, true);
+  late Future<SpriteAnimation> swordOfJusticeIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsSwordOfJustice.swordOfJustice.flamePath,
+    1,
+    true,
+  );
+  late Future<SpriteAnimation> frostKatanaIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsFrostKatana.frostKatana.flamePath,
+    1,
+    true,
+  );
 
 //Charge Effects
 

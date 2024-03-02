@@ -92,8 +92,7 @@ class CrystalPistol extends PlayerWeapon
   @override
   DoubleParameterManager weaponScale =
       DoubleParameterManager(baseParameter: .75);
-  @override
-  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
+
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
 }
@@ -187,8 +186,6 @@ class Shotgun extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
@@ -261,8 +258,6 @@ class Scryshot extends PlayerWeapon
   ];
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = weaponType.getImageClass.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.spriteBullet;
@@ -351,8 +346,7 @@ class ArcaneBlaster extends PlayerWeapon
   @override
   DoubleParameterManager weaponScale =
       DoubleParameterManager(baseParameter: .5);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
+
   @override
   ProjectileType? projectileType = ProjectileType.blackSpriteBullet;
 }
@@ -440,8 +434,6 @@ class PrismaticBeam extends PlayerWeapon
   ];
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.prismaticBeam.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.followLaser;
@@ -544,8 +536,6 @@ class EldritchRunner extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.eldritchRunner.size.asVector2;
 
   @override
   ProjectileType? projectileType = ProjectileType.magicProjectile;
@@ -626,8 +616,6 @@ class Railspire extends PlayerWeapon
   SemiAutoType semiAutoType = SemiAutoType.release;
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.railspire.size.asVector2;
 }
 
 class ShimmerRifle extends PlayerWeapon
@@ -702,8 +690,7 @@ class ShimmerRifle extends PlayerWeapon
   @override
   DoubleParameterManager weaponScale =
       DoubleParameterManager(baseParameter: .5);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
+
   @override
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 }
@@ -796,8 +783,7 @@ class EmberBow extends PlayerWeapon
   @override
   DoubleParameterManager weaponScale =
       DoubleParameterManager(baseParameter: .5);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.arcaneBlaster.size.asVector2;
+
   @override
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 

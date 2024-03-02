@@ -64,7 +64,7 @@ mixin ReloadFunctionality on Weapon {
     if (entityAncestor == null) {
       return;
     }
-    entityAncestor!.entityStatusWrapper.addReloadAnimation(
+    entityAncestor!.entityVisualEffectsWrapper.addReloadAnimation(
       weaponId,
       reloadTime.parameter,
       reloadTimer!,
@@ -127,7 +127,7 @@ mixin ReloadFunctionality on Weapon {
   }
 
   void removeReloadAnimation() {
-    entityAncestor?.entityStatusWrapper
+    entityAncestor?.entityVisualEffectsWrapper
         .removeReloadAnimation(weaponId, isSecondaryWeapon);
   }
 
@@ -429,14 +429,14 @@ mixin SecondaryFunctionality on Weapon {
 
   @override
   void weaponSwappedFrom() {
-    final entityStatusWrapper = entityAncestor?.entityStatusWrapper;
+    final entityStatusWrapper = entityAncestor?.entityVisualEffectsWrapper;
     entityStatusWrapper?.hideReloadAnimations(weaponId);
     super.weaponSwappedFrom();
   }
 
   @override
   void weaponSwappedTo() {
-    final entityStatusWrapper = entityAncestor?.entityStatusWrapper;
+    final entityStatusWrapper = entityAncestor?.entityVisualEffectsWrapper;
     entityStatusWrapper?.showReloadAnimations(weaponId);
     super.weaponSwappedTo();
   }

@@ -25,25 +25,14 @@ import 'package:uuid/uuid.dart';
 
 mixin AttributeFunctionality on Entity {
   final Map<AttributeType, Attribute> _currentAttributes = {};
+
   bool initalized = false;
   Random rng = Random();
 
-  bool hasAttribute(AttributeType attribute) =>
-      _currentAttributes.containsKey(attribute);
-
-  bool hasAnyAttribute(List<AttributeType> attributes) =>
-      attributes.any(_currentAttributes.containsKey);
-
-  List<Attribute> get currentAttributes => _currentAttributes.values.toList();
   List<AttributeType> get currentAttributeTypes =>
       _currentAttributes.keys.toList();
 
-  Attribute? getAttribute(AttributeType attribute) {
-    if (_currentAttributes.containsKey(attribute)) {
-      return _currentAttributes[attribute]!;
-    }
-    return null;
-  }
+  List<Attribute> get currentAttributes => _currentAttributes.values.toList();
 
   void addAttribute(
     AttributeType attribute, {
@@ -198,6 +187,19 @@ mixin AttributeFunctionality on Entity {
     initalized = false;
   }
 
+  Attribute? getAttribute(AttributeType attribute) {
+    if (_currentAttributes.containsKey(attribute)) {
+      return _currentAttributes[attribute]!;
+    }
+    return null;
+  }
+
+  bool hasAnyAttribute(List<AttributeType> attributes) =>
+      attributes.any(_currentAttributes.containsKey);
+
+  bool hasAttribute(AttributeType attribute) =>
+      _currentAttributes.containsKey(attribute);
+
   ///Initial Attribtes and their initial level
   ///i.e. Max Speed : Level 3
   void initAttributes(Map<AttributeType, int> attributesToAdd) {
@@ -255,13 +257,14 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<AttachedToBodyChildEntity> _headEntities = [];
   final List<Function> _pulseFunctions = [];
 
+  int _currentPulseIndex = 0;
+
   final List<Function(double stamina)> onStaminaModified = [];
   final List<Function(Expendable item)> onItemPickup = [];
   final List<Function(Expendable item)> onExpendableUsed = [];
   final List<Function(Weapon weapon)> onAttack = [];
   final List<Function(ReloadFunctionality weapon)> onReloadComplete = [];
   final List<Function(ReloadFunctionality weapon)> onReload = [];
-  final List<Function(double dt)> onUpdate = [];
   final List<Function()> dashBeginFunctions = [];
   final List<Function()> dashEndFunctions = [];
   final List<Function()> dashOngoingFunctions = [];
@@ -275,10 +278,11 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<Function(HealthFunctionality other)> onTouch = [];
   final List<Function(DamageInstance instance)> onHeal = [];
   final List<Function(DamageInstance instance)> onKillOtherEntity = [];
+  final List<OnHitDef> onDamageTaken = [];
   final List<OnHitDef> onHitByOtherEntity = [];
   final List<OnHitDef> onHitByProjectile = [];
   final List<OnHitDef> onHitOtherEntity = [];
-  final List<OnHitDef> onDamageTaken = [];
+  late final pulseFunctionId = const Uuid().v4();
 
   //Only called when damage is 100% going to be applied
   final List<OnHitDef> onPostDamageOtherEntity = [];
@@ -287,9 +291,7 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<OnHitDef> onPreDamageOtherEntity = [];
 
   Map<double, double> previousBodyAngle = {1: 0};
-
   double previousHeadAngle = 0;
-
   DoubleParameterManager pulsePeriod =
       DoubleParameterManager(baseParameter: 3, minParameter: 0.5);
 
@@ -320,27 +322,6 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
       enviroment.addPhysicsComponent([entity]);
     }
   }
-
-  void removePulseFunction(Function function) {
-    _pulseFunctions.remove(function);
-  }
-
-  int _currentPulseIndex = 0;
-
-  void _processPulseFunctions(double dt) {
-    if (_pulseFunctions.isEmpty) {
-      return;
-    }
-
-    _currentPulseIndex =
-        ((_currentPulseIndex + 1) % _pulseFunctions.length).clamp(
-      0,
-      _pulseFunctions.length - 1,
-    );
-    _pulseFunctions[_currentPulseIndex].call();
-  }
-
-  late final pulseFunctionId = const Uuid().v4();
 
   // @override
   // Future<void> onLoad() {
@@ -400,6 +381,10 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     final entityToRemove = _headEntities[index];
     entityToRemove.removeFromParent();
     _headEntities.removeAt(index);
+  }
+
+  void removePulseFunction(Function function) {
+    _pulseFunctions.remove(function);
   }
 
   void touchFunctions(HealthFunctionality other) {
@@ -497,39 +482,59 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
 
     previousHeadAngle = currentAngle;
   }
+
+  void _processPulseFunctions(double dt) {
+    if (_pulseFunctions.isEmpty) {
+      return;
+    }
+
+    _currentPulseIndex =
+        ((_currentPulseIndex + 1) % _pulseFunctions.length).clamp(
+      0,
+      _pulseFunctions.length - 1,
+    );
+    _pulseFunctions[_currentPulseIndex].call();
+  }
 }
 
-class StatusEffect extends PositionComponent {
+class StatusEffect extends SpriteAnimationComponent {
   StatusEffect(this.effect, this.level);
 
   final StatusEffects effect;
   final int level;
   final double spriteSize = .7;
 
-  late SpriteAnimationComponent spriteAnimationComponent;
-
   @override
   FutureOr<void> onLoad() async {
     size = Vector2.all(spriteSize);
     anchor = Anchor.center;
+    animation = await getEffectSprite(effect);
 
-    spriteAnimationComponent = SpriteAnimationComponent(
-      animation: await getEffectSprite(effect),
-      size: size,
-      anchor: Anchor.center,
-    );
-
-    spriteAnimationComponent.size = size * ((level.toDouble() / 30) + 1);
-    add(spriteAnimationComponent);
+    size = size * ((level.toDouble() / 30) + 1);
     return super.onLoad();
   }
 }
 
-class EntityStatusEffectsWrapper {
-  EntityStatusEffectsWrapper({required this.entity});
+typedef AnimationItem = ({
+  double? duration,
+  SpriteAnimation animation,
+  SpriteAnimationComponent component,
+  String id,
+  int xPosition
+});
+
+class EntityVisualEffectsWrapper {
+  EntityVisualEffectsWrapper({required this.entity}) {
+    entity.onUpdate.add(onUpdate);
+  }
+
+  final Map<String, AnimationItem> _activeStatusBarItems = {};
+  final Map<String, AnimationItem> _activeGroundItems = {};
+  final Map<String, double> _activeStatusBarTimers = {};
+  final Map<String, double> _activeGroundTimers = {};
 
   ///ID, Effect
-  Map<StatusEffects, StatusEffect> activeStatusEffects = {};
+  final Map<StatusEffects, StatusEffect> _activeStatusEffects = {};
 
   Entity entity;
 
@@ -576,29 +581,100 @@ class EntityStatusEffectsWrapper {
       ..addToParent(entity);
   }
 
+  Future<void> addStatusBarItem({
+    required String id,
+    required int xPosition,
+    double? duration,
+    SpriteAnimation? animation,
+    SpriteAnimationComponent? component,
+  }) async {
+    assert(animation != null || component != null, 'gotta add something');
+    if (removedAnimations) {
+      return;
+    }
+
+    _activeStatusBarItems[id] = (
+      duration: duration,
+      component: (component ??
+          SpriteAnimationComponent(
+            animation: animation,
+            size: animation!.frames.first.sprite.srcSize
+              ..scaledToHeight(entity),
+            anchor: Anchor.center,
+          ))
+        ..addToParent(entity),
+      animation: animation ??
+          (await component!.loaded.then((value) => component.animation!)),
+      id: id,
+      xPosition: xPosition,
+    );
+    _activeStatusBarTimers[id] = 0;
+    rePositionStatusBarItems();
+  }
+
   void addStatusEffect(StatusEffects effect, int level) {
     if (removedAnimations) {
       return;
     }
     if (effect.isStatusBar) {
-      activeStatusEffects[effect]?.removeFromParent();
+      late final StatusEffect statusEffect;
+      addStatusBarItem(
+        component: statusEffect = StatusEffect(effect, level),
+        id: effect.toString(),
+        xPosition: effect.index,
+      );
+      _activeStatusEffects[effect]?.removeFromParent();
 
-      activeStatusEffects[effect] = StatusEffect(effect, level);
-      final posX = getXPosition(effect);
-      activeStatusEffects[effect]!.position.x = posX;
-      activeStatusEffects[effect]!.position.y = -.2 - (entity.spriteHeight);
-      activeStatusEffects[effect]?.addToParent(entity);
+      _activeStatusEffects[effect] = statusEffect;
     } else if (effect == StatusEffects.marked) {
       addMarkedStatus();
     }
   }
 
+  Future<void> addGroundAnimation({
+    required SpriteAnimation animation,
+    required String id,
+    double? duration,
+    bool followEntity = true,
+    double yOffset = 0,
+    bool moveDirection = false,
+  }) async {
+    final size = animation.frames.first.sprite.srcSize;
+
+    size.scaledToHeight(entity);
+
+    final sprite = SpriteAnimationComponent(
+      anchor: Anchor.center,
+      size: size,
+      animation: animation,
+    );
+    if ((!entity.isFlipped && !moveDirection) ||
+        (moveDirection && entity.body.linearVelocity.x < 0)) {
+      sprite.flipHorizontallyAroundCenter();
+    }
+    if (followEntity) {
+      sprite.position = Vector2(0, yOffset);
+    } else {
+      sprite.position = Vector2(entity.center.x, entity.center.y + yOffset);
+      entity.enviroment.add(sprite);
+    }
+    if (!sprite.animation!.loop) {
+      sprite.animationTicker?.completed
+          .then((value) => sprite.removeFromParent());
+    } else {
+      _activeGroundItems[id] = (
+        duration: duration,
+        component: sprite,
+        animation: animation,
+        id: id,
+        xPosition: 0,
+      );
+      _activeGroundTimers[id] = 0;
+    }
+  }
+
   String generateKey(String sourceId, bool isSecondary) =>
       '${sourceId}_$isSecondary';
-
-  double getXPosition(StatusEffects effect) {
-    return (((effect.index) / StatusEffects.values.length) * width) - width / 2;
-  }
 
   void hideReloadAnimations(String sourceId) {
     for (final isSecondary in [true, false]) {
@@ -607,12 +683,79 @@ class EntityStatusEffectsWrapper {
     }
   }
 
+  void onUpdate(double dt) {
+    for (final entry in [..._activeStatusBarTimers.entries]) {
+      _activeStatusBarTimers[entry.key] = entry.value + dt;
+      if (_activeStatusBarItems[entry.key] == null) {
+        removeStatusBarItem(entry.key);
+      } else if (_activeStatusBarItems[entry.key]!.duration == null) {
+        continue;
+      } else if (entry.value >
+          (_activeStatusBarItems[entry.key]?.duration ?? -1.0)) {
+        removeStatusBarItem(entry.key);
+      }
+    }
+
+    for (final entry in [..._activeGroundTimers.entries]) {
+      _activeGroundTimers[entry.key] = entry.value + dt;
+      if (_activeGroundItems[entry.key] == null) {
+        removeGroundItem(entry.key);
+      } else if (_activeGroundItems[entry.key]!.duration == null) {
+        continue;
+      } else if (entry.value >
+          (_activeGroundItems[entry.key]?.duration ?? -1.0)) {
+        removeGroundItem(entry.key);
+      }
+    }
+  }
+
+  void rePositionStatusBarItems() {
+    final keys = _activeStatusBarItems.keys.toList();
+    if (keys.isEmpty) {
+      return;
+    }
+    keys.sort(
+      (a, b) => _activeStatusBarItems[a]!
+          .xPosition
+          .compareTo(_activeStatusBarItems[b]!.xPosition),
+    );
+
+    // Calculate total width of all items
+    const maxItemsPerRow = 5;
+
+    // Constants for stacking
+    const rowSpacing = .75; // Adjust this for vertical spacing between rows
+    var rowNumber = 0;
+    // Position items with stacking
+    for (var i = 0; i < keys.length; i++) {
+      final item = _activeStatusBarItems[keys[i]]!;
+      rowNumber = i ~/ maxItemsPerRow;
+      final itemsThisRow =
+          (keys.length - (rowNumber * maxItemsPerRow)).clamp(0, maxItemsPerRow);
+
+      // Calculate starting X position (centered)
+
+      final totalWidth = item.component.size.x * itemsThisRow;
+      final startX = -(totalWidth / 2);
+
+      final y = .5 -
+          (entity.spriteHeight) -
+          (rowSpacing * rowNumber.clamp(0, 20)); // Calculate row
+
+      final x = startX +
+          ((i % maxItemsPerRow) * item.component.size.x) +
+          (item.component.size.x / 2);
+
+      item.component.position = Vector2(x, y);
+    }
+  }
+
   void removeAllAnimations() {
     removedAnimations = true;
-    for (final element in activeStatusEffects.values) {
+    for (final element in _activeStatusEffects.values) {
       element.removeFromParent();
     }
-    activeStatusEffects.clear();
+    _activeStatusEffects.clear();
 
     for (final element in reloadAnimations.values) {
       element.removeFromParent();
@@ -641,9 +784,20 @@ class EntityStatusEffectsWrapper {
     reloadAnimations.remove(key);
   }
 
+  void removeGroundItem(String id) {
+    _activeGroundItems[id]?.component.removeFromParent();
+    _activeGroundItems.remove(id);
+  }
+
+  void removeStatusBarItem(String id) {
+    _activeStatusBarItems[id]?.component.removeFromParent();
+    _activeStatusBarItems.remove(id);
+    rePositionStatusBarItems();
+  }
+
   void removeStatusEffect(StatusEffects statusEffects) {
-    activeStatusEffects[statusEffects]?.removeFromParent();
-    activeStatusEffects.remove(statusEffects);
+    removeStatusBarItem(statusEffects.toString());
+    _activeStatusEffects.remove(statusEffects);
 
     if (statusEffects == StatusEffects.marked) {
       removeMarked();
@@ -688,10 +842,10 @@ class ReloadAnimation extends PositionComponent {
   FutureOr<void> onLoad() {
     final parent = this.parent! as Player;
     // final parentSize = weaponAncestor.entityAncestor!.spriteWrapper.size;
-    final width = parent.entityStatusWrapper.width * .7;
+    final width = parent.entityVisualEffectsWrapper.width * .7;
     // final x = (parent.entityStatusWrapper.width - width) / 2;
     size.y = height;
-    size.x = parent.entityStatusWrapper.width * .7;
+    size.x = parent.entityVisualEffectsWrapper.width * .7;
     position.y = -parent.spriteHeight * .75;
     position.x = width / -2;
 

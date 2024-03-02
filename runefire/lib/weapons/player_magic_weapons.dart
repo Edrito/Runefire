@@ -112,8 +112,6 @@ class Icecicle extends PlayerWeapon
   @override
   DoubleParameterManager weaponScale =
       DoubleParameterManager(baseParameter: .5);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -363,8 +361,6 @@ class PowerWord extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
@@ -466,8 +462,6 @@ class FireballMagic extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
@@ -561,8 +555,6 @@ class EnergyMagic extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -670,8 +662,6 @@ class PsychicMagic extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -742,8 +732,6 @@ class MagicBlast extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.release;
@@ -840,8 +828,6 @@ class MagicMissile extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.paintBullet;
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -955,8 +941,6 @@ class BreathOfFire extends PlayerWeapon
   @override
   DoubleParameterManager weaponScale =
       DoubleParameterManager(baseParameter: .5);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 }
 
 class ElementalChannel extends PlayerWeapon
@@ -1076,8 +1060,6 @@ class ElementalChannel extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 }
 
 class HexwoodMaim extends PlayerWeapon
@@ -1207,8 +1189,6 @@ class HexwoodMaim extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
-  @override
-  late Vector2 pngSize = ImagesAssetsWeapons.bookIdle.size.asVector2;
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;

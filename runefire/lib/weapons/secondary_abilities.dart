@@ -24,7 +24,7 @@ import 'package:uuid/uuid.dart';
 
 abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
   SecondaryWeaponAbility(this.weapon, this.cooldown, int? newUpgradeLevel) {
-    entityStatusWrapper = weapon?.entityAncestor?.entityStatusWrapper;
+    entityStatusWrapper = weapon?.entityAncestor?.entityVisualEffectsWrapper;
 
     newUpgradeLevel ??= 0;
     maxLevel = secondaryType.maxLevel;
@@ -62,7 +62,7 @@ abstract class SecondaryWeaponAbility extends Component with UpgradeFunctions {
     super.onRemove();
   }
 
-  late final EntityStatusEffectsWrapper? entityStatusWrapper;
+  late final EntityVisualEffectsWrapper? entityStatusWrapper;
   Weapon? weapon;
   double cooldown;
   TimerComponent? cooldownTimer;

@@ -532,7 +532,9 @@ class MushroomSpinner extends Enemy
 
 class MushroomBurrower extends Enemy
     with
+        JumpFunctionality,
         MovementFunctionality,
+        HopFollowAI,
         AimFunctionality,
         TouchDamageFunctionality,
         AttackFunctionality,
@@ -550,7 +552,7 @@ class MushroomBurrower extends Enemy
         mushroomShooterBaseInvincibilityDuration;
 
     maxHealth.baseParameter = mushroomShooterBaseMaxHealth;
-    speed.baseParameter = 0;
+    // speed.baseParameter = 0;
 
     collision.baseParameter = false;
 
@@ -566,7 +568,13 @@ class MushroomBurrower extends Enemy
       triggerFunctions: [],
     );
 
-    const groundDuration = 2.0;
+    const groundDuration = 3.0;
+
+    onHitByOtherEntity.add((instance) {
+      timeSinceHit = 0;
+      return false;
+    });
+
     enemyStates = {
       //Out
       0: EnemyState(
@@ -576,10 +584,10 @@ class MushroomBurrower extends Enemy
         onStateStart: (duration) async {
           toggleIdleRunAnimations(false);
           if (initState) {
-            body.setTransform(
-              SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1),
-              angle,
-            );
+            // body.setTransform(
+            //   SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1),
+            //   angle,
+            // );
             await setEntityAnimation('burrow_out')
                 .then((value) => setEntityAnimation(EntityStatus.idle));
           } else {
@@ -591,11 +599,19 @@ class MushroomBurrower extends Enemy
 
           final count = 2 + (rng.nextBool() ? 0 : 2);
           currentWeapon?.attackCountIncrease.baseParameter = count;
+          movementEnabled.removeKey(
+            entityId,
+          );
+          invincible.removeKey(
+            entityId,
+          );
 
           currentWeapon?.startAttacking();
         },
         stateDuration: (4, 5),
-        triggerFunctions: [],
+        triggerFunctions: [
+          () => canUnBurrow,
+        ],
         onStateEnd: () {},
       ),
       //In
@@ -610,6 +626,9 @@ class MushroomBurrower extends Enemy
           toggleIdleRunAnimations(true);
           touchDamage.damageBase.clear();
           collision.setIncrease(entityId, false);
+          movementEnabled.setIncrease(entityId, false);
+          invincible.setIncrease(entityId, true);
+          currentWeapon?.endAttacking();
         },
         triggerFunctions: [],
       ),
@@ -638,11 +657,26 @@ class MushroomBurrower extends Enemy
     }
   }
 
+  double timeSinceHit = 0;
+  final double unBurrowHitTime = 3;
+
+  bool get canUnBurrow => timeSinceHit > unBurrowHitTime;
+
+  @override
+  void update(double dt) {
+    moveCharacter();
+    timeSinceHit += dt;
+
+    super.update(dt);
+  }
+
   @override
   Future<void> loadAnimationSprites() async {
     toggleIdleRunAnimations(false);
-    entityAnimations[EntityStatus.dead] =
-        await spriteAnimations.mushroomBurrowerDead1;
+    // entityAnimations[EntityStatus.dead] =
+    //     await spriteAnimations.mushroomBurrowerDead1;
+    entityAnimations[EntityStatus.jump] =
+        await spriteAnimations.mushroomBurrowerJump1;
     entityAnimations['burrow_in'] =
         await spriteAnimations.mushroomBurrowerBurrowIn1
           ..stepTime = burrowSpeed / 9;

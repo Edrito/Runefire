@@ -39,6 +39,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     EntityStatus.walk,
     EntityStatus.idle,
   ];
+  final List<Function(double dt)> onUpdate = [];
 
   Entity({
     required this.initialPosition,
@@ -67,7 +68,7 @@ abstract class Entity extends BodyComponent<GameRouter>
   late SpriteAnimationGroupComponent entityAnimationsGroup;
   late String entityId;
   dynamic entityAnimationStatus = EntityStatus.spawn;
-  late EntityStatusEffectsWrapper entityStatusWrapper;
+  late EntityVisualEffectsWrapper entityVisualEffectsWrapper;
   abstract EntityType entityType;
   Enviroment enviroment;
   EventManagement eventManagement;
@@ -79,36 +80,6 @@ abstract class Entity extends BodyComponent<GameRouter>
   bool temporaryAnimationPlaying = false;
 
   abstract Filter? filter;
-
-  Future<void> applyGroundAnimation(
-    SpriteAnimation animation,
-    bool followEntity,
-    double yOffset, [
-    bool moveDirection = false,
-  ]) async {
-    final size = animation.frames.first.sprite.srcSize;
-
-    size.scaledToHeight(this);
-
-    final sprite = SpriteAnimationComponent(
-      anchor: Anchor.center,
-      size: size,
-      animation: animation,
-    );
-    if ((!isFlipped && !moveDirection) ||
-        (moveDirection && body.linearVelocity.x < 0)) {
-      sprite.flipHorizontallyAroundCenter();
-    }
-    if (followEntity) {
-      sprite.position = Vector2(0, yOffset);
-    } else {
-      enviroment.add(sprite);
-
-      sprite.position = Vector2(center.x, center.y + yOffset);
-    }
-    sprite.animationTicker?.completed
-        .then((value) => sprite.removeFromParent());
-  }
 
   void applyHeightToSprite() {
     spriteSize = getSpriteSize;
@@ -380,7 +351,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     entityAnimationsGroup.flipHorizontallyAroundCenter();
     add(entityAnimationsGroup);
     enviroment.activeEntites.add(this);
-    entityStatusWrapper = EntityStatusEffectsWrapper(entity: this);
+    entityVisualEffectsWrapper = EntityVisualEffectsWrapper(entity: this);
     height.addListener((value) {
       applyHeightToSprite();
     });

@@ -86,12 +86,35 @@ flutter:
     - assets/images/ui/ammo/
     - assets/images/ui/permanent_attributes/
     - assets/images/weapons/
+    - assets/images/weapons/aethertide_spear/
+    - assets/images/weapons/arcane_blaster/
     - assets/images/weapons/charge/
+    - assets/images/weapons/crystal_pistol/
+    - assets/images/weapons/crystal_sword/
+    - assets/images/weapons/default_book/
+    - assets/images/weapons/eldritch_runner/
+    - assets/images/weapons/ember_bow/
+    - assets/images/weapons/flame_sword/
+    - assets/images/weapons/frost_katana/
+    - assets/images/weapons/hexwood_maim/
+    - assets/images/weapons/large_sword/
     - assets/images/weapons/melee/
+    - assets/images/weapons/mind_staff/
+    - assets/images/weapons/phase_dagger/
+    - assets/images/weapons/prismatic_beam/
     - assets/images/weapons/projectiles/
     - assets/images/weapons/projectiles/blasts/
     - assets/images/weapons/projectiles/bullets/
     - assets/images/weapons/projectiles/magic/
+    - assets/images/weapons/railspire/
+    - assets/images/weapons/sanctified_edge/
+    - assets/images/weapons/scatter_blast/
+    - assets/images/weapons/scryshot/
+    - assets/images/weapons/sword_kladenets/
+    - assets/images/weapons/sword_of_justice/
+    - assets/images/weapons/tui_camai/
+    - assets/jsons/
+    - assets/jsons/audio_mappings/
 
   # assets end
 
