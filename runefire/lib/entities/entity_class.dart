@@ -6,6 +6,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/attributes/attributes_status_effect.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/hidden_child_entities/child_entities.dart';
 import 'package:runefire/game/enviroment.dart';
@@ -14,6 +15,7 @@ import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/constants/routes.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/projectile_class.dart';
@@ -34,13 +36,6 @@ abstract class Entity extends BodyComponent<GameRouter>
         ContactCallbacks,
         ElementalPower,
         UpdateFunctionsThenRemove {
-  static const dupeStatusCheckerList = [
-    EntityStatus.run,
-    EntityStatus.walk,
-    EntityStatus.idle,
-  ];
-  final List<Function(double dt)> onUpdate = [];
-
   Entity({
     required this.initialPosition,
     required this.eventManagement,
@@ -48,38 +43,80 @@ abstract class Entity extends BodyComponent<GameRouter>
   }) {
     initializeParameterManagers();
     entityId = const Uuid().v4();
+    animationPaused.addListener((parameter) {
+      entityAnimationsGroup.animationTicker?.paused = parameter;
+    });
   }
 
-  List<Function(bool isFlipped)> onBodyFlip = [];
+  final List<Function(double dt)> onUpdate = [];
+  final List<Function(bool isFlipped)> onBodyFlip = [];
+  final List<Function(Entity entity, Set<Entity> currentEntities)>
+      onBodySensorContact = [];
+
+  final List<Function(Entity entity, Set<Entity> currentEntities)>
+      onBodySensorEndContact = [];
+
+  final List<Function(Object object, Set<Object> currentObjects)>
+      onObjectSensorContact = [];
+
+  final List<Function(Object object, Set<Object> currentObjects)>
+      onObjectSensorEndContact = [];
+
+  bool get isIncapacitated {
+    return isDead ||
+        isStunned.parameter ||
+        statusEffects.contains(StatusEffects.frozen);
+  }
+
+  final Map<dynamic, ChildEntity> childrenEntities = {};
+  final Set<Entity> closeSensorBodies = {};
+  final Set<Object> closeSensorObjects = {};
+  final Set<Projectile> closeSensorProjectiles = {};
+  final Map<dynamic, SpriteAnimation> entityAnimations = {};
+  late final SpriteAnimationGroupComponent entityAnimationsGroup;
+  late final String entityId;
+  late final EntityVisualEffectsWrapper entityVisualEffectsWrapper;
+  final Enviroment enviroment;
+  final EventManagement eventManagement;
+  final Vector2 initialPosition;
+  final List<bool? Function(DamageInstance instance)> onPermanentDeath = [];
+  final List<bool? Function(DamageInstance instance)> onPreDeath = [];
+  final List<
+          Function(Projectile projectile, Set<Projectile> currentProjectiles)>
+      onProjectileSensorContact = [];
+
+  final List<
+          Function(Projectile projectile, Set<Projectile> currentProjectiles)>
+      onProjectileSensorEndContact = [];
+
+  bool collisionOnDeath = false;
+  dynamic entityAnimationStatus = EntityStatus.spawn;
+  dynamic entityAnimationStatusQueue;
+  abstract EntityType entityType;
+  bool finalAnimationDone = false;
+  bool isFlipped = false;
+
+  BoolParameterManager animationPaused = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
   ///Return true if shouldnt die
-  List<bool? Function(DamageInstance instance)> onDeath = [];
-  List<bool? Function(DamageInstance instance)> onPreDeath = [];
-  List<bool? Function(DamageInstance instance)> onPermanentDeath = [];
+  final List<bool? Function(DamageInstance instance)> onDeath = [];
 
-  Map<dynamic, ChildEntity> childrenEntities = {};
-
-  Set<Projectile> closeSensorProjectiles = {};
-  Set<Entity> closeSensorBodies = {};
-  Set<Object> closeSensorObjects = {};
-  bool collisionOnDeath = false;
-  int currentHitAnimations = 0;
-  Map<dynamic, SpriteAnimation> entityAnimations = {};
-  late SpriteAnimationGroupComponent entityAnimationsGroup;
-  late String entityId;
-  dynamic entityAnimationStatus = EntityStatus.spawn;
-  late EntityVisualEffectsWrapper entityVisualEffectsWrapper;
-  abstract EntityType entityType;
-  Enviroment enviroment;
-  EventManagement eventManagement;
-  Vector2 initialPosition;
-  bool isFlipped = false;
   late Vector2 spriteSize = getSpriteSize;
   dynamic statusPrevious;
-  dynamic entityAnimationStatusQueue;
   bool temporaryAnimationPlaying = false;
 
   abstract Filter? filter;
+
+  static const dupeStatusCheckerList = [
+    EntityStatus.run,
+    EntityStatus.walk,
+    EntityStatus.idle,
+  ];
+
+  double get hitboxRadius => entityAnimationsGroup.size.x / 2.4;
 
   void applyHeightToSprite() {
     spriteSize = getSpriteSize;
@@ -91,43 +128,6 @@ abstract class Entity extends BodyComponent<GameRouter>
           )
           .shape = CircleShape()..radius = hitboxRadius;
     }
-  }
-
-  Future<void> applyHitAnimation(
-    SpriteAnimation animation,
-    Vector2 sourcePosition, [
-    Color? color,
-  ]) async {
-    if (animation.loop || currentHitAnimations > hitAnimationLimit) {
-      return;
-    }
-    currentHitAnimations++;
-    final hitSize = animation.frames.first.sprite.srcSize;
-    hitSize.scaledToHeight(this);
-    final thisHeight = spriteHeight;
-    final sprite = SpriteAnimationComponent(
-      anchor: Anchor.center,
-      size: hitSize,
-      animation: animation,
-    );
-    if (color != null) {
-      sprite.paint = colorPalette.buildProjectile(
-        color: color,
-        projectileType: ProjectileType.paintBullet,
-        lighten: false,
-      );
-    }
-    sprite.position = Vector2(
-      (rng.nextDouble() * thisHeight / 3) - thisHeight / 6,
-      (sourcePosition - center).y.clamp(thisHeight * -.5, thisHeight * .5),
-    );
-
-    add(sprite);
-    sprite.animationTicker?.completed.then((value) {
-      sprite.removeFromParent();
-
-      currentHitAnimations--;
-    });
   }
 
   void flipSprite() {
@@ -174,7 +174,7 @@ abstract class Entity extends BodyComponent<GameRouter>
   Future<void> loadAnimationSprites();
 
   void permanentlyDisableEntity() {}
-  bool finalAnimationDone = false;
+
   Future<void> setEntityAnimation(
     dynamic key, {
     bool finalAnimation = false,
@@ -182,6 +182,7 @@ abstract class Entity extends BodyComponent<GameRouter>
     //If the new key is contained in the dupe status checker list, and the current animation is the same as the new key, return
     if ((entityAnimationsGroup.current == key &&
             dupeStatusCheckerList.contains(key)) ||
+        animationPaused.parameter ||
         finalAnimationDone) {
       return;
     }
@@ -230,20 +231,6 @@ abstract class Entity extends BodyComponent<GameRouter>
     entityAnimationStatusQueue = null;
   }
 
-  List<Function(Projectile projectile, Set<Projectile> currentProjectiles)>
-      onProjectileSensorContact = [];
-  List<Function(Projectile projectile, Set<Projectile> currentProjectiles)>
-      onProjectileSensorEndContact = [];
-
-  List<Function(Entity entity, Set<Entity> currentEntities)>
-      onBodySensorContact = [];
-  List<Function(Entity entity, Set<Entity> currentEntities)>
-      onBodySensorEndContact = [];
-  List<Function(Object object, Set<Object> currentObjects)>
-      onObjectSensorContact = [];
-  List<Function(Object object, Set<Object> currentObjects)>
-      onObjectSensorEndContact = [];
-
   @override
   void beginContact(Object other, Contact contact) {
     final otherObject = other is Map ? other['object'] as Object : other;
@@ -269,7 +256,6 @@ abstract class Entity extends BodyComponent<GameRouter>
     super.beginContact(other, contact);
   }
 
-  double get hitboxRadius => entityAnimationsGroup.size.x / 2.4;
   @override
   Body createBody() {
     late CircleShape shape;
@@ -430,6 +416,21 @@ extension EntityClassGetterrs on Entity {
   double get spriteHeight => spriteSize.y;
   Vector2 get spriteOffset => Vector2.zero();
 
+  void clearStatusEffects() {
+    if (isChildEntity) {
+      (this as ChildEntity).parentEntity.clearStatusEffects();
+      return;
+    }
+    final thisIsAttr = this is AttributeFunctionality;
+    if (thisIsAttr) {
+      for (final element in statusEffects) {
+        final currentAttributes = this as AttributeFunctionality;
+        print(element);
+        currentAttributes.removeAttribute(element.getCorrospondingAttribute);
+      }
+    }
+  }
+
   Set<StatusEffects> get statusEffects {
     if (isChildEntity) {
       return (this as ChildEntity).parentEntity.statusEffects;
@@ -438,22 +439,17 @@ extension EntityClassGetterrs on Entity {
     final thisIsAttr = this is AttributeFunctionality;
     if (thisIsAttr) {
       final currentAttributes =
-          (this as AttributeFunctionality).currentAttributes;
-      final returnSet = {
-        ...currentAttributes
-            .whereType<StatusEffectAttribute>()
-            .map((e) => e.statusEffect)
-            .toSet(),
-        ...currentAttributes
-            .whereType<TemporaryAttribute>()
-            .where(
-              (element) => element.managedAttribute is StatusEffectAttribute,
-            )
-            .map(
-              (e) => (e.managedAttribute as StatusEffectAttribute).statusEffect,
-            )
-            .toSet(),
-      };
+          (this as AttributeFunctionality).currentAttributeTypes;
+      final returnSet = currentAttributes
+          .where(
+            (element) => element.territory == AttributeTerritory.statusEffect,
+          )
+          .toSet()
+          .map(
+            (e) => StatusEffects.values
+                .firstWhere((element) => e.name == element.name),
+          )
+          .toSet();
 
       return returnSet;
     }

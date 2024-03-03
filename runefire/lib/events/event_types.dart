@@ -53,7 +53,7 @@ class DeathHandEvent extends PositionEvent {
       sourceEntity: gameEnviroment.god!,
       collisionDelay: spriteTickSpeed * 13,
       onTick: (entity, areaId) async {
-        entity.applyHitAnimation(
+        entity.entityVisualEffectsWrapper.applyHitAnimation(
           await spriteAnimations.scratchEffect1,
           entity.center,
           DamageType.fire.color,

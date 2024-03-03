@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'package:runefire/attributes/attributes_perpetrator.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
@@ -12,6 +13,7 @@ import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/visuals.dart';
 
 StatusEffectAttribute? statusEffectBuilder(
   AttributeType type,
@@ -387,27 +389,27 @@ class StunAttribute extends StatusEffectAttribute {
 
   @override
   void mapUpgrade() {
-    super.mapUpgrade();
     if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
-      attr.movementEnabled.setIncrease(attributeId, false);
-      attr.movementEnabled.setIncrease('${attributeId}2', false);
+      // attr.movementEnabled.setIncrease(attributeId, false);
+      attr.isStunned.setIncrease(attributeId, true);
     }
     if (attributeOwnerEntity is AttackFunctionality) {
       final attack = attributeOwnerEntity! as AttackFunctionality;
       attack.endPrimaryAttacking();
       attack.endSecondaryAttacking();
     }
+    super.mapUpgrade();
   }
 
   @override
   void unMapUpgrade() {
-    super.unMapUpgrade();
     if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
-      attr.movementEnabled.removeKey(attributeId);
-      attr.movementEnabled.removeKey('${attributeId}2');
+      // attr.movementEnabled.removeKey(attributeId);
+      attr.isStunned.removeKey(attributeId);
     }
+    super.unMapUpgrade();
   }
 
   @override
@@ -728,19 +730,36 @@ class FrozenAttribute extends StatusEffectAttribute {
 
   @override
   String title = 'Frozen';
-
+  ColorEffect? colorEffect;
   @override
   void mapUpgrade() {
     attributeOwnerEntity?.movementEnabled.setIncrease(attributeId, false);
     attributeOwnerEntity?.isStunned.setIncrease(attributeId, true);
+    final infiniteController = InfiniteEffectController(
+      EffectController(
+        duration: .1,
+      ),
+    );
+    attributeOwnerEntity?.entityAnimationsGroup.add(
+      colorEffect = ColorEffect(
+        ApolloColorPalette.paleBlue.color,
+        opacityFrom: .3,
+        opacityTo: .5,
+        infiniteController,
+      ),
+    );
+    attributeOwnerEntity?.animationPaused.setIncrease(attributeId, true);
+
     super.mapUpgrade();
   }
 
   @override
   void unMapUpgrade() {
     super.unMapUpgrade();
+    attributeOwnerEntity?.animationPaused.removeKey(attributeId);
     attributeOwnerEntity?.movementEnabled.removeKey(attributeId);
     attributeOwnerEntity?.isStunned.removeKey(attributeId);
+    colorEffect?.removeFromParent();
   }
 }
 

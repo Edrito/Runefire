@@ -45,7 +45,7 @@ class ElementalPowerIndicatorComponent extends PositionComponent {
   late final List<DamageType> damageTypeList;
   @override
   FutureOr<void> onLoad() async {
-    damageTypeList = [...DamageType.values]..remove(DamageType.healing);
+    damageTypeList = DamageType.getValuesWithoutHealing.toList();
     final stops = <double>[
       for (int i = 0; i < damageTypeList.length + 1; i++) ...[
         i / (damageTypeList.length),

@@ -415,7 +415,7 @@ class MushroomSpinner extends Enemy
         priority: 5,
         randomFunctions: [],
         onStateEnd: () {
-          currentWeapon?.endAttacking();
+          endPrimaryAttacking();
           speed.baseParameter = mushroomShooterBaseSpeed * .5;
           touchDamage.damageBase.clear();
           rotateEffect?.removeFromParent();
@@ -426,7 +426,7 @@ class MushroomSpinner extends Enemy
         onStateStart: (duration) async {
           await toggleIdleRunAnimations(true);
           setEntityAnimation('spin_start').then((_) {
-            currentWeapon?.startAttacking();
+            startPrimaryAttacking();
             speed.baseParameter = mushroomShooterBaseSpeed * 1.5;
             touchDamage.damageBase[DamageType.psychic] = (5, 10);
             rotateEffect?.removeFromParent();
@@ -606,7 +606,7 @@ class MushroomBurrower extends Enemy
             entityId,
           );
 
-          currentWeapon?.startAttacking();
+          startPrimaryAttacking();
         },
         stateDuration: (4, 5),
         triggerFunctions: [
@@ -628,7 +628,7 @@ class MushroomBurrower extends Enemy
           collision.setIncrease(entityId, false);
           movementEnabled.setIncrease(entityId, false);
           invincible.setIncrease(entityId, true);
-          currentWeapon?.endAttacking();
+          endPrimaryAttacking();
         },
         triggerFunctions: [],
       ),

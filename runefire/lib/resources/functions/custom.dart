@@ -218,7 +218,7 @@ mixin ProjectileSpriteLifecycle on StandardProjectile {
     if (hitAnimation == null) {
       return;
     }
-    other.applyHitAnimation(hitAnimation!, position);
+    other.entityVisualEffectsWrapper.applyHitAnimation(hitAnimation!, position);
   }
 
   @override
@@ -252,14 +252,19 @@ class SimpleStartPlayEndSpriteAnimationComponent
     this.randomlyFlipped = false,
     this.endAnimation,
     this.randomizePlay = false,
+    this.fadeOut = true,
     this.desiredWidth,
+    Vector2? customSize,
     super.position,
     super.anchor = Anchor.center,
-  }) {
-    assert(playAnimation != null || spawnAnimation != null);
-    assert(spawnAnimation != null || durationType != DurationType.instant);
-    final desiredWidthIsNull = desiredWidth == null;
+  })  : assert(playAnimation != null || spawnAnimation != null),
+        assert(spawnAnimation != null || durationType != DurationType.instant) {
+    if (customSize != null) {
+      size = customSize;
+      return;
+    }
     final isSizeZero = size.x == 0 || size.y == 0;
+
     if (isSizeZero) {
       final spriteSize = playAnimation?.frames.first.sprite.srcSize ??
           spawnAnimation!.frames.first.sprite.srcSize;
@@ -267,15 +272,15 @@ class SimpleStartPlayEndSpriteAnimationComponent
       size = spriteSize;
     }
 
-    if (desiredWidthIsNull) {
-      size = size
-        ..scaledToHeight(null, amount: .1, env: GameState().currentEnviroment);
+    if (desiredWidth == null) {
+      size = size..scaledToHeight(null, env: GameState().currentEnviroment);
     } else {
       final widthRatio = desiredWidth! / (size.x);
       size = Vector2(desiredWidth!, size.y * widthRatio);
     }
   }
   bool randomizePlay = false;
+  final bool fadeOut;
   late EntityStatus currentStatus;
   double? desiredWidth;
   @override
@@ -303,10 +308,10 @@ class SimpleStartPlayEndSpriteAnimationComponent
             triggerEnding();
             break;
           default:
+            _setStatus(EntityStatus.idle);
             if (durationType == DurationType.permanent) {
               animation?.loop = true;
             }
-            _setStatus(EntityStatus.idle);
         }
       };
     } else {
@@ -329,7 +334,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
       if (!animation!.loop && !animationTicker!.isPaused) {
         await animationTicker?.completed;
         removeFromParent();
-      } else {
+      } else if (fadeOut) {
         const duration = .5;
         final controller = EffectController(
           curve: Curves.easeInCubic,
@@ -337,6 +342,8 @@ class SimpleStartPlayEndSpriteAnimationComponent
           onMax: removeFromParent,
         );
         add(OpacityEffect.fadeOut(controller));
+      } else {
+        removeFromParent();
       }
 
       return;

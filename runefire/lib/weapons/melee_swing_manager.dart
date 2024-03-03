@@ -66,7 +66,7 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
         animation = await spriteAnimations.stabEffect1;
         break;
     }
-    damage.victim.applyHitAnimation(
+    damage.victim.entityVisualEffectsWrapper.applyHitAnimation(
       animation,
       center,
       damage.damageMap.keys.first.color,

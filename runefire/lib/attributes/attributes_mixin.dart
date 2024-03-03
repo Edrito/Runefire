@@ -8,10 +8,13 @@ import 'package:forge2d/src/dynamics/contacts/contact.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
+import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
@@ -40,8 +43,8 @@ mixin AttributeFunctionality on Entity {
     bool applyUpgrade = true,
     Entity? perpetratorEntity,
     DamageType? damageType,
-    bool isTemporary = false,
     double? duration,
+    bool isTemporary = false,
   }) {
     //Already has it
     if (_currentAttributes.containsKey(attribute)) {
@@ -55,7 +58,7 @@ mixin AttributeFunctionality on Entity {
         perpetratorEntity: perpetratorEntity,
         damageType: damageType,
         duration: duration,
-        isTemporary: isTemporary,
+        isTemporary: isTemporary || duration != null,
       );
       if (applyUpgrade) {
         _currentAttributes[attribute]?.applyUpgrade();
@@ -497,23 +500,29 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   }
 }
 
-class StatusEffect extends SpriteAnimationComponent {
-  StatusEffect(this.effect, this.level);
+// class StatusEffect extends SpriteAnimationComponent {
+//   StatusEffect(this.effect, this.level);
 
-  final StatusEffects effect;
-  final int level;
-  final double spriteSize = .7;
+//   final StatusEffects effect;
+//   final int level;
+//   final double spriteSize = .7;
 
-  @override
-  FutureOr<void> onLoad() async {
-    size = Vector2.all(spriteSize);
-    anchor = Anchor.center;
-    animation = await getEffectSprite(effect);
+//   @override
+//   FutureOr<void> onLoad() async {
+//     size = Vector2.all(spriteSize);
+//     anchor = Anchor.center;
 
-    size = size * ((level.toDouble() / 30) + 1);
-    return super.onLoad();
-  }
-}
+//     switch (effect) {
+//       case StatusEffects.burn:
+
+//         break;
+//       default:
+//     }
+
+//     size = size * ((level.toDouble() / 30) + 1);
+//     return super.onLoad();
+//   }
+// }
 
 typedef AnimationItem = ({
   double? duration,
@@ -523,19 +532,24 @@ typedef AnimationItem = ({
   int xPosition
 });
 
+typedef AnimationItemTwo = ({
+  double? duration,
+  SimpleStartPlayEndSpriteAnimationComponent component,
+});
+
 class EntityVisualEffectsWrapper {
   EntityVisualEffectsWrapper({required this.entity}) {
     entity.onUpdate.add(onUpdate);
   }
 
-  final Map<String, AnimationItem> _activeStatusBarItems = {};
+  final Map<String, AnimationItemTwo> _activeBodyItems = {};
+  final Map<String, double> _activeBodyTimers = {};
   final Map<String, AnimationItem> _activeGroundItems = {};
-  final Map<String, double> _activeStatusBarTimers = {};
   final Map<String, double> _activeGroundTimers = {};
+  final Map<String, AnimationItem> _activeStatusBarItems = {};
+  final Map<String, double> _activeStatusBarTimers = {};
 
-  ///ID, Effect
-  final Map<StatusEffects, StatusEffect> _activeStatusEffects = {};
-
+  int currentHitAnimations = 0;
   Entity entity;
 
   ///ID, Animation
@@ -544,20 +558,74 @@ class EntityVisualEffectsWrapper {
   bool removedAnimations = false;
   late double width = entity.entityAnimationsGroup.width * 1.5;
 
-  SpriteAnimationComponent? markerAnimation;
-
-  Future<void> addMarkedStatus() async {
-    if (removedAnimations) {
-      return;
+  Future<void> addBodyAnimation({
+    required String id,
+    required SimpleStartPlayEndSpriteAnimationComponent component,
+    double? duration,
+    bool followEntity = true,
+    double yOffset = 0,
+    bool moveDirection = false,
+  }) async {
+    if ((!entity.isFlipped && !moveDirection) ||
+        (moveDirection && entity.body.linearVelocity.x < 0)) {
+      component.flipHorizontallyAroundCenter();
     }
-    final sprite = await getEffectSprite(StatusEffects.marked);
-    markerAnimation = SpriteAnimationComponent(
-      animation: sprite,
-      size: sprite.frames.first.sprite.srcSize..scaledToHeight(entity),
-      anchor: Anchor.center,
-    );
+    if (followEntity) {
+      component.position = Vector2(0, yOffset);
+      entity.add(component);
+    } else {
+      component.position = Vector2(
+        entity.center.x,
+        entity.center.y + yOffset,
+      );
+      entity.enviroment.add(component);
+    }
 
-    entity.add(markerAnimation!);
+    _activeBodyItems[id] = (duration: duration, component: component);
+    _activeBodyTimers[id] = 0;
+  }
+
+  Future<void> addGroundAnimation({
+    required SpriteAnimation animation,
+    required String id,
+    double? duration,
+    bool followEntity = true,
+    double yOffset = 0,
+    bool moveDirection = false,
+  }) async {
+    final size = animation.frames.first.sprite.srcSize;
+
+    size.scaledToHeight(entity);
+
+    final sprite = SpriteAnimationComponent(
+      anchor: Anchor.center,
+      size: size,
+      animation: animation,
+    );
+    if ((!entity.isFlipped && !moveDirection) ||
+        (moveDirection && entity.body.linearVelocity.x < 0)) {
+      sprite.flipHorizontallyAroundCenter();
+    }
+    if (followEntity) {
+      sprite.position = Vector2(0, yOffset);
+      entity.add(sprite);
+    } else {
+      sprite.position = Vector2(entity.center.x, entity.center.y + yOffset);
+      entity.enviroment.add(sprite);
+    }
+    if (!sprite.animation!.loop) {
+      sprite.animationTicker?.completed
+          .then((value) => sprite.removeFromParent());
+    } else {
+      _activeGroundItems[id] = (
+        duration: duration,
+        component: sprite,
+        animation: animation,
+        id: id,
+        xPosition: 0,
+      );
+      _activeGroundTimers[id] = 0;
+    }
   }
 
   void addReloadAnimation(
@@ -612,65 +680,128 @@ class EntityVisualEffectsWrapper {
     rePositionStatusBarItems();
   }
 
-  void addStatusEffect(StatusEffects effect, int level) {
-    if (removedAnimations) {
+  Future<void> addStatusEffect(StatusEffects effect, int level) async {
+    if (removedAnimations || effect.otherEffect) {
       return;
     }
     if (effect.isStatusBar) {
-      late final StatusEffect statusEffect;
+      SpriteAnimation animation;
+      switch (effect) {
+        case StatusEffects.chill:
+          animation = await spriteAnimations.damageTypeFrostEffect1;
+        case StatusEffects.empowered:
+          animation = await spriteAnimations.statusEffectsEmpowered1;
+
+          break;
+        case StatusEffects.confused:
+          animation = await spriteAnimations.damageTypePsychicEffect1;
+
+        case StatusEffects.fear:
+          animation = await spriteAnimations.statusEffectFearEffect1;
+
+        case StatusEffects.stun:
+          animation = await spriteAnimations.statusEffectStunEffect1;
+        case StatusEffects.slow:
+          animation = await spriteAnimations.statusEffectsSlow1;
+
+        default:
+          animation = await spriteAnimations.damageTypePsychicEffect1;
+      }
       addStatusBarItem(
-        component: statusEffect = StatusEffect(effect, level),
+        component: SpriteAnimationComponent(
+          animation: animation,
+          size: animation.getGameScaledSize(entity)
+            ..scaledToDimension(false, .5),
+        ),
         id: effect.toString(),
         xPosition: effect.index,
       );
-      _activeStatusEffects[effect]?.removeFromParent();
+    } else {
+      switch (effect) {
+        case StatusEffects.burn:
+          addBodyAnimation(
+            id: effect.toString(),
+            component: SimpleStartPlayEndSpriteAnimationComponent(
+              spawnAnimation: await spriteAnimations.burnEffectStart1,
+              playAnimation: await spriteAnimations.burnEffect1,
+              durationType: DurationType.permanent,
+              endAnimation: await spriteAnimations.burnEffectEnd1,
+            ),
+            yOffset: entity.spriteHeight * .1,
+          );
+          break;
+        case StatusEffects.electrified:
+          addBodyAnimation(
+            id: effect.toString(),
+            component: SimpleStartPlayEndSpriteAnimationComponent(
+              playAnimation: await spriteAnimations.statusEffectElectrified1,
+              durationType: DurationType.permanent,
+            ),
+            yOffset: entity.spriteHeight * .1,
+          );
+        case StatusEffects.bleed:
+          addBodyAnimation(
+            id: effect.toString(),
+            component: SimpleStartPlayEndSpriteAnimationComponent(
+              playAnimation: await spriteAnimations.statusEffectBleedEffect1,
+              durationType: DurationType.permanent,
+            ),
+            yOffset: entity.spriteHeight * .1,
+          );
+        case StatusEffects.marked:
+          final sprite = await spriteAnimations.markedEffect1;
 
-      _activeStatusEffects[effect] = statusEffect;
-    } else if (effect == StatusEffects.marked) {
-      addMarkedStatus();
+          addBodyAnimation(
+            component: SimpleStartPlayEndSpriteAnimationComponent(
+              playAnimation: sprite,
+              durationType: DurationType.permanent,
+              fadeOut: false,
+              customSize: sprite.getGameScaledSize(entity),
+            ),
+            id: effect.toString(),
+          );
+        default:
+      }
     }
   }
 
-  Future<void> addGroundAnimation({
-    required SpriteAnimation animation,
-    required String id,
-    double? duration,
-    bool followEntity = true,
-    double yOffset = 0,
-    bool moveDirection = false,
-  }) async {
-    final size = animation.frames.first.sprite.srcSize;
-
-    size.scaledToHeight(entity);
-
+  Future<void> applyHitAnimation(
+    SpriteAnimation animation,
+    Vector2 sourcePosition, [
+    Color? color,
+  ]) async {
+    if (animation.loop || currentHitAnimations > hitAnimationLimit) {
+      return;
+    }
+    currentHitAnimations++;
+    final hitSize = animation.frames.first.sprite.srcSize;
+    hitSize.scaledToHeight(entity);
+    final thisHeight = entity.spriteHeight;
     final sprite = SpriteAnimationComponent(
       anchor: Anchor.center,
-      size: size,
+      size: hitSize,
       animation: animation,
     );
-    if ((!entity.isFlipped && !moveDirection) ||
-        (moveDirection && entity.body.linearVelocity.x < 0)) {
-      sprite.flipHorizontallyAroundCenter();
-    }
-    if (followEntity) {
-      sprite.position = Vector2(0, yOffset);
-    } else {
-      sprite.position = Vector2(entity.center.x, entity.center.y + yOffset);
-      entity.enviroment.add(sprite);
-    }
-    if (!sprite.animation!.loop) {
-      sprite.animationTicker?.completed
-          .then((value) => sprite.removeFromParent());
-    } else {
-      _activeGroundItems[id] = (
-        duration: duration,
-        component: sprite,
-        animation: animation,
-        id: id,
-        xPosition: 0,
+    if (color != null) {
+      sprite.paint = colorPalette.buildProjectile(
+        color: color,
+        projectileType: ProjectileType.paintBullet,
+        lighten: false,
       );
-      _activeGroundTimers[id] = 0;
     }
+    sprite.position = Vector2(
+      (rng.nextDouble() * thisHeight / 3) - thisHeight / 6,
+      (sourcePosition - entity.center)
+          .y
+          .clamp(thisHeight * -.5, thisHeight * .5),
+    );
+
+    entity.add(sprite);
+    sprite.animationTicker?.completed.then((value) {
+      sprite.removeFromParent();
+
+      currentHitAnimations--;
+    });
   }
 
   String generateKey(String sourceId, bool isSecondary) =>
@@ -707,6 +838,17 @@ class EntityVisualEffectsWrapper {
         removeGroundItem(entry.key);
       }
     }
+    for (final entry in [..._activeBodyTimers.entries]) {
+      _activeBodyTimers[entry.key] = entry.value + dt;
+      if (_activeBodyItems[entry.key] == null) {
+        removeBodyItem(entry.key);
+      } else if (_activeBodyItems[entry.key]!.duration == null) {
+        continue;
+      } else if (entry.value >
+          (_activeBodyItems[entry.key]?.duration ?? -1.0)) {
+        removeBodyItem(entry.key);
+      }
+    }
   }
 
   void rePositionStatusBarItems() {
@@ -721,7 +863,7 @@ class EntityVisualEffectsWrapper {
     );
 
     // Calculate total width of all items
-    const maxItemsPerRow = 5;
+    const maxItemsPerRow = 4;
 
     // Constants for stacking
     const rowSpacing = .75; // Adjust this for vertical spacing between rows
@@ -735,7 +877,7 @@ class EntityVisualEffectsWrapper {
 
       // Calculate starting X position (centered)
 
-      final totalWidth = item.component.size.x * itemsThisRow;
+      final totalWidth = item.component.size.x * (itemsThisRow + 1);
       final startX = -(totalWidth / 2);
 
       final y = .5 -
@@ -752,16 +894,20 @@ class EntityVisualEffectsWrapper {
 
   void removeAllAnimations() {
     removedAnimations = true;
-    for (final element in _activeStatusEffects.values) {
-      element.removeFromParent();
-    }
-    _activeStatusEffects.clear();
 
-    for (final element in reloadAnimations.values) {
+    for (final element in [..._activeStatusBarItems.entries]) {
+      removeStatusBarItem(element.key);
+    }
+    for (final element in [..._activeGroundItems.entries]) {
+      removeGroundItem(element.key);
+    }
+    for (final element in [..._activeBodyItems.entries]) {
+      removeBodyItem(element.key);
+    }
+    for (final element in [...reloadAnimations.values]) {
       element.removeFromParent();
     }
     reloadAnimations.clear();
-    removeMarked();
     // holdDuration?.removeFromParent();
     // holdDuration = null;
   }
@@ -773,20 +919,20 @@ class EntityVisualEffectsWrapper {
     reloadAnimations.clear();
   }
 
-  void removeMarked() {
-    markerAnimation?.removeFromParent();
-    markerAnimation = null;
+  void removeBodyItem(String id) {
+    _activeBodyItems[id]?.component.triggerEnding();
+    _activeBodyItems.remove(id);
+  }
+
+  void removeGroundItem(String id) {
+    _activeGroundItems[id]?.component.removeFromParent();
+    _activeGroundItems.remove(id);
   }
 
   void removeReloadAnimation(String sourceId, bool isSecondary) {
     final key = generateKey(sourceId, isSecondary);
     reloadAnimations[key]?.removeFromParent();
     reloadAnimations.remove(key);
-  }
-
-  void removeGroundItem(String id) {
-    _activeGroundItems[id]?.component.removeFromParent();
-    _activeGroundItems.remove(id);
   }
 
   void removeStatusBarItem(String id) {
@@ -797,11 +943,7 @@ class EntityVisualEffectsWrapper {
 
   void removeStatusEffect(StatusEffects statusEffects) {
     removeStatusBarItem(statusEffects.toString());
-    _activeStatusEffects.remove(statusEffects);
-
-    if (statusEffects == StatusEffects.marked) {
-      removeMarked();
-    }
+    removeBodyItem(statusEffects.toString());
   }
 
   void showReloadAnimations(String sourceId) {

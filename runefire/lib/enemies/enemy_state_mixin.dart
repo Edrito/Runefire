@@ -204,7 +204,7 @@ mixin StateManagedAI
         //if final state, dont change
         (activeState?.isFinalState ?? false) ||
         (activeState?.stateDurationTimer?.timer.isRunning() ?? false) ||
-        isDead) {
+        isIncapacitated) {
       return;
     }
 

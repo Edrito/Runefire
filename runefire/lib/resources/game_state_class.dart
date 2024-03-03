@@ -288,6 +288,9 @@ extension GameStateFunctions on GameState {
     InputManager().buildTimer();
     var tempRoute = newRoute;
     if (tempRoute != null) {
+      if (currentRoute == tempRoute) {
+        gameRouter.router.pushReplacementNamed(routes.blank);
+      }
       Future.delayed(Duration.zero).then((_) {
         gameRouter.router.pushReplacementNamed(tempRoute!);
         parentComponent.notifyListeners();

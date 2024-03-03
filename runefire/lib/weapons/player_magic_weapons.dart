@@ -1131,7 +1131,7 @@ class HexwoodMaim extends PlayerWeapon
         sourceEntity: entityAncestor!,
         collisionDelay: stepTime * 10,
         onTick: (entity, areaId) async {
-          entity.applyHitAnimation(
+          entity.entityVisualEffectsWrapper.applyHitAnimation(
             await spriteAnimations.scratchEffect1,
             entity.center,
             DamageType.magic.color,

@@ -77,8 +77,6 @@ flutter:
     - assets/images/entity_effects/
     - assets/images/expendables/
     - assets/images/experience/
-    - assets/images/icons/
-    - assets/images/powerups/
     - assets/images/secondary_icons/
     - assets/images/sprites/
     - assets/images/sprites/runeknight/

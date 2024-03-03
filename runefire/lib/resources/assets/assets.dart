@@ -67,7 +67,7 @@ static const FileDataClass hoveringCrystalAttack6 =
 (path:"assets/images/attribute_sprites/hovering_crystal_attack_6.png",flamePath:"attribute_sprites/hovering_crystal_attack_6.png", size:(768.0,128.0),
  potentialFrameCount:6   );///mark_enemy_4.png
 static const FileDataClass markEnemy4 = 
-(path:"assets/images/attribute_sprites/mark_enemy_4.png",flamePath:"attribute_sprites/mark_enemy_4.png", size:(192.0,48.0),
+(path:"assets/images/attribute_sprites/mark_enemy_4.png",flamePath:"attribute_sprites/mark_enemy_4.png", size:(96.0,24.0),
  potentialFrameCount:4   );///spark_child_1_7.png
 static const FileDataClass sparkChild17 = 
 (path:"assets/images/attribute_sprites/spark_child_1_7.png",flamePath:"attribute_sprites/spark_child_1_7.png", size:(224.0,32.0),
@@ -249,12 +249,62 @@ psychic.flamePath,
 ];
 }
 class ImagesAssetsStatusEffects {
-///fire_effect.png
-static const FileDataClass fireEffect = 
-(path:"assets/images/effects/status_effects/fire_effect.png",flamePath:"effects/status_effects/fire_effect.png", size:(64.0,16.0),
- potentialFrameCount:4   );static  List<String> allFiles = [fireEffect.path,
+///bleed.png
+static const FileDataClass bleed = 
+(path:"assets/images/effects/status_effects/bleed.png",flamePath:"effects/status_effects/bleed.png", size:(32.0,16.0),
+ potentialFrameCount:2   );///burning_end_1.png
+static const FileDataClass burningEnd1 = 
+(path:"assets/images/effects/status_effects/burning_end_1.png",flamePath:"effects/status_effects/burning_end_1.png", size:(120.0,32.0),
+ potentialFrameCount:4   );///burning_loop_1.png
+static const FileDataClass burningLoop1 = 
+(path:"assets/images/effects/status_effects/burning_loop_1.png",flamePath:"effects/status_effects/burning_loop_1.png", size:(192.0,35.0),
+ potentialFrameCount:5   );///burning_start_1.png
+static const FileDataClass burningStart1 = 
+(path:"assets/images/effects/status_effects/burning_start_1.png",flamePath:"effects/status_effects/burning_start_1.png", size:(96.0,32.0),
+ potentialFrameCount:3   );///electrified.png
+static const FileDataClass electrified = 
+(path:"assets/images/effects/status_effects/electrified.png",flamePath:"effects/status_effects/electrified.png", size:(96.0,32.0),
+ potentialFrameCount:3   );///empowered.png
+static const FileDataClass empowered = 
+(path:"assets/images/effects/status_effects/empowered.png",flamePath:"effects/status_effects/empowered.png", size:(16.0,8.0),
+ potentialFrameCount:2   );///fear.png
+static const FileDataClass fear = 
+(path:"assets/images/effects/status_effects/fear.png",flamePath:"effects/status_effects/fear.png", size:(16.0,8.0),
+ potentialFrameCount:2   );///frost.png
+static const FileDataClass frost = 
+(path:"assets/images/effects/status_effects/frost.png",flamePath:"effects/status_effects/frost.png", size:(16.0,8.0),
+ potentialFrameCount:2   );///marked.png
+static const FileDataClass marked = 
+(path:"assets/images/effects/status_effects/marked.png",flamePath:"effects/status_effects/marked.png", size:(32.0,16.0),
+ potentialFrameCount:2   );///slow.png
+static const FileDataClass slow = 
+(path:"assets/images/effects/status_effects/slow.png",flamePath:"effects/status_effects/slow.png", size:(64.0,8.0),
+ potentialFrameCount:8   );///stun.png
+static const FileDataClass stun = 
+(path:"assets/images/effects/status_effects/stun.png",flamePath:"effects/status_effects/stun.png", size:(64.0,16.0),
+ potentialFrameCount:4   );static  List<String> allFiles = [bleed.path,
+burningEnd1.path,
+burningLoop1.path,
+burningStart1.path,
+electrified.path,
+empowered.path,
+fear.path,
+frost.path,
+marked.path,
+slow.path,
+stun.path,
 ];
-static  List<String> allFilesFlame = [fireEffect.flamePath,
+static  List<String> allFilesFlame = [bleed.flamePath,
+burningEnd1.flamePath,
+burningLoop1.flamePath,
+burningStart1.flamePath,
+electrified.flamePath,
+empowered.flamePath,
+fear.flamePath,
+frost.flamePath,
+marked.flamePath,
+slow.flamePath,
+stun.flamePath,
 ];
 }
 class ImagesAssetsEnemySprites {
@@ -534,25 +584,6 @@ static  List<String> allFilesFlame = [all.flamePath,
 large.flamePath,
 medium.flamePath,
 small.flamePath,
-];
-}
-class ImagesAssetsPowerups {
-///energy.png
-static const FileDataClass energy = 
-(path:"assets/images/powerups/energy.png",flamePath:"powerups/energy.png", size:(47.0,58.0),
- potentialFrameCount:1   );///power.png
-static const FileDataClass power = 
-(path:"assets/images/powerups/power.png",flamePath:"powerups/power.png", size:(54.0,63.0),
- potentialFrameCount:1   );///start.png
-static const FileDataClass start = 
-(path:"assets/images/powerups/start.png",flamePath:"powerups/start.png", size:(72.0,62.0),
- potentialFrameCount:1   );static  List<String> allFiles = [energy.path,
-power.path,
-start.path,
-];
-static  List<String> allFilesFlame = [energy.flamePath,
-power.flamePath,
-start.flamePath,
 ];
 }
 class ImagesAssetsSecondaryIcons {

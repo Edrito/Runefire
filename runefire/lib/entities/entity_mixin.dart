@@ -329,7 +329,7 @@ mixin MovementFunctionality on Entity {
   void moveCharacter() {
     final pulse = currentMoveDelta;
 
-    if (isDead || !movementEnabled.parameter || pulse.isZero()) {
+    if (isIncapacitated || !movementEnabled.parameter || pulse.isZero()) {
       setEntityAnimation(EntityStatus.idle);
       return;
     }
@@ -414,7 +414,7 @@ mixin AimFunctionality on Entity {
   PlayerAttachmentJointComponent? mouseJoint;
 
   Vector2? get aimPosition {
-    if (isDead) {
+    if (isIncapacitated) {
       return lastAimingPosition;
     }
 
@@ -423,7 +423,7 @@ mixin AimFunctionality on Entity {
   }
 
   Vector2 get aimVector {
-    if (isDead) {
+    if (isIncapacitated) {
       return lastAimingDelta;
     }
     final returnVal =
@@ -673,7 +673,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> startPrimaryAttacking() async {
-    if (isAttacking || isDead || isStunned.parameter) {
+    if (isAttacking || isIncapacitated) {
       return;
     }
     isAttacking = true;
@@ -681,7 +681,7 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> startSecondaryAttacking() async {
-    if (isAltAttacking || isDead || isStunned.parameter) {
+    if (isAltAttacking || isIncapacitated) {
       return;
     }
     isAltAttacking = true;
@@ -689,8 +689,9 @@ mixin AttackFunctionality on AimFunctionality {
   }
 
   Future<void> swapWeapon([Weapon? weapon]) async {
-    if ((carriedWeapons.isEmpty || carriedWeapons.length == 1) &&
-        weapon == null) {
+    if (((carriedWeapons.isEmpty || carriedWeapons.length == 1) &&
+            weapon == null) ||
+        isIncapacitated) {
       return;
     }
     final previousWeapon = currentWeapon;
@@ -742,6 +743,13 @@ mixin AttackFunctionality on AimFunctionality {
     onDeath.add((_) {
       endPrimaryAttacking();
       return null;
+    });
+
+    isStunned.addListener((parameter) {
+      if (parameter) {
+        endPrimaryAttacking();
+        endSecondaryAttacking();
+      }
     });
   }
 
@@ -1245,10 +1253,15 @@ mixin HealthFunctionality on Entity {
       move.removeMoveVelocity(userInputPriority);
       move.removeMoveVelocity(gamepadUserInputPriority);
     }
-
+    clearStatusEffects();
     await addOpacityFlashEffect(3.0);
     invincible.removeIncrease('revive');
     heal(damageTaken);
+    if (isPlayer) {
+      final player = this as Player;
+      print(player._aimAngles);
+      print(player._moveVelocities);
+    }
   }
 
   void doOtherEntityOnDamageFunctions(DamageInstance damage) {
@@ -1832,7 +1845,7 @@ mixin DashFunctionality on StaminaFunctionality {
 
   bool get canDash => !(dashTimerCooldown != null ||
       isJumping ||
-      isDead ||
+      isIncapacitated ||
       isDashing ||
       !movementEnabled.parameter ||
       !hasEnoughStamina(dashStaminaCost.parameter));
@@ -2085,11 +2098,10 @@ mixin JumpFunctionality on Entity, AttributeCallbackFunctionality {
       isJumping ||
       isDashing ||
       !movementEnabled.parameter ||
-      isDead ||
-      (this is StaminaFunctionality
-          ? !(this as StaminaFunctionality)
-              .hasEnoughStamina(jumpStaminaCost.parameter)
-          : false);
+      isIncapacitated ||
+      (this is StaminaFunctionality &&
+          !(this as StaminaFunctionality)
+              .hasEnoughStamina(jumpStaminaCost.parameter));
 
   Future<void> jump([bool forceJump = false]) async {
     if (!_jumpCheck(forceJump)) {

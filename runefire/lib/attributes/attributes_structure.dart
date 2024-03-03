@@ -75,7 +75,7 @@ enum AttributeCategory {
 enum AttributeTerritory { permanent, game, statusEffect, passive }
 
 enum AttributeType {
-  //Debuffs
+  //statusEffects
   burn(territory: AttributeTerritory.statusEffect),
   bleed(territory: AttributeTerritory.statusEffect),
 

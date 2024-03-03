@@ -218,41 +218,43 @@ class ApolloColorPalette {
 
 double defaultFrameDuration = .15;
 
-Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
-  SpriteAnimation spriteAnimation;
+// Future<SpriteAnimation> getEffectSprite(StatusEffects statusEffect) async {
+//   SpriteAnimation spriteAnimation;
 
-  switch (statusEffect) {
-    case StatusEffects.frozen:
-      spriteAnimation = await spriteAnimations.burnEffect1;
+//   switch (statusEffect) {
+//     case StatusEffects.frozen:
+//       spriteAnimation = await spriteAnimations.burnEffect1;
+//       spriteAnimation = await spriteAnimations.burnEffectEndEtc1;
+//       spriteAnimation = await spriteAnimations.burnEffect1;
 
-      break;
-    case StatusEffects.marked:
-      spriteAnimation = await spriteAnimations.markedEffect1;
+//       break;
+//     case StatusEffects.marked:
+//       spriteAnimation = await spriteAnimations.markedEffect1;
 
-      break;
-    // case StatusEffects.slow:
-    //   break;
+//       break;
+//     // case StatusEffects.slow:
+//     //   break;
 
-    // case StatusEffects.burn:
-    //   break;
+//     // case StatusEffects.burn:
+//     //   break;
 
-    // case StatusEffects.freeze:
-    //   break;
+//     // case StatusEffects.freeze:
+//     //   break;
 
-    // case StatusEffects.bleed:
-    //   break;
+//     // case StatusEffects.bleed:
+//     //   break;
 
-    // case StatusEffects.energy:
-    //   break;
+//     // case StatusEffects.energy:
+//     //   break;
 
-    // case StatusEffects.misc:
-    //   break;
+//     // case StatusEffects.misc:
+//     //   break;
 
-    default:
-      spriteAnimation = await spriteAnimations.burnEffect1;
-  }
-  return spriteAnimation;
-}
+//     default:
+//       spriteAnimation = await spriteAnimations.burnEffect1;
+//   }
+//   return spriteAnimation;
+// }
 
 final defaultStyle = TextStyle(
   fontSize: !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? 21 : 45,

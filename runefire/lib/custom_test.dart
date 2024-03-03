@@ -58,21 +58,21 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   //     );
   //   });
   // });
-  for (final statusEffect in StatusEffects.values) {
-    await gameEnviroment.game.gameAwait(.2);
-    gameEnviroment.activeEntites.forEach((element) {
-      if (element is AttributeFunctionality) {
-        element.addAttribute(
-          statusEffect.getCorrospondingAttribute,
-          perpetratorEntity: gameEnviroment.god,
-          duration: 50,
-        );
-      }
-    });
-  }
+  // for (final statusEffect in StatusEffects.values) {
+  await gameEnviroment.game.gameAwait(.5);
+  gameEnviroment.activeEntites.forEach((element) {
+    if (element is AttributeFunctionality) {
+      element.addAttribute(
+        StatusEffects.stun.getCorrospondingAttribute,
+        perpetratorEntity: gameEnviroment.god,
+        duration: 50,
+      );
+    }
+  });
+  // }
 
   // player?.addAttribute(
-  //   AttributeType.chanceToRevive,
+  //   AttributeType.marked,
   // );
 
   // gameEnviroment.addPhysicsComponent([

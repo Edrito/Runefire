@@ -162,24 +162,28 @@ enum WeaponDescription {
 enum SemiAutoType { regular, release, charge }
 
 enum StatusEffects {
-  burn,
-  bleed,
-  chill,
-  electrified,
-  slow,
-  stun,
-  confused,
-  fear,
-  marked(isStatusBar: false),
-  frozen(isStatusBar: false),
-  empowered(isStatusBar: false);
+  burn(isStatusBar: false), //done
+  bleed(isStatusBar: false), //done
+  chill, //done
+  electrified(isStatusBar: false), //done
+  slow, //done
+  stun, //done
+  confused, //done
+  fear, //done
+  marked(isStatusBar: false), //done
+  frozen(otherEffect: true), //Other
+  empowered(); //done
 
   AttributeType get getCorrospondingAttribute {
     return AttributeType.values.firstWhere((element) => element.name == name);
   }
 
-  const StatusEffects({this.isStatusBar = true});
+  const StatusEffects({
+    this.isStatusBar = true,
+    this.otherEffect = false,
+  });
   final bool isStatusBar;
+  final bool otherEffect;
 }
 
 enum AttackType { guns, melee, magic }
@@ -346,6 +350,7 @@ extension CharacterTypeExtension on CharacterType {
         player.invincibilityDuration.baseParameter =
             player_constants.regularInvincibilityDuration;
         player.maxHealth.baseParameter = player_constants.regularMaxHealth;
+        player.maxHealth.baseParameter = 2;
         player.speed.baseParameter = player_constants.regularSpeed;
         player.stamina.baseParameter = player_constants.regularStamina;
         player.dodgeChance.baseParameter = player_constants.regularDodgeChance;
