@@ -62,14 +62,13 @@ class BlankProjectileWeapon extends EnemyWeapon
   List<WeaponSpritePosition> spirteComponentPositions = [];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(minParameter: 0, baseParameter: 1);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
 
   @override
   late Vector2 pngSize = Vector2.all(8);
 
   @override
-  ProjectileType? projectileType = ProjectileType.paintBullet;
+  ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
   void endAltAttacking() {}

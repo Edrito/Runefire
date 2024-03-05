@@ -36,6 +36,11 @@ class PsychicReflectionAttribute extends Attribute {
   @override
   String title = 'Psychic Reflection';
 
+  @override
+  String description() {
+    return 'Reflects enemy projectiles back at them!';
+  }
+
   final chance = .15;
 
   Set<String> setProjectiles = {};
@@ -102,6 +107,11 @@ class OnHitEnemyConfusedAttribute extends Attribute {
   @override
   String title = 'Relalitory Confusion';
 
+  @override
+  String description() {
+    return 'Chance to confuse enemies when hit!';
+  }
+
   final chance = .15;
 
   bool onHit(DamageInstance damage) {
@@ -158,6 +168,9 @@ class HoverJumpAttribute extends Attribute {
   String title = 'Hover Jump';
 
   @override
+  String description() => 'Increases jump duration!';
+
+  @override
   void mapUpgrade() {
     if (attributeOwnerEntity is JumpFunctionality) {
       final call = attributeOwnerEntity! as JumpFunctionality;
@@ -198,6 +211,9 @@ class GravityDashAttribute extends Attribute {
   @override
   String title = 'Gravity Dash!';
 
+  @override
+  String description() => 'Dash forward with a gravity pulse!';
+
   Future<void> onDash() async {
     if (attributeOwnerEntity == null) {
       return;
@@ -216,11 +232,6 @@ class GravityDashAttribute extends Attribute {
       },
     );
     attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
-  }
-
-  @override
-  String description() {
-    return 'Something in those quantum equations...';
   }
 
   @override
@@ -266,6 +277,9 @@ class DefensivePulseAttribute extends Attribute {
   @override
   String title = 'Defensive Pulse!';
 
+  @override
+  String description() => 'Push enemies away when hit!';
+
   bool onHit(_) {
     if (attributeOwnerEntity == null) {
       return false;
@@ -282,11 +296,6 @@ class DefensivePulseAttribute extends Attribute {
     );
     attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
     return false;
-  }
-
-  @override
-  String description() {
-    return 'Something in those quantum equations...';
   }
 
   @override
@@ -331,6 +340,9 @@ class SingularityAttribute extends Attribute {
 
   @override
   String title = 'Singularity!';
+  @override
+  String description() =>
+      'Create a black hole if an enemy dies while confused!';
 
   void onKill(DamageInstance damage) {
     if (damage.victim.statusEffects.contains(StatusEffects.confused) ?? false) {
@@ -349,11 +361,6 @@ class SingularityAttribute extends Attribute {
       );
       attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
     }
-  }
-
-  @override
-  String description() {
-    return 'Something in those quantum equations...';
   }
 
   @override
@@ -404,7 +411,7 @@ class PsychicReachAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Use your mind to swing your weapons even further!';
+    return 'Channel your mind to swing your weapons even further!';
   }
 
   @override
@@ -466,7 +473,8 @@ class StrengthOfTheStarsAttribute extends Attribute {
 
   @override
   String title = 'Strength of the Stars';
-
+  @override
+  String description() => 'Converts all damage to psychic!';
   bool modifyDamage(DamageInstance other) {
     var totalDamage = 0.0;
     for (final element in other.damageMap.entries) {

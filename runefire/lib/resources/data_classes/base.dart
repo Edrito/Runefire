@@ -9,6 +9,8 @@ import 'package:hive/hive.dart';
 
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/weapons/melee_swing_manager.dart';
+import 'package:runefire/weapons/projectile_class.dart';
 import 'package:runefire/weapons/weapon_class.dart';
 import 'package:runefire/resources/enums.dart';
 
@@ -80,7 +82,7 @@ class DoubleParameterManager {
     final returnVal =
         ((baseParameter + parameterFlatIncrease) * parameterPercentIncrease)
             .clamp(
-      minParameter ?? double.negativeInfinity,
+      minParameter,
       maxParameter ?? double.infinity,
     );
     return returnVal;

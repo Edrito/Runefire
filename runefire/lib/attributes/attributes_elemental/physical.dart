@@ -35,6 +35,9 @@ class DodgeChancePhysicalIncreaseAttribute extends Attribute {
 
   @override
   String title = 'Dodge Chance Increase';
+  @override
+  String description() =>
+      'Increase the chance to dodge physical attacks by 15%';
 
   @override
   void mapUpgrade() {
@@ -72,7 +75,8 @@ class CritChancePhysicalIncreaseAttribute extends Attribute {
 
   @override
   String title = 'Crit Chance Increase';
-
+  @override
+  String description() => 'Increase the chance hit critical strikes by 15%';
   @override
   void mapUpgrade() {
     attributeOwnerEntity?.critChance.setParameterFlatValue(attributeId, .15);
@@ -106,7 +110,9 @@ class BloodPoolAttribute extends Attribute {
   String title = 'Pool of Blood';
 
   final chance = 1;
-
+  @override
+  String description() =>
+      'After killing a bleeding enemy, create a pool of blood that slows and bleeds enemies';
   bool areaCreate(DamageInstance damage) {
     if (rng.nextDouble() > chance) {
       return false;
@@ -176,9 +182,11 @@ class BleedStunAttribute extends Attribute {
 
   @override
   bool increaseFromBaseParameter = false;
-
   @override
-  String title = '';
+  String description() =>
+      'Enemies that are bleeding have a 25% chance to be stunned for 2 seconds';
+  @override
+  String title = 'Bleed Stun';
 
   @override
   int get maxLevel => 1;
@@ -198,6 +206,9 @@ class BleedingCritsAttribute extends Attribute {
 
   @override
   String title = 'Bleeding Crits';
+
+  @override
+  String description() => 'Critical strikes apply bleed to the target';
 
   bool applyBleed(DamageInstance damage) {
     if (!damage.isCrit) {
@@ -255,7 +266,8 @@ class BleedChanceIncreaseAttribute extends Attribute {
 
   @override
   String title = 'Blood blade';
-
+  @override
+  String description() => 'Increase the chance to apply bleed by 25%';
   bool modifyBleed(DamageInstance damage) {
     damage.statusEffectChance.updateAll((key, value) {
       if (key == StatusEffects.bleed) {
@@ -310,12 +322,10 @@ class WeaponMergeAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Merge Weapons';
+  String title = 'Ambidextrous';
 
   @override
-  String description() {
-    return 'Merge Weapons';
-  }
+  String description() => 'Merge all weapons into one.';
 
   @override
   void mapUpgrade() {
@@ -380,7 +390,8 @@ class PhysicalProwessAttribute extends Attribute {
 
   @override
   String title = 'Physical Prowess';
-
+  @override
+  String description() => 'Convert all damage to physical.';
   bool modifyDamage(DamageInstance other) {
     var totalDamage = 0.0;
     for (final element in other.damageMap.entries) {

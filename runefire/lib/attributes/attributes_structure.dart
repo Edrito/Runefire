@@ -384,7 +384,7 @@ enum AttributeType {
     category: AttributeCategory.offence,
     territory: AttributeTerritory.game,
   ),
-  bigPockets(
+  bagOfHolding(
     territory: AttributeTerritory.game,
   ),
   secondsPlease(

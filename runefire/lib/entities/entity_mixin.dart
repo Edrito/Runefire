@@ -300,9 +300,9 @@ mixin MovementFunctionality on Entity {
         Vector2.zero();
   }
 
+  ///2000 is what would be expected for a strong knockback from a weapon
+  ///dealing 30 ish damage
   void applyKnockback({
-    ///2000 is what would be expected for a strong knockback from a weapon
-    ///dealing 30 ish damage
     required double amount,
     required Vector2 direction,
   }) {
@@ -808,28 +808,27 @@ mixin StaminaFunctionality on Entity {
 
   ///5 = 5 more stamina, -5 = 5 less stamina, to use
   void modifyStamina(double amount, [bool regen = false]) {
-    if (isForbiddenMagic && this is HealthFunctionality && amount < 0) {
-      final health = this as HealthFunctionality;
-
-      health.applyDamage(
-        DamageInstance(
-          damageMap: {
-            DamageType.magic: amount.abs(),
-          },
-          source: this,
-          victim: health,
-          sourceAttack: this,
-        ),
-      );
-    } else {
-      staminaUsed = (staminaUsed -= amount).clamp(0, stamina.parameter);
-      staminaModifiedFunctions(amount);
-      if (!regen &&
-          isPlayer &&
-          !isChildEntity &&
-          enviroment is GameEnviroment) {
-        gameEnviroment.hud.barFlash(BarType.staminaBar);
+    if (isForbiddenMagic && this is HealthFunctionality) {
+      if (amount < 0) {
+        (this as HealthFunctionality).applyDamage(
+          DamageInstance(
+            damageMap: {
+              DamageType.magic: amount.abs(),
+            },
+            source: this,
+            victim: this as HealthFunctionality,
+            sourceAttack: this,
+          ),
+        );
+      } else {
+        (this as HealthFunctionality).heal(amount, hideEffects: regen);
       }
+    }
+
+    staminaUsed = (staminaUsed -= amount).clamp(0, stamina.parameter);
+    staminaModifiedFunctions(amount);
+    if (!regen && isPlayer && !isChildEntity && enviroment is GameEnviroment) {
+      gameEnviroment.hud.barFlash(BarType.staminaBar);
     }
   }
 
@@ -1373,8 +1372,11 @@ mixin HealthFunctionality on Entity {
     return largestEntry;
   }
 
-  void heal(double amount) {
+  void heal(double amount, {bool hideEffects = false}) {
     damageTaken = (damageTaken -= amount).clamp(0, maxHealth.parameter);
+    if (hideEffects) {
+      return;
+    }
     addFloatingText(
       DamageInstance(
         damageMap: {DamageType.healing: amount},
@@ -1383,6 +1385,8 @@ mixin HealthFunctionality on Entity {
         sourceAttack: this,
       ),
     );
+    gameEnviroment.hud.barFlash(BarType.healthBar);
+
     addDamageEffects(DamageType.healing.color);
   }
 

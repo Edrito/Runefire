@@ -40,7 +40,7 @@ import 'package:runefire/menus/overlays.dart' as overlay;
 
 final rng = Random();
 
-bool _startInGame = true;
+bool _startInGame = false;
 
 final ApolloColorPalette colorPalette = ApolloColorPalette();
 final SpriteAnimations spriteAnimations = SpriteAnimations();

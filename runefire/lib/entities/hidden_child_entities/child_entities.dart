@@ -221,7 +221,7 @@ abstract class MovingSentry extends AttachedToBodyChildEntity
         ..categoryBits = isPlayer ? playerCategory : enemyCategory,
       isSensor: true,
       userData: {'type': FixtureType.body, 'object': this},
-      density: .9,
+      density: .95,
     );
     renderBody = false;
     return super.createBody()
@@ -648,6 +648,7 @@ class ElementalCaptureBulletSentry extends AttachedToBodyChildEntity
   }
 
   bool captureBulletAttempt(DamageInstance damage) {
+    print('attempt 1');
     if (capturedBullet != null ||
         isCoolingDown ||
         damage.sourceAttack is! Projectile) {

@@ -260,8 +260,6 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
   final List<AttachedToBodyChildEntity> _headEntities = [];
   final List<Function> _pulseFunctions = [];
 
-  int _currentPulseIndex = 0;
-
   final List<Function(double stamina)> onStaminaModified = [];
   final List<Function(Expendable item)> onItemPickup = [];
   final List<Function(Expendable item)> onExpendableUsed = [];
@@ -486,17 +484,30 @@ mixin AttributeCallbackFunctionality on Entity, ContactCallbacks {
     previousHeadAngle = currentAngle;
   }
 
+  double previousPulsePassed = 0;
+
   void _processPulseFunctions(double dt) {
-    if (_pulseFunctions.isEmpty) {
+    if (_pulseFunctions.isEmpty || functionsPerforming) {
       return;
     }
 
-    _currentPulseIndex =
-        ((_currentPulseIndex + 1) % _pulseFunctions.length).clamp(
-      0,
-      _pulseFunctions.length - 1,
-    );
-    _pulseFunctions[_currentPulseIndex].call();
+    previousPulsePassed += dt;
+
+    if (previousPulsePassed > pulsePeriod.parameter) {
+      previousPulsePassed = 0;
+      _performPulses();
+    }
+  }
+
+  bool functionsPerforming = false;
+
+  Future<void> _performPulses() async {
+    functionsPerforming = true;
+    for (final element in [..._pulseFunctions]) {
+      await game.gameAwait(pulsePeriod.parameter / _pulseFunctions.length);
+      element.call();
+    }
+    functionsPerforming = false;
   }
 }
 

@@ -251,7 +251,7 @@ Attribute? regularAttributeBuilder(
         level: level,
         attributeOwnerEntity: attributeOwnerEntity,
       );
-    case AttributeType.bigPockets:
+    case AttributeType.bagOfHolding:
       return BigPocketsAttribute(
         level: level,
         attributeOwnerEntity: attributeOwnerEntity,
@@ -389,7 +389,7 @@ class ExplosionOnKillAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Something in that ammunition...';
+    return 'Something in that ammunition...\n\nChance that enemies explode on death!';
   }
 
   @override
@@ -462,7 +462,7 @@ class ExplosiveDashAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Something in those beans...';
+    return 'Leave a scene of destruction behind you!';
   }
 
   @override
@@ -533,7 +533,7 @@ class GroundSlamAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Apprentice, bring me another Eclair!';
+    return 'Apprentice, bring me another Eclair!\n\nCreate an explosion at the end of a jump!';
   }
 
   @override
@@ -568,7 +568,7 @@ class PeriodicPushAttribute extends Attribute {
     super.damageType,
   });
 
-  double baseOomph = 8;
+  double baseOomph = 3000;
   double baseSize = 5;
 
   @override
@@ -594,14 +594,15 @@ class PeriodicPushAttribute extends Attribute {
       tickRate: .05,
       duration: 2.5,
       onTick: (entity, areaId) {
-        final increaseRes = increase(true, baseOomph);
-        final distanceScaled =
-            entity.center.distanceTo(playerPos).clamp(0, radius) / radius;
-        entity.body.applyForce(
-          (entity.center - playerPos).normalized() *
-              (baseOomph + increaseRes) *
-              (1 - distanceScaled),
-        );
+        if (entity is MovementFunctionality) {
+          final increaseRes = increase(true, baseOomph);
+          final distanceScaled =
+              entity.center.distanceTo(playerPos).clamp(0, radius) / radius;
+          entity.applyKnockback(
+            amount: increaseRes * distanceScaled,
+            direction: (entity.center - playerPos).normalized(),
+          );
+        }
       },
     );
     attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
@@ -655,7 +656,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Magic Pulse';
+  String title = 'Magicical Pulse';
 
   @override
   Future<void> action() async {
@@ -683,7 +684,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
 
   @override
   String description() {
-    return 'The power of the arcane flows through you, maybe a little too much though...';
+    return 'The power of the arcane flows through you.';
   }
 
   @override
@@ -760,7 +761,7 @@ class PeriodicStunAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Stun your enemies!';
+    return 'Periodically release a stunning pulse!';
   }
 
   @override
@@ -835,11 +836,13 @@ class CombinePeriodicPulseAttribute extends Attribute {
             isTemporary: true,
           );
         }
-        final increaseRes = increase(true, 3);
-        entity.body.applyForce(
-          (entity.center - playerPos).normalized() *
-              (3 + increaseRes).toDouble(),
-        );
+        final increaseRes = increasePercentOfBase(3000, includeBase: true);
+        if (entity is MovementFunctionality) {
+          entity.applyKnockback(
+            amount: increaseRes.toDouble(),
+            direction: (entity.center - playerPos).normalized(),
+          );
+        }
       },
     );
     attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
@@ -850,7 +853,7 @@ class CombinePeriodicPulseAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Concentrate your magic into a singular powerful pulse!';
+    return 'Concentrate your magic into a singular powerful pulse!\n\n*DEBUG*';
   }
 
   @override
@@ -913,7 +916,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Increase experience grab radius';
+  String title = 'Shining intellect!';
 
   @override
   Future<void> action() async {}
@@ -923,7 +926,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Double experience grab radius';
+    return 'Double your experience grab radius!';
   }
 
   @override
@@ -932,7 +935,7 @@ class IncreaseExperienceGrabAttribute extends Attribute {
       return;
     }
     final player = attributeOwnerEntity! as Player;
-    player.xpSensorRadius.setParameterFlatValue(attributeId, 5);
+    player.xpSensorRadius.setParameterPercentValue(attributeId, 1);
     player.xpGrabRadiusFixture.shape.radius = player.xpSensorRadius.parameter;
   }
 
@@ -971,7 +974,7 @@ class MarkSentryAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Keep a watchful eye.';
 
   @override
   Future<void> action() async {}
@@ -981,7 +984,7 @@ class MarkSentryAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Mark enemies for crit';
+    return 'Mark enemies for critical strikes!';
   }
 
   @override
@@ -1038,7 +1041,7 @@ class RangedAttackSentryAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Ranged Sentry!';
 
   @override
   Future<void> action() async {}
@@ -1049,7 +1052,7 @@ class RangedAttackSentryAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Periodically attack enemies';
+    return 'Periodically attack enemies from a distance.';
   }
 
   @override
@@ -1106,7 +1109,7 @@ class GrabItemsSentryAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Resourceful Sentry';
 
   @override
   Future<void> action() async {}
@@ -1116,7 +1119,7 @@ class GrabItemsSentryAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Grab dropped items scattered across the world';
+    return 'Grab dropped items scattered across the world.\n\n*DEBUG**only XP*';
   }
 
   @override
@@ -1173,18 +1176,21 @@ class ElementalSentryAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Elemental Sentry';
 
   @override
   Future<void> action() async {}
 
   @override
-  Set<DamageType> get allowedDamageTypes =>
-      {DamageType.fire, DamageType.psychic};
+  Set<DamageType> get allowedDamageTypes => {
+        DamageType.fire,
+        DamageType.psychic,
+        DamageType.energy,
+      };
 
   @override
   String description() {
-    return 'Attacks enemies';
+    return 'Attacks enemies.';
   }
 
   @override
@@ -1241,14 +1247,14 @@ class CaptureBulletSentryAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Reflective Sentry';
 
   @override
   Future<void> action() async {}
 
   @override
   String description() {
-    return 'Redirect';
+    return 'Redirect projectiles thrown at you!';
   }
 
   @override
@@ -1304,14 +1310,14 @@ class MirrorOrbAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Mirror Orb';
 
   @override
   Future<void> action() async {}
 
   @override
   String description() {
-    return 'Redirect';
+    return 'Copies your attacks.';
   }
 
   @override
@@ -1369,14 +1375,14 @@ class ShieldSentryAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Shield Sentry';
 
   @override
   Future<void> action() async {}
 
   @override
   String description() {
-    return 'Shield';
+    return 'A protective sheild that surrounds you.';
   }
 
   @override
@@ -1434,14 +1440,14 @@ class SwordSentryAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Sword Sentry';
 
   @override
   Future<void> action() async {}
 
   @override
   String description() {
-    return 'Shield';
+    return 'A damaging sword that surrounds you.';
   }
 
   @override
@@ -1495,14 +1501,14 @@ class ReverseKnockbackAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Reverse Knockback';
 
   @override
   Future<void> action() async {}
 
   @override
   String description() {
-    return 'Reverse Knockback';
+    return 'Knock...forward? enemies when you hit them!';
   }
 
   @override
@@ -1541,7 +1547,7 @@ class ProjectileSplitExplodeAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Projectile Split';
 
   void projectileExplode(Projectile projectile) {
     if (cooldownTimer != null || projectile.hitIds.isEmpty) {
@@ -1585,7 +1591,7 @@ class ProjectileSplitExplodeAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Projectile explode';
+    return 'When a projectile expires, it then splits into multiple projectiles!';
   }
 
   @override
@@ -1718,7 +1724,7 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Ki Sense';
 
   @override
   void applyStandStillEffect(bool apply) {
@@ -1737,7 +1743,7 @@ class DodgeIncreaseStandStillAttribute extends StandStillAttribute {
 
   @override
   String description() {
-    return 'Dodge increase stand still';
+    return 'Your dodge chance increases when you stand still after $delay seconds.';
   }
 
   @override
@@ -1760,7 +1766,7 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Fortify';
 
   @override
   Future<void> action() async {}
@@ -1781,7 +1787,7 @@ class DefenceIncreaseStandStillAttribute extends StandStillAttribute {
 
   @override
   String description() {
-    return 'Defence increase stand still';
+    return 'Your defence levels increase when you stand still after $delay seconds.';
   }
 
   @override
@@ -1804,7 +1810,7 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Death Stare';
 
   @override
   Future<void> action() async {}
@@ -1821,7 +1827,7 @@ class DamageIncreaseStandStillAttribute extends StandStillAttribute {
 
   @override
   String description() {
-    return 'Damage increase stand still';
+    return 'Your damage increases when you stand still after $delay seconds.';
   }
 
   @override
@@ -1888,14 +1894,14 @@ class DashSpeedDistanceAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Power Dash';
 
   @override
   Future<void> action() async {}
 
   @override
   String description() {
-    return 'Dash distance speed';
+    return 'Increase dash speed and distance';
   }
 
   @override
@@ -1938,7 +1944,7 @@ class DashAttackEmpowerAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Forward Momentum';
 
   @override
   Future<void> action() async {
@@ -1951,7 +1957,7 @@ class DashAttackEmpowerAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Empower dash attack';
+    return 'Empower your next attack after dashing';
   }
 
   @override
@@ -1992,11 +1998,11 @@ class TeleportDashAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Blink';
 
   @override
   String description() {
-    return 'Teleport';
+    return '';
   }
 
   @override
@@ -2042,7 +2048,7 @@ class ThornsAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Thorns';
 
   void onTouchBleed(HealthFunctionality other) {
     if (other is AttributeFunctionality) {
@@ -2057,7 +2063,7 @@ class ThornsAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Touch Damage';
+    return 'Damage enemies on touch.';
   }
 
   @override
@@ -2118,7 +2124,7 @@ class ReloadSprayAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Offensive Reload';
 
   void incrementCounter(Weapon weapon) {
     if (weapon is! ReloadFunctionality) {
@@ -2128,29 +2134,23 @@ class ReloadSprayAttribute extends Attribute {
     weaponBulletCount[weapon.weaponId] = weapon.spentAttacks;
   }
 
-  void meleeExplode(MeleeFunctionality weapon) {
+  void weaponExplode(Weapon weapon) {
     final count = weaponBulletCount[weapon.weaponId] ?? 0;
     if (count == 0) {
       return;
     }
-    final position = attributeOwnerEntity?.center.clone() ?? Vector2.zero();
-    final temp = splitRadInCone(0.0, count, 360 - (360 / count), false);
-    var i = 0;
-    final newSwings = <MeleeAttackHandler>[];
-    for (final element in temp) {
-      final newSwing = MeleeAttackHandler(
-        initPosition: position,
-        initAngle: element,
-        attachmentPoint: attributeOwnerEntity,
-        currentAttack: weapon.meleeAttacks[i % weapon.getAttackCount(0)],
-        weaponAncestor: weapon,
-      );
 
-      newSwings.add(newSwing);
-      i++;
-    }
-
-    attributeOwnerEntity?.gameEnviroment.addPhysicsComponent(newSwings);
+    weapon.standardAttack(
+      AttackConfiguration(
+        useAmmo: false,
+        customAttackSpreadPattern: {
+          (double angle, int attackCount) =>
+              splitRadInCone(0.0, count, 360 - (360 / count), false),
+        },
+        customAttackPosition:
+            attributeOwnerEntity?.center.clone() ?? Vector2.zero(),
+      ),
+    );
   }
 
   void projectileExplode(ProjectileFunctionality weapon) {
@@ -2180,12 +2180,7 @@ class ReloadSprayAttribute extends Attribute {
 
   void shootAttacks(Weapon weapon) {
     if (cooldownTimer == null) {
-      if (weapon is ProjectileFunctionality) {
-        projectileExplode(weapon);
-      }
-      if (weapon is MeleeFunctionality) {
-        meleeExplode(weapon);
-      }
+      weaponExplode(weapon);
     }
     weaponBulletCount.remove(weapon.weaponId);
 
@@ -2198,7 +2193,7 @@ class ReloadSprayAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Reload Spray';
+    return 'Attack in a circular pattern after reloading';
   }
 
   @override
@@ -2233,7 +2228,7 @@ class ReloadPushAttribute extends Attribute {
     required super.attributeOwnerEntity,
   });
 
-  double baseOomph = 7;
+  double baseOomph = 3000;
   double baseSize = 4;
 
   @override
@@ -2246,7 +2241,7 @@ class ReloadPushAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Reload with POWER';
 
   void push(Weapon _) {
     if (attributeOwnerEntity == null) {
@@ -2261,14 +2256,16 @@ class ReloadPushAttribute extends Attribute {
       tickRate: .05,
       duration: 2.5,
       onTick: (entity, areaId) {
-        final increaseRes = increase(true, baseOomph);
-        final distanceScaled =
-            entity.center.distanceTo(playerPos).clamp(0, radius) / radius;
-        entity.body.applyForce(
-          (entity.center - playerPos).normalized() *
-              (baseOomph + increaseRes) *
-              (1 - distanceScaled),
-        );
+        if (entity is MovementFunctionality) {
+          final increaseRes = increase(true, baseOomph);
+          final distanceScaled =
+              entity.center.distanceTo(playerPos).clamp(0, radius) / radius;
+
+          entity.applyKnockback(
+            amount: increaseRes.toDouble() * (1 - distanceScaled),
+            direction: (entity.center - playerPos).normalized(),
+          );
+        }
       },
     );
     attributeOwnerEntity?.gameEnviroment.addPhysicsComponent([explosion]);
@@ -2276,7 +2273,7 @@ class ReloadPushAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Reload Push';
+    return 'Pushes enemies away when you reload';
   }
 
   @override
@@ -2321,7 +2318,7 @@ class ReloadInvincibilityAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Reload Zone';
 
   void incrementCounter(Weapon weapon) {
     if (weapon is! ReloadFunctionality) {
@@ -2347,7 +2344,7 @@ class ReloadInvincibilityAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Reload Invincible';
+    return 'Become invincible during your reload.\n\nThe more bullets you spent, the longer the invincibility.';
   }
 
   @override
@@ -2392,7 +2389,7 @@ class FocusAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Magic Focus';
 
   void applyWeaponIncrease(Weapon weapon, bool remove) {
     if (remove) {
@@ -2428,7 +2425,7 @@ class FocusAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Focus';
+    return 'The longer you attack, the more attacks you perform.';
   }
 
   @override
@@ -2469,11 +2466,11 @@ class ChainingAttacksAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Chaining Attacks';
 
   @override
   String description() {
-    return 'Increase chain count';
+    return 'Increase chain count.';
   }
 
   @override
@@ -2513,18 +2510,15 @@ class SonicWaveAttribute extends Attribute {
   @override
   AttributeType attributeType = AttributeType.sonicWave;
 
-  // @override
-  // double get factor => 1;
-
   @override
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Sonic Wave';
 
   @override
   String description() {
-    return 'add a sonic wave to your melee attacks';
+    return 'Add a sonic wave to your melee attacks.';
   }
 
   @override
@@ -2534,7 +2528,7 @@ class SonicWaveAttribute extends Attribute {
         if (weapon is! MeleeFunctionality) {
           return;
         }
-        final newWeapon = WeaponType.blankProjectileWeapon.build(
+        final newWeapon = WeaponType.psychicMagic.build(
           ancestor: weapon.entityAncestor,
           customWeaponLevel: 0,
         );
@@ -2586,11 +2580,11 @@ class DaggerSwingAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Side-arm';
 
   @override
   String description() {
-    return 'Dagger attack to ranged weapons';
+    return 'Add a dagger attack to ranged weapons.';
   }
 
   @override
@@ -2600,7 +2594,7 @@ class DaggerSwingAttribute extends Attribute {
         if (weapon.weaponType.attackType == AttackType.melee) {
           return;
         }
-        final newWeapon = WeaponType.sanctifiedEdge.build(
+        final newWeapon = WeaponType.phaseDagger.build(
           ancestor: weapon.entityAncestor,
           customWeaponLevel: 0,
         );
@@ -2656,11 +2650,11 @@ class HomingProjectileAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Keep a watchful eye';
+  String title = 'Homing projectiles.';
 
   @override
   String description() {
-    return 'Homing projectiles';
+    return 'Add homing to your projectiles.';
   }
 
   @override
@@ -2716,7 +2710,7 @@ class HeavyHitterAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Reduce attack speed while increasing damage';
+    return 'Reduce attack speed while increasing all damage.';
   }
 
   @override
@@ -2765,11 +2759,11 @@ class QuickShotAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Quick Shot';
+  String title = 'Quick Shot.';
 
   @override
   String description() {
-    return 'Increase attack speed while decreasing damage';
+    return 'Increase attack speed while decreasing damage.';
   }
 
   @override
@@ -2818,11 +2812,11 @@ class RapidFireAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Quick Shot';
+  String title = 'Quick Shot.';
 
   @override
   String description() {
-    return 'Increase attack speed while decreasing damage';
+    return 'Increase attack speed while decreasing damage.';
   }
 
   @override
@@ -2871,7 +2865,7 @@ class BigPocketsAttribute extends Attribute {
   });
 
   @override
-  AttributeType attributeType = AttributeType.bigPockets;
+  AttributeType attributeType = AttributeType.bagOfHolding;
 
   // @override
   // double get factor => .33;
@@ -2880,11 +2874,11 @@ class BigPocketsAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Bag of Holding';
+  String title = 'Bag of Holding.';
 
   @override
   String description() {
-    return 'Increase max ammo, reduce movement speed';
+    return 'Increase maximum ammo, reduce movement speed.';
   }
 
   @override
@@ -2958,7 +2952,7 @@ class SecondsPleaseAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Increase health, reduce movement speed, increase max health';
+    return 'Increase health, size while reducing movement speed.';
   }
 
   @override
@@ -3018,7 +3012,7 @@ class PrimalMagicAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Increase Stamina Regen';
+    return 'Increase Stamina Regen.';
   }
 
   @override
@@ -3060,11 +3054,11 @@ class AppleADayAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Primal Magic';
+  String title = 'Health Regen';
 
   @override
   String description() {
-    return 'Increase Stamina Regen';
+    return 'Increase Health Regen';
   }
 
   @override
@@ -3110,7 +3104,7 @@ class CritChanceDecreaseDamageAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Increase Crit Chance while also Decrease Crit Damage';
+    return 'Increase critical strike chance while also decreasing critical damage.';
   }
 
   @override
@@ -3146,7 +3140,7 @@ class PutYourBackIntoItAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Put your back into it';
+  String title = 'Put your back into it.';
 
   bool increaseDamage(DamageInstance instance) {
     final health = attributeOwnerEntity! as HealthFunctionality;
@@ -3158,7 +3152,7 @@ class PutYourBackIntoItAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Melee attacks deal more damage the more health you have';
+    return 'Melee attacks deal more damage the more health you have.';
   }
 
   @override
@@ -3201,11 +3195,11 @@ class AgileAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Agile';
+  String title = 'Agility.';
 
   @override
   String description() {
-    return 'Reduce max health by X and increase speed';
+    return 'Reduce max health and increase speed.';
   }
 
   @override
@@ -3266,11 +3260,11 @@ class AreaSizeDecreaseDamageAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Area Size Decrease Damage';
+  String title = 'Its the size that counts.';
 
   @override
   String description() {
-    return 'Reduce area damage and increase area size';
+    return 'Reduce area damage and increase area effect size.';
   }
 
   @override
@@ -3308,11 +3302,11 @@ class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Decrease Max Ammo Increase Reload Speed';
+  String title = 'Take what you need.';
 
   @override
   String description() {
-    return 'Reduce max ammo while increase attack rate';
+    return 'Reduce max ammo while increasing reload speed.';
   }
 
   @override
@@ -3323,7 +3317,7 @@ class DecreaseMaxAmmoIncreaseReloadSpeedAttribute extends Attribute {
           return;
         }
         weapon.maxAttacks.setParameterPercentValue(attributeId, -.5);
-        weapon.reloadTime.setParameterPercentValue(attributeId, .25);
+        weapon.reloadTime.setParameterPercentValue(attributeId, .33);
       },
       false,
       true,
@@ -3365,7 +3359,7 @@ class PotionSellerAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Potion Seller';
+  String title = 'Potion Seller.';
 
   @override
   String description() {
@@ -3417,7 +3411,7 @@ class BattleScarsAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Reducing dash effectivness, while increasing health by 200%';
+    return 'Reducing dash effectivness, while increasing health by 200%.';
   }
 
   @override
@@ -3472,7 +3466,9 @@ class ForbiddenMagicAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Remove stamina, stamina actions reduce health, increase health regen by 100% for each stamina consuming weapon possessed';
+    return 'Remove stamina, stamina actions reduce health, increase health regen'
+        ' by 100% for each stamina consuming weapon possessed.'
+        '\n\nStamina regen is also converted to health regen.';
   }
 
   @override
@@ -3484,8 +3480,8 @@ class ForbiddenMagicAttribute extends Attribute {
           amountOfStaminaWeapons++;
         }
       },
-      true,
-      true,
+      false,
+      false,
     );
 
     if (attributeOwnerEntity is HealthRegenFunctionality) {
@@ -3500,6 +3496,24 @@ class ForbiddenMagicAttribute extends Attribute {
       stamina.stamina.setParameterPercentValue(attributeId, -1);
       previousValue = stamina.isForbiddenMagic;
       stamina.isForbiddenMagic = true;
+      stamina.staminaRegen.addListener(onStaminaRegenChange);
+      onStaminaRegenChange(0);
+    }
+  }
+
+  void onStaminaRegenChange(double parameter) {
+    if (attributeOwnerEntity is StaminaFunctionality &&
+        attributeOwnerEntity is HealthRegenFunctionality) {
+      final stamina = attributeOwnerEntity! as StaminaFunctionality;
+      final health = attributeOwnerEntity! as HealthRegenFunctionality;
+      health.healthRegen.setParameterFlatValue(
+        '${attributeId}_onStaminaRegenChange',
+        stamina.staminaRegen.parameterPercentIncrease - 1,
+      );
+      health.healthRegen.setParameterFlatValue(
+        '${attributeId}_onStaminaRegenChange',
+        stamina.staminaRegen.parameterFlatIncrease,
+      );
     }
   }
 
@@ -3511,11 +3525,13 @@ class ForbiddenMagicAttribute extends Attribute {
     if (attributeOwnerEntity is HealthRegenFunctionality) {
       final health = attributeOwnerEntity! as HealthRegenFunctionality;
       health.healthRegen.removeKey(attributeId);
+      health.healthRegen.removeKey('${attributeId}_onStaminaRegenChange');
     }
     if (attributeOwnerEntity is StaminaFunctionality) {
       final stamina = attributeOwnerEntity! as StaminaFunctionality;
       stamina.stamina.removeKey(attributeId);
       stamina.isForbiddenMagic = previousValue;
+      stamina.staminaRegen.removeListener(onStaminaRegenChange);
     }
   }
 }
@@ -3533,11 +3549,11 @@ class ReduceHealthIncreaseLifeStealAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Reduce Health Increase Life Steal';
+  String title = 'Deal with the Devil.';
 
   @override
   String description() {
-    return 'Reduce max health, increase life steal';
+    return 'Reduce max health, and increase life steal.';
   }
 
   @override
@@ -3586,7 +3602,7 @@ class StaminaStealAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Converts life steal to stamina steal';
+    return 'Converts life steal to stamina steal.';
   }
 
   @override
@@ -3619,7 +3635,7 @@ class SplitDamageAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Damage Split';
+  String title = 'Elemental Balance';
 
   bool splitDamage(DamageInstance instance) {
     final count = DamageType.values.length;
@@ -3643,7 +3659,7 @@ class SplitDamageAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Evenly distributes damage across all damage types';
+    return 'Evenly distributes damage across all damage types.\n\nIncreases elemental understanding by 25% for all elements.';
   }
 
   @override
@@ -3651,6 +3667,9 @@ class SplitDamageAttribute extends Attribute {
     if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onHitOtherEntity.add(splitDamage);
+    }
+    for (final element in DamageType.getValuesWithoutHealing) {
+      attributeOwnerEntity?.modifyElementalPower(element, .25);
     }
   }
 
@@ -3662,6 +3681,9 @@ class SplitDamageAttribute extends Attribute {
     if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
       attr.onHitOtherEntity.remove(splitDamage);
+    }
+    for (final element in DamageType.getValuesWithoutHealing) {
+      attributeOwnerEntity?.modifyElementalPower(element, -.25);
     }
   }
 
@@ -3682,11 +3704,11 @@ class RollTheDiceAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Increase crit chance and damage, while reducing damage';
+  String title = 'Increase crit chance and damage, while reducing damage.';
 
   @override
   String description() {
-    return 'Increase crit chance and damage by 25%, while reducing base damage by 50%';
+    return 'Increase crit chance and damage by 25%, while reducing base damage by 50%.';
   }
 
   @override
@@ -3728,7 +3750,7 @@ class GlassWandAttribute extends Attribute {
 
   @override
   String description() {
-    return 'Doubling damage, adding 10 lives but reducing max health to 1.';
+    return 'Double your damage, add 10 lives but reduce your max health to 1.';
   }
 
   @override
@@ -3739,7 +3761,7 @@ class GlassWandAttribute extends Attribute {
     if (attributeOwnerEntity is HealthFunctionality) {
       final health = attributeOwnerEntity! as HealthFunctionality;
 
-      health.maxHealth.setParameterPercentValue(attributeId, -0.9999999);
+      health.maxHealth.setParameterPercentValue(attributeId, -double.infinity);
     }
   }
 
@@ -3800,7 +3822,7 @@ class SlugTrailAttribute extends Attribute {
 
   @override
   String description() {
-    return 'While moving, leave a damaging area effect';
+    return 'While moving, leave a damaging area effect.';
   }
 
   @override
