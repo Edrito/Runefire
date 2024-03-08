@@ -137,6 +137,7 @@ class _OptionsMenuState extends State<OptionsMenu> {
     exitButton = CustomButton(
       'Back',
       gameRef: widget.gameRef,
+      rowId: 999,
       onPrimary: () {
         if (widget.backFunction != null) {
           widget.backFunction?.call();
@@ -276,7 +277,7 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
     return CustomButton(
       'Show Damage Text: ${showDamageText.toString().titleCase}',
       gameRef: widget.gameRef,
-      rowId: 9,
+      rowId: 10,
       onPrimary: () {
         toggleShowDamageText = !showDamageText;
       },
@@ -420,8 +421,8 @@ class _OptionsMainState extends State<OptionsMain> with SystemDataNotifier {
           buildMusicButton(),
           buildHudScaleButton(),
           buildAimAssistButton(),
-          buildShowDamageTextButton(),
           buildShowFpsButton(),
+          buildShowDamageTextButton(),
         ],
       ),
     );

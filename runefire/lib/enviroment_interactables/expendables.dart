@@ -16,12 +16,12 @@ import 'package:runefire/player/player.dart';
 import 'package:runefire/game/enviroment.dart';
 
 enum ExpendableType {
-  experienceAttractRune(iconName: 'experience_attract.png'),
-  fearEnemiesRunes(),
-  teleportRune,
+  experienceAttract(iconName: 'experience_attract.png'),
+  fearEnemies(),
+  teleport(iconName: 'teleport.png'),
   weapon,
-  stunRune,
-  healingRune;
+  stunEnemies(iconName: 'stun.png'),
+  healing(iconName: 'healing.png');
 
   const ExpendableType({this.iconName = 'fear_enemies.png'});
   final String iconName;
@@ -33,15 +33,15 @@ enum ExpendableType {
 extension ExpendableTypeExtension on ExpendableType {
   Expendable build(Player player, {WeaponType? weaponType}) {
     switch (this) {
-      case ExpendableType.experienceAttractRune:
+      case ExpendableType.experienceAttract:
         return ExperienceAttract(player: player);
-      case ExpendableType.fearEnemiesRunes:
+      case ExpendableType.fearEnemies:
         return FearEnemiesRune(player: player);
-      case ExpendableType.teleportRune:
+      case ExpendableType.teleport:
         return TeleportRune(player: player);
-      case ExpendableType.stunRune:
+      case ExpendableType.stunEnemies:
         return StunEnemiesRune(player: player);
-      case ExpendableType.healingRune:
+      case ExpendableType.healing:
         return HealingRune(player: player);
       case ExpendableType.weapon:
         return WeaponPickup(player: player, weaponType: weaponType!);

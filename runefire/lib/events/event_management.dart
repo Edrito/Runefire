@@ -55,12 +55,6 @@ abstract class EventManagement extends Component {
 
   TimerComponent? _eventTimer;
 
-  @override
-  void update(double dt) {
-    // print('activeAiTimers: ${currentTimers.length}');
-    super.update(dt);
-  }
-
   ///Total functions to call
   // final Map<double, Set<Function()>> _activeAiFunctions = {};
 

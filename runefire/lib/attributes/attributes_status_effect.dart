@@ -391,7 +391,6 @@ class StunAttribute extends StatusEffectAttribute {
   void mapUpgrade() {
     if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
-      // attr.movementEnabled.setIncrease(attributeId, false);
       attr.isStunned.setIncrease(attributeId, true);
     }
     if (attributeOwnerEntity is AttackFunctionality) {
@@ -406,14 +405,13 @@ class StunAttribute extends StatusEffectAttribute {
   void unMapUpgrade() {
     if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
-      // attr.movementEnabled.removeKey(attributeId);
       attr.isStunned.removeKey(attributeId);
     }
     super.unMapUpgrade();
   }
 
   @override
-  StatusEffects statusEffect = StatusEffects.frozen;
+  StatusEffects statusEffect = StatusEffects.stun;
 }
 
 class ConfusedStatusEffectAttribute extends StatusEffectAttribute {

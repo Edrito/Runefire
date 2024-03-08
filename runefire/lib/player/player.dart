@@ -71,6 +71,9 @@ class Player extends Entity
     if (enviroment is GameEnviroment) {
       loaded.then((value) {
         updateRemainingAmmo(currentWeapon);
+        if (currentWeapon != null) {
+          checkMouseCursor(currentWeapon!);
+        }
         gameEnviroment.hud.buildRemainingLives(this);
       });
       maxLives.addListener((parameter) {
@@ -84,7 +87,8 @@ class Player extends Entity
         for (final element in instance.damageMap.entries) {
           modifyElementalPower(
             element.key,
-            (element.value.isFinite ? element.value : 100) / 20000,
+            //demo == 2000
+            (element.value.isFinite ? element.value : 100) / 2000,
           );
         }
       });
@@ -93,6 +97,8 @@ class Player extends Entity
       onSpentAttack.add(updateRemainingAmmo);
       onWeaponSwap.add((from, to) {
         updateRemainingAmmo(to);
+        //Show game cursor if the weapon requires the mouse to attack, useful for game controllers
+        checkMouseCursor(to);
       });
     }
 
@@ -111,6 +117,14 @@ class Player extends Entity
           },
         ),
       );
+    }
+  }
+
+  void checkMouseCursor(Weapon weapon) {
+    if (weapon.sourceAttackLocation == SourceAttackLocation.mouse) {
+      game.forceGameCursor.setIncrease(entityId, true);
+    } else {
+      game.forceGameCursor.removeKey(entityId);
     }
   }
 

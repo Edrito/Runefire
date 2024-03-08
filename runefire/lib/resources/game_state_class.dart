@@ -205,7 +205,9 @@ extension GameStateGetters on GameState {
     return playerData.selectedLevel.levelColor;
   }
 
-  bool get menuPageIsLevel => currentMenuPage == MenuPageType.levelMenu;
+  bool get menuPageIsLevel =>
+      currentMenuPage == MenuPageType.levelMenu ||
+      currentMenuPage == MenuPageType.demoScreen;
 
   bool get gameIsPaused => gameRouter.paused;
 
@@ -323,6 +325,7 @@ extension GameStateFunctions on GameState {
       toggleGameStart(null);
       changeMainMenuPage(
         customMenuPage ??
+            MenuPageType.demoScreen ??
             (endGameState == EndGameState.win && false
                 ? MenuPageType.weaponMenu
                 : MenuPageType.startMenuPage),

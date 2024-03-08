@@ -10,6 +10,7 @@ import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/functions/custom.dart';
+import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:uuid/uuid.dart';
 
@@ -101,9 +102,9 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
             break;
           case DamageType.psychic:
-            spawnAnimation = await spriteAnimations.psychicStrikeMedium1;
+            spawnAnimation = await spriteAnimations.psychicOrbMedium1;
 
-            anchor = const Anchor(.5, .9);
+            // anchor = const Anchor(.5, .9);
 
             break;
           default:
@@ -133,11 +134,14 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   void beginContact(Object other, Contact contact) {
     final shouldCalculate = other is Entity &&
         other != sourceEntity &&
-        !currentEntities.contains(other);
+        !currentEntities.contains(other) &&
+        !contact.containsFixtureType(FixtureType.sensor);
 
     if (!shouldCalculate) {
       return super.beginContact(other, contact);
     }
+    print('here');
+    print(contact.containsFixtureType(FixtureType.sensor));
     currentEntities.add(other);
     entityTimers[other] ??= tickRate;
     super.beginContact(other, contact);
@@ -253,7 +257,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     //   ..radius = radius
     //   ..anchor = Anchor.center
     //   ..paint = (paint..color = Colors.red.withOpacity(.3)));
-    renderBody = false;
+    // renderBody = false;
     final filter = Filter();
     filter.categoryBits = areaEffectCategory;
     if (sourceEntity.isPlayer) {

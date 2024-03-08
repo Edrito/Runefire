@@ -532,8 +532,8 @@ class EnergyMagic extends PlayerWeapon
           Vector2.all(0),
           weaponAnimations: {
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
-            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+            WeaponStatus.idle: await spriteAnimations.defaultWandIdle1,
+            WeaponStatus.attack: await spriteAnimations.defaultWandAttack1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -1192,4 +1192,8 @@ class HexwoodMaim extends PlayerWeapon
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.regular;
+
+  @override
+  // TODO: implement sourceAttackLocation
+  SourceAttackLocation? get sourceAttackLocation => SourceAttackLocation.mouse;
 }

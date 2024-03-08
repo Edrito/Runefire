@@ -307,6 +307,17 @@ class _PauseMenuState extends State<PauseMenu> {
     gameRouter = widget.gameRef;
     gameState = gameRouter.gameStateComponent.gameState;
     env = gameState.currentEnviroment! as GameEnviroment;
+    InputManager().addCommonlyUsedBackButtonListener(onBackEvent);
+  }
+
+  @override
+  void dispose() {
+    InputManager().removeCommonlyUsedBackButtonListener(onBackEvent);
+    super.dispose();
+  }
+
+  void onBackEvent() {
+    gameState.resumeGame();
   }
 
   final Size cardSize = const Size(128, 96);

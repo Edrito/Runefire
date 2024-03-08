@@ -19,6 +19,9 @@ class PlayerDataComponent extends DataComponent {
 
 @HiveType(typeId: 1)
 class PlayerData extends DataClass with PlayerStatistics {
+  //XP
+  int _experiencePoints = 600000;
+
   Set<WeaponType> availableWeapons = {
     WeaponType.crystalPistol,
     WeaponType.crystalSword,
@@ -29,12 +32,6 @@ class PlayerData extends DataClass with PlayerStatistics {
   GameDifficulty selectedDifficulty = GameDifficulty.regular;
   GameLevel selectedLevel = GameLevel.hexedForest;
   CharacterType selectedPlayer = CharacterType.runeKnight;
-
-  void setSelectedCharacter(CharacterType characterType) {
-    selectedPlayer = characterType;
-    parentComponent?.notifyListeners();
-  }
-
   Map<int, SecondaryType> selectedSecondaries = {
     0: SecondaryType.rapidFire,
     1: SecondaryType.elementalBlast,
@@ -50,6 +47,22 @@ class PlayerData extends DataClass with PlayerStatistics {
   // List<GameLevel> completedLevels = [];
   List<CharacterType> unlockedCharacters = [CharacterType.runeKnight];
 
+  Map<AttributeType, int> unlockedPermanentAttributes = {};
+  Map<SecondaryType, int> unlockedSecondarys = {
+    SecondaryType.pistolAttachment: 0,
+    SecondaryType.rapidFire: 0,
+    SecondaryType.essentialFocus: 0,
+    ...SecondaryType.values.asMap().map((key, value) => MapEntry(value, 0)),
+  };
+
+  Map<WeaponType, int> unlockedWeapons = {
+    WeaponType.crystalPistol: 0,
+    WeaponType.crystalSword: 0,
+    ...WeaponType.values.asMap().map((key, value) => MapEntry(value, 0)),
+  };
+
+  int get experiencePoints => _experiencePoints;
+
   void addAchievement(Achievements achievement) {
     if (unlockedAchievements.contains(achievement)) {
       return;
@@ -57,23 +70,6 @@ class PlayerData extends DataClass with PlayerStatistics {
     unlockedAchievements.add(achievement);
     parentComponent?.notifyListeners();
   }
-
-  Map<AttributeType, int> unlockedPermanentAttributes = {};
-  Map<SecondaryType, int> unlockedSecondarys = {
-    SecondaryType.pistolAttachment: 0,
-    SecondaryType.rapidFire: 0,
-    SecondaryType.essentialFocus: 0,
-  };
-
-  Map<WeaponType, int> unlockedWeapons = {
-    WeaponType.crystalPistol: 0,
-    WeaponType.crystalSword: 0,
-  };
-
-  //XP
-  int _experiencePoints = 600000;
-
-  int get experiencePoints => _experiencePoints;
 
   bool characterUnlocked() {
     return unlockedCharacters.contains(selectedPlayer);
@@ -117,6 +113,11 @@ class PlayerData extends DataClass with PlayerStatistics {
       );
     }
 
+    parentComponent?.notifyListeners();
+  }
+
+  void setSelectedCharacter(CharacterType characterType) {
+    selectedPlayer = characterType;
     parentComponent?.notifyListeners();
   }
 

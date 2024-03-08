@@ -23,33 +23,33 @@ extension MainMenuPagesExtension on MenuPageType {
     final rng = Random();
 
     switch (this) {
-      // case MenuPageType.options:
-      //   return OptionsMenu(
-      //     gameRef: gameRef,
-      //     // key: Key(rng.nextDouble().toString()),
-      //   );
-      // case MenuPageType.startMenuPage:
-      //   return StartMenu(
-      //     // key: Key(rng.nextDouble().toString()),
-      //     gameRef: gameRef,
-      //   );
+      case MenuPageType.options:
+        return OptionsMenu(
+          gameRef: gameRef,
+          // key: Key(rng.nextDouble().toString()),
+        );
+      case MenuPageType.startMenuPage:
+        return StartMenu(
+          // key: Key(rng.nextDouble().toString()),
+          gameRef: gameRef,
+        );
       case MenuPageType.demoScreen:
         return DemoScreen(gameRef: gameRef);
-      // case MenuPageType.achievementsMenu:
-      //   return AchievementsMenu(
-      //     // key: Key(rng.nextDouble().toString()),
-      //     gameRef: gameRef,
-      //   );
-      // case MenuPageType.weaponMenu:
-      //   return WeaponMenu(
-      //     // key: Key(rng.nextDouble().toString()),
-      //     gameRef: gameRef,
-      //   );
-      // case MenuPageType.levelMenu:
-      //   return LevelMenu(
-      //     // key: Key(rng.nextDouble().toString()),
-      //     gameRef: gameRef,
-      //   );
+      case MenuPageType.achievementsMenu:
+        return AchievementsMenu(
+          // key: Key(rng.nextDouble().toString()),
+          gameRef: gameRef,
+        );
+      case MenuPageType.weaponMenu:
+        return WeaponMenu(
+          // key: Key(rng.nextDouble().toString()),
+          gameRef: gameRef,
+        );
+      case MenuPageType.levelMenu:
+        return LevelMenu(
+          // key: Key(rng.nextDouble().toString()),
+          gameRef: gameRef,
+        );
       default:
         return DemoScreen(gameRef: gameRef);
     }

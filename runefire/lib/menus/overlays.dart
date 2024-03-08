@@ -14,6 +14,7 @@ import 'package:runefire/menus/level_up_screen.dart';
 import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/player/player_mixin.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/routes.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/enums.dart';
@@ -516,19 +517,15 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
       //if gamepad is being used and the game is not paused, hide the custom cursor
       if (type == ExternalInputType.gamepad &&
           widget.gameRef.router.currentRoute.name == routes.gameplay &&
-          !widget.gameRef.paused) {
+          !widget.gameRef.paused &&
+          !(widget.gameRef.forceGameCursor.parameter &&
+              widget.gameRef.router.currentRoute.name == routes.gameplay)) {
         this.position = null;
       } else {
         this.position = position;
       }
       latestEventWasKeyboard = this.position == null;
       _updateHoverWidgetSize();
-    });
-  }
-
-  void onPrimary(_) {
-    setState(() {
-      targetClick = true;
     });
   }
 
@@ -633,16 +630,30 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
     super.dispose();
   }
 
-  static const double radius = 10;
+  static const double radius = 32;
 
   bool targetClick = false;
-  late final Widget cachedCursor = Container(
-    decoration: BoxDecoration(
-      color: colorPalette.secondaryColor,
-      shape: BoxShape.circle,
+  late final Widget cachedCursorUp = SizedBox.square(
+    dimension: radius,
+    child: Transform(
+      transform: Matrix4.translationValues(
+        radius / 2.05,
+        radius / 2.05,
+        0.0,
+      ),
+      child: buildImageAsset(ImagesAssetsUi.cursorUp.path),
     ),
-    height: radius,
-    width: radius,
+  );
+  late final Widget cachedCursorDown = SizedBox.square(
+    dimension: radius,
+    child: Transform(
+      transform: Matrix4.translationValues(
+        radius / 2,
+        radius / 2,
+        0.0,
+      ),
+      child: buildImageAsset(ImagesAssetsUi.cursorDown.path),
+    ),
   );
   @override
   Widget build(BuildContext context) {
@@ -651,15 +662,15 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
     return IgnorePointer(
       child: Stack(
         children: [
-          if (GameState().currentRoute != gameplay)
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Text(
-                'Wireframe Demo Build',
-                style: defaultStyle.copyWith(fontSize: 32),
-              ),
-            ),
+          // if (GameState().currentRoute != gameplay)
+          //   Positioned(
+          //     top: 0,
+          //     left: 0,
+          //     child: Text(
+          //       'Wireframe Demo Build',
+          //       style: defaultStyle.copyWith(fontSize: 32),
+          //     ),
+          //   ),
           if (activeMessage != null)
             DisplayTextWidget(
               activeMessage!,
@@ -676,7 +687,7 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
                         position!.dy - (radius / 2),
                         0.0,
                       ),
-                      child: cachedCursor,
+                      child: targetClick ? cachedCursorDown : cachedCursorUp,
                     ),
                     if (hoveredWidget != null)
                       Builder(

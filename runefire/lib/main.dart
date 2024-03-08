@@ -24,6 +24,7 @@ import 'package:runefire/menus/menus.dart';
 import 'package:runefire/player/player_mixin.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/assets/sprite_animations.dart';
+import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/data_classes/system_data.dart';
 import 'package:runefire/resources/enums.dart';
@@ -99,7 +100,7 @@ void main() async {
   GameState().currentRoute = _startInGame ? routes.gameplay : routes.blank;
 
   GameState().initParameters(
-    currentMenuPage: MenuPageType.startMenuPage,
+    currentMenuPage: MenuPageType.demoScreen,
     gameRouter: gameRouter,
     playerData: playerData,
     systemData: systemData,
@@ -184,6 +185,11 @@ class GameRouter extends Forge2DGame {
     playerDataComponent = PlayerDataComponent(playerData);
     systemDataComponent = SystemDataComponent(systemData);
   }
+
+  final BoolParameterManager forceGameCursor = BoolParameterManager(
+    baseParameter: false,
+    frequencyDeterminesTruth: false,
+  );
 
   late PlayerDataComponent playerDataComponent;
   late SystemDataComponent systemDataComponent;

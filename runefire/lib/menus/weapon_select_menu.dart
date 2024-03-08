@@ -387,7 +387,7 @@ class _WeaponSecondarySelectorState extends State<WeaponSecondarySelector> {
                         'Back',
                         zHeight: 1,
                         zIndex: 1,
-                        rowId: 666,
+                        rowId: 999,
                         gameRef: widget.gameRef,
                         onPrimary: () => widget.onBack.call(),
                       ),

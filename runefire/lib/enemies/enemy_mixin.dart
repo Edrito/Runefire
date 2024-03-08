@@ -28,11 +28,11 @@ mixin DropItemFunctionality on HealthFunctionality {
   abstract Map<ExperienceAmount, double> experienceRate;
 
   Map<ExpendableType, double> expendableRate = {
-    ExpendableType.experienceAttractRune: 0,
-    ExpendableType.fearEnemiesRunes: 0,
-    ExpendableType.teleportRune: 0,
-    ExpendableType.stunRune: 0,
-    ExpendableType.healingRune: 0,
+    ExpendableType.experienceAttract: 0,
+    ExpendableType.fearEnemies: 0,
+    ExpendableType.teleport: 0,
+    ExpendableType.stunEnemies: 0,
+    ExpendableType.healing: 0,
   };
 
   //Random value between the two ints is chosen

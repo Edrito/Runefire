@@ -91,12 +91,12 @@ abstract class InteractableComponent extends BodyComponent<GameRouter>
 
   void toggleDisplay({bool isOn = true}) {
     if (isOn) {
-      final key = game.systemDataComponent.dataObject
-          .getBinding(GameAction.interact, InputManager());
+      // final key = game.systemDataComponent.dataObject
+      //     .getBinding(GameAction.interact, InputManager());
       displayedText ??= TextComponent(
-        text: "${key == null ? "" : "$key ~ "}$displayedTextString",
-        anchor: Anchor.center,
-        // position: Vector2.all(5),
+        text: displayedTextString,
+        anchor: Anchor.bottomCenter,
+        position: Vector2(0, -spriteComponent.size.y / 2),
         textRenderer: TextPaint(
           style: defaultStyle.copyWith(
             fontSize: .4,

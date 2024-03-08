@@ -121,7 +121,11 @@ class _StartMenuState extends State<StartMenu> {
                 startButtonComponent,
                 optionsButtonComponent,
                 exitButtonComponent,
-              ],
+              ]
+                  .animate(
+                    interval: AnimateList.defaultInterval,
+                  )
+                  .fadeIn(),
             ),
           ),
         ),

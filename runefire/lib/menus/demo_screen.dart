@@ -8,7 +8,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:recase/recase.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/menus/custom_button.dart';
+import 'package:runefire/menus/menus.dart';
 import 'package:runefire/menus/pause_menu.dart';
+import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/routes.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
@@ -26,6 +29,8 @@ enum DemoBuilds {
   warlock,
   frostWizard;
 }
+
+enum SocialItem { android, steam }
 
 typedef DemoBuild = ({
   WeaponType weapon1,
@@ -358,6 +363,48 @@ class _DemoScreenState extends State<DemoScreen> {
 
   Completer beginCards = Completer();
 
+  Widget buildSocialItem(SocialItem socialItem) {
+    var isPressed = false;
+    String downPath;
+    String upPath;
+
+    switch (socialItem) {
+      case SocialItem.android:
+        downPath = ImagesAssetsUi.androidLogoDown.path;
+        upPath = ImagesAssetsUi.androidLogoUp.path;
+        break;
+      case SocialItem.steam:
+        downPath = ImagesAssetsUi.steamLogoDown.path;
+        upPath = ImagesAssetsUi.steamLogoUp.path;
+    }
+
+    return StatefulBuilder(
+      builder: (BuildContext context, setState) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            height: 32 * 2,
+            child: CustomInputWatcher(
+              rowId: 999,
+              hoverWidget: SizedBox(
+                child: Text(socialItem.name.titleCase),
+              ),
+              onHover: (isHover) {
+                setState(() {
+                  isPressed = isHover;
+                });
+              },
+              child: buildImageAsset(
+                isPressed ? downPath : upPath,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -375,24 +422,47 @@ class _DemoScreenState extends State<DemoScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Text(
                       'Wireframe Demo',
-                      style: defaultStyle,
+                      style: defaultStyle.copyWith(
+                        fontSize: 64,
+                        // color: ApolloColorPalette.purple.color,
+                      ),
                     ),
                   ),
                   Expanded(
-                    child: Wrap(
-                      alignment: WrapAlignment.center,
-                      runAlignment: WrapAlignment.center,
-                      children: [
-                        for (var i = 0; i < DemoBuilds.values.length; i++)
-                          Builder(
-                            builder: (context) {
-                              return buildWidget(
-                                DemoBuilds.values.elementAt(i),
-                              );
-                            },
-                          ),
-                      ].animate(interval: .05.seconds).moveY().fadeIn(),
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          runAlignment: WrapAlignment.center,
+                          children: [
+                            for (var i = 0; i < DemoBuilds.values.length; i++)
+                              Builder(
+                                builder: (context) {
+                                  return buildWidget(
+                                    DemoBuilds.values.elementAt(i),
+                                  );
+                                },
+                              ),
+                          ].animate(interval: .05.seconds).moveY().fadeIn(),
+                        ),
+                      ),
                     ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      for (var i = 0; i < SocialItem.values.length; i++)
+                        buildSocialItem(SocialItem.values[i]),
+                    ].animate(interval: .05.seconds).moveY().fadeIn(),
+                  ),
+                  CustomButton(
+                    'View Standard Game Menu',
+                    gameRef: widget.gameRef,
+                    onPrimary: () {
+                      GameState()
+                          .changeMainMenuPage(MenuPageType.startMenuPage);
+                    },
                   ),
                 ],
               );
@@ -407,7 +477,7 @@ class _DemoScreenState extends State<DemoScreen> {
                   'Runefire',
                   style: defaultStyle.copyWith(
                     fontSize: 128,
-                    color: DamageType.values.random().color,
+                    color: ApolloColorPalette.blue.color,
                     shadows: [],
                   ),
                 ),
@@ -417,7 +487,18 @@ class _DemoScreenState extends State<DemoScreen> {
                     'Runefire',
                     style: defaultStyle.copyWith(
                       fontSize: 128,
-                      color: Colors.white,
+                      color: ApolloColorPalette.lightBlue.color,
+                      shadows: [],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 6, top: 6),
+                  child: Text(
+                    'Runefire',
+                    style: defaultStyle.copyWith(
+                      fontSize: 128,
+                      color: ApolloColorPalette.offWhite.color,
                       shadows: [],
                     ),
                   ),
@@ -435,13 +516,20 @@ class _DemoScreenState extends State<DemoScreen> {
               .fadeIn(
                 duration: .3.seconds,
               )
+              .scale(
+                duration: .4.seconds,
+                begin: const Offset(10, 10),
+                end: const Offset(1, 1),
+                curve: Curves.fastEaseInToSlowEaseOut,
+              )
               .animate(
                 delay: 2.seconds,
                 onComplete: (controller) {
                   if (beginCards.isCompleted) {
                     return;
                   }
-                  beginCards.complete();
+                  Future.delayed(1.seconds)
+                      .then((value) => beginCards.complete());
                 },
               )
               .fadeOut(

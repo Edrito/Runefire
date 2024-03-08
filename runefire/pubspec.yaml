@@ -51,7 +51,7 @@ flutter:
 
   uses-material-design: true
 
-  assets:
+  assets:    
     - assets/audio/
     - assets/audio/sfx/
     - assets/audio/sfx/magic/
@@ -90,6 +90,7 @@ flutter:
     - assets/images/weapons/crystal_pistol/
     - assets/images/weapons/crystal_sword/
     - assets/images/weapons/default_book/
+    - assets/images/weapons/default_wand/
     - assets/images/weapons/eldritch_runner/
     - assets/images/weapons/ember_bow/
     - assets/images/weapons/flame_sword/

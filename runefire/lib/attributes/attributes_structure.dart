@@ -830,6 +830,7 @@ enum AttributeType {
   meleeAttackFrozenEnemyShove(
     rarity: AttributeRarity.rare,
     category: AttributeCategory.offence,
+    territory: AttributeTerritory.game,
     attributeEligibilityTest: playerHasMeleeWeapon,
     elementalRequirement: {
       DamageType.frost: .6,

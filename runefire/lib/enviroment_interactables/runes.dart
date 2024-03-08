@@ -18,7 +18,7 @@ import 'package:runefire/game/enviroment.dart';
 class ExperienceAttract extends Expendable {
   ExperienceAttract({required super.player});
   @override
-  ExpendableType expendableType = ExpendableType.experienceAttractRune;
+  ExpendableType expendableType = ExpendableType.experienceAttract;
 
   @override
   bool applyExpendable() {
@@ -39,7 +39,7 @@ class ExperienceAttract extends Expendable {
 class StunEnemiesRune extends Expendable {
   StunEnemiesRune({required super.player});
   @override
-  ExpendableType expendableType = ExpendableType.stunRune;
+  ExpendableType expendableType = ExpendableType.stunEnemies;
 
   @override
   bool applyExpendable() {
@@ -68,7 +68,7 @@ class StunEnemiesRune extends Expendable {
 class TeleportRune extends Expendable {
   TeleportRune({required super.player});
   @override
-  ExpendableType expendableType = ExpendableType.teleportRune;
+  ExpendableType expendableType = ExpendableType.teleport;
 
   @override
   bool applyExpendable() {
@@ -90,7 +90,7 @@ class TeleportRune extends Expendable {
 class FearEnemiesRune extends Expendable {
   FearEnemiesRune({required super.player});
   @override
-  ExpendableType expendableType = ExpendableType.fearEnemiesRunes;
+  ExpendableType expendableType = ExpendableType.fearEnemies;
 
   @override
   bool applyExpendable() {
@@ -121,7 +121,7 @@ class FearEnemiesRune extends Expendable {
 class HealingRune extends Expendable {
   HealingRune({required super.player});
   @override
-  ExpendableType expendableType = ExpendableType.healingRune;
+  ExpendableType expendableType = ExpendableType.healing;
 
   @override
   bool applyExpendable() {

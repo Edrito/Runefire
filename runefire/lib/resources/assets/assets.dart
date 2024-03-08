@@ -197,20 +197,30 @@ static const FileDataClass energy110 =
  potentialFrameCount:5   );///explosion_1_16.png
 static const FileDataClass explosion116 = 
 (path:"assets/images/effects/explosion_1_16.png",flamePath:"effects/explosion_1_16.png", size:(1024.0,64.0),
- potentialFrameCount:16   );///psychic_1_11.png
-static const FileDataClass psychic111 = 
-(path:"assets/images/effects/psychic_1_11.png",flamePath:"effects/psychic_1_11.png", size:(704.0,100.0),
- potentialFrameCount:7   );///star_5.png
+ potentialFrameCount:16   );///fire_orb_1_18.png
+static const FileDataClass fireOrb118 = 
+(path:"assets/images/effects/fire_orb_1_18.png",flamePath:"effects/fire_orb_1_18.png", size:(864.0,48.0),
+ potentialFrameCount:18   );///pheonix_revive_1_5.png
+static const FileDataClass pheonixRevive15 = 
+(path:"assets/images/effects/pheonix_revive_1_5.png",flamePath:"effects/pheonix_revive_1_5.png", size:(240.0,48.0),
+ potentialFrameCount:5   );///psychic_orb_1_18.png
+static const FileDataClass psychicOrb118 = 
+(path:"assets/images/effects/psychic_orb_1_18.png",flamePath:"effects/psychic_orb_1_18.png", size:(864.0,48.0),
+ potentialFrameCount:18   );///star_5.png
 static const FileDataClass star5 = 
 (path:"assets/images/effects/star_5.png",flamePath:"effects/star_5.png", size:(80.0,16.0),
  potentialFrameCount:5   );static  List<String> allFiles = [energy110.path,
 explosion116.path,
-psychic111.path,
+fireOrb118.path,
+pheonixRevive15.path,
+psychicOrb118.path,
 star5.path,
 ];
 static  List<String> allFilesFlame = [energy110.flamePath,
 explosion116.flamePath,
-psychic111.flamePath,
+fireOrb118.flamePath,
+pheonixRevive15.flamePath,
+psychicOrb118.flamePath,
 star5.flamePath,
 ];
 }
@@ -281,7 +291,7 @@ static const FileDataClass slow =
 (path:"assets/images/effects/status_effects/slow.png",flamePath:"effects/status_effects/slow.png", size:(64.0,8.0),
  potentialFrameCount:8   );///stun.png
 static const FileDataClass stun = 
-(path:"assets/images/effects/status_effects/stun.png",flamePath:"effects/status_effects/stun.png", size:(64.0,16.0),
+(path:"assets/images/effects/status_effects/stun.png",flamePath:"effects/status_effects/stun.png", size:(32.0,8.0),
  potentialFrameCount:4   );static  List<String> allFiles = [bleed.path,
 burningEnd1.path,
 burningLoop1.path,
@@ -551,15 +561,30 @@ static const FileDataClass experienceAttract =
  potentialFrameCount:1   );///fear_enemies.png
 static const FileDataClass fearEnemies = 
 (path:"assets/images/expendables/fear_enemies.png",flamePath:"expendables/fear_enemies.png", size:(32.0,32.0),
+ potentialFrameCount:1   );///healing.png
+static const FileDataClass healing = 
+(path:"assets/images/expendables/healing.png",flamePath:"expendables/healing.png", size:(32.0,32.0),
+ potentialFrameCount:1   );///stun.png
+static const FileDataClass stun = 
+(path:"assets/images/expendables/stun.png",flamePath:"expendables/stun.png", size:(32.0,32.0),
+ potentialFrameCount:1   );///teleport.png
+static const FileDataClass teleport = 
+(path:"assets/images/expendables/teleport.png",flamePath:"expendables/teleport.png", size:(32.0,32.0),
  potentialFrameCount:1   );static  List<String> allFiles = [blank.path,
 blankAlt.path,
 experienceAttract.path,
 fearEnemies.path,
+healing.path,
+stun.path,
+teleport.path,
 ];
 static  List<String> allFilesFlame = [blank.flamePath,
 blankAlt.flamePath,
 experienceAttract.flamePath,
 fearEnemies.flamePath,
+healing.flamePath,
+stun.flamePath,
+teleport.flamePath,
 ];
 }
 class ImagesAssetsExperience {
@@ -651,7 +676,13 @@ static const FileDataClass ammo =
  potentialFrameCount:1   );///ammo_empty.png
 static const FileDataClass ammoEmpty = 
 (path:"assets/images/ui/ammo_empty.png",flamePath:"ui/ammo_empty.png", size:(8.0,8.0),
- potentialFrameCount:1   );///arrow_black.png
+ potentialFrameCount:1   );///android_logo_down.png
+static const FileDataClass androidLogoDown = 
+(path:"assets/images/ui/android_logo_down.png",flamePath:"ui/android_logo_down.png", size:(160.0,32.0),
+ potentialFrameCount:5   );///android_logo_up.png
+static const FileDataClass androidLogoUp = 
+(path:"assets/images/ui/android_logo_up.png",flamePath:"ui/android_logo_up.png", size:(160.0,32.0),
+ potentialFrameCount:5   );///arrow_black.png
 static const FileDataClass arrowBlack = 
 (path:"assets/images/ui/arrow_black.png",flamePath:"ui/arrow_black.png", size:(12.0,8.0),
  potentialFrameCount:2   );///attribute_background.png
@@ -723,7 +754,13 @@ static const FileDataClass bossBarLeft =
  potentialFrameCount:4   );///boss_bar_right.png
 static const FileDataClass bossBarRight = 
 (path:"assets/images/ui/boss_bar_right.png",flamePath:"ui/boss_bar_right.png", size:(32.0,8.0),
- potentialFrameCount:4   );///elemental_column.png
+ potentialFrameCount:4   );///cursor_down.png
+static const FileDataClass cursorDown = 
+(path:"assets/images/ui/cursor_down.png",flamePath:"ui/cursor_down.png", size:(16.0,16.0),
+ potentialFrameCount:1   );///cursor_up.png
+static const FileDataClass cursorUp = 
+(path:"assets/images/ui/cursor_up.png",flamePath:"ui/cursor_up.png", size:(16.0,16.0),
+ potentialFrameCount:1   );///elemental_column.png
 static const FileDataClass elementalColumn = 
 (path:"assets/images/ui/elemental_column.png",flamePath:"ui/elemental_column.png", size:(32.0,96.0),
  potentialFrameCount:0   );///elemental_pie.png
@@ -792,7 +829,10 @@ static const FileDataClass meleeIconSmall =
  potentialFrameCount:3   );///padlock.png
 static const FileDataClass padlock = 
 (path:"assets/images/ui/padlock.png",flamePath:"ui/padlock.png", size:(32.0,32.0),
- potentialFrameCount:1   );///placeholder_face.png
+ potentialFrameCount:1   );///placeholder.png
+static const FileDataClass placeholder = 
+(path:"assets/images/ui/placeholder.png",flamePath:"ui/placeholder.png", size:(64.0,16.0),
+ potentialFrameCount:4   );///placeholder_face.png
 static const FileDataClass placeholderFace = 
 (path:"assets/images/ui/placeholder_face.png",flamePath:"ui/placeholder_face.png", size:(16.0,20.0),
  potentialFrameCount:1   );///plus_blue.png
@@ -810,7 +850,13 @@ static const FileDataClass staminaBarCap =
  potentialFrameCount:1   );///stamina_bar_mid.png
 static const FileDataClass staminaBarMid = 
 (path:"assets/images/ui/stamina_bar_mid.png",flamePath:"ui/stamina_bar_mid.png", size:(8.0,8.0),
- potentialFrameCount:1   );///studies_head_banner.png
+ potentialFrameCount:1   );///steam_logo_down.png
+static const FileDataClass steamLogoDown = 
+(path:"assets/images/ui/steam_logo_down.png",flamePath:"ui/steam_logo_down.png", size:(160.0,32.0),
+ potentialFrameCount:5   );///steam_logo_up.png
+static const FileDataClass steamLogoUp = 
+(path:"assets/images/ui/steam_logo_up.png",flamePath:"ui/steam_logo_up.png", size:(160.0,32.0),
+ potentialFrameCount:5   );///studies_head_banner.png
 static const FileDataClass studiesHeadBanner = 
 (path:"assets/images/ui/studies_head_banner.png",flamePath:"ui/studies_head_banner.png", size:(128.0,48.0),
  potentialFrameCount:3   );///weapon_level_indicator.png
@@ -830,6 +876,8 @@ static const FileDataClass xpBarRight =
 (path:"assets/images/ui/xp_bar_right.png",flamePath:"ui/xp_bar_right.png", size:(16.0,8.0),
  potentialFrameCount:2   );static  List<String> allFiles = [ammo.path,
 ammoEmpty.path,
+androidLogoDown.path,
+androidLogoUp.path,
 arrowBlack.path,
 attributeBackground.path,
 attributeBackgroundMask.path,
@@ -854,6 +902,8 @@ bossBarBorder.path,
 bossBarCenter.path,
 bossBarLeft.path,
 bossBarRight.path,
+cursorDown.path,
+cursorUp.path,
 elementalColumn.path,
 elementalPie.path,
 healthBar.path,
@@ -877,12 +927,15 @@ magicHandSmallR.path,
 magicIconSmall.path,
 meleeIconSmall.path,
 padlock.path,
+placeholder.path,
 placeholderFace.path,
 plusBlue.path,
 plusRed.path,
 rangedIconSmall.path,
 staminaBarCap.path,
 staminaBarMid.path,
+steamLogoDown.path,
+steamLogoUp.path,
 studiesHeadBanner.path,
 weaponLevelIndicator.path,
 xpBarBorder.path,
@@ -892,6 +945,8 @@ xpBarRight.path,
 ];
 static  List<String> allFilesFlame = [ammo.flamePath,
 ammoEmpty.flamePath,
+androidLogoDown.flamePath,
+androidLogoUp.flamePath,
 arrowBlack.flamePath,
 attributeBackground.flamePath,
 attributeBackgroundMask.flamePath,
@@ -916,6 +971,8 @@ bossBarBorder.flamePath,
 bossBarCenter.flamePath,
 bossBarLeft.flamePath,
 bossBarRight.flamePath,
+cursorDown.flamePath,
+cursorUp.flamePath,
 elementalColumn.flamePath,
 elementalPie.flamePath,
 healthBar.flamePath,
@@ -939,12 +996,15 @@ magicHandSmallR.flamePath,
 magicIconSmall.flamePath,
 meleeIconSmall.flamePath,
 padlock.flamePath,
+placeholder.flamePath,
 placeholderFace.flamePath,
 plusBlue.flamePath,
 plusRed.flamePath,
 rangedIconSmall.flamePath,
 staminaBarCap.flamePath,
 staminaBarMid.flamePath,
+steamLogoDown.flamePath,
+steamLogoUp.flamePath,
 studiesHeadBanner.flamePath,
 weaponLevelIndicator.flamePath,
 xpBarBorder.flamePath,
@@ -1092,6 +1152,15 @@ bookIdle.path,
 ];
 static  List<String> allFilesFlame = [bookFire.flamePath,
 bookIdle.flamePath,
+];
+}
+class ImagesAssetsDefaultWand {
+///wand_idle.png
+static const FileDataClass wandIdle = 
+(path:"assets/images/weapons/default_wand/wand_idle.png",flamePath:"weapons/default_wand/wand_idle.png", size:(16.0,64.0),
+ potentialFrameCount:0   );static  List<String> allFiles = [wandIdle.path,
+];
+static  List<String> allFilesFlame = [wandIdle.flamePath,
 ];
 }
 class ImagesAssetsEldritchRunner {

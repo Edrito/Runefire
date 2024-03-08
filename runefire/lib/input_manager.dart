@@ -402,6 +402,16 @@ class InputManager with WindowListener {
 
   void _setVibrationZero() => gamepadInputManager.gamepad.vibrate();
 
+  final List<Function()> onCommonlyUsedBackButton = [];
+
+  void addCommonlyUsedBackButtonListener(Function() onBack) {
+    onCommonlyUsedBackButton.add(onBack);
+  }
+
+  void removeCommonlyUsedBackButtonListener(Function() onBack) {
+    onCommonlyUsedBackButton.remove(onBack);
+  }
+
   //singleton
   static final InputManager _instance = InputManager._internal();
 
@@ -416,7 +426,7 @@ class InputManager with WindowListener {
 
   Offset? _gamepadCursorPosition;
 
-  late final CustomInputWatcherManager customInputWatcherManager;
+  late final CustomInputWatcherWidgetManager customInputWatcherManager;
   late final GamepadInputManager gamepadInputManager;
 
   //Keyboard
@@ -574,10 +584,29 @@ class InputManager with WindowListener {
     return gamepadInputManager.fetchJoyState(joy);
   }
 
+  void checkCommonlyUsedBackButtonEvent(KeyEvent keyEvent) {
+    if (backButtonKeyEvents.contains(keyEvent.logicalKey)) {
+      for (final element in onCommonlyUsedBackButton) {
+        element.call();
+      }
+    }
+  }
+
+  void checkCommonlyUsedBackButtonGamepadEvent(GamepadEvent event) {
+    if (backButtonGamepadEvents.contains(event.button) &&
+        event.pressState == PressState.pressed) {
+      for (final element in onCommonlyUsedBackButton) {
+        element.call();
+      }
+    }
+  }
+
   bool keyboardEventHandler(KeyEvent keyEvent) {
     for (final element in _keyEventList) {
       element.call(keyEvent);
     }
+
+    checkCommonlyUsedBackButtonEvent(keyEvent);
 
     customInputWatcherManager.handleWidgetKeyboardInput(keyEvent);
     late final PressState pressState;
@@ -629,6 +658,7 @@ class InputManager with WindowListener {
     for (final element in _gamepadEventList) {
       element.call(event);
     }
+    checkCommonlyUsedBackButtonGamepadEvent(event);
     customInputWatcherManager.handleGamepadInput(event);
     buildGamepadCursor(event);
     externalInputType = ExternalInputType.gamepad;
@@ -842,7 +872,7 @@ class InputManager with WindowListener {
 
     _systemDataReference = _gameRouterReference.systemDataComponent.dataObject;
     customInputWatcherManager =
-        CustomInputWatcherManager(this, _systemDataReference);
+        CustomInputWatcherWidgetManager(this, _systemDataReference);
     if (!kIsWeb && Platform.isWindows) {
       gamepadInputManager =
           GamepadInputManager(this, onGamepadEvent, gameRouter);
@@ -887,8 +917,8 @@ enum GameAction {
   useExpendable,
 }
 
-class CustomInputWatcherManager {
-  CustomInputWatcherManager(
+class CustomInputWatcherWidgetManager {
+  CustomInputWatcherWidgetManager(
     this.parentInputManager,
     this._systemDataReference,
   ) {
@@ -1089,27 +1119,27 @@ class CustomInputWatcherManager {
           _customInputWatcherRectangles[currentlyHoveredWidget!]!;
       final scrollAxis =
           currentlyHoveredWidget!.widget.scrollController?.position.axis;
-      if (scrollAxis == Axis.vertical && directionOfInput == AxisDirection.up ||
-          directionOfInput == AxisDirection.down) {
-        //screen height
-        final height = WidgetsBinding
-            .instance.platformDispatcher.views.first.physicalSize.height;
-
-        currentScrollController is InfiniteScrollController
-            ? currentScrollController.animateToItem(
-                scrollControllerChildren?.indexWhere(
-                      (element) => element == currentlyHoveredWidget,
-                    ) ??
-                    0,
-              )
-            : currentScrollController?.animateTo(
-                currentScrollController.position.pixels +
-                    currentHoveredRect.top -
-                    (height * .2),
-                duration: .25.seconds,
-                curve: Curves.ease,
-              );
-      }
+      // if (scrollAxis == Axis.vertical && directionOfInput == AxisDirection.up ||
+      //     directionOfInput == AxisDirection.down) {
+      //screen height
+      final height = WidgetsBinding
+          .instance.platformDispatcher.views.first.physicalSize.height;
+      print(currentScrollController is InfiniteScrollController);
+      currentScrollController is InfiniteScrollController
+          ? currentScrollController.animateToItem(
+              scrollControllerChildren?.indexWhere(
+                    (element) => element == currentlyHoveredWidget,
+                  ) ??
+                  0,
+            )
+          : currentScrollController?.animateTo(
+              currentScrollController.position.pixels +
+                  currentHoveredRect.center.dy -
+                  (height * .5),
+              duration: .25.seconds,
+              curve: Curves.ease,
+            );
+      // }
     } else if (isSwappingRows) {
       swapRows(directionOfInput, currentRowId, highestZIndex);
     } else {
@@ -1228,12 +1258,7 @@ class CustomInputWatcherManager {
         default:
       }
       sendStreamEvent(currentlyHoveredWidget, eventType);
-    } else if ([
-      LogicalKeyboardKey.backspace,
-      LogicalKeyboardKey.minus,
-      LogicalKeyboardKey.controlLeft,
-      LogicalKeyboardKey.keyQ,
-    ].contains(keyEvent.logicalKey)) {
+    } else if (backButtonKeyEvents.contains(keyEvent.logicalKey)) {
       var eventType = CustomInputWatcherEvents.onSecondary;
       switch (keyEvent.runtimeType) {
         case KeyDownEvent:
@@ -1710,3 +1735,15 @@ class CustomInputWatcherState<T extends CustomInputWatcher> extends State<T> {
     return widget.child;
   }
 }
+
+const backButtonKeyEvents = [
+  LogicalKeyboardKey.backspace,
+  LogicalKeyboardKey.minus,
+  LogicalKeyboardKey.controlLeft,
+  LogicalKeyboardKey.keyQ,
+];
+
+const backButtonGamepadEvents = [
+  GamepadButtons.buttonB,
+  GamepadButtons.buttonBack,
+];

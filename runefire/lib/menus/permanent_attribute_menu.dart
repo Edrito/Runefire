@@ -498,7 +498,7 @@ class _AttributeUpgraderState extends State<AttributeUpgrader> {
                         'Back',
                         zIndex: 1,
                         zHeight: 10,
-                        rowId: 500,
+                        rowId: 999,
                         gameRef: widget.gameRef,
                         onPrimary: () => widget.onBack(),
                       ),

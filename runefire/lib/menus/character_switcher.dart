@@ -70,7 +70,7 @@ class _CharacterSwitcherState extends State<CharacterSwitcher> {
             arrowButton(isLeft: true),
             const Spacer(),
             SizedBox(
-              width: 250,
+              width: 300,
               key: ValueKey(selectedCharacter),
               child: Column(
                 children: [

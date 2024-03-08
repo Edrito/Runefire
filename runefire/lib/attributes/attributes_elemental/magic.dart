@@ -31,12 +31,15 @@ class StaminaUseHealAttribute extends Attribute {
   AttributeType attributeType = AttributeType.staminaUseHeal;
 
   @override
+  String description() => 'Heal for 5% of stamina used.';
+
+  @override
   bool increaseFromBaseParameter = false;
 
   @override
   String title = 'Conversion Factor';
 
-  double healingFactor = 0.02;
+  double healingFactor = 0.05;
 
   void onStaminaModify(double amount) {
     if (amount < 0 && attributeOwnerEntity is HealthFunctionality) {
@@ -84,6 +87,9 @@ class DoubleCastAttribute extends Attribute {
 
   @override
   String title = 'Double Cast';
+
+  @override
+  String description() => '10% chance to cast a spell twice.';
 
   double chance = .1;
 

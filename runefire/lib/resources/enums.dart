@@ -374,7 +374,7 @@ extension GameLevelExtension on GameLevel {
   Color get levelColor {
     switch (this) {
       case GameLevel.hexedForest:
-        return ApolloColorPalette.blue.color;
+        return ApolloColorPalette.lightBlue.color;
       // case GameLevel.dungeon:
       //   return ApolloColorPalette.paleGray.color;
       case GameLevel.necromancersGraveyard:
@@ -592,6 +592,7 @@ enum WeaponType {
     5,
     AttackType.guns,
     0,
+    isPlayerWeapon: false,
   ),
   railspire(5, AttackType.guns, 0),
   eldritchRunner(
@@ -644,7 +645,12 @@ enum WeaponType {
   psychicMagic(5, AttackType.magic, 0),
   fireballMagic(5, AttackType.magic, 0),
   elementalChannel(5, AttackType.magic, 0),
-  energyMagic(5, AttackType.magic, 0),
+  energyMagic(
+    5,
+    AttackType.magic,
+    0,
+    isPlayerWeapon: false,
+  ),
   magicBlast(5, AttackType.magic, 0),
   powerWord(5, AttackType.magic, 1500),
   hexwoodMaim(5, AttackType.magic, 0),

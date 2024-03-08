@@ -648,7 +648,6 @@ class ElementalCaptureBulletSentry extends AttachedToBodyChildEntity
   }
 
   bool captureBulletAttempt(DamageInstance damage) {
-    print('attempt 1');
     if (capturedBullet != null ||
         isCoolingDown ||
         damage.sourceAttack is! Projectile) {

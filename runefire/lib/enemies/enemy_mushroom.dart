@@ -89,7 +89,7 @@ class MushroomRunner extends Enemy
   @override
   Map<ExpendableType, double> get expendableRate => {
         // ExpendableType.fearEnemiesRunes: 0.5,
-        ExpendableType.healingRune: 0.1,
+        ExpendableType.healing: 0.1,
         // ExpendableType.experienceAttractRune: 0.5,
       };
 
@@ -214,10 +214,16 @@ class MushroomBoomer extends Enemy
     });
   }
 
-  void bomb() {
+  Future<void> bomb() async {
     final temp = AreaEffect(
       position: body.worldCenter,
       sourceEntity: this,
+      animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
+        spawnAnimation: await (upgradeLevel > 1
+            ? spriteAnimations.psychicOrbMedium1
+            : spriteAnimations.fireOrbMedium1),
+        durationType: DurationType.instant,
+      ),
       damage: {
         if (upgradeLevel > 1)
           DamageType.psychic: (4, 25)
@@ -252,7 +258,7 @@ class MushroomBoomer extends Enemy
   @override
   // TODO: implement expendableRate
   Map<ExpendableType, double> get expendableRate => {
-        ExpendableType.fearEnemiesRunes: 0.001,
+        ExpendableType.fearEnemies: 0.001,
       };
 
   @override
@@ -466,6 +472,16 @@ class MushroomSpinner extends Enemy
     hitSinceLastSpin = true;
     super.applyDamage(damage);
   }
+
+  @override
+  Map<ExpendableType, double> get expendableRate => {
+        ...ExpendableType.values.asMap().map(
+              (key, value) => MapEntry(
+                value,
+                (1 / ExpendableType.values.length * key).clamp(.1, 1),
+              ),
+            ),
+      };
 
   @override
   Map<ExperienceAmount, double> experienceRate = {

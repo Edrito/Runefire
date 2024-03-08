@@ -1221,8 +1221,14 @@ mixin HealthFunctionality on Entity {
     _permanentDeathFunctionsCall(damage);
   }
 
+  Completer<void>? _reviveCompleter;
+
+  Future<void> get reviveCompleter =>
+      _reviveCompleter?.future ?? Future.value();
+
   Future<void> dieThenRevive() async {
     // entityStatusWrapper.removeAllAnimations();
+    _reviveCompleter = Completer();
 
     if (isPlayer) {
       final player = this as Player;
@@ -1238,6 +1244,7 @@ mixin HealthFunctionality on Entity {
 
     await setEntityAnimation(EntityStatus.dead);
     await game.gameAwait(.5);
+    _reviveCompleter?.complete();
     await setEntityAnimation(EntityStatus.spawn);
 
     if (isPlayer) {

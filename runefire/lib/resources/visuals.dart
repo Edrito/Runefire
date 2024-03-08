@@ -204,7 +204,8 @@ class ApolloColorPalette {
       returnPaint.blendMode = blendMode;
     }
 
-    if (projectileType == ProjectileType.laser) {
+    if (projectileType == ProjectileType.laser ||
+        projectileType == ProjectileType.followLaser) {
       returnPaint.strokeWidth = width;
       returnPaint.style = PaintingStyle.stroke;
     }

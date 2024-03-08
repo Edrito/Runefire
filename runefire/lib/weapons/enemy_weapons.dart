@@ -15,7 +15,7 @@ class BlankProjectileWeapon extends EnemyWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    baseDamage.damageBase[DamageType.frost] = (5, 8);
+    baseDamage.damageBase[DamageType.physical] = (5, 8);
     attackTickRate.baseParameter = 2;
     attackCountIncrease.baseParameter = 0;
     projectileVelocity.baseParameter = 10;
@@ -68,7 +68,7 @@ class BlankProjectileWeapon extends EnemyWeapon
   late Vector2 pngSize = Vector2.all(8);
 
   @override
-  ProjectileType? projectileType = ProjectileType.magicProjectile;
+  ProjectileType? projectileType = ProjectileType.paintBullet;
 
   @override
   void endAltAttacking() {}

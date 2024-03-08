@@ -532,6 +532,12 @@ class SpriteAnimations {
     .2,
     false,
   );
+  late Future<SpriteAnimation> pheonixRebirth1 = loadSpriteAnimation(
+    5,
+    ImagesAssetsEffects.pheonixRevive15.flamePath,
+    .2,
+    false,
+  );
 
   // late Future<SpriteAnimation> playerCharacterOneWalk1 =
   //     loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
@@ -549,8 +555,19 @@ class SpriteAnimations {
     true,
   );
 
-  late Future<SpriteAnimation> psychicStrikeMedium1 =
-      loadSpriteAnimation(11, 'effects/psychic_1_11.png', .05, false);
+  late Future<SpriteAnimation> psychicOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.psychicOrb118.flamePath,
+    .05,
+    false,
+  );
+
+  late Future<SpriteAnimation> fireOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.fireOrb118.flamePath,
+    .05,
+    false,
+  );
 
   late Future<SpriteAnimation> railspireIdle1 = loadSpriteAnimation(
     1,
@@ -576,6 +593,20 @@ class SpriteAnimations {
   late Future<SpriteAnimation> satanicBookIdle1 = loadSpriteAnimation(
     1,
     ImagesAssetsDefaultBook.bookIdle.flamePath,
+    .2,
+    true,
+  );
+
+  late Future<SpriteAnimation> defaultWandAttack1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsDefaultWand.wandIdle.flamePath,
+    2,
+    false,
+  );
+
+  late Future<SpriteAnimation> defaultWandIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsDefaultWand.wandIdle.flamePath,
     .2,
     true,
   );
@@ -639,7 +670,7 @@ class SpriteAnimations {
   late Future<SpriteAnimation> statusEffectStunEffect1 = loadSpriteAnimation(
     4,
     ImagesAssetsStatusEffects.stun.flamePath,
-    .25,
+    .1,
     true,
   );
 

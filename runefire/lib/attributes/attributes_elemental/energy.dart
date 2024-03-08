@@ -35,7 +35,11 @@ class EnergySpeedBoostAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Cascade of Energy';
+
+  @override
+  String description() =>
+      'Hitting an enemy increases your speed by 10% for 4 seconds, stacking up to 10 times.';
   int currentStacks = 0;
   double speedIncrease = 0.1;
   double speedDurationRemaining = 0;
@@ -116,7 +120,9 @@ class EnergyArcAuraAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Energy Arc';
+  @override
+  String description() => 'Damage nearby enemies';
 
   double chance = .2;
 
@@ -196,7 +202,10 @@ class ReducedEffectDurationsAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Energetic Resistance';
+
+  @override
+  String description() => 'Reduce the duration of negative effects by 50%';
 
   @override
   void mapUpgrade() {
@@ -230,7 +239,9 @@ class InstantReflexAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Instant Reflex';
+  @override
+  String description() => 'Dodge chance increased by 50%';
 
   @override
   void mapUpgrade() {
@@ -269,6 +280,10 @@ class StaticDischargeAttribute extends Attribute {
 
   @override
   String title = 'Static Discharge';
+
+  @override
+  String description() =>
+      'Attacking charges static, which can be discharged by jumping.';
 
   double currentStatic = 0.0;
   double maxDamage = 10;
@@ -339,6 +354,10 @@ class HyperActivityAttribute extends Attribute {
   String title = 'Hyper Activity';
 
   @override
+  String description() =>
+      'Increase attack speed by 20%, while also increasing weapon randomness.';
+
+  @override
   void mapUpgrade() {
     for (final element in attributeOwnerEntity!.getAllWeaponItems(true, true)) {
       element.attackTickRate.setParameterPercentValue(
@@ -384,7 +403,7 @@ class CrossTributeAttribute extends Attribute {
   @override
   String description() {
     return 'Your primary weapons attack in a cross formation,'
-        ' while also reducing damage dealt by 50%';
+        ' while also reducing damage dealt by 35%';
   }
 
   List<double> pattern(double angle, int count) {
@@ -400,8 +419,8 @@ class CrossTributeAttribute extends Attribute {
         element.baseDamage.setDamagePercentIncrease(
           attributeId,
           damageType,
-          -.5,
-          -.5,
+          -.35,
+          -.35,
         );
       }
     }
@@ -440,6 +459,9 @@ class ReflectDamageAttribute extends Attribute {
 
   @override
   String title = 'Path of Reflection';
+
+  @override
+  String description() => 'Reflect 15% of damage taken back to the attacker.';
 
   double reflectPercent = .15;
 
@@ -497,6 +519,11 @@ class RandomDashingAttribute extends Attribute {
 
   @override
   String title = 'Electrifying Dashes';
+
+  @override
+  String description() =>
+      'Dashing has a chance to teleport you to a random location,'
+      ' while also creating an electrical explosion at your new location.';
 
   Vector2 randomTeleport() {
     return SpawnLocation.inside
@@ -569,7 +596,8 @@ class EnergeticAffinityAttribute extends Attribute {
 
   @override
   String title = 'Energetic Affinity';
-
+  @override
+  String description() => 'All damage dealt is converted to energy damage.';
   bool onHit(DamageInstance damage) {
     var totalDamage = 0.0;
 

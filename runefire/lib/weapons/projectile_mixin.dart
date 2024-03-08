@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
@@ -126,6 +127,7 @@ mixin PaintProjectile on StandardProjectile {
       projectileType: projectileType,
       lighten: false,
     );
+
     bulletPaint = colorPalette.buildProjectile(
       color: projectileColor,
       projectileType: projectileType,
@@ -783,18 +785,23 @@ mixin LaserProjectile on FadeOutBullet {
 
     //   canvas.drawPath(path, frontPaint..strokeWidth = width * .85 * opacity);
     // } else {
+
     canvas.drawPath(path, backPaint);
-    // canvas.drawPath(path, backGlowPaint);
 
     canvas.drawPath(path, frontPaint);
     // canvas.drawCircle(
-    //     getLines.last.toOffset(),
-    //     width * 1.3,
-    //     Paint()
-    //       ..shader = ui.Gradient.radial(getLines.last.toOffset(), width * 2,
-    //           [color, Colors.transparent], [0.5, 1])
-    //       ..blendMode = BlendMode.plus);
-    // }
+    //   width * 1.3,
+    //   getLines.last.toOffset(),
+    //   Paint()
+    //     ..shader = ui.Gradient.radial(
+    //       getLines.last.toOffset(),
+    //       width * 2,
+    //       [color, Colors.transparent],
+    //       [0.5, 1],
+    //     )
+    //     ..blendMode = BlendMode.plus,
+    // );
+
     super.render(canvas);
   }
 

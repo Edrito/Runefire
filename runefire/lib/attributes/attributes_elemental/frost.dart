@@ -39,7 +39,9 @@ class FrostDamageIncreaseChillChanceAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Chill Factor';
+  @override
+  String description() => 'Increase frost damage chill chance by 15%';
 
   bool modifyStatusEffect(DamageInstance damage) {
     if ((damage.damageMap[DamageType.frost] ?? 0) > 0) {
@@ -85,7 +87,10 @@ class SlowCloseEnemiesAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Frost Aura';
+
+  @override
+  String description() => 'Slows nearby enemies by up to 75%';
 
   Set<MovementFunctionality> currentlySlowedEntities = {};
 
@@ -167,7 +172,10 @@ class ExplodeFrozenEnemiesAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Shatter';
+
+  @override
+  String description() => 'Shatter frozen enemies on kill';
 
   void onKill(DamageInstance damage) {
     final enemy = damage.victim;
@@ -235,7 +243,11 @@ class ExpendableFreezesNearbyEnemyAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Frost Bomb';
+
+  @override
+  String description() =>
+      'Freeze nearby enemies for 2 seconds on expendable use.';
 
   void onUse(Expendable item) {
     attributeOwnerEntity?.closeSensorBodies.forEach((element) {
@@ -286,7 +298,10 @@ class MeleeAttackFrozenEnemyShoveAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Frozen Push';
+
+  @override
+  String description() => 'Shove frozen enemies on melee attack';
 
   bool onUse(DamageInstance damage) {
     if (damage.sourceWeapon is! MeleeFunctionality ||
@@ -341,6 +356,10 @@ class OneWithTheColdAttribute extends Attribute {
 
   @override
   String title = 'One With The Cold';
+
+  @override
+  String description() =>
+      'All damage is frost damage and has a 25% chance to chill.';
 
   bool modifyDamage(DamageInstance other) {
     var totalDamage = 0.0;

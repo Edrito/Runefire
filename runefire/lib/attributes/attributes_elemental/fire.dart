@@ -34,7 +34,10 @@ class FireIncreaseDamageTenPercentAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Damage Increase';
+
+  @override
+  String description() => 'Increase damage by 10% if the target is alight.';
 
   bool addDamage(DamageInstance damage) {
     if (damage.victim is AttributeFunctionality) {
@@ -82,7 +85,10 @@ class KillFireEmpowerAttackAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Burned Empower Attack';
+
+  @override
+  String description() => 'Empower attack if the target is alight.';
 
   bool determineIfShouldEmpower(DamageInstance damage) {
     if (damage.victim is AttributeFunctionality) {
@@ -135,7 +141,11 @@ class ChanceToBurnNeighbouringEnemiesAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Caustic Flames';
+
+  @override
+  String description() =>
+      '25% chance to burn close enemies if the target dies while alight.';
 
   double distance = 5;
   double chance = .25;
@@ -205,12 +215,30 @@ class ChanceToReviveAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = '';
+  String title = 'Phoenix Rebirth';
+  @override
+  String description() => '50% chance to revive if killed.';
 
   final chance = .5;
 
   bool determineIfShouldDie(DamageInstance damage) {
     final shouldLive = rng.nextDouble() < chance;
+    if (shouldLive) {
+      void doAnimation() => spriteAnimations.pheonixRebirth1.then((value) {
+            attributeOwnerEntity?.entityVisualEffectsWrapper.addBodyAnimation(
+              id: attributeId,
+              component: SimpleStartPlayEndSpriteAnimationComponent(
+                spawnAnimation: value,
+                durationType: DurationType.instant,
+              ),
+            );
+          });
+      (attributeOwnerEntity! as HealthFunctionality)
+          .reviveCompleter
+          .then((value) {
+        doAnimation();
+      });
+    }
     return shouldLive;
   }
 
@@ -251,6 +279,10 @@ class OverheatingMissileAttribute extends Attribute {
 
   @override
   String title = 'Superheated Missiles';
+
+  @override
+  String description() =>
+      'The first attack after a reload will burn the target.';
 
   Set<String> shouldAlight = {};
   //weaponid, damage instance id
@@ -328,6 +360,9 @@ class FireyAuraAttribute extends Attribute {
   @override
   String title = 'Firey Aura';
 
+  @override
+  String description() => 'Increase damage when enemies are close by.';
+
   final double damageIncrease = 1.25;
 
   final double radius = 4;
@@ -379,6 +414,9 @@ class EssenceOfThePheonixAttribute extends Attribute {
 
   @override
   String title = 'Essence of the Pheonix';
+
+  @override
+  String description() => 'All damage is converted to fire damage.';
 
   bool modifyDamage(DamageInstance other) {
     var totalDamage = 0.0;

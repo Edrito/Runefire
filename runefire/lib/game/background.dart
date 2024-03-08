@@ -237,7 +237,18 @@ class _CaveBackgroundState extends State<CaveBackground> {
           Positioned.fill(
             child: buildImageAsset(
               selectedLevel.levelImage,
+              scale: 1,
+              fit: BoxFit.none,
             ),
+          ),
+          Positioned.fill(
+            child: Container(
+              color: ApolloColorPalette.paleBlue.color.withOpacity(.2),
+            )
+                .animate(
+                  onComplete: (controller) => controller.forward(from: 0),
+                )
+                .shimmer(),
           ),
           Positioned.fill(
             left: 400,
@@ -245,7 +256,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
               child: Container(
                 height: double.infinity,
                 width: 20,
-                color: Colors.grey.withOpacity(.2),
+                color: Colors.grey.withOpacity(.34),
                 transform: Matrix4.skewX(-.5),
               ),
             ).animate().fadeIn().moveX(
@@ -261,7 +272,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
               child: Container(
                 height: double.infinity,
                 width: 80,
-                color: Colors.grey.withOpacity(.1),
+                color: Colors.grey.withOpacity(.2),
                 transform: Matrix4.skewX(-.5),
               ),
             ).animate().fadeIn().moveX(

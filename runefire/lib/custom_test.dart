@@ -46,7 +46,7 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   // }
   // player?.modifyElementalPower(DamageType.frost, 1);
 
-  // player?.addAttribute(AttributeType.meleeAttackFrozenEnemyShove);
+  player?.addAttribute(AttributeType.chanceToRevive);
 
   // Future.delayed(5.seconds).then((value) {
   //   gameEnviroment.activeEntites.whereType<Enemy>().forEach((element) {
@@ -59,7 +59,7 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   //   });
   // });
   // for (final statusEffect in StatusEffects.values) {
-  // await gameEnviroment.game.gameAwait(.5);
+  // await gameEnviroment.game.gameAwait(5);
   // gameEnviroment.activeEntites.forEach((element) {
   //   if (element is AttributeFunctionality) {
   //     element.addAttribute(
