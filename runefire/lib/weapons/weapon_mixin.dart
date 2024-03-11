@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'package:runefire/resources/assets/sprite_animations.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
 
 import 'package:flame/components.dart';
@@ -122,7 +123,7 @@ mixin ReloadFunctionality on Weapon {
 
     for (final attribute
         in attributeWeaponFunctionsFunctionality?.onReload ?? <Function()>[]) {
-      attribute();
+      attribute.call();
     }
   }
 
@@ -820,10 +821,32 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
   }
 
   Future<void> buildAnimations() async {
-    playAnimation = await spriteAnimations.fireChargePlay1;
-    endAnimation = await spriteAnimations.fireChargeEnd1;
-    spawnAnimation = await spriteAnimations.fireChargeSpawn1;
-    chargedAnimation = await spriteAnimations.fireChargeCharged1;
+    playAnimation = await loadSpriteAnimation(
+      3,
+      'weapons/charge/${damageType.name}_charge_play.png',
+      .1,
+      true,
+    );
+
+    endAnimation = await loadSpriteAnimation(
+      4,
+      'weapons/charge/${damageType.name}_charge_end.png',
+      .07,
+      false,
+    );
+
+    spawnAnimation = await loadSpriteAnimation(
+      5,
+      'weapons/charge/${damageType.name}_charge_spawn.png',
+      .01,
+      false,
+    );
+    chargedAnimation = await loadSpriteAnimation(
+      6,
+      'weapons/charge/${damageType.name}_charge_charged.png',
+      .05,
+      false,
+    );
   }
 
   void chargeCompleted() {
@@ -893,9 +916,12 @@ mixin ChargeEffect on ProjectileFunctionality, SemiAutomatic {
       chargeAnimation = SpriteAnimationComponent(
         size: Vector2.all(chargeSize),
         anchor: Anchor.center,
-        position: Vector2(0, tipOffset.y * weaponLength),
+        position: tipOffset,
         animation: spawnAnimation ?? playAnimation,
-      )..addToParent(entityAncestor!.handJoint);
+      )..addToParent(
+          entityAncestor!.handJoint.weaponSpriteAnimation ??
+              entityAncestor!.handJoint,
+        );
 
       if (spawnAnimation == null) {
         chargeAnimation?.size = Vector2.zero();

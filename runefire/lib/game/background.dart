@@ -304,7 +304,19 @@ class _CaveBackgroundState extends State<CaveBackground> {
 
   GameLevel? selectedLevel;
   MenuPageType? selectedMenuPage;
-  bool get menuPageIsLevel => gameState.menuPageIsLevel;
+  bool introDelay = false;
+  bool get menuPageIsLevel {
+    if (!introDelay) {
+      Future.delayed(3.seconds).then(
+        (value) => setState(() {
+          introDelay = true;
+        }),
+      );
+      return false;
+    }
+
+    return gameState.menuPageIsLevel;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -387,7 +399,6 @@ class _CaveBackgroundState extends State<CaveBackground> {
           duration: 180.seconds,
         ),
       );
-
       final Widget ring = Stack(
         alignment: Alignment.center,
         children: [
@@ -425,10 +436,23 @@ class _CaveBackgroundState extends State<CaveBackground> {
                 portalColor.withOpacity(value),
                 BlendMode.srcATop,
               ),
-              child: buildImageAsset(
-                'assets/images/background/outerRingPatterns.png',
-                fit: BoxFit.fill,
-              ),
+              child: menuPageIsLevel
+                  ? buildImageAsset(
+                      'assets/images/background/outerRingPatterns.png',
+                      fit: BoxFit.fill,
+                    ).animate(
+                      onComplete: (controller) {
+                        controller.forward(from: 0);
+                      },
+                    ).rotate(
+                      begin: 0,
+                      end: -1,
+                      duration: 12.seconds,
+                    )
+                  : buildImageAsset(
+                      'assets/images/background/outerRingPatterns.png',
+                      fit: BoxFit.fill,
+                    ),
             ).animate(
               onComplete: (controller) {
                 controller.forward(from: 0);
@@ -436,7 +460,7 @@ class _CaveBackgroundState extends State<CaveBackground> {
             ).rotate(
               begin: 0,
               end: -1,
-              duration: menuPageIsLevel ? 18.seconds : 320.seconds,
+              duration: 320.seconds,
             ),
           ),
         ],

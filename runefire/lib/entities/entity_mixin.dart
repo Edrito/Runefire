@@ -264,8 +264,14 @@ mixin BaseAttributes {
     essenceSteal = DoubleParameterManager(baseParameter: 0);
     statusEffectsPercentIncrease =
         StatusEffectPercentParameterManager(statusEffectPercentBase: {});
-    damagePercentIncrease = DoubleParameterManager(baseParameter: 1);
-    knockBackIncreaseParameter = DoubleParameterManager(baseParameter: 1);
+    damagePercentIncrease = DoubleParameterManager(
+      baseParameter: 1,
+      minParameter: double.negativeInfinity,
+    );
+    knockBackIncreaseParameter = DoubleParameterManager(
+      baseParameter: 1,
+      minParameter: double.negativeInfinity,
+    );
     meleeDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
     projectileDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
     spellDamagePercentIncrease = DoubleParameterManager(baseParameter: 1);
@@ -796,9 +802,14 @@ mixin StaminaFunctionality on Entity {
 
   /// Amount of stamina regenerated per second
   double get increaseStaminaRegenSpeed =>
-      (remainingStamina / stamina.parameter) + .5;
+      isForbiddenMagic && this is HealthFunctionality
+          ? ((this as HealthFunctionality).remainingHealth /
+                  (this as HealthFunctionality).maxHealth.parameter) +
+              .5
+          : (remainingStamina / stamina.parameter) + .5;
 
-  double get remainingStamina => stamina.parameter - staminaUsed;
+  double get remainingStamina =>
+      (stamina.parameter - staminaUsed).clamp(0, double.infinity);
 
   bool hasEnoughStamina(double cost) {
     return isForbiddenMagic && this is HealthFunctionality
@@ -853,7 +864,7 @@ mixin StaminaFunctionality on Entity {
   @override
   void initializeParentParameters() {
     stamina = DoubleParameterManager(baseParameter: 100);
-    staminaRegen = DoubleParameterManager(baseParameter: 12.5);
+    staminaRegen = DoubleParameterManager(baseParameter: 20);
 
     super.initializeParentParameters();
   }
@@ -1110,6 +1121,9 @@ mixin HealthFunctionality on Entity {
       final impulse = damage.source.knockBackIncreaseParameter.parameter *
           amount *
           (damage.sourceWeapon?.knockBackAmount.parameter ?? 0);
+
+      print(impulse);
+
       move.applyKnockback(
         amount: impulse,
         direction: (center - damage.source.center).normalized(),
@@ -1263,11 +1277,6 @@ mixin HealthFunctionality on Entity {
     await addOpacityFlashEffect(3.0);
     invincible.removeIncrease('revive');
     heal(damageTaken);
-    if (isPlayer) {
-      final player = this as Player;
-      print(player._aimAngles);
-      print(player._moveVelocities);
-    }
   }
 
   void doOtherEntityOnDamageFunctions(DamageInstance damage) {

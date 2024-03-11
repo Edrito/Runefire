@@ -141,6 +141,20 @@ class SpriteAnimations {
   late Future<SpriteAnimation> dashEffect1 =
       loadSpriteAnimation(7, 'entity_effects/dash_effect.png', .1, false);
 
+  late Future<SpriteAnimation> defaultWandAttack1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsDefaultWand.wandIdle.flamePath,
+    2,
+    false,
+  );
+
+  late Future<SpriteAnimation> defaultWandIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsDefaultWand.wandIdle.flamePath,
+    .2,
+    true,
+  );
+
   late Future<SpriteAnimation> eldritchRunnerIdle1 = loadSpriteAnimation(
     1,
     ImagesAssetsEldritchRunner.eldritchRunner.flamePath,
@@ -182,27 +196,27 @@ class SpriteAnimations {
     true,
   );
 
-  late Future<SpriteAnimation> fireChargeCharged1 = loadSpriteAnimation(
-    6,
-    'weapons/charge/fire_charge_charged.png',
-    .05,
-    false,
-  );
-
-  late Future<SpriteAnimation> fireChargeEnd1 =
-      loadSpriteAnimation(4, 'weapons/charge/fire_charge_end.png', .07, false);
-
 //Charge Effects
 
-  late Future<SpriteAnimation> fireChargePlay1 =
-      loadSpriteAnimation(3, 'weapons/charge/fire_charge_play.png', .1, true);
+  // late Future<SpriteAnimation> fireChargeCharged1 = loadSpriteAnimation(
+  //   6,
+  //   'weapons/charge/fire_charge_charged.png',
+  //   .05,
+  //   false,
+  // );
 
-  late Future<SpriteAnimation> fireChargeSpawn1 = loadSpriteAnimation(
-    5,
-    'weapons/charge/fire_charge_spawn.png',
-    .01,
-    false,
-  );
+  // late Future<SpriteAnimation> fireChargeEnd1 =
+  //     loadSpriteAnimation(4, 'weapons/charge/fire_charge_end.png', .07, false);
+
+  // late Future<SpriteAnimation> fireChargePlay1 =
+  //     loadSpriteAnimation(3, 'weapons/charge/fire_charge_play.png', .1, true);
+
+  // late Future<SpriteAnimation> fireChargeSpawn1 = loadSpriteAnimation(
+  //   5,
+  //   'weapons/charge/fire_charge_spawn.png',
+  //   .01,
+  //   false,
+  // );
 
 //MagicEffects
   late Future<SpriteAnimation> fireExplosionMedium1 =
@@ -212,6 +226,13 @@ class SpriteAnimations {
     5,
     'weapons/projectiles/fire_muzzle_flash.png',
     .03,
+    false,
+  );
+
+  late Future<SpriteAnimation> fireOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.fireOrb118.flamePath,
+    .05,
     false,
   );
 
@@ -415,31 +436,33 @@ class SpriteAnimations {
   late Future<SpriteAnimation> mushroomRunnerRun1 =
       loadSpriteAnimation(2, 'enemy_sprites/mushroomRunner/run.png', .15, true);
 
-  late Future<SpriteAnimation> mushroomShooterAttack1 = loadSpriteAnimation(
-    3,
-    'enemy_sprites/mushroomShooter/jump.png',
-    .1,
-    false,
-  );
-
-  late Future<SpriteAnimation> mushroomShooterDead1 = loadSpriteAnimation(
-    10,
-    'enemy_sprites/mushroomShooter/death.png',
-    .1,
-    false,
-  );
-
 //Mushroom Shooter
 
   late Future<SpriteAnimation> mushroomShooterIdle1 = loadSpriteAnimation(
-    10,
+    2,
     'enemy_sprites/mushroomShooter/idle.png',
     .1,
     true,
   );
 
   late Future<SpriteAnimation> mushroomShooterRun1 =
-      loadSpriteAnimation(8, 'enemy_sprites/mushroomShooter/run.png', .1, true);
+      loadSpriteAnimation(2, 'enemy_sprites/mushroomShooter/run.png', .1, true);
+
+  late Future<SpriteAnimation> mushroomShooterAttack1 = loadSpriteAnimation(
+    5,
+    'enemy_sprites/mushroomShooter/attack.png',
+    .15,
+    false,
+  );
+
+  late Future<SpriteAnimation> mushroomShooterDead1 = loadSpriteAnimation(
+    4,
+    'enemy_sprites/mushroomShooter/death.png',
+    .15,
+    false,
+  );
+
+//Mushroom Spinner
 
   late Future<SpriteAnimation> mushroomSpinnerDead1 = loadSpriteAnimation(
     5,
@@ -447,8 +470,6 @@ class SpriteAnimations {
     .1,
     false,
   );
-
-//Mushroom Spinner
 
   late Future<SpriteAnimation> mushroomSpinnerIdle1 = loadSpriteAnimation(
     2,
@@ -494,6 +515,13 @@ class SpriteAnimations {
     true,
   );
 
+  late Future<SpriteAnimation> pheonixRebirth1 = loadSpriteAnimation(
+    5,
+    ImagesAssetsEffects.pheonixRevive15.flamePath,
+    .2,
+    false,
+  );
+
   late Future<SpriteAnimation> playerCharacterOneDash1 = loadSpriteAnimation(
     6,
     ImagesAssetsRuneknight.runeknightDash1.flamePath,
@@ -532,12 +560,6 @@ class SpriteAnimations {
     .2,
     false,
   );
-  late Future<SpriteAnimation> pheonixRebirth1 = loadSpriteAnimation(
-    5,
-    ImagesAssetsEffects.pheonixRevive15.flamePath,
-    .2,
-    false,
-  );
 
   // late Future<SpriteAnimation> playerCharacterOneWalk1 =
   //     loadSpriteAnimation(8, 'sprites/walk.png', .1, true);
@@ -562,13 +584,6 @@ class SpriteAnimations {
     false,
   );
 
-  late Future<SpriteAnimation> fireOrbMedium1 = loadSpriteAnimation(
-    18,
-    ImagesAssetsEffects.fireOrb118.flamePath,
-    .05,
-    false,
-  );
-
   late Future<SpriteAnimation> railspireIdle1 = loadSpriteAnimation(
     1,
     ImagesAssetsRailspire.railspire.flamePath,
@@ -583,6 +598,13 @@ class SpriteAnimations {
     true,
   );
 
+  late Future<SpriteAnimation> powerWordIdle1 = loadSpriteAnimation(
+    1,
+    ImagesAssetsPowerWord.idle.flamePath,
+    .2,
+    true,
+  );
+
   late Future<SpriteAnimation> satanicBookAttack1 = loadSpriteAnimation(
     1,
     ImagesAssetsDefaultBook.bookFire.flamePath,
@@ -593,20 +615,6 @@ class SpriteAnimations {
   late Future<SpriteAnimation> satanicBookIdle1 = loadSpriteAnimation(
     1,
     ImagesAssetsDefaultBook.bookIdle.flamePath,
-    .2,
-    true,
-  );
-
-  late Future<SpriteAnimation> defaultWandAttack1 = loadSpriteAnimation(
-    1,
-    ImagesAssetsDefaultWand.wandIdle.flamePath,
-    2,
-    false,
-  );
-
-  late Future<SpriteAnimation> defaultWandIdle1 = loadSpriteAnimation(
-    1,
-    ImagesAssetsDefaultWand.wandIdle.flamePath,
     .2,
     true,
   );

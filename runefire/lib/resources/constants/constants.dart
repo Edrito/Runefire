@@ -5,6 +5,8 @@ import 'package:runefire/game/hud.dart';
 const smallCardSize = Size(128, 48);
 const largeCardSize = Size(128, 96);
 
+const titleIntroTickRate = .09;
+
 //Entity
 const hitAnimationLimit = 3;
 const closeBodiesSensorRadius = 4.0;

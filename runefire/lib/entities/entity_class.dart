@@ -425,7 +425,6 @@ extension EntityClassGetterrs on Entity {
     if (thisIsAttr) {
       for (final element in statusEffects) {
         final currentAttributes = this as AttributeFunctionality;
-        print(element);
         currentAttributes.removeAttribute(element.getCorrospondingAttribute);
       }
     }

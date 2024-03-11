@@ -554,8 +554,8 @@ class CustomRectClipper extends CustomClipper<Rect> {
 
 mixin RechargeableStack {
   int maxStacks = 3;
-  int currentStacks = 50;
-  double rechargeTime = 1;
+  int currentStacks = 3;
+  double rechargeTime = 3;
   double currentRechargeTime = 0;
   bool get isRecharging => currentRechargeTime > 0;
   bool get isFull => currentStacks == maxStacks;

@@ -119,56 +119,64 @@ void main() async {
       .addHandler(inputManagerState.keyboardEventHandler);
 
   runApp(
-    MouseRegion(
-      cursor: SystemMouseCursors.none,
-      child: Material(
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Listener(
-            onPointerHover: inputManagerState.onPointerHover,
-            onPointerDown: inputManagerState.onPointerDown,
-            onPointerMove: inputManagerState.onPointerMove,
-            onPointerUp: inputManagerState.onPointerUp,
-            onPointerSignal: inputManagerState.onPointerSignal,
-            onPointerCancel: inputManagerState.onPointerCancel,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: GameWidget(
-                    backgroundBuilder: (context) {
-                      if (GameState().currentRoute == routes.gameplay) {
-                        return const SizedBox();
-                      }
-                      return CaveBackground(
-                        gameRef: gameRouter,
-                      );
-                    },
-                    loadingBuilder: (p0) {
-                      return Padding(
-                        padding: const EdgeInsets.all(15),
-                        child: Text(
-                          'LOADING',
-                          style: defaultStyle,
-                        ).animate().fadeIn(),
-                      );
-                    },
-                    game: gameRouter,
-                    initialActiveOverlays: [
-                      if (!_startInGame) ...[caveFront.key, mainMenu.key],
-                    ],
-                    overlayBuilderMap: Map<String,
-                        Widget Function(BuildContext, GameRouter)>.fromEntries([
-                      overlay.pauseMenu,
-                      overlay.mainMenu,
-                      overlay.caveFront,
-                      overlay.gameWinDisplay,
-                      overlay.deathScreen,
-                      overlay.attributeSelection,
-                    ]),
+    MaterialApp(
+      builder: (_, __) => MouseRegion(
+        cursor: SystemMouseCursors.none,
+        child: Material(
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Listener(
+              onPointerHover: inputManagerState.onPointerHover,
+              onPointerDown: inputManagerState.onPointerDown,
+              onPointerMove: inputManagerState.onPointerMove,
+              onPointerUp: inputManagerState.onPointerUp,
+              onPointerSignal: inputManagerState.onPointerSignal,
+              onPointerCancel: inputManagerState.onPointerCancel,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: GameWidget(
+                      backgroundBuilder: (context) {
+                        if (GameState().currentRoute == routes.gameplay) {
+                          return Container(
+                            color: ApolloColorPalette.darkestGray.color,
+                          );
+                        }
+                        return CaveBackground(
+                          gameRef: gameRouter,
+                        );
+                      },
+                      loadingBuilder: (p0) {
+                        return Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: Text(
+                            'LOADING',
+                            style: defaultStyle,
+                          ).animate().fadeIn(),
+                        );
+                      },
+                      game: gameRouter,
+                      initialActiveOverlays: [
+                        if (!_startInGame) ...[caveFront.key, mainMenu.key],
+                      ],
+                      overlayBuilderMap: Map<
+                          String,
+                          Widget Function(
+                            BuildContext,
+                            GameRouter,
+                          )>.fromEntries([
+                        overlay.pauseMenu,
+                        overlay.mainMenu,
+                        overlay.caveFront,
+                        overlay.gameWinDisplay,
+                        overlay.deathScreen,
+                        overlay.attributeSelection,
+                      ]),
+                    ),
                   ),
-                ),
-                GamepadCursorDisplay(gameRouter),
-              ],
+                  GamepadCursorDisplay(gameRouter),
+                ],
+              ),
             ),
           ),
         ),

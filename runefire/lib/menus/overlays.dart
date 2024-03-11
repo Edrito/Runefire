@@ -212,21 +212,31 @@ MapEntry<String, Widget Function(BuildContext, GameRouter)> caveFront =
         ),
       ),
       Positioned.fill(
-        child: ShaderMask(
-          blendMode: BlendMode.srcIn,
-          shaderCallback: (bounds) {
-            return RadialGradient(
-              radius: 1.2,
-              colors: [
-                gameState.portalColor(true).withOpacity(.2),
-                Colors.transparent,
-              ],
-              stops: const [.3, 1],
-            ).createShader(bounds);
+        child: FutureBuilder(
+          future: Future.delayed(1.seconds),
+          builder: (context, snap) {
+            if (snap.connectionState != ConnectionState.done) {
+              return const SizedBox();
+            }
+            return ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (bounds) {
+                return RadialGradient(
+                  radius: 1.2,
+                  colors: [
+                    gameState.portalColor(true).withOpacity(.4),
+                    Colors.transparent,
+                  ],
+                  stops: const [.3, 1],
+                ).createShader(bounds);
+              },
+              child: buildImageAsset(
+                'assets/images/background/caveFrontEffectMask.png',
+              ),
+            ).animate().fadeIn(
+                  duration: 1.seconds,
+                );
           },
-          child: buildImageAsset(
-            'assets/images/background/caveFrontEffectMask.png',
-          ),
         ),
       ),
       // Positioned.fill(

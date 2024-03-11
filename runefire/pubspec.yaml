@@ -83,6 +83,7 @@ flutter:
     - assets/images/ui/
     - assets/images/ui/ammo/
     - assets/images/ui/permanent_attributes/
+    - assets/images/ui/title/
     - assets/images/weapons/
     - assets/images/weapons/aethertide_spear/
     - assets/images/weapons/arcane_blaster/
@@ -100,6 +101,7 @@ flutter:
     - assets/images/weapons/melee/
     - assets/images/weapons/mind_staff/
     - assets/images/weapons/phase_dagger/
+    - assets/images/weapons/power_word/
     - assets/images/weapons/prismatic_beam/
     - assets/images/weapons/projectiles/
     - assets/images/weapons/projectiles/blasts/
@@ -109,12 +111,14 @@ flutter:
     - assets/images/weapons/sanctified_edge/
     - assets/images/weapons/scatter_blast/
     - assets/images/weapons/scryshot/
+    - assets/images/weapons/secondaries/
+    - assets/images/weapons/secondaries/bloodlust/
+    - assets/images/weapons/secondaries/shadow_blink/
     - assets/images/weapons/sword_kladenets/
     - assets/images/weapons/sword_of_justice/
     - assets/images/weapons/tui_camai/
     - assets/jsons/
     - assets/jsons/audio_mappings/
-
   # assets end
 
 

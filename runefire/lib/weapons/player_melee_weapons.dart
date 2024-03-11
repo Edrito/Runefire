@@ -547,9 +547,9 @@ class SanctifiedEdge extends PlayerWeapon
         MeleeFunctionality,
         ProjectileFunctionality,
         SemiAutomatic,
-        StaminaCostFunctionality,
         MeleeChargeReady,
-        ChargeEffect {
+        ChargeEffect,
+        StaminaCostFunctionality {
   SanctifiedEdge(
     super.newUpgradeLevel,
     super.ancestor,
@@ -609,10 +609,15 @@ class SanctifiedEdge extends PlayerWeapon
       ),
     ];
     spirteComponentPositions.add(WeaponSpritePosition.back);
+    projectileRelativeSize.baseParameter = .5;
   }
 
   @override
   double distanceFromPlayer = .2;
+
+  @override
+  // TODO: implement tipOffset
+  Vector2 get tipOffset => Vector2(0, weaponLength / 4);
 
   @override
   ProjectileType? projectileType = ProjectileType.holyBullet;
@@ -1005,8 +1010,8 @@ class FrostKatana extends PlayerWeapon
     with
         MeleeFunctionality,
         SemiAutomatic,
-        StaminaCostFunctionality,
-        MeleeChargeReady {
+        MeleeChargeReady,
+        StaminaCostFunctionality {
   FrostKatana(
     super.newUpgradeLevel,
     super.ancestor,

@@ -198,7 +198,7 @@ class EnemyEvent extends PositionEvent {
         incrementEnemyCount(enemyCluster, false);
 
         futures.add(
-          gameEnviroment.addPhysicsComponent(enemyCluster, duration: .5),
+          gameEnviroment.addPhysicsComponent(enemyCluster),
         );
       }
     }

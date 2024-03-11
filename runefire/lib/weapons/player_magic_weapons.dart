@@ -34,9 +34,9 @@ class Icecicle extends PlayerWeapon
     with
         ProjectileFunctionality,
         ReloadFunctionality,
-        StaminaCostFunctionality,
         SemiAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        StaminaCostFunctionality {
   Icecicle(
     super.newUpgradeLevel,
     super.ancestor,
@@ -89,8 +89,8 @@ class Icecicle extends PlayerWeapon
           Vector2.all(0),
           weaponAnimations: {
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
-            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+            WeaponStatus.idle: await spriteAnimations.defaultWandIdle1,
+            WeaponStatus.attack: await spriteAnimations.defaultWandAttack1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -99,7 +99,7 @@ class Icecicle extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 1;
+  double distanceFromPlayer = 0;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -110,15 +110,14 @@ class Icecicle extends PlayerWeapon
   ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(baseParameter: .5);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
 }
 
 class PowerWord extends PlayerWeapon
-    with ReloadFunctionality, StaminaCostFunctionality, SemiAutomatic {
+    with ReloadFunctionality, SemiAutomatic, StaminaCostFunctionality {
   PowerWord(
     super.newUpgradeLevel,
     super.ancestor,
@@ -343,7 +342,9 @@ class PowerWord extends PlayerWeapon
       default:
         return WeaponSpriteAnimation(
           Vector2.all(0),
-          weaponAnimations: {},
+          weaponAnimations: {
+            WeaponStatus.idle: await spriteAnimations.powerWordIdle1,
+          },
           parentJoint: parentJoint,
           weapon: this,
         );
@@ -356,7 +357,7 @@ class PowerWord extends PlayerWeapon
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
     // WeaponSpritePosition.back,
-    // WeaponSpritePosition.hand,
+    WeaponSpritePosition.hand,
   ];
 
   @override
@@ -370,9 +371,9 @@ class FireballMagic extends PlayerWeapon
     with
         ProjectileFunctionality,
         ReloadFunctionality,
-        StaminaCostFunctionality,
         SemiAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        StaminaCostFunctionality {
   FireballMagic(
     super.newUpgradeLevel,
     super.ancestor,
@@ -470,10 +471,10 @@ class FireballMagic extends PlayerWeapon
 class EnergyMagic extends PlayerWeapon
     with
         ProjectileFunctionality,
-        StaminaCostFunctionality,
         ReloadFunctionality,
         SemiAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        StaminaCostFunctionality {
   EnergyMagic(
     super.newUpgradeLevel,
     super.ancestor,
@@ -542,7 +543,7 @@ class EnergyMagic extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 1;
+  double distanceFromPlayer = 0;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -563,10 +564,10 @@ class EnergyMagic extends PlayerWeapon
 class PsychicMagic extends PlayerWeapon
     with
         ProjectileFunctionality,
-        StaminaCostFunctionality,
         ReloadFunctionality,
         SemiAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        StaminaCostFunctionality {
   PsychicMagic(
     super.newUpgradeLevel,
     super.ancestor,
@@ -639,8 +640,8 @@ class PsychicMagic extends PlayerWeapon
           Vector2.all(0),
           weaponAnimations: {
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
-            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+            WeaponStatus.idle: await spriteAnimations.defaultWandIdle1,
+            WeaponStatus.attack: await spriteAnimations.defaultWandAttack1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -649,7 +650,7 @@ class PsychicMagic extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 1;
+  double distanceFromPlayer = 0;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -671,9 +672,9 @@ class MagicBlast extends PlayerWeapon
     with
         ProjectileFunctionality,
         ReloadFunctionality,
-        StaminaCostFunctionality,
         SemiAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        StaminaCostFunctionality {
   MagicBlast(
     super.newUpgradeLevel,
     super.ancestor,
@@ -739,19 +740,19 @@ class MagicBlast extends PlayerWeapon
 
 class MagicMissile extends PlayerWeapon
     with
-        StaminaCostFunctionality,
         ProjectileFunctionality,
         ReloadFunctionality,
         SemiAutomatic,
-        ChargeEffect {
+        ChargeEffect,
+        StaminaCostFunctionality {
   MagicMissile(
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    primaryDamageType = DamageType.psychic;
+    primaryDamageType = DamageType.magic;
     increaseAttackCountWhenCharged = true;
     increaseWhenFullyCharged.baseParameter = 3;
-    projectileRelativeSize.baseParameter = .2;
+    projectileRelativeSize.baseParameter = .5;
     maxHomingTargets.baseParameter = 1;
   }
   List<double> pattern(double angle, int count) {
@@ -804,11 +805,11 @@ class MagicMissile extends PlayerWeapon
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
-          Vector2.all(0),
+          Vector2.zero(),
           weaponAnimations: {
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
-            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+            WeaponStatus.idle: await spriteAnimations.defaultWandIdle1,
+            WeaponStatus.attack: await spriteAnimations.defaultWandAttack1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -817,7 +818,7 @@ class MagicMissile extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 1;
+  double distanceFromPlayer = 0;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -825,9 +826,13 @@ class MagicMissile extends PlayerWeapon
   ];
 
   @override
-  ProjectileType? projectileType = ProjectileType.paintBullet;
+  ProjectileType? projectileType = ProjectileType.magicProjectile;
   @override
   DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
+
+  // @override
+  // // `TODO`: implement tipOffset
+  // Vector2 get tipOffset => Vector2(0, weaponLength / 2);
 
   @override
   SemiAutoType semiAutoType = SemiAutoType.charge;
@@ -836,12 +841,12 @@ class MagicMissile extends PlayerWeapon
 class BreathOfFire extends PlayerWeapon
     with
         ProjectileFunctionality,
-        ReloadFunctionality,
-        StaminaCostFunctionality,
         FullAutomatic,
         SemiAutomatic,
         ChargeEffect,
-        ChargeFullAutomatic {
+        ChargeFullAutomatic,
+        StaminaCostFunctionality,
+        ReloadFunctionality {
   BreathOfFire(
     super.newUpgradeLevel,
     super.ancestor,
@@ -872,10 +877,12 @@ class BreathOfFire extends PlayerWeapon
     weaponRandomnessPercent.baseParameter = .2;
 
     maxAttacks.baseParameter = increasePercentOfBase(
-      30,
+      10,
       customUpgradeFactor: 1 / 3,
       includeBase: true,
     ).floor();
+
+    reloadTime.baseParameter = 5;
 
     projectileRelativeSize.baseParameter = 2;
 
@@ -886,6 +893,8 @@ class BreathOfFire extends PlayerWeapon
     attackSpreadPatterns.add(
       (angle, attackCount) => regularAttackSpread(angle, attackCount, 45),
     );
+
+    weaponStaminaCost.baseParameter = 7.5;
 
     attackCountIncrease.baseParameter = 3;
 
@@ -944,7 +953,7 @@ class BreathOfFire extends PlayerWeapon
 }
 
 class ElementalChannel extends PlayerWeapon
-    with StaminaCostFunctionality, FullAutomatic {
+    with FullAutomatic, StaminaCostFunctionality {
   ElementalChannel(
     super.newUpgradeLevel,
     super.ancestor,
@@ -1063,7 +1072,7 @@ class ElementalChannel extends PlayerWeapon
 }
 
 class HexwoodMaim extends PlayerWeapon
-    with ReloadFunctionality, StaminaCostFunctionality, SemiAutomatic {
+    with ReloadFunctionality, SemiAutomatic, StaminaCostFunctionality {
   HexwoodMaim(
     super.newUpgradeLevel,
     super.ancestor,
@@ -1170,8 +1179,8 @@ class HexwoodMaim extends PlayerWeapon
           Vector2.all(0),
           weaponAnimations: {
             'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.satanicBookIdle1,
-            WeaponStatus.attack: await spriteAnimations.satanicBookAttack1,
+            WeaponStatus.idle: await spriteAnimations.defaultWandAttack1,
+            WeaponStatus.attack: await spriteAnimations.defaultWandAttack1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -1180,7 +1189,7 @@ class HexwoodMaim extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 1;
+  double distanceFromPlayer = 0;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [

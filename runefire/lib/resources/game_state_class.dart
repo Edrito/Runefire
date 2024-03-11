@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame_audio/audio_pool.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:runefire/entities/input_priorities.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/overlays.dart';
 import 'package:runefire/player/player_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/entities/entity_class.dart';
 
@@ -68,6 +70,7 @@ class GameState {
   late final PlayerData playerData;
   late final GameRouter gameRouter;
   late MenuPageType currentMenuPage;
+  late final DamageType introDamageType = DamageType.values.random();
 
   late GlobalKey centerBackgroundKey;
 
@@ -196,9 +199,14 @@ extension GameStateGetters on GameState {
       gameRouter.router.currentRoute.name == routes.gameplay &&
       !gameRouter.paused;
 
-  Color get basePortalColor => ApolloColorPalette.lightCyan.color;
+  Color get basePortalColor => ApolloColorPalette.darkestBlue.color;
   Color portalColor([bool returnBlueIfNotLevelMenu = false]) {
-    if (returnBlueIfNotLevelMenu && !menuPageIsLevel) return basePortalColor;
+    if (returnBlueIfNotLevelMenu && !menuPageIsLevel) {
+      return basePortalColor;
+    }
+    if (currentMenuPage == MenuPageType.demoScreen) {
+      return introDamageType.color;
+    }
     if (playerData.selectedDifficulty != GameDifficulty.regular) {
       return playerData.selectedDifficulty.color;
     }
@@ -251,7 +259,9 @@ extension GameStateFunctions on GameState {
       InputManager().activeGameActions.clear();
     }
 
-    if (pauseGame) gameRouter.pauseEngine();
+    if (pauseGame) {
+      gameRouter.pauseEngine();
+    }
   }
 
   void resumeGame() {

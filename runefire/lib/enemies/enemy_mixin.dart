@@ -234,12 +234,18 @@ mixin SimpleFollowAI on MovementFunctionality {
 mixin SimpleShoot on AttackFunctionality {
   double shootInterval = 2;
 
-  void onTick() {
+  bool attackOnAnimationFinish = false;
+
+  Future<void> onTick() async {
     if (aimVector.isZero()) {
       return;
     }
+    if (attackOnAnimationFinish) {
+      await setEntityAnimation(EntityStatus.attack);
+    } else {
+      setEntityAnimation(EntityStatus.attack);
+    }
     startPrimaryAttacking();
-    setEntityAnimation(EntityStatus.attack);
     endPrimaryAttacking();
   }
 

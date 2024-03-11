@@ -38,9 +38,6 @@ class PlayerAttachmentJointComponent extends PositionComponent
 
   bool isFrontVisible = false;
   WeaponSpritePosition jointPosition;
-  // PositionComponent? weaponTip;
-  // PositionComponent? weaponBase;
-  // PositionComponent? weaponTipCenter;
   WeaponSpriteAnimation? weaponSpriteAnimation;
 
   Weapon? weapon;
@@ -522,6 +519,7 @@ class WeaponSpriteAnimation extends SpriteAnimationGroupComponent {
     required this.weapon,
     required this.parentJoint,
     this.flashSize = 1,
+    super.angle,
     this.idleOnly = false,
   }) {
     animations = weaponAnimations;

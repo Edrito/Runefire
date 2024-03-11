@@ -237,6 +237,9 @@ enum AttributeType {
     rarity: AttributeRarity.rare,
     territory: AttributeTerritory.game,
     priority: 5,
+    elementalRequirement: {
+      DamageType.psychic: 0,
+    },
   ),
 
   projectileSplitExplode(

@@ -1124,7 +1124,6 @@ class CustomInputWatcherWidgetManager {
       //screen height
       final height = WidgetsBinding
           .instance.platformDispatcher.views.first.physicalSize.height;
-      print(currentScrollController is InfiniteScrollController);
       currentScrollController is InfiniteScrollController
           ? currentScrollController.animateToItem(
               scrollControllerChildren?.indexWhere(

@@ -25,6 +25,7 @@ class CustomButton extends StatefulWidget {
     this.zHeight = 0,
     this.zIndex = 0,
     this.rowId = 0,
+    this.fontSize,
     super.key,
   });
   final (Color, Color)? upDownColor;
@@ -41,6 +42,7 @@ class CustomButton extends StatefulWidget {
   final int rowId;
   final int zHeight;
   final int zIndex;
+  final double? fontSize;
   @override
   State<CustomButton> createState() => _CustomButtonState();
 }
@@ -90,7 +92,7 @@ class _CustomButtonState extends State<CustomButton> {
         child: Text(
           widget.text,
           key: ValueKey(widget.text),
-          style: style,
+          style: style.copyWith(fontSize: widget.fontSize),
         ),
       ),
     );

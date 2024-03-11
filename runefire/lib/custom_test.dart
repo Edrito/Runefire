@@ -29,7 +29,7 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   await player?.loaded;
   // await Future.delayed(1.seconds);
   // player?.stamina.baseParameter = 40000;
-  player?.maxLives.baseParameter = 2;
+  // player?.maxLives.baseParameter = 2;
 
   // player?.onHitOtherEntity.add((damage) {
   //   if (damage.victim is Enemy) {
@@ -44,9 +44,9 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   // for (final element in DamageType.getValuesWithoutHealing) {
   //   player?.modifyElementalPower(element, .76);
   // }
-  // player?.modifyElementalPower(DamageType.frost, 1);
+  player?.modifyElementalPower(DamageType.frost, 1);
 
-  player?.addAttribute(AttributeType.chanceToRevive);
+  // player?.addAttribute(AttributeType.reverseKnockback);
 
   // Future.delayed(5.seconds).then((value) {
   //   gameEnviroment.activeEntites.whereType<Enemy>().forEach((element) {
@@ -113,6 +113,5 @@ void updateFunction(Enviroment enviroment, double dt) {
   //               .containsPoint(element.worldCenter))
   //       .length;
 
-  //   print(count);
   // }
 }

@@ -677,8 +677,7 @@ class EntityVisualEffectsWrapper {
       component: (component ??
           SpriteAnimationComponent(
             animation: animation,
-            size: animation!.frames.first.sprite.srcSize
-              ..scaledToHeight(entity),
+            size: animation!.getGameScaledSize(entity),
             anchor: Anchor.center,
           ))
         ..addToParent(entity),
@@ -719,11 +718,7 @@ class EntityVisualEffectsWrapper {
           animation = await spriteAnimations.damageTypePsychicEffect1;
       }
       addStatusBarItem(
-        component: SpriteAnimationComponent(
-          animation: animation,
-          size: animation.getGameScaledSize(entity)
-            ..scaledToDimension(false, .5),
-        ),
+        animation: animation,
         id: effect.toString(),
         xPosition: effect.index,
       );
@@ -889,10 +884,9 @@ class EntityVisualEffectsWrapper {
       // Calculate starting X position (centered)
 
       final totalWidth = item.component.size.x * (itemsThisRow + 1);
-      final startX = -(totalWidth / 2);
+      final startX = -(totalWidth / 2) + (item.component.size.x / 4);
 
-      final y = .5 -
-          (entity.spriteHeight) -
+      final y = -entity.spriteHeight -
           (rowSpacing * rowNumber.clamp(0, 20)); // Calculate row
 
       final x = startX +

@@ -24,6 +24,12 @@ extension FixtureTypeDetector on Contact {
   }
 }
 
+extension IfNaN on double {
+  double ifNaN(double value) {
+    return isNaN ? value : this;
+  }
+}
+
 mixin UpdateFunctionsThenRemove on Component {
   final List<void Function(double dt)> _updateFunctions = [];
 

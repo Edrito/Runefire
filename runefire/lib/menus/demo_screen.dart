@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flame/extensions.dart';
+import 'package:flame/sprite.dart';
+import 'package:flame/widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -10,8 +13,10 @@ import 'package:runefire/input_manager.dart';
 import 'package:runefire/main.dart';
 import 'package:runefire/menus/custom_button.dart';
 import 'package:runefire/menus/menus.dart';
+import 'package:runefire/menus/options.dart';
 import 'package:runefire/menus/pause_menu.dart';
 import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/assets/sprite_animations.dart';
 import 'package:runefire/resources/constants/constants.dart';
 import 'package:runefire/resources/constants/routes.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
@@ -22,9 +27,10 @@ import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
 
 enum DemoBuilds {
-  starter,
+  crystalWarrior,
   mage,
-  glassCannon,
+  assassin,
+  assaultist,
   flameWarrior,
   warlock,
   frostWizard;
@@ -44,7 +50,7 @@ typedef DemoBuild = ({
 extension DemoBuildsExtension on DemoBuilds {
   DemoBuild get getBuild {
     switch (this) {
-      case DemoBuilds.starter:
+      case DemoBuilds.crystalWarrior:
         return (
           weapon1: WeaponType.crystalPistol,
           weapon2: WeaponType.crystalSword,
@@ -53,48 +59,66 @@ extension DemoBuildsExtension on DemoBuilds {
           characterType: CharacterType.runeKnight,
           damageType: DamageType.physical,
         );
+      case DemoBuilds.assaultist:
+        return (
+          weapon1: WeaponType.arcaneBlaster,
+          weapon2: WeaponType.psychicMagic,
+          secondary1: SecondaryType.rapidFire,
+          secondary2: SecondaryType.surroundAttack,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.physical,
+        );
+      case DemoBuilds.assassin:
+        return (
+          weapon1: WeaponType.phaseDagger,
+          weapon2: WeaponType.scatterBlast,
+          secondary1: SecondaryType.shadowBlink,
+          secondary2: SecondaryType.rapidFire,
+          characterType: CharacterType.runeKnight,
+          damageType: DamageType.psychic,
+        );
       case DemoBuilds.mage:
         return (
-          weapon1: WeaponType.hexwoodMaim,
+          weapon1: WeaponType.magicMissile,
           weapon2: WeaponType.aethertideSpear,
           secondary1: SecondaryType.elementalBlast,
-          secondary2: SecondaryType.shadowBlink,
+          secondary2: SecondaryType.surroundAttack,
           characterType: CharacterType.runeKnight,
           damageType: DamageType.magic,
         );
-      case DemoBuilds.glassCannon:
-        return (
-          weapon1: WeaponType.scatterBlast,
-          weapon2: WeaponType.powerWord,
-          secondary1: SecondaryType.rapidFire,
-          secondary2: SecondaryType.elementalBlast,
-          characterType: CharacterType.runeKnight,
-          damageType: DamageType.magic,
-        );
+      // case DemoBuilds.glassCannon:
+      //   return (
+      //     weapon1: WeaponType.scatterBlast,
+      //     weapon2: WeaponType.powerWord,
+      //     secondary1: SecondaryType.rapidFire,
+      //     secondary2: SecondaryType.elementalBlast,
+      //     characterType: CharacterType.runeKnight,
+      //     damageType: DamageType.magic,
+      //   );
       case DemoBuilds.flameWarrior:
         return (
           weapon1: WeaponType.fireSword,
-          weapon2: WeaponType.fireballMagic,
-          secondary1: SecondaryType.surroundAttack,
+          weapon2: WeaponType.breathOfFire,
+          secondary1: SecondaryType.bloodlust,
           secondary2: SecondaryType.instantReload,
           characterType: CharacterType.runeKnight,
           damageType: DamageType.fire,
         );
       case DemoBuilds.warlock:
         return (
-          weapon1: WeaponType.swordKladenets,
-          weapon2: WeaponType.elementalChannel,
+          weapon1: WeaponType.sanctifiedEdge,
+          weapon2: WeaponType.powerWord,
           secondary1: SecondaryType.shadowBlink,
-          secondary2: SecondaryType.rapidFire,
+          secondary2: SecondaryType.elementalBlast,
           characterType: CharacterType.runeKnight,
           damageType: DamageType.energy,
         );
       case DemoBuilds.frostWizard:
         return (
-          weapon1: WeaponType.shimmerRifle,
-          weapon2: WeaponType.frostKatana,
-          secondary1: SecondaryType.rapidFire,
-          secondary2: SecondaryType.shadowBlink,
+          weapon1: WeaponType.icecicleMagic,
+          weapon2: WeaponType.shimmerRifle,
+          secondary1: SecondaryType.surroundAttack,
+          secondary2: SecondaryType.rapidFire,
           characterType: CharacterType.runeKnight,
           damageType: DamageType.frost,
         );
@@ -135,6 +159,8 @@ class _DemoScreenState extends State<DemoScreen> {
 
     GameState().toggleGameStart(gameplay);
   }
+
+  SpriteAnimationTicker? titleTicker;
 
   Widget buildPairWidget({
     required WeaponType weaponType,
@@ -211,26 +237,33 @@ class _DemoScreenState extends State<DemoScreen> {
                   child: Builder(
                     builder: (context) {
                       return Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Stack(
-                            alignment: Alignment.center,
+                            // alignment: Alignment.center,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 5,
-                                  top: 5,
-                                ),
-                                child: buildImageAsset(
-                                  weaponType.path,
-                                  fit: BoxFit.contain,
-                                  color: damageType.color
-                                      .darken(.85)
-                                      .withOpacity(.5),
+                              Positioned.fill(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 10,
+                                    top: 10,
+                                  ),
+                                  child: buildImageAsset(
+                                    weaponType.iconPath,
+                                    // fit: BoxFit.,
+                                    fit: BoxFit.contain,
+                                    color: damageType.color
+                                        .darken(.85)
+                                        .withOpacity(.5),
+                                  ),
                                 ),
                               ),
-                              buildImageAsset(
-                                weaponType.path,
-                                fit: BoxFit.contain,
+                              Positioned.fill(
+                                child: buildImageAsset(
+                                  weaponType.iconPath,
+                                  fit: BoxFit.contain,
+                                  // fit: BoxFit.contain,
+                                ),
                               ),
                             ],
                           ),
@@ -384,14 +417,15 @@ class _DemoScreenState extends State<DemoScreen> {
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
             height: 32 * 2,
-            child: CustomInputWatcher(
-              rowId: 999,
-              hoverWidget: SizedBox(
-                child: Text(socialItem.name.titleCase),
-              ),
-              onHover: (isHover) {
+            child: MouseRegion(
+              onEnter: (event) {
                 setState(() {
-                  isPressed = isHover;
+                  isPressed = true;
+                });
+              },
+              onExit: (event) {
+                setState(() {
+                  isPressed = false;
                 });
               },
               child: buildImageAsset(
@@ -405,137 +439,170 @@ class _DemoScreenState extends State<DemoScreen> {
     );
   }
 
+  final GlobalKey<CustomInputWatcherState> howToGlobalKey =
+      GlobalKey<CustomInputWatcherState>();
+  bool optionsEnabled = false;
+
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final titleSize = screenSize.shortestSide * .8;
+
     return Stack(
+      alignment: Alignment.center,
       children: [
-        Positioned.fill(
-          child: FutureBuilder(
-            future: beginCards.future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const SizedBox();
-              }
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'Wireframe Demo',
-                      style: defaultStyle.copyWith(
-                        fontSize: 64,
-                        // color: ApolloColorPalette.purple.color,
-                      ),
-                    ),
+        Center(
+          child: SizedBox.square(
+            dimension: titleSize,
+            child: FutureBuilder<SpriteAnimation>(
+              future: loadSpriteAnimation(
+                35,
+                'ui/title/${GameState().introDamageType.name}_title_sprite_sheet_35.png',
+                titleIntroTickRate,
+                false,
+              ),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (snapshot.data is! SpriteAnimation ||
+                    beginCards.isCompleted) {
+                  return const SizedBox();
+                }
+                return SpriteAnimationWidget(
+                  onComplete: () {
+                    if (beginCards.isCompleted) {
+                      return;
+                    }
+                    Future.delayed(1.seconds).then((value) {
+                      setState(() {
+                        beginCards.complete();
+                      });
+                    });
+                  },
+                  animation: snapshot.data as SpriteAnimation,
+                  animationTicker: titleTicker ??= SpriteAnimationTicker(
+                    snapshot.data as SpriteAnimation,
                   ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Wrap(
-                          alignment: WrapAlignment.center,
-                          runAlignment: WrapAlignment.center,
-                          children: [
-                            for (var i = 0; i < DemoBuilds.values.length; i++)
-                              Builder(
-                                builder: (context) {
-                                  return buildWidget(
-                                    DemoBuilds.values.elementAt(i),
-                                  );
-                                },
-                              ),
-                          ].animate(interval: .05.seconds).moveY().fadeIn(),
+                );
+              },
+            ),
+          ),
+        ),
+        if (optionsEnabled)
+          OptionsMenu(
+            gameRef: widget.gameRef,
+            backFunction: () {
+              setState(
+                () {
+                  optionsEnabled = false;
+                },
+              );
+            },
+          )
+        else
+          Positioned.fill(
+            child: FutureBuilder(
+              future: beginCards.future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const SizedBox();
+                }
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Wireframe Demo',
+                        style: defaultStyle.copyWith(
+                          fontSize: 64,
+                          // color: ApolloColorPalette.purple.color,
                         ),
                       ),
                     ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      for (var i = 0; i < SocialItem.values.length; i++)
-                        buildSocialItem(SocialItem.values[i]),
-                    ].animate(interval: .05.seconds).moveY().fadeIn(),
-                  ),
-                  CustomButton(
-                    'View Standard Game Menu',
-                    gameRef: widget.gameRef,
-                    onPrimary: () {
-                      GameState()
-                          .changeMainMenuPage(MenuPageType.startMenuPage);
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-        Positioned.fill(
-          child: Center(
-            child: Stack(
-              children: [
-                Text(
-                  'Runefire',
-                  style: defaultStyle.copyWith(
-                    fontSize: 128,
-                    color: ApolloColorPalette.blue.color,
-                    shadows: [],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 3, top: 3),
-                  child: Text(
-                    'Runefire',
-                    style: defaultStyle.copyWith(
-                      fontSize: 128,
-                      color: ApolloColorPalette.lightBlue.color,
-                      shadows: [],
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            runAlignment: WrapAlignment.center,
+                            children: [
+                              for (var i = 0; i < DemoBuilds.values.length; i++)
+                                Builder(
+                                  builder: (context) {
+                                    return buildWidget(
+                                      DemoBuilds.values.elementAt(i),
+                                    );
+                                  },
+                                ),
+                            ].animate(interval: .05.seconds).moveY().fadeIn(),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6, top: 6),
-                  child: Text(
-                    'Runefire',
-                    style: defaultStyle.copyWith(
-                      fontSize: 128,
-                      color: ApolloColorPalette.offWhite.color,
-                      shadows: [],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        buildSocialItem(SocialItem.android),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomButton(
+                              'Options',
+                              rowId: 10,
+                              gameRef: widget.gameRef,
+                              onPrimary: () {
+                                setState(() {
+                                  optionsEnabled = true;
+                                });
+                              },
+                            ),
+                            CustomButton(
+                              'How to Play',
+                              gameRef: widget.gameRef,
+                              rowId: 11,
+                              hoverWidget: SizedBox(
+                                height: 650,
+                                key: howToGlobalKey,
+                                width: 650,
+                                child: Center(
+                                  child: CustomBorderBox(
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(32),
+                                        child: Text(
+                                          'Gather experience from different cursed lands, unlocking additional weapons, power and achievements along the way.\n\n'
+                                          "As you kill more enemies, you will begin to understand the element you're using, allowing for more dangerous and powerful combinations to be used as you level up.",
+                                          style: defaultStyle.copyWith(
+                                            fontSize: 24,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            CustomButton(
+                              'Runefire Start Menu',
+                              gameRef: widget.gameRef,
+                              rowId: 12,
+                              fontSize: 32,
+                              onPrimary: () {
+                                GameState().changeMainMenuPage(
+                                  MenuPageType.startMenuPage,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        buildSocialItem(SocialItem.steam),
+                      ].animate(interval: .05.seconds).moveY().fadeIn(),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
-          )
-              .animate()
-              .moveY(
-                begin: -20,
-                end: 20,
-                curve: Curves.easeInOut,
-                duration: 3.seconds,
-              )
-              .fadeIn(
-                duration: .3.seconds,
-              )
-              .scale(
-                duration: .4.seconds,
-                begin: const Offset(10, 10),
-                end: const Offset(1, 1),
-                curve: Curves.fastEaseInToSlowEaseOut,
-              )
-              .animate(
-                delay: 2.seconds,
-                onComplete: (controller) {
-                  if (beginCards.isCompleted) {
-                    return;
-                  }
-                  Future.delayed(1.seconds)
-                      .then((value) => beginCards.complete());
-                },
-              )
-              .fadeOut(
-                duration: .3.seconds,
-              ),
-        ),
+          ),
       ],
     );
   }

@@ -80,16 +80,17 @@ class MushroomRunner extends Enemy
     height.baseParameter = 3;
     invincibilityDuration.baseParameter =
         mushroomHopperBaseInvincibilityDuration;
-    critChance.baseParameter = .5;
-    maxHealth.baseParameter = 5.0 + rng.nextInt(5);
-    speed.baseParameter = 1000.0 + rng.nextInt(500);
-    touchDamage.damageBase[DamageType.physical] = (1, 5);
+    critChance.baseParameter = .05;
+    maxHealth.baseParameter = 5.0 + rng.nextInt(5) * (upgradeLevel + 1);
+    speed.baseParameter = (1000.0 + rng.nextInt(500)) * (upgradeLevel + 1);
+    touchDamage.damageBase[DamageType.physical] =
+        (1 * (upgradeLevel + 1), 5 * (upgradeLevel + 1));
   }
 
   @override
   Map<ExpendableType, double> get expendableRate => {
         // ExpendableType.fearEnemiesRunes: 0.5,
-        ExpendableType.healing: 0.1,
+        ExpendableType.healing: 0.005,
         // ExpendableType.experienceAttractRune: 0.5,
       };
 
@@ -200,7 +201,7 @@ class MushroomBoomer extends Enemy
       if (instance.damageMap.keys.contains(
             DamageType.fire,
           ) ||
-          (upgradeLevel > 1 &&
+          (upgradeLevel > 0 &&
               instance.damageMap.keys.contains(
                 DamageType.psychic,
               ))) {
@@ -219,13 +220,13 @@ class MushroomBoomer extends Enemy
       position: body.worldCenter,
       sourceEntity: this,
       animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
-        spawnAnimation: await (upgradeLevel > 1
+        spawnAnimation: await (upgradeLevel > 0
             ? spriteAnimations.psychicOrbMedium1
             : spriteAnimations.fireOrbMedium1),
         durationType: DurationType.instant,
       ),
       damage: {
-        if (upgradeLevel > 1)
+        if (upgradeLevel > 0)
           DamageType.psychic: (4, 25)
         else
           DamageType.fire: (2, 15),
@@ -263,7 +264,7 @@ class MushroomBoomer extends Enemy
 
   @override
   Future<void> loadAnimationSprites() async {
-    if (upgradeLevel > 1) {
+    if (upgradeLevel > 0) {
       entityAnimations[EntityStatus.idle] =
           await spriteAnimations.mushroomBoomerIdle2;
 
@@ -315,6 +316,7 @@ class MushroomShooter extends Enemy
     maxHealth.baseParameter = mushroomShooterBaseMaxHealth;
     speed.baseParameter = mushroomShooterBaseSpeed;
     initialWeapons.add(WeaponType.blankProjectileWeapon);
+    attackOnAnimationFinish = true;
   }
 
   @override
@@ -351,6 +353,9 @@ class MushroomShooter extends Enemy
     await super.onLoad();
     // startAttacking();
   }
+
+  @override
+  late final double zoningDistance = randomBetween((8.0, 12.0));
 
   @override
   EnemyType enemyType = EnemyType.mushroomShooter;
@@ -600,10 +605,6 @@ class MushroomBurrower extends Enemy
         onStateStart: (duration) async {
           toggleIdleRunAnimations(false);
           if (initState) {
-            // body.setTransform(
-            //   SpawnLocation.onPlayer.grabNewPosition(gameEnviroment, 1),
-            //   angle,
-            // );
             await setEntityAnimation('burrow_out')
                 .then((value) => setEntityAnimation(EntityStatus.idle));
           } else {

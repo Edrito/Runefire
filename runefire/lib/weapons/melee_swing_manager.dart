@@ -279,11 +279,12 @@ class MeleeAttackSprite extends PositionComponent {
     }
     position.setFrom(initPosition);
 
-    weaponTrailConfig = handler.currentAttack.weaponTrailConfig;
+    weaponTrailConfig =
+        handler.currentAttack.weaponTrailConfig ?? WeaponTrailConfig();
     if (handler.isCharging) {
       disableTrail = true;
     } else {
-      disableTrail = weaponTrailConfig?.disableTrail ?? false;
+      disableTrail = weaponTrailConfig.disableTrail;
     }
     weaponSpriteAnimation = swingAnimation;
   }
@@ -295,7 +296,7 @@ class MeleeAttackSprite extends PositionComponent {
   late final Paint drawPaint;
   late final int swingCutOff;
   late final double topStartFromTipPercent;
-  late final WeaponTrailConfig? weaponTrailConfig;
+  late final WeaponTrailConfig weaponTrailConfig;
 
   MeleeAttackHandler handler;
   Vector2 initPosition;
@@ -370,17 +371,16 @@ class MeleeAttackSprite extends PositionComponent {
     if (disableTrail) {
       return;
     }
-    swingCutOff = weaponTrailConfig?.swingCutOff ?? 14;
-    curve = weaponTrailConfig?.curve ?? Curves.easeIn;
+    swingCutOff = weaponTrailConfig.swingCutOff;
+    curve = weaponTrailConfig.curve;
     renderTrail = true;
-    color = weaponTrailConfig?.color ??
+    color = weaponTrailConfig.color ??
         handler.weaponAncestor.baseDamage.damageBase.keys
             .toList()
             .random()
             .color;
-    topStartFromTipPercent = weaponTrailConfig?.topStartFromTipPercent ?? .95;
-    bottomStartFromTipPercent =
-        weaponTrailConfig?.bottomStartFromTipPercent ?? .3;
+    topStartFromTipPercent = weaponTrailConfig.topStartFromTipPercent;
+    bottomStartFromTipPercent = weaponTrailConfig.bottomStartFromTipPercent;
 
     widthOfTrail = (handler.weaponAncestor.tipOffset.y) *
         (topStartFromTipPercent - bottomStartFromTipPercent);

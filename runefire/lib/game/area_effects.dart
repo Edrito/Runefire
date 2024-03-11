@@ -140,8 +140,6 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     if (!shouldCalculate) {
       return super.beginContact(other, contact);
     }
-    print('here');
-    print(contact.containsFixtureType(FixtureType.sensor));
     currentEntities.add(other);
     entityTimers[other] ??= tickRate;
     super.beginContact(other, contact);
@@ -257,7 +255,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     //   ..radius = radius
     //   ..anchor = Anchor.center
     //   ..paint = (paint..color = Colors.red.withOpacity(.3)));
-    // renderBody = false;
+    renderBody = false;
     final filter = Filter();
     filter.categoryBits = areaEffectCategory;
     if (sourceEntity.isPlayer) {

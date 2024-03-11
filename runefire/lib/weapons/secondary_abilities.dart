@@ -9,6 +9,9 @@ import 'package:runefire/attributes/attributes_mixin.dart';
 import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/player/player.dart';
+import 'package:runefire/resources/assets/assets.dart';
+import 'package:runefire/resources/assets/sprite_animations.dart';
+import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/resources/visuals.dart';
 import 'package:runefire/weapons/weapon_class.dart';
@@ -349,7 +352,26 @@ class ExplodeProjectile extends SecondaryWeaponAbility {
 }
 
 class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
-  ShadowBlink(super.weapon, super.cooldown, super.level);
+  ShadowBlink(super.weapon, super.cooldown, super.level) {
+    maxStacks = upgradeLevel + 1;
+    currentStacks = maxStacks;
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    final sprite = await readySprite;
+    shadowBlinkSprite = SpriteAnimationComponent(
+      animation: sprite,
+      size: sprite.getGameScaledSize(weapon!.entityAncestor),
+    );
+    weapon?.entityAncestor?.entityVisualEffectsWrapper.addStatusBarItem(
+      id: id,
+      xPosition: 0,
+      component: shadowBlinkSprite,
+    );
+
+    return super.onLoad();
+  }
 
   @override
   SecondaryType secondaryType = SecondaryType.shadowBlink;
@@ -359,6 +381,46 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
 
   @override
   String get nextLevelStringDescription => 'Increase charge count!';
+  late final SpriteAnimationComponent shadowBlinkSprite;
+
+  late final Future<SpriteAnimation> emptySprite = loadSpriteAnimation(
+    2,
+    ImagesAssetsShadowBlink.waiting.flamePath,
+    .1,
+    true,
+  );
+  late final Future<SpriteAnimation> readySprite =
+      loadSpriteAnimation(1, ImagesAssetsShadowBlink.ready.flamePath, .5, true);
+
+  @override
+  void useStack() {
+    super.useStack();
+    checkBlinkStatus();
+  }
+
+  @override
+  void addStack() {
+    super.addStack();
+    checkBlinkStatus();
+  }
+
+  @override
+  void reset() {
+    super.reset();
+    checkBlinkStatus();
+  }
+
+  void checkBlinkStatus() {
+    if (currentStacks == 0) {
+      emptySprite.then((value) {
+        shadowBlinkSprite.animation = value;
+      });
+    } else {
+      readySprite.then((value) {
+        shadowBlinkSprite.animation = value;
+      });
+    }
+  }
 
   @override
   void endAbility() {}
@@ -375,7 +437,12 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
       return;
     }
 
-    // super.startAbilityCheck();
+    final melee = weapon! as MeleeFunctionality;
+    final player = melee.entityAncestor as Player?;
+    final enemy = player?.closestEnemyToMouse;
+    if (player == null || enemy == null) {
+      return;
+    }
     if (hasStacks) {
       useStack();
       startAbility();
@@ -383,32 +450,13 @@ class ShadowBlink extends SecondaryWeaponAbility with RechargeableStack {
   }
 
   @override
-  void render(Canvas canvas) {
-    buildProgressBar(
-      canvas: canvas,
-      percentProgress: rechargePercent,
-      color: Colors.red,
-      size: Vector2(5, 5),
-    );
-
-    super.render(canvas);
-  }
-
-  @override
   Future<void> startAbility() async {
-    if (weapon is! MeleeFunctionality) {
-      return;
-    }
-
     final melee = weapon! as MeleeFunctionality;
     final player = melee.entityAncestor as Player?;
     final enemy = player?.closestEnemyToMouse;
-    if (player == null || enemy == null) {
-      return;
-    }
 
-    final playerPosition = player.position;
-    final enemyPosition = enemy.position;
+    final playerPosition = player!.position;
+    final enemyPosition = enemy!.position;
 
     final distance = playerPosition.distanceTo(enemyPosition);
     final direction =
@@ -539,17 +587,6 @@ class Bloodlust extends SecondaryWeaponAbility {
 
   @override
   Future<void> startAbility() async {
-    if (weapon is! MeleeFunctionality) {
-      return;
-    }
-    timer = TimerComponent(
-      period: duration,
-      onTick: () {
-        removeBuff();
-        timer?.removeFromParent();
-      },
-    )..addToParent(this);
-
     final entity = weapon?.entityAncestor;
     entity?.damageTypeResistance.setDamagePercentIncrease(
       id,
@@ -564,6 +601,16 @@ class Bloodlust extends SecondaryWeaponAbility {
         customUpgradeFactor: .5,
       ).toDouble(),
     );
+    entity?.entityVisualEffectsWrapper.addStatusBarItem(
+      id: id,
+      xPosition: 0,
+      animation: await loadSpriteAnimation(
+        6,
+        ImagesAssetsBloodlust.bloodlust6.flamePath,
+        .1,
+        true,
+      ),
+    );
     entity?.essenceSteal.setParameterFlatValue(
       id,
       increasePercentOfBase(
@@ -572,6 +619,15 @@ class Bloodlust extends SecondaryWeaponAbility {
         customUpgradeFactor: .5,
       ).toDouble(),
     );
+
+    timer = TimerComponent(
+      period: duration,
+      onTick: () {
+        removeBuff();
+        timer?.removeFromParent();
+        entity?.entityVisualEffectsWrapper.removeStatusBarItem(id);
+      },
+    )..addToParent(this);
   }
 
   @override

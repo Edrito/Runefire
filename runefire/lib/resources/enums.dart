@@ -374,7 +374,7 @@ extension GameLevelExtension on GameLevel {
   Color get levelColor {
     switch (this) {
       case GameLevel.hexedForest:
-        return ApolloColorPalette.lightBlue.color;
+        return ApolloColorPalette.darkestBlue.color;
       // case GameLevel.dungeon:
       //   return ApolloColorPalette.paleGray.color;
       case GameLevel.necromancersGraveyard:
@@ -615,6 +615,7 @@ enum WeaponType {
   swordKladenets(
     5,
     AttackType.melee,
+    isPlayerWeapon: false,
     100,
   ),
   mindStaff(
@@ -710,6 +711,81 @@ enum WeaponType {
 
   String get flamePath => getImageClass.flamePath;
   String get path => getImageClass.path;
+  String get iconPath => getIconClass.path;
+  FileDataClass get getIconClass {
+    switch (this) {
+      case WeaponType.emberBow:
+        return ImagesAssetsEmberBow.emberBow;
+      case WeaponType.shimmerRifle:
+        return ImagesAssetsScryshot.icon;
+
+      case WeaponType.crystalPistol:
+        return ImagesAssetsCrystalPistol.icon;
+      case WeaponType.scatterBlast:
+        return ImagesAssetsScatterBlast.icon;
+
+      case WeaponType.railspire:
+        return ImagesAssetsRailspire.railspire;
+      case WeaponType.eldritchRunner:
+        return ImagesAssetsEldritchRunner.eldritchRunner;
+      case WeaponType.crystalSword:
+        return ImagesAssetsCrystalSword.icon;
+      case WeaponType.phaseDagger:
+        return ImagesAssetsPhaseDagger.icon;
+      case WeaponType.aethertideSpear:
+        return ImagesAssetsAethertideSpear.icon;
+      case WeaponType.mindStaff:
+        return ImagesAssetsMindStaff.icon;
+      case WeaponType.largeSword:
+        return ImagesAssetsLargeSword.largeSword;
+      case WeaponType.frostKatana:
+        return ImagesAssetsFrostKatana.icon;
+      case WeaponType.sanctifiedEdge:
+        return ImagesAssetsSanctifiedEdge.icon;
+      case WeaponType.fireSword:
+        return ImagesAssetsFlameSword.icon;
+      case WeaponType.swordOfJustice:
+        return ImagesAssetsSwordOfJustice.swordOfJustice;
+
+      case WeaponType.tuiCamai:
+        return ImagesAssetsTuiCamai.tuiCamai;
+      case WeaponType.swordKladenets:
+        return ImagesAssetsSwordKladenets.swordKladenets;
+      case WeaponType.magicMissile:
+        return ImagesAssetsDefaultWand.icon;
+      case WeaponType.icecicleMagic:
+        return ImagesAssetsDefaultWand.icon;
+      // case WeaponType.psychicMagic:
+      //   return ImagesAssetsPsychicMagic.bookIdle;
+      // case WeaponType.fireballMagic:
+      //   return ImagesAssetsFireballMagic.bookIdle;
+      // case WeaponType.energyMagic:
+      //   return ImagesAssetsEnergyMagic.bookIdle;
+      // case WeaponType.breathOfFire:
+      //   return ImagesAssetsBreathOfFire.bookIdle;
+      // case WeaponType.magicBlast:
+      //   return ImagesAssetsMagicBlast.bookIdle;
+      case WeaponType.powerWord:
+        return ImagesAssetsPowerWord.icon;
+      // case WeaponType.elementalChannel:
+      //   return ImagesAssetsElementalChannel.bookIdle;
+      case WeaponType.hexwoodMaim:
+        return ImagesAssetsDefaultWand.icon;
+      // case WeaponType.blankProjectileWeapon:
+      //   return ImagesAssetsBlankProjectileWeapon.bookIdle;
+
+      case WeaponType.arcaneBlaster:
+        return ImagesAssetsArcaneBlaster.icon;
+
+      case WeaponType.scryshot:
+        return ImagesAssetsScryshot.icon;
+      case WeaponType.prismaticBeam:
+        return ImagesAssetsPrismaticBeam.prismaticBeam;
+
+      default:
+        return ImagesAssetsDefaultBook.bookIdle;
+    }
+  }
 
   FileDataClass get getImageClass {
     switch (this) {
@@ -750,12 +826,12 @@ enum WeaponType {
         return ImagesAssetsTuiCamai.tuiCamai;
       case WeaponType.swordKladenets:
         return ImagesAssetsSwordKladenets.swordKladenets;
-      // case WeaponType.magicMissile:
-      //   return ImagesAssetsMagicMissile.bookIdle;
-      // case WeaponType.icecicleMagic:
-      //   return ImagesAssetsIcecicleMagic.bookIdle;
-      // case WeaponType.psychicMagic:
-      //   return ImagesAssetsPsychicMagic.bookIdle;
+      case WeaponType.magicMissile:
+        return ImagesAssetsDefaultWand.wandIdle;
+      case WeaponType.icecicleMagic:
+        return ImagesAssetsDefaultWand.wandIdle;
+      case WeaponType.psychicMagic:
+        return ImagesAssetsDefaultWand.wandIdle;
       // case WeaponType.fireballMagic:
       //   return ImagesAssetsFireballMagic.bookIdle;
       // case WeaponType.energyMagic:
@@ -764,12 +840,12 @@ enum WeaponType {
       //   return ImagesAssetsBreathOfFire.bookIdle;
       // case WeaponType.magicBlast:
       //   return ImagesAssetsMagicBlast.bookIdle;
-      // case WeaponType.powerWord:
-      //   return ImagesAssetsPowerWord.bookIdle;
+      case WeaponType.powerWord:
+        return ImagesAssetsPowerWord.idle;
       // case WeaponType.elementalChannel:
       //   return ImagesAssetsElementalChannel.bookIdle;
-      // case WeaponType.hexwoodMaim:
-      //   return ImagesAssetsHexwoodMaim.bookIdle;
+      case WeaponType.hexwoodMaim:
+        return ImagesAssetsDefaultWand.wandIdle;
       // case WeaponType.blankProjectileWeapon:
       //   return ImagesAssetsBlankProjectileWeapon.bookIdle;
 

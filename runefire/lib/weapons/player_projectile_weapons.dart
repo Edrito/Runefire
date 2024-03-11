@@ -109,9 +109,9 @@ class Shotgun extends PlayerWeapon
   @override
   void mapUpgrade() {
     baseDamage.damageBase[DamageType.physical] = (
-      increasePercentOfBase(5.0, customUpgradeFactor: .1, includeBase: true)
+      increasePercentOfBase(2.0, customUpgradeFactor: .1, includeBase: true)
           .toDouble(),
-      increasePercentOfBase(8.0, customUpgradeFactor: .1, includeBase: true)
+      increasePercentOfBase(4.5, customUpgradeFactor: .1, includeBase: true)
           .toDouble(),
     );
     attackCountIncrease.baseParameter = 4 + (isMaxLevel ? 1 : 0);
@@ -156,8 +156,8 @@ class Shotgun extends PlayerWeapon
   @override
   WeaponType weaponType = WeaponType.scatterBlast;
 
-  @override
-  Vector2 get tipOffset => Vector2(.5, 1);
+  // @override
+  // Vector2 get tipOffset => Vector2(.5, 1);
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
@@ -169,6 +169,7 @@ class Shotgun extends PlayerWeapon
           Vector2.zero(),
           weaponAnimations: {
             WeaponStatus.idle: await spriteAnimations.scatterVineIdle1,
+            'muzzle_flash': await spriteAnimations.blackMuzzleFlash1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -177,7 +178,7 @@ class Shotgun extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = .25;
+  double distanceFromPlayer = -1;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -659,9 +660,6 @@ class ShimmerRifle extends PlayerWeapon
   }
 
   @override
-  double get customChargeDuration => attackTickRate.parameter * 5;
-
-  @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
     PlayerAttachmentJointComponent parentJoint,
   ) async {
@@ -670,8 +668,9 @@ class ShimmerRifle extends PlayerWeapon
         return WeaponSpriteAnimation(
           Vector2.all(0),
           weaponAnimations: {
-            'muzzle_flash': await spriteAnimations.blackMuzzleFlash1,
-            WeaponStatus.idle: await spriteAnimations.arcaneBlasterIdle1,
+            'muzzle_flash': await spriteAnimations.magicMuzzleFlash1,
+            WeaponStatus.idle: await spriteAnimations.scryshotIdle1,
+            WeaponStatus.attack: await spriteAnimations.scryshotAttack1,
           },
           parentJoint: parentJoint,
           weapon: this,
@@ -679,6 +678,11 @@ class ShimmerRifle extends PlayerWeapon
     }
   }
 
+  @override
+  // TODO: implement tipOffset
+  Vector2 get tipOffset => super.tipOffset.clone()
+    ..y = super.tipOffset.y * .68
+    ..x = super.tipOffset.x - .2;
   @override
   double distanceFromPlayer = 0;
 
@@ -688,8 +692,7 @@ class ShimmerRifle extends PlayerWeapon
   ];
 
   @override
-  DoubleParameterManager weaponScale =
-      DoubleParameterManager(baseParameter: .5);
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
 
   @override
   ProjectileType? projectileType = ProjectileType.magicProjectile;

@@ -14,6 +14,7 @@ import 'package:runefire/main.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/assets/assets.dart';
 import 'package:runefire/resources/constants/constants.dart';
+import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:runefire/resources/functions/vector_functions.dart';
 import 'package:runefire/weapons/weapon_mixin.dart';
@@ -121,8 +122,10 @@ abstract class BaseHud extends PositionComponent {
   double get maxBarWidth => (gameEnviroment.gameCamera.viewport.size.x * .35)
       .clamp(100, double.infinity);
 
-  double get staminaBarWidth =>
-      (player!.stamina.parameter * 2 * hudScale.scale).clamp(0.0, maxBarWidth);
+  double get staminaBarWidth {
+    return (player!.stamina.parameter * 2 * hudScale.scale)
+        .clamp(0.0, maxBarWidth);
+  }
 
   void applyAmmoSizeEffect(
     SpriteComponent ammoSpriteComponent,
@@ -428,7 +431,7 @@ abstract class BaseHud extends PositionComponent {
     final healthWidth =
         (healthBarWidth * player!.healthPercentage).clamp(0, 600.0).toDouble();
     final staminaWidth = (staminaBarWidth *
-            (player!.remainingStamina / player!.stamina.parameter))
+            (player!.remainingStamina / player!.stamina.parameter).ifNaN(0))
         .clamp(0, 600)
         .toDouble();
 
