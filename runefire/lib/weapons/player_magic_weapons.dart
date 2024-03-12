@@ -135,13 +135,13 @@ class PowerWord extends PlayerWeapon
       customUpgradeFactor: 1 / maxLevel!,
       includeBase: true,
     ).round();
-    reloadTime.baseParameter = 2;
+    reloadTime.baseParameter = 5;
 
     critDamage.baseParameter = 2.5;
     baseDamage.damageBase[DamageType.magic] = (
-      increasePercentOfBase(3, customUpgradeFactor: .2, includeBase: true)
+      increasePercentOfBase(4, customUpgradeFactor: .2, includeBase: true)
           .toDouble(),
-      increasePercentOfBase(8, customUpgradeFactor: .2, includeBase: true)
+      increasePercentOfBase(10, customUpgradeFactor: .2, includeBase: true)
           .toDouble()
     );
 
@@ -564,7 +564,7 @@ class EnergyMagic extends PlayerWeapon
 class PsychicMagic extends PlayerWeapon
     with
         ProjectileFunctionality,
-        ReloadFunctionality,
+        // ReloadFunctionality,
         SemiAutomatic,
         ChargeEffect,
         StaminaCostFunctionality {
@@ -582,17 +582,19 @@ class PsychicMagic extends PlayerWeapon
   @override
   void mapUpgrade() {
     baseDamage.damageBase[DamageType.psychic] = (
-      increasePercentOfBase(2, customUpgradeFactor: .2, includeBase: true)
-          .toDouble(),
       increasePercentOfBase(7, customUpgradeFactor: .2, includeBase: true)
+          .toDouble(),
+      increasePercentOfBase(15, customUpgradeFactor: .2, includeBase: true)
           .toDouble()
     );
 
-    maxAttacks.baseParameter = 2;
-    attackTickRate.baseParameter = 2;
-    pierce.baseParameter = 10;
+    // maxAttacks.baseParameter = 3;
 
-    projectileVelocity.baseParameter = 5;
+    weaponStaminaCost.baseParameter = 25;
+    attackTickRate.baseParameter = 1.5;
+    pierce.baseParameter = 50;
+
+    projectileVelocity.baseParameter = 6;
 
     projectileRelativeSize.baseParameter =
         increasePercentOfBase(4, customUpgradeFactor: .5, includeBase: true)
@@ -752,7 +754,7 @@ class MagicMissile extends PlayerWeapon
     primaryDamageType = DamageType.magic;
     increaseAttackCountWhenCharged = true;
     increaseWhenFullyCharged.baseParameter = 3;
-    projectileRelativeSize.baseParameter = .5;
+    projectileRelativeSize.baseParameter = 1;
     maxHomingTargets.baseParameter = 1;
   }
   List<double> pattern(double angle, int count) {
@@ -868,9 +870,9 @@ class BreathOfFire extends PlayerWeapon
   @override
   void mapUpgrade() {
     baseDamage.damageBase[DamageType.fire] = (
-      increasePercentOfBase(.1, customUpgradeFactor: .2, includeBase: true)
+      increasePercentOfBase(.5, customUpgradeFactor: .2, includeBase: true)
           .toDouble(),
-      increasePercentOfBase(.5, customUpgradeFactor: .3, includeBase: true)
+      increasePercentOfBase(1, customUpgradeFactor: .3, includeBase: true)
           .toDouble()
     );
 

@@ -86,15 +86,7 @@ extension DemoBuildsExtension on DemoBuilds {
           characterType: CharacterType.runeKnight,
           damageType: DamageType.magic,
         );
-      // case DemoBuilds.glassCannon:
-      //   return (
-      //     weapon1: WeaponType.scatterBlast,
-      //     weapon2: WeaponType.powerWord,
-      //     secondary1: SecondaryType.rapidFire,
-      //     secondary2: SecondaryType.elementalBlast,
-      //     characterType: CharacterType.runeKnight,
-      //     damageType: DamageType.magic,
-      //   );
+
       case DemoBuilds.flameWarrior:
         return (
           weapon1: WeaponType.fireSword,
@@ -180,128 +172,131 @@ class _DemoScreenState extends State<DemoScreen> {
       ],
     );
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: Text(
-                  weaponType.name.titleCase,
-                  style: headerStyle,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: Text(
-                  secondaryType.name.titleCase,
-                  style: headerStyle,
-                ),
-              ),
-            ].mapExpanded(),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: damageType.color.withOpacity(.5),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: damageType.color,
-                      width: 3,
-                    ),
-                    left: BorderSide(
-                      color: damageType.color,
-                      width: 3,
-                    ),
-                    right: BorderSide(
-                      color: damageType.color,
-                      width: 3,
-                    ),
-                    top: BorderSide(
-                      color: damageType.color,
-                      width: 3,
-                    ),
+      child: Container(
+        color: ApolloColorPalette.darkestGray.color.withOpacity(.5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Text(
+                    weaponType.name.titleCase,
+                    style: headerStyle,
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Text(
+                    secondaryType.name.titleCase,
+                    style: headerStyle,
+                  ),
+                ),
+              ].mapExpanded(),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(4),
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(
-                      color: damageType.color.darken(.5),
-                      width: 3,
+                    color: damageType.color.withOpacity(.5),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: damageType.color,
+                        width: 3,
+                      ),
+                      left: BorderSide(
+                        color: damageType.color,
+                        width: 3,
+                      ),
+                      right: BorderSide(
+                        color: damageType.color,
+                        width: 3,
+                      ),
+                      top: BorderSide(
+                        color: damageType.color,
+                        width: 3,
+                      ),
                     ),
                   ),
-                  padding: const EdgeInsets.all(4),
-                  child: Builder(
-                    builder: (context) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Stack(
-                            // alignment: Alignment.center,
-                            children: [
-                              Positioned.fill(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 10,
-                                    top: 10,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: damageType.color.darken(.5),
+                        width: 3,
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Builder(
+                      builder: (context) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Stack(
+                              // alignment: Alignment.center,
+                              children: [
+                                Positioned.fill(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 10,
+                                      top: 10,
+                                    ),
+                                    child: buildImageAsset(
+                                      weaponType.iconPath,
+                                      // fit: BoxFit.,
+                                      fit: BoxFit.contain,
+                                      color: damageType.color
+                                          .darken(.85)
+                                          .withOpacity(.5),
+                                    ),
                                   ),
+                                ),
+                                Positioned.fill(
                                   child: buildImageAsset(
                                     weaponType.iconPath,
-                                    // fit: BoxFit.,
                                     fit: BoxFit.contain,
-                                    color: damageType.color
-                                        .darken(.85)
-                                        .withOpacity(.5),
+                                    // fit: BoxFit.contain,
                                   ),
                                 ),
-                              ),
-                              Positioned.fill(
-                                child: buildImageAsset(
-                                  weaponType.iconPath,
-                                  fit: BoxFit.contain,
-                                  // fit: BoxFit.contain,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Positioned.fill(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 5,
-                                    top: 5,
+                              ],
+                            ),
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Positioned.fill(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 5,
+                                      top: 5,
+                                    ),
+                                    child: buildImageAsset(
+                                      secondaryType.icon.path,
+                                      fit: BoxFit.contain,
+                                      color: damageType.color
+                                          .darken(.85)
+                                          .withOpacity(.5),
+                                    ),
                                   ),
+                                ),
+                                Positioned.fill(
                                   child: buildImageAsset(
                                     secondaryType.icon.path,
                                     fit: BoxFit.contain,
-                                    color: damageType.color
-                                        .darken(.85)
-                                        .withOpacity(.5),
                                   ),
                                 ),
-                              ),
-                              Positioned.fill(
-                                child: buildImageAsset(
-                                  secondaryType.icon.path,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ].mapExpanded(),
-                      );
-                    },
+                              ],
+                            ),
+                          ].mapExpanded(),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -486,6 +481,13 @@ class _DemoScreenState extends State<DemoScreen> {
               },
             ),
           ),
+        ),
+        Positioned.fill(
+          child: Container(
+            color: ApolloColorPalette.darkestGray.color.withOpacity(.35),
+          ).animate(target: beginCards.isCompleted ? 1 : 0).fadeIn(
+                duration: 1.seconds,
+              ),
         ),
         if (optionsEnabled)
           OptionsMenu(

@@ -18,6 +18,7 @@ import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/entities/input_priorities.dart';
+import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/game/enviroment.dart';
 import 'package:runefire/input_manager.dart';
 import 'package:runefire/menus/overlays.dart';
@@ -57,6 +58,7 @@ class Player extends Entity
         ExperienceFunctionality,
         ExpendableFunctionality,
         DodgeFunctionality,
+        TouchDamageFunctionality,
         DashFunctionality,
         HealthRegenFunctionality,
         PlayerStatistics,
@@ -76,6 +78,7 @@ class Player extends Entity
         }
         gameEnviroment.hud.buildRemainingLives(this);
       });
+      maxLives.baseParameter = 2;
       maxLives.addListener((parameter) {
         gameEnviroment.hud.buildRemainingLives(this);
       });
@@ -399,6 +402,8 @@ class Player extends Entity
   Enemy? closestEnemyToMouse;
   Enemy? aimAssistEnemy;
 
+  bool aimAssistHasBeenUsed = false;
+
   void applyAimAssist() {
     if (disableInput.parameter) {
       return;
@@ -407,9 +412,13 @@ class Player extends Entity
     final aimAssistStrength =
         game.systemDataComponent.dataObject.aimAssistStrength;
     if (aimAssistStrength == AimAssistStrength.none) {
+      if (aimAssistHasBeenUsed) {
+        removeAimAngle(aimAssistInputPriority);
+        aimAssistHasBeenUsed = false;
+      }
       return;
     }
-
+    aimAssistHasBeenUsed = true;
     switch (inputType) {
       case ExternalInputType.mouseKeyboard:
         final aimPos = getAimPosition(userInputPriority);
@@ -433,6 +442,51 @@ class Player extends Entity
         }
 
         break;
+      // case ExternalInputType.gamepad:
+      //   final aimPos = getAimPosition(userInputPriority);
+      //   if (aimPos != null) {
+      //     final aimAngle = radiansBetweenPoints(Vector2(0, 1), aimPos);
+      //     var closestDistance = double.infinity;
+      //     for (final element
+      //         in gameEnviroment.activeEntites.whereType<Enemy>()) {
+      //       element.entityVisualEffectsWrapper.removeBodyItem(entityId);
+      //       final angle = radiansBetweenPoints(center, element.center);
+      //       if ((angle - aimAngle).abs() < closestDistance) {
+      //         closestDistance = (angle - aimAngle).abs();
+      //         aimAssistEnemy = element;
+      //       }
+      //     }
+      //     // spriteAnimations.energyOrbMedium1.then((value) {
+      //     //   aimAssistEnemy?.entityVisualEffectsWrapper.addBodyAnimation(
+      //     //     id: entityId,
+      //     //     duration: 2,
+      //     //     component: SimpleStartPlayEndSpriteAnimationComponent(
+      //     //       spawnAnimation: value,
+      //     //       durationType: DurationType.instant,
+      //     //     ),
+      //     //   );
+      //     // });
+
+      //     if (aimAssistEnemy == null) {
+      //       removeAimAngle(aimAssistInputPriority);
+      //       return;
+      //     }
+      //     final newPositionVec = newPositionRad(
+      //       center,
+      //       aimAngle,
+      //       center.distanceTo(aimAssistEnemy!.center),
+      //     );
+      //     if (newPositionVec.distanceTo(aimAssistEnemy!.center) <
+      //         aimAssistStrength.threshold) {
+      //       addAimAngle(
+      //         aimAssistEnemy!.center - center,
+      //         aimAssistInputPriority,
+      //       );
+      //     } else {
+      //       removeAimAngle(aimAssistInputPriority);
+      //     }
+      //   }
+
       default:
     }
   }

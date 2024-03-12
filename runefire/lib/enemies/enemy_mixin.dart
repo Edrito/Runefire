@@ -33,7 +33,7 @@ mixin DropItemFunctionality on HealthFunctionality {
         .toList()
         .asMap()
         .map(
-          (key, value) => MapEntry(value, 0.002),
+          (key, value) => MapEntry(value, 0.005),
         ),
   };
 

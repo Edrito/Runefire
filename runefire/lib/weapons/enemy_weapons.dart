@@ -85,9 +85,9 @@ class MushroomBossWeapon1 extends EnemyWeapon
   ) {
     baseDamage.damageBase[DamageType.fire] = (5, 8);
     attackTickRate.baseParameter = .2;
-    attackCountIncrease.baseParameter = 15;
-    projectileVelocity.baseParameter = 10;
-    projectileRelativeSize.baseParameter = .5;
+    attackCountIncrease.baseParameter = 10;
+    projectileVelocity.baseParameter = 8;
+    projectileRelativeSize.baseParameter = .75;
     projectileLifeSpan.baseParameter = 5;
   }
   @override
@@ -105,7 +105,7 @@ class MushroomBossWeapon1 extends EnemyWeapon
 
   @override
   Set<AttackSplitFunction> get attackSpreadPatterns => {
-        (ang, count) => crossAttackSpread(initialAngle: ang, count: count),
+        (ang, count) => crossAttackSpread(count: count, initialAngle: ang),
       };
 
   @override
@@ -118,7 +118,7 @@ class MushroomBossWeapon1 extends EnemyWeapon
     switch (parentJoint.jointPosition) {
       default:
         return WeaponSpriteAnimation(
-          Vector2.all(1),
+          Vector2.zero(),
           weaponAnimations: {},
           parentJoint: parentJoint,
           weapon: this,

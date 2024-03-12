@@ -37,10 +37,10 @@ class CrystalPistol extends PlayerWeapon
   @override
   void mapUpgrade() {
     baseDamage.damageBase[DamageType.magic] = (
-      increasePercentOfBase(7.0, customUpgradeFactor: .1, includeBase: true)
+      increasePercentOfBase(3.0, customUpgradeFactor: .1, includeBase: true)
           .toDouble(),
       increasePercentOfBase(
-        10000000.0,
+        6.0,
         customUpgradeFactor: .1,
         includeBase: true,
       ).toDouble(),
@@ -59,7 +59,7 @@ class CrystalPistol extends PlayerWeapon
       customUpgradeFactor: .5 / 2,
       includeBase: true,
     ).round();
-    projectileRelativeSize.baseParameter = .75;
+    projectileRelativeSize.baseParameter = 1;
 
     super.mapUpgrade();
   }
@@ -224,6 +224,8 @@ class Scryshot extends PlayerWeapon
       customUpgradeFactor: .35 / 3,
     ).round();
 
+    reloadTime.baseParameter = 10;
+
     attackTickRate.baseParameter = 1;
     projectileVelocity.baseParameter = 30;
     pierce.baseParameter = increasePercentOfBase(
@@ -234,6 +236,10 @@ class Scryshot extends PlayerWeapon
     super.mapUpgrade();
   }
 
+  @override
+  Vector2 get tipOffset => super.tipOffset.clone()
+    ..y = super.tipOffset.y * .68
+    ..x = super.tipOffset.x - .2;
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
     PlayerAttachmentJointComponent parentJoint,
@@ -311,6 +317,8 @@ class ArcaneBlaster extends PlayerWeapon
       includeBase: true,
       customUpgradeFactor: -.05,
     ).toDouble();
+
+    reloadTime.baseParameter = 3;
 
     weaponRandomnessPercent.baseParameter = .025;
     projectileVelocity.baseParameter = 20;
@@ -408,9 +416,6 @@ class PrismaticBeam extends PlayerWeapon
 
   @override
   double? get customChargeDuration => attackTickRate.parameter * 5;
-
-  @override
-  Vector2 get tipOffset => Vector2(0, 1.42);
 
   @override
   Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(

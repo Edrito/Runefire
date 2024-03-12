@@ -276,22 +276,22 @@ abstract class BaseHud extends PositionComponent {
         toggleAmmoSprite(currentSpriteComponent, true);
       }
     }
-    if (reload?.isReloading ?? false) {
-      final stepTime = reload!.reloadTime.parameter / maxAmmo;
-      final tempWeapon = currentWeapon;
-      var steps = 0;
-      async.Timer.periodic(stepTime.seconds, (timer) {
-        if (steps >= maxAmmo ||
-            steps >= ammoSprites.length ||
-            previousWeapon != tempWeapon) {
-          timer.cancel();
-          return;
-        }
-        applyAmmoSizeEffect(ammoSprites[steps]!);
-        toggleAmmoSprite(ammoSprites[steps]!, true);
-        steps++;
-      });
-    }
+    // if (reload?.isReloading ?? false) {
+    //   final stepTime = reload!.reloadTime.parameter / maxAmmo;
+    //   final tempWeapon = currentWeapon;
+    //   var steps = 0;
+    //   async.Timer.periodic(stepTime.seconds, (timer) {
+    //     if (steps >= maxAmmo ||
+    //         steps >= ammoSprites.length ||
+    //         previousWeapon != tempWeapon) {
+    //       timer.cancel();
+    //       return;
+    //     }
+    //     applyAmmoSizeEffect(ammoSprites[steps]!);
+    //     toggleAmmoSprite(ammoSprites[steps]!, true);
+    //     steps++;
+    //   });
+    // }
     previousWeapon = currentWeapon;
     noAmmoSymbolCheck(previousWeapon!);
   }

@@ -27,18 +27,6 @@ class CrystalSword extends PlayerWeapon
     super.newUpgradeLevel,
     super.ancestor,
   ) {
-    // onHitMelee.add((damage) {
-    //   entityAncestor?.gameEnviroment.addPhysicsComponent([
-    //     SummonedChildEntity(
-    //       initialPosition: damage.victim.position,
-    //       parentEntity: entityAncestor!,
-    //       damageBase: {DamageType.psychic: (1, 2)},
-    //       upgradeLevel: upgradeLevel,
-    //     ),
-    //   ]);
-    //   return false;
-    // });
-
     meleeAttacks = [
       MeleeAttack(
         attackHitboxSizeBuild: (
@@ -452,7 +440,7 @@ class AethertideSpear extends PlayerWeapon
 
   @override
   DoubleParameterManager weaponScale =
-      DoubleParameterManager(baseParameter: .5);
+      DoubleParameterManager(baseParameter: .75);
 
   @override
   WeaponType weaponType = WeaponType.aethertideSpear;
@@ -826,11 +814,16 @@ class FlameSword extends PlayerWeapon
   @override
   void mapUpgrade() {
     baseDamage.damageBase[DamageType.fire] = (
-      increasePercentOfBase(20, customUpgradeFactor: .1, includeBase: true)
+      increasePercentOfBase(15, customUpgradeFactor: .1, includeBase: true)
           .toDouble(),
-      increasePercentOfBase(25, customUpgradeFactor: .1, includeBase: true)
+      increasePercentOfBase(20, customUpgradeFactor: .1, includeBase: true)
           .toDouble()
     );
+    reloadTime.baseParameter = increasePercentOfBase(
+      3,
+      customUpgradeFactor: -.05,
+      includeBase: true,
+    ).toDouble();
     attackTickRate.baseParameter = increasePercentOfBase(
       .6,
       customUpgradeFactor: -.05,
@@ -842,7 +835,7 @@ class FlameSword extends PlayerWeapon
       includeBase: true,
     ).round();
     weaponStaminaCost.baseParameter =
-        increasePercentOfBase(25, customUpgradeFactor: -0.05, includeBase: true)
+        increasePercentOfBase(20, customUpgradeFactor: -0.05, includeBase: true)
             .toDouble();
 
     super.mapUpgrade();

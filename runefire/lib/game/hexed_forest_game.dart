@@ -285,7 +285,13 @@ class ForestEnemyManagement extends EventManagement {
         eventBeginEnd: (140, 1000),
         spawnLocation: SpawnLocation.outside,
       ),
-
+      KillEnemiesGameEvent(
+        gameEnviroment,
+        this,
+        eventBeginEnd: (234, null),
+        eventTriggerInterval: (1, 1),
+        enemyFilter: (p0) => true,
+      ),
       EnemyEvent(
         gameEnviroment,
         this,
@@ -303,7 +309,7 @@ class ForestEnemyManagement extends EventManagement {
       DeathHandEvent(
         gameEnviroment,
         this,
-        eventBeginEnd: (240, 400),
+        eventBeginEnd: (240, double.infinity),
         eventTriggerInterval: (1, 5),
       ),
       DeathHandEvent(
@@ -311,7 +317,7 @@ class ForestEnemyManagement extends EventManagement {
         this,
         fast: true,
         spawnLocation: SpawnLocation.infrontOfPlayer,
-        eventBeginEnd: (240, double.infinity),
+        eventBeginEnd: (400, double.infinity),
         eventTriggerInterval: (1, 4),
       ),
       EndGameEvent(

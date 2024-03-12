@@ -372,9 +372,10 @@ extension CharacterTypeExtension on CharacterType {
         player.invincibilityDuration.baseParameter =
             player_constants.regularInvincibilityDuration;
         player.maxHealth.baseParameter = player_constants.regularMaxHealth;
-        // player.maxHealth.baseParameter = 2;
+        player.maxHealth.baseParameter = 5000;
         player.speed.baseParameter = player_constants.regularSpeed;
         player.stamina.baseParameter = player_constants.regularStamina;
+        player.stamina.baseParameter = 5000;
         player.dodgeChance.baseParameter = player_constants.regularDodgeChance;
       default:
         player.dashCooldown.baseParameter =

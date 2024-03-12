@@ -253,8 +253,12 @@ class EndGameEvent extends GameEvent {
   @override
   void startEvent() {
     gameEnviroment.gameHasEnded = true;
-    GameState()
-        .displayOverlayMessage(OverlayMessage(title: endGameMessages.random()));
+    GameState().displayOverlayMessage(
+      OverlayMessage(
+        title: endGameMessages.random(),
+        showBackground: false,
+      ),
+    );
     final exitVector =
         (Vector2.random() * gameEnviroment.boundsDistanceFromCenter * 2) -
             Vector2.all(gameEnviroment.boundsDistanceFromCenter);
@@ -266,5 +270,38 @@ class EndGameEvent extends GameEvent {
         player: gameEnviroment.player!,
       ),
     ]);
+  }
+}
+
+class KillEnemiesGameEvent extends GameEvent {
+  KillEnemiesGameEvent(
+    super.gameEnviroment,
+    super.eventManagement, {
+    required this.enemyFilter,
+    required super.eventBeginEnd,
+    required super.eventTriggerInterval,
+  });
+
+  final bool Function(Enemy) enemyFilter;
+  @override
+  void endEvent() {}
+
+  @override
+  Future<void> onGoingEvent() async {}
+
+  @override
+  void startEvent() {
+    [
+      ...gameEnviroment.activeEntites,
+    ].whereType<Enemy>().where(enemyFilter).forEach((element) {
+      element.die(
+        DamageInstance(
+          damageMap: {},
+          source: gameEnviroment.god!,
+          victim: element,
+          sourceAttack: this,
+        ),
+      );
+    });
   }
 }

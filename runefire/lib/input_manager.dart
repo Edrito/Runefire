@@ -601,12 +601,24 @@ class InputManager with WindowListener {
     }
   }
 
+  bool isFullscreen = false;
   bool keyboardEventHandler(KeyEvent keyEvent) {
     for (final element in _keyEventList) {
       element.call(keyEvent);
     }
 
     checkCommonlyUsedBackButtonEvent(keyEvent);
+
+    if (keyEvent.logicalKey == LogicalKeyboardKey.f11 &&
+        keyEvent is KeyDownEvent) {
+      if (isFullscreen) {
+        isFullscreen = false;
+        SystemChrome.restoreSystemUIOverlays();
+      } else {
+        isFullscreen = true;
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      }
+    }
 
     customInputWatcherManager.handleWidgetKeyboardInput(keyEvent);
     late final PressState pressState;

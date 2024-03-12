@@ -647,7 +647,7 @@ class PeriodicMagicPulseAttribute extends Attribute {
     super.damageType,
   });
 
-  double baseSize = 4;
+  double baseSize = 2.5;
 
   @override
   AttributeType attributeType = AttributeType.periodicMagicPulse;
@@ -2531,10 +2531,12 @@ class SonicWaveAttribute extends Attribute {
         if (weapon is! MeleeFunctionality) {
           return;
         }
-        final newWeapon = WeaponType.psychicMagic.build(
+        final newWeapon = WeaponType.blankProjectileWeapon.build(
           ancestor: weapon.entityAncestor,
           customWeaponLevel: 0,
-        );
+        )
+          ..baseDamage.damageBase.clear()
+          ..baseDamage.damageBase[DamageType.psychic] = (4, 6);
         weapon.addAdditionalWeapon(newWeapon);
         newWeapons.add(newWeapon);
       },

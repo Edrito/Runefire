@@ -89,7 +89,7 @@ class DoubleCastAttribute extends Attribute {
   String title = 'Double Cast';
 
   @override
-  String description() => '10% chance to cast a spell twice.';
+  String description() => '10% chance to attack twice.';
 
   double chance = .1;
 

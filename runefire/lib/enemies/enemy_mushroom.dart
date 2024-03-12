@@ -101,13 +101,6 @@ class MushroomRunner extends Enemy
   };
 
   @override
-  Map<ExpendableType, double> get expendableRate => {
-        // ExpendableType.fearEnemiesRunes: 0.5,
-        ExpendableType.healing: 0.005,
-        // ExpendableType.experienceAttractRune: 0.5,
-      };
-
-  @override
   Future<void> loadAnimationSprites() async {
     entityAnimations[EntityStatus.idle] =
         await spriteAnimations.mushroomRunnerIdle1;
@@ -158,13 +151,6 @@ class MushroomRunnerScared extends Enemy
     ExperienceAmount.medium: 0.01,
     ExperienceAmount.small: 0.9,
   };
-
-  @override
-  Map<ExpendableType, double> get expendableRate => {
-        // ExpendableType.fearEnemiesRunes: 0.5,
-        ExpendableType.healing: 0.005,
-        // ExpendableType.experienceAttractRune: 0.5,
-      };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -314,12 +300,6 @@ class MushroomBoomer extends Enemy
 
     gameEnviroment.addPhysicsComponent([temp]);
   }
-
-  @override
-  // TODO: implement expendableRate
-  Map<ExpendableType, double> get expendableRate => {
-        ExpendableType.fearEnemies: 0.001,
-      };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -972,6 +952,9 @@ class MushroomBoss extends Enemy
         await spriteAnimations.mushroomBossIdle1;
   }
 
+  @override
+  final double maxDistanceFromPlayer = double.infinity;
+
   ///['spinning']
   ///['invincible']
   ///none
@@ -999,16 +982,6 @@ class MushroomBoss extends Enemy
     hitSinceLastSpin = true;
     super.applyDamage(damage);
   }
-
-  @override
-  Map<ExpendableType, double> get expendableRate => {
-        ...ExpendableType.values.asMap().map(
-              (key, value) => MapEntry(
-                value,
-                (1 / ExpendableType.values.length * key).clamp(.1, 1),
-              ),
-            ),
-      };
 
   @override
   // TODO: implement filter

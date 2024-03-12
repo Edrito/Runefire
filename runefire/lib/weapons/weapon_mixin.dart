@@ -47,7 +47,7 @@ mixin ReloadFunctionality on Weapon {
 
   ///How long in seconds to reload
   final DoubleParameterManager reloadTime =
-      DoubleParameterManager(baseParameter: 1);
+      DoubleParameterManager(baseParameter: 2.5);
 
   ///Timer that when completes finishes reload
   TimerComponent? reloadTimer;
