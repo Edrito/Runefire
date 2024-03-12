@@ -116,7 +116,7 @@ class SystemData extends DataClass {
   bool showDamageText = true;
 
   @HiveField(10)
-  bool showFPS = true;
+  bool showFPS = false;
 
   @HiveField(12)
   bool showStaminaHealthText = false;

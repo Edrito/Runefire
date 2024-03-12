@@ -392,6 +392,21 @@ class RangedAttackSentry extends AttachedToBodyChildEntity
     initialWeapons.add(WeaponType.blankProjectileWeapon);
   }
 
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    final previousDamageEntry =
+        currentWeapon?.baseDamage.damageBase.entries.firstOrNull;
+    currentWeapon?.baseDamage.damageBase.clear();
+    if (previousDamageEntry != null) {
+      currentWeapon?.baseDamage.damageBase[damageType] =
+          previousDamageEntry.value;
+    } else {
+      currentWeapon?.baseDamage.damageBase[damageType] = (1, 4);
+    }
+  }
+
   DamageType damageType;
 
   @override
@@ -828,8 +843,7 @@ class ShieldSentry extends AttachedToBodyChildEntity
     final fixture = FixtureDef(
       CircleShape()..radius = spriteHeight / 3,
       filter: Filter()
-        ..maskBits =
-            projectileCategory + (!isPlayer ? playerCategory : enemyCategory)
+        ..maskBits = projectileCategory
         ..categoryBits = isPlayer ? playerCategory : enemyCategory,
       userData: {'type': FixtureType.body, 'object': this},
       density: 0.005,

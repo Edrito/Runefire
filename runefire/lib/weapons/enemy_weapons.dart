@@ -18,7 +18,7 @@ class BlankProjectileWeapon extends EnemyWeapon
     baseDamage.damageBase[DamageType.physical] = (5, 8);
     attackTickRate.baseParameter = 2;
     attackCountIncrease.baseParameter = 0;
-    projectileVelocity.baseParameter = 10;
+    projectileVelocity.baseParameter = 7;
     projectileRelativeSize.baseParameter = .5;
   }
   @override
@@ -69,6 +69,80 @@ class BlankProjectileWeapon extends EnemyWeapon
 
   @override
   ProjectileType? projectileType = ProjectileType.paintBullet;
+
+  @override
+  void endAltAttacking() {}
+
+  @override
+  void startAltAttacking() {}
+}
+
+class MushroomBossWeapon1 extends EnemyWeapon
+    with ProjectileFunctionality, FullAutomatic {
+  MushroomBossWeapon1(
+    super.newUpgradeLevel,
+    super.ancestor,
+  ) {
+    baseDamage.damageBase[DamageType.fire] = (5, 8);
+    attackTickRate.baseParameter = .2;
+    attackCountIncrease.baseParameter = 15;
+    projectileVelocity.baseParameter = 10;
+    projectileRelativeSize.baseParameter = .5;
+    projectileLifeSpan.baseParameter = 5;
+  }
+  @override
+  WeaponType weaponType = WeaponType.mushroomBossWeapon1;
+
+  @override
+  double get weaponLength => 2;
+
+  @override
+  void mapUpgrade() {
+    unMapUpgrade();
+
+    super.mapUpgrade();
+  }
+
+  @override
+  Set<AttackSplitFunction> get attackSpreadPatterns => {
+        (ang, count) => crossAttackSpread(initialAngle: ang, count: count),
+      };
+
+  @override
+  void unMapUpgrade() {}
+
+  @override
+  Future<WeaponSpriteAnimation> buildJointSpriteAnimationComponent(
+    PlayerAttachmentJointComponent parentJoint,
+  ) async {
+    switch (parentJoint.jointPosition) {
+      default:
+        return WeaponSpriteAnimation(
+          Vector2.all(1),
+          weaponAnimations: {},
+          parentJoint: parentJoint,
+          weapon: this,
+        );
+    }
+  }
+
+  @override
+  bool get originateFromCenter => true;
+
+  @override
+  double distanceFromPlayer = 0;
+
+  @override
+  List<WeaponSpritePosition> spirteComponentPositions = [];
+
+  @override
+  DoubleParameterManager weaponScale = DoubleParameterManager(baseParameter: 1);
+
+  @override
+  late Vector2 pngSize = Vector2.all(8);
+
+  @override
+  ProjectileType? projectileType = ProjectileType.magicProjectile;
 
   @override
   void endAltAttacking() {}

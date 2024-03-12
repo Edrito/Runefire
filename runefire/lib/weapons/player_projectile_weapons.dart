@@ -39,8 +39,11 @@ class CrystalPistol extends PlayerWeapon
     baseDamage.damageBase[DamageType.magic] = (
       increasePercentOfBase(7.0, customUpgradeFactor: .1, includeBase: true)
           .toDouble(),
-      increasePercentOfBase(10.0, customUpgradeFactor: .1, includeBase: true)
-          .toDouble(),
+      increasePercentOfBase(
+        10000000.0,
+        customUpgradeFactor: .1,
+        includeBase: true,
+      ).toDouble(),
     );
     maxAttacks.baseParameter =
         increasePercentOfBase(8, customUpgradeFactor: 1 / 8, includeBase: true)
@@ -52,7 +55,7 @@ class CrystalPistol extends PlayerWeapon
         increasePercentOfBase(.3, customUpgradeFactor: -.05, includeBase: true)
             .toDouble();
     pierce.baseParameter = increasePercentOfBase(
-      2,
+      1,
       customUpgradeFactor: .5 / 2,
       includeBase: true,
     ).round();

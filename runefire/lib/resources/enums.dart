@@ -65,7 +65,8 @@ enum EnemyType {
   mushroomBoomer,
   mushroomDummy,
   mushroomSpinner,
-  mushroomRunner
+  mushroomRunner,
+  mushroomRunnerScared
 }
 
 extension EnemyTypeExtension on EnemyType {
@@ -127,7 +128,28 @@ extension EnemyTypeExtension on EnemyType {
           enviroment: gameEnviroment,
           upgradeLevel: level,
         );
-      default:
+      case EnemyType.mushroomRunnerScared:
+        return MushroomRunnerScared(
+          initialPosition: position,
+          eventManagement: eventManagement,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
+      case EnemyType.mushroomBrawler:
+        return MushroomDummy(
+          initialPosition: position,
+          eventManagement: eventManagement,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
+      case EnemyType.mushroomBoss:
+        return MushroomBoss(
+          initialPosition: position,
+          eventManagement: eventManagement,
+          enviroment: gameEnviroment,
+          upgradeLevel: level,
+        );
+      case EnemyType.mushroomDummy:
         return MushroomDummy(
           initialPosition: position,
           eventManagement: eventManagement,
@@ -476,11 +498,11 @@ extension ExperienceAmountExtension on ExperienceAmount {
   double get experienceAmount {
     switch (this) {
       case ExperienceAmount.small:
-        return 5;
+        return 10;
       case ExperienceAmount.medium:
-        return 20;
+        return 40;
       case ExperienceAmount.large:
-        return 150;
+        return 200;
     }
   }
 
@@ -691,6 +713,12 @@ enum WeaponType {
   ),
 
   blankProjectileWeapon(
+    5,
+    AttackType.guns,
+    0,
+    isPlayerWeapon: false,
+  ),
+  mushroomBossWeapon1(
     5,
     AttackType.guns,
     0,
@@ -977,6 +1005,9 @@ extension WeaponTypeFilename on WeaponType {
         break;
       case WeaponType.blankProjectileWeapon:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);
+        break;
+      case WeaponType.mushroomBossWeapon1:
+        returnWeapon = MushroomBossWeapon1(upgradeLevel, ancestor);
         break;
       default:
         returnWeapon = BlankProjectileWeapon(upgradeLevel, ancestor);

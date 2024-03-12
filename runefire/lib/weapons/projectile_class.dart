@@ -172,6 +172,10 @@ abstract class Projectile extends BodyComponent<GameRouter>
       return super.beginContact(other, contact);
     }
 
+    if (other == weaponAncestor.entityAncestor && !canAffectOwner) {
+      return super.beginContact(other, contact);
+    }
+
     final isHomingSensor =
         (contact.fixtureB.userData! as Map)['type'] == FixtureType.sensor ||
             (contact.fixtureA.userData! as Map)['type'] == FixtureType.sensor;

@@ -691,20 +691,12 @@ mixin LaserProjectile on FadeOutBullet {
     initHandJointRad = weaponAncestor.entityAncestor!.handJoint.angle;
     createLaserPath();
 
-    backPaint = colorPalette.buildProjectile(
-      color: color,
-      projectileType: projectileType,
-      lighten: false,
-      width: width,
-      opacity: opacity,
+    backPaint = colorPalette.buildPaint(
+      color,
     )..strokeWidth = width;
 
-    frontPaint = colorPalette.buildProjectile(
-      color: color,
-      projectileType: projectileType,
-      lighten: true,
-      width: width * .85,
-      opacity: opacity,
+    frontPaint = colorPalette.buildPaint(
+      color,
     )..strokeWidth = width * .85;
 
     // backGlowPaint = colorPalette.buildProjectile(

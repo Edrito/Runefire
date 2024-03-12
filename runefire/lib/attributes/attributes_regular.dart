@@ -497,7 +497,7 @@ class GroundSlamAttribute extends Attribute {
     super.damageType,
   });
 
-  double baseSize = 4;
+  double baseSize = 1;
 
   @override
   AttributeType attributeType = AttributeType.groundSlam;
@@ -2815,11 +2815,11 @@ class RapidFireAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Quick Shot';
+  String title = 'Rapid Fire';
 
   @override
   String description() {
-    return 'Increase attack speed while decreasing damage';
+    return 'Increase attack speed and max ammo while decreasing damage';
   }
 
   @override
@@ -3784,7 +3784,7 @@ class SlugTrailAttribute extends Attribute {
     required super.attributeOwnerEntity,
   });
 
-  double baseSize = 2.5;
+  double baseSize = 1;
   double interval = 2.0;
   double notMovingSpeed = .01;
 
@@ -3797,7 +3797,7 @@ class SlugTrailAttribute extends Attribute {
   bool increaseFromBaseParameter = false;
 
   @override
-  String title = 'Slug trail';
+  String title = 'Snail trail';
 
   @override
   void action() {

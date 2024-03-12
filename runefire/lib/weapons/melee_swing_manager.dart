@@ -82,8 +82,8 @@ class MeleeAttackHitbox extends BodyComponent<GameRouter>
     );
     other.hitCheck(meleeAttackAncestor.meleeId, damageInstance);
     applyHitSpriteEffects(damageInstance);
-    hitEnemies++;
     meleeAttackAncestor.chain(other);
+    hitEnemies++;
   }
 
   // double testLengthOfHitboxLife = 1000;
@@ -570,7 +570,7 @@ class MeleeAttackHandler extends Component {
 
   void chain(HealthFunctionality other) {
     if (weaponAncestor.weaponCanChain &&
-        hitbox!.hitEnemies < weaponAncestor.chainingTargets.parameter &&
+        hitbox!.hitEnemies < (weaponAncestor.chainingTargets.parameter) &&
         !isDead) {
       final bodies = <Body>[
         ...weaponAncestor.entityAncestor?.world.physicsWorld.bodies

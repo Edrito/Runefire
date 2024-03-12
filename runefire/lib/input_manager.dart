@@ -381,7 +381,7 @@ class InputManager with WindowListener {
   void buildTimer() {
     timeoutTimer?.cancel();
     timeoutTimer = ac.Timer(
-      const Duration(seconds: 15),
+      const Duration(seconds: 30),
       () {
         _onTimeoutList.forEach((element) => element.call());
       },
@@ -622,7 +622,6 @@ class InputManager with WindowListener {
         pressState = PressState.held;
 
         break;
-      default:
     }
 
     externalInputType = ExternalInputType.mouseKeyboard;

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:runefire/events/event_class.dart';
 import 'package:runefire/game/area_effects.dart';
+import 'package:runefire/player/player_mixin.dart';
+import 'package:runefire/resources/damage_type_enum.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
 import 'package:uuid/uuid.dart';
@@ -31,6 +33,26 @@ abstract class EventManagement extends Component {
   final Map<double, TimerComponent> _activeAiTimers = {};
 
   List<AiTimerClass> currentTimers = [];
+
+  @override
+  void update(double dt) {
+    enviroment.activeEntites.whereType<Enemy>().forEach((element) {
+      if (element.center.distanceTo(enviroment.getPlayer!.center) >
+          element.maxDistanceFromPlayer) {
+        element.die(
+          DamageInstance(
+            damageMap: {
+              DamageType.magic: double.infinity,
+            },
+            source: enviroment.gameEnviroment!.god!,
+            victim: element,
+            sourceAttack: this,
+          ),
+        );
+      }
+    });
+    super.update(dt);
+  }
 
   void pauseOnBigBoss() {
     _eventTimer?.timer.pause();
@@ -155,7 +177,9 @@ abstract class EventManagement extends Component {
           ...previousValue,
           ...[
             element.eventBeginEnd.$1,
-            if (element.eventBeginEnd.$2 != null) element.eventBeginEnd.$2!,
+            if (element.eventBeginEnd.$2 != null &&
+                element.eventBeginEnd.$2!.isFinite)
+              element.eventBeginEnd.$2!,
           ],
         ],
       ),

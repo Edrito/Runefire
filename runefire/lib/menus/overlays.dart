@@ -523,20 +523,22 @@ class _GamepadCursorDisplayState extends State<GamepadCursorDisplay> {
   }
 
   void onGamepadCursorChange(ExternalInputType type, Offset position) {
-    setState(() {
-      //if gamepad is being used and the game is not paused, hide the custom cursor
-      if (type == ExternalInputType.gamepad &&
-          widget.gameRef.router.currentRoute.name == routes.gameplay &&
-          !widget.gameRef.paused &&
-          !(widget.gameRef.forceGameCursor.parameter &&
-              widget.gameRef.router.currentRoute.name == routes.gameplay)) {
-        this.position = null;
-      } else {
-        this.position = position;
-      }
-      latestEventWasKeyboard = this.position == null;
-      _updateHoverWidgetSize();
-    });
+    Future.delayed(Duration.zero).then(
+      (value) => setState(() {
+        //if gamepad is being used and the game is not paused, hide the custom cursor
+        if (type == ExternalInputType.gamepad &&
+            widget.gameRef.router.currentRoute.name == routes.gameplay &&
+            !widget.gameRef.paused &&
+            !(widget.gameRef.forceGameCursor.parameter &&
+                widget.gameRef.router.currentRoute.name == routes.gameplay)) {
+          this.position = null;
+        } else {
+          this.position = position;
+        }
+        latestEventWasKeyboard = this.position == null;
+        _updateHoverWidgetSize();
+      }),
+    );
   }
 
   Offset? position;

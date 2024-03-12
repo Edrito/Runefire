@@ -442,7 +442,7 @@ class _DemoScreenState extends State<DemoScreen> {
   final GlobalKey<CustomInputWatcherState> howToGlobalKey =
       GlobalKey<CustomInputWatcherState>();
   bool optionsEnabled = false;
-
+  bool completerFutureStarted = false;
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -468,9 +468,10 @@ class _DemoScreenState extends State<DemoScreen> {
                 }
                 return SpriteAnimationWidget(
                   onComplete: () {
-                    if (beginCards.isCompleted) {
+                    if (beginCards.isCompleted || completerFutureStarted) {
                       return;
                     }
+                    completerFutureStarted = true;
                     Future.delayed(1.seconds).then((value) {
                       setState(() {
                         beginCards.complete();

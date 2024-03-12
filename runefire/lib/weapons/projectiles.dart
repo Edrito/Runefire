@@ -116,7 +116,7 @@ class MagicalProjectile extends SpriteBullet {
     maxSize: (power * .07) + .05,
     lifespan: 2,
     parentBody: body,
-    frequency: 1,
+    frequency: .5,
     particlePosition: Vector2(.3 * size, .3 * size),
     velocity: Vector2.all(0.5),
     color: damageType.color,

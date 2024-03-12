@@ -1,3 +1,5 @@
+import 'package:runefire/attributes/attributes_mixin.dart';
+import 'package:runefire/attributes/attributes_structure.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/game/area_effects.dart';
@@ -8,6 +10,7 @@ import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/visuals.dart';
 
 class HealingFont extends AreaEffect with UpgradeFunctions {
   HealingFont({
@@ -16,12 +19,13 @@ class HealingFont extends AreaEffect with UpgradeFunctions {
     required GameEnviroment gameEnviroment,
   }) : super(
           sourceEntity: gameEnviroment.god!,
-          radius: 4,
+          radius: 3,
           duration: 5,
           durationType: DurationType.permanent,
           collisionDelay: 1,
           tickRate: 1,
           isSolid: false,
+          customColor: DefaultAreaEffectColor.green,
         );
   double healingDone = 0;
   @override
@@ -56,6 +60,8 @@ class HealingFont extends AreaEffect with UpgradeFunctions {
   }
 }
 
+enum DefaultAreaEffectColor { brown, blue, green, red, spore }
+
 class VineTrap extends AreaEffect with UpgradeFunctions {
   VineTrap({
     required this.upgradeLevel,
@@ -63,30 +69,17 @@ class VineTrap extends AreaEffect with UpgradeFunctions {
     required GameEnviroment gameEnviroment,
   }) : super(
           sourceEntity: gameEnviroment.god!,
-          radius: 6,
+          radius: 4,
           duration: 5,
           durationType: DurationType.permanent,
           collisionDelay: 1,
-          tickRate: 1,
+          tickRate: 2,
           isSolid: false,
+          customColor: DefaultAreaEffectColor.brown,
         );
-  double slowingDone = 0;
+  int slowingDone = 0;
   @override
   int upgradeLevel;
-
-  late final double slowAmount = increasePercentOfBase(
-    -.125,
-    customUpgradeFactor: .1,
-    includeBase: true,
-  ).toDouble();
-
-  final double maxSlowDegree = -.75;
-
-  late final double maxSlowAmount = increasePercentOfBase(
-    -10,
-    customUpgradeFactor: .5,
-    includeBase: true,
-  ).toDouble();
 
   @override
   void onExit(Entity other) {
@@ -96,21 +89,23 @@ class VineTrap extends AreaEffect with UpgradeFunctions {
     }
   }
 
+  final maxSlowAmount = 100;
+
   Map<Entity, double> currentSlowAmounts = {};
 
   @override
   Future<void> onLoad() {
     onTick = (entity, areaId) {
-      if (entity is MovementFunctionality) {
-        currentSlowAmounts[entity] =
-            ((currentSlowAmounts[entity] ?? 0) + slowAmount)
-                .clamp(maxSlowDegree, 0);
-        entity.speed
-            .setParameterPercentValue(areaId, currentSlowAmounts[entity]!);
+      if (entity is AttributeFunctionality) {
+        entity.addAttribute(
+          AttributeType.slow,
+          perpetratorEntity: entity.gameEnviroment.god,
+          isTemporary: true,
+        );
+        slowingDone++;
       }
-      slowingDone += slowAmount;
 
-      if (slowingDone < maxSlowAmount) {
+      if (slowingDone > maxSlowAmount) {
         killArea();
       }
     };
@@ -125,10 +120,11 @@ class MushroomSpores extends AreaEffect with UpgradeFunctions {
     required GameEnviroment gameEnviroment,
   }) : super(
           sourceEntity: gameEnviroment.god!,
-          radius: 1.5,
+          radius: 1,
           duration: 5,
           durationType: DurationType.permanent,
           collisionDelay: 1,
+          customColor: DefaultAreaEffectColor.spore,
           tickRate: 1,
           isSolid: false,
         );
@@ -146,7 +142,7 @@ class MushroomSpores extends AreaEffect with UpgradeFunctions {
   Map<Entity, double> currentSlowAmounts = {};
 
   @override
-  Future<void> onLoad() {
+  Future<void> onLoad() async {
     onTick = (entity, areaId) {
       if (entity is Player) {
         entity.hitCheck(
@@ -155,7 +151,7 @@ class MushroomSpores extends AreaEffect with UpgradeFunctions {
             sourceEntity,
             entity,
             {
-              DamageType.magic: (
+              DamageType.fire: (
                 increasePercentOfBase(
                   5,
                   customUpgradeFactor: .5,
@@ -176,6 +172,6 @@ class MushroomSpores extends AreaEffect with UpgradeFunctions {
         killArea();
       }
     };
-    return super.onLoad();
+    await super.onLoad();
   }
 }

@@ -258,7 +258,7 @@ class ChanceToReviveAttribute extends Attribute {
   void unMapUpgrade() {
     if (attributeOwnerEntity is AttributeCallbackFunctionality) {
       final attr = attributeOwnerEntity! as AttributeCallbackFunctionality;
-      attr.onKillOtherEntity.remove(determineIfShouldDie);
+      attr.onPreDeath.remove(determineIfShouldDie);
     }
     super.unMapUpgrade();
   }

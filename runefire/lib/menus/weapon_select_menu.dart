@@ -16,7 +16,7 @@ import 'package:runefire/resources/enums.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/game_state_class.dart';
 import 'package:runefire/resources/visuals.dart';
-import 'package:simple_shadow/simple_shadow.dart';
+// import 'package:simple_shadow/simple_shadow.dart';
 
 import 'package:runefire/resources/data_classes/player_data.dart';
 import 'package:runefire/resources/functions/functions.dart';

@@ -44,9 +44,7 @@ Future<void> conductTests(GameEnviroment gameEnviroment) async {
   // for (final element in DamageType.getValuesWithoutHealing) {
   //   player?.modifyElementalPower(element, .76);
   // }
-  player?.modifyElementalPower(DamageType.frost, 1);
-
-  // player?.addAttribute(AttributeType.reverseKnockback);
+  // player?.modifyElementalPower(DamageType.frost, 1);
 
   // Future.delayed(5.seconds).then((value) {
   //   gameEnviroment.activeEntites.whereType<Enemy>().forEach((element) {

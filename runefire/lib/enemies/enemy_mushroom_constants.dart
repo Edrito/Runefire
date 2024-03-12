@@ -16,3 +16,7 @@ const mushroomShooterBaseSpeed = 2000.0;
 //add other shooter values
 
 //Mushroom Boss
+const mushroomBossBaseHeight = 3;
+const mushroomBossBaseInvincibilityDuration = .05;
+const mushroomBossBaseMaxHealth = 350.0;
+const mushroomBossBaseSpeed = 1300.0;

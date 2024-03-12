@@ -99,7 +99,7 @@ class Icecicle extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 0;
+  double distanceFromPlayer = -.5;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -543,7 +543,7 @@ class EnergyMagic extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 0;
+  double distanceFromPlayer = -.5;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -650,7 +650,7 @@ class PsychicMagic extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 0;
+  double distanceFromPlayer = -.5;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -818,7 +818,7 @@ class MagicMissile extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 0;
+  double distanceFromPlayer = -.5;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [
@@ -1189,7 +1189,7 @@ class HexwoodMaim extends PlayerWeapon
   }
 
   @override
-  double distanceFromPlayer = 0;
+  double distanceFromPlayer = -.5;
 
   @override
   List<WeaponSpritePosition> spirteComponentPositions = [

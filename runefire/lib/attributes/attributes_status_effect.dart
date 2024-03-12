@@ -519,7 +519,7 @@ class SlowAttribute extends StatusEffectAttribute {
   @override
   void mapUpgrade() {
     super.mapUpgrade();
-    final amount = increasePercentOfBase(-.1, includeBase: true).toDouble();
+    final amount = increasePercentOfBase(-.15, includeBase: true).toDouble();
     if (attributeOwnerEntity is MovementFunctionality) {
       final move = attributeOwnerEntity! as MovementFunctionality;
       move.speed.setParameterPercentValue(attributeId, amount);

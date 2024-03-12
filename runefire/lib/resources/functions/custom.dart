@@ -256,6 +256,7 @@ class SimpleStartPlayEndSpriteAnimationComponent
     this.desiredWidth,
     Vector2? customSize,
     super.position,
+    super.paint,
     super.anchor = Anchor.center,
   })  : assert(playAnimation != null || spawnAnimation != null),
         assert(spawnAnimation != null || durationType != DurationType.instant) {

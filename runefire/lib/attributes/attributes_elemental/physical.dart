@@ -7,6 +7,7 @@ import 'package:runefire/enemies/enemy.dart';
 import 'package:runefire/entities/entity_class.dart';
 import 'package:runefire/entities/entity_mixin.dart';
 import 'package:runefire/entities/hidden_child_entities/hidden_child_entities.dart';
+import 'package:runefire/enviroment_interactables/areas.dart';
 import 'package:runefire/events/event_class.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
@@ -123,6 +124,7 @@ class BloodPoolAttribute extends Attribute {
         position: damage.victim.position,
         duration: 6,
         durationType: DurationType.temporary,
+        customColor: DefaultAreaEffectColor.red,
         onTick: (entity, areaId) {
           if (entity is AttributeFunctionality) {
             entity.addAttribute(

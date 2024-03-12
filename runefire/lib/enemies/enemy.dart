@@ -38,6 +38,8 @@ abstract class Enemy extends Entity
 
   abstract EnemyType enemyType;
 
+  final double maxDistanceFromPlayer = 25;
+
   @override
   Filter? filter = Filter()
     ..categoryBits = enemyCategory

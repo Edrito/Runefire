@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:async' as async;
 import 'dart:math';
 import 'package:flame/effects.dart';
+import 'package:forge2d/src/dynamics/filter.dart';
 import 'package:runefire/entities/entity_class.dart';
 
 import 'package:flutter_animate/flutter_animate.dart' hide RotateEffect;
@@ -14,6 +15,8 @@ import 'package:runefire/events/event_management.dart';
 import 'package:runefire/enviroment_interactables/expendables.dart';
 import 'package:runefire/game/area_effects.dart';
 import 'package:runefire/main.dart';
+import 'package:runefire/resources/constants/physics_filter.dart';
+import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/data_classes/base.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/damage_type_enum.dart';
@@ -42,6 +45,9 @@ class MushroomDummy extends Enemy with JumpFunctionality
   }
 
   @override
+  EnemyType enemyType = EnemyType.mushroomDummy;
+
+  @override
   Map<ExperienceAmount, double> experienceRate = {
     ExperienceAmount.large: 0.001,
     ExperienceAmount.medium: 0.01,
@@ -64,9 +70,6 @@ class MushroomDummy extends Enemy with JumpFunctionality
     await super.onLoad();
     // startAttacking();
   }
-
-  @override
-  EnemyType enemyType = EnemyType.mushroomDummy;
 }
 
 class MushroomRunner extends Enemy
@@ -88,11 +91,7 @@ class MushroomRunner extends Enemy
   }
 
   @override
-  Map<ExpendableType, double> get expendableRate => {
-        // ExpendableType.fearEnemiesRunes: 0.5,
-        ExpendableType.healing: 0.005,
-        // ExpendableType.experienceAttractRune: 0.5,
-      };
+  EnemyType enemyType = EnemyType.mushroomRunner;
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
@@ -100,6 +99,13 @@ class MushroomRunner extends Enemy
     ExperienceAmount.medium: 0.01,
     ExperienceAmount.small: 0.9,
   };
+
+  @override
+  Map<ExpendableType, double> get expendableRate => {
+        // ExpendableType.fearEnemiesRunes: 0.5,
+        ExpendableType.healing: 0.005,
+        // ExpendableType.experienceAttractRune: 0.5,
+      };
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -123,9 +129,65 @@ class MushroomRunner extends Enemy
     moveCharacter();
     super.update(dt);
   }
+}
+
+class MushroomRunnerScared extends Enemy
+    with MovementFunctionality, TouchDamageFunctionality, SimpleFollowScaredAI {
+  MushroomRunnerScared({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
+    height.baseParameter = 3;
+    invincibilityDuration.baseParameter =
+        mushroomHopperBaseInvincibilityDuration;
+    critChance.baseParameter = .05;
+    maxHealth.baseParameter = 5.0 + rng.nextInt(5) * (upgradeLevel + 1);
+    speed.baseParameter = 3000.0 + (rng.nextInt(500) * (upgradeLevel + 1));
+    touchDamage.damageBase[DamageType.physical] =
+        (1 * (upgradeLevel + 1), 5 * (upgradeLevel + 1));
+  }
 
   @override
-  EnemyType enemyType = EnemyType.mushroomDummy;
+  EnemyType enemyType = EnemyType.mushroomRunnerScared;
+
+  @override
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.001,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.9,
+  };
+
+  @override
+  Map<ExpendableType, double> get expendableRate => {
+        // ExpendableType.fearEnemiesRunes: 0.5,
+        ExpendableType.healing: 0.005,
+        // ExpendableType.experienceAttractRune: 0.5,
+      };
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    entityAnimations[EntityStatus.idle] =
+        await spriteAnimations.mushroomRunnerScaredIdle1;
+    entityAnimations[EntityStatus.dead] =
+        await spriteAnimations.mushroomRunnerScaredDead1;
+    entityAnimations[EntityStatus.run] =
+        await spriteAnimations.mushroomRunnerScaredRun1;
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await loadAnimationSprites();
+    await super.onLoad();
+    // startAttacking();
+  }
+
+  @override
+  void update(double dt) {
+    moveCharacter();
+    super.update(dt);
+  }
 }
 
 class MushroomHopper extends Enemy
@@ -150,10 +212,7 @@ class MushroomHopper extends Enemy
   }
 
   @override
-  void update(double dt) {
-    moveCharacter();
-    super.update(dt);
-  }
+  EnemyType enemyType = EnemyType.mushroomHopper;
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
@@ -180,7 +239,10 @@ class MushroomHopper extends Enemy
   }
 
   @override
-  EnemyType enemyType = EnemyType.mushroomHopper;
+  void update(double dt) {
+    moveCharacter();
+    super.update(dt);
+  }
 }
 
 class MushroomBoomer extends Enemy
@@ -215,6 +277,22 @@ class MushroomBoomer extends Enemy
     });
   }
 
+  @override
+  BoolParameterManager affectsAllEntities = BoolParameterManager(
+    baseParameter: true,
+    frequencyDeterminesTruth: false,
+  );
+
+  @override
+  EnemyType enemyType = EnemyType.mushroomBoomer;
+
+  @override
+  Map<ExperienceAmount, double> experienceRate = {
+    // ExperienceAmount.large: 0.001,
+    // ExperienceAmount.medium: 0.01,
+    // ExperienceAmount.small: 0.4,
+  };
+
   Future<void> bomb() async {
     final temp = AreaEffect(
       position: body.worldCenter,
@@ -236,25 +314,6 @@ class MushroomBoomer extends Enemy
 
     gameEnviroment.addPhysicsComponent([temp]);
   }
-
-  @override
-  BoolParameterManager affectsAllEntities = BoolParameterManager(
-    baseParameter: true,
-    frequencyDeterminesTruth: false,
-  );
-
-  @override
-  void update(double dt) {
-    moveCharacter();
-    super.update(dt);
-  }
-
-  @override
-  Map<ExperienceAmount, double> experienceRate = {
-    // ExperienceAmount.large: 0.001,
-    // ExperienceAmount.medium: 0.01,
-    // ExperienceAmount.small: 0.4,
-  };
 
   @override
   // TODO: implement expendableRate
@@ -293,7 +352,10 @@ class MushroomBoomer extends Enemy
   }
 
   @override
-  EnemyType enemyType = EnemyType.mushroomBoomer;
+  void update(double dt) {
+    moveCharacter();
+    super.update(dt);
+  }
 }
 
 class MushroomShooter extends Enemy
@@ -320,10 +382,10 @@ class MushroomShooter extends Enemy
   }
 
   @override
-  void update(double dt) {
-    moveCharacter();
-    super.update(dt);
-  }
+  AimPattern aimPattern = AimPattern.player;
+
+  @override
+  EnemyType enemyType = EnemyType.mushroomShooter;
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
@@ -331,6 +393,9 @@ class MushroomShooter extends Enemy
     ExperienceAmount.medium: 0.01,
     ExperienceAmount.small: 0.4,
   };
+
+  @override
+  late final double zoningDistance = randomBetween((8.0, 12.0));
 
   @override
   Future<void> loadAnimationSprites() async {
@@ -355,13 +420,10 @@ class MushroomShooter extends Enemy
   }
 
   @override
-  late final double zoningDistance = randomBetween((8.0, 12.0));
-
-  @override
-  EnemyType enemyType = EnemyType.mushroomShooter;
-
-  @override
-  AimPattern aimPattern = AimPattern.player;
+  void update(double dt) {
+    moveCharacter();
+    super.update(dt);
+  }
 }
 
 class MushroomSpinner extends Enemy
@@ -412,7 +474,7 @@ class MushroomSpinner extends Enemy
           await toggleIdleRunAnimations(false);
           hitSinceLastSpin = false;
           if (initState) {
-            setEntityAnimation('spin_end');
+            await setEntityAnimation('spin_end');
           } else {
             initState = true;
           }
@@ -436,7 +498,7 @@ class MushroomSpinner extends Enemy
         stateDuration: (spinDuration, spinDuration * 1.5),
         onStateStart: (duration) async {
           await toggleIdleRunAnimations(true);
-          setEntityAnimation('spin_start').then((_) {
+          await setEntityAnimation('spin_start').then((_) {
             startPrimaryAttacking();
             speed.baseParameter = mushroomShooterBaseSpeed * 1.5;
             touchDamage.damageBase[DamageType.psychic] = (5, 10);
@@ -462,31 +524,19 @@ class MushroomSpinner extends Enemy
     };
   }
 
-  @override
-  void update(double dt) {
-    if (entityAnimationsGroup.animations?[EntityStatus.run] ==
-        entityAnimations['spin']) {}
-
-    moveCharacter();
-    super.update(dt);
-  }
-
   bool hitSinceLastSpin = false;
-  @override
-  void applyDamage(DamageInstance damage) {
-    hitSinceLastSpin = true;
-    super.applyDamage(damage);
-  }
 
   @override
-  Map<ExpendableType, double> get expendableRate => {
-        ...ExpendableType.values.asMap().map(
-              (key, value) => MapEntry(
-                value,
-                (1 / ExpendableType.values.length * key).clamp(.1, 1),
-              ),
-            ),
-      };
+  AimPattern aimPattern = AimPattern.player;
+
+  @override
+  late EnemyState baseState;
+
+  @override
+  late Map<int, EnemyState> enemyStates;
+
+  @override
+  EnemyType enemyType = EnemyType.mushroomSpinner;
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
@@ -494,6 +544,14 @@ class MushroomSpinner extends Enemy
     ExperienceAmount.medium: 0.01,
     ExperienceAmount.small: 0.4,
   };
+
+  Future<void> loadRunIdleAnimations() async {
+    entityAnimations[EntityStatus.idle] =
+        await spriteAnimations.mushroomSpinnerIdle1;
+
+    entityAnimations[EntityStatus.run] =
+        await spriteAnimations.mushroomSpinnerRun1;
+  }
 
   Future<void> toggleIdleRunAnimations(bool isSpinning) async {
     if (isSpinning) {
@@ -507,12 +565,10 @@ class MushroomSpinner extends Enemy
     entityAnimationsGroup.resetTicker(EntityStatus.idle);
   }
 
-  Future<void> loadRunIdleAnimations() async {
-    entityAnimations[EntityStatus.idle] =
-        await spriteAnimations.mushroomSpinnerIdle1;
-
-    entityAnimations[EntityStatus.run] =
-        await spriteAnimations.mushroomSpinnerRun1;
+  @override
+  void applyDamage(DamageInstance damage) {
+    hitSinceLastSpin = true;
+    super.applyDamage(damage);
   }
 
   @override
@@ -539,16 +595,13 @@ class MushroomSpinner extends Enemy
   }
 
   @override
-  EnemyType enemyType = EnemyType.mushroomSpinner;
+  void update(double dt) {
+    if (entityAnimationsGroup.animations?[EntityStatus.run] ==
+        entityAnimations['spin']) {}
 
-  @override
-  late EnemyState baseState;
-
-  @override
-  late Map<int, EnemyState> enemyStates;
-
-  @override
-  AimPattern aimPattern = AimPattern.player;
+    moveCharacter();
+    super.update(dt);
+  }
 }
 
 class MushroomBurrower extends Enemy
@@ -652,7 +705,21 @@ class MushroomBurrower extends Enemy
     };
   }
 
-  double get burrowSpeed => 1.0;
+  final double unBurrowHitTime = 3;
+
+  double timeSinceHit = 0;
+
+  @override
+  AimPattern aimPattern = AimPattern.player;
+
+  @override
+  late EnemyState baseState;
+
+  @override
+  late Map<int, EnemyState> enemyStates;
+
+  @override
+  EnemyType enemyType = EnemyType.mushroomBurrower;
 
   @override
   Map<ExperienceAmount, double> experienceRate = {
@@ -660,6 +727,10 @@ class MushroomBurrower extends Enemy
     ExperienceAmount.medium: 0.01,
     ExperienceAmount.small: 0.4,
   };
+
+  double get burrowSpeed => 1.0;
+  bool get canUnBurrow => timeSinceHit > unBurrowHitTime;
+
   Future<void> toggleIdleRunAnimations(bool isBurrowed) async {
     if (isBurrowed) {
       entityAnimations.remove(EntityStatus.idle);
@@ -672,19 +743,6 @@ class MushroomBurrower extends Enemy
         entityAnimationsGroup.resetTicker(EntityStatus.idle);
       }
     }
-  }
-
-  double timeSinceHit = 0;
-  final double unBurrowHitTime = 3;
-
-  bool get canUnBurrow => timeSinceHit > unBurrowHitTime;
-
-  @override
-  void update(double dt) {
-    moveCharacter();
-    timeSinceHit += dt;
-
-    super.update(dt);
   }
 
   @override
@@ -718,7 +776,180 @@ class MushroomBurrower extends Enemy
   }
 
   @override
-  EnemyType enemyType = EnemyType.mushroomBurrower;
+  void update(double dt) {
+    moveCharacter();
+    timeSinceHit += dt;
+
+    super.update(dt);
+  }
+}
+
+class MushroomBoss extends Enemy
+    with
+        MovementFunctionality,
+        AimFunctionality,
+        TouchDamageFunctionality,
+        AimControlFunctionality,
+        AttackFunctionality,
+        StateManagedAI {
+  MushroomBoss({
+    required super.initialPosition,
+    required super.enviroment,
+    required super.upgradeLevel,
+    required super.eventManagement,
+  }) {
+    height.baseParameter = 5;
+    invincibilityDuration.baseParameter =
+        mushroomBoomerBaseInvincibilityDuration;
+    maxHealth.baseParameter = mushroomBossBaseMaxHealth;
+    speed.baseParameter = mushroomBossBaseSpeed;
+    initialWeapons.add(WeaponType.mushroomBossWeapon1);
+    knockBackResistanceParameter.baseParameter = 0;
+    knockBackResistanceParameter.setParameterPercentValue(entityId, -1);
+    priority = entityPriority + 500;
+
+    final AiTimerClass aiTimerConfig = (
+      function: () {
+        addMoveVelocity(
+          (SpawnLocation.infrontOfPlayer.grabNewPosition(gameEnviroment) -
+                  center)
+              .normalized(),
+          aiInputPriority,
+        );
+      },
+      id: '${entityId}move',
+      time: 5,
+    );
+    gameEnviroment.eventManagement.addAiTimer(
+      aiTimerConfig,
+    );
+    onDeath.add((instance) {
+      gameEnviroment.eventManagement.removeAiTimer(
+        id: aiTimerConfig.id,
+      );
+      entityAnimationsGroup.animationTicker?.completed.then
+          // gameEnviroment.game.gameAwait(2).then
+          ((value) async {
+        final area = AreaEffect(
+          position: position,
+          overridePriority: attackPriority,
+          sourceEntity: this,
+          radius: 5,
+          animationComponent: SimpleStartPlayEndSpriteAnimationComponent(
+            spawnAnimation: await spriteAnimations.fireOrbMedium1,
+            durationType: DurationType.instant,
+          ),
+          damage: {
+            DamageType.fire: (50, 200),
+          },
+        );
+        gameEnviroment.addPhysicsComponent([area]);
+      });
+      return false;
+    });
+
+    baseState = EnemyState(
+      this,
+      priority: 0,
+      randomFunctions: [],
+      stateDuration: (0, 1),
+      triggerFunctions: [],
+    );
+
+    affectsAllEntities.baseParameter = true;
+
+    const spinDuration = 10.0;
+
+    enemyStates = {
+      //Walking
+      0: EnemyState(
+        this,
+        priority: 0,
+        randomFunctions: [],
+        onStateStart: (duration) async {
+          await toggleIdleRunAnimations('');
+          hitSinceLastSpin = false;
+        },
+        stateDuration: (5, 8),
+        triggerFunctions: [],
+      ),
+      //Spinning
+      1: EnemyState(
+        this,
+        priority: 5,
+        randomFunctions: [],
+        onStateEnd: () async {
+          canMove = false;
+          endPrimaryAttacking();
+          touchDamage.damageBase.clear();
+          entityAnimationsGroup.angle = 0;
+          await setEntityAnimation('spin_end');
+        },
+        stateDuration: (spinDuration, spinDuration * 1.5),
+        onStateStart: (duration) async {
+          await toggleIdleRunAnimations('spinning');
+          canMove = true;
+          await setEntityAnimation('spin_start');
+          startPrimaryAttacking();
+          touchDamage.damageBase[DamageType.fire] = (10, 15);
+        },
+        triggerFunctions: [],
+      ),
+
+      //eye_close_toinvince
+      2: EnemyState(
+        this,
+        priority: 5,
+        preventDoubleRandomFunction: false,
+        randomEventTimeFrame: (2, 4),
+        randomFunctions: [
+          () async {
+            final entities = <Entity>[];
+            for (var i = 0; i < rng.nextInt(3) + 3; i++) {
+              final runner = EnemyType.mushroomRunner.build(
+                position,
+                gameEnviroment,
+                (healthPercentage < .1) ? 2 : 1,
+                eventManagement,
+              );
+              runner.priority = priority - 1;
+              entities.add(runner);
+            }
+            await gameEnviroment.addPhysicsComponent(entities);
+          }
+        ],
+        onStateEnd: () async {
+          invincible.removeKey(entityId);
+          await setEntityAnimation('eye_open');
+        },
+        stateDuration: (spinDuration, spinDuration * 1.5),
+        onStateStart: (duration) async {
+          await toggleIdleRunAnimations('invincible');
+          invincible.setIncrease(entityId, true);
+          await setEntityAnimation('eye_close');
+        },
+        triggerFunctions: [],
+      ),
+      //passive
+      4: EnemyState(
+        this,
+        priority: 5,
+        randomFunctions: [],
+        onStateStart: (duration) async {
+          await toggleIdleRunAnimations('');
+          hitSinceLastSpin = false;
+        },
+        stateDuration: (2, 4),
+        triggerFunctions: [],
+      ),
+    };
+  }
+
+  bool canMove = false;
+  bool hitSinceLastSpin = false;
+
+  @override
+  AimPattern aimPattern = AimPattern.player;
 
   @override
   late EnemyState baseState;
@@ -727,5 +958,114 @@ class MushroomBurrower extends Enemy
   late Map<int, EnemyState> enemyStates;
 
   @override
-  AimPattern aimPattern = AimPattern.player;
+  EnemyType enemyType = EnemyType.mushroomBoss;
+
+  @override
+  Map<ExperienceAmount, double> experienceRate = {
+    ExperienceAmount.large: 0.2,
+    ExperienceAmount.medium: 0.01,
+    ExperienceAmount.small: 0.4,
+  };
+
+  Future<void> loadRunIdleAnimations() async {
+    entityAnimations[EntityStatus.idle] =
+        await spriteAnimations.mushroomBossIdle1;
+  }
+
+  ///['spinning']
+  ///['invincible']
+  ///none
+  Future<void> toggleIdleRunAnimations(String state) async {
+    switch (state) {
+      case 'spinning':
+        entityAnimations[EntityStatus.idle] = entityAnimations['spin']!.clone();
+
+        break;
+      case 'invincible':
+        entityAnimations[EntityStatus.idle] =
+            entityAnimations['eye_close_idle']!.clone();
+
+        break;
+
+      default:
+        await loadRunIdleAnimations();
+    }
+
+    entityAnimationsGroup.resetTicker(EntityStatus.idle);
+  }
+
+  @override
+  void applyDamage(DamageInstance damage) {
+    hitSinceLastSpin = true;
+    super.applyDamage(damage);
+  }
+
+  @override
+  Map<ExpendableType, double> get expendableRate => {
+        ...ExpendableType.values.asMap().map(
+              (key, value) => MapEntry(
+                value,
+                (1 / ExpendableType.values.length * key).clamp(.1, 1),
+              ),
+            ),
+      };
+
+  @override
+  // TODO: implement filter
+  Filter? get filter => Filter()
+    ..categoryBits = enemyCategory
+    ..maskBits = playerCategory +
+        swordCategory +
+        projectileCategory +
+        sensorCategory +
+        areaEffectCategory;
+
+  @override
+  final (int, int) experiencePerDrop = (10, 50);
+
+  @override
+  bool get hideShadow => true;
+
+  @override
+  Future<void> loadAnimationSprites() async {
+    await loadRunIdleAnimations();
+
+    entityAnimations[EntityStatus.dead] =
+        await spriteAnimations.mushroomBossDead1;
+    entityAnimations[EntityStatus.run] =
+        await spriteAnimations.mushroomBossSpin1;
+
+    entityAnimations[EntityStatus.spawn] =
+        await spriteAnimations.mushroomBossSpawn1;
+
+    entityAnimations['spin_start'] =
+        await spriteAnimations.mushroomBossSpinStart1;
+
+    entityAnimations['spin_end'] = await spriteAnimations.mushroomBossSpinEnd1;
+
+    entityAnimations['spin'] = await spriteAnimations.mushroomBossSpin1;
+
+    entityAnimations['eye_close'] =
+        await spriteAnimations.mushroomBossEyeClose1;
+    entityAnimations['eye_close_idle'] =
+        await spriteAnimations.mushroomBossEyeCloseIdle1;
+    entityAnimations['eye_open'] = await spriteAnimations.mushroomBossEyeOpen1;
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await loadAnimationSprites();
+    await super.onLoad();
+    // startAttacking();
+  }
+
+  @override
+  void update(double dt) {
+    if (entityAnimationsGroup.animations?[EntityStatus.run] ==
+        entityAnimations['spin']) {}
+    if (canMove) {
+      moveCharacter();
+    }
+    super.update(dt);
+  }
 }

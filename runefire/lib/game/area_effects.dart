@@ -5,6 +5,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:runefire/entities/entity_mixin.dart';
+import 'package:runefire/enviroment_interactables/areas.dart';
 import 'package:runefire/player/player.dart';
 import 'package:runefire/resources/constants/priorities.dart';
 import 'package:runefire/resources/enums.dart';
@@ -12,6 +13,7 @@ import 'package:runefire/resources/constants/physics_filter.dart';
 import 'package:runefire/resources/functions/custom.dart';
 import 'package:runefire/resources/functions/extensions.dart';
 import 'package:runefire/resources/functions/functions.dart';
+import 'package:runefire/resources/visuals.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:runefire/entities/entity_class.dart';
@@ -29,7 +31,7 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     required this.position,
     required this.sourceEntity,
     this.animationComponent,
-    this.radius = 3,
+    this.radius = 2.5,
     this.duration = 5,
     this.durationType = DurationType.instant,
     this.collisionDelay = .3,
@@ -38,11 +40,12 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
     this.damage,
     this.onTick,
     int? overridePriority,
+    this.customColor,
     this.isSolid = false,
     this.animationRandomlyFlipped = true,
   }) {
     radius *= sourceEntity.areaSizePercentIncrease.parameter;
-    priority = overridePriority ?? attackPriority;
+    priority = overridePriority ?? particlePriority;
 
     animationComponent?.size = Vector2.all(radius * 2);
     animationComponent?.durationType = durationType;
@@ -55,7 +58,9 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
 
     this.areaId = areaId ?? const Uuid().v4();
   }
+
   Map<DamageType, (double, double)>? damage;
+  DefaultAreaEffectColor? customColor;
 
   bool get hasEffect => damage != null || onTick != null;
 
@@ -86,39 +91,62 @@ class AreaEffect extends BodyComponent<GameRouter> with ContactCallbacks {
   Future<void> onLoad() async {
     if (animationComponent == null) {
       SpriteAnimation? spawnAnimation;
-      var anchor = Anchor.center;
+      SpriteAnimation? deadAnimation;
 
       if (damage != null && damage!.isNotEmpty) {
         final damageType = damage!.keys.toList().random();
         switch (damageType) {
           case DamageType.fire:
-            spawnAnimation = await spriteAnimations.fireExplosionMedium1;
+            spawnAnimation = await spriteAnimations.fireOrbMedium1;
 
             break;
           case DamageType.energy:
-            spawnAnimation = await spriteAnimations.energyStrikeMedium1;
-
-            anchor = Anchor.bottomCenter;
+            spawnAnimation = await spriteAnimations.energyOrbMedium1;
 
             break;
           case DamageType.psychic:
             spawnAnimation = await spriteAnimations.psychicOrbMedium1;
 
-            // anchor = const Anchor(.5, .9);
-
             break;
-          default:
-            spawnAnimation = await spriteAnimations.fireExplosionMedium1;
+
+          case DamageType.physical:
+            spawnAnimation = await spriteAnimations.physicalOrbMedium1;
+
+          case DamageType.magic:
+            spawnAnimation = await spriteAnimations.magicOrbMedium1;
+          case DamageType.frost:
+            spawnAnimation = await spriteAnimations.frostOrbMedium1;
+          case DamageType.healing:
+            spawnAnimation = await spriteAnimations.healingOrbMedium1;
         }
         animationComponent?.spawnAnimation = spawnAnimation;
+      } else if (customColor != null) {
+        switch (customColor!) {
+          case DefaultAreaEffectColor.blue:
+            spawnAnimation = await spriteAnimations.defaultBlueAreaEffect1;
+            break;
+          case DefaultAreaEffectColor.brown:
+            spawnAnimation = await spriteAnimations.defaultBrownAreaEffect1;
+          case DefaultAreaEffectColor.green:
+            spawnAnimation = await spriteAnimations.defaultGreenAreaEffect1;
+          case DefaultAreaEffectColor.red:
+            spawnAnimation = await spriteAnimations.defaultRedAreaEffect1;
+          case DefaultAreaEffectColor.spore:
+            spawnAnimation = await spriteAnimations.mushroomSpore1;
+            deadAnimation = await spriteAnimations.fireOrbMedium1;
+        }
       }
 
       animationComponent = SimpleStartPlayEndSpriteAnimationComponent(
         durationType: durationType,
-        anchor: anchor,
         spawnAnimation:
-            spawnAnimation ?? await spriteAnimations.fireExplosionMedium1,
+            spawnAnimation ?? await spriteAnimations.defaultBlueAreaEffect1
+              ..loop = false,
         randomlyFlipped: animationRandomlyFlipped,
+        endAnimation: deadAnimation,
+        playAnimation: spawnAnimation == null
+            ? await spriteAnimations.defaultBlueAreaEffect1
+            : null,
         desiredWidth: radius * 2,
       );
     }

@@ -48,6 +48,9 @@ abstract class Entity extends BodyComponent<GameRouter>
     });
   }
 
+  final bool hideShadow = false;
+  final bool preventAutoPriorityShuffle = false;
+
   final List<Function(double dt)> onUpdate = [];
   final List<Function(bool isFlipped)> onBodyFlip = [];
   final List<Function(Entity entity, Set<Entity> currentEntities)>

@@ -120,6 +120,9 @@ mixin BaseAttributes {
   late final DamagePercentParameterManager damageTypeDamagePercentIncrease;
   late final DoubleParameterManager essenceSteal;
   late final DoubleParameterManager knockBackIncreaseParameter;
+  late final DoubleParameterManager knockBackResistanceParameter =
+      DoubleParameterManager(baseParameter: 1);
+
   late final IntParameterManager maxLives;
   late final DoubleParameterManager meleeDamagePercentIncrease;
   late final DoubleParameterManager projectileDamagePercentIncrease;
@@ -312,7 +315,9 @@ mixin MovementFunctionality on Entity {
     required double amount,
     required Vector2 direction,
   }) {
-    body.applyLinearImpulse(direction * amount);
+    body.applyLinearImpulse(
+      direction * amount * knockBackResistanceParameter.parameter,
+    );
   }
 
   bool get hasMoveVelocities => _moveVelocities.isNotEmpty;
@@ -1009,7 +1014,7 @@ mixin HealthFunctionality on Entity {
         damageTexts[element.key] = (previousText.$1, newVal);
         previousText.$1.add(
           ScaleEffect.to(
-            Vector2(1.1, 1.1),
+            Vector2(1.025, 1.025),
             EffectController(
               duration: .2,
               reverseDuration: .1,
@@ -1122,8 +1127,6 @@ mixin HealthFunctionality on Entity {
           amount *
           (damage.sourceWeapon?.knockBackAmount.parameter ?? 0);
 
-      print(impulse);
-
       move.applyKnockback(
         amount: impulse,
         direction: (center - damage.source.center).normalized(),
@@ -1165,18 +1168,16 @@ mixin HealthFunctionality on Entity {
       final weapon =
           damage.sourceWeapon! as AttributeWeaponFunctionsFunctionality;
 
-      for (final element in weapon.onKill) {
+      for (final element in [...weapon.onKill]) {
         element(this);
       }
     }
     final other = damage.source;
     final otherFunctions = other.attributeFunctionsFunctionality;
-    if (this is AttributeFunctionality) {
-      final attr = this as AttributeFunctionality;
-    }
+
     if (otherFunctions != null) {
-      for (final element in otherFunctions.onKillOtherEntity) {
-        element(damage);
+      for (final element in [...otherFunctions.onKillOtherEntity]) {
+        element.call(damage);
       }
     }
   }
@@ -1231,7 +1232,6 @@ mixin HealthFunctionality on Entity {
             .killPlayer(endGameState, this as Player, damage);
       }
     });
-
     _permanentDeathFunctionsCall(damage);
   }
 

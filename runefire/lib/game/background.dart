@@ -66,7 +66,9 @@ class SpriteShadows extends Component {
 
   @override
   void update(double dt) {
-    env.activeEntites.forEach((element) {
+    env.activeEntites
+        .where((element) => !element.preventAutoPriorityShuffle)
+        .forEach((element) {
       switch (element.entityType) {
         case EntityType.enemy:
           element.priority = entityPriority + (element.position.y * 10).toInt();
@@ -84,7 +86,8 @@ class SpriteShadows extends Component {
   void render(Canvas canvas) {
     final viewPortSize = Vector2.zero();
     final temp = Vector2.zero();
-    for (final element in env.activeEntites) {
+    for (final element
+        in env.activeEntites.where((element) => !element.hideShadow)) {
       final heightPar = element.spriteSize.y;
       temp.setFrom(((element.center)) + viewPortSize);
       temp.y += heightPar * .5;

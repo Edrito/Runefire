@@ -218,7 +218,38 @@ class SpriteAnimations {
   //   false,
   // );
 
+  late Future<SpriteAnimation> mushroomSpore1 = loadSpriteAnimation(
+    2,
+    ImagesAssetsBackground.mushroomSpore.flamePath,
+    .5,
+    true,
+  );
+
 //MagicEffects
+  late Future<SpriteAnimation> defaultBlueAreaEffect1 = loadSpriteAnimation(
+    11,
+    ImagesAssetsEffects.defaultAreaEffect11.flamePath,
+    .3,
+    true,
+  );
+  late Future<SpriteAnimation> defaultRedAreaEffect1 = loadSpriteAnimation(
+    11,
+    ImagesAssetsEffects.redDefaultAreaEffect11.flamePath,
+    .3,
+    true,
+  );
+  late Future<SpriteAnimation> defaultBrownAreaEffect1 = loadSpriteAnimation(
+    11,
+    ImagesAssetsEffects.brownDefaultAreaEffect11.flamePath,
+    .3,
+    true,
+  );
+  late Future<SpriteAnimation> defaultGreenAreaEffect1 = loadSpriteAnimation(
+    11,
+    ImagesAssetsEffects.greenDefaultAreaEffect11.flamePath,
+    .3,
+    true,
+  );
   late Future<SpriteAnimation> fireExplosionMedium1 =
       loadSpriteAnimation(16, 'effects/explosion_1_16.png', .05, false);
 
@@ -235,7 +266,38 @@ class SpriteAnimations {
     .05,
     false,
   );
+  late Future<SpriteAnimation> healingOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.healingOrb118.flamePath,
+    .05,
+    false,
+  );
+  late Future<SpriteAnimation> magicOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.magicOrb118.flamePath,
+    .05,
+    false,
+  );
 
+  late Future<SpriteAnimation> energyOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.energyOrb118.flamePath,
+    .05,
+    false,
+  );
+  late Future<SpriteAnimation> frostOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.frostOrb118.flamePath,
+    .05,
+    false,
+  );
+
+  late Future<SpriteAnimation> physicalOrbMedium1 = loadSpriteAnimation(
+    18,
+    ImagesAssetsEffects.physicalOrb118.flamePath,
+    .05,
+    false,
+  );
   late Future<SpriteAnimation> fireSwordIdle1 = loadSpriteAnimation(
     1,
     ImagesAssetsFlameSword.flameSword.flamePath,
@@ -416,10 +478,32 @@ class SpriteAnimations {
     .1,
     false,
   );
-
   late Future<SpriteAnimation> mushroomRunnerDead1 = loadSpriteAnimation(
     4,
     'enemy_sprites/mushroomRunner/dead.png',
+    .15,
+    false,
+  );
+
+//Mushroom Runner scared
+
+  late Future<SpriteAnimation> mushroomRunnerScaredIdle1 = loadSpriteAnimation(
+    2,
+    'enemy_sprites/mushroomRunnerScared/idle.png',
+    .15,
+    true,
+  );
+
+  late Future<SpriteAnimation> mushroomRunnerScaredRun1 = loadSpriteAnimation(
+    2,
+    'enemy_sprites/mushroomRunnerScared/run.png',
+    .15,
+    true,
+  );
+
+  late Future<SpriteAnimation> mushroomRunnerScaredDead1 = loadSpriteAnimation(
+    4,
+    'enemy_sprites/mushroomRunnerScared/dead.png',
     .15,
     false,
   );
@@ -540,6 +624,69 @@ class SpriteAnimations {
     4,
     ImagesAssetsRuneknight.runeknightHit1.flamePath,
     .08,
+    false,
+  );
+
+//Mushroom Spinner
+
+  late Future<SpriteAnimation> mushroomBossDead1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.die.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.die.flamePath,
+    .2,
+    false,
+  );
+
+  late Future<SpriteAnimation> mushroomBossSpawn1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.spawn.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.spawn.flamePath,
+    .1,
+    false,
+  );
+
+  late Future<SpriteAnimation> mushroomBossIdle1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.idle.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.idle.flamePath,
+    .1,
+    true,
+  );
+
+  late Future<SpriteAnimation> mushroomBossSpin1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.spin.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.spin.flamePath,
+    .2,
+    true,
+  );
+
+  late Future<SpriteAnimation> mushroomBossEyeCloseIdle1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.eyeCloseIdle.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.eyeCloseIdle.flamePath,
+    .2,
+    true,
+  );
+  late Future<SpriteAnimation> mushroomBossSpinStart1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.spinStart.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.spinStart.flamePath,
+    .1,
+    false,
+  );
+
+  late Future<SpriteAnimation> mushroomBossSpinEnd1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.spinEnd.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.spinEnd.flamePath,
+    .1,
+    false,
+  );
+
+  late Future<SpriteAnimation> mushroomBossEyeClose1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.eyeClose.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.eyeClose.flamePath,
+    .1,
+    false,
+  );
+  late Future<SpriteAnimation> mushroomBossEyeOpen1 = loadSpriteAnimation(
+    ImagesAssetsMushroomBoss.eyeOpen.potentialFrameCount!,
+    ImagesAssetsMushroomBoss.eyeOpen.flamePath,
+    .1,
     false,
   );
 

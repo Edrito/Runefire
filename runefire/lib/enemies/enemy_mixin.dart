@@ -28,11 +28,13 @@ mixin DropItemFunctionality on HealthFunctionality {
   abstract Map<ExperienceAmount, double> experienceRate;
 
   Map<ExpendableType, double> expendableRate = {
-    ExpendableType.experienceAttract: 0,
-    ExpendableType.fearEnemies: 0,
-    ExpendableType.teleport: 0,
-    ExpendableType.stunEnemies: 0,
-    ExpendableType.healing: 0,
+    ...ExpendableType.values
+        .where((element) => element != ExpendableType.weapon)
+        .toList()
+        .asMap()
+        .map(
+          (key, value) => MapEntry(value, 0.002),
+        ),
   };
 
   //Random value between the two ints is chosen
@@ -99,6 +101,9 @@ mixin DropItemFunctionality on HealthFunctionality {
   }
 
   bool? _calculateDeathDrops(DamageInstance instance) {
+    if (!instance.source.isPlayer) {
+      return false;
+    }
     final temp = _calculateExperienceDrop();
     gameEnviroment.addPhysicsComponent(temp);
     final tempTwo = _calculateExpendableDrop();
@@ -272,8 +277,8 @@ mixin SimpleShoot on AttackFunctionality {
 }
 
 mixin SimpleFollowRangeAI on MovementFunctionality {
-  double targetUpdateFrequency = .2;
-  double zoningDistance = 10;
+  double targetUpdateFrequency = 1.5;
+  double zoningDistance = 7;
 
   void _dumbFollowRangeTargetTick() {
     final newPosition = (gameEnviroment.player!.center - body.position) -

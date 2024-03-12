@@ -88,7 +88,7 @@ class Player extends Entity
           modifyElementalPower(
             element.key,
             //demo == 2000
-            (element.value.isFinite ? element.value : 100) / 2000,
+            (element.value.isFinite ? element.value : 100) / 1000,
           );
         }
       });
@@ -263,7 +263,7 @@ class Player extends Entity
   }
 
   void parseGamepadJoy(GamepadEvent event) {
-    if (disableInput.parameter) {
+    if (disableInput.parameter || !isLoaded) {
       return;
     }
     var buttonToCheck = event.button;
@@ -659,28 +659,28 @@ class Player extends Entity
     final returnList = <EndGameExperienceEntry>[
       (
         label: 'Total XP:',
-        amount: experiencePointsGained + 5555222,
+        amount: experiencePointsGained,
         damageType: null,
         isTotal: true,
-        rating: 'SS'
+        rating: 'A+'
       ),
       (
-        label: 'Tota22:',
-        amount: 53.00,
+        label: 'To:',
+        amount: 000.00,
         damageType: null,
         isTotal: false,
         rating: null
       ),
       (
-        label: 'Elemental Prowess Bonus:',
-        amount: 1201,
+        label: 'Do:',
+        amount: 000,
         damageType: DamageType.fire,
         isTotal: false,
         rating: null
       ),
       (
-        label: 'Weapon Pickup Bonus:',
-        amount: 5555,
+        label: 'Add more items:',
+        amount: 000,
         damageType: null,
         isTotal: false,
         rating: null

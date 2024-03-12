@@ -103,22 +103,19 @@ static const FileDataClass graveyard =
 (path:"assets/images/background/graveyard.jpg",flamePath:"background/graveyard.jpg", size:null,
  potentialFrameCount:null   );///hexed_forest_display.png
 static const FileDataClass hexedForestDisplay = 
-(path:"assets/images/background/hexed_forest_display.png",flamePath:"background/hexed_forest_display.png", size:(1920.0,1280.0),
- potentialFrameCount:2   );///mushroom_garden.png
+(path:"assets/images/background/hexed_forest_display.png",flamePath:"background/hexed_forest_display.png", size:(3600.0,3600.0),
+ potentialFrameCount:1   );///mushroom_garden.png
 static const FileDataClass mushroomGarden = 
 (path:"assets/images/background/mushroom_garden.png",flamePath:"background/mushroom_garden.png", size:(3600.0,3600.0),
- potentialFrameCount:1   );///outerRing.png
+ potentialFrameCount:1   );///mushroom_spore.png
+static const FileDataClass mushroomSpore = 
+(path:"assets/images/background/mushroom_spore.png",flamePath:"background/mushroom_spore.png", size:(64.0,32.0),
+ potentialFrameCount:2   );///outerRing.png
 static const FileDataClass outerRing = 
 (path:"assets/images/background/outerRing.png",flamePath:"background/outerRing.png", size:(128.0,128.0),
  potentialFrameCount:1   );///outerRingPatterns.png
 static const FileDataClass outerRingPatterns = 
 (path:"assets/images/background/outerRingPatterns.png",flamePath:"background/outerRingPatterns.png", size:(100.0,100.0),
- potentialFrameCount:1   );///preview_glare.jpg
-static const FileDataClass previewGlare = 
-(path:"assets/images/background/preview_glare.jpg",flamePath:"background/preview_glare.jpg", size:null,
- potentialFrameCount:null   );///test_tile.png
-static const FileDataClass testTile = 
-(path:"assets/images/background/test_tile.png",flamePath:"background/test_tile.png", size:(50.0,50.0),
  potentialFrameCount:1   );static  List<String> allFiles = [blank.path,
 cave.path,
 caveFront.path,
@@ -127,10 +124,9 @@ dungeon.path,
 graveyard.path,
 hexedForestDisplay.path,
 mushroomGarden.path,
+mushroomSpore.path,
 outerRing.path,
 outerRingPatterns.path,
-previewGlare.path,
-testTile.path,
 ];
 static  List<String> allFilesFlame = [blank.flamePath,
 cave.flamePath,
@@ -140,10 +136,9 @@ dungeon.flamePath,
 graveyard.flamePath,
 hexedForestDisplay.flamePath,
 mushroomGarden.flamePath,
+mushroomSpore.flamePath,
 outerRing.flamePath,
 outerRingPatterns.flamePath,
-previewGlare.flamePath,
-testTile.flamePath,
 ];
 }
 class ImagesAssetsRunes {
@@ -191,36 +186,81 @@ rune8.flamePath,
 ];
 }
 class ImagesAssetsEffects {
-///energy_1_10.png
+///brown_default_area_effect_11.png
+static const FileDataClass brownDefaultAreaEffect11 = 
+(path:"assets/images/effects/brown_default_area_effect_11.png",flamePath:"effects/brown_default_area_effect_11.png", size:(1100.0,100.0),
+ potentialFrameCount:11   );///default_area_effect_11.png
+static const FileDataClass defaultAreaEffect11 = 
+(path:"assets/images/effects/default_area_effect_11.png",flamePath:"effects/default_area_effect_11.png", size:(1100.0,100.0),
+ potentialFrameCount:11   );///energy_1_10.png
 static const FileDataClass energy110 = 
 (path:"assets/images/effects/energy_1_10.png",flamePath:"effects/energy_1_10.png", size:(640.0,128.0),
- potentialFrameCount:5   );///explosion_1_16.png
+ potentialFrameCount:5   );///energy_orb_1_18.png
+static const FileDataClass energyOrb118 = 
+(path:"assets/images/effects/energy_orb_1_18.png",flamePath:"effects/energy_orb_1_18.png", size:(864.0,48.0),
+ potentialFrameCount:18   );///explosion_1_16.png
 static const FileDataClass explosion116 = 
 (path:"assets/images/effects/explosion_1_16.png",flamePath:"effects/explosion_1_16.png", size:(1024.0,64.0),
  potentialFrameCount:16   );///fire_orb_1_18.png
 static const FileDataClass fireOrb118 = 
 (path:"assets/images/effects/fire_orb_1_18.png",flamePath:"effects/fire_orb_1_18.png", size:(864.0,48.0),
+ potentialFrameCount:18   );///frost_orb_1_18.png
+static const FileDataClass frostOrb118 = 
+(path:"assets/images/effects/frost_orb_1_18.png",flamePath:"effects/frost_orb_1_18.png", size:(864.0,48.0),
+ potentialFrameCount:18   );///green_default_area_effect_11.png
+static const FileDataClass greenDefaultAreaEffect11 = 
+(path:"assets/images/effects/green_default_area_effect_11.png",flamePath:"effects/green_default_area_effect_11.png", size:(1100.0,100.0),
+ potentialFrameCount:11   );///healing_orb_1_18.png
+static const FileDataClass healingOrb118 = 
+(path:"assets/images/effects/healing_orb_1_18.png",flamePath:"effects/healing_orb_1_18.png", size:(864.0,48.0),
+ potentialFrameCount:18   );///magic_orb_1_18.png
+static const FileDataClass magicOrb118 = 
+(path:"assets/images/effects/magic_orb_1_18.png",flamePath:"effects/magic_orb_1_18.png", size:(864.0,48.0),
  potentialFrameCount:18   );///pheonix_revive_1_5.png
 static const FileDataClass pheonixRevive15 = 
 (path:"assets/images/effects/pheonix_revive_1_5.png",flamePath:"effects/pheonix_revive_1_5.png", size:(240.0,48.0),
- potentialFrameCount:5   );///psychic_orb_1_18.png
+ potentialFrameCount:5   );///physical_orb_1_18.png
+static const FileDataClass physicalOrb118 = 
+(path:"assets/images/effects/physical_orb_1_18.png",flamePath:"effects/physical_orb_1_18.png", size:(864.0,48.0),
+ potentialFrameCount:18   );///psychic_orb_1_18.png
 static const FileDataClass psychicOrb118 = 
 (path:"assets/images/effects/psychic_orb_1_18.png",flamePath:"effects/psychic_orb_1_18.png", size:(864.0,48.0),
- potentialFrameCount:18   );///star_5.png
+ potentialFrameCount:18   );///red_default_area_effect_11.png
+static const FileDataClass redDefaultAreaEffect11 = 
+(path:"assets/images/effects/red_default_area_effect_11.png",flamePath:"effects/red_default_area_effect_11.png", size:(1100.0,100.0),
+ potentialFrameCount:11   );///star_5.png
 static const FileDataClass star5 = 
 (path:"assets/images/effects/star_5.png",flamePath:"effects/star_5.png", size:(80.0,16.0),
- potentialFrameCount:5   );static  List<String> allFiles = [energy110.path,
+ potentialFrameCount:5   );static  List<String> allFiles = [brownDefaultAreaEffect11.path,
+defaultAreaEffect11.path,
+energy110.path,
+energyOrb118.path,
 explosion116.path,
 fireOrb118.path,
+frostOrb118.path,
+greenDefaultAreaEffect11.path,
+healingOrb118.path,
+magicOrb118.path,
 pheonixRevive15.path,
+physicalOrb118.path,
 psychicOrb118.path,
+redDefaultAreaEffect11.path,
 star5.path,
 ];
-static  List<String> allFilesFlame = [energy110.flamePath,
+static  List<String> allFilesFlame = [brownDefaultAreaEffect11.flamePath,
+defaultAreaEffect11.flamePath,
+energy110.flamePath,
+energyOrb118.flamePath,
 explosion116.flamePath,
 fireOrb118.flamePath,
+frostOrb118.flamePath,
+greenDefaultAreaEffect11.flamePath,
+healingOrb118.flamePath,
+magicOrb118.flamePath,
 pheonixRevive15.flamePath,
+physicalOrb118.flamePath,
 psychicOrb118.flamePath,
+redDefaultAreaEffect11.flamePath,
 star5.flamePath,
 ];
 }
@@ -369,6 +409,55 @@ run.flamePath,
 run2.flamePath,
 ];
 }
+class ImagesAssetsMushroomBoss {
+///die.png
+static const FileDataClass die = 
+(path:"assets/images/enemy_sprites/mushroomBoss/die.png",flamePath:"enemy_sprites/mushroomBoss/die.png", size:(2432.0,128.0),
+ potentialFrameCount:19   );///eye_close.png
+static const FileDataClass eyeClose = 
+(path:"assets/images/enemy_sprites/mushroomBoss/eye_close.png",flamePath:"enemy_sprites/mushroomBoss/eye_close.png", size:(512.0,128.0),
+ potentialFrameCount:4   );///eye_close_idle.png
+static const FileDataClass eyeCloseIdle = 
+(path:"assets/images/enemy_sprites/mushroomBoss/eye_close_idle.png",flamePath:"enemy_sprites/mushroomBoss/eye_close_idle.png", size:(256.0,128.0),
+ potentialFrameCount:2   );///eye_open.png
+static const FileDataClass eyeOpen = 
+(path:"assets/images/enemy_sprites/mushroomBoss/eye_open.png",flamePath:"enemy_sprites/mushroomBoss/eye_open.png", size:(512.0,128.0),
+ potentialFrameCount:4   );///idle.png
+static const FileDataClass idle = 
+(path:"assets/images/enemy_sprites/mushroomBoss/idle.png",flamePath:"enemy_sprites/mushroomBoss/idle.png", size:(2048.0,128.0),
+ potentialFrameCount:16   );///spawn.png
+static const FileDataClass spawn = 
+(path:"assets/images/enemy_sprites/mushroomBoss/spawn.png",flamePath:"enemy_sprites/mushroomBoss/spawn.png", size:(896.0,128.0),
+ potentialFrameCount:7   );///spin.png
+static const FileDataClass spin = 
+(path:"assets/images/enemy_sprites/mushroomBoss/spin.png",flamePath:"enemy_sprites/mushroomBoss/spin.png", size:(256.0,128.0),
+ potentialFrameCount:2   );///spin_end.png
+static const FileDataClass spinEnd = 
+(path:"assets/images/enemy_sprites/mushroomBoss/spin_end.png",flamePath:"enemy_sprites/mushroomBoss/spin_end.png", size:(1024.0,128.0),
+ potentialFrameCount:8   );///spin_start.png
+static const FileDataClass spinStart = 
+(path:"assets/images/enemy_sprites/mushroomBoss/spin_start.png",flamePath:"enemy_sprites/mushroomBoss/spin_start.png", size:(1024.0,128.0),
+ potentialFrameCount:8   );static  List<String> allFiles = [die.path,
+eyeClose.path,
+eyeCloseIdle.path,
+eyeOpen.path,
+idle.path,
+spawn.path,
+spin.path,
+spinEnd.path,
+spinStart.path,
+];
+static  List<String> allFilesFlame = [die.flamePath,
+eyeClose.flamePath,
+eyeCloseIdle.flamePath,
+eyeOpen.flamePath,
+idle.flamePath,
+spawn.flamePath,
+spin.flamePath,
+spinEnd.flamePath,
+spinStart.flamePath,
+];
+}
 class ImagesAssetsMushroomBurrower {
 ///burrow_in.png
 static const FileDataClass burrowIn = 
@@ -442,6 +531,25 @@ static const FileDataClass idle =
  potentialFrameCount:2   );///run.png
 static const FileDataClass run = 
 (path:"assets/images/enemy_sprites/mushroomRunner/run.png",flamePath:"enemy_sprites/mushroomRunner/run.png", size:(64.0,32.0),
+ potentialFrameCount:2   );static  List<String> allFiles = [dead.path,
+idle.path,
+run.path,
+];
+static  List<String> allFilesFlame = [dead.flamePath,
+idle.flamePath,
+run.flamePath,
+];
+}
+class ImagesAssetsMushroomRunnerScared {
+///dead.png
+static const FileDataClass dead = 
+(path:"assets/images/enemy_sprites/mushroomRunnerScared/dead.png",flamePath:"enemy_sprites/mushroomRunnerScared/dead.png", size:(128.0,32.0),
+ potentialFrameCount:4   );///idle.png
+static const FileDataClass idle = 
+(path:"assets/images/enemy_sprites/mushroomRunnerScared/idle.png",flamePath:"enemy_sprites/mushroomRunnerScared/idle.png", size:(64.0,32.0),
+ potentialFrameCount:2   );///run.png
+static const FileDataClass run = 
+(path:"assets/images/enemy_sprites/mushroomRunnerScared/run.png",flamePath:"enemy_sprites/mushroomRunnerScared/run.png", size:(64.0,32.0),
  potentialFrameCount:2   );static  List<String> allFiles = [dead.path,
 idle.path,
 run.path,
