@@ -378,39 +378,7 @@ class InputManager with WindowListener {
     buildTimer();
   }
 
-  void buildTimer() {
-    timeoutTimer?.cancel();
-    timeoutTimer = ac.Timer(
-      const Duration(seconds: 30),
-      () {
-        _onTimeoutList.forEach((element) => element.call());
-      },
-    );
-  }
-
-  ac.Timer? timeoutTimer;
-
-  void addOnTimeoutListener(Function() onTimeout) {
-    _onTimeoutList.add(onTimeout);
-  }
-
-  void removeOnTimeoutListener(Function() onTimeout) {
-    _onTimeoutList.remove(onTimeout);
-  }
-
-  final List<Function()> _onTimeoutList = [];
-
   void _setVibrationZero() => gamepadInputManager.gamepad.vibrate();
-
-  final List<Function()> onCommonlyUsedBackButton = [];
-
-  void addCommonlyUsedBackButtonListener(Function() onBack) {
-    onCommonlyUsedBackButton.add(onBack);
-  }
-
-  void removeCommonlyUsedBackButtonListener(Function() onBack) {
-    onCommonlyUsedBackButton.remove(onBack);
-  }
 
   //singleton
   static final InputManager _instance = InputManager._internal();
@@ -426,6 +394,8 @@ class InputManager with WindowListener {
 
   Offset? _gamepadCursorPosition;
 
+  final List<Function()> _onTimeoutList = [];
+  final List<Function()> onCommonlyUsedBackButton = [];
   late final CustomInputWatcherWidgetManager customInputWatcherManager;
   late final GamepadInputManager gamepadInputManager;
 
@@ -452,6 +422,7 @@ class InputManager with WindowListener {
   //tick rate faker for primary and secondary mouse/pointer holding
   ac.Timer? holdCallTimer;
 
+  bool isFullscreen = false;
   //if true then the holdcalltimer is for primary click, if false then for secondary
   //if null then not active
   bool? isPrimaryTimerActive;
@@ -464,6 +435,7 @@ class InputManager with WindowListener {
   int? secondaryPointerId;
 
   Offset? latestPointerPosition;
+  ac.Timer? timeoutTimer;
   String? vibrationId;
 
   //Const duration for the primary and secondary hold tick rate
@@ -471,6 +443,10 @@ class InputManager with WindowListener {
 
   ExternalInputType get externalInputType => _externalInputType;
   Offset? get getGamepadCursorPosition => _gamepadCursorPosition;
+
+  void addCommonlyUsedBackButtonListener(Function() onBack) {
+    onCommonlyUsedBackButton.add(onBack);
+  }
 
   //Game components use this to add new callbacks
   void addGameActionListener(
@@ -487,6 +463,10 @@ class InputManager with WindowListener {
 
   void addKeyListener(Function(KeyEvent event) newListener) {
     _keyEventList.add(newListener);
+  }
+
+  void addOnTimeoutListener(Function() onTimeout) {
+    _onTimeoutList.add(onTimeout);
   }
 
   Future<void> applyVibration(
@@ -569,19 +549,19 @@ class InputManager with WindowListener {
     // customInputWatcherManager.onPointerMove();
   }
 
+  void buildTimer() {
+    timeoutTimer?.cancel();
+    timeoutTimer = ac.Timer(
+      const Duration(seconds: 120),
+      () {
+        _onTimeoutList.forEach((element) => element.call());
+      },
+    );
+  }
+
   void cancelVibration() {
     vibrationId = null;
     _setVibrationZero();
-  }
-
-  void clearGamepadCursorPosition() => _gamepadCursorPosition = null;
-
-  set externalInputType(ExternalInputType value) {
-    _externalInputType = value;
-  }
-
-  Offset? fetchJoyState(GamepadButtons joy) {
-    return gamepadInputManager.fetchJoyState(joy);
   }
 
   void checkCommonlyUsedBackButtonEvent(KeyEvent keyEvent) {
@@ -601,7 +581,16 @@ class InputManager with WindowListener {
     }
   }
 
-  bool isFullscreen = false;
+  void clearGamepadCursorPosition() => _gamepadCursorPosition = null;
+
+  set externalInputType(ExternalInputType value) {
+    _externalInputType = value;
+  }
+
+  Offset? fetchJoyState(GamepadButtons joy) {
+    return gamepadInputManager.fetchJoyState(joy);
+  }
+
   bool keyboardEventHandler(KeyEvent keyEvent) {
     for (final element in _keyEventList) {
       element.call(keyEvent);
@@ -861,6 +850,10 @@ class InputManager with WindowListener {
     customInputWatcherManager.checkStatesHovered();
   }
 
+  void removeCommonlyUsedBackButtonListener(Function() onBack) {
+    onCommonlyUsedBackButton.remove(onBack);
+  }
+
   void removeGameActionListener(
     GameAction gameAction,
     GameActionCallback callback,
@@ -876,6 +869,10 @@ class InputManager with WindowListener {
 
   void removeKeyListener(Function(KeyEvent event) listenerToRemove) {
     _keyEventList.remove(listenerToRemove);
+  }
+
+  void removeOnTimeoutListener(Function() onTimeout) {
+    _onTimeoutList.remove(onTimeout);
   }
 
   void setInitReferences(GameRouter gameRouter) {
