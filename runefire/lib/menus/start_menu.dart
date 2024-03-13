@@ -54,7 +54,7 @@ class _StartMenuState extends State<StartMenu> {
       },
     );
     demoScreenButtonComponent = CustomButton(
-      'Wireframe Demo Screen',
+      'Demo Screen',
       gameRef: widget.gameRef,
       rowId: 2,
       onPrimary: () {

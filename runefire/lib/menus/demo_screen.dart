@@ -513,7 +513,7 @@ class _DemoScreenState extends State<DemoScreen> {
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        'Wireframe Demo',
+                        'Demo Build',
                         style: defaultStyle.copyWith(
                           fontSize: 64,
                           // color: ApolloColorPalette.purple.color,

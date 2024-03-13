@@ -186,19 +186,6 @@ class ForestEnemyManagement extends EventManagement {
         eventBeginEnd: (30, 120),
         spawnLocation: SpawnLocation.outside,
       ),
-      // EnemyEvent(
-      //   gameEnviroment,
-      //   this,
-      //   isBigBoss: false,
-      //   clusterSpread: 4,
-      //   enemyClusters: [EnemyCluster(EnemyType.mushroomRunner, 4)],
-      //   numberOfClusters: 1,
-      //   maxEnemies: 8,
-      //   eventTriggerInterval: (1, 3),
-      //   levels: (1, 1),
-      //   eventBeginEnd: (120, 280),
-      //   spawnLocation: SpawnLocation.outside,
-      // ),
 
 //Scared
       EnemyEvent(
